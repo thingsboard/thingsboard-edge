@@ -37,7 +37,9 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 
@@ -52,4 +54,6 @@ public interface IntegrationApiService {
     ListenableFuture<Converter> getConverter(TenantId tenantId, ConverterId converterId);
 
     void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
+
+    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback);
 }

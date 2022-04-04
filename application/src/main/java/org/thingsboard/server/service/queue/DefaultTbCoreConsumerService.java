@@ -51,6 +51,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
@@ -81,6 +82,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
@@ -137,12 +139,15 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final RuleEngineCallService ruleEngineCallService;
     private final EdgeNotificationService edgeNotificationService;
     private final OtaPackageStateService firmwareStateService;
+    private final TbCoreIntegrationApiService tbCoreIntegrationApiService;
     private final TbCoreConsumerStats stats;
     protected final TbQueueConsumer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
     private final TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
+    private final TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> integrationApiConsumer;
 
     protected volatile ExecutorService usageStatsExecutor;
     private volatile ExecutorService firmwareStatesExecutor;
+    private volatile ExecutorService integrationApiExecutor;
 
     public DefaultTbCoreConsumerService(TbCoreQueueFactory tbCoreQueueFactory, ActorSystemContext actorContext,
                                         DeviceStateService stateService, SchedulerService schedulerService, TbLocalSubscriptionService localSubscriptionService,
@@ -151,11 +156,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         RuleEngineCallService ruleEngineCallService, StatsFactory statsFactory, TbDeviceProfileCache deviceProfileCache,
                                         TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
                                         EdgeNotificationService edgeNotificationService,
-                                        OtaPackageStateService firmwareStateService) {
+                                        OtaPackageStateService firmwareStateService,
+                                        TbCoreIntegrationApiService tbCoreIntegrationApiService) {
         super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();
+        this.integrationApiConsumer = tbCoreQueueFactory.createToCoreIntegrationMsgConsumer();
         this.stateService = stateService;
         this.schedulerService = schedulerService;
         this.localSubscriptionService = localSubscriptionService;
@@ -166,6 +173,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.edgeNotificationService = edgeNotificationService;
         this.stats = new TbCoreConsumerStats(statsFactory);
         this.firmwareStateService = firmwareStateService;
+        this.tbCoreIntegrationApiService = tbCoreIntegrationApiService;
     }
 
     @PostConstruct
@@ -173,6 +181,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         super.init("tb-core-consumer", "tb-core-notifications-consumer");
         this.usageStatsExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-usage-stats-consumer"));
         this.firmwareStatesExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-firmware-notifications-consumer"));
+        this.integrationApiExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("tb-core-integrations-consumer"));
     }
 
     @PreDestroy
@@ -184,6 +193,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         if (firmwareStatesExecutor != null) {
             firmwareStatesExecutor.shutdownNow();
         }
+        if (integrationApiExecutor != null) {
+            integrationApiExecutor.shutdownNow();
+        }
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -192,6 +204,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         super.onApplicationEvent(event);
         launchUsageStatsConsumer();
         launchOtaPackageUpdateNotificationConsumer();
+        launchIntegrationApiConsumer();
     }
 
     @Override
@@ -199,6 +212,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         if (event.getServiceType().equals(getServiceType())) {
             log.info("Subscribing to partitions: {}", event.getPartitions());
             this.mainConsumer.subscribe(event.getPartitions());
+            this.integrationApiConsumer.subscribe(
+                    event
+                            .getPartitions()
+                            .stream()
+                            .map(tpi -> tpi.newByTopic(integrationApiConsumer.getTopic()))
+                            .collect(Collectors.toSet()));
             this.usageStatsConsumer.subscribe(
                     event
                             .getPartitions()
@@ -435,6 +454,38 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 }
             }
             log.info("TB Ota Package States Consumer stopped.");
+        });
+    }
+
+    private void launchIntegrationApiConsumer() {
+        integrationApiExecutor.submit(() -> {
+            while (!stopped) {
+                try {
+                    List<TbProtoQueueMsg<ToCoreIntegrationMsg>> msgs = integrationApiConsumer.poll(getNotificationPollDuration());
+                    if (msgs.isEmpty()) {
+                        continue;
+                    }
+                    for (TbProtoQueueMsg<ToCoreIntegrationMsg> msg : msgs) {
+                        try {
+                            // TODO: ashvayka: improve the retry strategy.
+                            tbCoreIntegrationApiService.handle(msg, TbCallback.EMPTY);
+                        } catch (Throwable e) {
+                            log.warn("Failed to process integration msg: {}", msg, e);
+                        }
+                    }
+                    integrationApiConsumer.commit();
+                } catch (Exception e) {
+                    if (!stopped) {
+                        log.warn("Failed to obtain usage stats from queue.", e);
+                        try {
+                            Thread.sleep(getNotificationPollDuration());
+                        } catch (InterruptedException e2) {
+                            log.trace("Failed to wait until the server has capacity to handle new usage stats", e2);
+                        }
+                    }
+                }
+            }
+            log.info("TB Usage Stats Consumer stopped.");
         });
     }
 

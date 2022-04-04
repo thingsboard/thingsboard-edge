@@ -43,12 +43,14 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.MessagesStats;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
@@ -57,12 +59,12 @@ import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.IntegrationRequestProto;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -72,6 +74,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
@@ -142,23 +146,30 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
     }
 
     @Override
-    public void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto,
-                               DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
+    public void sendUplinkData(Integration integration, IntegrationInfoProto proto, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+        sendUplinkData(integration, proto, data, (b, d) -> b.setDeviceUplinkProto(d).build(), callback);
+    }
+
+    @Override
+    public void sendUplinkData(Integration integration, IntegrationInfoProto proto, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
+        sendUplinkData(integration, proto, data, (b, d) -> b.setAssetUplinkProto(d).build(), callback);
+    }
+
+    public <T> void sendUplinkData(Integration integration, IntegrationInfoProto proto, T data,
+                                   BiFunction<ToCoreIntegrationMsg.Builder, T, ToCoreIntegrationMsg> messageConstructor,
+                                   IntegrationCallback<Void> callback) {
+        var producer = producerProvider.getTbCoreIntegrationMsgProducer();
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId()).newByTopic(producer.getDefaultTopic());
         if (log.isTraceEnabled()) {
-            log.trace("[{}][{}] Pushing to topic {} message {}", integration.getTenantId(), integration.getId(), tpi.getFullTopicName(), uplinkData);
+            log.trace("[{}][{}] Pushing to topic {} message {}", integration.getTenantId(), integration.getId(), tpi.getFullTopicName(), data);
         }
         tbCoreProducerStats.incrementTotal();
         StatsTbQueueCallback wrappedCallback = new StatsTbQueueCallback(
                 callback != null ? new IntegrationTbQueueCallback(callbackExecutor, callback) : null, tbCoreProducerStats);
-        // TODO: ashvayka integration executor: use different producer;
-        producerProvider.getTbCoreIntegrationMsgProducer().send(tpi,
-                new TbProtoQueueMsg<>(integration.getId().getId(),
-                        ToCoreIntegrationMsg.newBuilder()
-                                .setIntegration(integrationInfoProto)
-                                .setDeviceUplinkProto(uplinkData)
-                                .build()),
-                wrappedCallback);
+
+        var builder = ToCoreIntegrationMsg.newBuilder().setIntegration(proto);
+        var msg = messageConstructor.apply(builder, data);
+        producer.send(tpi, new TbProtoQueueMsg<>(integration.getId().getId(), msg), wrappedCallback);
     }
 
     private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
@@ -167,9 +178,7 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
         var response = proto.getValue().getIntegrationListResponse().getIntegrationInfoListList();
 
         for (var integrationInfoProto : response) {
-            var integrationId = new IntegrationId(new UUID(integrationInfoProto.getIntegrationIdMSB(), integrationInfoProto.getIntegrationIdLSB()));
-            var tenantId = new TenantId(new UUID(integrationInfoProto.getTenantIdMSB(), integrationInfoProto.getTenantIdLSB()));
-            result.add(new IntegrationInfo(integrationId, tenantId, integrationInfoProto.getName(), IntegrationType.valueOf(integrationInfoProto.getType())));
+            result.add(IntegrationProtoUtil.toInfo(integrationInfoProto));
         }
 
         return result;

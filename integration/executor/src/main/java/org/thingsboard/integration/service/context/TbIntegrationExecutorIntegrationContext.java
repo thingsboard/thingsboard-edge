@@ -111,6 +111,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     @Override
     public void processUplinkData(AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
         log.info("Received uplink: {}", uplinkData);
+        apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
     @Override
