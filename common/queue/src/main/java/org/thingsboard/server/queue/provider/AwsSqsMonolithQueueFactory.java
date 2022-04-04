@@ -40,7 +40,6 @@ import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos.RemoteJsRequest;
 import org.thingsboard.server.gen.js.JsInvokeProtos.RemoteJsResponse;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.*;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -52,6 +51,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -78,12 +78,14 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbAwsSqsSettings sqsSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin transportApiAdmin;
     private final TbQueueAdmin notificationAdmin;
+    private final TbQueueAdmin integrationApiAdmin;
 
     public AwsSqsMonolithQueueFactory(PartitionService partitionService, TbQueueCoreSettings coreSettings,
                                       TbQueueRuleEngineSettings ruleEngineSettings,
@@ -92,7 +94,8 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
                                       TbQueueTransportNotificationSettings transportNotificationSettings,
                                       TbAwsSqsSettings sqsSettings,
                                       TbAwsSqsQueueAttributes sqsQueueAttributes,
-                                      TbQueueRemoteJsInvokeSettings jsInvokeSettings) {
+                                      TbQueueRemoteJsInvokeSettings jsInvokeSettings,
+                                      TbQueueIntegrationApiSettings integrationApiSettings) {
         this.partitionService = partitionService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
@@ -101,12 +104,14 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         this.transportNotificationSettings = transportNotificationSettings;
         this.sqsSettings = sqsSettings;
         this.jsInvokeSettings = jsInvokeSettings;
+        this.integrationApiSettings = integrationApiSettings;
 
         this.coreAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getCoreAttributes());
         this.ruleEngineAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getRuleEngineAttributes());
         this.jsExecutorAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getJsExecutorAttributes());
         this.transportApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getTransportApiAttributes());
         this.notificationAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getNotificationsAttributes());
+        this.integrationApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getIntegrationSettings());
     }
 
     @Override
@@ -218,20 +223,21 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbAwsSqsConsumerTemplate<>(integrationApiAdmin, sqsSettings, integrationApiSettings.getRequestsTopic(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbAwsSqsProducerTemplate<>(integrationApiAdmin, sqsSettings, integrationApiSettings.getResponsesTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbAwsSqsConsumerTemplate<>(coreAdmin, sqsSettings, coreSettings.getIntegrationsTopic(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
     }
 
     @PreDestroy
@@ -250,6 +256,9 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (integrationApiAdmin != null) {
+            integrationApiAdmin.destroy();
         }
     }
 }
