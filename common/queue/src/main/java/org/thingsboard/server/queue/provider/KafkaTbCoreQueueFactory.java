@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
@@ -192,6 +193,19 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         consumerBuilder.groupId("tb-core-notifications-node-" + serviceInfoProvider.getServiceId());
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(notificationAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCoreIntegrationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(coreSettings.getIntegrationsTopic());
+        consumerBuilder.clientId("tb-core-integrations-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId("tb-core-integrations-node");
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(coreAdmin);
         consumerBuilder.statsService(consumerStatsService);
         return consumerBuilder.build();
     }

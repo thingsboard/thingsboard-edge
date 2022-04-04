@@ -30,8 +30,13 @@
  */
 package org.thingsboard.server.service.integration;
 
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
+
+import java.util.UUID;
 
 public class IntegrationProtoUtil {
 
@@ -39,12 +44,24 @@ public class IntegrationProtoUtil {
         return IntegrationInfoProto.newBuilder()
                 .setIntegrationIdMSB(integrationInfo.getId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationInfo.getId().getId().getLeastSignificantBits())
-                .setTenantIdMSB(integrationInfo.getId().getId().getMostSignificantBits())
-                .setTenantIdLSB(integrationInfo.getId().getId().getLeastSignificantBits())
+                .setTenantIdMSB(integrationInfo.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(integrationInfo.getTenantId().getId().getLeastSignificantBits())
                 .setName(integrationInfo.getName())
                 .setType(integrationInfo.getType().name())
                 .setEnabled(integrationInfo.isEnabled())
-                .setRemote(integrationInfo.isRemote()).build();
+                .setRemote(integrationInfo.isRemote())
+                .setAllowCreateDevicesOrAssets(integrationInfo.isAllowCreateDevicesOrAssets())
+                .build();
     }
 
+    public static IntegrationInfo toInfo(IntegrationInfoProto proto) {
+        var result = new IntegrationInfo(new IntegrationId(new UUID(proto.getIntegrationIdMSB(), proto.getIntegrationIdLSB())));
+        result.setTenantId(new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())));
+        result.setName(proto.getName());
+        result.setType(IntegrationType.valueOf(proto.getType()));
+        result.setRemote(proto.getRemote());
+        result.setEnabled(proto.getEnabled());
+        result.setAllowCreateDevicesOrAssets(proto.getAllowCreateDevicesOrAssets());
+        return result;
+    }
 }

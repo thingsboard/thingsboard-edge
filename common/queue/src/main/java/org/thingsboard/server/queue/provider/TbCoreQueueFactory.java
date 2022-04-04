@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
@@ -125,6 +126,13 @@ public interface TbCoreQueueFactory extends TbUsageStatsClientQueueFactory {
     TbQueueConsumer<TbProtoQueueMsg<ToCoreNotificationMsg>> createToCoreNotificationsMsgConsumer();
 
     /**
+     * Used to consume messages from integration executed by TB Core Service
+     *
+     * @return
+     */
+    TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer();
+
+    /**
      * Used to consume Transport API Calls
      *
      * @return
@@ -162,4 +170,5 @@ public interface TbCoreQueueFactory extends TbUsageStatsClientQueueFactory {
     default TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createIntegrationRuleEngineMsgProducer() {
         return createRuleEngineMsgProducer();
     }
+
 }

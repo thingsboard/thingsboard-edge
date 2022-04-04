@@ -208,6 +208,7 @@ message IntegrationInfoProto {
   string name = 6;
   bool enabled = 7;
   bool remote = 8;
+  bool allowCreateDevicesOrAssets = 9;
 }
 
 message IntegrationInfoListRequestProto {

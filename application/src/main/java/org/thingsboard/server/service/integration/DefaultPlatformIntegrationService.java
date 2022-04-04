@@ -1094,7 +1094,8 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         if (newIntegration || forceReinit) {
             synchronized (integrationPair) {
                 try {
-                    integrationPair.getFirst().init(new TbIntegrationInitParams(integrationPair.getSecond(), configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
+                    // TODO: ashvayka: TMP do not init integrations in the tb-core.
+                    // integrationPair.getFirst().init(new TbIntegrationInitParams(integrationPair.getSecond(), configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
                     actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                     integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.STARTED);
                 } catch (Exception e) {
