@@ -206,4 +206,9 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
         return list;
     }
 
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.EDGE;
+    }
+
 }

@@ -15,15 +15,26 @@
  */
 package org.thingsboard.server.service.sync.exporting;
 
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.permission.Operation;
 
 public interface ExportableEntitiesService {
 
-    <E extends ExportableEntity<I>, I extends EntityId> E findEntityByExternalId(TenantId tenantId, I externalId);
+    <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndExternalId(TenantId tenantId, I externalId);
 
-    <E extends HasId<I>, I extends EntityId> E findEntityById(TenantId tenantId, I id);
+    <E extends HasId<I>, I extends EntityId> E findEntityByTenantIdAndId(TenantId tenantId, I id);
+
+    <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name);
+
+
+    void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException;
+
+    void checkPermission(SecurityUser user, EntityId entityId, Operation operation) throws ThingsboardException;
 
 }

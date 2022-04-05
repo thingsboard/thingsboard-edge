@@ -15,19 +15,25 @@
  */
 package org.thingsboard.server.service.sync;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
-import org.thingsboard.server.dao.TenantEntityDao;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.security.permission.AccessControlService;
+import org.thingsboard.server.service.security.permission.Operation;
+import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.sync.exporting.EntityExportService;
 import org.thingsboard.server.service.sync.exporting.EntityExportSettings;
 import org.thingsboard.server.service.sync.exporting.ExportableEntitiesService;
@@ -36,20 +42,23 @@ import org.thingsboard.server.service.sync.importing.EntityImportResult;
 import org.thingsboard.server.service.sync.importing.EntityImportService;
 import org.thingsboard.server.service.sync.importing.EntityImportSettings;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @TbCoreComponent
+@RequiredArgsConstructor
 public class DefaultEntitiesExportImportService implements EntitiesExportImportService, ExportableEntitiesService {
 
     private final Map<EntityType, EntityExportService<?, ?, ?>> exportServices = new HashMap<>();
     private final Map<EntityType, EntityImportService<?, ?, ?>> importServices = new HashMap<>();
     private final Map<EntityType, Dao<?>> daos = new HashMap<>();
+
+    private final AccessControlService accessControlService;
 
     protected static final List<EntityType> SUPPORTED_ENTITY_TYPES = List.of(
             EntityType.CUSTOMER, EntityType.ASSET, EntityType.RULE_CHAIN,
@@ -58,52 +67,82 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
 
 
     @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportEntity(TenantId tenantId, I entityId, EntityExportSettings exportSettings) {
+    public <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportEntity(SecurityUser user, I entityId, EntityExportSettings exportSettings) throws ThingsboardException {
         EntityType entityType = entityId.getEntityType();
         EntityExportService<I, E, EntityExportData<E>> exportService = getExportService(entityType);
 
-        return exportService.getExportData(tenantId, entityId, exportSettings);
+        return exportService.getExportData(user, entityId, exportSettings);
     }
 
 
-    // TODO [viacheslav]: validate export data
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(TenantId tenantId, EntityExportData<E> exportData, EntityImportSettings importSettings) {
+    public <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(SecurityUser user, EntityExportData<E> exportData, EntityImportSettings importSettings) throws ThingsboardException {
+        if (exportData.getEntity() == null || exportData.getEntity().getId() == null) {
+            throw new DataValidationException("Invalid entity data");
+        }
+
         EntityType entityType = exportData.getEntityType();
         EntityImportService<I, E, EntityExportData<E>> importService = getImportService(entityType);
 
-        return importService.importEntity(tenantId, exportData, importSettings);
+        // TODO [viacheslav]: might throw DataIntegrityViolationException with cause of ConstraintViolationException: need to give normal error
+        return importService.importEntity(user, exportData, importSettings);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> List<EntityImportResult<E>> importEntities(TenantId tenantId, List<EntityExportData<E>> exportDataList, EntityImportSettings importSettings) {
-        return exportDataList.stream()
-                .sorted(Comparator.comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType())))
-                // TODO [viacheslav]: order for rule chains (depending on references)
-                .map(exportData -> importEntity(tenantId, exportData, importSettings))
-                .collect(Collectors.toList());
+    public List<EntityImportResult<ExportableEntity<EntityId>>> importEntities(SecurityUser user, List<EntityExportData<ExportableEntity<EntityId>>> exportDataList, EntityImportSettings importSettings) throws ThingsboardException {
+        exportDataList.sort(Comparator.comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType())));
+
+        List<EntityImportResult<ExportableEntity<EntityId>>> importResults = new ArrayList<>();
+        for (EntityExportData<ExportableEntity<EntityId>> exportData : exportDataList) {
+            importResults.add(importEntity(user, exportData, importSettings));
+        }
+        return importResults;
     }
 
 
     @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByExternalId(TenantId tenantId, I externalId) {
+    public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndExternalId(TenantId tenantId, I externalId) {
         EntityType entityType = externalId.getEntityType();
         if (SUPPORTED_ENTITY_TYPES.contains(entityType)) {
             ExportableEntityDao<E> dao = (ExportableEntityDao<E>) getDao(entityType);
-            E entity = dao.findByTenantIdAndExternalId(tenantId.getId(), externalId.getId());
-            if (entity != null) {
-                return entity;
-            }
+            return dao.findByTenantIdAndExternalId(tenantId.getId(), externalId.getId());
+        } else {
+            return null;
         }
-        return findEntityById(tenantId, externalId);
     }
 
     @Override
-    public <E extends HasId<I>, I extends EntityId> E findEntityById(TenantId tenantId, I id) {
+    public <E extends HasId<I>, I extends EntityId> E findEntityByTenantIdAndId(TenantId tenantId, I id) {
         Dao<E> dao = (Dao<E>) getDao(id.getEntityType());
-        return dao.findById(tenantId, id.getId());
+        E entity = dao.findById(tenantId, id.getId());
+        if (entity instanceof HasTenantId && !((HasTenantId) entity).getTenantId().equals(tenantId)) {
+            return null;
+        }
+        return entity;
+    }
+
+    @Override
+    public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name) {
+        ExportableEntityDao<E> dao = (ExportableEntityDao<E>) getDao(entityType);
+        return dao.findFirstByTenantIdAndName(tenantId.getId(), name);
+    }
+
+
+    @Override
+    public void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException {
+        if (entity instanceof HasTenantId) {
+            accessControlService.checkPermission(user, Resource.of(entityType), operation, entity.getId(), (HasTenantId) entity);
+        } else if (entity != null) {
+            accessControlService.checkPermission(user, Resource.of(entityType), operation);
+        }
+    }
+
+    @Override
+    public void checkPermission(SecurityUser user, EntityId entityId, Operation operation) throws ThingsboardException {
+        HasId<EntityId> entity = findEntityByTenantIdAndId(user.getTenantId(), entityId);
+        checkPermission(user, entity, entityId.getEntityType(), operation);
     }
 
 

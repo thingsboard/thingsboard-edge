@@ -188,6 +188,11 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
     }
 
     @Override
+    public Asset findFirstByTenantIdAndName(UUID tenantId, String name) {
+        return findAssetsByTenantIdAndName(tenantId, name).orElse(null);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ASSET;
     }

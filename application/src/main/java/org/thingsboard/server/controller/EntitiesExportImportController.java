@@ -29,7 +29,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
@@ -38,24 +37,18 @@ import org.thingsboard.server.common.data.query.EntityFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.EntityTypeFilter;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.EntitiesExportImportService;
-import org.thingsboard.server.service.sync.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.exporting.EntityExportSettings;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 import org.thingsboard.server.service.sync.importing.EntityImportResult;
 import org.thingsboard.server.service.sync.importing.EntityImportSettings;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,7 +66,6 @@ import static org.thingsboard.server.dao.sql.query.EntityKeyMapping.CREATED_TIME
 public class EntitiesExportImportController extends BaseController {
 
     private final EntitiesExportImportService exportImportService;
-    private final ExportableEntitiesService exportableEntitiesService;
     private final EntityService entityService;
 
 
@@ -81,9 +73,10 @@ public class EntitiesExportImportController extends BaseController {
     public EntityExportData<ExportableEntity<EntityId>> exportSingleEntity(@PathVariable EntityType entityType,
                                                                            @PathVariable UUID id,
                                                                            @RequestParam Map<String, String> exportSettingsParams) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
         EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, id);
         try {
-            return exportEntity(getTenantId(), entityId, toExportSettings(exportSettingsParams));
+            return exportEntity(user, entityId, toExportSettings(exportSettingsParams));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -93,11 +86,12 @@ public class EntitiesExportImportController extends BaseController {
     public List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByIds(@PathVariable EntityType entityType,
                                                                                   @RequestParam UUID[] ids,
                                                                                   @RequestParam Map<String, String> exportSettingsParams) throws ThingsboardException {
+        SecurityUser user = getCurrentUser();
         List<EntityId> entitiesIds = Arrays.stream(ids)
                 .map(id -> EntityIdFactory.getByTypeAndUuid(entityType, id))
                 .collect(Collectors.toList());
         try {
-            return exportEntitiesByIds(getTenantId(), entitiesIds, toExportSettings(exportSettingsParams));
+            return exportEntitiesByIds(user, entitiesIds, toExportSettings(exportSettingsParams));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -109,13 +103,13 @@ public class EntitiesExportImportController extends BaseController {
                                                                                          @RequestParam(defaultValue = "0") int page,
                                                                                          @RequestParam(defaultValue = "2147483647") int pageSize,
                                                                                          @RequestParam(name = "customerId", required = false) UUID customerUuid) throws ThingsboardException {
-        TenantId tenantId = getTenantId();
+        SecurityUser user = getCurrentUser();
         CustomerId customerId = toCustomerId(customerUuid);
 
         EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
         entityTypeFilter.setEntityType(entityType);
         try {
-            return exportEntitiesByFilter(tenantId, customerId, entityTypeFilter, page, pageSize, toExportSettings(exportSettingsParams));
+            return exportEntitiesByFilter(user, customerId, entityTypeFilter, page, pageSize, toExportSettings(exportSettingsParams));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -127,10 +121,10 @@ public class EntitiesExportImportController extends BaseController {
                                                                                      @RequestParam(defaultValue = "0") int page,
                                                                                      @RequestParam(defaultValue = "2147483647") int pageSize,
                                                                                      @RequestParam(name = "customerId", required = false) UUID customerUuid) throws ThingsboardException {
-        TenantId tenantId = getTenantId();
+        SecurityUser user = getCurrentUser();
         CustomerId customerId = toCustomerId(customerUuid);
         try {
-            return exportEntitiesByFilter(tenantId, customerId, filter, page, pageSize, toExportSettings(exportSettingsParams));
+            return exportEntitiesByFilter(user, customerId, filter, page, pageSize, toExportSettings(exportSettingsParams));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -141,12 +135,12 @@ public class EntitiesExportImportController extends BaseController {
     public List<EntityExportData<ExportableEntity<EntityId>>> exportAllEntitiesByFilters(@RequestBody List<EntityFilter> filters,
                                                                                          @RequestParam Map<String, String> exportSettingsParams,
                                                                                          @RequestParam(name = "customerId", required = false) UUID customerUuid) throws ThingsboardException {
-        TenantId tenantId = getTenantId();
+        SecurityUser user = getCurrentUser();
         CustomerId customerId = toCustomerId(customerUuid);
         try {
             List<EntityExportData<ExportableEntity<EntityId>>> exportDataList = new ArrayList<>();
             for (EntityFilter filter : filters) {
-                exportDataList.addAll(exportEntitiesByFilter(tenantId, customerId, filter, 0, Integer.MAX_VALUE, toExportSettings(exportSettingsParams)));
+                exportDataList.addAll(exportEntitiesByFilter(user, customerId, filter, 0, Integer.MAX_VALUE, toExportSettings(exportSettingsParams)));
             }
             return exportDataList;
         } catch (Exception e) {
@@ -158,17 +152,17 @@ public class EntitiesExportImportController extends BaseController {
     public List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByQuery(@RequestBody EntityDataQuery entitiesQuery,
                                                                                     @RequestParam Map<String, String> exportSettingsParams,
                                                                                     @RequestParam(name = "customerId", required = false) UUID customerUuid) throws ThingsboardException {
-        TenantId tenantId = getTenantId();
+        SecurityUser user = getCurrentUser();
         CustomerId customerId = toCustomerId(customerUuid);
         try {
-            return exportEntitiesByQuery(tenantId, customerId, entitiesQuery, toExportSettings(exportSettingsParams));
+            return exportEntitiesByQuery(user, customerId, entitiesQuery, toExportSettings(exportSettingsParams));
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
 
-    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByFilter(TenantId tenantId, CustomerId customerId, EntityFilter filter, int page, int pageSize, EntityExportSettings exportSettings) throws ThingsboardException {
+    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByFilter(SecurityUser user, CustomerId customerId, EntityFilter filter, int page, int pageSize, EntityExportSettings exportSettings) throws ThingsboardException {
         EntityDataPageLink pageLink = new EntityDataPageLink();
         pageLink.setPage(page);
         pageLink.setPageSize(pageSize);
@@ -176,49 +170,32 @@ public class EntitiesExportImportController extends BaseController {
         pageLink.setSortOrder(new EntityDataSortOrder(sortProperty, EntityDataSortOrder.Direction.DESC));
 
         EntityDataQuery query = new EntityDataQuery(filter, pageLink, List.of(sortProperty), Collections.emptyList(), Collections.emptyList());
-        return exportEntitiesByQuery(tenantId, customerId, query, exportSettings);
+        return exportEntitiesByQuery(user, customerId, query, exportSettings);
     }
 
-    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByQuery(TenantId tenantId, CustomerId customerId, EntityDataQuery query, EntityExportSettings exportSettings) throws ThingsboardException {
-        List<EntityId> entitiesIds = entityService.findEntityDataByQuery(tenantId, customerId, query).getData().stream()
+    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByQuery(SecurityUser user, CustomerId customerId, EntityDataQuery query, EntityExportSettings exportSettings) throws ThingsboardException {
+        List<EntityId> entitiesIds = entityService.findEntityDataByQuery(user.getTenantId(), customerId, query).getData().stream()
                 .map(EntityData::getEntityId)
                 .collect(Collectors.toList());
-        return exportEntitiesByIds(tenantId, entitiesIds, exportSettings);
+        return exportEntitiesByIds(user, entitiesIds, exportSettings);
     }
 
-    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByIds(TenantId tenantId, List<EntityId> entitiesIds, EntityExportSettings exportSettings) throws ThingsboardException {
+    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByIds(SecurityUser user, List<EntityId> entitiesIds, EntityExportSettings exportSettings) throws ThingsboardException {
         List<EntityExportData<ExportableEntity<EntityId>>> exportDataList = new ArrayList<>();
         for (EntityId entityId : entitiesIds) {
-            exportDataList.add(exportEntity(tenantId, entityId, exportSettings));
+            exportDataList.add(exportEntity(user, entityId, exportSettings));
         }
         return exportDataList;
     }
 
-    private <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportEntity(TenantId tenantId, I entityId, EntityExportSettings exportSettings) throws ThingsboardException {
-        checkEntityId(entityId, Operation.READ);
-
-        List<EntityRelation> relations = new LinkedList<>();
-        if (exportSettings.isExportInboundRelations()) {
-            relations.addAll(relationService.findByTo(tenantId, entityId, RelationTypeGroup.COMMON));
-        }
-        if (exportSettings.isExportOutboundRelations()) {
-            relations.addAll(relationService.findByFrom(tenantId, entityId, RelationTypeGroup.COMMON));
-        }
-        for (EntityRelation relation : relations) {
-            if (!relation.getFrom().equals(entityId)) {
-                checkEntityId(relation.getFrom(), Operation.READ);
-            } else if (!relation.getTo().equals(entityId)) {
-                checkEntityId(relation.getTo(), Operation.READ);
-            }
-        }
-
-        return exportImportService.exportEntity(tenantId, entityId, exportSettings);
+    private <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportEntity(SecurityUser user, I entityId, EntityExportSettings exportSettings) throws ThingsboardException {
+        return exportImportService.exportEntity(user, entityId, exportSettings);
     }
 
 
     @PostMapping("/import")
-    public List<EntityImportResult<ExportableEntity<EntityId>>> importEntity(@RequestBody List<EntityExportData<ExportableEntity<EntityId>>> exportDataList,
-                                                                             @RequestParam Map<String, String> importSettingsParams) throws ThingsboardException {
+    public List<EntityImportResult<ExportableEntity<EntityId>>> importEntities(@RequestBody List<EntityExportData<ExportableEntity<EntityId>>> exportDataList,
+                                                                               @RequestParam Map<String, String> importSettingsParams) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         EntityImportSettings importSettings = toImportSettings(importSettingsParams);
 
@@ -235,65 +212,37 @@ public class EntitiesExportImportController extends BaseController {
 
 
     public List<EntityImportResult<ExportableEntity<EntityId>>> importEntities(SecurityUser user, List<EntityExportData<ExportableEntity<EntityId>>> exportDataList, EntityImportSettings importSettings) throws ThingsboardException {
-        for (EntityExportData<ExportableEntity<EntityId>> exportData : exportDataList) {
-            ExportableEntity<EntityId> existingEntity = exportableEntitiesService.findEntityByExternalId(user.getTenantId(), exportData.getEntity().getId());
-            if (existingEntity != null) {
-                accessControlService.checkPermission(user, Resource.of(exportData.getEntityType()), Operation.WRITE, existingEntity.getId(), existingEntity);
-            } else {
-                exportData.getEntity().setTenantId(user.getTenantId());
-                accessControlService.checkPermission(user, Resource.of(exportData.getEntityType()), Operation.CREATE, null, exportData.getEntity());
-            }
-
-            List<EntityRelation> relations = new LinkedList<>();
-            if (importSettings.isImportInboundRelations() && exportData.getInboundRelations() != null) {
-                relations.addAll(exportData.getInboundRelations());
-            }
-            if (importSettings.isImportOutboundRelations() && exportData.getOutboundRelations() != null) {
-                relations.addAll(exportData.getOutboundRelations());
-            }
-            for (EntityRelation relation : relations) {
-                EntityId otherEntityId = null;
-                if (!relation.getFrom().equals(exportData.getEntity().getId())) {
-                    otherEntityId = relation.getFrom();
-                } else if (!relation.getTo().equals(exportData.getEntity().getId())) {
-                    otherEntityId = relation.getTo();
-                }
-                if (otherEntityId != null) {
-                    ExportableEntity<EntityId> otherEntity = exportableEntitiesService.findEntityByExternalId(user.getTenantId(), otherEntityId);
-                    if (otherEntity != null) {
-                        checkEntityId(otherEntity.getId(), Operation.WRITE);
-                    } else {
-                        throw new IllegalArgumentException("Relation is referencing non-existing entity");
-                    }
-                }
-            }
-        }
-
-        return exportImportService.importEntities(user.getTenantId(), exportDataList, importSettings);
+        return exportImportService.importEntities(user, exportDataList, importSettings);
     }
 
 
     private EntityExportSettings toExportSettings(Map<String, String> exportSettingsParams) {
         return EntityExportSettings.builder()
-                .exportInboundRelations(getParam(exportSettingsParams, "exportInboundRelations", false, Boolean::parseBoolean))
-                .exportOutboundRelations(getParam(exportSettingsParams, "exportOutboundRelations", false, Boolean::parseBoolean))
+                .exportInboundRelations(getBooleanParam(exportSettingsParams, "exportInboundRelations", false))
+                .exportOutboundRelations(getBooleanParam(exportSettingsParams, "exportOutboundRelations", false))
                 .build();
     }
 
     private EntityImportSettings toImportSettings(Map<String, String> importSettingsParams) {
         return EntityImportSettings.builder()
-                .importInboundRelations(getParam(importSettingsParams, "importInboundRelations", false, Boolean::parseBoolean))
-                .importOutboundRelations(getParam(importSettingsParams, "importOutboundRelations", false, Boolean::parseBoolean))
-                .removeExistingRelations(getParam(importSettingsParams, "removeExistingRelations", true, Boolean::parseBoolean))
-                .updateReferencesToOtherEntities(getParam(importSettingsParams, "updateReferencesToOtherEntities", true, Boolean::parseBoolean))
+                .findExistingByName(getBooleanParam(importSettingsParams, "findExistingByName", false))
+                .importInboundRelations(getBooleanParam(importSettingsParams, "importInboundRelations", false))
+                .importOutboundRelations(getBooleanParam(importSettingsParams, "importOutboundRelations", false))
+                .removeExistingRelations(getBooleanParam(importSettingsParams, "removeExistingRelations", true))
+                .updateReferencesToOtherEntities(getBooleanParam(importSettingsParams, "updateReferencesToOtherEntities", true))
                 .build();
     }
 
-    protected <T> T getParam(Map<String, String> requestParams, String key, T defaultValue, Function<String, T> parsingFunction) {
+
+    protected static boolean getBooleanParam(Map<String, String> requestParams, String key, boolean defaultValue) {
+        return getParam(requestParams, key, defaultValue, Boolean::parseBoolean);
+    }
+
+    protected static <T> T getParam(Map<String, String> requestParams, String key, T defaultValue, Function<String, T> parsingFunction) {
         return parsingFunction.apply(requestParams.getOrDefault(key, defaultValue.toString()));
     }
 
-    private CustomerId toCustomerId(UUID customerUuid) {
+    private static CustomerId toCustomerId(UUID customerUuid) {
         return new CustomerId(Optional.ofNullable(customerUuid).orElse(EntityId.NULL_UUID));
     }
 

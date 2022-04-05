@@ -1939,7 +1939,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private EntityType resolveEntityType(EntityFilter entityFilter) {
+    public static EntityType resolveEntityType(EntityFilter entityFilter) {
         switch (entityFilter.getType()) {
             case SINGLE_ENTITY:
                 return ((SingleEntityFilter) entityFilter).getSingleEntity().getEntityType();

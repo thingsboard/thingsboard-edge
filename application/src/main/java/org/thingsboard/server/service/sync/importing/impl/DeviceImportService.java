@@ -33,17 +33,21 @@ public class DeviceImportService extends BaseEntityImportService<DeviceId, Devic
     private final DeviceService deviceService;
 
     @Override
-    protected Device prepareAndSave(TenantId tenantId, Device device, DeviceExportData exportData, NewIdProvider idProvider) {
+    protected void setOwner(TenantId tenantId, Device device, NewIdProvider idProvider) {
         device.setTenantId(tenantId);
-        device.setCustomerId(idProvider.get(tenantId, Device::getCustomerId));
-        device.setDeviceProfileId(idProvider.get(tenantId, Device::getDeviceProfileId));
-        device.setFirmwareId(idProvider.get(tenantId, Device::getFirmwareId));
-        device.setSoftwareId(idProvider.get(tenantId, Device::getSoftwareId));
+        device.setCustomerId(idProvider.get(Device::getCustomerId));
+    }
+
+    @Override
+    protected Device prepareAndSave(TenantId tenantId, Device device, DeviceExportData exportData, NewIdProvider idProvider) {
+        device.setDeviceProfileId(idProvider.get(Device::getDeviceProfileId));
+        device.setFirmwareId(idProvider.get(Device::getFirmwareId));
+        device.setSoftwareId(idProvider.get(Device::getSoftwareId));
         if (exportData.getCredentials() != null) {
             exportData.getCredentials().setId(null);
             exportData.getCredentials().setDeviceId(null);
             return deviceService.saveDeviceWithCredentials(device, exportData.getCredentials());
-        } else { // TODO [viacheslav]: add option not to export device credentials
+        } else {
             return deviceService.saveDevice(device);
         }
     }
