@@ -28,18 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.importing;
+package org.thingsboard.server.service.sync.importing.csv;
 
 import lombok.Data;
 
-import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Data
-public class BulkImportResult<E> {
-    private AtomicInteger created = new AtomicInteger();
-    private AtomicInteger updated = new AtomicInteger();
-    private AtomicInteger errors = new AtomicInteger();
-    private Collection<String> errorsList = new ConcurrentLinkedDeque<>();
+public class ImportedEntityInfo<E> {
+    private E entity;
+    private boolean isUpdated;
+    private E oldEntity;
 }

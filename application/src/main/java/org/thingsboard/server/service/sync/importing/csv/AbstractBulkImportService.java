@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.importing;
+package org.thingsboard.server.service.sync.importing.csv;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.gson.JsonObject;
@@ -62,7 +62,7 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.controller.BaseController;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.service.action.EntityActionService;
-import org.thingsboard.server.service.importing.BulkImportRequest.ColumnMapping;
+import org.thingsboard.server.service.sync.importing.csv.BulkImportRequest.ColumnMapping;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;

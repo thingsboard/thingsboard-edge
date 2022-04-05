@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 
 import java.util.List;
@@ -43,7 +44,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
  */
-public interface AssetRepository extends JpaRepository<AssetEntity, UUID> {
+public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, ExportableEntityRepository<AssetEntity> {
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")

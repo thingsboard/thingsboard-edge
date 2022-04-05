@@ -41,8 +41,8 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.importing.AbstractBulkImportService;
-import org.thingsboard.server.service.importing.BulkImportColumnType;
+import org.thingsboard.server.service.sync.importing.csv.AbstractBulkImportService;
+import org.thingsboard.server.service.sync.importing.csv.BulkImportColumnType;
 
 import java.util.Map;
 import java.util.Optional;

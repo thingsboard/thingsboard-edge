@@ -181,4 +181,15 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
     public Long countByTenantId(TenantId tenantId) {
         return assetRepository.countByTenantIdAndTypeIsNot(tenantId.getId(), TB_SERVICE_QUEUE);
     }
+
+    @Override
+    public Asset findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(assetRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ASSET;
+    }
+
 }
