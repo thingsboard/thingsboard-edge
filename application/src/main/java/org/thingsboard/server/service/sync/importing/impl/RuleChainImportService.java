@@ -105,8 +105,7 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
             if (savedRuleChain.getType() == RuleChainType.CORE) {
                 clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedRuleChain.getId(),
                         oldRuleChain == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            }
-            if (savedRuleChain.getType() == RuleChainType.EDGE && oldRuleChain != null) {
+            } else if (savedRuleChain.getType() == RuleChainType.EDGE && oldRuleChain != null) {
                 entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedRuleChain.getId(), EdgeEventActionType.UPDATED);
             }
         });

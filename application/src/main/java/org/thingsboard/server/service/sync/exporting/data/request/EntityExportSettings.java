@@ -28,20 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.exporting;
+package org.thingsboard.server.service.sync.exporting.data.request;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
+import lombok.Data;
 
-public interface EntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> {
-
-    D getExportData(SecurityUser user, I entityId, EntityExportSettings exportSettings) throws ThingsboardException;
-
-    EntityType getEntityType();
-
+@Data
+public class EntityExportSettings {
+    private boolean exportEntityGroupsInfo;
+    private boolean exportInboundRelations;
+    private boolean exportOutboundRelations;
 }

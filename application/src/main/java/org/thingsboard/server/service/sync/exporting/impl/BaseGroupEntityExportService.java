@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.EntityExportSettings;
 import org.thingsboard.server.service.sync.exporting.data.GroupEntityExportData;
+import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;

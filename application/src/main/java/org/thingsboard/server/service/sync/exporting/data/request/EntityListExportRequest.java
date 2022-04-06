@@ -28,19 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.exporting;
+package org.thingsboard.server.service.sync.exporting.data.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.EntityId;
 
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class EntityExportSettings {
-    private boolean exportEntityGroupsInfo;
-    private boolean exportInboundRelations;
-    private boolean exportOutboundRelations;
+public class EntityListExportRequest extends ExportRequest {
+
+    private List<EntityId> entitiesIds;
+
+    @Override
+    public ExportRequestType getType() {
+        return ExportRequestType.ENTITY_LIST;
+    }
+
 }

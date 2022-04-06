@@ -34,7 +34,7 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.EntityExportSettings;
+import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 import org.thingsboard.server.service.sync.importing.EntityImportResult;
 import org.thingsboard.server.service.sync.importing.EntityImportSettings;

@@ -28,20 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.exporting;
+package org.thingsboard.server.service.sync.exporting.data.request;
 
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import lombok.Data;
 
-public interface EntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> {
+@JsonTypeInfo(use = Id.NAME, property = "type")
+@JsonSubTypes({
+        @Type(name = "SINGLE_ENTITY", value = SingleEntityExportRequest.class),
+        @Type(name = "ENTITY_LIST", value = EntityListExportRequest.class),
+        @Type(name = "ENTITY_TYPE", value = EntityTypeExportRequest.class),
+        @Type(name = "ENTITY_FILTER", value = EntityFilterExportRequest.class),
+        @Type(name = "ENTITY_QUERY", value = EntityQueryExportRequest.class)
+})
+@Data
+public abstract class ExportRequest {
 
-    D getExportData(SecurityUser user, I entityId, EntityExportSettings exportSettings) throws ThingsboardException;
+    private EntityExportSettings exportSettings;
 
-    EntityType getEntityType();
+    @JsonIgnore
+    public abstract ExportRequestType getType();
 
 }

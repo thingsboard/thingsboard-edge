@@ -28,20 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.exporting;
+package org.thingsboard.server.service.sync.exporting.data.request;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
+import org.thingsboard.server.common.data.id.CustomerId;
 
-public interface EntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class EntityTypeExportRequest extends ExportRequest {
 
-    D getExportData(SecurityUser user, I entityId, EntityExportSettings exportSettings) throws ThingsboardException;
+    private EntityType entityType;
+    private int page;
+    private int pageSize;
+    private CustomerId customerId;
 
-    EntityType getEntityType();
+    @Override
+    public ExportRequestType getType() {
+        return ExportRequestType.ENTITY_TYPE;
+    }
 
 }
