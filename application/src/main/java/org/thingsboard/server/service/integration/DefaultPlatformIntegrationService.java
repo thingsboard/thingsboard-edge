@@ -96,6 +96,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -424,18 +425,19 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     @Override
-    public void processUplinkData(IntegrationInfo info, TbIntegrationEventProto data, IntegrationApiCallback callback) {
+    public void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback callback) {
+        TenantId tenantId = new TenantId(new UUID(data.getTenantIdMSB(), data.getTenantIdLSB()));
         var eventSource = data.getSource();
         EntityId entityid = null;
         switch (eventSource) {
             case DEVICE:
-                Device device = deviceService.findDeviceByTenantIdAndName(info.getTenantId(), data.getDeviceName());
+                Device device = deviceService.findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
                 if (device != null) {
                     entityid = device.getId();
                 }
                 break;
             case INTEGRATION:
-                entityid = info.getId();
+                entityid = new IntegrationId(new UUID(data.getEventSourceIdMSB(), data.getEventSourceIdLSB()));
                 break;
             case UPLINK_CONVERTER:
             case DOWNLINK_CONVERTER:
@@ -443,7 +445,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
                 break;
         }
         if (entityid != null) {
-            saveEvent(info.getTenantId(), entityid, data, callback);
+            saveEvent(tenantId, entityid, data, callback);
         } else {
             callback.onSuccess(null);
         }
@@ -485,7 +487,10 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             event.setType(proto.getType());
             event.setUid(proto.getUid());
             event.setBody(mapper.readTree(proto.getData()));
-            DonAsynchron.withCallback(eventService.saveAsync(event), callback::onSuccess, callback::onError);
+            DonAsynchron.withCallback(eventService.saveAsync(event), callback::onSuccess, t -> {
+                log.warn("WTF? ", t);
+                callback.onError(t);
+            });
         } catch (IOException e) {
             log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
             callback.onError(e);

@@ -65,7 +65,7 @@ public interface PlatformIntegrationService {
 
     void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback integrationApiCallback);
 
-    void processUplinkData(IntegrationInfo info, TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
+    void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
 
     void validateIntegrationConfiguration(Integration integration);
 

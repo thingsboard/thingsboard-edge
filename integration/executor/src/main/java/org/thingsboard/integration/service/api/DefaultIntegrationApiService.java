@@ -40,6 +40,7 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -78,7 +79,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
@@ -169,8 +169,18 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
     }
 
     @Override
-    public void sendUplinkData(Integration integration, IntegrationInfoProto proto, TbIntegrationEventProto data, IntegrationCallback<Void> callback) {
-        sendUplinkData(integration, proto, data, (b, d) -> b.setEventProto(data).build(), callback);
+    public void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback) {
+        var producer = producerProvider.getTbCoreIntegrationMsgProducer();
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId).newByTopic(producer.getDefaultTopic());
+        if (log.isTraceEnabled()) {
+            log.trace("[{}][{}] Pushing to topic {} message {}", tenantId, entityId, tpi.getFullTopicName(), data);
+        }
+        tbCoreProducerStats.incrementTotal();
+        StatsTbQueueCallback wrappedCallback = new StatsTbQueueCallback(
+                callback != null ? new IntegrationTbQueueCallback(callbackExecutor, callback) : null, tbCoreProducerStats);
+
+        var msg = ToCoreIntegrationMsg.newBuilder().setEventProto(data).build();
+        producer.send(tpi, new TbProtoQueueMsg<>(entityId.getId(), msg), wrappedCallback);
     }
 
     public <T> void sendUplinkData(Integration integration, IntegrationInfoProto proto, T data,

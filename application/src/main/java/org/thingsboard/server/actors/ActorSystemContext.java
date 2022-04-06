@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -514,7 +515,7 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.ERROR);
-        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), method, toString(e)));
+        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), method, EventUtil.toString(e)));
         persistEvent(event);
     }
 
@@ -523,29 +524,12 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.LC_EVENT);
-        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
+        event.setBody(EventUtil.toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
         persistEvent(event);
     }
 
     private void persistEvent(Event event) {
         eventService.saveAsync(event);
-    }
-
-    private String toString(Throwable e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
-
-    private JsonNode toBodyJson(String serviceId, ComponentLifecycleEvent event, Optional<Exception> e) {
-        ObjectNode node = mapper.createObjectNode().put("server", serviceId).put("event", event.name());
-        if (e.isPresent()) {
-            node = node.put("success", false);
-            node = node.put("error", toString(e.get()));
-        } else {
-            node = node.put("success", true);
-        }
-        return node;
     }
 
     private JsonNode toBodyJson(String serviceId, String method, String body) {
@@ -607,7 +591,7 @@ public class ActorSystemContext {
                         .put("metadata", metadata);
 
                 if (error != null) {
-                    node = node.put("error", toString(error));
+                    node = node.put("error", EventUtil.toString(error));
                 } else if (failureMessage != null) {
                     node = node.put("error", failureMessage);
                 }
@@ -662,7 +646,7 @@ public class ActorSystemContext {
                 .put("message", "Reached debug mode rate limit!");
 
         if (error != null) {
-            node = node.put("error", toString(error));
+            node = node.put("error", EventUtil.toString(error));
         }
 
         event.setBody(node);

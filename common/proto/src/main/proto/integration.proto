@@ -264,12 +264,14 @@ message ToIntegrationExecutorNotificationMsg {
 
 message TbIntegrationEventProto {
   TbEventSource source = 1;
-  int64 eventSourceIdMSB = 2;
-  int64 eventSourceIdLSB = 3;
-  string type = 4;
-  string uid = 5;
-  string data = 6;
-  string deviceName = 7;
+  int64 tenantIdMSB = 2;
+  int64 tenantIdLSB = 3;
+  int64 eventSourceIdMSB = 4;
+  int64 eventSourceIdLSB = 5;
+  string type = 6;
+  string uid = 7;
+  string data = 8;
+  string deviceName = 9;
 }
 
 message ToCoreIntegrationMsg {

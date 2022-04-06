@@ -31,25 +31,59 @@
 package org.thingsboard.integration.service.context;
 
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.integration.downlink.DownlinkService;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public interface TbIntegrationExecutorContextComponent {
+import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 
-    /*
-        We assume that the device is already cached during processing of the uplink.
-     */
-    Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName);
+@Component
+@Data
+@RequiredArgsConstructor
+public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent {
 
-    DownlinkService getDownlinkService();
+    private final DownlinkService downlinkService;
+    private EventLoopGroup eventLoopGroup;
+    private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService callBackExecutorService;
 
-    EventLoopGroup getEventLoopGroup();
+    @PostConstruct
+    public void init() {
+        eventLoopGroup = new NioEventLoopGroup();
+        scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
+        callBackExecutorService = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("integration-callback"));
+    }
 
-    ScheduledExecutorService getScheduledExecutorService();
+    @PreDestroy
+    public void destroy() {
+        eventLoopGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS);
+        if (scheduledExecutorService != null) {
+            scheduledExecutorService.shutdownNow();
+        }
+        if (callBackExecutorService != null) {
+            callBackExecutorService.shutdownNow();
+        }
+    }
 
-    ExecutorService getCallBackExecutorService();
+
+    @Override
+    @Cacheable(cacheNames = DEVICE_CACHE, key = "{#tenantId, #name}", unless="#result == null")
+    public Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName) {
+        return null;
+    }
+
 }

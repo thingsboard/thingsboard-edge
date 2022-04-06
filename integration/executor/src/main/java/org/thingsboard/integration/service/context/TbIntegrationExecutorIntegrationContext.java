@@ -41,6 +41,7 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.service.api.IntegrationApiService;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -139,17 +140,25 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public DownLinkMsg getDownlinkMsg(String deviceName) {
-        return null;
+        Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            return contextComponent.getDownlinkService().get(configuration.getId(), device.getId());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        return null;
+        return contextComponent.getDownlinkService().put(msg);
     }
 
     @Override
     public void removeDownlinkMsg(String deviceName) {
-
+        Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            contextComponent.getDownlinkService().remove(configuration.getId(), device.getId());
+        }
     }
 
     @Override
@@ -168,6 +177,8 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
                 .setSource(tbEventSource)
                 .setType(type)
                 .setData(eventData);
+        builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
         if (entityId != null) {
             builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
             builder.setEventSourceIdLSB(entityId.getId().getLeastSignificantBits());
@@ -178,7 +189,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         if (StringUtils.isNotEmpty(deviceName)) {
             builder.setDeviceName(deviceName);
         }
-        apiService.sendUplinkData(configuration, integrationInfoProto, builder.build(), callback);
+        apiService.sendEventData(configuration.getTenantId(), entityId, builder.build(), callback);
     }
 
     @RequiredArgsConstructor

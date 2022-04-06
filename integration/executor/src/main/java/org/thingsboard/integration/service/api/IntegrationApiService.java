@@ -32,8 +32,10 @@ package org.thingsboard.integration.service.api;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -44,7 +46,6 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
-import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 
 import java.util.List;
@@ -65,5 +66,6 @@ public interface IntegrationApiService {
 
     void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbMsg data, IntegrationCallback<Void> callback);
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
+    void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
+
 }

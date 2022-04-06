@@ -28,28 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.context;
+package org.thingsboard.common.util;
 
-import io.netty.channel.EventLoopGroup;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.integration.downlink.DownlinkService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Optional;
 
-public interface TbIntegrationExecutorContextComponent {
+public class EventUtil {
 
-    /*
-        We assume that the device is already cached during processing of the uplink.
-     */
-    Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName);
+    public static JsonNode toBodyJson(String serviceId, ComponentLifecycleEvent event, Optional<Exception> e) {
+        ObjectNode node = JacksonUtil.newObjectNode().put("server", serviceId).put("event", event.name());
+        if (e.isPresent()) {
+            node = node.put("success", false);
+            node = node.put("error", toString(e.get()));
+        } else {
+            node = node.put("success", true);
+        }
+        return node;
+    }
 
-    DownlinkService getDownlinkService();
-
-    EventLoopGroup getEventLoopGroup();
-
-    ScheduledExecutorService getScheduledExecutorService();
-
-    ExecutorService getCallBackExecutorService();
+    public static String toString(Throwable e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
 }

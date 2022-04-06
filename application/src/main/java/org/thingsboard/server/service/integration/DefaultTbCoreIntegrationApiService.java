@@ -171,19 +171,21 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     @Override
     public void handle(TbProtoQueueMsg<ToCoreIntegrationMsg> envelope, TbCallback callback) {
         var msg = envelope.getValue();
-        IntegrationInfo info = IntegrationProtoUtil.toInfo(msg.getIntegration());
-        if (msg.hasDeviceUplinkProto()) {
-            platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
-        } else if (msg.hasAssetUplinkProto()) {
-            platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
-        } else if (msg.hasEntityViewDataProto()) {
-            platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
-        } else if (!msg.getCustomTbMsg().isEmpty()) {
-            platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(ServiceQueue.MAIN, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+        if (msg.hasIntegration()) {
+            IntegrationInfo info = IntegrationProtoUtil.toInfo(msg.getIntegration());
+            if (msg.hasDeviceUplinkProto()) {
+                platformIntegrationService.processUplinkData(info, msg.getDeviceUplinkProto(), new IntegrationApiCallback(callback));
+            } else if (msg.hasAssetUplinkProto()) {
+                platformIntegrationService.processUplinkData(info, msg.getAssetUplinkProto(), new IntegrationApiCallback(callback));
+            } else if (msg.hasEntityViewDataProto()) {
+                platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
+            } else if (!msg.getCustomTbMsg().isEmpty()) {
+                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(ServiceQueue.MAIN, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+            } else {
+                callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
+            }
         } else if (msg.hasEventProto()) {
-            platformIntegrationService.processUplinkData(info, msg.getEventProto(), new IntegrationApiCallback(callback));
-        } else {
-            callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
+            platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
         }
     }
 

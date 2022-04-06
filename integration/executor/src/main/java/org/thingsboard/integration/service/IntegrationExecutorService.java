@@ -53,7 +53,6 @@ import org.thingsboard.server.queue.common.EventDeduplicationExecutor;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
-import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -65,7 +64,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @Service
-@TbIntegrationExecutorComponent
 @RequiredArgsConstructor
 @Slf4j
 public class IntegrationExecutorService extends TbApplicationEventListener<PartitionChangeEvent> {
@@ -76,8 +74,8 @@ public class IntegrationExecutorService extends TbApplicationEventListener<Parti
     private final ConcurrentMap<IntegrationType, EventDeduplicationExecutor<Set<TopicPartitionInfo>>> deduplicationMap = new ConcurrentHashMap<>();
     private ListeningExecutorService refreshExecutorService;
 
-    Map<IntegrationId, Integration> integrationsMap = new ConcurrentHashMap<>();
-    Map<ConverterId, Converter> convertersMap = new ConcurrentHashMap<>();
+    private Map<IntegrationId, Integration> integrationsMap = new ConcurrentHashMap<>();
+    private Map<ConverterId, Converter> convertersMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void init() {
