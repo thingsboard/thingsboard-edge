@@ -28,29 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.api;
+package org.thingsboard.server.service.integration.state;
 
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
-import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.integration.IntegrationInfoProto;
-import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-public interface IntegrationApiService {
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+@Data
+@RequiredArgsConstructor
+public class IntegrationState {
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    private final Lock updateLock = new ReentrantLock();
+    private final Queue<ComponentLifecycleEvent> updateQueue = new ConcurrentLinkedQueue<>();
+    private final TenantId tenantId;
+    private final IntegrationId id;
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, EntityViewDataProto data, IntegrationCallback<Void> callback);
-
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbMsg data, IntegrationCallback<Void> callback);
-
-    void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
+    private ComponentLifecycleEvent currentState;
+    private ThingsboardPlatformIntegration<?> integration;
+    private IntegrationContext context;
 
 }

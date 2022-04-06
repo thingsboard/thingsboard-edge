@@ -28,29 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.api;
+package org.thingsboard.server.service.integration;
 
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.data.id.EntityId;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
-import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.integration.IntegrationInfoProto;
-import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-public interface IntegrationApiService {
+import java.util.List;
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+public interface IntegrationConfigurationService {
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote);
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, EntityViewDataProto data, IntegrationCallback<Void> callback);
+    Integration getIntegration(TenantId tenantId, IntegrationId integrationId);
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbMsg data, IntegrationCallback<Void> callback);
-
-    void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
+    Converter getConverter(TenantId tenantId, ConverterId converterId);
 
 }

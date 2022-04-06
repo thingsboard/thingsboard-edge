@@ -28,13 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service;
+package org.thingsboard.server.service.integration;
 
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+
+import java.util.Set;
 
 public interface IntegrationManagerService {
 
-    ThingsboardPlatformIntegration getOrCreateIntegration(Integration configuration, boolean forceReInit);
+    void refresh(IntegrationType integrationType, Set<TopicPartitionInfo> newPartitions);
 
 }

@@ -35,12 +35,14 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.gen.integration.TbEventSource;
@@ -99,4 +101,8 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
         apiService.sendEventData(tenantId, entityId, builder.build(), EMPTY_CALLBACK);
     }
 
+    @Override
+    public void persistStatistics(TenantId tenantId, IntegrationId id, long ts, IntegrationStatistics statistics, ComponentLifecycleEvent currentState) {
+        //TODO: ashvayka integration executor
+    }
 }

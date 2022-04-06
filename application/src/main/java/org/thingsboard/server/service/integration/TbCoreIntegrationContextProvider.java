@@ -28,29 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.api;
+package org.thingsboard.server.service.integration;
 
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
-import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.integration.IntegrationInfoProto;
-import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-public interface IntegrationApiService {
+@TbCoreComponent
+@RequiredArgsConstructor
+@Service
+public class TbCoreIntegrationContextProvider implements IntegrationContextProvider {
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+    private final IntegrationContextComponent contextComponent;
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
-
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, EntityViewDataProto data, IntegrationCallback<Void> callback);
-
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbMsg data, IntegrationCallback<Void> callback);
-
-    void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
+    @Override
+    public IntegrationContext buildIntegrationContext(Integration configuration) {
+        return new LocalIntegrationContext(contextComponent, configuration);
+    }
 
 }

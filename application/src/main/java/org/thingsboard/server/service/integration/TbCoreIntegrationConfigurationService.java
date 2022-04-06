@@ -28,29 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.api;
+package org.thingsboard.server.service.integration;
 
-import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
-import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.integration.IntegrationInfoProto;
-import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 
-public interface IntegrationApiService {
+import java.util.List;
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+@Service
+@RequiredArgsConstructor
+public class TbCoreIntegrationConfigurationService implements IntegrationConfigurationService {
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
+    private final ConverterService converterService;
+    private final IntegrationService integrationService;
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, EntityViewDataProto data, IntegrationCallback<Void> callback);
+    @Override
+    public List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote) {
+        return integrationService.findAllIntegrationInfos(type, remote, true);
+    }
 
-    void sendUplinkData(Integration integration, IntegrationInfoProto integrationInfoProto, TbMsg data, IntegrationCallback<Void> callback);
+    @Override
+    public Integration getIntegration(TenantId tenantId, IntegrationId integrationId) {
+        return integrationService.findIntegrationById(tenantId, integrationId);
+    }
 
-    void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
-
+    @Override
+    public Converter getConverter(TenantId tenantId, ConverterId converterId) {
+        return converterService.findConverterById(tenantId, converterId);
+    }
 }
