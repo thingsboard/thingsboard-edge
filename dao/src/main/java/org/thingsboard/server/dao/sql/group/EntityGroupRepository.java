@@ -117,4 +117,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
             "AND re.toId = :entityId")
     boolean isEntityInGroup(@Param("entityId") UUID entityId,
                             @Param("entityGroupId") UUID entityGroupId);
+
+    EntityGroupEntity findByExternalId(UUID externalId);
+
 }

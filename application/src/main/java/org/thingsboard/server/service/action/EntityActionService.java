@@ -37,39 +37,28 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -269,6 +258,14 @@ public class EntityActionService {
         }
     }
 
+    public void sendEntityNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
+        tbClusterService.sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, null, null);
+    }
+
+    public void sendGroupEntityNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId, EdgeEventActionType action) {
+        tbClusterService.sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+    }
+
     private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
         if (kvEntry.getDataType() == DataType.BOOLEAN) {
             kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
@@ -322,50 +319,6 @@ public class EntityActionService {
                 result.add(element);
             }
         }
-    }
-
-
-    public void onDeviceCreatedOrUpdated(SecurityUser user, Device savedDevice, Device oldDevice, boolean newEntity) {
-        tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
-        logEntityAction(user, savedDevice.getId(), savedDevice, savedDevice.getCustomerId(),
-                newEntity ? ActionType.ADDED : ActionType.UPDATED, null);
-    }
-
-    public void onAssetCreatedOrUpdated(SecurityUser user, Asset savedAsset, boolean newEntity) {
-        logEntityAction(user, savedAsset.getId(), savedAsset, savedAsset.getCustomerId(),
-                newEntity ? ActionType.ADDED : ActionType.UPDATED, null);
-        if (!newEntity) {
-            tbClusterService.sendNotificationMsgToEdgeService(user.getTenantId(), null, savedAsset.getId(),
-                    null, null, EdgeEventActionType.UPDATED);
-        }
-    }
-
-    public void onDashboardCreatedOrUpdated(SecurityUser user, Dashboard savedDashboard, boolean newEntity) {
-        logEntityAction(user, savedDashboard.getId(), savedDashboard, null,
-                newEntity ? ActionType.ADDED : ActionType.UPDATED, null);
-        if (!newEntity) {
-            tbClusterService.sendNotificationMsgToEdgeService(user.getTenantId(), null, savedDashboard.getId(),
-                    null, null, EdgeEventActionType.UPDATED);
-        }
-    }
-
-    public void onRuleChainCreatedOrUpdated(SecurityUser user, RuleChain savedRuleChain, boolean newEntity) {
-        if (RuleChainType.CORE.equals(savedRuleChain.getType())) {
-            tbClusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedRuleChain.getId(),
-                    newEntity ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        }
-        logEntityAction(user, savedRuleChain.getId(), savedRuleChain, null,
-                newEntity ? ActionType.ADDED : ActionType.UPDATED, null);
-        if (RuleChainType.EDGE.equals(savedRuleChain.getType())) {
-            if (!newEntity) {
-                tbClusterService.sendNotificationMsgToEdgeService(user.getTenantId(), null, savedRuleChain.getId(),
-                        null, null, EdgeEventActionType.UPDATED);
-            }
-        }
-    }
-
-    public void onCustomerCreatedOrUpdated(SecurityUser user, Customer savedCustomer) {
-
     }
 
 }

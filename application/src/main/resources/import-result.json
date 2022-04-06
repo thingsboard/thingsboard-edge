@@ -1,0 +1,278 @@
+[
+  {
+    "savedEntity": {
+      "id": {
+        "entityType": "ENTITY_GROUP",
+        "id": "64594700-b5c5-11ec-999f-a17210ada7a7"
+      },
+      "createdTime": 1649261993840,
+      "type": "CUSTOMER",
+      "name": "My customers",
+      "ownerId": {
+        "entityType": "TENANT",
+        "id": "e4fe7840-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "additionalInfo": {
+        "description": ""
+      },
+      "configuration": {
+        "columns": [
+          {
+            "type": "ENTITY_FIELD",
+            "key": "created_time",
+            "sortOrder": "DESC"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "title",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "email",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "country",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "city",
+            "sortOrder": "NONE"
+          }
+        ],
+        "settings": {},
+        "actions": {}
+      },
+      "externalId": {
+        "entityType": "ENTITY_GROUP",
+        "id": "9eaaf560-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "groupAll": false,
+      "edgeGroupAll": false
+    },
+    "oldEntity": null
+  },
+  {
+    "savedEntity": {
+      "id": {
+        "entityType": "CUSTOMER",
+        "id": "65cea8f0-b5c5-11ec-999f-a17210ada7a7"
+      },
+      "createdTime": 1649261996287,
+      "additionalInfo": {
+        "description": "",
+        "allowWhiteLabeling": true,
+        "homeDashboardId": null,
+        "homeDashboardHideToolbar": true
+      },
+      "country": null,
+      "state": null,
+      "city": null,
+      "address": null,
+      "address2": null,
+      "zip": null,
+      "phone": null,
+      "email": null,
+      "title": "Customer 1",
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "e4fe7840-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "parentCustomerId": null,
+      "externalId": {
+        "entityType": "CUSTOMER",
+        "id": "a4f733c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "customerId": null,
+      "ownerId": {
+        "entityType": "TENANT",
+        "id": "e4fe7840-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "name": "Customer 1"
+    },
+    "oldEntity": null
+  },
+  {
+    "savedEntity": {
+      "id": {
+        "entityType": "ENTITY_GROUP",
+        "id": "6e20f080-b5c5-11ec-999f-a17210ada7a7"
+      },
+      "createdTime": 1649262010248,
+      "type": "DEVICE",
+      "name": "My device group of 'Customer 1'",
+      "ownerId": {
+        "entityType": "CUSTOMER",
+        "id": "65cea8f0-b5c5-11ec-999f-a17210ada7a7"
+      },
+      "additionalInfo": {
+        "description": ""
+      },
+      "configuration": {
+        "columns": [
+          {
+            "type": "ENTITY_FIELD",
+            "key": "created_time",
+            "sortOrder": "DESC"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "name",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "device_profile",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "label",
+            "sortOrder": "NONE"
+          }
+        ],
+        "settings": {},
+        "actions": {}
+      },
+      "externalId": {
+        "entityType": "ENTITY_GROUP",
+        "id": "b0e73b80-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "groupAll": false,
+      "edgeGroupAll": false
+    },
+    "oldEntity": null
+  },
+  {
+    "savedEntity": {
+      "id": {
+        "entityType": "DEVICE_PROFILE",
+        "id": "e5099bd0-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "createdTime": 1649249564464,
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "e4fe7840-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "name": "default",
+      "description": "Default device profile",
+      "image": null,
+      "type": "DEFAULT",
+      "transportType": "DEFAULT",
+      "provisionType": "DISABLED",
+      "defaultRuleChainId": null,
+      "defaultDashboardId": null,
+      "defaultQueueName": null,
+      "profileData": {
+        "configuration": {
+          "type": "DEFAULT"
+        },
+        "transportConfiguration": {
+          "type": "DEFAULT"
+        },
+        "provisionConfiguration": {
+          "type": "DISABLED",
+          "provisionDeviceSecret": null
+        },
+        "alarms": null
+      },
+      "provisionDeviceKey": null,
+      "firmwareId": null,
+      "softwareId": null,
+      "externalId": {
+        "entityType": "DEVICE_PROFILE",
+        "id": "73dd0300-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "default": true
+    },
+    "oldEntity": {
+      "id": {
+        "entityType": "DEVICE_PROFILE",
+        "id": "e5099bd0-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "createdTime": 1649251042829,
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "e4fe7840-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "name": "default",
+      "description": "Default device profile",
+      "image": null,
+      "type": "DEFAULT",
+      "transportType": "DEFAULT",
+      "provisionType": "DISABLED",
+      "defaultRuleChainId": null,
+      "defaultDashboardId": null,
+      "defaultQueueName": null,
+      "profileData": {
+        "configuration": {
+          "type": "DEFAULT"
+        },
+        "transportConfiguration": {
+          "type": "DEFAULT"
+        },
+        "provisionConfiguration": {
+          "type": "DISABLED",
+          "provisionDeviceSecret": null
+        },
+        "alarms": null
+      },
+      "provisionDeviceKey": null,
+      "firmwareId": null,
+      "softwareId": null,
+      "externalId": null,
+      "default": true
+    }
+  },
+  {
+    "savedEntity": {
+      "id": {
+        "entityType": "DEVICE",
+        "id": "736e8390-b5c5-11ec-999f-a17210ada7a7"
+      },
+      "createdTime": 1649262019145,
+      "additionalInfo": {
+        "gateway": false,
+        "overwriteActivityTime": false,
+        "description": ""
+      },
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "e4fe7840-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "customerId": {
+        "entityType": "CUSTOMER",
+        "id": "65cea8f0-b5c5-11ec-999f-a17210ada7a7"
+      },
+      "name": "Device of 'My device group of 'Customer 1''",
+      "type": "default",
+      "label": "",
+      "deviceProfileId": {
+        "entityType": "DEVICE_PROFILE",
+        "id": "e5099bd0-b5ab-11ec-b4ea-bb07ac44cc28"
+      },
+      "deviceData": {
+        "configuration": {
+          "type": "DEFAULT"
+        },
+        "transportConfiguration": {
+          "type": "DEFAULT"
+        }
+      },
+      "firmwareId": null,
+      "softwareId": null,
+      "externalId": {
+        "entityType": "DEVICE",
+        "id": "c3ed1330-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "ownerId": {
+        "entityType": "CUSTOMER",
+        "id": "65cea8f0-b5c5-11ec-999f-a17210ada7a7"
+      }
+    },
+    "oldEntity": null
+  }
+]

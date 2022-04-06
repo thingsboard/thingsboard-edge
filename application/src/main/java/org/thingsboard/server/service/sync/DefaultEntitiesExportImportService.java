@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.sync;
 
@@ -21,23 +36,29 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.sync.exporting.EntityExportService;
 import org.thingsboard.server.service.sync.exporting.EntityExportSettings;
 import org.thingsboard.server.service.sync.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
 import org.thingsboard.server.service.sync.importing.EntityImportResult;
 import org.thingsboard.server.service.sync.importing.EntityImportService;
 import org.thingsboard.server.service.sync.importing.EntityImportSettings;
@@ -48,6 +69,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 @Service
 @TbCoreComponent
@@ -59,10 +82,21 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     private final Map<EntityType, Dao<?>> daos = new HashMap<>();
 
     private final AccessControlService accessControlService;
+    private final OwnersCacheService ownersCacheService;
 
     protected static final List<EntityType> SUPPORTED_ENTITY_TYPES = List.of(
-            EntityType.CUSTOMER, EntityType.ASSET, EntityType.RULE_CHAIN,
+            EntityType.CUSTOMER, EntityType.ENTITY_GROUP, EntityType.ASSET, EntityType.RULE_CHAIN,
             EntityType.DEVICE_PROFILE, EntityType.DEVICE, EntityType.DASHBOARD
+    );
+
+    protected static final Map<EntityType, Function<EntityExportData<?>, Integer>> IMPORT_ORDER = Map.of(
+            EntityType.CUSTOMER, (exportData) -> 1,
+            EntityType.ENTITY_GROUP, (exportData) -> ((EntityGroupExportData) exportData).getEntity().getOwnerId().getEntityType() == EntityType.TENANT ? 0 : 2,
+            EntityType.ASSET, (exportData) -> 3,
+            EntityType.RULE_CHAIN, (exportData) -> 4,
+            EntityType.DEVICE_PROFILE, (exportData) -> 5,
+            EntityType.DEVICE, (exportData) -> 6,
+            EntityType.DASHBOARD, (exportData) -> 7
     );
 
 
@@ -92,7 +126,7 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     @Transactional(rollbackFor = Exception.class)
     @Override
     public List<EntityImportResult<ExportableEntity<EntityId>>> importEntities(SecurityUser user, List<EntityExportData<ExportableEntity<EntityId>>> exportDataList, EntityImportSettings importSettings) throws ThingsboardException {
-        exportDataList.sort(Comparator.comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType())));
+        exportDataList.sort(Comparator.comparing(exportData -> IMPORT_ORDER.getOrDefault(exportData.getEntityType(), (d -> 100)).apply(exportData)));
 
         List<EntityImportResult<ExportableEntity<EntityId>>> importResults = new ArrayList<>();
         for (EntityExportData<ExportableEntity<EntityId>> exportData : exportDataList) {
@@ -117,11 +151,21 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     public <E extends HasId<I>, I extends EntityId> E findEntityByTenantIdAndId(TenantId tenantId, I id) {
         Dao<E> dao = (Dao<E>) getDao(id.getEntityType());
         E entity = dao.findById(tenantId, id.getId());
-        if (entity instanceof HasTenantId && !((HasTenantId) entity).getTenantId().equals(tenantId)) {
-            return null;
+
+        if (entity instanceof HasOwnerId) {
+            if (ownersCacheService.getOwners(tenantId, entity.getId(), (HasOwnerId) entity).contains(tenantId)) {
+                return entity;
+            }
+        } else if (entity instanceof HasTenantId) {
+            if (((HasTenantId) entity).getTenantId().equals(tenantId)) {
+                return entity;
+            }
+        } else if (Objects.equals(ownersCacheService.getOwner(tenantId, entity.getId()), tenantId)) {
+            return entity;
         }
-        return entity;
-    }
+
+        return null;
+}
 
     @Override
     public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name) {
@@ -132,11 +176,18 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
 
     @Override
     public void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException {
-        if (entity instanceof HasTenantId) {
-            accessControlService.checkPermission(user, Resource.of(entityType), operation, entity.getId(), (HasTenantId) entity);
+        if (entity instanceof TenantEntity) {
+            accessControlService.checkPermission(user, Resource.resourceFromEntityType(entityType), operation, entity.getId(), (TenantEntity) entity);
+        } else if (entity instanceof EntityGroup) {
+            accessControlService.checkEntityGroupPermission(user, operation, (EntityGroup) entity);
         } else if (entity != null) {
-            accessControlService.checkPermission(user, Resource.of(entityType), operation);
+            accessControlService.checkPermission(user, Resource.resourceFromEntityType(entityType), operation);
         }
+    }
+
+    @Override
+    public <E extends TenantEntity & HasId<? extends EntityId>> void checkPermission(SecurityUser user, E entity, EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
+        accessControlService.checkPermission(user, Resource.resourceFromEntityType(entity.getEntityType()), operation, entity.getId(), entity, entityGroupId);
     }
 
     @Override

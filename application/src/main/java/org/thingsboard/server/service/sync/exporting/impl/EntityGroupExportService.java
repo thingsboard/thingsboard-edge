@@ -28,23 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.exporting.data;
+package org.thingsboard.server.service.sync.exporting.impl;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class RuleChainExportData extends EntityExportData<RuleChain> {
+@Service
+@TbCoreComponent
+public class EntityGroupExportService extends BaseEntityExportService<EntityGroupId, EntityGroup, EntityGroupExportData> {
 
-    private RuleChainMetaData metaData;
+    @Override
+    protected EntityGroupExportData newExportData() {
+        return new EntityGroupExportData();
+    }
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.RULE_CHAIN;
+        return EntityType.ENTITY_GROUP;
     }
 
 }

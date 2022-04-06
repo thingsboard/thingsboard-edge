@@ -105,12 +105,16 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     @Override
     public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
                                                                                 String relationType, String name) {
-        return service.submit(() ->
-                Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
-                        parentEntityId,
-                        parentEntityType.name(),
-                        relationType,
-                        name))));
+        return service.submit(() -> findEntityGroupByTypeAndNameSync(tenantId, parentEntityId, parentEntityType, relationType, name));
+    }
+
+    @Override
+    public Optional<EntityGroup> findEntityGroupByTypeAndNameSync(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType, String name) {
+        return Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
+                parentEntityId,
+                parentEntityType.name(),
+                relationType,
+                name)));
     }
 
     @Override
@@ -135,4 +139,20 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
         return entityGroupRepository.isEntityInGroup(entityId.getId(), entityGroupId.getId());
     }
+
+    @Override
+    public EntityGroup findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(entityGroupRepository.findByExternalId(externalId));
+    }
+
+    @Override
+    public EntityGroup findFirstByTenantIdAndName(UUID tenantId, String name) {
+        return null;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ENTITY_GROUP;
+    }
+
 }

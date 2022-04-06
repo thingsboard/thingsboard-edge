@@ -43,9 +43,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -574,15 +574,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
-        try {
-            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
-            if (entityGroup.isPresent()) {
-                addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
-            } else {
-                throw new DataValidationException("Group All of type " + entityId.getEntityType() + " is absent for entityId " + parentEntityId);
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to add entity to group All", e);
+
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + entityId.getEntityType().name();
+        Optional<EntityGroup> entityGroup = this.entityGroupDao.findEntityGroupByTypeAndNameSync(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), relationType, EntityGroup.GROUP_ALL_NAME);
+        if (entityGroup.isPresent()) {
+            addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
+        } else {
+            throw new DataValidationException("Group All of type " + entityId.getEntityType() + " is absent for entityId " + parentEntityId);
         }
     }
 

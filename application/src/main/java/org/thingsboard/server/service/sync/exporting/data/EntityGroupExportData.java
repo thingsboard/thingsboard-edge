@@ -31,20 +31,15 @@
 package org.thingsboard.server.service.sync.exporting.data;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.group.EntityGroup;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class RuleChainExportData extends EntityExportData<RuleChain> {
-
-    private RuleChainMetaData metaData;
+public class EntityGroupExportData extends EntityExportData<EntityGroup> {
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.RULE_CHAIN;
+        return EntityType.ENTITY_GROUP;
     }
 
 }

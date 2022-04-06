@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.sync.importing.impl;
 
@@ -20,18 +35,21 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasCustomerId;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.sync.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 import org.thingsboard.server.service.sync.importing.EntityImportResult;
@@ -51,11 +69,13 @@ import java.util.stream.Collectors;
 public abstract class BaseEntityImportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> implements EntityImportService<I, E, D> {
 
     @Autowired @Lazy
-    private ExportableEntitiesService exportableEntitiesService;
+    protected ExportableEntitiesService exportableEntitiesService;
     @Autowired
     private RelationService relationService;
     @Autowired
     protected EntityActionService entityActionService;
+    @Autowired
+    protected TbClusterService clusterService;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -139,7 +159,11 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     }
 
     protected ThrowingRunnable getCallback(SecurityUser user, E savedEntity, E oldEntity) {
-        return () -> {};
+        return () -> {
+            entityActionService.logEntityAction(user, savedEntity.getId(), savedEntity,
+                    savedEntity instanceof HasCustomerId ? ((HasCustomerId) savedEntity).getCustomerId() : user.getCustomerId(),
+                    oldEntity == null ? ActionType.ADDED : ActionType.UPDATED, null);
+        };
     }
 
 
@@ -176,13 +200,19 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
                 EntityType.RULE_CHAIN
         );
 
+        private final Set<EntityType> NEVER_UPDATE_REFERENCED_IDS = Set.of(
+                EntityType.ENTITY_GROUP
+        );
+
         public <ID extends EntityId> ID get(Function<E, ID> idExtractor) {
-            if (existingEntity == null || importSettings.isUpdateReferencesToOtherEntities()
-                    || ALWAYS_UPDATE_REFERENCED_IDS.contains(getEntityType())) {
-                return getInternalId(idExtractor.apply(this.entity));
-            } else {
-                return idExtractor.apply(existingEntity);
+            if (existingEntity != null) {
+                if ((!importSettings.isUpdateReferencesToOtherEntities()
+                        && !ALWAYS_UPDATE_REFERENCED_IDS.contains(getEntityType()))
+                        || NEVER_UPDATE_REFERENCED_IDS.contains(getEntityType())) {
+                    return idExtractor.apply(existingEntity);
+                }
             }
+            return getInternalId(idExtractor.apply(this.entity));
         }
 
         public <ID extends EntityId, T> Set<T> get(Function<E, Set<T>> listExtractor, Function<T, ID> idGetter, BiConsumer<T, ID> idSetter) {

@@ -32,58 +32,55 @@ package org.thingsboard.server.service.sync.importing.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.DeviceExportData;
-import org.thingsboard.server.service.sync.importing.EntityImportSettings;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
 import org.thingsboard.server.utils.ThrowingRunnable;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class DeviceImportService extends BaseGroupEntityImportService<DeviceId, Device, DeviceExportData> {
+public class EntityGroupImportService extends BaseEntityImportService<EntityGroupId, EntityGroup, EntityGroupExportData> {
 
-    private final DeviceService deviceService;
-
-    @Override
-    protected void setOwner(TenantId tenantId, Device device, NewIdProvider idProvider) {
-        device.setTenantId(tenantId);
-        device.setCustomerId(idProvider.get(Device::getCustomerId));
-    }
+    private final EntityGroupService entityGroupService;
 
     @Override
-    protected Device prepareAndSave(TenantId tenantId, Device device, DeviceExportData exportData, NewIdProvider idProvider) {
-        device.setDeviceProfileId(idProvider.get(Device::getDeviceProfileId));
-        device.setFirmwareId(idProvider.get(Device::getFirmwareId));
-        device.setSoftwareId(idProvider.get(Device::getSoftwareId));
-        if (exportData.getCredentials() != null) {
-            exportData.getCredentials().setId(null);
-            exportData.getCredentials().setDeviceId(null);
-            return deviceService.saveDeviceWithCredentials(device, exportData.getCredentials());
+    protected void setOwner(TenantId tenantId, EntityGroup entityGroup, NewIdProvider idProvider) {
+        if (entityGroup.getOwnerId() instanceof TenantId) {
+            entityGroup.setOwnerId(tenantId);
         } else {
-            return deviceService.saveDevice(device);
+            entityGroup.setOwnerId(idProvider.get(EntityGroup::getOwnerId));
         }
     }
 
     @Override
-    protected ThrowingRunnable getCallback(SecurityUser user, Device savedDevice, Device oldDevice) {
-        return super.getCallback(user, savedDevice, oldDevice).andThen(() -> {
-            clusterService.onDeviceUpdated(savedDevice, oldDevice);
+    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroupExportData exportData, NewIdProvider idProvider) {
+        return entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
+    }
+
+    @Override
+    protected ThrowingRunnable getCallback(SecurityUser user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) {
+        return super.getCallback(user, savedEntityGroup, oldEntityGroup).andThen(() -> {
+            if (oldEntityGroup != null) {
+                entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
+            }
         });
     }
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.DEVICE;
+        return EntityType.ENTITY_GROUP;
     }
 
 }

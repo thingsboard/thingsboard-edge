@@ -1,0 +1,251 @@
+[
+  {
+    "entityType": "CUSTOMER",
+    "entity": {
+      "id": {
+        "entityType": "CUSTOMER",
+        "id": "a4f733c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "createdTime": 1649249646844,
+      "additionalInfo": {
+        "description": "",
+        "allowWhiteLabeling": true,
+        "homeDashboardId": null,
+        "homeDashboardHideToolbar": true
+      },
+      "country": null,
+      "state": null,
+      "city": null,
+      "address": null,
+      "address2": null,
+      "zip": null,
+      "phone": null,
+      "email": null,
+      "title": "Customer 1",
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "73d513c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "parentCustomerId": null,
+      "externalId": null,
+      "customerId": null,
+      "ownerId": {
+        "entityType": "TENANT",
+        "id": "73d513c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "name": "Customer 1"
+    },
+    "entityGroupsIds": [
+      {
+        "entityType": "ENTITY_GROUP",
+        "id": "9eaaf560-b5a8-11ec-b6cf-df5eeef83474"
+      }
+    ]
+  },
+  {
+    "entityType": "ENTITY_GROUP",
+    "entity": {
+      "id": {
+        "entityType": "ENTITY_GROUP",
+        "id": "9eaaf560-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "createdTime": 1649249636278,
+      "type": "CUSTOMER",
+      "name": "My customers",
+      "ownerId": {
+        "entityType": "TENANT",
+        "id": "73d513c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "additionalInfo": {
+        "description": ""
+      },
+      "configuration": {
+        "columns": [
+          {
+            "type": "ENTITY_FIELD",
+            "key": "created_time",
+            "sortOrder": "DESC"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "title",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "email",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "country",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "city",
+            "sortOrder": "NONE"
+          }
+        ],
+        "settings": {},
+        "actions": {}
+      },
+      "externalId": null,
+      "groupAll": false,
+      "edgeGroupAll": false
+    }
+  },
+  {
+    "entityType": "ENTITY_GROUP",
+    "entity": {
+      "id": {
+        "entityType": "ENTITY_GROUP",
+        "id": "b0e73b80-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "createdTime": 1649249666872,
+      "type": "DEVICE",
+      "name": "My device group of 'Customer 1'",
+      "ownerId": {
+        "entityType": "CUSTOMER",
+        "id": "a4f733c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "additionalInfo": {
+        "description": ""
+      },
+      "configuration": {
+        "columns": [
+          {
+            "type": "ENTITY_FIELD",
+            "key": "created_time",
+            "sortOrder": "DESC"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "name",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "device_profile",
+            "sortOrder": "NONE"
+          },
+          {
+            "type": "ENTITY_FIELD",
+            "key": "label",
+            "sortOrder": "NONE"
+          }
+        ],
+        "settings": {},
+        "actions": {}
+      },
+      "externalId": null,
+      "groupAll": false,
+      "edgeGroupAll": false
+    }
+  },
+  {
+    "entityType": "DEVICE_PROFILE",
+    "entity": {
+      "id": {
+        "entityType": "DEVICE_PROFILE",
+        "id": "73dd0300-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "createdTime": 1649249564464,
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "73d513c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "name": "default",
+      "description": "Default device profile",
+      "image": null,
+      "type": "DEFAULT",
+      "transportType": "DEFAULT",
+      "provisionType": "DISABLED",
+      "defaultRuleChainId": null,
+      "defaultDashboardId": null,
+      "defaultQueueName": null,
+      "profileData": {
+        "configuration": {
+          "type": "DEFAULT"
+        },
+        "transportConfiguration": {
+          "type": "DEFAULT"
+        },
+        "provisionConfiguration": {
+          "type": "DISABLED",
+          "provisionDeviceSecret": null
+        },
+        "alarms": null
+      },
+      "provisionDeviceKey": null,
+      "firmwareId": null,
+      "softwareId": null,
+      "externalId": null,
+      "default": true
+    }
+  },
+  {
+    "entityType": "DEVICE",
+    "entity": {
+      "id": {
+        "entityType": "DEVICE",
+        "id": "c3ed1330-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "createdTime": 1649249698787,
+      "additionalInfo": {
+        "gateway": false,
+        "overwriteActivityTime": false,
+        "description": ""
+      },
+      "tenantId": {
+        "entityType": "TENANT",
+        "id": "73d513c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "customerId": {
+        "entityType": "CUSTOMER",
+        "id": "a4f733c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "name": "Device of 'My device group of 'Customer 1''",
+      "type": "default",
+      "label": "",
+      "deviceProfileId": {
+        "entityType": "DEVICE_PROFILE",
+        "id": "73dd0300-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "deviceData": {
+        "configuration": {
+          "type": "DEFAULT"
+        },
+        "transportConfiguration": {
+          "type": "DEFAULT"
+        }
+      },
+      "firmwareId": null,
+      "softwareId": null,
+      "externalId": null,
+      "ownerId": {
+        "entityType": "CUSTOMER",
+        "id": "a4f733c0-b5a8-11ec-b6cf-df5eeef83474"
+      }
+    },
+    "entityGroupsIds": [
+      {
+        "entityType": "ENTITY_GROUP",
+        "id": "b0e73b80-b5a8-11ec-b6cf-df5eeef83474"
+      }
+    ],
+    "credentials": {
+      "id": {
+        "id": "c3ee72c0-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "createdTime": 1649249698796,
+      "deviceId": {
+        "entityType": "DEVICE",
+        "id": "c3ed1330-b5a8-11ec-b6cf-df5eeef83474"
+      },
+      "credentialsType": "ACCESS_TOKEN",
+      "credentialsId": "7tIupdfcouoivx100000",
+      "credentialsValue": null
+    }
+  }
+]
