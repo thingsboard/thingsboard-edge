@@ -30,9 +30,8 @@
  */
 package org.thingsboard.server.service.integration;
 
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 
 import java.util.Set;
@@ -41,4 +40,5 @@ public interface IntegrationManagerService {
 
     void refresh(IntegrationType integrationType, Set<TopicPartitionInfo> newPartitions);
 
+    void handleComponentLifecycleMsg(ComponentLifecycleMsg componentLifecycleMsg);
 }

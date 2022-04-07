@@ -28,35 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.provider;
+package org.thingsboard.server.queue.settings;
 
-import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
-import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
-import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
-import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
-import org.thingsboard.server.gen.js.JsInvokeProtos;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
-import org.thingsboard.server.queue.TbQueueConsumer;
-import org.thingsboard.server.queue.TbQueueProducer;
-import org.thingsboard.server.queue.TbQueueRequestTemplate;
-import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-/**
- * Responsible for initialization of various Producers and Consumers used by TB Integration Executor Node.
- * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
- */
-public interface TbIntegrationExecutorQueueFactory extends TbCoreIntegrationExecutorQueueFactory {
+@Data
+@Component
+public class TbQueueIntegrationNotificationSettings {
 
-    /**
-     * Used to push messages to other instances of TB Core Service
-     *
-     * @return
-     */
-    TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer();
+    @Value("${queue.integration.notifications_topic:tb_transport.notifications}")
+    private String notificationsTopic;
 
-    TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
+    @Value("${queue.integration.poll_interval:25}")
+    private long pollInterval;
+
+    @Value("${queue.integration.pack-processing-timeout:10000}")
+    private long packProcessingTimeout;
+
 
 }

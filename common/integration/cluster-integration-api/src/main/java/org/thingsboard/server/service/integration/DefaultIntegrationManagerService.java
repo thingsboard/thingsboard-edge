@@ -62,13 +62,17 @@ import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
@@ -103,16 +107,6 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final IntegrationConfigurationService configurationService;
     private final DataConverterService dataConverterService;
     private final EventStorageService eventStorageService;
-    private final TbServiceInfoProvider serviceInfoProvider;
-
-    @Value("${integrations.rate_limits.enabled}")
-    private boolean rateLimitEnabled;
-
-    @Value("${integrations.rate_limits.tenant}")
-    private String perTenantLimitsConf;
-
-    @Value("${integrations.rate_limits.tenant}")
-    private String perDevicesLimitsConf;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
@@ -160,12 +154,52 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     @Override
+    public void handleComponentLifecycleMsg(ComponentLifecycleMsg componentLifecycleMsg) {
+        var entityType = componentLifecycleMsg.getEntityId().getEntityType();
+        switch (entityType) {
+            case INTEGRATION:
+                processIntegrationUpdate(componentLifecycleMsg);
+                break;
+            case CONVERTER:
+                processConverterUpdate(componentLifecycleMsg);
+                break;
+            default:
+                log.info("[{}][{}] Ignore update due to not supported entity type: {}",
+                        componentLifecycleMsg.getTenantId(), componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
+        }
+    }
+
+    private void processConverterUpdate(ComponentLifecycleMsg msg) {
+        ConverterId converterId = new ConverterId(msg.getEntityId().getId());
+        if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
+            dataConverterService.deleteConverter(converterId);
+        } else {
+            Converter converter = configurationService.getConverter(msg.getTenantId(), converterId);
+            if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+                dataConverterService.createConverter(converter);
+            } else {
+                dataConverterService.updateConverter(converter);
+            }
+        }
+    }
+
+    private void processIntegrationUpdate(ComponentLifecycleMsg msg) {
+        var id = new IntegrationId(msg.getEntityId().getId());
+        Integration configuration = configurationService.getIntegration(msg.getTenantId(), id);
+        if (isMine(configuration)) {
+            scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), msg.getEvent());
+        } else {
+            log.debug("[{}][{}] Ignore update event for not mine integration", msg.getTenantId(), id);
+        }
+    }
+
+    @Override
     public void refresh(IntegrationType integrationType, Set<TopicPartitionInfo> newPartitions) {
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrations.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
             Integration integration = integrations.get(integrationId).getIntegration().getConfiguration();
             if (!isMine(integration)) {
-                scheduleIntegrationEvent(integration, ComponentLifecycleEvent.STOPPED);
+                scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.STOPPED);
             }
         }
 
@@ -175,7 +209,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 try {
                     //Initialize the integration that belongs to current node only
                     if (isMine(integration)) {
-                        scheduleIntegrationEvent(integration, ComponentLifecycleEvent.CREATED);
+                        scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.CREATED);
                     }
                 } catch (Exception e) {
                     log.info("[{}] Unable to initialize integration {}", integration.getId(), integration.getName(), e);
@@ -206,7 +240,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 state.getUpdateLock().unlock();
             }
         } else {
-            refreshExecutorService.schedule(() -> tryUpdate(id), 1, TimeUnit.SECONDS);
+            refreshExecutorService.schedule(() -> tryUpdate(id), 10, TimeUnit.SECONDS);
         }
     }
 
@@ -239,6 +273,11 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     private void processUpdateEvent(IntegrationState state) throws Exception {
         Integration configuration = configurationService.getIntegration(state.getTenantId(), state.getId());
+        if (log.isDebugEnabled()) {
+            log.debug("[{}][{}] Going to update the integration: {}", state.getTenantId(), state.getIntegration(), configuration);
+        } else {
+            log.info("[{}][{}] Going to update the integration.", state.getTenantId(), state.getIntegration());
+        }
         if (state.getIntegration() == null) {
             if (!isMine(configuration)) {
                 throw new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS);
@@ -269,14 +308,14 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 if (configuration.isEnabled()) {
                     state.setContext(context);
                     state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                    eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
+                    eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                     state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 } else {
                     processStop(state, ComponentLifecycleEvent.STOPPED);
                 }
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
-                eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
+                eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
                 throw handleException(e);
             }
         }
@@ -321,22 +360,22 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), integration.getTenantId(), integration.getId()).isMyPartition();
     }
 
-    private void scheduleIntegrationEvent(IntegrationInfo info, ComponentLifecycleEvent event) {
+    private void scheduleIntegrationEvent(TenantId tenantId, IntegrationId id, ComponentLifecycleEvent event) {
         IntegrationState state;
         switch (event) {
             case CREATED:
             case UPDATED:
-                state = integrations.computeIfAbsent(info.getId(), tmp -> new IntegrationState(info.getTenantId(), info.getId()));
+                state = integrations.computeIfAbsent(id, tmp -> new IntegrationState(tenantId, id));
                 break;
             default:
-                state = integrations.get(info);
+                state = integrations.get(id);
         }
         if (state != null) {
             state.getUpdateQueue().add(event);
-            log.debug("[{}][{}] Scheduling new event: {}", info.getTenantId(), info.getId(), event);
-            refreshExecutorService.submit(() -> tryUpdate(info.getId()));
+            log.debug("[{}][{}] Scheduling new event: {}", tenantId, id, event);
+            refreshExecutorService.submit(() -> tryUpdate(id));
         } else {
-            log.info("[{}][{}] Ignoring new event: {}", info.getTenantId(), info.getId(), event);
+            log.info("[{}][{}] Ignoring new event: {}", tenantId, id, event);
         }
     }
 

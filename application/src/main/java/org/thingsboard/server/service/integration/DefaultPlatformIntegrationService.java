@@ -220,13 +220,13 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Autowired(required = false)
     private CoapServerService coapServerService;
 
-    @Value("${transport.rate_limits.enabled}")
+    @Value("${integrations.rate_limits.enabled}")
     private boolean rateLimitEnabled;
 
-    @Value("${transport.rate_limits.tenant}")
+    @Value("${integrations.rate_limits.tenant}")
     private String perTenantLimitsConf;
 
-    @Value("${transport.rate_limits.tenant}")
+    @Value("${integrations.rate_limits.tenant}")
     private String perDevicesLimitsConf;
 
     @Value("${integrations.reinit.enabled:false}")
