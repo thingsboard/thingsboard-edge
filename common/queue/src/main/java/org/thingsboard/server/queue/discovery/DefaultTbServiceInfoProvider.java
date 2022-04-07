@@ -62,6 +62,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
 
+    private static final String SUPPORTED_INTEGRATIONS_NONE = "NONE";
+    private static final String SUPPORTED_INTEGRATIONS_ALL = "ALL";
     @Getter
     @Value("${service.id:#{null}}")
     private String serviceId;
@@ -74,7 +76,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     @Value("${service.tenant_id:}")
     private String tenantIdStr;
 
-    @Value("${service.supported-integrations:}")
+    @Value("${service.supported-integrations:ALL}")
     private String supportedIntegrationsStr;
 
     @Autowired(required = false)
@@ -125,7 +127,9 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         }
         if (serviceTypes.contains(ServiceType.TB_INTEGRATION_EXECUTOR)) {
             List<IntegrationType> supportedIntegrationTypes;
-            if (StringUtils.isEmpty(supportedIntegrationsStr)) {
+            if (StringUtils.isEmpty(supportedIntegrationsStr) || supportedIntegrationsStr.equalsIgnoreCase(SUPPORTED_INTEGRATIONS_NONE)) {
+                supportedIntegrationTypes = Collections.emptyList();
+            } else if (supportedIntegrationsStr.equalsIgnoreCase(SUPPORTED_INTEGRATIONS_ALL)) {
                 supportedIntegrationTypes = Arrays.asList(IntegrationType.values());
             } else {
                 try {
@@ -135,7 +139,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
                     throw e;
                 }
             }
-            supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
+            supportedIntegrationTypes.stream().filter(it -> !it.isRemoteOnly()).forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
         }
 
         serviceInfo = builder.build();

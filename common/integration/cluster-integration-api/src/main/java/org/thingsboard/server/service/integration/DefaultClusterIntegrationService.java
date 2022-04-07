@@ -28,42 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.queue.processing;
+package org.thingsboard.server.service.integration;
 
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
-import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
-import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -73,34 +85,49 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class AbstractConsumerService<N extends com.google.protobuf.GeneratedMessageV3> extends TbApplicationEventListener<PartitionChangeEvent> {
+@TbCoreOrIntegrationExecutorComponent
+@Service
+@RequiredArgsConstructor
+public class DefaultClusterIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements ClusterIntegrationService {
 
-    protected volatile ExecutorService consumersExecutor;
-    protected volatile ExecutorService notificationsConsumerExecutor;
-    protected volatile boolean stopped = false;
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbCoreIntegrationExecutorQueueFactory queueFactory;
+    private final IntegrationManagerService integrationManagerService;
+    private final DataDecodingEncodingService encodingService;
+    private final Map<IntegrationType, Queue<Set<TopicPartitionInfo>>> subscribeEventsMap = new ConcurrentHashMap<>();
 
-    protected final ActorSystemContext actorContext;
-    protected final DataDecodingEncodingService encodingService;
-    protected final TbTenantProfileCache tenantProfileCache;
-    protected final TbDeviceProfileCache deviceProfileCache;
-    protected final TbApiUsageStateService apiUsageStateService;
+    private volatile ExecutorService notificationsConsumerExecutor;
+    private volatile ListeningScheduledExecutorService queueExecutor;
+    private volatile TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> nfConsumer;
 
-    protected final TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer;
+    private volatile boolean stopped = false;
 
-    public AbstractConsumerService(ActorSystemContext actorContext, DataDecodingEncodingService encodingService,
-                                   TbTenantProfileCache tenantProfileCache, TbDeviceProfileCache deviceProfileCache,
-                                   TbApiUsageStateService apiUsageStateService, TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer) {
-        this.actorContext = actorContext;
-        this.encodingService = encodingService;
-        this.tenantProfileCache = tenantProfileCache;
-        this.deviceProfileCache = deviceProfileCache;
-        this.apiUsageStateService = apiUsageStateService;
-        this.nfConsumer = nfConsumer;
+    @PostConstruct
+    public void init() {
+        queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
+        notificationsConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ie-nf-consumer"));
+        nfConsumer = queueFactory.createToIntegrationExecutorNotificationsMsgConsumer();
     }
 
-    public void init(String mainConsumerThreadName, String nfConsumerThreadName) {
-        this.consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName(mainConsumerThreadName));
-        this.notificationsConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(nfConsumerThreadName));
+    @PreDestroy
+    public void stop() {
+        stopped = true;
+        if (nfConsumer != null) {
+            nfConsumer.unsubscribe();
+        }
+        if (queueExecutor != null) {
+            queueExecutor.shutdownNow();
+        }
+        if (notificationsConsumerExecutor != null) {
+            notificationsConsumerExecutor.shutdownNow();
+        }
+    }
+
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        IntegrationType type = IntegrationType.valueOf(event.getServiceQueueKey().getServiceQueue().getQueue());
+        subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(event.getPartitions());
+        queueExecutor.submit(() -> refreshIntegrationsByType(type));
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -109,31 +136,28 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         log.info("Subscribing to notifications: {}", nfConsumer.getTopic());
         this.nfConsumer.subscribe();
         launchNotificationsConsumer();
-        launchMainConsumers();
     }
 
-    protected abstract ServiceType getServiceType();
-
-    protected abstract void launchMainConsumers();
-
-    protected abstract void stopMainConsumers();
-
-    protected abstract long getNotificationPollDuration();
-
-    protected abstract long getNotificationPackProcessingTimeout();
+    @Override
+    protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
+        return ServiceType.TB_INTEGRATION_EXECUTOR.equals(event.getServiceType());
+    }
 
     protected void launchNotificationsConsumer() {
         notificationsConsumerExecutor.submit(() -> {
+            long pollDuration = integrationNotificationSettings.getPollInterval();
+            long processingTimeout = integrationNotificationSettings.getPackProcessingTimeout();
             while (!stopped) {
                 try {
-                    List<TbProtoQueueMsg<N>> msgs = nfConsumer.poll(getNotificationPollDuration());
+
+                    List<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> msgs = nfConsumer.poll(pollDuration);
                     if (msgs.isEmpty()) {
                         continue;
                     }
-                    ConcurrentMap<UUID, TbProtoQueueMsg<N>> pendingMap = msgs.stream().collect(
+                    ConcurrentMap<UUID, TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> pendingMap = msgs.stream().collect(
                             Collectors.toConcurrentMap(s -> UUID.randomUUID(), Function.identity()));
                     CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
-                    TbPackProcessingContext<TbProtoQueueMsg<N>> ctx = new TbPackProcessingContext<>(
+                    TbPackProcessingContext<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> ctx = new TbPackProcessingContext<>(
                             processingTimeoutLatch, pendingMap, new ConcurrentHashMap<>());
                     pendingMap.forEach((id, msg) -> {
                         log.trace("[{}] Creating notification callback for message: {}", id, msg.getValue());
@@ -145,7 +169,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
                             callback.onFailure(e);
                         }
                     });
-                    if (!processingTimeoutLatch.await(getNotificationPackProcessingTimeout(), TimeUnit.MILLISECONDS)) {
+                    if (!processingTimeoutLatch.await(processingTimeout, TimeUnit.MILLISECONDS)) {
                         ctx.getAckMap().forEach((id, msg) -> log.warn("[{}] Timeout to process notification: {}", id, msg.getValue()));
                         ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process notification: {}", id, msg.getValue()));
                     }
@@ -154,7 +178,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
                     if (!stopped) {
                         log.warn("Failed to obtain notifications from queue.", e);
                         try {
-                            Thread.sleep(getNotificationPollDuration());
+                            Thread.sleep(pollDuration);
                         } catch (InterruptedException e2) {
                             log.trace("Failed to wait until the server has capacity to handle new notifications", e2);
                         }
@@ -165,58 +189,47 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         });
     }
 
+    private void handleNotification(UUID id, TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg> msg, TbCallback callback) {
+        ToIntegrationExecutorNotificationMsg nf = msg.getValue();
+        if (!nf.getComponentLifecycleMsg().isEmpty()) {
+            handleComponentLifecycleMsg(id, nf.getComponentLifecycleMsg());
+            callback.onSuccess();
+        }
+    }
+
     protected void handleComponentLifecycleMsg(UUID id, ByteString nfMsg) {
         Optional<TbActorMsg> actorMsgOpt = encodingService.decode(nfMsg.toByteArray());
         if (actorMsgOpt.isPresent()) {
             TbActorMsg actorMsg = actorMsgOpt.get();
             if (actorMsg instanceof ComponentLifecycleMsg) {
                 ComponentLifecycleMsg componentLifecycleMsg = (ComponentLifecycleMsg) actorMsg;
-                log.info("[{}][{}][{}] Received Lifecycle event: {}", componentLifecycleMsg.getTenantId(), componentLifecycleMsg.getEntityId().getEntityType(),
+                log.info("[{}][{}][{}] Received Lifecycle event: {}", componentLifecycleMsg.getTenantId(),
+                        componentLifecycleMsg.getEntityId().getEntityType(),
                         componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
-                if (EntityType.TENANT_PROFILE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    TenantProfileId tenantProfileId = new TenantProfileId(componentLifecycleMsg.getEntityId().getId());
-                    tenantProfileCache.evict(tenantProfileId);
-                    if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {
-                        apiUsageStateService.onTenantProfileUpdate(tenantProfileId);
-                    }
-                } else if (EntityType.TENANT.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    tenantProfileCache.evict(componentLifecycleMsg.getTenantId());
-                    if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.UPDATED)) {
-                        apiUsageStateService.onTenantUpdate(componentLifecycleMsg.getTenantId());
-                    } else if (componentLifecycleMsg.getEvent().equals(ComponentLifecycleEvent.DELETED)) {
-                        apiUsageStateService.onTenantDelete((TenantId) componentLifecycleMsg.getEntityId());
-                    }
-                } else if (EntityType.DEVICE_PROFILE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    deviceProfileCache.evict(componentLifecycleMsg.getTenantId(), new DeviceProfileId(componentLifecycleMsg.getEntityId().getId()));
-                } else if (EntityType.DEVICE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    deviceProfileCache.evict(componentLifecycleMsg.getTenantId(), new DeviceId(componentLifecycleMsg.getEntityId().getId()));
-                } else if (EntityType.API_USAGE_STATE.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    apiUsageStateService.onApiUsageStateUpdate(componentLifecycleMsg.getTenantId());
-                } else if (EntityType.CUSTOMER.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
-                    if (componentLifecycleMsg.getEvent() == ComponentLifecycleEvent.DELETED) {
-                        apiUsageStateService.onCustomerDelete((CustomerId) componentLifecycleMsg.getEntityId());
-                    }
-                }
+                integrationManagerService.handleComponentLifecycleMsg(componentLifecycleMsg);
             }
             log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
-            actorContext.tellWithHighPriority(actorMsg);
         }
     }
 
-    protected abstract void handleNotification(UUID id, TbProtoQueueMsg<N> msg, TbCallback callback) throws Exception;
-
-    @PreDestroy
-    public void destroy() {
-        stopped = true;
-        stopMainConsumers();
-        if (nfConsumer != null) {
-            nfConsumer.unsubscribe();
-        }
-        if (consumersExecutor != null) {
-            consumersExecutor.shutdownNow();
-        }
-        if (notificationsConsumerExecutor != null) {
-            notificationsConsumerExecutor.shutdownNow();
+    private void refreshIntegrationsByType(IntegrationType type) {
+        //TODO: performance improvement - check if we received events for not supported integration types and filter them.
+        Set<TopicPartitionInfo> partitions = getLatestPartitionsFromQueue(type);
+        if (partitions != null) {
+            integrationManagerService.refresh(type, partitions);
         }
     }
+
+    private Set<TopicPartitionInfo> getLatestPartitionsFromQueue(IntegrationType type) {
+        var queue = subscribeEventsMap.get(type);
+        log.debug("[{}] getLatestPartitionsFromQueue, queue size {}", type, queue.size());
+        Set<TopicPartitionInfo> partitions = null;
+        while (!queue.isEmpty()) {
+            partitions = queue.poll();
+            log.debug("[{}] polled from the queue partitions {}", type, partitions);
+        }
+        log.debug("[{}] getLatestPartitionsFromQueue, partitions {}", type, partitions);
+        return partitions;
+    }
+
 }

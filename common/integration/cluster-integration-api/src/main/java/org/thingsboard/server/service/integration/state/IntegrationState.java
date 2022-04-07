@@ -28,35 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.provider;
+package org.thingsboard.server.service.integration.state;
 
-import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
-import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
-import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
-import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
-import org.thingsboard.server.gen.js.JsInvokeProtos;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
-import org.thingsboard.server.queue.TbQueueConsumer;
-import org.thingsboard.server.queue.TbQueueProducer;
-import org.thingsboard.server.queue.TbQueueRequestTemplate;
-import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-/**
- * Responsible for initialization of various Producers and Consumers used by TB Integration Executor Node.
- * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
- */
-public interface TbIntegrationExecutorQueueFactory extends TbCoreIntegrationExecutorQueueFactory {
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-    /**
-     * Used to push messages to other instances of TB Core Service
-     *
-     * @return
-     */
-    TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer();
+@Data
+@RequiredArgsConstructor
+public class IntegrationState {
 
-    TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
+    private final Lock updateLock = new ReentrantLock();
+    private final Queue<ComponentLifecycleEvent> updateQueue = new ConcurrentLinkedQueue<>();
+    private final TenantId tenantId;
+    private final IntegrationId id;
+
+    private ComponentLifecycleEvent currentState;
+    private ThingsboardPlatformIntegration<?> integration;
+    private IntegrationContext context;
 
 }

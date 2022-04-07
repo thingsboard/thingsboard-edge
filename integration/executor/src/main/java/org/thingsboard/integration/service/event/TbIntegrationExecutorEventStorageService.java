@@ -32,20 +32,77 @@ package org.thingsboard.integration.service.event;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.EventUtil;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.service.api.IntegrationApiService;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.gen.integration.TbEventSource;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
 import org.thingsboard.server.service.integration.EventStorageService;
 
-@TbIntegrationExecutorComponent
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class TbIntegrationExecutorEventStorageService implements EventStorageService {
 
+    private static final IntegrationCallback<Void> EMPTY_CALLBACK = new IntegrationCallback<>() {
+        @Override
+        public void onSuccess(Void msg) {
+
+        }
+
+        @Override
+        public void onError(Throwable e) {
+
+        }
+    };
+    private final TbServiceInfoProvider serviceInfoProvider;
+    private final IntegrationApiService apiService;
+
     @Override
     public void persistLifecycleEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent lcEvent, Exception e) {
-        // TODO: ashvayka integration executor
+        String eventData = JacksonUtil.toString(EventUtil.toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
+        TbEventSource eventSource;
+        switch (entityId.getEntityType()) {
+            case INTEGRATION:
+                eventSource = TbEventSource.INTEGRATION;
+                break;
+            case CONVERTER:
+                //We don't care is it up or down link converter during processing of the message on tb-core side.
+                eventSource = TbEventSource.UPLINK_CONVERTER;
+                break;
+            case DEVICE:
+                eventSource = TbEventSource.DEVICE;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported event type: " + entityId.getEntityType());
+        }
+        var builder = TbIntegrationEventProto.newBuilder()
+                .setSource(eventSource)
+                .setType(DataConstants.LC_EVENT)
+                .setData(eventData);
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
+        builder.setEventSourceIdLSB(entityId.getId().getLeastSignificantBits());
+
+        apiService.sendEventData(tenantId, entityId, builder.build(), EMPTY_CALLBACK);
     }
 
+    @Override
+    public void persistStatistics(TenantId tenantId, IntegrationId id, long ts, IntegrationStatistics statistics, ComponentLifecycleEvent currentState) {
+        //TODO: ashvayka integration executor
+    }
 }

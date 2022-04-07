@@ -63,7 +63,7 @@ public class DefaultDataConverterService implements DataConverterService {
     private ConverterLookupService converterService;
 
     @Autowired
-    private JsInvokeService jsSandbox;
+    private JsInvokeService jsService;
 
     @Autowired
     private LogSettingsComponent logSettingsComponent;
@@ -135,11 +135,11 @@ public class DefaultDataConverterService implements DataConverterService {
     private TBDataConverter initConverter(Converter converter) {
         switch (converter.getType()) {
             case UPLINK:
-                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsSandbox, logSettingsComponent);
+                JSUplinkDataConverter uplink = new JSUplinkDataConverter(jsService, logSettingsComponent);
                 uplink.init(converter);
                 return uplink;
             case DOWNLINK:
-                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsSandbox, logSettingsComponent);
+                JSDownlinkDataConverter downlink = new JSDownlinkDataConverter(jsService, logSettingsComponent);
                 downlink.init(converter);
                 return downlink;
             default:

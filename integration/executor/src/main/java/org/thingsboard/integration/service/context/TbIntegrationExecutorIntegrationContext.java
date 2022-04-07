@@ -32,19 +32,27 @@ package org.thingsboard.integration.service.context;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.channel.EventLoopGroup;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.service.api.IntegrationApiService;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
+import org.thingsboard.server.gen.integration.TbEventSource;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
 import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
 import java.util.concurrent.ExecutorService;
@@ -74,32 +82,12 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public ConverterContext getUplinkConverterContext() {
-        return new ConverterContext() {
-            @Override
-            public String getServiceId() {
-                return serviceId;
-            }
-
-            @Override
-            public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-                // TODO: ashvayka integration executor
-            }
-        };
+        return new TbIntegrationExecutorConverterContext(configuration.getDefaultConverterId(), TbEventSource.UPLINK_CONVERTER);
     }
 
     @Override
     public ConverterContext getDownlinkConverterContext() {
-        return new ConverterContext() {
-            @Override
-            public String getServiceId() {
-                return serviceId;
-            }
-
-            @Override
-            public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-                // TODO: ashvayka integration executor
-            }
-        };
+        return new TbIntegrationExecutorConverterContext(configuration.getDownlinkConverterId(), TbEventSource.DOWNLINK_CONVERTER);
     }
 
     @Override
@@ -115,23 +103,24 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     }
 
     @Override
-    public void createEntityView(EntityViewDataProto entityViewDataProto, IntegrationCallback<Void> callback) {
-
+    public void createEntityView(EntityViewDataProto uplinkData, IntegrationCallback<Void> callback) {
+        log.info("Received uplink: {}", uplinkData);
+        apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
     @Override
     public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
-
+        apiService.sendUplinkData(configuration, integrationInfoProto, msg, callback);
     }
 
     @Override
     public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-
+        saveEvent(TbEventSource.INTEGRATION, configuration.getId(), null, type, uid, body, callback);
     }
 
     @Override
     public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-
+        saveEvent(TbEventSource.DEVICE, null, deviceName, type, uid, body, callback);
     }
 
     @Override
@@ -151,17 +140,25 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public DownLinkMsg getDownlinkMsg(String deviceName) {
-        return null;
+        Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            return contextComponent.getDownlinkService().get(configuration.getId(), device.getId());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        return null;
+        return contextComponent.getDownlinkService().put(msg);
     }
 
     @Override
     public void removeDownlinkMsg(String deviceName) {
-
+        Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            contextComponent.getDownlinkService().remove(configuration.getId(), device.getId());
+        }
     }
 
     @Override
@@ -172,5 +169,43 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     @Override
     public boolean isExceptionStackTraceEnabled() {
         return false;
+    }
+
+    private void saveEvent(TbEventSource tbEventSource, EntityId entityId, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        String eventData = JacksonUtil.toString(body);
+        var builder = TbIntegrationEventProto.newBuilder()
+                .setSource(tbEventSource)
+                .setType(type)
+                .setData(eventData);
+        builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
+        if (entityId != null) {
+            builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
+            builder.setEventSourceIdLSB(entityId.getId().getLeastSignificantBits());
+        }
+        if (StringUtils.isNotBlank(uid)) {
+            builder.setUid(uid);
+        }
+        if (StringUtils.isNotEmpty(deviceName)) {
+            builder.setDeviceName(deviceName);
+        }
+        apiService.sendEventData(configuration.getTenantId(), entityId, builder.build(), callback);
+    }
+
+    @RequiredArgsConstructor
+    private class TbIntegrationExecutorConverterContext implements ConverterContext {
+
+        private final ConverterId converterId;
+        private final TbEventSource eventSource;
+
+        @Override
+        public String getServiceId() {
+            return serviceId;
+        }
+
+        @Override
+        public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+            TbIntegrationExecutorIntegrationContext.this.saveEvent(eventSource, converterId, null, type, null, body, callback);
+        }
     }
 }

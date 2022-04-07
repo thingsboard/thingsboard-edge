@@ -30,24 +30,78 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @TbCoreComponent
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TbCoreEventStorageService implements EventStorageService {
 
+    private final TbServiceInfoProvider serviceInfoProvider;
     private final ActorSystemContext actorSystemContext;
+    private final TelemetrySubscriptionService telemetrySubscriptionService;
+    private final EventService eventService;
 
     @Override
     public void persistLifecycleEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent lcEvent, Exception e) {
         actorSystemContext.persistLifecycleEvent(tenantId, entityId, lcEvent, e);
     }
 
+    @Override
+    public void persistStatistics(TenantId tenantId, IntegrationId id, long ts, IntegrationStatistics statistics, ComponentLifecycleEvent currentState) {
+        String serviceId = serviceInfoProvider.getServiceId();
+
+        Event event = new Event();
+        event.setEntityId(id);
+        event.setTenantId(tenantId);
+        event.setType(DataConstants.STATS);
+        event.setBody(toBodyJson(serviceInfoProvider.getServiceId(), statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+        eventService.saveAsync(event);
+
+        List<TsKvEntry> statsTs = new ArrayList<>();
+        statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));
+        statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_errorsCount", statistics.getErrorsOccurred())));
+        statsTs.add(new BasicTsKvEntry(ts, new StringDataEntry(serviceId + "_state", currentState != null ? currentState.name() : "N/A")));
+        telemetrySubscriptionService.saveAndNotifyInternal(tenantId, id, statsTs, new FutureCallback<Integer>() {
+            @Override
+            public void onSuccess(Integer result) {
+                log.trace("[{}] Persisted statistics telemetry: {}", id, statistics);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Failed to persist statistics telemetry: {}", id, statistics, t);
+            }
+        });
+
+    }
+
+    private JsonNode toBodyJson(String serviceId, long messagesProcessed, long errorsOccurred) {
+        return JacksonUtil.newObjectNode().put("server", serviceId).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
+    }
 }

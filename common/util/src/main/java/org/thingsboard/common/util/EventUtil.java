@@ -28,13 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service;
+package org.thingsboard.common.util;
 
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.server.common.data.integration.Integration;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-public interface IntegrationManagerService {
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Optional;
 
-    ThingsboardPlatformIntegration getOrCreateIntegration(Integration configuration, boolean forceReInit);
+public class EventUtil {
 
+    public static JsonNode toBodyJson(String serviceId, ComponentLifecycleEvent event, Optional<Exception> e) {
+        ObjectNode node = JacksonUtil.newObjectNode().put("server", serviceId).put("event", event.name());
+        if (e.isPresent()) {
+            node = node.put("success", false);
+            node = node.put("error", toString(e.get()));
+        } else {
+            node = node.put("success", true);
+        }
+        return node;
+    }
+
+    public static String toString(Throwable e) {
+        StringWriter sw = new StringWriter();
+        e.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
+    }
 }

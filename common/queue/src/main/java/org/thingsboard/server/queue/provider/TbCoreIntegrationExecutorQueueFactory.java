@@ -35,9 +35,6 @@ import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
@@ -45,18 +42,17 @@ import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
 /**
- * Responsible for initialization of various Producers and Consumers used by TB Integration Executor Node.
- * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
+ * Shared Producers and Consumers used by both TB Core and Integration Executor
  */
-public interface TbIntegrationExecutorQueueFactory extends TbCoreIntegrationExecutorQueueFactory {
+public interface TbCoreIntegrationExecutorQueueFactory extends TbUsageStatsClientQueueFactory {
 
     /**
-     * Used to push messages to other instances of TB Core Service
+     * Used to consume high priority messages by TB Integration Executor
      *
      * @return
      */
-    TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer();
+    TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer();
 
-    TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
+    TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate();
 
 }

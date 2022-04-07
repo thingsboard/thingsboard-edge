@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.converter.ConverterLookupService;
+import org.thingsboard.server.service.integration.IntegrationConfigurationService;
 
 import java.util.concurrent.TimeUnit;
 
@@ -46,12 +47,12 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class TbIntegrationExecutorConverterLookupService implements ConverterLookupService {
 
-    private final IntegrationApiService integrationApiService;
+    private final IntegrationConfigurationService configurationService;
 
     @Override
     public Converter findConverterById(TenantId tenantId, ConverterId converterId) {
         try {
-            return integrationApiService.getConverter(tenantId, converterId).get(1, TimeUnit.MINUTES);
+            return configurationService.getConverter(tenantId, converterId);
         } catch (Exception e) {
             log.warn("[{}][{}] Failed to fetch the converter due to {}", tenantId, converterId, e);
             throw new RuntimeException("Failed to fetch the converter", e);
