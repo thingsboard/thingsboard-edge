@@ -52,6 +52,7 @@ import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
@@ -69,18 +70,21 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueTransportApiSettings transportApiSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final InMemoryStorage storage;
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
 
     public InMemoryMonolithQueueFactory(PartitionService partitionService, TbQueueCoreSettings coreSettings,
                                         TbQueueRuleEngineSettings ruleEngineSettings,
                                         TbServiceInfoProvider serviceInfoProvider,
                                         TbQueueTransportApiSettings transportApiSettings,
-                                        TbQueueTransportNotificationSettings transportNotificationSettings) {
+                                        TbQueueTransportNotificationSettings transportNotificationSettings,
+                                        TbQueueIntegrationNotificationSettings integrationNotificationSettings) {
         this.partitionService = partitionService;
         this.coreSettings = coreSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.ruleEngineSettings = ruleEngineSettings;
         this.transportApiSettings = transportApiSettings;
         this.transportNotificationSettings = transportNotificationSettings;
+        this.integrationNotificationSettings = integrationNotificationSettings;
         this.storage = InMemoryStorage.getInstance();
     }
 
@@ -183,14 +187,12 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getNotificationsTopic());
     }
 
     @Scheduled(fixedRateString = "${queue.in_memory.stats.print-interval-ms:60000}")
