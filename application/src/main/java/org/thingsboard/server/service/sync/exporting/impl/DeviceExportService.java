@@ -40,10 +40,12 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.exporting.data.DeviceExportData;
 
+import java.util.Set;
+
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class DeviceExportService extends BaseGroupEntityExportService<DeviceId, Device, DeviceExportData> {
+public class DeviceExportService extends DefaultGroupEntityExportService<DeviceId, Device, DeviceExportData> {
 
     private final DeviceCredentialsService deviceCredentialsService;
 
@@ -58,8 +60,8 @@ public class DeviceExportService extends BaseGroupEntityExportService<DeviceId, 
     }
 
     @Override
-    public EntityType getEntityType() {
-        return EntityType.DEVICE;
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.DEVICE);
     }
 
 }

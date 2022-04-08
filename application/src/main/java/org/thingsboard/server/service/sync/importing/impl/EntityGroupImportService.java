@@ -41,12 +41,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class EntityGroupImportService extends BaseEntityImportService<EntityGroupId, EntityGroup, EntityGroupExportData> {
+public class EntityGroupImportService extends BaseEntityImportService<EntityGroupId, EntityGroup, EntityExportData<EntityGroup>> {
 
     private final EntityGroupService entityGroupService;
 
@@ -60,7 +60,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroupExportData exportData, NewIdProvider idProvider) {
+    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityExportData<EntityGroup> exportData, NewIdProvider idProvider) {
         return entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
     }
 

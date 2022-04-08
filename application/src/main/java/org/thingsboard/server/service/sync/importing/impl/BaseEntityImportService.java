@@ -99,6 +99,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         EntityImportResult<E> importResult = new EntityImportResult<>();
         importResult.setSavedEntity(savedEntity);
         importResult.setOldEntity(existingEntity);
+        importResult.setEntityType(getEntityType());
 
         processAfterSaved(user, importResult, exportData, idProvider, importSettings);
 

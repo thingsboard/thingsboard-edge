@@ -35,11 +35,12 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
 
 import java.util.List;
 
 @Data
-public abstract class GroupEntityExportData<E extends ExportableEntity<? extends EntityId> & GroupEntity<? extends EntityId>> extends EntityExportData<E> {
+public class GroupEntityExportData<E extends ExportableEntity<? extends EntityId> & GroupEntity<? extends EntityId>> extends EntityExportData<E> {
+
     private List<EntityGroupId> entityGroupsIds;
+
 }

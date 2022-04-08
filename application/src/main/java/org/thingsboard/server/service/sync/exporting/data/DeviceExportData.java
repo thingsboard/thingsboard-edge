@@ -33,7 +33,6 @@ package org.thingsboard.server.service.sync.exporting.data;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 
 @EqualsAndHashCode(callSuper = true)
@@ -41,10 +40,5 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 public class DeviceExportData extends GroupEntityExportData<Device> {
 
     private DeviceCredentials credentials;
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.DEVICE;
-    }
 
 }

@@ -32,6 +32,8 @@ package org.thingsboard.server.service.sync.exporting.impl;
 
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -39,15 +41,19 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.exporting.data.GroupEntityExportData;
 import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-public abstract class BaseGroupEntityExportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityExportService<I, E, D> {
+@Service
+@TbCoreComponent
+public class DefaultGroupEntityExportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityExportService<I, E, D> {
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -66,6 +72,16 @@ public abstract class BaseGroupEntityExportService<I extends EntityId, E extends
             }
             exportData.setEntityGroupsIds(entityGroupsIds);
         }
+    }
+
+    @Override
+    protected D newExportData() {
+        return (D) new GroupEntityExportData<E>();
+    }
+
+    @Override
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.DEVICE, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DASHBOARD);
     }
 
 }

@@ -34,18 +34,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.AssetExportData;
+import org.thingsboard.server.service.sync.exporting.data.GroupEntityExportData;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class AssetImportService extends BaseGroupEntityImportService<AssetId, Asset, AssetExportData> {
+public class AssetImportService extends BaseGroupEntityImportService<AssetId, Asset, GroupEntityExportData<Asset>> {
 
     private final AssetService assetService;
 
@@ -56,7 +54,7 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
     }
 
     @Override
-    protected Asset prepareAndSave(TenantId tenantId, Asset asset, AssetExportData exportData, NewIdProvider idProvider) {
+    protected Asset prepareAndSave(TenantId tenantId, Asset asset, GroupEntityExportData<Asset> exportData, NewIdProvider idProvider) {
         return assetService.saveAsset(asset);
     }
 

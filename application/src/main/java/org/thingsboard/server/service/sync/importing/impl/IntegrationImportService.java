@@ -42,12 +42,12 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.IntegrationExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class IntegrationImportService extends BaseEntityImportService<IntegrationId, Integration, IntegrationExportData> {
+public class IntegrationImportService extends BaseEntityImportService<IntegrationId, Integration, EntityExportData<Integration>> {
 
     private final IntegrationService integrationService;
     private final PlatformIntegrationService platformIntegrationService;
@@ -58,7 +58,7 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
     }
 
     @Override
-    protected Integration prepareAndSave(TenantId tenantId, Integration integration, IntegrationExportData exportData, NewIdProvider idProvider) {
+    protected Integration prepareAndSave(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, NewIdProvider idProvider) {
         integration.setDefaultConverterId(idProvider.get(Integration::getDefaultConverterId));
         integration.setDownlinkConverterId(idProvider.get(Integration::getDownlinkConverterId));
         platformIntegrationService.validateIntegrationConfiguration(integration);

@@ -41,12 +41,12 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.ConverterExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class ConverterImportService extends BaseEntityImportService<ConverterId, Converter, ConverterExportData> {
+public class ConverterImportService extends BaseEntityImportService<ConverterId, Converter, EntityExportData<Converter>> {
 
     private final ConverterService converterService;
 
@@ -56,7 +56,7 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     }
 
     @Override
-    protected Converter prepareAndSave(TenantId tenantId, Converter converter, ConverterExportData exportData, NewIdProvider idProvider) {
+    protected Converter prepareAndSave(TenantId tenantId, Converter converter, EntityExportData<Converter> exportData, NewIdProvider idProvider) {
         return converterService.saveConverter(converter);
     }
 

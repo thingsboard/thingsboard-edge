@@ -42,12 +42,12 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.sync.exporting.data.RoleExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class RoleImportService extends BaseEntityImportService<RoleId, Role, RoleExportData> {
+public class RoleImportService extends BaseEntityImportService<RoleId, Role, EntityExportData<Role>> {
 
     private final RoleService roleService;
     private final UserPermissionsService userPermissionsService;
@@ -59,7 +59,7 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Rol
     }
 
     @Override
-    protected Role prepareAndSave(TenantId tenantId, Role role, RoleExportData exportData, NewIdProvider idProvider) {
+    protected Role prepareAndSave(TenantId tenantId, Role role, EntityExportData<Role> exportData, NewIdProvider idProvider) {
         return roleService.saveRole(tenantId, role);
     }
 

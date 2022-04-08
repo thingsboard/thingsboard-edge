@@ -43,14 +43,14 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.DeviceProfileExportData;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 
 import java.util.Objects;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class DeviceProfileImportService extends BaseEntityImportService<DeviceProfileId, DeviceProfile, DeviceProfileExportData> {
+public class DeviceProfileImportService extends BaseEntityImportService<DeviceProfileId, DeviceProfile, EntityExportData<DeviceProfile>> {
 
     private final DeviceProfileService deviceProfileService;
     private final OtaPackageStateService otaPackageStateService;
@@ -61,7 +61,7 @@ public class DeviceProfileImportService extends BaseEntityImportService<DevicePr
     }
 
     @Override
-    protected DeviceProfile prepareAndSave(TenantId tenantId, DeviceProfile deviceProfile, DeviceProfileExportData exportData, NewIdProvider idProvider) {
+    protected DeviceProfile prepareAndSave(TenantId tenantId, DeviceProfile deviceProfile, EntityExportData<DeviceProfile> exportData, NewIdProvider idProvider) {
         deviceProfile.setDefaultRuleChainId(idProvider.get(DeviceProfile::getDefaultRuleChainId));
         deviceProfile.setDefaultDashboardId(idProvider.get(DeviceProfile::getDefaultDashboardId));
         deviceProfile.setFirmwareId(idProvider.get(DeviceProfile::getFirmwareId));
