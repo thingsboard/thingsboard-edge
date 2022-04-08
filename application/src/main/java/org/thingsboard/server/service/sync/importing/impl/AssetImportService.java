@@ -41,7 +41,6 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.exporting.data.AssetExportData;
-import org.thingsboard.server.utils.ThrowingRunnable;
 
 @Service
 @TbCoreComponent

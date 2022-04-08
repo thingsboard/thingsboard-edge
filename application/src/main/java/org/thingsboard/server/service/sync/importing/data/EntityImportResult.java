@@ -28,22 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.importing;
+package org.thingsboard.server.service.sync.importing.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.utils.ThrowingRunnable;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class EntityImportSettings {
-    private boolean findExistingByName;
-    private boolean addToEntityGroups;
-    private boolean importInboundRelations;
-    private boolean importOutboundRelations;
-    private boolean removeExistingRelations;
-    private boolean updateReferencesToOtherEntities;
+public class EntityImportResult<E extends ExportableEntity<? extends EntityId>> {
+    @Getter @Setter
+    private E savedEntity;
+    @Getter @Setter
+    private E oldEntity;
+
+    @Getter @JsonIgnore
+    private ThrowingRunnable saveReferencesCallback = () -> {};
+    @Getter @JsonIgnore
+    private ThrowingRunnable pushEventsCallback = () -> {};
+
+    public void addSaveReferencesCallback(ThrowingRunnable callback) {
+        this.saveReferencesCallback = this.saveReferencesCallback.andThen(callback);
+    }
+
+    public void addPushEventsCallback(ThrowingRunnable callback) {
+        this.pushEventsCallback = this.pushEventsCallback.andThen(callback);
+    }
+
 }

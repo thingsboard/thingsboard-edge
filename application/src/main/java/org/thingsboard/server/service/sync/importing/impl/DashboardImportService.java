@@ -50,7 +50,6 @@ import org.thingsboard.server.dao.sql.query.DefaultEntityQueryRepository;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.exporting.data.DashboardExportData;
-import org.thingsboard.server.utils.ThrowingRunnable;
 
 import java.util.Collections;
 import java.util.HashSet;
