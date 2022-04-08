@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.discovery;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -125,8 +126,17 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
                 builder.addRuleEngineQueues(queueInfo);
             }
         }
+        List<IntegrationType> supportedIntegrationTypes = getSupportedIntegrationTypes();
+
+        supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
+
+        serviceInfo = builder.build();
+    }
+
+    @Override
+    public List<IntegrationType> getSupportedIntegrationTypes() {
+        List<IntegrationType> supportedIntegrationTypes;
         if (serviceTypes.contains(ServiceType.TB_INTEGRATION_EXECUTOR)) {
-            List<IntegrationType> supportedIntegrationTypes;
             if (StringUtils.isEmpty(supportedIntegrationsStr) || supportedIntegrationsStr.equalsIgnoreCase(SUPPORTED_INTEGRATIONS_NONE)) {
                 supportedIntegrationTypes = Collections.emptyList();
             } else if (supportedIntegrationsStr.equalsIgnoreCase(SUPPORTED_INTEGRATIONS_ALL)) {
@@ -139,10 +149,11 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
                     throw e;
                 }
             }
-            supportedIntegrationTypes.stream().filter(it -> !it.isRemoteOnly()).forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
+            supportedIntegrationTypes = supportedIntegrationTypes.stream().filter(it -> !it.isRemoteOnly()).collect(Collectors.toList());
+        } else {
+            supportedIntegrationTypes = Collections.emptyList();
         }
-
-        serviceInfo = builder.build();
+        return supportedIntegrationTypes;
     }
 
     @AfterContextReady

@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
@@ -43,6 +44,8 @@ import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
+import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
@@ -72,10 +75,15 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
@@ -88,8 +96,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -102,11 +112,13 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     private final ConcurrentMap<IntegrationId, IntegrationState> integrations = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, IntegrationState> integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
+    private final TbServiceInfoProvider serviceInfoProvider;
     private final PartitionService partitionService;
     private final IntegrationContextProvider integrationContextProvider;
     private final IntegrationConfigurationService configurationService;
     private final DataConverterService dataConverterService;
     private final EventStorageService eventStorageService;
+    private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
@@ -123,27 +135,33 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
+    private ExecutorService commandExecutorService;
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService reinitExecutorService;
-    private ScheduledExecutorService refreshExecutorService;
+    private ScheduledExecutorService lifecycleExecutorService;
 
     @PostConstruct
     public void init() {
-        refreshExecutorService = Executors.newScheduledThreadPool(4, ThingsBoardThreadFactory.forName("integration-refresh-service"));
+        lifecycleExecutorService = Executors.newScheduledThreadPool(4, ThingsBoardThreadFactory.forName("ie-lifecycle"));
+        commandExecutorService = ThingsBoardExecutors.newWorkStealingPool(4, "ie-commands");
         if (reinitEnabled) {
-            reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-reinit"));
+            reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-reinit"));
             reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-stats"));
+            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-stats"));
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
+        supportedIntegrationTypes.addAll(serviceInfoProvider.getSupportedIntegrationTypes());
     }
 
     @PreDestroy
     public void stop() {
-        if (refreshExecutorService != null) {
-            refreshExecutorService.shutdownNow();
+        if (lifecycleExecutorService != null) {
+            lifecycleExecutorService.shutdownNow();
+        }
+        if (commandExecutorService != null) {
+            commandExecutorService.shutdownNow();
         }
         if (statisticsEnabled) {
             statisticsExecutorService.shutdownNow();
@@ -167,6 +185,33 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 log.info("[{}][{}] Ignore update due to not supported entity type: {}",
                         componentLifecycleMsg.getTenantId(), componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
         }
+    }
+
+    @Override
+    public void handleDownlink(IntegrationDownlinkMsgProto proto, TbCallback callback) {
+        commandExecutorService.submit(() -> {
+            try {
+                TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+                IntegrationId integrationId = new IntegrationId(new UUID(proto.getIntegrationIdMSB(), proto.getIntegrationIdLSB()));
+                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, proto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+                var state = integrations.get(integrationId);
+                if (state == null) {
+                    callback.onFailure(new RuntimeException("Integration is missing!"));
+                } else if (state.getIntegration() == null) {
+                    callback.onFailure(new RuntimeException("Integration is not initialized yet!"));
+                } else if (state.getCurrentState() == null) {
+                    callback.onFailure(new RuntimeException("Integration is not initialized yet!"));
+                } else if (state.getCurrentState() == ComponentLifecycleEvent.FAILED) {
+                    callback.onFailure(new RuntimeException("Integration failed to initialize!"));
+                } else {
+                    state.getIntegration().onDownlinkMsg(msg);
+                    callback.onSuccess();
+                }
+            } catch (Exception e) {
+                callback.onFailure(e);
+                throw handleException(e);
+            }
+        });
     }
 
     private void processConverterUpdate(ComponentLifecycleMsg msg) {
@@ -240,7 +285,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 state.getUpdateLock().unlock();
             }
         } else {
-            refreshExecutorService.schedule(() -> tryUpdate(id), 10, TimeUnit.SECONDS);
+            lifecycleExecutorService.schedule(() -> tryUpdate(id), 10, TimeUnit.SECONDS);
         }
     }
 
@@ -272,7 +317,11 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void processUpdateEvent(IntegrationState state) throws Exception {
-        Integration configuration = configurationService.getIntegration(state.getTenantId(), state.getId());
+        processUpdateEvent(state, configurationService.getIntegration(state.getTenantId(), state.getId()));
+    }
+
+    private void processUpdateEvent(IntegrationState state, Integration configuration) throws ThingsboardException {
+        state.setConfiguration(configuration);
         if (log.isDebugEnabled()) {
             log.debug("[{}][{}] Going to update the integration: {}", state.getTenantId(), state.getIntegration(), configuration);
         } else {
@@ -356,8 +405,13 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private boolean isMine(IntegrationInfo integration) {
-        return !integration.getType().isSingleton()
-                || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), integration.getTenantId(), integration.getId()).isMyPartition();
+        var type = integration.getType();
+        if (supportedIntegrationTypes.contains(type)) {
+            return !type.isSingleton()
+                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, type.name(), integration.getTenantId(), integration.getId()).isMyPartition();
+        } else {
+            return false;
+        }
     }
 
     private void scheduleIntegrationEvent(TenantId tenantId, IntegrationId id, ComponentLifecycleEvent event) {
@@ -373,7 +427,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         if (state != null) {
             state.getUpdateQueue().add(event);
             log.debug("[{}][{}] Scheduling new event: {}", tenantId, id, event);
-            refreshExecutorService.submit(() -> tryUpdate(id));
+            lifecycleExecutorService.submit(() -> tryUpdate(id));
         } else {
             log.info("[{}][{}] Ignoring new event: {}", tenantId, id, event);
         }
@@ -386,16 +440,19 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void reInitIntegrations() {
-        //TODO: ashvayka integration executor
-//        if (initialized) {
-//            integrationsByIdMap.forEach((integrationId, integration) -> {
-//                if (integrationEvents.getOrDefault(integrationId, ComponentLifecycleEvent.STARTED).equals(ComponentLifecycleEvent.FAILED)) {
-//                    DonAsynchron.withCallback(createIntegration(integration.getFirst().getConfiguration(), true),
-//                            tmp -> log.debug("[{}] Re-initialized the integration {}", integration.getFirst().getConfiguration().getId(), integration.getFirst().getConfiguration().getName()),
-//                            e -> log.info("[{}] Unable to initialize integration {}", integration.getFirst().getConfiguration().getId(), integration.getFirst().getConfiguration().getName(), e));
-//                }
-//            });
-//        }
+        integrations.values().forEach(state -> {
+            if (state.getConfiguration() != null && state.getCurrentState() != null && state.getCurrentState().equals(ComponentLifecycleEvent.FAILED)) {
+                if (state.getUpdateLock().tryLock()) {
+                    try {
+                        processUpdateEvent(state, state.getConfiguration());
+                    } catch (ThingsboardException e) {
+                        log.trace("[{}][{}] Failed to re-initialize the integration:", state.getTenantId(), state.getId(), e);
+                    } finally {
+                        state.getUpdateLock().unlock();
+                    }
+                }
+            }
+        });
     }
 
     private void persistStatistics() {

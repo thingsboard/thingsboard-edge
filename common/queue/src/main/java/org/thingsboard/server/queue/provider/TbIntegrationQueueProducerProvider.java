@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.provider;
 
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
@@ -54,6 +55,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     private final TbIntegrationExecutorQueueFactory tbQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
+    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toIntegrationRuleEngine;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -107,6 +109,11 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> getTbIntegrationExecutorNotificationsMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> getTbIntegrationExecutorDownlinkMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
 }

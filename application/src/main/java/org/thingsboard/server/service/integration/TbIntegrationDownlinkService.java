@@ -28,34 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.state;
+package org.thingsboard.server.service.integration;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
+import org.thingsboard.server.queue.TbQueueCallback;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+public interface TbIntegrationDownlinkService {
 
-@Data
-@RequiredArgsConstructor
-public class IntegrationState {
-
-    private final Lock updateLock = new ReentrantLock();
-    private final Queue<ComponentLifecycleEvent> updateQueue = new ConcurrentLinkedQueue<>();
-    private final TenantId tenantId;
-    private final IntegrationId id;
-
-    private ComponentLifecycleEvent currentState;
-    private ThingsboardPlatformIntegration<?> integration;
-    private IntegrationContext context;
-    private Integration configuration;
+    void pushMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsgProto, TbQueueCallback tbQueueCallback);
 
 }

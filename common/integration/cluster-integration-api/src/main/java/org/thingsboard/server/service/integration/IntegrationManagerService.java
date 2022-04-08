@@ -32,7 +32,9 @@ package org.thingsboard.server.service.integration;
 
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 
 import java.util.Set;
 
@@ -41,4 +43,6 @@ public interface IntegrationManagerService {
     void refresh(IntegrationType integrationType, Set<TopicPartitionInfo> newPartitions);
 
     void handleComponentLifecycleMsg(ComponentLifecycleMsg componentLifecycleMsg);
+
+    void handleDownlink(IntegrationDownlinkMsgProto downlinkMsg, TbCallback callback);
 }

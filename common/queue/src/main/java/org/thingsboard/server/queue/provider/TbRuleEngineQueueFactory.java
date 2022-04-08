@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -84,6 +85,13 @@ public interface TbRuleEngineQueueFactory extends TbUsageStatsClientQueueFactory
      * @return
      */
     TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createTbCoreNotificationsMsgProducer();
+
+    /**
+     * Used to push downlink messages to instances of TB Integration Executor
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer();
 
     /**
      * Used to push notifications to instances of TB Integration Executor

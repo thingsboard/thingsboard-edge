@@ -262,6 +262,10 @@ message ToIntegrationExecutorNotificationMsg {
   bytes componentLifecycleMsg = 1;
 }
 
+message ToIntegrationExecutorDownlinkMsg {
+  transport.IntegrationDownlinkMsgProto downlinkMsg = 1;
+}
+
 message TbIntegrationEventProto {
   TbEventSource source = 1;
   int64 tenantIdMSB = 2;

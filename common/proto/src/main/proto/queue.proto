@@ -767,7 +767,6 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4;
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
-  IntegrationDownlinkMsgProto integrationDownlinkMsg = 6;
   EdgeNotificationMsgProto edgeNotificationMsg = 7;
 }
 

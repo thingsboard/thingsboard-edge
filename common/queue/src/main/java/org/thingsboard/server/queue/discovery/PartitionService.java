@@ -76,4 +76,6 @@ public interface PartitionService {
     int resolvePartitionIndex(UUID entityId, int partitions);
 
     int countTransportsByType(String type);
+
+    int getIntegrationExecutorPartitionsCount();
 }

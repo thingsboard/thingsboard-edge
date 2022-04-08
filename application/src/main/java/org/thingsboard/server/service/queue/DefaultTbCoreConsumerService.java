@@ -267,9 +267,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                 } else if (toCoreMsg.hasSchedulerServiceMsg()) {
                                     log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
                                     forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
-                                } else if (toCoreMsg.hasIntegrationDownlinkMsg()) {
-                                    log.trace("[{}] Forwarding message to integration service {}", id, toCoreMsg.getIntegrationDownlinkMsg());
-                                    forwardToIntegrationService(toCoreMsg.getIntegrationDownlinkMsg(), callback);
                                 } else if (toCoreMsg.hasEdgeNotificationMsg()) {
                                     log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
                                     forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);

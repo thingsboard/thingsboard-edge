@@ -71,15 +71,7 @@ public interface PlatformIntegrationService {
 
     void checkIntegrationConnection(Integration integration) throws Exception;
 
-    ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
-
-    void updateIntegration(Integration integration);
-
-    ListenableFuture<Void> deleteIntegration(IntegrationId integration);
-
     ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
-
-    void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msg, TbCallback callback);
 
     void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback);
 
@@ -93,4 +85,5 @@ public interface PlatformIntegrationService {
 
     EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
 
+    void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback);
 }

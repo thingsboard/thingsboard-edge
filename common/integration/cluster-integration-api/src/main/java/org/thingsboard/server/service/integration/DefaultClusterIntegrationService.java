@@ -40,27 +40,23 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
+import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
+import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
@@ -90,23 +86,32 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DefaultClusterIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements ClusterIntegrationService {
 
+    private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
     private final TbCoreIntegrationExecutorQueueFactory queueFactory;
     private final IntegrationManagerService integrationManagerService;
     private final DataDecodingEncodingService encodingService;
     private final Map<IntegrationType, Queue<Set<TopicPartitionInfo>>> subscribeEventsMap = new ConcurrentHashMap<>();
 
+    private volatile ExecutorService consumersExecutor;
     private volatile ExecutorService notificationsConsumerExecutor;
     private volatile ListeningScheduledExecutorService queueExecutor;
+    private final ConcurrentMap<IntegrationType, TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>>> consumers = new ConcurrentHashMap<>();
     private volatile TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> nfConsumer;
 
     private volatile boolean stopped = false;
+    private volatile List<IntegrationType> supportedIntegrationTypes;
 
     @PostConstruct
     public void init() {
+        supportedIntegrationTypes = serviceInfoProvider.getSupportedIntegrationTypes();
         queueExecutor = MoreExecutors.listeningDecorator(Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("scheduler-service")));
         notificationsConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ie-nf-consumer"));
+        consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("ie-downlink-consumer"));
         nfConsumer = queueFactory.createToIntegrationExecutorNotificationsMsgConsumer();
+        for (IntegrationType integrationType : supportedIntegrationTypes) {
+            consumers.computeIfAbsent(integrationType, queueName -> queueFactory.createToIntegrationExecutorDownlinkMsgConsumer(integrationType));
+        }
     }
 
     @PreDestroy
@@ -121,6 +126,9 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
         if (notificationsConsumerExecutor != null) {
             notificationsConsumerExecutor.shutdownNow();
         }
+        if (consumersExecutor != null) {
+            consumersExecutor.shutdownNow();
+        }
     }
 
     @Override
@@ -128,19 +136,75 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
         IntegrationType type = IntegrationType.valueOf(event.getServiceQueueKey().getServiceQueue().getQueue());
         subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(event.getPartitions());
         queueExecutor.submit(() -> refreshIntegrationsByType(type));
+        consumers.get(type).subscribe(event.getPartitions());
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Order(value = 2)
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        log.info("Subscribing to notifications: {}", nfConsumer.getTopic());
-        this.nfConsumer.subscribe();
-        launchNotificationsConsumer();
+        if (!supportedIntegrationTypes.isEmpty()) {
+            log.info("Subscribing to notifications: {}", nfConsumer.getTopic());
+            this.nfConsumer.subscribe();
+            launchNotificationsConsumer();
+            launchMainConsumers();
+        }
     }
 
     @Override
     protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
         return ServiceType.TB_INTEGRATION_EXECUTOR.equals(event.getServiceType());
+    }
+
+    protected void launchMainConsumers() {
+        consumers.forEach((integrationType, consumer) -> launchConsumer(consumer, integrationType));
+    }
+
+    void launchConsumer(TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> consumer, IntegrationType integrationType) {
+        consumersExecutor.execute(() -> consumerLoop(consumer, integrationType));
+    }
+
+    void consumerLoop(TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> consumer, IntegrationType integrationType) {
+        ThingsBoardThreadFactory.updateCurrentThreadName(integrationType.name());
+        long pollDuration = integrationNotificationSettings.getPollInterval();
+        long processingTimeout = integrationNotificationSettings.getPackProcessingTimeout();
+        while (!stopped && !consumer.isStopped()) {
+            try {
+                List<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> msgs = consumer.poll(pollDuration);
+                if (msgs.isEmpty()) {
+                    continue;
+                }
+                ConcurrentMap<UUID, TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> pendingMap = msgs.stream().collect(
+                        Collectors.toConcurrentMap(s -> UUID.randomUUID(), Function.identity()));
+                CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
+                TbPackProcessingContext<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> ctx = new TbPackProcessingContext<>(
+                        processingTimeoutLatch, pendingMap, new ConcurrentHashMap<>());
+                pendingMap.forEach((id, msg) -> {
+                    log.trace("[{}] Creating downlink callback for message: {}", id, msg.getValue());
+                    TbCallback callback = new TbPackCallback<>(id, ctx);
+                    try {
+                        handleDownlink(id, msg, callback);
+                    } catch (Throwable e) {
+                        log.warn("[{}] Failed to process notification: {}", id, msg, e);
+                        callback.onFailure(e);
+                    }
+                });
+                if (!processingTimeoutLatch.await(processingTimeout, TimeUnit.MILLISECONDS)) {
+                    ctx.getAckMap().forEach((id, msg) -> log.warn("[{}] Timeout to process downlink: {}", id, msg.getValue()));
+                    ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process downlink: {}", id, msg.getValue()));
+                }
+                consumer.commit();
+            } catch (Exception e) {
+                if (!stopped) {
+                    log.warn("Failed to obtain downlink messages from queue.", e);
+                    try {
+                        Thread.sleep(pollDuration);
+                    } catch (InterruptedException e2) {
+                        log.trace("Failed to wait until the server has capacity to handle new downlink messages", e2);
+                    }
+                }
+            }
+        }
+        log.info("TB Integration Downlink Consumer stopped.");
     }
 
     protected void launchNotificationsConsumer() {
@@ -149,7 +213,6 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
             long processingTimeout = integrationNotificationSettings.getPackProcessingTimeout();
             while (!stopped) {
                 try {
-
                     List<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> msgs = nfConsumer.poll(pollDuration);
                     if (msgs.isEmpty()) {
                         continue;
@@ -185,8 +248,18 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
                     }
                 }
             }
-            log.info("TB Notifications Consumer stopped.");
+            log.info("TB Integration Notifications Consumer stopped.");
         });
+    }
+
+
+    private void handleDownlink(UUID id, TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg> msg, TbCallback callback) {
+        log.trace("Received downlink: {}", msg);
+        var downlinkMsg = msg.getValue();
+        if (downlinkMsg.hasDownlinkMsg()) {
+            integrationManagerService.handleDownlink(downlinkMsg.getDownlinkMsg(), callback);
+        }
+        callback.onSuccess();
     }
 
     private void handleNotification(UUID id, TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg> msg, TbCallback callback) {

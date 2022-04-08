@@ -34,6 +34,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -72,12 +73,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HashPartitionService implements PartitionService {
 
-    private static final int TB_INTEGRATION_EXECUTOR_PARTITIONS = 12;
-
     @Value("${queue.core.topic}")
     private String coreTopic;
     @Value("${queue.core.partitions:100}")
     private Integer corePartitions;
+    @Value("${queue.integration.partitions:12}")
+    private Integer integrationPartitions;
     @Value("${queue.partitions.hash_function_name:murmur3_128}")
     private String hashFunctionName;
 
@@ -124,9 +125,13 @@ public class HashPartitionService implements PartitionService {
         });
 
         Arrays.asList(IntegrationType.values()).forEach(it -> {
-            partitionTopics.put(new ServiceQueue(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), "tb_ie." + it.name().toLowerCase());
-            partitionSizes.put(new ServiceQueue(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), TB_INTEGRATION_EXECUTOR_PARTITIONS);
+            partitionTopics.put(new ServiceQueue(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), getIntegrationDownlinkTopic(it));
+            partitionSizes.put(new ServiceQueue(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationPartitions);
         });
+    }
+
+    public static String getIntegrationDownlinkTopic(IntegrationType it) {
+        return "tb_ie." + it.name().toLowerCase();
     }
 
     @Override
@@ -270,6 +275,11 @@ public class HashPartitionService implements PartitionService {
     public int countTransportsByType(String type) {
         var list = tbTransportServicesByType.get(type);
         return list == null ? 0 : list.size();
+    }
+
+    @Override
+    public int getIntegrationExecutorPartitionsCount() {
+        return integrationPartitions;
     }
 
     private Map<ServiceQueueKey, List<ServiceInfo>> getServiceKeyListMap(List<ServiceInfo> services) {

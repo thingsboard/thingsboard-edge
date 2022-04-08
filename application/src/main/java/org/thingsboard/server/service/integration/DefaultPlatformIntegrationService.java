@@ -396,13 +396,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 //        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
     }
 
-    @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration) {
-        //TODO: ashvayka integration executor
-        return Futures.immediateFuture(null);
-//        return createIntegration(configuration, false);
-    }
-
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
             Event event = new Event();
@@ -429,17 +422,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 throw t;
             }
         }
-    }
-
-    @Override
-    public void updateIntegration(Integration integration) {
-        // TODO: ashvayka integration executor
-    }
-
-    @Override
-    public ListenableFuture<Void> deleteIntegration(IntegrationId integrationId) {
-        // TODO: ashvayka integration executor
-        return Futures.immediateFuture(null);
     }
 
     @Override
@@ -470,52 +452,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 //            return Futures.immediateFuture(result);
 //        }
     }
-
-    @Override
-    public void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msgProto, TbCallback callback) {
-        // TODO: ashvayka integration executor
-        callback.onSuccess();
-//        try {
-//            TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
-//            IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-//            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
-//            Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
-//            if (integration == null) {
-//                boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
-//                if (!remoteIntegrationDownlink) {
-//                    Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
-//                    DonAsynchron.withCallback(createIntegration(configuration), i -> {
-//                        onMsg(i, msg);
-//                        if (callback != null) {
-//                            callback.onSuccess();
-//                        }
-//                    }, e -> {
-//                        if (callback != null) {
-//                            callback.onFailure(e);
-//                        }
-//                    }, refreshExecutorService);
-//                    return;
-//                }
-//            } else {
-//                onMsg(integration.getFirst(), msg);
-//            }
-//            if (callback != null) {
-//                callback.onSuccess();
-//            }
-//        } catch (Exception e) {
-//            if (callback != null) {
-//                callback.onFailure(e);
-//            }
-//            throw handleException(e);
-//        }
-    }
-
-//    private void onMsg(ThingsboardPlatformIntegration<?> integration, IntegrationDownlinkMsg msg) {
-//        if (!integrationEvents.getOrDefault(msg.getIntegrationId(), ComponentLifecycleEvent.FAILED).equals(ComponentLifecycleEvent.FAILED)) {
-//            integration.onDownlinkMsg(msg);
-//        }
-//    }
-
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
@@ -615,6 +551,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             }
         }
         return entityView;
+    }
+
+    @Override
+    public void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
+        // TODO: ashvayka integration executor: move to the remoteRpcDownlinkService.
     }
 
     private Device processGetOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
