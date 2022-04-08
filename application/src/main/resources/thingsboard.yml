@@ -497,6 +497,9 @@ caffeine:
     remoteIntegrations:
       timeToLiveInMinutes: "${CACHE_SPECS_REMOTE_INTEGRATIONS_TTL:1440}"
       maxSize: "${CACHE_SPECS_REMOTE_INTEGRATIONS_MAX_SIZE:10000}"
+    integrationApi:
+      timeToLiveInMinutes: "${CACHE_SPECS_INTEGRATION_API_TTL:1440}"
+      maxSize: "${CACHE_SPECS_INTEGRATION_API_MAX_SIZE:10000}"
 redis:
   # standalone or cluster
   connection:
