@@ -28,35 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.integration;
+package org.thingsboard.server.service.sync.exporting.data;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.dao.ExportableEntityRepository;
-import org.thingsboard.server.dao.model.sql.IntegrationEntity;
+import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.EntityId;
 
-import java.util.List;
-import java.util.UUID;
+@Data
+public class ConverterExportData extends EntityExportData<Converter> {
 
-public interface IntegrationRepository extends JpaRepository<IntegrationEntity, UUID>, ExportableEntityRepository<IntegrationEntity> {
-
-    @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<IntegrationEntity> findByTenantId(@Param("tenantId") UUID tenantId,
-                                                      @Param("searchText") String searchText,
-                                                      Pageable pageable);
-
-    IntegrationEntity findByRoutingKey(String routingKey);
-
-    List<IntegrationEntity> findByConverterId(UUID converterId);
-
-    List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(UUID tenantId, List<UUID> integrationIds);
-
-    Long countByTenantId(UUID tenantId);
-
-    IntegrationEntity findFirstByTenantIdAndName(UUID tenantId, String name);
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CONVERTER;
+    }
 
 }

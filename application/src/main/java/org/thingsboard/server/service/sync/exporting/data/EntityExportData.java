@@ -53,7 +53,10 @@ import java.util.List;
         @Type(name = "RULE_CHAIN", value = RuleChainExportData.class),
         @Type(name = "DASHBOARD", value = DashboardExportData.class),
         @Type(name = "CUSTOMER", value = CustomerExportData.class),
-        @Type(name = "ENTITY_GROUP", value = EntityGroupExportData.class)
+        @Type(name = "ENTITY_GROUP", value = EntityGroupExportData.class),
+        @Type(name = "CONVERTER", value = ConverterExportData.class),
+        @Type(name = "INTEGRATION", value = IntegrationExportData.class),
+        @Type(name = "ROLE", value = RoleExportData.class)
 })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data

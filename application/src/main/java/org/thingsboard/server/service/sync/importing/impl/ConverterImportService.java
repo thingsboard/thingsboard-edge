@@ -32,52 +32,44 @@ package org.thingsboard.server.service.sync.importing.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.DeviceExportData;
+import org.thingsboard.server.service.sync.exporting.data.ConverterExportData;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class DeviceImportService extends BaseGroupEntityImportService<DeviceId, Device, DeviceExportData> {
+public class ConverterImportService extends BaseEntityImportService<ConverterId, Converter, ConverterExportData> {
 
-    private final DeviceService deviceService;
+    private final ConverterService converterService;
 
     @Override
-    protected void setOwner(TenantId tenantId, Device device, NewIdProvider idProvider) {
-        device.setTenantId(tenantId);
-        device.setCustomerId(idProvider.get(Device::getCustomerId));
+    protected void setOwner(TenantId tenantId, Converter converter, NewIdProvider idProvider) {
+        converter.setTenantId(tenantId);
     }
 
     @Override
-    protected Device prepareAndSave(TenantId tenantId, Device device, DeviceExportData exportData, NewIdProvider idProvider) {
-        device.setDeviceProfileId(idProvider.get(Device::getDeviceProfileId));
-        device.setFirmwareId(idProvider.get(Device::getFirmwareId));
-        device.setSoftwareId(idProvider.get(Device::getSoftwareId));
-        if (exportData.getCredentials() != null) {
-            exportData.getCredentials().setId(null);
-            exportData.getCredentials().setDeviceId(null);
-            return deviceService.saveDeviceWithCredentials(device, exportData.getCredentials());
-        } else {
-            return deviceService.saveDevice(device);
-        }
+    protected Converter prepareAndSave(TenantId tenantId, Converter converter, ConverterExportData exportData, NewIdProvider idProvider) {
+        return converterService.saveConverter(converter);
     }
 
     @Override
-    protected void onEntitySaved(SecurityUser user, Device savedDevice, Device oldDevice) throws ThingsboardException {
-        super.onEntitySaved(user, savedDevice, oldDevice);
-        clusterService.onDeviceUpdated(savedDevice, oldDevice);
+    protected void onEntitySaved(SecurityUser user, Converter savedConverter, Converter oldConverter) throws ThingsboardException {
+        super.onEntitySaved(user, savedConverter, oldConverter);
+        clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedConverter.getId(),
+                oldConverter == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
     }
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.DEVICE;
+        return EntityType.CONVERTER;
     }
 
 }

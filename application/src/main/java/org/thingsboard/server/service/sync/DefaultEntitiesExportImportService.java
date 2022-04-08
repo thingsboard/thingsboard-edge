@@ -94,15 +94,15 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
             EntityType.DEVICE_PROFILE, EntityType.DEVICE, EntityType.DASHBOARD
     );
 
-    protected static final Map<EntityType, Function<EntityExportData<?>, Integer>> IMPORT_ORDER = Map.of(
-            EntityType.CUSTOMER, (exportData) -> 1,
-            EntityType.ENTITY_GROUP, (exportData) -> ((EntityGroupExportData) exportData).getEntity().getOwnerId().getEntityType() == EntityType.TENANT ? 0 : 2,
-            EntityType.ASSET, (exportData) -> 3,
-            EntityType.RULE_CHAIN, (exportData) -> 4,
-            EntityType.DEVICE_PROFILE, (exportData) -> 5,
-            EntityType.DEVICE, (exportData) -> 6,
-            EntityType.DASHBOARD, (exportData) -> 7
-    );
+//    protected static final Map<EntityType, Function<EntityExportData<?>, Integer>> IMPORT_ORDER = Map.of(
+//            EntityType.CUSTOMER, (exportData) -> 1,
+//            EntityType.ENTITY_GROUP, (exportData) -> ((EntityGroupExportData) exportData).getEntity().getOwnerId().getEntityType() == EntityType.TENANT ? 0 : 2,
+//            EntityType.ASSET, (exportData) -> 3,
+//            EntityType.RULE_CHAIN, (exportData) -> 4,
+//            EntityType.DEVICE_PROFILE, (exportData) -> 5,
+//            EntityType.DEVICE, (exportData) -> 6,
+//            EntityType.DASHBOARD, (exportData) -> 7
+//    );
 
 
     @Override
@@ -117,7 +117,8 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     @Transactional(rollbackFor = Exception.class)
     @Override
     public List<EntityImportResult<ExportableEntity<EntityId>>> importEntities(SecurityUser user, List<EntityExportData<ExportableEntity<EntityId>>> exportDataList, EntityImportSettings importSettings) throws ThingsboardException {
-        exportDataList.sort(Comparator.comparing(exportData -> IMPORT_ORDER.getOrDefault(exportData.getEntityType(), (d -> 100)).apply(exportData)));
+//        exportDataList.sort(Comparator.comparing(exportData -> IMPORT_ORDER.getOrDefault(exportData.getEntityType(), (d -> 100)).apply(exportData)));
+        exportDataList.sort(Comparator.comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType())));
         List<EntityImportResult<ExportableEntity<EntityId>>> importResults = new ArrayList<>();
 
         for (EntityExportData<ExportableEntity<EntityId>> exportData : exportDataList) {

@@ -104,6 +104,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = ModelConstants.INTEGRATION_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     public IntegrationEntity() {
         super();
     }
@@ -132,6 +135,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
+        if (integration.getExternalId() != null) {
+            this.externalId = integration.getExternalId().getId();
+        }
     }
 
     public String getSearchText() {
@@ -171,6 +177,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            integration.setExternalId(new IntegrationId(externalId));
+        }
         return integration;
     }
 }

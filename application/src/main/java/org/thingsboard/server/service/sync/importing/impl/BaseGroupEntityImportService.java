@@ -44,8 +44,8 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.exporting.data.GroupEntityExportData;
-import org.thingsboard.server.service.sync.importing.EntityImportSettings;
-import org.thingsboard.server.utils.ThrowingRunnable;
+import org.thingsboard.server.service.sync.importing.data.EntityImportResult;
+import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,47 +56,50 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
     private EntityGroupService entityGroupService;
 
     @Override
-    protected ThrowingRunnable processAfterSavedAndGetCallback(SecurityUser user, E savedEntity, E oldEntity, D exportData, EntityImportSettings importSettings, NewIdProvider idProvider) throws ThingsboardException {
-        ThrowingRunnable callback = getCallback(user, savedEntity, oldEntity);
+    protected void processAfterSaved(SecurityUser user, EntityImportResult<E> importResult, D exportData, NewIdProvider idProvider, EntityImportSettings importSettings) throws ThingsboardException {
+        super.processAfterSaved(user, importResult, exportData, idProvider, importSettings);
 
-        if (importSettings.isAddToEntityGroups() && importSettings.isUpdateReferencesToOtherEntities()) {
-            List<EntityGroupId> entityGroupsIds = exportData.getEntityGroupsIds().stream()
-                    .map(entityGroupId -> idProvider.get(e -> entityGroupId))
-                    .collect(Collectors.toList());
+        importResult.addSaveReferencesCallback(() -> {
+            E savedEntity = importResult.getSavedEntity();
+            E oldEntity = importResult.getOldEntity();
 
-            for (EntityGroupId entityGroupId : entityGroupsIds) {
-                EntityGroup entityGroup = exportableEntitiesService.findEntityByTenantIdAndId(user.getTenantId(), entityGroupId);
+            if (importSettings.isAddToEntityGroups() && importSettings.isUpdateReferencesToOtherEntities()) {
+                List<EntityGroupId> entityGroupsIds = exportData.getEntityGroupsIds().stream()
+                        .map(entityGroupId -> idProvider.get(e -> entityGroupId))
+                        .collect(Collectors.toList());
 
-                exportableEntitiesService.checkPermission(user, entityGroup, EntityType.ENTITY_GROUP, Operation.READ);
-                if (oldEntity == null) {
-                    exportableEntitiesService.checkPermission(user, savedEntity, entityGroupId, Operation.CREATE);
-                } else {
-                    exportableEntitiesService.checkPermission(user, savedEntity, entityGroupId, Operation.WRITE);
-                    exportableEntitiesService.checkPermission(user, entityGroup, EntityType.ENTITY_GROUP, Operation.ADD_TO_GROUP);
-                }
+                for (EntityGroupId entityGroupId : entityGroupsIds) {
+                    EntityGroup entityGroup = exportableEntitiesService.findEntityByTenantIdAndId(user.getTenantId(), entityGroupId);
 
-                if (!entityGroupService.isEntityInGroup(savedEntity.getId(), entityGroupId)) {
-                    entityGroupService.addEntityToEntityGroup(user.getTenantId(), entityGroupId, savedEntity.getId());
-                    callback = callback.andThen(() -> {
-                        entityActionService.logEntityAction(user, savedEntity.getId(), savedEntity,
-                                savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-                                savedEntity.getId().toString(), entityGroupId.toString(), entityGroup.getName());
-                        entityActionService.sendGroupEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(), entityGroupId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP);
-                    });
+                    exportableEntitiesService.checkPermission(user, entityGroup, EntityType.ENTITY_GROUP, Operation.READ);
+                    if (oldEntity == null) {
+                        exportableEntitiesService.checkPermission(user, savedEntity, entityGroupId, Operation.CREATE);
+                    } else {
+                        exportableEntitiesService.checkPermission(user, savedEntity, entityGroupId, Operation.WRITE);
+                        exportableEntitiesService.checkPermission(user, entityGroup, EntityType.ENTITY_GROUP, Operation.ADD_TO_GROUP);
+                    }
+
+                    if (!entityGroupService.isEntityInGroup(savedEntity.getId(), entityGroupId)) {
+                        entityGroupService.addEntityToEntityGroup(user.getTenantId(), entityGroupId, savedEntity.getId());
+
+                        importResult.addPushEventsCallback(() -> {
+                            entityActionService.logEntityAction(user, savedEntity.getId(), savedEntity,
+                                    savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                                    savedEntity.getId().toString(), entityGroupId.toString(), entityGroup.getName());
+                            entityActionService.sendGroupEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(), entityGroupId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP);
+                        });
+                    }
                 }
             }
-        }
-
-        return callback;
+        });
     }
 
     @Override
-    protected ThrowingRunnable getCallback(SecurityUser user, E savedEntity, E oldEntity) {
-        return super.getCallback(user, savedEntity, oldEntity).andThen(() -> {
-            if (oldEntity != null) {
-                entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
-            }
-        });
+    protected void onEntitySaved(SecurityUser user, E savedEntity, E oldEntity) throws ThingsboardException {
+        super.onEntitySaved(user, savedEntity, oldEntity);
+        if (oldEntity != null) {
+            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
+        }
     }
 
 }

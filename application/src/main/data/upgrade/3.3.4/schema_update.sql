@@ -43,3 +43,9 @@ ALTER TABLE customer
     ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE entity_group
     ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE role
+    ADD COLUMN IF NOT EXISTS external_id UUID;

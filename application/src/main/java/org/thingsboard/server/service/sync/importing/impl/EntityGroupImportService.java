@@ -33,20 +33,15 @@ package org.thingsboard.server.service.sync.importing.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
-import org.thingsboard.server.utils.ThrowingRunnable;
 
 @Service
 @TbCoreComponent
@@ -70,12 +65,11 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected ThrowingRunnable getCallback(SecurityUser user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) {
-        return super.getCallback(user, savedEntityGroup, oldEntityGroup).andThen(() -> {
-            if (oldEntityGroup != null) {
-                entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
-            }
-        });
+    protected void onEntitySaved(SecurityUser user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) throws ThingsboardException {
+        super.onEntitySaved(user, savedEntityGroup, oldEntityGroup);
+        if (oldEntityGroup != null) {
+            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
+        }
     }
 
     @Override
