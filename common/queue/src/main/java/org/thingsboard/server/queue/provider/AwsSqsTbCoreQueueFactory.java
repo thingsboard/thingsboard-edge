@@ -60,6 +60,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -86,6 +87,7 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
@@ -103,7 +105,8 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
                                     TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                     TbAwsSqsQueueAttributes sqsQueueAttributes,
                                     TbQueueTransportNotificationSettings transportNotificationSettings,
-                                    TbQueueIntegrationApiSettings integrationApiSettings) {
+                                    TbQueueIntegrationApiSettings integrationApiSettings,
+                                    TbQueueIntegrationNotificationSettings integrationNotificationSettings) {
         this.sqsSettings = sqsSettings;
         this.coreSettings = coreSettings;
         this.transportApiSettings = transportApiSettings;
@@ -113,6 +116,7 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
         this.jsInvokeSettings = jsInvokeSettings;
         this.transportNotificationSettings = transportNotificationSettings;
         this.integrationApiSettings = integrationApiSettings;
+        this.integrationNotificationSettings = integrationNotificationSettings;
 
         this.coreAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getCoreAttributes());
         this.ruleEngineAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getRuleEngineAttributes());
@@ -237,14 +241,15 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbAwsSqsConsumerTemplate<>(notificationAdmin, sqsSettings,
+                partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, integrationNotificationSettings.getNotificationsTopic());
     }
 
     @PreDestroy
