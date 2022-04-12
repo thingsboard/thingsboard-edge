@@ -41,9 +41,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class EntityImportSettings {
     private boolean findExistingByName;
-    private boolean addToEntityGroups;
+
     private boolean importInboundRelations;
     private boolean importOutboundRelations;
     private boolean removeExistingRelations;
+
     private boolean updateReferencesToOtherEntities;
+    private boolean addToEntityGroups;
 }

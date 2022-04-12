@@ -118,7 +118,8 @@ CREATE TABLE IF NOT EXISTS integration (
     routing_key varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS converter (
@@ -130,7 +131,8 @@ CREATE TABLE IF NOT EXISTS converter (
     name varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -519,7 +521,8 @@ CREATE TABLE IF NOT EXISTS role (
     type varchar(255),
     search_text varchar(255),
     permissions varchar(10000000),
-    additional_info varchar
+    additional_info varchar,
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS group_permission (

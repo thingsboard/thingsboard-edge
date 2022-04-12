@@ -32,13 +32,13 @@ package org.thingsboard.server.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -55,9 +55,9 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.EntitiesExportImportService;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.exporting.data.request.EntityFilterExportRequest;
+import org.thingsboard.server.service.sync.exporting.data.request.CustomEntityFilterExportRequest;
+import org.thingsboard.server.service.sync.exporting.data.request.CustomEntityQueryExportRequest;
 import org.thingsboard.server.service.sync.exporting.data.request.EntityListExportRequest;
-import org.thingsboard.server.service.sync.exporting.data.request.EntityQueryExportRequest;
 import org.thingsboard.server.service.sync.exporting.data.request.EntityTypeExportRequest;
 import org.thingsboard.server.service.sync.exporting.data.request.ExportRequest;
 import org.thingsboard.server.service.sync.exporting.data.request.SingleEntityExportRequest;
@@ -85,7 +85,7 @@ public class EntitiesExportImportController extends BaseController {
 
     @PostMapping("/export")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    public List<EntityExportData<ExportableEntity<EntityId>>> exportEntities(@RequestBody ExportRequest exportRequest) throws ThingsboardException {
+    public List<EntityExportData<?>> exportEntities(@RequestBody ExportRequest exportRequest) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         try {
             return exportEntitiesByRequest(user, exportRequest);
@@ -96,10 +96,10 @@ public class EntitiesExportImportController extends BaseController {
 
     @PostMapping(value = "/export", params = {"multiple"})
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    public List<EntityExportData<ExportableEntity<EntityId>>> exportEntities(@RequestBody List<ExportRequest> exportRequests) throws ThingsboardException {
+    public List<EntityExportData<?>> exportEntities(@RequestBody List<ExportRequest> exportRequests) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         try {
-            List<EntityExportData<ExportableEntity<EntityId>>> exportDataList = new ArrayList<>();
+            List<EntityExportData<?>> exportDataList = new ArrayList<>();
             for (ExportRequest exportRequest : exportRequests) {
                 exportDataList.addAll(exportEntitiesByRequest(user, exportRequest));
             }
@@ -110,10 +110,10 @@ public class EntitiesExportImportController extends BaseController {
     }
 
 
-    private List<EntityExportData<ExportableEntity<EntityId>>> exportEntitiesByRequest(SecurityUser user, ExportRequest request) throws ThingsboardException {
+    private List<EntityExportData<?>> exportEntitiesByRequest(SecurityUser user, ExportRequest request) throws ThingsboardException {
         List<EntityId> entitiesIds = findEntitiesForRequest(user, request);
 
-        List<EntityExportData<ExportableEntity<EntityId>>> exportDataList = new ArrayList<>();
+        List<EntityExportData<?>> exportDataList = new ArrayList<>();
         for (EntityId entityId : entitiesIds) {
             exportDataList.add(exportImportService.exportEntity(user, entityId, request.getExportSettings()));
         }
@@ -136,15 +136,15 @@ public class EntitiesExportImportController extends BaseController {
                 CustomerId customerId = Optional.ofNullable(exportRequest.getCustomerId()).orElse(emptyId(EntityType.CUSTOMER));
                 return findEntitiesByFilter(user, customerId, entityTypeFilter, exportRequest.getPage(), exportRequest.getPageSize());
             }
-            case ENTITY_FILTER: {
-                EntityFilterExportRequest exportRequest = (EntityFilterExportRequest) request;
+            case CUSTOM_ENTITY_FILTER: {
+                CustomEntityFilterExportRequest exportRequest = (CustomEntityFilterExportRequest) request;
                 EntityFilter filter = exportRequest.getFilter();
 
                 CustomerId customerId = Optional.ofNullable(exportRequest.getCustomerId()).orElse(emptyId(EntityType.CUSTOMER));
                 return findEntitiesByFilter(user, customerId, filter, exportRequest.getPage(), exportRequest.getPageSize());
             }
-            case ENTITY_QUERY:{
-                EntityQueryExportRequest exportRequest = (EntityQueryExportRequest) request;
+            case CUSTOM_ENTITY_QUERY: {
+                CustomEntityQueryExportRequest exportRequest = (CustomEntityQueryExportRequest) request;
                 EntityDataQuery query = exportRequest.getQuery();
 
                 CustomerId customerId = Optional.ofNullable(exportRequest.getCustomerId()).orElse(emptyId(EntityType.CUSTOMER));
@@ -167,24 +167,29 @@ public class EntitiesExportImportController extends BaseController {
     }
 
     private List<EntityId> findEntitiesByQuery(SecurityUser user, CustomerId customerId, EntityDataQuery query) {
-        return entityService.findEntityDataByQuery(user.getTenantId(), customerId, user.getUserPermissions(), query).getData().stream()
-                .map(EntityData::getEntityId)
-                .collect(Collectors.toList());
+        try {
+            return entityService.findEntityDataByQuery(user.getTenantId(), customerId, user.getUserPermissions(), query).getData().stream()
+                    .map(EntityData::getEntityId)
+                    .collect(Collectors.toList());
+        } catch (DataAccessException e) {
+            log.error("Failed to find entity data by query: {}", e.getMessage());
+            throw new IllegalArgumentException("Entity filter cannot be processed");
+        }
     }
 
 
     @PostMapping("/import")
-    public List<EntityImportResult<ExportableEntity<EntityId>>> importEntities(@RequestBody ImportRequest importRequest) throws ThingsboardException {
+    public List<EntityImportResult<?>> importEntities(@RequestBody ImportRequest importRequest) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         try {
-            List<EntityImportResult<ExportableEntity<EntityId>>> importResults = exportImportService.importEntities(user, importRequest.getExportDataList(), importRequest.getImportSettings());
+            List<EntityImportResult<?>> importResults = exportImportService.importEntities(user, importRequest.getExportDataList(), importRequest.getImportSettings());
 
             importResults.stream()
-                    .map(EntityImportResult::getPushEventsCallback)
+                    .map(EntityImportResult::getSendEventsCallback)
                     .filter(Objects::nonNull)
-                    .forEach(pushEventsCallback -> {
+                    .forEach(sendEventsCallback -> {
                         try {
-                            pushEventsCallback.run();
+                            sendEventsCallback.run();
                         } catch (Exception e) {
                             log.error("Failed to send event for entity", e);
                         }

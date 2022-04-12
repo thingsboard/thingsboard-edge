@@ -41,7 +41,7 @@ import java.util.List;
 @Data
 public class ImportRequest {
 
-    private List<EntityExportData<ExportableEntity<EntityId>>> exportDataList;
+    private List<EntityExportData<?>> exportDataList;
     private EntityImportSettings importSettings;
 
 }

@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -91,6 +90,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
             exportableEntitiesService.checkPermission(user, entity, getEntityType(), Operation.CREATE);
         } else {
             entity.setId(existingEntity.getId());
+            entity.setCreatedTime(existingEntity.getCreatedTime());
             exportableEntitiesService.checkPermission(user, existingEntity, getEntityType(), Operation.WRITE);
         }
 
@@ -161,7 +161,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
             }
         });
 
-        importResult.addPushEventsCallback(() -> {
+        importResult.addSendEventsCallback(() -> {
             onEntitySaved(user, savedEntity, oldEntity);
         });
     }
@@ -187,8 +187,6 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     }
 
     private <ID extends EntityId> HasId<ID> findInternalEntity(TenantId tenantId, ID externalId) {
-        if (externalId == null || externalId.isNullUid()) return null;
-
         return (HasId<ID>) Optional.ofNullable(exportableEntitiesService.findEntityByTenantIdAndExternalId(tenantId, externalId))
                 .or(() -> Optional.ofNullable(exportableEntitiesService.findEntityByTenantIdAndId(tenantId, externalId)))
                 .orElseThrow(() -> new IllegalArgumentException("Cannot find " + externalId.getEntityType() + " by external id " + externalId));
@@ -202,23 +200,16 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         private final E existingEntity;
         private final EntityImportSettings importSettings;
 
-        private final Set<EntityType> ALWAYS_UPDATE_REFERENCED_IDS = Set.of(
-                EntityType.RULE_CHAIN
-        );
-
-        private final Set<EntityType> NEVER_UPDATE_REFERENCED_IDS = Set.of(
-                EntityType.ENTITY_GROUP
-        );
-
         public <ID extends EntityId> ID get(Function<E, ID> idExtractor) {
-            if (existingEntity != null) {
-                if ((!importSettings.isUpdateReferencesToOtherEntities()
-                        && !ALWAYS_UPDATE_REFERENCED_IDS.contains(getEntityType()))
-                        || NEVER_UPDATE_REFERENCED_IDS.contains(getEntityType())) {
-                    return idExtractor.apply(existingEntity);
-                }
+            if (existingEntity == null || importSettings.isUpdateReferencesToOtherEntities()) {
+                return getInternalId(idExtractor.apply(this.entity));
+            } else {
+                return idExtractor.apply(existingEntity);
             }
-            return getInternalId(idExtractor.apply(this.entity));
+        }
+
+        public <ID extends EntityId> ID getInternal(ID externalId) {
+            return getInternalId(externalId);
         }
 
         public <ID extends EntityId, T> Set<T> get(Function<E, Set<T>> listExtractor, Function<T, ID> idGetter, BiConsumer<T, ID> idSetter) {
@@ -234,17 +225,15 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         }
 
         private <ID extends EntityId> ID getInternalId(ID externalId) {
+            if (externalId == null || externalId.isNullUid()) return null;
+
             HasId<ID> entity = findInternalEntity(user.getTenantId(), externalId);
-            if (entity != null) {
-                try {
-                    exportableEntitiesService.checkPermission(user, entity, entity.getId().getEntityType(), Operation.READ);
-                } catch (ThingsboardException e) {
-                    throw new IllegalArgumentException(e.getMessage(), e);
-                }
-                return entity.getId();
-            } else {
-                return null;
+            try {
+                exportableEntitiesService.checkPermission(user, entity, entity.getId().getEntityType(), Operation.READ);
+            } catch (ThingsboardException e) {
+                throw new IllegalArgumentException(e.getMessage(), e);
             }
+            return entity.getId();
         }
 
     }

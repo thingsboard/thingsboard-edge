@@ -28,40 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.exporting.data;
+package org.thingsboard.server.utils;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.utils.JsonTbEntity;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.rule.RuleChain;
 
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "entityType", defaultImpl = EntityExportData.class)
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+@JacksonAnnotationsInside
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "entityType", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
 @JsonSubTypes({
-        @Type(name = "DEVICE", value = DeviceExportData.class),
-        @Type(name = "RULE_CHAIN", value = RuleChainExportData.class),
-        @Type(name = "ASSET", value = GroupEntityExportData.class),
-        @Type(name = "DASHBOARD", value = GroupEntityExportData.class),
-        @Type(name = "CUSTOMER", value = GroupEntityExportData.class)
+        @Type(name = "DEVICE", value = Device.class),
+        @Type(name = "RULE_CHAIN", value = RuleChain.class),
+        @Type(name = "DEVICE_PROFILE", value = DeviceProfile.class),
+        @Type(name = "ASSET", value = Asset.class),
+        @Type(name = "DASHBOARD", value = Dashboard.class),
+        @Type(name = "CUSTOMER", value = Customer.class),
+        @Type(name = "ENTITY_GROUP", value = EntityGroup.class),
+        @Type(name = "CONVERTER", value = Converter.class),
+        @Type(name = "INTEGRATION", value = Integration.class),
+        @Type(name = "ROLE", value = Role.class)
 })
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Data
-public class EntityExportData<E extends ExportableEntity<? extends EntityId>> {
-
-    @JsonTbEntity
-    private E entity;
-    private EntityType entityType;
-
-    private List<EntityRelation> inboundRelations;
-    private List<EntityRelation> outboundRelations;
-
+public @interface JsonTbEntity {
 }

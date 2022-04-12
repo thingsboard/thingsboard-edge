@@ -65,7 +65,7 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
 
             if (importSettings.isAddToEntityGroups() && importSettings.isUpdateReferencesToOtherEntities()) {
                 List<EntityGroupId> entityGroupsIds = exportData.getEntityGroupsIds().stream()
-                        .map(entityGroupId -> idProvider.get(e -> entityGroupId))
+                        .map(idProvider::getInternal) // TODO [viacheslav]: review import setting
                         .collect(Collectors.toList());
 
                 for (EntityGroupId entityGroupId : entityGroupsIds) {
@@ -82,7 +82,7 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
                     if (!entityGroupService.isEntityInGroup(savedEntity.getId(), entityGroupId)) {
                         entityGroupService.addEntityToEntityGroup(user.getTenantId(), entityGroupId, savedEntity.getId());
 
-                        importResult.addPushEventsCallback(() -> {
+                        importResult.addSendEventsCallback(() -> {
                             entityActionService.logEntityAction(user, savedEntity.getId(), savedEntity,
                                     savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
                                     savedEntity.getId().toString(), entityGroupId.toString(), entityGroup.getName());

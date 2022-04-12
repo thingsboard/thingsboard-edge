@@ -86,7 +86,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
                                 String newFilterJson = UUID_PATTERN.matcher(filterJson).replaceAll(matchResult -> {
                                     String uuid = matchResult.group();
                                     EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, uuid);
-                                    return idProvider.get(d -> entityId).toString();
+                                    return idProvider.getInternal(entityId).toString();
                                 });
                                 ((ObjectNode) entityAlias).set("filter", JacksonUtil.toJsonNode(newFilterJson));
                             });
@@ -98,7 +98,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
             dashboard.setAssignedCustomers(null);
             dashboard = dashboardService.saveDashboard(dashboard);
             for (ShortCustomerInfo customerInfo : assignedCustomers) {
-                dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerInfo.getCustomerId());
+                dashboard = dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerInfo.getCustomerId());
             }
         } else {
             Set<CustomerId> existingAssignedCustomers = Optional.ofNullable(dashboardService.findDashboardById(tenantId, dashboard.getId()).getAssignedCustomers())
