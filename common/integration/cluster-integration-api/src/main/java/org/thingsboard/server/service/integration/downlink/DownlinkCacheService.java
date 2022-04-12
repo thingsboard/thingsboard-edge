@@ -30,67 +30,20 @@
  */
 package org.thingsboard.server.service.integration.downlink;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import static org.thingsboard.server.common.data.CacheConstants.DOWNLINK_CACHE;
-
 /**
  * Created by ashvayka on 22.02.18.
  */
-@Service
-@Slf4j
-public class DefaultDownlinkService implements DownlinkService {
+public interface DownlinkCacheService {
 
-    @Autowired
-    private CacheManager cacheManager;
+    DownLinkMsg get(IntegrationId integrationId, EntityId entityId);
 
-    @Cacheable(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
-    @Override
-    public DownLinkMsg get(IntegrationId integrationId, EntityId entityId) {
-        return null;
-    }
+    DownLinkMsg put(IntegrationDownlinkMsg msg);
 
-    @Override
-    public DownLinkMsg put(IntegrationDownlinkMsg msg) {
-        return getAndMerge(msg, DownLinkMsg::from, DownLinkMsg::merge);
-    }
+    void remove(IntegrationId integrationId, EntityId entityId);
 
-    @CacheEvict(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
-    @Override
-    public void remove(IntegrationId integrationId, EntityId entityId) {
-
-    }
-
-    private <T extends IntegrationDownlinkMsg> DownLinkMsg getAndMerge(T msg, Function<T, DownLinkMsg> from, BiFunction<DownLinkMsg, T, DownLinkMsg> merge) {
-        Cache cache = cacheManager.getCache(DOWNLINK_CACHE);
-        List<Object> key = new ArrayList<>();
-        key.add(msg.getIntegrationId());
-        key.add(msg.getEntityId());
-
-        DownLinkMsg result = cache.get(key, DownLinkMsg.class);
-
-        if (result == null) {
-            result = from.apply(msg);
-        } else {
-            result = merge.apply(result, msg);
-        }
-
-        cache.put(key, result);
-        return result;
-    }
 }

@@ -48,7 +48,6 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
@@ -56,7 +55,6 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
@@ -258,8 +256,11 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
         var downlinkMsg = msg.getValue();
         if (downlinkMsg.hasDownlinkMsg()) {
             integrationManagerService.handleDownlink(downlinkMsg.getDownlinkMsg(), callback);
+        } else if (downlinkMsg.hasValidationRequestMsg()){
+            integrationManagerService.handleValidationRequest(downlinkMsg.getValidationRequestMsg(), callback);
+        } else {
+            callback.onSuccess();
         }
-        callback.onSuccess();
     }
 
     private void handleNotification(UUID id, TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg> msg, TbCallback callback) {

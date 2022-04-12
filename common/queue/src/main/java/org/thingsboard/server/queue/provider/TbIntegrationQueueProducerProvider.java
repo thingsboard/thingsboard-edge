@@ -54,8 +54,8 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     private final TbIntegrationExecutorQueueFactory tbQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
+    private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNf;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
-    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toIntegrationRuleEngine;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -64,6 +64,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     @PostConstruct
     public void init() {
         this.toTbCore = tbQueueProvider.createTbCoreIntegrationMsgProducer();
+        this.toTbCoreNf = tbQueueProvider.createTbCoreNotificationMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
     }
 
@@ -94,7 +95,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> getTbCoreNotificationsMsgProducer() {
-        throw new RuntimeException(NOT_IMPLEMENTED);
+        return toTbCoreNf;
     }
 
     @Override

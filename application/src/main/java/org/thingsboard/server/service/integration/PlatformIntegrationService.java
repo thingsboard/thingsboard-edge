@@ -67,12 +67,6 @@ public interface PlatformIntegrationService {
 
     void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
 
-    void validateIntegrationConfiguration(Integration integration);
-
-    void checkIntegrationConnection(Integration integration) throws Exception;
-
-    ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
-
     void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback);
 
     void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback);

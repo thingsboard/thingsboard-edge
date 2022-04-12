@@ -33,7 +33,6 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -48,10 +47,8 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -71,7 +68,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -93,7 +89,6 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -216,9 +211,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private DefaultTbDeviceProfileCache deviceProfileCache;
-
-    @Autowired(required = false)
-    private CoapServerService coapServerService;
 
     @Value("${integrations.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -371,31 +363,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    @Override
-    public void validateIntegrationConfiguration(Integration integration) {
-        if (StringUtils.isEmpty(integration.getName())) {
-            throw new DataValidationException("Integration name should be specified!");
-        }
-        if (integration.getType() == null) {
-            throw new DataValidationException("Integration type should be specified!");
-        }
-        if (StringUtils.isEmpty(integration.getRoutingKey())) {
-            throw new DataValidationException("Integration routing key should be specified!");
-        }
-        //TODO: ashvayka integration executor
-//        if (!integration.getType().isRemoteOnly()) {
-//            ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-//            platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
-//        }
-    }
-
-    @Override
-    public void checkIntegrationConnection(Integration integration) throws Exception {
-        //TODO: ashvayka integration executor
-//        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-//        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
-    }
-
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
             Event event = new Event();
@@ -422,35 +389,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 throw t;
             }
         }
-    }
-
-    @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key) {
-        // TODO: ashvayka integration executor
-        return Futures.immediateFuture(null);
-
-//        ThingsboardPlatformIntegration<?> result = integrationsByRoutingKeyMap.get(key);
-//        if (result == null) {
-//            Optional<Integration> configurationOpt = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, key);
-//            if (configurationOpt.isPresent()) {
-//                Integration integration = configurationOpt.get();
-//                if (integration.isRemote()) {
-//                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-//                }
-//                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
-//                if (integration.getType().isSingleton() && !myPartitions.contains(tpi)) {
-//                    return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-//                }
-//                if (!integration.isEnabled()) {
-//                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is disabled!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-//                }
-//                return Futures.immediateFailedFuture(new ThingsboardException("Integration is not present in routing key map!", ThingsboardErrorCode.GENERAL));
-//            } else {
-//                return Futures.immediateFailedFuture(new ThingsboardException("Failed to find integration by routing key!", ThingsboardErrorCode.ITEM_NOT_FOUND));
-//            }
-//        } else {
-//            return Futures.immediateFuture(result);
-//        }
     }
 
     @Override

@@ -73,6 +73,10 @@
             <artifactId>cluster-integration-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common</groupId>
+                <artifactId>coap-server</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>http-integrations</artifactId>
         </dependency>

@@ -30,32 +30,11 @@
  */
 package org.thingsboard.integration.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.async.DeferredResult;
 
-/**
- * Created by ashvayka on 02.12.17.
- */
-public interface ThingsboardPlatformIntegration<T> {
+public interface IntegrationHttpMsgProcessor<T> {
 
-    Integration getConfiguration();
-
-    void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) throws ThingsboardException;
-
-    void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException;
-
-    void init(TbIntegrationInitParams params) throws Exception;
-
-    void update(TbIntegrationInitParams params) throws Exception;
-
-    void destroy();
-
-    void process(T msg);
-
-    void onDownlinkMsg(IntegrationDownlinkMsg msg);
-
-    IntegrationStatistics popStatistics();
+    void process(ThingsboardPlatformIntegration<T> integration, DeferredResult<ResponseEntity> result, T msg);
 
 }

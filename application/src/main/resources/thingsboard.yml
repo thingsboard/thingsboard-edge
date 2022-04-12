@@ -767,51 +767,6 @@ transport:
           key_password: "${MQTT_SSL_KEY_PASSWORD:server_key_password}"
       # Skip certificate validity check for client certificates.
       skip_validity_check_for_client_cert: "${MQTT_SSL_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
-  # Local CoAP transport parameters
-  coap:
-    # Enable/disable coap transport protocol.
-    enabled: "${COAP_ENABLED:true}"
-    bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
-    bind_port: "${COAP_BIND_PORT:5683}"
-    timeout: "${COAP_TIMEOUT:10000}"
-    psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
-    paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
-    dtls:
-      # Enable/disable DTLS 1.2 support
-      enabled: "${COAP_DTLS_ENABLED:false}"
-      # CoAP DTLS bind address
-      bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
-      # CoAP DTLS bind port
-      bind_port: "${COAP_DTLS_BIND_PORT:5684}"
-      # Server DTLS credentials
-      credentials:
-        # Server credentials type (PEM - pem certificate file; KEYSTORE - java keystore)
-        type:  "${COAP_DTLS_CREDENTIALS_TYPE:PEM}"
-        # PEM server credentials
-        pem:
-          # Path to the server certificate file (holds server certificate or certificate chain, may include server private key)
-          cert_file: "${COAP_DTLS_PEM_CERT:coapserver.pem}"
-          # Path to the server certificate private key file. Optional by default. Required if the private key is not present in server certificate file;
-          key_file: "${COAP_DTLS_PEM_KEY:coapserver_key.pem}"
-          # Server certificate private key password (optional)
-          key_password: "${COAP_DTLS_PEM_KEY_PASSWORD:server_key_password}"
-        # Keystore server credentials
-        keystore:
-          # Type of the key store
-          type: "${COAP_DTLS_KEY_STORE_TYPE:JKS}"
-          # Path to the key store that holds the SSL certificate
-          store_file: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
-          # Password used to access the key store
-          store_password: "${COAP_DTLS_KEY_STORE_PASSWORD:server_ks_password}"
-          # Key alias
-          key_alias: "${COAP_DTLS_KEY_ALIAS:serveralias}"
-          # Password used to access the key
-          key_password: "${COAP_DTLS_KEY_PASSWORD:server_key_password}"
-      x509:
-        # Skip certificate validity check for client certificates.
-        skip_validity_check_for_client_cert: "${TB_COAP_X509_DTLS_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
-        dtls_session_inactivity_timeout: "${TB_COAP_X509_DTLS_SESSION_INACTIVITY_TIMEOUT:86400000}"
-        dtls_session_report_timeout: "${TB_COAP_X509_DTLS_SESSION_REPORT_TIMEOUT:1800000}"
   # Local LwM2M transport parameters
   lwm2m:
     # Enable/disable lvm2m transport protocol.
@@ -927,6 +882,52 @@ transport:
   stats:
     enabled: "${TB_TRANSPORT_STATS_ENABLED:true}"
     print-interval-ms: "${TB_TRANSPORT_STATS_PRINT_INTERVAL_MS:60000}"
+
+# CoAP server parameters
+coap:
+  # Enable/disable coap transport protocol.
+  enabled: "${COAP_ENABLED:true}"
+  bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
+  bind_port: "${COAP_BIND_PORT:5683}"
+  timeout: "${COAP_TIMEOUT:10000}"
+  psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
+  paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
+  dtls:
+    # Enable/disable DTLS 1.2 support
+    enabled: "${COAP_DTLS_ENABLED:false}"
+    # CoAP DTLS bind address
+    bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
+    # CoAP DTLS bind port
+    bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # Server DTLS credentials
+    credentials:
+      # Server credentials type (PEM - pem certificate file; KEYSTORE - java keystore)
+      type:  "${COAP_DTLS_CREDENTIALS_TYPE:PEM}"
+      # PEM server credentials
+      pem:
+        # Path to the server certificate file (holds server certificate or certificate chain, may include server private key)
+        cert_file: "${COAP_DTLS_PEM_CERT:coapserver.pem}"
+        # Path to the server certificate private key file. Optional by default. Required if the private key is not present in server certificate file;
+        key_file: "${COAP_DTLS_PEM_KEY:coapserver_key.pem}"
+        # Server certificate private key password (optional)
+        key_password: "${COAP_DTLS_PEM_KEY_PASSWORD:server_key_password}"
+      # Keystore server credentials
+      keystore:
+        # Type of the key store
+        type: "${COAP_DTLS_KEY_STORE_TYPE:JKS}"
+        # Path to the key store that holds the SSL certificate
+        store_file: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
+        # Password used to access the key store
+        store_password: "${COAP_DTLS_KEY_STORE_PASSWORD:server_ks_password}"
+        # Key alias
+        key_alias: "${COAP_DTLS_KEY_ALIAS:serveralias}"
+        # Password used to access the key
+        key_password: "${COAP_DTLS_KEY_PASSWORD:server_key_password}"
+    x509:
+      # Skip certificate validity check for client certificates.
+      skip_validity_check_for_client_cert: "${TB_COAP_X509_DTLS_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
+      dtls_session_inactivity_timeout: "${TB_COAP_X509_DTLS_SESSION_INACTIVITY_TIMEOUT:86400000}"
+      dtls_session_report_timeout: "${TB_COAP_X509_DTLS_SESSION_REPORT_TIMEOUT:1800000}"
 
 # Edges parameters
 edges:
@@ -1193,6 +1194,7 @@ service:
   id: "${TB_SERVICE_ID:}"
   tenant_id: "${TB_SERVICE_TENANT_ID:}" # empty or specific tenant id.
   supported-integrations: "${TB_SERVICE_SUPPORTED_INTEGRATIONS:ALL}"
+  # TODO: excluded-integrations
 
 metrics:
   # Enable/disable actuator metrics.

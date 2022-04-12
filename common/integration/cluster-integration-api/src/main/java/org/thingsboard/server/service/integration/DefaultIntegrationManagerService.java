@@ -30,10 +30,15 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
@@ -49,6 +54,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
+import org.thingsboard.integration.coap.CoapIntegration;
 import org.thingsboard.integration.http.basic.BasicHttpIntegration;
 import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
 import org.thingsboard.integration.http.loriot.LoriotIntegration;
@@ -65,6 +71,7 @@ import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
+import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -82,18 +89,32 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.integration.IntegrationValidationRequestProto;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationValidationResponseProto;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
+import org.thingsboard.server.service.integration.state.ValidationTask;
+import org.thingsboard.server.service.integration.state.ValidationTaskType;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
@@ -103,6 +124,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -117,8 +140,12 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final IntegrationContextProvider integrationContextProvider;
     private final IntegrationConfigurationService configurationService;
     private final DataConverterService dataConverterService;
+    private final DataDecodingEncodingService encodingService;
     private final EventStorageService eventStorageService;
+    private final TbQueueProducerProvider producerProvider;
+    private final Optional<CoapServerService> coapServerService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
+    private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reinitEnabled;
@@ -143,6 +170,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     @PostConstruct
     public void init() {
         lifecycleExecutorService = Executors.newScheduledThreadPool(4, ThingsBoardThreadFactory.forName("ie-lifecycle"));
+        lifecycleExecutorService.scheduleWithFixedDelay(this::cleanupPendingValidationTasks, 1, 1, TimeUnit.MINUTES);
         commandExecutorService = ThingsBoardExecutors.newWorkStealingPool(4, "ie-commands");
         if (reinitEnabled) {
             reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-reinit"));
@@ -214,27 +242,164 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         });
     }
 
-    private void processConverterUpdate(ComponentLifecycleMsg msg) {
-        ConverterId converterId = new ConverterId(msg.getEntityId().getId());
-        if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
-            dataConverterService.deleteConverter(converterId);
-        } else {
-            Converter converter = configurationService.getConverter(msg.getTenantId(), converterId);
-            if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
-                dataConverterService.createConverter(converter);
+    @Override
+    public void handleValidationRequest(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback) {
+        UUID requestId = new UUID(validationRequestMsg.getIdMSB(), validationRequestMsg.getIdLSB());
+        var response = IntegrationValidationResponseProto.newBuilder();
+        response.setIdMSB(requestId.getMostSignificantBits());
+        response.setIdLSB(requestId.getLeastSignificantBits());
+        try {
+            ValidationTaskType validationTaskType = ValidationTaskType.valueOf(validationRequestMsg.getType());
+            Optional<Integration> configurationOpt = encodingService.decode(validationRequestMsg.getConfiguration().toByteArray());
+            Integration configuration = configurationOpt.orElseThrow(() -> new RuntimeException("Failed to decode the integration configuration"));
+            doValidateLocally(validationTaskType, configuration);
+            log.trace("[{}] Processed the validation request for integration: {}", requestId, configuration);
+        } catch (Exception e) {
+            log.trace("[{}][{}] Integration validation failed: {}", validationRequestMsg.getType(), requestId, e);
+            response.setError(ByteString.copyFrom(encodingService.encode(e)));
+        }
+        TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
+        TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
+        producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), new TbQueueCallback() {
+            @Override
+            public void onSuccess(TbQueueMsgMetadata metadata) {
+                log.trace("[{}] Published the validation response ", requestId);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.debug("[{}] Failed to publish the validation response ", requestId, t);
+            }
+        });
+        callback.onSuccess();
+    }
+
+    private void doValidateLocally(ValidationTaskType validationTaskType, Integration configuration) throws ThingsboardException {
+        IntegrationContext context = integrationContextProvider.buildIntegrationContext(configuration);
+        ThingsboardPlatformIntegration<?> integration = createPlatformIntegration(configuration);
+        switch (validationTaskType) {
+            case VALIDATE:
+                integration.validateConfiguration(configuration, allowLocalNetworkHosts);
+                break;
+            case CHECK_CONNECTION:
+                integration.checkConnection(configuration, context);
+        }
+    }
+
+    @Override
+    public void handleValidationResponse(IntegrationValidationResponseProto validationResponseMsg, TbCallback callback) {
+        UUID requestId = new UUID(validationResponseMsg.getIdMSB(), validationResponseMsg.getIdLSB());
+        ValidationTask validationTask = pendingValidationTasks.remove(requestId);
+        if (validationTask != null) {
+            ByteString error = validationResponseMsg.getError();
+            SettableFuture<Void> future = validationTask.getFuture();
+            if (error.isEmpty()) {
+                future.set(null);
             } else {
-                dataConverterService.updateConverter(converter);
+                Optional<Throwable> e = encodingService.decode(error.toByteArray());
+                future.setException(e.orElse(new RuntimeException("Failed to decode the validation error")));
             }
         }
     }
 
-    private void processIntegrationUpdate(ComponentLifecycleMsg msg) {
-        var id = new IntegrationId(msg.getEntityId().getId());
-        Integration configuration = configurationService.getIntegration(msg.getTenantId(), id);
-        if (isMine(configuration)) {
-            scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), msg.getEvent());
+    private void cleanupPendingValidationTasks() {
+        long expTime = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+        pendingValidationTasks.values().stream().filter(task -> task.getTs() < expTime).map(ValidationTask::getUuid).forEach(pendingValidationTasks::remove);
+    }
+
+    @Override
+    public ListenableFuture<Void> validateIntegrationConfiguration(Integration configuration) {
+        return validateConfiguration(configuration, ValidationTaskType.VALIDATE);
+    }
+
+    @Override
+    public ListenableFuture<Void> checkIntegrationConnection(Integration configuration) {
+        return validateConfiguration(configuration, ValidationTaskType.CHECK_CONNECTION);
+    }
+
+    private ListenableFuture<Void> validateConfiguration(Integration configuration, ValidationTaskType validationTaskType) {
+        if (configuration.getTenantId() == null) {
+            return Futures.immediateFailedFuture(new DataValidationException("Integration tenant should be specified!"));
+        }
+        if (StringUtils.isEmpty(configuration.getName())) {
+            return Futures.immediateFailedFuture(new DataValidationException("Integration name should be specified!"));
+        }
+        if (configuration.getType() == null) {
+            return Futures.immediateFailedFuture(new DataValidationException("Integration type should be specified!"));
+        }
+        if (StringUtils.isEmpty(configuration.getRoutingKey())) {
+            return Futures.immediateFailedFuture(new DataValidationException("Integration routing key should be specified!"));
+        }
+        try {
+            if (configuration.getType().isRemoteOnly()) {
+                return Futures.immediateFuture(null);
+            }
+            if (configuration.getId() == null) {
+                configuration = new Integration(configuration);
+                configuration.setId(new IntegrationId(UUID.randomUUID()));
+            }
+            if (isMine(configuration)) {
+                doValidateLocally(validationTaskType, configuration);
+                return Futures.immediateFuture(null);
+            } else {
+                ValidationTask task = new ValidationTask(validationTaskType, configuration);
+                pendingValidationTasks.put(task.getUuid(), task);
+
+                var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
+                        .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(configuration.getType()));
+                IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
+                        .setIdMSB(task.getUuid().getMostSignificantBits())
+                        .setIdLSB(task.getUuid().getLeastSignificantBits())
+                        .setType(validationTaskType.name())
+                        .setConfiguration(ByteString.copyFrom(encodingService.encode(configuration)))
+                        .setServiceId(serviceInfoProvider.getServiceId()).build();
+
+                producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder()
+                        .setValidationRequestMsg(requestProto).build()), new TbQueueCallback() {
+                    @Override
+                    public void onSuccess(TbQueueMsgMetadata metadata) {
+
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        pendingValidationTasks.remove(task.getUuid());
+                        task.getFuture().setException(t);
+                    }
+                });
+                return task.getFuture();
+            }
+        } catch (Exception e) {
+            return Futures.immediateFailedFuture(e);
+        }
+    }
+
+    @Override
+    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key) {
+        IntegrationState state = integrationsByRoutingKeyMap.get(key);
+        if (state == null || state.getIntegration() == null) {
+            Optional<Integration> configurationOpt = Optional.ofNullable(configurationService.getIntegration(TenantId.SYS_TENANT_ID, key));
+            if (configurationOpt.isPresent()) {
+                Integration integration = configurationOpt.get();
+                if (!supportedIntegrationTypes.contains(integration.getType())) {
+                    return Futures.immediateFailedFuture(new ThingsboardException("Current server does not support integrations with type: " + integration.getType() + "!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+                }
+                if (integration.isRemote()) {
+                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+                }
+                if (!integration.isEnabled()) {
+                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is disabled!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+                }
+                if (integration.getType().isSingleton() && !isMine(integration)) {
+                    return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
+                }
+                return Futures.immediateFailedFuture(new ThingsboardException("Integration is not present in routing key map!", ThingsboardErrorCode.GENERAL));
+            } else {
+                return Futures.immediateFailedFuture(new ThingsboardException("Failed to find integration by routing key!", ThingsboardErrorCode.ITEM_NOT_FOUND));
+            }
         } else {
-            log.debug("[{}][{}] Ignore update event for not mine integration", msg.getTenantId(), id);
+            return Futures.immediateFuture(state.getIntegration());
         }
     }
 
@@ -262,6 +427,34 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             }
         } catch (Throwable th) {
             log.error("Could not init integrations", th);
+        }
+    }
+
+    private void processConverterUpdate(ComponentLifecycleMsg msg) {
+        ConverterId converterId = new ConverterId(msg.getEntityId().getId());
+        if (msg.getEvent() == DELETED) {
+            dataConverterService.deleteConverter(converterId);
+        } else {
+            Converter converter = configurationService.getConverter(msg.getTenantId(), converterId);
+            if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+                dataConverterService.createConverter(converter);
+            } else {
+                dataConverterService.updateConverter(converter);
+            }
+        }
+    }
+
+    private void processIntegrationUpdate(ComponentLifecycleMsg msg) {
+        var id = new IntegrationId(msg.getEntityId().getId());
+        Integration configuration = configurationService.getIntegration(msg.getTenantId(), id);
+        if (configuration == null) {
+            log.debug("[{}][{}] Ignore update event because integration is not found", msg.getTenantId(), id);
+            return;
+        }
+        if (isMine(configuration)) {
+            scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), msg.getEvent());
+        } else {
+            log.debug("[{}][{}] Ignore update event for not mine integration", msg.getTenantId(), id);
         }
     }
 
@@ -294,7 +487,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         ComponentLifecycleEvent pendingEvent = null;
         while (!stateQueue.isEmpty()) {
             var update = stateQueue.poll();
-            if (!ComponentLifecycleEvent.DELETED.equals(pendingEvent)) {
+            if (!DELETED.equals(pendingEvent)) {
                 pendingEvent = update;
             }
         }
@@ -304,7 +497,12 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 case STARTED:
                 case UPDATED:
                 case ACTIVATED:
-                    processUpdateEvent(state);
+                    Integration configuration = configurationService.getIntegration(state.getTenantId(), state.getId());
+                    if (configuration != null) {
+                        processUpdateEvent(state, configuration);
+                    } else {
+                        processStop(state, DELETED);
+                    }
                     break;
                 case STOPPED:
                 case SUSPENDED:
@@ -316,16 +514,12 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         }
     }
 
-    private void processUpdateEvent(IntegrationState state) throws Exception {
-        processUpdateEvent(state, configurationService.getIntegration(state.getTenantId(), state.getId()));
-    }
-
     private void processUpdateEvent(IntegrationState state, Integration configuration) throws ThingsboardException {
         state.setConfiguration(configuration);
         if (log.isDebugEnabled()) {
-            log.debug("[{}][{}] Going to update the integration: {}", state.getTenantId(), state.getIntegration(), configuration);
+            log.debug("[{}][{}] Going to update the integration: {}", state.getTenantId(), configuration.getId(), configuration);
         } else {
-            log.info("[{}][{}] Going to update the integration.", state.getTenantId(), state.getIntegration());
+            log.info("[{}][{}] Going to update the integration.", state.getTenantId(), configuration.getId());
         }
         if (state.getIntegration() == null) {
             if (!isMine(configuration)) {
@@ -339,7 +533,8 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             }
             IntegrationContext context = integrationContextProvider.buildIntegrationContext(configuration);
             state.setContext(context);
-            ThingsboardPlatformIntegration<?> integration = newIntegration(context, configuration);
+            ThingsboardPlatformIntegration<?> integration = createPlatformIntegration(configuration);
+            integration.validateConfiguration(configuration, allowLocalNetworkHosts);
             state.setIntegration(integration);
             integrationsByRoutingKeyMap.putIfAbsent(configuration.getRoutingKey(), state);
             try {
@@ -367,6 +562,11 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
                 throw handleException(e);
             }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("[{}][{}] Updated the integration successfully: {}", state.getTenantId(), configuration.getId(), configuration);
+        } else {
+            log.info("[{}][{}] Updated the integration successfully.", state.getTenantId(), configuration.getId());
         }
     }
 
@@ -431,12 +631,6 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         } else {
             log.info("[{}][{}] Ignoring new event: {}", tenantId, id, event);
         }
-    }
-
-    private ThingsboardPlatformIntegration<?> newIntegration(IntegrationContext ctx, Integration configuration) {
-        ThingsboardPlatformIntegration<?> platformIntegration = createPlatformIntegration(configuration);
-        platformIntegration.validateConfiguration(configuration, allowLocalNetworkHosts);
-        return platformIntegration;
     }
 
     private void reInitIntegrations() {
@@ -514,8 +708,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             case APACHE_PULSAR:
                 return new BasicPulsarIntegration();
             case COAP:
-                //TODO: ashvayka integration executor
-//                return new CoapIntegration(coapServerService);
+                return new CoapIntegration(coapServerService.get());
             case CUSTOM:
             case TCP:
             case UDP:

@@ -222,10 +222,11 @@ message IntegrationInfoListResponseProto {
 }
 
 message IntegrationRequestProto {
-  int64 integrationIdMSB = 1;
-  int64 integrationIdLSB = 2;
-  int64 tenantIdMSB = 3;
-  int64 tenantIdLSB = 4;
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 integrationIdMSB = 3;
+  int64 integrationIdLSB = 4;
+  string routingKey = 5;
 }
 
 message IntegrationResponseProto {
@@ -262,8 +263,17 @@ message ToIntegrationExecutorNotificationMsg {
   bytes componentLifecycleMsg = 1;
 }
 
+message IntegrationValidationRequestProto {
+  int64 idMSB = 1;
+  int64 idLSB = 2;
+  string serviceId = 3;
+  bytes configuration = 4;
+  string type = 5;
+}
+
 message ToIntegrationExecutorDownlinkMsg {
   transport.IntegrationDownlinkMsgProto downlinkMsg = 1;
+  IntegrationValidationRequestProto validationRequestMsg = 2;
 }
 
 message TbIntegrationEventProto {

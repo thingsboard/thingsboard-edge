@@ -28,34 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api;
+package org.thingsboard.server.service.integration.state;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.integration.Integration;
-
-/**
- * Created by ashvayka on 02.12.17.
- */
-public interface ThingsboardPlatformIntegration<T> {
-
-    Integration getConfiguration();
-
-    void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) throws ThingsboardException;
-
-    void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException;
-
-    void init(TbIntegrationInitParams params) throws Exception;
-
-    void update(TbIntegrationInitParams params) throws Exception;
-
-    void destroy();
-
-    void process(T msg);
-
-    void onDownlinkMsg(IntegrationDownlinkMsg msg);
-
-    IntegrationStatistics popStatistics();
-
-}
+public enum ValidationTaskType {VALIDATE, CHECK_CONNECTION}

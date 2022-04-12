@@ -28,17 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.exception;
+package org.thingsboard.server.service.integration.state;
 
-public class DataValidationException extends RuntimeException {
+import com.google.common.util.concurrent.SettableFuture;
+import lombok.Data;
+import org.thingsboard.server.common.data.integration.Integration;
 
-    private static final long serialVersionUID = 7659985660312721830L;
+import java.util.UUID;
 
-    public DataValidationException(String message) {
-        super(message);
-    }
+@Data
+public class ValidationTask {
 
-    public DataValidationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    private final UUID uuid = UUID.randomUUID();
+    private final long ts = System.currentTimeMillis();
+    private final SettableFuture<Void> future = SettableFuture.create();
+    private final ValidationTaskType type;
+    private final Integration configuration;
+
 }

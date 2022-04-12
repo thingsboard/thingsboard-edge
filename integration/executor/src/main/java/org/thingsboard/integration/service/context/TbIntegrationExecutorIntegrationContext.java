@@ -92,19 +92,19 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-        log.info("Received uplink: {}", uplinkData);
+        log.trace("Received uplink: {}", uplinkData);
         apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
     @Override
     public void processUplinkData(AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
-        log.info("Received uplink: {}", uplinkData);
+        log.trace("Received uplink: {}", uplinkData);
         apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
     @Override
     public void createEntityView(EntityViewDataProto uplinkData, IntegrationCallback<Void> callback) {
-        log.info("Received uplink: {}", uplinkData);
+        log.trace("Received uplink: {}", uplinkData);
         apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
     }
 
@@ -142,7 +142,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     public DownLinkMsg getDownlinkMsg(String deviceName) {
         Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            return contextComponent.getDownlinkService().get(configuration.getId(), device.getId());
+            return contextComponent.getDownlinkCacheService().get(configuration.getId(), device.getId());
         } else {
             return null;
         }
@@ -150,14 +150,14 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        return contextComponent.getDownlinkService().put(msg);
+        return contextComponent.getDownlinkCacheService().put(msg);
     }
 
     @Override
     public void removeDownlinkMsg(String deviceName) {
         Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            contextComponent.getDownlinkService().remove(configuration.getId(), device.getId());
+            contextComponent.getDownlinkCacheService().remove(configuration.getId(), device.getId());
         }
     }
 

@@ -97,7 +97,7 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
                         apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationListRequest(request).build()));
                 return Futures.transform(response, this::parseListFromProto, callbackExecutor).get(10, TimeUnit.SECONDS);
             } catch (Exception e) {
-                log.warn("Failed to receive the list of integrations. Going to retry immediately.", e);
+                log.debug("Failed to receive the list of integrations. Going to retry immediately.", e);
             }
         }
     }
@@ -110,6 +110,19 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
+                .build();
+        var response =
+                apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationRequest(request).build()));
+        return Futures.transform(response, this::parseIntegrationFromProto, callbackExecutor).get(1, TimeUnit.MINUTES);
+    }
+
+    @SneakyThrows
+    @Override
+    public Integration getIntegration(TenantId tenantId, String routingKey) {
+        var request = IntegrationRequestProto.newBuilder()
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setRoutingKey(routingKey)
                 .build();
         var response =
                 apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder().setIntegrationRequest(request).build()));
@@ -145,8 +158,12 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
 
     private Integration parseIntegrationFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         ByteString data = proto.getValue().getIntegrationResponse().getData();
-        Optional<Integration> integration = dataDecodingEncodingService.decode(data.toByteArray());
-        return integration.orElseThrow(() -> new RuntimeException("Can't parse the integration from bytes!"));
+        if (!data.isEmpty()) {
+            Optional<Integration> integration = dataDecodingEncodingService.decode(data.toByteArray());
+            return integration.orElseThrow(() -> new RuntimeException("Can't parse the integration from bytes!"));
+        } else {
+            return null;
+        }
     }
 
     private Converter parseConverterFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
