@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,12 +49,15 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
@@ -62,7 +66,10 @@ import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 @Slf4j
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='in-memory' && '${service.type:null}'=='monolith'")
+@RequiredArgsConstructor
 public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory {
+
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by in-memory queue!";
 
     private final PartitionService partitionService;
     private final TbQueueCoreSettings coreSettings;
@@ -70,21 +77,9 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
-    private final InMemoryStorage storage;
-
-    public InMemoryMonolithQueueFactory(PartitionService partitionService, TbQueueCoreSettings coreSettings,
-                                        TbQueueRuleEngineSettings ruleEngineSettings,
-                                        TbServiceInfoProvider serviceInfoProvider,
-                                        TbQueueTransportApiSettings transportApiSettings,
-                                        TbQueueTransportNotificationSettings transportNotificationSettings) {
-        this.partitionService = partitionService;
-        this.coreSettings = coreSettings;
-        this.serviceInfoProvider = serviceInfoProvider;
-        this.ruleEngineSettings = ruleEngineSettings;
-        this.transportApiSettings = transportApiSettings;
-        this.transportNotificationSettings = transportNotificationSettings;
-        this.storage = InMemoryStorage.getInstance();
-    }
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final InMemoryStorage storage = InMemoryStorage.getInstance();
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToTransportMsg>> createTransportNotificationsMsgProducer() {
@@ -148,7 +143,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate() {
-        return null;
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
@@ -173,36 +168,32 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
-        // TODO: ashvayka integration executor
-        return null;
+        return new InMemoryTbQueueConsumer<>(integrationApiSettings.getRequestsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
-        // TODO: ashvayka integration executor
-        return null;
+        return new InMemoryTbQueueProducer<>(integrationApiSettings.getResponsesTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getNotificationsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return null;
+        return new InMemoryTbQueueConsumer<>(HashPartitionService.getIntegrationDownlinkTopic(integrationType));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return null;
+        return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getDownlinkTopic());
     }
 
 

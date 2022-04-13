@@ -144,6 +144,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final EventStorageService eventStorageService;
     private final TbQueueProducerProvider producerProvider;
     private final Optional<CoapServerService> coapServerService;
+    private final Optional<IntegrationRpcService> remoteRpcService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
 
@@ -405,14 +406,20 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     @Override
     public void refresh(IntegrationType integrationType, Set<TopicPartitionInfo> newPartitions) {
+        if (!supportedIntegrationTypes.contains(integrationType)) {
+            return;
+        }
         Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrations.keySet());
         for (IntegrationId integrationId : currentIntegrationIds) {
-            Integration integration = integrations.get(integrationId).getIntegration().getConfiguration();
-            if (!isMine(integration)) {
+            var state = integrations.get(integrationId);
+            if (state.getIntegration() == null) {
+                continue;
+            }
+            Integration integration = state.getIntegration().getConfiguration();
+            if (integration != null && !isMine(integration)) {
                 scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.STOPPED);
             }
         }
-
         List<IntegrationInfo> allIntegrations = configurationService.getActiveIntegrationList(integrationType, false);
         try {
             for (IntegrationInfo integration : allIntegrations) {
@@ -446,15 +453,24 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     private void processIntegrationUpdate(ComponentLifecycleMsg msg) {
         var id = new IntegrationId(msg.getEntityId().getId());
-        Integration configuration = configurationService.getIntegration(msg.getTenantId(), id);
-        if (configuration == null) {
-            log.debug("[{}][{}] Ignore update event because integration is not found", msg.getTenantId(), id);
-            return;
-        }
-        if (isMine(configuration)) {
-            scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), msg.getEvent());
+        if (ComponentLifecycleEvent.DELETED.equals(msg.getEvent()) && integrations.containsKey(id)) {
+            scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), DELETED);
         } else {
-            log.debug("[{}][{}] Ignore update event for not mine integration", msg.getTenantId(), id);
+            Integration configuration = configurationService.getIntegration(msg.getTenantId(), id);
+            if (configuration == null) {
+                log.debug("[{}][{}] Ignore update event because integration is not found", msg.getTenantId(), id);
+                return;
+            }
+            if (configuration.isRemote()) {
+                scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), ComponentLifecycleEvent.STOPPED);
+                remoteRpcService.ifPresent(service -> service.updateIntegration(configuration));
+            } else {
+                if (isMine(configuration)) {
+                    scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), msg.getEvent());
+                } else {
+                    log.debug("[{}][{}] Ignore update event for not mine integration", msg.getTenantId(), id);
+                }
+            }
         }
     }
 

@@ -32,7 +32,6 @@ package org.thingsboard.server.queue.discovery;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -63,8 +62,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
 
-    private static final String SUPPORTED_INTEGRATIONS_NONE = "NONE";
-    private static final String SUPPORTED_INTEGRATIONS_ALL = "ALL";
+    private static final String INTEGRATIONS_NONE = "NONE";
+    private static final String INTEGRATIONS_ALL = "ALL";
     @Getter
     @Value("${service.id:#{null}}")
     private String serviceId;
@@ -77,8 +76,11 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     @Value("${service.tenant_id:}")
     private String tenantIdStr;
 
-    @Value("${service.supported-integrations:ALL}")
+    @Value("${service.integrations.supported:ALL}")
     private String supportedIntegrationsStr;
+
+    @Value("${service.integrations.excluded:NONE}")
+    private String excludedIntegrationsStr;
 
     @Autowired(required = false)
     private TbQueueRuleEngineSettings ruleEngineSettings;
@@ -137,9 +139,9 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     public List<IntegrationType> getSupportedIntegrationTypes() {
         List<IntegrationType> supportedIntegrationTypes;
         if (serviceTypes.contains(ServiceType.TB_INTEGRATION_EXECUTOR)) {
-            if (StringUtils.isEmpty(supportedIntegrationsStr) || supportedIntegrationsStr.equalsIgnoreCase(SUPPORTED_INTEGRATIONS_NONE)) {
+            if (StringUtils.isEmpty(supportedIntegrationsStr) || supportedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_NONE)) {
                 supportedIntegrationTypes = Collections.emptyList();
-            } else if (supportedIntegrationsStr.equalsIgnoreCase(SUPPORTED_INTEGRATIONS_ALL)) {
+            } else if (supportedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_ALL)) {
                 supportedIntegrationTypes = Arrays.asList(IntegrationType.values());
             } else {
                 try {
@@ -149,7 +151,22 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
                     throw e;
                 }
             }
-            supportedIntegrationTypes = supportedIntegrationTypes.stream().filter(it -> !it.isRemoteOnly()).collect(Collectors.toList());
+
+            List<IntegrationType> excludedIntegrationTypes;
+            if (StringUtils.isEmpty(excludedIntegrationsStr) || excludedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_NONE)) {
+                excludedIntegrationTypes = Collections.emptyList();
+            } else if (excludedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_ALL)) {
+                excludedIntegrationTypes = Arrays.asList(IntegrationType.values());
+            } else {
+                try {
+                    excludedIntegrationTypes = Arrays.stream(excludedIntegrationsStr.split(",")).map(String::trim).map(IntegrationType::valueOf).collect(Collectors.toList());
+                } catch (RuntimeException e) {
+                    log.warn("Failed to parse excluded integration types: {}", excludedIntegrationsStr);
+                    throw e;
+                }
+            }
+
+            supportedIntegrationTypes = supportedIntegrationTypes.stream().filter(it -> !it.isRemoteOnly()).filter(it -> !excludedIntegrationTypes.contains(it)).collect(Collectors.toList());
         } else {
             supportedIntegrationTypes = Collections.emptyList();
         }

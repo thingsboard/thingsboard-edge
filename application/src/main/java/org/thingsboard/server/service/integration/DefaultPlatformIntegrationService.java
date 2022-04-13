@@ -33,6 +33,7 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -69,6 +70,7 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -83,6 +85,7 @@ import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -97,6 +100,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
@@ -119,6 +123,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -363,6 +368,37 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
+    @Override
+    public void processUplinkData(TbIntegrationTsDataProto data, IntegrationApiCallback integrationApiCallback) {
+        TenantId tenantId = new TenantId(new UUID(data.getTenantIdMSB(), data.getTenantIdLSB()));
+        var eventSource = data.getSource();
+        EntityId entityid;
+        switch (eventSource) {
+            case INTEGRATION:
+                entityid = new IntegrationId(new UUID(data.getEntityIdMSB(), data.getEntityIdLSB()));
+                break;
+            case UPLINK_CONVERTER:
+            case DOWNLINK_CONVERTER:
+                entityid = new ConverterId(new UUID(data.getEntityIdMSB(), data.getEntityIdLSB()));
+                break;
+            default:
+                throw new RuntimeException("Not supported!");
+        }
+
+        List<TsKvEntry> statistics = KvProtoUtil.toTsKvEntityList(data.getTsDataList());
+        telemetrySubscriptionService.saveAndNotifyInternal(tenantId, entityid, statistics, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Integer result) {
+                log.trace("[{}] Persisted statistics telemetry: {}", entityid, statistics);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Failed to persist statistics telemetry: {}", entityid, statistics, t);
+            }
+        });
+    }
+
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
             Event event = new Event();
@@ -489,11 +525,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             }
         }
         return entityView;
-    }
-
-    @Override
-    public void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
-        // TODO: ashvayka integration executor: move to the remoteRpcDownlinkService.
     }
 
     private Device processGetOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {

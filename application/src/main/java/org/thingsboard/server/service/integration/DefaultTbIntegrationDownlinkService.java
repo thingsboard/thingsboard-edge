@@ -32,16 +32,23 @@ package org.thingsboard.server.service.integration;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
+import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -55,68 +62,48 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
 
     private final PartitionService partitionService;
     private final IntegrationService integrationService;
+    private final IntegrationRpcService remoteRpcService;
     private final TbQueueProducerProvider producerProvider;
 
     @Override
-    public void pushMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg, TbQueueCallback callback) {
+    public void onRuleEngineDownlinkMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg, TbCallback callback) {
         Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
         if (integration == null) {
             callback.onFailure(new TbNodeException("Integration is missing!"));
         } else if (!integration.isEnabled()) {
             callback.onFailure(new TbNodeException("Integration is disabled!"));
         } else if (integration.isRemote()) {
-            // TODO: ashvayka integration executor
+            onDownlinkToRemoteIntegrationMsg(tenantId, integrationId, downlinkMsg);
+            callback.onSuccess();
         } else {
             var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
             TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), tenantId, integrationId)
                     .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(integration.getType()));
-            producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder().setDownlinkMsg(downlinkMsg).build()), callback);
+            producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder().setDownlinkMsg(downlinkMsg).build()), new TbQueueCallback() {
+                @Override
+                public void onSuccess(TbQueueMsgMetadata metadata) {
+                    callback.onSuccess();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    callback.onFailure(t);
+                }
+            });
         }
     }
 
-//    @Override
-//    public void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msgProto, TbCallback callback) {
-//        // TODO: ashvayka integration executor
-//        callback.onSuccess();
-//        try {
-//            TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
-//            IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-//            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
-//            Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
-//            if (integration == null) {
-//                boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
-//                if (!remoteIntegrationDownlink) {
-//                    Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
-//                    DonAsynchron.withCallback(createIntegration(configuration), i -> {
-//                        onMsg(i, msg);
-//                        if (callback != null) {
-//                            callback.onSuccess();
-//                        }
-//                    }, e -> {
-//                        if (callback != null) {
-//                            callback.onFailure(e);
-//                        }
-//                    }, refreshExecutorService);
-//                    return;
-//                }
-//            } else {
-//                onMsg(integration.getFirst(), msg);
-//            }
-//            if (callback != null) {
-//                callback.onSuccess();
-//            }
-//        } catch (Exception e) {
-//            if (callback != null) {
-//                callback.onFailure(e);
-//            }
-//            throw handleException(e);
-//        }
-//    }
+    @Override
+    public void onDownlinkToRemoteIntegrationMsg(IntegrationDownlinkMsgProto msgProto, TbCallback callback) {
+        TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
+        IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
+        onDownlinkToRemoteIntegrationMsg(tenantId, integrationId, msgProto);
+        callback.onSuccess();
+    }
 
-//    private void onMsg(ThingsboardPlatformIntegration<?> integration, IntegrationDownlinkMsg msg) {
-//        if (!integrationEvents.getOrDefault(msg.getIntegrationId(), ComponentLifecycleEvent.FAILED).equals(ComponentLifecycleEvent.FAILED)) {
-//            integration.onDownlinkMsg(msg);
-//        }
-//    }
-
+    private void onDownlinkToRemoteIntegrationMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg) {
+        IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId,
+                TbMsg.fromBytes(ServiceQueue.MAIN, downlinkMsg.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+        remoteRpcService.handleRemoteDownlink(msg);
+    }
 }

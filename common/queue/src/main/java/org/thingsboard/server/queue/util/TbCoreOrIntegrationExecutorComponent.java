@@ -35,7 +35,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-// TODO: ashvayka integration executor: No need to launch if service.supported-integrations is empty or NONE
 @Retention(RetentionPolicy.RUNTIME)
 @ConditionalOnExpression("'${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-integration-executor'")
 public @interface TbCoreOrIntegrationExecutorComponent {

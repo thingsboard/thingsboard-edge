@@ -82,6 +82,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -730,10 +731,10 @@ class DefaultTbContext implements TbContext, TbPeContext {
                 .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
                 .setData(TbMsg.toByteString(msg)).build();
-        mainCtx.getDownlinkService().pushMsg(getTenantId(), integrationId, downlinkMsgProto, new TbQueueCallback() {
+        mainCtx.getDownlinkService().onRuleEngineDownlinkMsg(getTenantId(), integrationId, downlinkMsgProto, new TbCallback() {
 
             @Override
-            public void onSuccess(TbQueueMsgMetadata metadata) {
+            public void onSuccess() {
                 if (restApiCall) {
                     FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
                     mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);

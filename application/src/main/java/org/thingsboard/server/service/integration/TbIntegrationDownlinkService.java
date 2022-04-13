@@ -32,11 +32,13 @@ package org.thingsboard.server.service.integration;
 
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.queue.TbQueueCallback;
 
 public interface TbIntegrationDownlinkService {
 
-    void pushMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsgProto, TbQueueCallback tbQueueCallback);
+    void onRuleEngineDownlinkMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsgProto, TbCallback tbQueueCallback);
 
+    void onDownlinkToRemoteIntegrationMsg(IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback);
 }

@@ -51,6 +51,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
@@ -87,6 +88,7 @@ import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
+import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
@@ -139,7 +141,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbLocalSubscriptionService localSubscriptionService;
     private final SubscriptionManagerService subscriptionManagerService;
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
-    private final PlatformIntegrationService platformIntegrationService;
+    private final TbIntegrationDownlinkService downlinkService;
     private final IntegrationManagerService integrationManagerService;
     private final RuleEngineCallService ruleEngineCallService;
     private final EdgeNotificationService edgeNotificationService;
@@ -158,7 +160,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         DeviceStateService stateService, SchedulerService schedulerService, TbLocalSubscriptionService localSubscriptionService,
                                         SubscriptionManagerService subscriptionManagerService, DataDecodingEncodingService encodingService,
                                         TbCoreDeviceRpcService tbCoreDeviceRpcService,
-                                        PlatformIntegrationService platformIntegrationService, IntegrationManagerService integrationManagerService,
+                                        TbIntegrationDownlinkService downlinkService, IntegrationManagerService integrationManagerService,
                                         RuleEngineCallService ruleEngineCallService, StatsFactory statsFactory, TbDeviceProfileCache deviceProfileCache,
                                         TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
                                         EdgeNotificationService edgeNotificationService,
@@ -174,7 +176,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.localSubscriptionService = localSubscriptionService;
         this.subscriptionManagerService = subscriptionManagerService;
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
-        this.platformIntegrationService = platformIntegrationService;
+        this.downlinkService = downlinkService;
         this.integrationManagerService = integrationManagerService;
         this.ruleEngineCallService = ruleEngineCallService;
         this.edgeNotificationService = edgeNotificationService;
@@ -353,7 +355,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToCoreRpcService(toCoreNotification.getFromDeviceRpcResponse(), callback);
         } else if (toCoreNotification.hasIntegrationDownlinkMsg()) {
             log.trace("[{}] Forwarding message to Integration service {}", id, toCoreNotification.getIntegrationDownlinkMsg());
-            forwardToIntegrationService(toCoreNotification.getIntegrationDownlinkMsg(), callback);
+            forwardToDownlinkService(toCoreNotification.getIntegrationDownlinkMsg(), callback);
         } else if (toCoreNotification.hasIntegrationValidationResponseMsg()) {
             log.trace("[{}] Forwarding message to Integration service {}", id, toCoreNotification.getIntegrationValidationResponseMsg());
             forwardToIntegrationManagerService(toCoreNotification.getIntegrationValidationResponseMsg(), callback);
@@ -545,13 +547,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             subscriptionManagerService.onTimeSeriesUpdate(
                     TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
-                    TbSubscriptionUtils.toTsKvEntityList(proto.getDataList()), callback);
+                    KvProtoUtil.toTsKvEntityList(proto.getDataList()), callback);
         } else if (msg.hasAttrUpdate()) {
             TbAttributeUpdateProto proto = msg.getAttrUpdate();
             subscriptionManagerService.onAttributesUpdate(
                     TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
-                    proto.getScope(), TbSubscriptionUtils.toAttributeKvList(proto.getDataList()), callback);
+                    proto.getScope(), KvProtoUtil.toAttributeKvList(proto.getDataList()), callback);
         } else if (msg.hasAttrDelete()) {
             TbAttributeDeleteProto proto = msg.getAttrDelete();
             subscriptionManagerService.onAttributesDelete(
@@ -598,11 +600,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         schedulerService.onQueueMsg(schedulerServiceMsg, callback);
     }
 
-    private void forwardToIntegrationService(IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
+    private void forwardToDownlinkService(IntegrationDownlinkMsgProto integrationDownlinkMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.logToCoreNotification();
         }
-        platformIntegrationService.onQueueMsg(integrationDownlinkMsg, callback);
+        downlinkService.onDownlinkToRemoteIntegrationMsg(integrationDownlinkMsg, callback);
     }
 
     private void forwardToIntegrationManagerService(IntegrationValidationResponseProto integrationDownlinkMsg, TbCallback callback) {
@@ -649,6 +651,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         }
         if (firmwareStatesConsumer != null) {
             firmwareStatesConsumer.unsubscribe();
+        }
+        if (integrationApiConsumer != null) {
+            integrationApiConsumer.unsubscribe();
         }
     }
 

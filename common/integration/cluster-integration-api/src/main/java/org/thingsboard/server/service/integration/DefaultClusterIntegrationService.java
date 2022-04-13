@@ -118,6 +118,7 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
         if (nfConsumer != null) {
             nfConsumer.unsubscribe();
         }
+        consumers.values().forEach(TbQueueConsumer::unsubscribe);
         if (queueExecutor != null) {
             queueExecutor.shutdownNow();
         }
@@ -256,7 +257,7 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
         var downlinkMsg = msg.getValue();
         if (downlinkMsg.hasDownlinkMsg()) {
             integrationManagerService.handleDownlink(downlinkMsg.getDownlinkMsg(), callback);
-        } else if (downlinkMsg.hasValidationRequestMsg()){
+        } else if (downlinkMsg.hasValidationRequestMsg()) {
             integrationManagerService.handleValidationRequest(downlinkMsg.getValidationRequestMsg(), callback);
         } else {
             callback.onSuccess();
@@ -287,10 +288,13 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
     }
 
     private void refreshIntegrationsByType(IntegrationType type) {
-        //TODO: performance improvement - check if we received events for not supported integration types and filter them.
-        Set<TopicPartitionInfo> partitions = getLatestPartitionsFromQueue(type);
-        if (partitions != null) {
-            integrationManagerService.refresh(type, partitions);
+        try {
+            Set<TopicPartitionInfo> partitions = getLatestPartitionsFromQueue(type);
+            if (partitions != null) {
+                integrationManagerService.refresh(type, partitions);
+            }
+        } catch (Throwable t) {
+            log.warn("[{}] Failed to refresh integrations", type, t);
         }
     }
 

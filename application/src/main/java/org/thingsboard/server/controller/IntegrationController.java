@@ -71,6 +71,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -160,7 +161,11 @@ public class IntegrationController extends BaseController {
 
             checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
 
-            integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
+            try {
+                integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throwRealCause(e);
+            }
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
             tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
@@ -214,7 +219,11 @@ public class IntegrationController extends BaseController {
         try {
             checkNotNull(integration);
             integration.setTenantId(getCurrentUser().getTenantId());
-            integrationManagerService.checkIntegrationConnection(integration).get(20, TimeUnit.SECONDS);
+            try {
+                integrationManagerService.checkIntegrationConnection(integration).get(20, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throwRealCause(e);
+            }
         } catch (TimeoutException e) {
             throw handleException(new ThingsboardRuntimeException("Timeout to process the request!", ThingsboardErrorCode.GENERAL));
         } catch (Exception e) {

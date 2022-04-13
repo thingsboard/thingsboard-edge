@@ -199,6 +199,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -1332,6 +1333,15 @@ public abstract class BaseController {
             return MediaType.parseMediaType(contentType);
         } catch (Exception e) {
             return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
+
+    protected void throwRealCause(ExecutionException e) throws Exception {
+        if (e.getCause() != null && e.getCause() instanceof Exception) {
+            throw (Exception) e.getCause();
+        } else {
+            throw e;
         }
     }
 }

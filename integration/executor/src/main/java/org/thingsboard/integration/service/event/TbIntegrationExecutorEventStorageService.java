@@ -31,6 +31,7 @@
 package org.thingsboard.integration.service.event;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
@@ -38,21 +39,26 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.LongDataEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
 import org.thingsboard.server.service.integration.EventStorageService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TbIntegrationExecutorEventStorageService implements EventStorageService {
@@ -103,6 +109,42 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
 
     @Override
     public void persistStatistics(TenantId tenantId, IntegrationId id, long ts, IntegrationStatistics statistics, ComponentLifecycleEvent currentState) {
-        //TODO: ashvayka integration executor
+        String serviceId = serviceInfoProvider.getServiceId();
+        String eventData = JacksonUtil.toString(EventUtil.toBodyJson(serviceId, statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+
+        var builder = TbIntegrationEventProto.newBuilder()
+                .setSource(TbEventSource.INTEGRATION)
+                .setType(DataConstants.STATS)
+                .setData(eventData);
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setEventSourceIdMSB(id.getId().getMostSignificantBits());
+        builder.setEventSourceIdLSB(id.getId().getLeastSignificantBits());
+
+        apiService.sendEventData(tenantId, id, builder.build(), EMPTY_CALLBACK);
+
+
+        List<TsKvEntry> statsTs = new ArrayList<>();
+        statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));
+        statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_errorsCount", statistics.getErrorsOccurred())));
+        statsTs.add(new BasicTsKvEntry(ts, new StringDataEntry(serviceId + "_state", currentState != null ? currentState.name() : "N/A")));
+
+        apiService.sendTsData(tenantId, id, TbIntegrationTsDataProto.newBuilder()
+                .setSource(TbEventSource.INTEGRATION)
+                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                .setEntityIdMSB(id.getId().getMostSignificantBits())
+                .setEntityIdLSB(id.getId().getLeastSignificantBits())
+                .addAllTsData(KvProtoUtil.tsToTsKvProtos(statsTs)).build(), new IntegrationCallback<>() {
+            @Override
+            public void onSuccess(Void msg) {
+                log.trace("[{}] Pushed integration statistics telemetry: {}", id, statistics);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                log.warn("[{}] Failed to push integration statistics telemetry: {}", id, statistics, e);
+            }
+        });
     }
 }

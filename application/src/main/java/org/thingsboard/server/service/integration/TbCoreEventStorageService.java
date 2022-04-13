@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.server.actors.ActorSystemContext;
@@ -80,7 +81,7 @@ public class TbCoreEventStorageService implements EventStorageService {
         event.setEntityId(id);
         event.setTenantId(tenantId);
         event.setType(DataConstants.STATS);
-        event.setBody(toBodyJson(serviceInfoProvider.getServiceId(), statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+        event.setBody(EventUtil.toBodyJson(serviceInfoProvider.getServiceId(), statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
         eventService.saveAsync(event);
 
         List<TsKvEntry> statsTs = new ArrayList<>();
@@ -98,10 +99,6 @@ public class TbCoreEventStorageService implements EventStorageService {
                 log.warn("[{}] Failed to persist statistics telemetry: {}", id, statistics, t);
             }
         });
-
     }
 
-    private JsonNode toBodyJson(String serviceId, long messagesProcessed, long errorsOccurred) {
-        return JacksonUtil.newObjectNode().put("server", serviceId).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
-    }
 }

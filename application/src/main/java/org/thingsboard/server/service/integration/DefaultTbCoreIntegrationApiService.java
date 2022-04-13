@@ -188,6 +188,10 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             }
         } else if (msg.hasEventProto()) {
             platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
+        } else if (msg.hasTsDataProto()){
+            platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
+        } else {
+            callback.onFailure(new IllegalArgumentException("Unsupported integration msg!"));
         }
     }
 
