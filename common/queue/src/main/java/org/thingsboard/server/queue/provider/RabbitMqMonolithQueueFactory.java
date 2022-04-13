@@ -59,6 +59,7 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqAdmin;
@@ -270,12 +271,15 @@ public class RabbitMqMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return null;
+        return new TbRabbitMqConsumerTemplate<>(ruleEngineAdmin, rabbitMqSettings,
+                HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return null;
+        return new TbRabbitMqProducerTemplate<>(notificationAdmin, rabbitMqSettings, integrationNotificationSettings.getDownlinkTopic());
     }
 
     @PreDestroy
