@@ -63,6 +63,7 @@ import org.thingsboard.server.queue.azure.servicebus.TbServiceBusSettings;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
@@ -256,14 +257,15 @@ public class ServiceBusTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbServiceBusConsumerTemplate<>(ruleEngineAdmin, serviceBusSettings,
+                HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getDownlinkTopic());
     }
 
     @PreDestroy

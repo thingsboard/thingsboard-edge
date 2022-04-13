@@ -59,6 +59,7 @@ import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
+import org.thingsboard.server.queue.pubsub.TbPubSubProducerTemplate;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
@@ -188,8 +189,7 @@ public class ServiceBusTbRuleEngineQueueFactory implements TbRuleEngineQueueFact
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getDownlinkTopic());
     }
 
     @PreDestroy

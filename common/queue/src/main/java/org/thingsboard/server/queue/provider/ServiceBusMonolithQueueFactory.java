@@ -63,10 +63,13 @@ import org.thingsboard.server.queue.azure.servicebus.TbServiceBusSettings;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.pubsub.TbPubSubConsumerTemplate;
 import org.thingsboard.server.queue.pubsub.TbPubSubProducerTemplate;
+import org.thingsboard.server.queue.rabbitmq.TbRabbitMqConsumerTemplate;
+import org.thingsboard.server.queue.rabbitmq.TbRabbitMqProducerTemplate;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
@@ -271,14 +274,15 @@ public class ServiceBusMonolithQueueFactory implements TbCoreQueueFactory, TbRul
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbServiceBusConsumerTemplate<>(ruleEngineAdmin, serviceBusSettings,
+                HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        // TODO: ikozka integration executor
-        return null;
+        return new TbServiceBusProducerTemplate<>(notificationAdmin, serviceBusSettings, integrationNotificationSettings.getDownlinkTopic());
     }
 
     @PreDestroy
