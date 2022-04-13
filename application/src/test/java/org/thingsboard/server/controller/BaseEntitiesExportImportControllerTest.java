@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.After;
 import org.junit.Before;
@@ -44,23 +45,32 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -71,10 +81,13 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -91,8 +104,10 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseEntitiesExportImportControllerTest extends AbstractControllerTest {
@@ -115,6 +130,12 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
     protected RelationService relationService;
     @Autowired
     protected TenantService tenantService;
+    @Autowired
+    protected EntityGroupService entityGroupService;
+    @Autowired
+    protected ConverterService converterService;
+    @Autowired
+    protected IntegrationService integrationService;
 
     protected TenantId tenantId1;
     protected User tenantAdmin1;
@@ -151,7 +172,7 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         tenantService.deleteTenant(tenantId2);
     }
 
-    protected Device createDevice(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, String name) {
+    protected Device createDevice(TenantId tenantId, CustomerId customerId, DeviceProfileId deviceProfileId, EntityGroupId entityGroupId, String name) {
         Device device = new Device();
         device.setTenantId(tenantId);
         device.setCustomerId(customerId);
@@ -161,7 +182,11 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         DeviceData deviceData = new DeviceData();
         deviceData.setTransportConfiguration(new DefaultDeviceTransportConfiguration());
         device.setDeviceData(deviceData);
-        return deviceService.saveDevice(device);
+        device =  deviceService.saveDevice(device);
+        if (entityGroupId != null) {
+            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, device.getId());
+        }
+        return device;
     }
 
     protected OtaPackage createOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type) {
@@ -211,7 +236,7 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         assertThat(initialProfile.getDescription()).isEqualTo(importedProfile.getDescription());
     }
 
-    protected Asset createAsset(TenantId tenantId, CustomerId customerId, String type, String name) {
+    protected Asset createAsset(TenantId tenantId, CustomerId customerId, EntityGroupId entityGroupId, String type, String name) {
         Asset asset = new Asset();
         asset.setTenantId(tenantId);
         asset.setCustomerId(customerId);
@@ -219,7 +244,11 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         asset.setName(name);
         asset.setLabel("lbl");
         asset.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
-        return assetService.saveAsset(asset);
+        asset = assetService.saveAsset(asset);
+        if (entityGroupId != null) {
+            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, asset.getId());
+        }
+        return asset;
     }
 
     protected void checkImportedAssetData(Asset initialAsset, Asset importedAsset) {
@@ -229,7 +258,7 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         assertThat(importedAsset.getAdditionalInfo()).isEqualTo(initialAsset.getAdditionalInfo());
     }
 
-    protected Customer createCustomer(TenantId tenantId, String name) {
+    protected Customer createCustomer(TenantId tenantId, EntityGroupId entityGroupId, String name) {
         Customer customer = new Customer();
         customer.setTenantId(tenantId);
         customer.setTitle(name);
@@ -237,7 +266,11 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         customer.setAddress("abb");
         customer.setEmail("ccc@aa.org");
         customer.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
-        return customerService.saveCustomer(customer);
+        customer = customerService.saveCustomer(customer);
+        if (entityGroupId != null) {
+            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, customer.getId());
+        }
+        return customer;
     }
 
     protected void checkImportedCustomerData(Customer initialCustomer, Customer importedCustomer) {
@@ -247,7 +280,7 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         assertThat(importedCustomer.getEmail()).isEqualTo(initialCustomer.getEmail());
     }
 
-    protected Dashboard createDashboard(TenantId tenantId, CustomerId customerId, String name) {
+    protected Dashboard createDashboard(TenantId tenantId, CustomerId customerId, EntityGroupId entityGroupId, String name) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTenantId(tenantId);
         dashboard.setTitle(name);
@@ -258,6 +291,9 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         if (customerId != null) {
             dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerId);
             return dashboardService.findDashboardById(tenantId, dashboard.getId());
+        }
+        if (entityGroupId != null) {
+            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, dashboard.getId());
         }
         return dashboard;
     }
@@ -338,6 +374,65 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         return relation;
     }
 
+    protected EntityGroup createEntityGroup(EntityId ownerId, EntityType groupType, String name) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setOwnerId(ownerId);
+        entityGroup.setType(groupType);
+        entityGroup.setName(name);
+        entityGroup.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        return entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, ownerId, entityGroup);
+    }
+
+    protected void checkImportedEntityGroupData(EntityGroup initialEntityGroup, EntityGroup importedEntityGroup) {
+        assertThat(importedEntityGroup.getType()).isEqualTo(initialEntityGroup.getType());
+        assertThat(importedEntityGroup.getName()).isEqualTo(initialEntityGroup.getName());
+        assertThat(importedEntityGroup.getConfiguration()).isEqualTo(initialEntityGroup.getConfiguration());
+        assertThat(importedEntityGroup.getAdditionalInfo()).isEqualTo(initialEntityGroup.getAdditionalInfo());
+    }
+
+    protected Converter createConverter(TenantId tenantId, ConverterType type, String name) {
+        Converter converter = new Converter();
+        converter.setTenantId(tenantId);
+        converter.setType(type);
+        converter.setName(name);
+        converter.setConfiguration(JacksonUtil.newObjectNode()
+                .<ObjectNode>set("encoder", new TextNode("b"))
+                .set("decoder", new TextNode("c")));
+        converter.setDebugMode(true);
+        converter.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        return converterService.saveConverter(converter);
+    }
+
+    protected void checkImportedConverterData(Converter initialConverter, Converter importedConverter) {
+        assertThat(importedConverter.getType()).isEqualTo(initialConverter.getType());
+        assertThat(importedConverter.getName()).isEqualTo(initialConverter.getName());
+        assertThat(importedConverter.getConfiguration()).isEqualTo(initialConverter.getConfiguration());
+        assertThat(importedConverter.getAdditionalInfo()).isEqualTo(initialConverter.getAdditionalInfo());
+        assertThat(importedConverter.isDebugMode()).isEqualTo(initialConverter.isDebugMode());
+    }
+
+    protected Integration createIntegration(TenantId tenantId, ConverterId converterId, IntegrationType type, String name) {
+        Integration integration = new Integration();
+        integration.setTenantId(tenantId);
+        integration.setType(type);
+        integration.setName(name);
+        integration.setDefaultConverterId(converterId);
+        integration.setRoutingKey("abc");
+        integration.setSecret("scrt");
+        integration.setEnabled(false);
+        integration.setConfiguration(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        integration.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        return integrationService.saveIntegration(integration);
+    }
+
+    protected void checkImportedIntegrationData(Integration initialIntegration, Integration importedIntegration) {
+        assertThat(importedIntegration.getName()).isEqualTo(initialIntegration.getName());
+        assertThat(importedIntegration.getType()).isEqualTo(initialIntegration.getType());
+        assertThat(importedIntegration.getConfiguration()).isEqualTo(initialIntegration.getConfiguration());
+        assertThat(importedIntegration.getAdditionalInfo()).isEqualTo(initialIntegration.getAdditionalInfo());
+        assertThat(importedIntegration.getSecret()).isEqualTo(initialIntegration.getSecret());
+    }
+
     protected <E extends ExportableEntity<?> & HasTenantId> void checkImportedEntity(TenantId tenantId1, E initialEntity, TenantId tenantId2, E importedEntity) {
         assertThat(initialEntity.getTenantId()).isEqualTo(tenantId1);
         assertThat(importedEntity.getTenantId()).isEqualTo(tenantId2);
@@ -350,6 +445,32 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         } else {
             assertThat(importedEntity.getId()).isEqualTo(initialEntity.getId());
         }
+    }
+
+    protected <E extends ExportableEntity<?> & HasOwnerId> void checkImportedEntity(TenantId tenantId1, EntityId ownerId1, E initialEntity,
+                                                                                    TenantId tenantId2, EntityId ownerId2, E importedEntity) {
+        if (initialEntity instanceof HasTenantId) {
+            assertThat(((HasTenantId) initialEntity).getTenantId()).isEqualTo(tenantId1);
+            assertThat(((HasTenantId) importedEntity).getTenantId()).isEqualTo(tenantId2);
+        }
+        assertThat(initialEntity.getOwnerId()).isEqualTo(ownerId1);
+        assertThat(importedEntity.getOwnerId()).isEqualTo(ownerId2);
+
+        assertThat(importedEntity.getExternalId()).isEqualTo(initialEntity.getId());
+
+        boolean sameTenant = tenantId1.equals(tenantId2);
+        if (!sameTenant) {
+            assertThat(importedEntity.getId()).isNotEqualTo(initialEntity.getId());
+        } else {
+            assertThat(importedEntity.getId()).isEqualTo(initialEntity.getId());
+        }
+    }
+
+    protected <D extends EntityExportData<?>> void updateExportData(List<EntityExportData<?>> exportDataList, EntityType entityType, Consumer<D> updater) {
+        exportDataList.stream()
+                .filter(exportData -> exportData.getEntityType() == entityType)
+                .findFirst()
+                .ifPresent(exportData -> updater.accept((D) exportData));
     }
 
 

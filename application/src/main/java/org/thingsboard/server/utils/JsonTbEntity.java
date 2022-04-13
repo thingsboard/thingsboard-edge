@@ -31,6 +31,7 @@
 package org.thingsboard.server.utils;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -66,5 +67,6 @@ import java.lang.annotation.Target;
         @Type(name = "INTEGRATION", value = Integration.class),
         @Type(name = "ROLE", value = Role.class)
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public @interface JsonTbEntity {
 }

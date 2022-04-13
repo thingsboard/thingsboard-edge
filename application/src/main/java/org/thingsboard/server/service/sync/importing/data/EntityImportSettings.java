@@ -47,5 +47,5 @@ public class EntityImportSettings {
     private boolean removeExistingRelations;
 
     private boolean updateReferencesToOtherEntities;
-    private boolean addToEntityGroups;
+    private boolean updateEntityGroups;
 }

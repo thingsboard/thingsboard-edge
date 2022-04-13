@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Streams;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -50,9 +49,14 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.query.EntityListFilter;
@@ -92,7 +96,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 
-@Ignore
+/*
+ * - export/import roles
+ * - entity group assignment
+ * - entity group unassignment
+ * - sub entity groups of customers
+ * - complex customer hierarchy
+ *
+ * - test repetitive import for ce
+ * */
 @DaoSqlTest
 public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImportControllerTest {
 
@@ -108,7 +120,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportAsset_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
-        Asset asset = createAsset(tenantId1, null, "AB", "Asset of tenant 1");
+        Asset asset = createAsset(tenantId1, null, null, "AB", "Asset of tenant 1");
         EntityExportData<Asset> exportData = exportSingleEntity(asset.getId());
         assertThat(exportData.getEntity()).isEqualTo(asset);
 
@@ -122,7 +134,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportAsset_sameTenant() throws Exception {
         logInAsTenantAdmin1();
-        Asset asset = createAsset(tenantId1, null, "AB", "Asset v1.0");
+        Asset asset = createAsset(tenantId1, null, null, "AB", "Asset v1.0");
         EntityExportData<Asset> exportData = exportSingleEntity(asset.getId());
 
         EntityImportResult<Asset> importResult = importEntity(exportData);
@@ -134,8 +146,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportAsset_sameTenant_withCustomer() throws Exception {
         logInAsTenantAdmin1();
-        Customer customer = createCustomer(tenantId1, "My customer");
-        Asset asset = createAsset(tenantId1, customer.getId(), "AB", "My asset");
+        Customer customer = createCustomer(tenantId1, null, "My customer");
+        Asset asset = createAsset(tenantId1, customer.getId(), null, "AB", "My asset");
 
         Asset importedAsset = importEntity(this.<Asset, AssetId>exportSingleEntity(asset.getId())).getSavedEntity();
 
@@ -146,7 +158,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportCustomer_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
-        Customer customer = createCustomer(tenantAdmin1.getTenantId(), "Customer of tenant 1");
+        Customer customer = createCustomer(tenantAdmin1.getTenantId(), null, "Customer of tenant 1");
         EntityExportData<Customer> exportData = exportSingleEntity(customer.getId());
         assertThat(exportData.getEntity()).isEqualTo(customer);
 
@@ -160,7 +172,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportCustomer_sameTenant() throws Exception {
         logInAsTenantAdmin1();
-        Customer customer = createCustomer(tenantAdmin1.getTenantId(), "Customer v1.0");
+        Customer customer = createCustomer(tenantAdmin1.getTenantId(), null, "Customer v1.0");
         EntityExportData<Customer> exportData = exportSingleEntity(customer.getId());
 
         EntityImportResult<Customer> importResult = importEntity(exportData);
@@ -174,7 +186,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void testExportImportDeviceWithProfile_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, null, null, "Device profile of tenant 1");
-        Device device = createDevice(tenantId1, null, deviceProfile.getId(), "Device of tenant 1");
+        Device device = createDevice(tenantId1, null, deviceProfile.getId(), null, "Device of tenant 1");
         DeviceCredentials credentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId1, device.getId());
 
         EntityExportData<DeviceProfile> profileExportData = exportSingleEntity(deviceProfile.getId());
@@ -212,7 +224,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, null, null, "Device profile v1.0");
         OtaPackage firmware = createOtaPackage(tenantId1, deviceProfile.getId(), OtaPackageType.FIRMWARE);
         OtaPackage software = createOtaPackage(tenantId1, deviceProfile.getId(), OtaPackageType.SOFTWARE);
-        Device device = createDevice(tenantId1, null, deviceProfile.getId(), "Device v1.0");
+        Device device = createDevice(tenantId1, null, deviceProfile.getId(), null, "Device v1.0");
         device.setFirmwareId(firmware.getId());
         device.setSoftwareId(software.getId());
         device = deviceService.saveDevice(device);
@@ -235,7 +247,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportDashboard_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
-        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, "Dashboard of tenant 1");
+        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, null, "Dashboard of tenant 1");
 
         EntityExportData<Dashboard> exportData = exportSingleEntity(dashboard.getId());
         assertThat(exportData.getEntity()).isEqualTo(dashboard);
@@ -249,7 +261,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportDashboard_sameTenant() throws Exception {
         logInAsTenantAdmin1();
-        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, "Dashboard v1.0");
+        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, null, "Dashboard v1.0");
 
         EntityExportData<Dashboard> exportData = exportSingleEntity(dashboard.getId());
 
@@ -261,7 +273,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportDashboard_betweenTenants_withCustomer_updated() throws Exception {
         logInAsTenantAdmin1();
-        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, "Dashboard of tenant 1");
+        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, null, "Dashboard of tenant 1");
 
         EntityExportData<Dashboard> exportData = exportSingleEntity(dashboard.getId());
 
@@ -270,7 +282,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         checkImportedEntity(tenantId1, dashboard, tenantId2, importedDashboard);
 
         logInAsTenantAdmin1();
-        Customer customer = createCustomer(tenantId1, "Customer 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
         EntityExportData<Customer> customerExportData = exportSingleEntity(customer.getId());
         dashboardService.assignDashboardToCustomer(tenantId1, dashboard.getId(), customer.getId());
         exportData = exportSingleEntity(dashboard.getId());
@@ -286,9 +298,9 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportDashboard_betweenTenants_withEntityAliases() throws Exception {
         logInAsTenantAdmin1();
-        Asset asset1 = createAsset(tenantId1, null, "A", "Asset 1");
-        Asset asset2 = createAsset(tenantId1, null, "A", "Asset 2");
-        Dashboard dashboard = createDashboard(tenantId1, null, "Dashboard 1");
+        Asset asset1 = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Asset asset2 = createAsset(tenantId1, null, null, "A", "Asset 2");
+        Dashboard dashboard = createDashboard(tenantId1, null, null, "Dashboard 1");
 
         String entityAliases = "{\n" +
                 "\t\"23c4185d-1497-9457-30b2-6d91e69a5b2c\": {\n" +
@@ -328,7 +340,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         Dashboard importedDashboard = (Dashboard) importResults.get(EntityType.DASHBOARD).get(0).getSavedEntity();
 
         Set<String> entityAliasEntitiesIds = Streams.stream(importedDashboard.getConfiguration()
-                .get("entityAliases").elements().next().get("filter").get("entityList").elements())
+                        .get("entityAliases").elements().next().get("filter").get("entityList").elements())
                 .map(JsonNode::asText).collect(Collectors.toSet());
         assertThat(entityAliasEntitiesIds).doesNotContain(asset1.getId().toString(), asset2.getId().toString());
         assertThat(entityAliasEntitiesIds).contains(importedAsset1.getId().toString(), importedAsset2.getId().toString());
@@ -370,31 +382,115 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         checkImportedRuleChainData(ruleChain, metaData, importedRuleChain, importedMetaData);
     }
 
+    @Test
+    public void testExportImportConverterWithIntegration_betweenTenants() throws Exception {
+        logInAsTenantAdmin1();
+        Converter converter = createConverter(tenantId1, ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
+
+        EntityListExportRequest exportRequest = new EntityListExportRequest();
+        exportRequest.setExportSettings(new EntityExportSettings());
+        exportRequest.setEntitiesIds(List.of(integration.getId(), converter.getId()));
+        List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
+        this.<EntityExportData<Integration>>updateExportData(exportDataList, EntityType.INTEGRATION, integrationExportData -> {
+            integrationExportData.getEntity().setRoutingKey(RandomStringUtils.randomAlphanumeric(10));
+        });
+
+        logInAsTenantAdmin2();
+        Map<EntityType, EntityImportResult<?>> importResults = importEntities(exportDataList).stream().collect(Collectors.toMap(EntityImportResult::getEntityType, r -> r));
+        Converter importedConverter = (Converter) importResults.get(EntityType.CONVERTER).getSavedEntity();
+        checkImportedEntity(tenantId1, converter, tenantId2, importedConverter);
+        checkImportedConverterData(converter, importedConverter);
+
+        Integration importedIntegration = (Integration) importResults.get(EntityType.INTEGRATION).getSavedEntity();
+        checkImportedEntity(tenantId1, integration, tenantId2, importedIntegration);
+        checkImportedIntegrationData(integration, importedIntegration);
+    }
+
+    @Test
+    public void testExportImportConverterWithIntegration_sameTenant() throws Exception {
+        logInAsTenantAdmin1();
+        Converter converter = createConverter(tenantId1, ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
+
+        EntityListExportRequest exportRequest = new EntityListExportRequest();
+        exportRequest.setExportSettings(new EntityExportSettings());
+        exportRequest.setEntitiesIds(List.of(integration.getId(), converter.getId()));
+        List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
+
+        Map<EntityType, EntityImportResult<?>> importResults = importEntities(exportDataList).stream().collect(Collectors.toMap(EntityImportResult::getEntityType, r -> r));
+        Converter importedConverter = (Converter) importResults.get(EntityType.CONVERTER).getSavedEntity();
+        checkImportedEntity(tenantId1, converter, tenantId1, importedConverter);
+        checkImportedConverterData(converter, importedConverter);
+
+        Integration importedIntegration = (Integration) importResults.get(EntityType.INTEGRATION).getSavedEntity();
+        checkImportedEntity(tenantId1, integration, tenantId1, importedIntegration);
+        checkImportedIntegrationData(integration, importedIntegration);
+    }
+
+
+    @Test
+    public void testExportImportEntityGroup_betweenTenants() throws Exception {
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            logInAsTenantAdmin1();
+            EntityGroup entityGroup = createEntityGroup(tenantId1, groupType, groupType + " group");
+            EntityExportData<EntityGroup> exportData = exportSingleEntity(entityGroup.getId());
+
+            logInAsTenantAdmin2();
+            EntityGroup importedEntityGroup = (EntityGroup) importEntities(List.of(exportData)).get(0).getSavedEntity();
+            checkImportedEntity(tenantId1, tenantId1, entityGroup, tenantId2, tenantId2, importedEntityGroup);
+            checkImportedEntityGroupData(entityGroup, importedEntityGroup);
+        }
+    }
+
+    @Test
+    public void testExportImportEntityGroup_sameTenant() throws Exception {
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            logInAsTenantAdmin1();
+            EntityGroup entityGroup = createEntityGroup(tenantId1, groupType, groupType + " group");
+            EntityExportData<EntityGroup> exportData = exportSingleEntity(entityGroup.getId());
+
+            EntityGroup importedEntityGroup = (EntityGroup) importEntities(List.of(exportData)).get(0).getSavedEntity();
+            checkImportedEntity(tenantId1, tenantId1, entityGroup, tenantId1, tenantId1, importedEntityGroup);
+            checkImportedEntityGroupData(entityGroup, importedEntityGroup);
+        }
+    }
+
 
     @Test
     public void testExportImportBatch_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
 
-        Customer customer = createCustomer(tenantId1, "Customer 1");
-        Asset asset = createAsset(tenantId1, customer.getId(), "A", "Customer 1 - Asset 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
+        Asset asset = createAsset(tenantId1, customer.getId(), null, "A", "Customer 1 - Asset 1");
         RuleChain ruleChain = createRuleChain(tenantId1, "Rule chain 1");
-        Dashboard dashboard = createDashboard(tenantId1, customer.getId(), "Customer 1 - Dashboard 1");
+        Dashboard dashboard = createDashboard(tenantId1, customer.getId(), null, "Customer 1 - Dashboard 1");
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, ruleChain.getId(), dashboard.getId(), "Device profile 1");
-        Device device = createDevice(tenantId1, customer.getId(), deviceProfile.getId(), "Customer 1 - Device 1");
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Device device = createDevice(tenantId1, customer.getId(), deviceProfile.getId(), deviceGroup.getId(), "Customer 1 - Device 1");
+        Converter converter = createConverter(tenantId1, ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
 
         EntityListExportRequest exportRequest = new EntityListExportRequest();
-        exportRequest.setExportSettings(new EntityExportSettings());
-        exportRequest.setEntitiesIds(List.of(customer.getId(), asset.getId(), ruleChain.getId(), deviceProfile.getId(), dashboard.getId()));
+        exportRequest.setExportSettings(EntityExportSettings.builder()
+                .exportEntityGroupsInfo(true)
+                .build());
+        exportRequest.setEntitiesIds(List.of(customer.getId(), asset.getId(), device.getId(), ruleChain.getId(), deviceProfile.getId(),
+                dashboard.getId(), deviceGroup.getId(), converter.getId(), integration.getId()));
         List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
-        exportRequest.setEntitiesIds(List.of(device.getId()));
-        DeviceExportData deviceExportData = (DeviceExportData) exportEntities(exportRequest).get(0);
-        deviceExportData.getCredentials().setCredentialsId(RandomStringUtils.randomAlphanumeric(10));
-        exportDataList.add(deviceExportData);
+
+        this.<DeviceExportData>updateExportData(exportDataList, EntityType.DEVICE, deviceExportData -> {
+            deviceExportData.getCredentials().setCredentialsId(RandomStringUtils.randomAlphanumeric(10));
+        });
+        this.<EntityExportData<Integration>>updateExportData(exportDataList, EntityType.INTEGRATION, integrationExportData -> {
+            integrationExportData.getEntity().setRoutingKey(RandomStringUtils.randomAlphanumeric(10));
+        });
 
         logInAsTenantAdmin2();
         ImportRequest importRequest = new ImportRequest();
         importRequest.setImportSettings(EntityImportSettings.builder()
                 .updateReferencesToOtherEntities(true)
+                .updateEntityGroups(true)
                 .build());
         importRequest.setExportDataList(exportDataList);
         Map<EntityType, EntityImportResult<?>> importResults = importEntities(importRequest).stream()
@@ -422,10 +518,21 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         assertThat(importedDeviceProfile.getDefaultRuleChainId()).isEqualTo(importedRuleChain.getId());
         assertThat(importedDeviceProfile.getDefaultDashboardId()).isEqualTo(importedDashboard.getId());
 
+        EntityGroup importedDeviceGroup = (EntityGroup) importResults.get(EntityType.ENTITY_GROUP).getSavedEntity();
+        checkImportedEntity(tenantId1, tenantId1, deviceGroup, tenantId2, tenantId2, importedDeviceGroup);
+
         Device importedDevice = (Device) importResults.get(EntityType.DEVICE).getSavedEntity();
         checkImportedEntity(tenantId1, device, tenantId2, importedDevice);
         assertThat(importedDevice.getCustomerId()).isEqualTo(importedCustomer.getId());
         assertThat(importedDevice.getDeviceProfileId()).isEqualTo(importedDeviceProfile.getId());
+        assertThat(entityGroupService.isEntityInGroup(importedDevice.getId(), importedDeviceGroup.getId())).isTrue();
+
+        Converter importedConverter = (Converter) importResults.get(EntityType.CONVERTER).getSavedEntity();
+        checkImportedEntity(tenantId1, converter, tenantId2, importedConverter);
+
+        Integration importedIntegration = (Integration) importResults.get(EntityType.INTEGRATION).getSavedEntity();
+        checkImportedEntity(tenantId1, integration, tenantId2, importedIntegration);
+        assertThat(importedIntegration.getDefaultConverterId()).isEqualTo(importedConverter.getId());
     }
 
 
@@ -433,8 +540,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void testExportImportWithInboundRelations_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
 
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation = createRelation(asset.getId(), device.getId());
 
         EntityListExportRequest exportRequest = new EntityListExportRequest();
@@ -480,8 +587,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void testExportImportWithRelations_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
 
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation = createRelation(asset.getId(), device.getId());
 
         EntityListExportRequest exportRequest = new EntityListExportRequest();
@@ -524,8 +631,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void testExportImportWithRelations_sameTenant() throws Exception {
         logInAsTenantAdmin1();
 
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device1 = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device1 = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation1 = createRelation(asset.getId(), device1.getId());
 
         SingleEntityExportRequest exportRequest = new SingleEntityExportRequest();
@@ -536,7 +643,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         EntityExportData<Asset> assetExportData = (EntityExportData<Asset>) exportEntities(exportRequest).get(0);
         assertThat(assetExportData.getOutboundRelations()).size().isOne();
 
-        Device device2 = createDevice(tenantId1, null, null, "Device 2");
+        Device device2 = createDevice(tenantId1, null, null, null, "Device 2");
         EntityRelation relation2 = createRelation(asset.getId(), device2.getId());
 
         ImportRequest importRequest = new ImportRequest();
@@ -555,8 +662,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void textExportImportWithRelations_sameTenant_removeExisting() throws Exception {
         logInAsTenantAdmin1();
 
-        Asset asset1 = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset1 = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation1 = createRelation(asset1.getId(), device.getId());
 
         SingleEntityExportRequest exportRequest = new SingleEntityExportRequest();
@@ -567,7 +674,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         EntityExportData<?> deviceExportData = exportEntities(exportRequest).get(0);
         assertThat(deviceExportData.getInboundRelations()).size().isOne();
 
-        Asset asset2 = createAsset(tenantId1, null, "A", "Asset 2");
+        Asset asset2 = createAsset(tenantId1, null, null, "A", "Asset 2");
         EntityRelation relation2 = createRelation(asset2.getId(), device.getId());
 
         ImportRequest importRequest = new ImportRequest();
@@ -614,8 +721,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportDashboard_betweenTenants_doNotUpdateReferencesToOtherEntities() throws Exception {
         logInAsTenantAdmin1();
-        Customer customer = createCustomer(tenantId1, "Customer 1");
-        Dashboard dashboard = createDashboard(tenantId1, customer.getId(), "Dashboard 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
+        Dashboard dashboard = createDashboard(tenantId1, customer.getId(), null, "Dashboard 1");
 
         EntityListExportRequest exportRequest = new EntityListExportRequest();
         exportRequest.setEntitiesIds(List.of(customer.getId(), dashboard.getId()));
@@ -658,12 +765,12 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void testExportRequests() throws Exception {
         logInAsTenantAdmin1();
 
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, null, null, "Device profile 1");
         RuleChain ruleChain = createRuleChain(tenantId1, "Rule chain 1");
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Dashboard dashboard = createDashboard(tenantId1, null, "Dashboard 1");
-        Customer customer = createCustomer(tenantId1, "Customer 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Dashboard dashboard = createDashboard(tenantId1, null, null, "Dashboard 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
 
         Map<EntityType, ExportableEntity<?>> entities = Map.of(
                 EntityType.DEVICE, device, EntityType.DEVICE_PROFILE, deviceProfile,
@@ -710,12 +817,12 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     @Test
     public void testExportImportCustomerEntities_betweenTenants() throws Exception {
         logInAsTenantAdmin1();
-        Customer customer = createCustomer(tenantId1, "Customer 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
 
-        Device tenantDevice = createDevice(tenantId1, null, null, "Tenant device 1");
-        Device customerDevice = createDevice(tenantId1, customer.getId(), null, "Customer device 1");
-        Asset tenantAsset = createAsset(tenantId1, null, "A", "Tenant asset 1");
-        Asset customerAsset = createAsset(tenantId1, customer.getId(), "A", "Customer asset 1");
+        Device tenantDevice = createDevice(tenantId1, null, null, null, "Tenant device 1");
+        Device customerDevice = createDevice(tenantId1, customer.getId(), null, null, "Customer device 1");
+        Asset tenantAsset = createAsset(tenantId1, null, null, "A", "Tenant asset 1");
+        Asset customerAsset = createAsset(tenantId1, customer.getId(), null, "A", "Customer asset 1");
 
         List<ExportRequest> exportRequests = new ArrayList<>();
 
@@ -743,12 +850,12 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
     public void testEntityEventsOnImport() throws Exception {
         logInAsTenantAdmin1();
 
-        Customer customer = createCustomer(tenantId1, "Customer 1");
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
         RuleChain ruleChain = createRuleChain(tenantId1, "Rule chain 1");
-        Dashboard dashboard = createDashboard(tenantId1, null, "Dashboard 1");
+        Dashboard dashboard = createDashboard(tenantId1, null, null, "Dashboard 1");
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, ruleChain.getId(), dashboard.getId(), "Device profile 1");
-        Device device = createDevice(tenantId1, null, deviceProfile.getId(), "Device 1");
+        Device device = createDevice(tenantId1, null, deviceProfile.getId(), null, "Device 1");
 
         EntityListExportRequest exportRequest = new EntityListExportRequest();
         exportRequest.setEntitiesIds(List.of(customer.getId(), asset.getId(), device.getId(), ruleChain.getId(), dashboard.getId(), deviceProfile.getId()));
@@ -792,7 +899,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         verify(clusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedDeviceProfile.getId()), any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
         verify(otaPackageStateService).update(eq(importedDeviceProfile), eq(false), eq(false));
 
-        ((DeviceExportData)entitiesExportData.get(EntityType.DEVICE)).getCredentials().setCredentialsId("abc");
+        ((DeviceExportData) entitiesExportData.get(EntityType.DEVICE)).getCredentials().setCredentialsId("abc");
         Device importedDevice = (Device) importEntity(entitiesExportData.get(EntityType.DEVICE)).getSavedEntity();
         verify(entityActionService).logEntityAction(any(), eq(importedDevice.getId()), eq(importedDevice),
                 any(), eq(ActionType.ADDED), isNull());
