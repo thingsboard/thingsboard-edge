@@ -39,6 +39,8 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
 import org.thingsboard.server.service.integration.IntegrationContextProvider;
 
+import java.util.concurrent.Executor;
+
 @TbIntegrationExecutorComponent
 @Service
 @RequiredArgsConstructor
@@ -51,5 +53,10 @@ public class TbIntegrationExecutorContextProvider implements IntegrationContextP
     @Override
     public IntegrationContext buildIntegrationContext(Integration configuration) {
         return new TbIntegrationExecutorIntegrationContext(serviceInfoProvider.getServiceId(), apiService, contextComponent, configuration);
+    }
+
+    @Override
+    public Executor getCallbackExecutor() {
+        return contextComponent.getCallBackExecutorService();
     }
 }

@@ -79,17 +79,7 @@ public class TMobileIotCdpIntegrationController extends BaseIntegrationControlle
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
-
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.TMOBILE_IOT_CDP)) {
-                return;
-            }
-            api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
+        api.process(IntegrationType.TMOBILE_IOT_CDP, routingKey, result, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
 
         return result;
     }

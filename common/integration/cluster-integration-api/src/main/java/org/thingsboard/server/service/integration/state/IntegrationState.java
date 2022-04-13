@@ -36,6 +36,7 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
 import java.util.Queue;
@@ -55,5 +56,6 @@ public class IntegrationState {
     private ComponentLifecycleEvent currentState;
     private ThingsboardPlatformIntegration<?> integration;
     private IntegrationContext context;
+    private Integration configuration;
 
 }

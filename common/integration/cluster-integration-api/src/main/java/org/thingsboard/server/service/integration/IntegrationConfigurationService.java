@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -40,12 +39,15 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IntegrationConfigurationService {
 
     List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote);
 
     Integration getIntegration(TenantId tenantId, IntegrationId integrationId);
+
+    Integration getIntegration(TenantId tenantId, String routingKey);
 
     Converter getConverter(TenantId tenantId, ConverterId converterId);
 

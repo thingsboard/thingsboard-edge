@@ -30,14 +30,17 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -46,12 +49,14 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -61,7 +66,10 @@ import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 @Slf4j
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='in-memory' && '${service.type:null}'=='monolith'")
+@RequiredArgsConstructor
 public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory {
+
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by in-memory queue!";
 
     private final PartitionService partitionService;
     private final TbQueueCoreSettings coreSettings;
@@ -69,24 +77,9 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
-    private final InMemoryStorage storage;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
-
-    public InMemoryMonolithQueueFactory(PartitionService partitionService, TbQueueCoreSettings coreSettings,
-                                        TbQueueRuleEngineSettings ruleEngineSettings,
-                                        TbServiceInfoProvider serviceInfoProvider,
-                                        TbQueueTransportApiSettings transportApiSettings,
-                                        TbQueueTransportNotificationSettings transportNotificationSettings,
-                                        TbQueueIntegrationNotificationSettings integrationNotificationSettings) {
-        this.partitionService = partitionService;
-        this.coreSettings = coreSettings;
-        this.serviceInfoProvider = serviceInfoProvider;
-        this.ruleEngineSettings = ruleEngineSettings;
-        this.transportApiSettings = transportApiSettings;
-        this.transportNotificationSettings = transportNotificationSettings;
-        this.integrationNotificationSettings = integrationNotificationSettings;
-        this.storage = InMemoryStorage.getInstance();
-    }
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final InMemoryStorage storage = InMemoryStorage.getInstance();
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToTransportMsg>> createTransportNotificationsMsgProducer() {
@@ -150,7 +143,7 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate() {
-        return null;
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
@@ -175,14 +168,12 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
-        // TODO: ashvayka integration executor
-        return null;
+        return new InMemoryTbQueueConsumer<>(integrationApiSettings.getRequestsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
-        // TODO: ashvayka integration executor
-        return null;
+        return new InMemoryTbQueueProducer<>(integrationApiSettings.getResponsesTopic());
     }
 
     @Override
@@ -194,6 +185,17 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
         return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getNotificationsTopic());
     }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
+        return new InMemoryTbQueueConsumer<>(HashPartitionService.getIntegrationDownlinkTopic(integrationType));
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
+        return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getDownlinkTopic());
+    }
+
 
     @Scheduled(fixedRateString = "${queue.in_memory.stats.print-interval-ms:60000}")
     private void printInMemoryStats() {

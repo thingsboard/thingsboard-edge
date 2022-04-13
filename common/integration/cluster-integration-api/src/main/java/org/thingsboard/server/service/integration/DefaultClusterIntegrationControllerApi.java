@@ -28,22 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.downlink;
+package org.thingsboard.server.service.integration;
 
-import org.thingsboard.integration.api.data.DownLinkMsg;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.IntegrationId;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.api.controller.AbstractIntegrationControllerApi;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
-/**
- * Created by ashvayka on 22.02.18.
- */
-public interface DownlinkService {
+import java.util.concurrent.Executor;
 
-    DownLinkMsg get(IntegrationId integrationId, EntityId entityId);
+@Slf4j
+@TbCoreOrIntegrationExecutorComponent
+@Component
+public class DefaultClusterIntegrationControllerApi extends AbstractIntegrationControllerApi {
 
-    DownLinkMsg put(IntegrationDownlinkMsg msg);
+    @Autowired
+    private IntegrationContextProvider context;
 
-    void remove(IntegrationId integrationId, EntityId entityId);
+    @Autowired
+    private IntegrationManagerService integrationService;
+
+
+    @Override
+    public Executor getCallbackExecutor() {
+        return context.getCallbackExecutor();
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @Override
+    protected ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String routingKey) {
+        return integrationService.getIntegrationByRoutingKey(routingKey);
+    }
 
 }

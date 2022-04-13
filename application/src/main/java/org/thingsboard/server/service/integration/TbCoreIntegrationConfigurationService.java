@@ -62,6 +62,11 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
     }
 
     @Override
+    public Integration getIntegration(TenantId tenantId, String routingKey) {
+        return integrationService.findIntegrationByRoutingKey(tenantId, routingKey).orElse(null);
+    }
+
+    @Override
     public Converter getConverter(TenantId tenantId, ConverterId converterId) {
         return converterService.findConverterById(tenantId, converterId);
     }

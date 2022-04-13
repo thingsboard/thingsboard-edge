@@ -33,7 +33,6 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -43,26 +42,17 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
 
 @Data
 @Slf4j
@@ -126,7 +116,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     public DownLinkMsg getDownlinkMsg(String deviceName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            return ctx.getDownlinkService().get(configuration.getId(), device.getId());
+            return ctx.getDownlinkCacheService().get(configuration.getId(), device.getId());
         } else {
             return null;
         }
@@ -134,14 +124,14 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        return ctx.getDownlinkService().put(msg);
+        return ctx.getDownlinkCacheService().put(msg);
     }
 
     @Override
     public void removeDownlinkMsg(String deviceName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            ctx.getDownlinkService().remove(configuration.getId(), device.getId());
+            ctx.getDownlinkCacheService().remove(configuration.getId(), device.getId());
         }
     }
 

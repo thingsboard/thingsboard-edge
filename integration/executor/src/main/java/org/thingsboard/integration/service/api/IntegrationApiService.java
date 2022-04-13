@@ -32,14 +32,19 @@ package org.thingsboard.integration.service.api;
 
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
+
+import java.util.List;
 
 public interface IntegrationApiService {
 
@@ -53,4 +58,5 @@ public interface IntegrationApiService {
 
     void sendEventData(TenantId tenantId, EntityId entityId, TbIntegrationEventProto data, IntegrationCallback<Void> callback);
 
+    void sendTsData(TenantId tenantId, EntityId id, TbIntegrationTsDataProto tsData, IntegrationCallback<Void> callback);
 }

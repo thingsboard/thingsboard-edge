@@ -111,7 +111,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) {
+    public void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) throws ThingsboardException {
         if (configuration == null || configuration.getConfiguration() == null) {
             throw new IllegalArgumentException("Integration configuration is empty!");
         }
@@ -160,7 +160,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) throws ThingsboardException {
 
     }
 

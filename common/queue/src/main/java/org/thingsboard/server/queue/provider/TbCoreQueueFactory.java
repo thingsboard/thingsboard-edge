@@ -31,6 +31,7 @@
 package org.thingsboard.server.queue.provider;
 
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
@@ -97,6 +98,13 @@ public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactor
      * @return
      */
     TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer();
+
+    /**
+     * Used to push downlink messages to instances of TB Integration Executor
+     *
+     * @return
+     */
+    TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer();
 
     /**
      * Used to consume messages by TB Core Service

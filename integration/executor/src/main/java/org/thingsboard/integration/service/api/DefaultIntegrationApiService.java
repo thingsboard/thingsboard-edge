@@ -36,8 +36,10 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
@@ -49,6 +51,7 @@ import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -56,6 +59,7 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 
@@ -113,6 +117,21 @@ public class DefaultIntegrationApiService implements IntegrationApiService {
                 callback != null ? new IntegrationTbQueueCallback(callbackExecutor, callback) : null, tbCoreProducerStats);
 
         var msg = ToCoreIntegrationMsg.newBuilder().setEventProto(data).build();
+        producer.send(tpi, new TbProtoQueueMsg<>(entityId.getId(), msg), wrappedCallback);
+    }
+
+    @Override
+    public void sendTsData(TenantId tenantId, EntityId entityId, TbIntegrationTsDataProto tsData, IntegrationCallback<Void> callback) {
+        var producer = producerProvider.getTbCoreIntegrationMsgProducer();
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId).newByTopic(producer.getDefaultTopic());
+        if (log.isTraceEnabled()) {
+            log.trace("[{}][{}] Pushing to topic {} message {}", tenantId, entityId, tpi.getFullTopicName(), tsData);
+        }
+        tbCoreProducerStats.incrementTotal();
+        StatsTbQueueCallback wrappedCallback = new StatsTbQueueCallback(
+                callback != null ? new IntegrationTbQueueCallback(callbackExecutor, callback) : null, tbCoreProducerStats);
+
+        var msg = ToCoreIntegrationMsg.newBuilder().setTsDataProto(tsData).build();
         producer.send(tpi, new TbProtoQueueMsg<>(entityId.getId(), msg), wrappedCallback);
     }
 

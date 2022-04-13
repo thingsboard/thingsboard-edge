@@ -43,9 +43,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -186,6 +188,10 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             }
         } else if (msg.hasEventProto()) {
             platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
+        } else if (msg.hasTsDataProto()){
+            platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
+        } else {
+            callback.onFailure(new IllegalArgumentException("Unsupported integration msg!"));
         }
     }
 
@@ -202,15 +208,24 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
     }
 
     private ListenableFuture<IntegrationApiResponseMsg> handleIntegrationRequest(IntegrationRequestProto request) {
-        var integrationId = new IntegrationId(new UUID(request.getIntegrationIdMSB(), request.getIntegrationIdLSB()));
         var tenantId = new TenantId(new UUID(request.getTenantIdMSB(), request.getTenantIdLSB()));
-        var future = integrationService.findIntegrationByIdAsync(tenantId, integrationId);
+        ListenableFuture<Integration> future;
+        if (request.getIntegrationIdMSB() != 0 || request.getIntegrationIdLSB() != 0) {
+            var integrationId = new IntegrationId(new UUID(request.getIntegrationIdMSB(), request.getIntegrationIdLSB()));
+            future = integrationService.findIntegrationByIdAsync(tenantId, integrationId);
+        } else if (StringUtils.isNotEmpty(request.getRoutingKey())) {
+            future = Futures.transform(Futures.immediateFuture(integrationService.findIntegrationByRoutingKey(tenantId, request.getRoutingKey())), opt -> opt.orElse(null), MoreExecutors.directExecutor());
+        } else {
+            future = Futures.immediateFailedFuture(new RuntimeException("Invalid request parameters!"));
+        }
 
-        return Futures.transform(future, integration -> IntegrationApiResponseMsg.newBuilder()
-                .setIntegrationResponse(
-                        IntegrationResponseProto.newBuilder()
-                                .setData(ByteString.copyFrom(dataDecodingEncodingService.encode(integration)))
-                ).build(), MoreExecutors.directExecutor());
+        return Futures.transform(future, integration -> {
+            var builder = IntegrationResponseProto.newBuilder();
+            if (integration != null) {
+                builder.setData(ByteString.copyFrom(dataDecodingEncodingService.encode(integration)));
+            }
+            return IntegrationApiResponseMsg.newBuilder().setIntegrationResponse(builder.build()).build();
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<IntegrationApiResponseMsg> handleListRequest(IntegrationInfoListRequestProto request) {

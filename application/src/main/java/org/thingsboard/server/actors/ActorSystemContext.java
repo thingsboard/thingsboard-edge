@@ -107,6 +107,7 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
@@ -220,6 +221,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private TbClusterService clusterService;
+
+    @Autowired
+    @Getter
+    private TbIntegrationDownlinkService downlinkService;
 
     @Autowired
     @Getter

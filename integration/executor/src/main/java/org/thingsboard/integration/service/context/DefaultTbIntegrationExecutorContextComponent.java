@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.integration.downlink.DownlinkService;
+import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -55,7 +55,7 @@ import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 @RequiredArgsConstructor
 public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent {
 
-    private final DownlinkService downlinkService;
+    private final DownlinkCacheService downlinkCacheService;
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService callBackExecutorService;

@@ -725,6 +725,12 @@ message EdgeNotificationMsgProto {
   string entityGroupType = 15;
 }
 
+message IntegrationValidationResponseProto {
+  int64 idMSB = 1;
+  int64 idLSB = 2;
+  bytes error = 3;
+}
+
 /**
  * Main messages;
  */
@@ -767,7 +773,6 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4;
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
-  IntegrationDownlinkMsgProto integrationDownlinkMsg = 6;
   EdgeNotificationMsgProto edgeNotificationMsg = 7;
 }
 
@@ -779,6 +784,7 @@ message ToCoreNotificationMsg {
   bytes edgeEventUpdateMsg = 4;
   IntegrationDownlinkMsgProto integrationDownlinkMsg = 5;
   RestApiCallResponseMsgProto restApiCallResponseMsg = 6;
+  IntegrationValidationResponseProto integrationValidationResponseMsg = 7;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

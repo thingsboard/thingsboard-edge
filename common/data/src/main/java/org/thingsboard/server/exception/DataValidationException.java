@@ -28,41 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller;
+package org.thingsboard.server.exception;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.thingsboard.integration.api.IntegrationControllerApi;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
+public class DataValidationException extends RuntimeException {
 
-import java.util.concurrent.Executor;
+    private static final long serialVersionUID = 7659985660312721830L;
 
-@TbCoreComponent
-@Component
-public class LocalIntegrationControllerApi implements IntegrationControllerApi {
-
-    @Autowired
-    private DbCallbackExecutorService callbackExecutorService;
-
-    @Autowired
-    private PlatformIntegrationService integrationService;
-
-    @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String routingKey) {
-        return integrationService.getIntegrationByRoutingKey(routingKey);
+    public DataValidationException(String message) {
+        super(message);
     }
 
-    public <T> void process(ThingsboardPlatformIntegration<T> integration, T msg) {
-        integration.process(msg);
+    public DataValidationException(String message, Throwable cause) {
+        super(message, cause);
     }
-
-    @Override
-    public Executor getCallbackExecutor() {
-        return callbackExecutorService;
-    }
-
 }

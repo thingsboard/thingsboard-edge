@@ -51,6 +51,10 @@ public class EventUtil {
         return node;
     }
 
+    public static JsonNode toBodyJson(String serviceId, long messagesProcessed, long errorsOccurred) {
+        return JacksonUtil.newObjectNode().put("server", serviceId).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
+    }
+
     public static String toString(Throwable e) {
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));

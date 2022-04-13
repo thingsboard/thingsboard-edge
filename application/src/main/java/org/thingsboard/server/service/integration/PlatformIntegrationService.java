@@ -30,24 +30,18 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.protobuf.ByteString;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
@@ -67,19 +61,7 @@ public interface PlatformIntegrationService {
 
     void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
 
-    void validateIntegrationConfiguration(Integration integration);
-
-    void checkIntegrationConnection(Integration integration) throws Exception;
-
-    ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
-
-    void updateIntegration(Integration integration);
-
-    ListenableFuture<Void> deleteIntegration(IntegrationId integration);
-
-    ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
-
-    void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msg, TbCallback callback);
+    void processUplinkData(TbIntegrationTsDataProto data, IntegrationApiCallback integrationApiCallback);
 
     void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback);
 

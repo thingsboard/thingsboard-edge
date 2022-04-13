@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.provider;
 
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
@@ -53,6 +54,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     private final TbIntegrationExecutorQueueFactory tbQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
+    private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNf;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
@@ -62,6 +64,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     @PostConstruct
     public void init() {
         this.toTbCore = tbQueueProvider.createTbCoreIntegrationMsgProducer();
+        this.toTbCoreNf = tbQueueProvider.createTbCoreNotificationMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
     }
 
@@ -92,7 +95,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> getTbCoreNotificationsMsgProducer() {
-        throw new RuntimeException(NOT_IMPLEMENTED);
+        return toTbCoreNf;
     }
 
     @Override
@@ -107,6 +110,11 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> getTbIntegrationExecutorNotificationsMsgProducer() {
+        throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> getTbIntegrationExecutorDownlinkMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
 }

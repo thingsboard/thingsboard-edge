@@ -33,7 +33,7 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -48,10 +48,8 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -71,8 +69,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -87,13 +85,13 @@ import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -102,6 +100,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
@@ -124,6 +123,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -216,9 +216,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private DefaultTbDeviceProfileCache deviceProfileCache;
-
-    @Autowired(required = false)
-    private CoapServerService coapServerService;
 
     @Value("${integrations.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -372,35 +369,34 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void validateIntegrationConfiguration(Integration integration) {
-        if (StringUtils.isEmpty(integration.getName())) {
-            throw new DataValidationException("Integration name should be specified!");
+    public void processUplinkData(TbIntegrationTsDataProto data, IntegrationApiCallback integrationApiCallback) {
+        TenantId tenantId = new TenantId(new UUID(data.getTenantIdMSB(), data.getTenantIdLSB()));
+        var eventSource = data.getSource();
+        EntityId entityid;
+        switch (eventSource) {
+            case INTEGRATION:
+                entityid = new IntegrationId(new UUID(data.getEntityIdMSB(), data.getEntityIdLSB()));
+                break;
+            case UPLINK_CONVERTER:
+            case DOWNLINK_CONVERTER:
+                entityid = new ConverterId(new UUID(data.getEntityIdMSB(), data.getEntityIdLSB()));
+                break;
+            default:
+                throw new RuntimeException("Not supported!");
         }
-        if (integration.getType() == null) {
-            throw new DataValidationException("Integration type should be specified!");
-        }
-        if (StringUtils.isEmpty(integration.getRoutingKey())) {
-            throw new DataValidationException("Integration routing key should be specified!");
-        }
-        //TODO: ashvayka integration executor
-//        if (!integration.getType().isRemoteOnly()) {
-//            ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-//            platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
-//        }
-    }
 
-    @Override
-    public void checkIntegrationConnection(Integration integration) throws Exception {
-        //TODO: ashvayka integration executor
-//        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-//        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
-    }
+        List<TsKvEntry> statistics = KvProtoUtil.toTsKvEntityList(data.getTsDataList());
+        telemetrySubscriptionService.saveAndNotifyInternal(tenantId, entityid, statistics, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Integer result) {
+                log.trace("[{}] Persisted statistics telemetry: {}", entityid, statistics);
+            }
 
-    @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration) {
-        //TODO: ashvayka integration executor
-        return Futures.immediateFuture(null);
-//        return createIntegration(configuration, false);
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Failed to persist statistics telemetry: {}", entityid, statistics, t);
+            }
+        });
     }
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
@@ -430,92 +426,6 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             }
         }
     }
-
-    @Override
-    public void updateIntegration(Integration integration) {
-        // TODO: ashvayka integration executor
-    }
-
-    @Override
-    public ListenableFuture<Void> deleteIntegration(IntegrationId integrationId) {
-        // TODO: ashvayka integration executor
-        return Futures.immediateFuture(null);
-    }
-
-    @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key) {
-        // TODO: ashvayka integration executor
-        return Futures.immediateFuture(null);
-
-//        ThingsboardPlatformIntegration<?> result = integrationsByRoutingKeyMap.get(key);
-//        if (result == null) {
-//            Optional<Integration> configurationOpt = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, key);
-//            if (configurationOpt.isPresent()) {
-//                Integration integration = configurationOpt.get();
-//                if (integration.isRemote()) {
-//                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-//                }
-//                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
-//                if (integration.getType().isSingleton() && !myPartitions.contains(tpi)) {
-//                    return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-//                }
-//                if (!integration.isEnabled()) {
-//                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is disabled!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-//                }
-//                return Futures.immediateFailedFuture(new ThingsboardException("Integration is not present in routing key map!", ThingsboardErrorCode.GENERAL));
-//            } else {
-//                return Futures.immediateFailedFuture(new ThingsboardException("Failed to find integration by routing key!", ThingsboardErrorCode.ITEM_NOT_FOUND));
-//            }
-//        } else {
-//            return Futures.immediateFuture(result);
-//        }
-    }
-
-    @Override
-    public void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msgProto, TbCallback callback) {
-        // TODO: ashvayka integration executor
-        callback.onSuccess();
-//        try {
-//            TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
-//            IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-//            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
-//            Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
-//            if (integration == null) {
-//                boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
-//                if (!remoteIntegrationDownlink) {
-//                    Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
-//                    DonAsynchron.withCallback(createIntegration(configuration), i -> {
-//                        onMsg(i, msg);
-//                        if (callback != null) {
-//                            callback.onSuccess();
-//                        }
-//                    }, e -> {
-//                        if (callback != null) {
-//                            callback.onFailure(e);
-//                        }
-//                    }, refreshExecutorService);
-//                    return;
-//                }
-//            } else {
-//                onMsg(integration.getFirst(), msg);
-//            }
-//            if (callback != null) {
-//                callback.onSuccess();
-//            }
-//        } catch (Exception e) {
-//            if (callback != null) {
-//                callback.onFailure(e);
-//            }
-//            throw handleException(e);
-//        }
-    }
-
-//    private void onMsg(ThingsboardPlatformIntegration<?> integration, IntegrationDownlinkMsg msg) {
-//        if (!integrationEvents.getOrDefault(msg.getIntegrationId(), ComponentLifecycleEvent.FAILED).equals(ComponentLifecycleEvent.FAILED)) {
-//            integration.onDownlinkMsg(msg);
-//        }
-//    }
-
 
     @Override
     public void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {

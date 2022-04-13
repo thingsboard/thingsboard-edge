@@ -38,7 +38,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class TbQueueIntegrationNotificationSettings {
 
-    @Value("${queue.integration.notifications_topic:tb_transport.notifications}")
+    @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
+    private String downlinkTopic;
+
+    @Value("${queue.integration.notifications_topic:tb_ie.notifications}")
     private String notificationsTopic;
 
     @Value("${queue.integration.poll_interval:25}")
