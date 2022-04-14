@@ -767,6 +767,13 @@ transport:
           key_password: "${MQTT_SSL_KEY_PASSWORD:server_key_password}"
       # Skip certificate validity check for client certificates.
       skip_validity_check_for_client_cert: "${MQTT_SSL_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
+  # Local CoAP transport parameters
+  coap:
+    # Enable/disable coap transport protocol.
+    enabled: "${COAP_ENABLED:true}"
+    timeout: "${COAP_TIMEOUT:10000}"
+    psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
+    paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
   # Local LwM2M transport parameters
   lwm2m:
     # Enable/disable lvm2m transport protocol.
@@ -886,12 +893,9 @@ transport:
 # CoAP server parameters
 coap:
   # Enable/disable coap transport protocol.
-  enabled: "${COAP_ENABLED:true}"
+  enabled: "${COAP_SERVER_ENABLED:true}"
   bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
   bind_port: "${COAP_BIND_PORT:5683}"
-  timeout: "${COAP_TIMEOUT:10000}"
-  psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
-  paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
   dtls:
     # Enable/disable DTLS 1.2 support
     enabled: "${COAP_DTLS_ENABLED:false}"
@@ -1170,7 +1174,7 @@ queue:
     notifications_topic: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_TOPIC:tb_transport.notifications}"
     poll_interval: "${TB_QUEUE_TRANSPORT_NOTIFICATIONS_POLL_INTERVAL_MS:25}"
   integration:
-    partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:12}"
+    partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
     notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
     downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
     poll_interval: "${TB_QUEUE_INTEGRATION_POLL_INTERVAL_MS:25}"

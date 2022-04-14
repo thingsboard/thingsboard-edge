@@ -77,7 +77,7 @@ public class HashPartitionService implements PartitionService {
     private String coreTopic;
     @Value("${queue.core.partitions:100}")
     private Integer corePartitions;
-    @Value("${queue.integration.partitions:12}")
+    @Value("${queue.integration.partitions:3}")
     private Integer integrationPartitions;
     @Value("${queue.partitions.hash_function_name:murmur3_128}")
     private String hashFunctionName;

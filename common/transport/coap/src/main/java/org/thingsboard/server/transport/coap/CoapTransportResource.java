@@ -97,7 +97,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         this.setObservable(true); // enable observing
         this.addObserver(new CoapResourceObserver());
         this.dtlsSessionsMap = coapServerService.getDtlsSessionsMap();
-        this.timeout = coapServerService.getTimeout();
+        this.timeout = ctx.getTimeout();
         this.clients = ctx.getClientContext();
         long sessionReportTimeout = ctx.getSessionReportTimeout();
         ctx.getScheduler().scheduleAtFixedRate(clients::reportActivity, new Random().nextInt((int) sessionReportTimeout), sessionReportTimeout, TimeUnit.MILLISECONDS);

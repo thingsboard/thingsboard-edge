@@ -67,7 +67,7 @@ public class TbCoapDtlsSettings {
     private Integer port;
 
     @Bean
-    @ConfigurationProperties(prefix = "transport.coap.dtls.credentials")
+    @ConfigurationProperties(prefix = "coap.dtls.credentials")
     public SslCredentialsConfig coapDtlsCredentials() {
         return new SslCredentialsConfig("COAP DTLS Credentials", false);
     }
