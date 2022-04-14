@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -53,7 +52,7 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.List;
 import java.util.Optional;
 
-import static org.thingsboard.server.common.data.CacheConstants.INTEGRATION_API_CACHE;
+import static org.thingsboard.server.common.data.CacheConstants.INTEGRATIONS_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -79,7 +78,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
     @Override
     @CacheEvict(
-            cacheNames = INTEGRATION_API_CACHE,
+            cacheNames = INTEGRATIONS_CACHE,
             key = "{#integration.tenantId, #integration.id}",
             condition = "{#integration.id != null}"
     )
@@ -90,7 +89,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    @Cacheable(cacheNames = INTEGRATION_API_CACHE, key = "{#tenantId, #integrationId}")
+    @Cacheable(cacheNames = INTEGRATIONS_CACHE, key = "{#tenantId, #integrationId}")
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
@@ -142,7 +141,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
     @Override
     @CacheEvict(
-            cacheNames = INTEGRATION_API_CACHE,
+            cacheNames = INTEGRATIONS_CACHE,
             key = "{#tenantId, #integrationId}"
     )
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
@@ -153,7 +152,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    @CacheEvict(cacheNames = INTEGRATION_API_CACHE, allEntries = true)
+    @CacheEvict(cacheNames = INTEGRATIONS_CACHE, allEntries = true)
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
