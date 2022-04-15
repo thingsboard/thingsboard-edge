@@ -48,7 +48,7 @@ public class TbServiceBusQueueConfigs {
     private String ruleEngineProperties;
     @Value("${queue.service-bus.queue-properties.transport-api}")
     private String transportApiProperties;
-    @Value("${queue.service-bus.topic-properties.integration-api}")
+    @Value("${queue.service-bus.queue-properties.integration-api}")
     private String integrationApiProperties;
     @Value("${queue.service-bus.queue-properties.notifications}")
     private String notificationsProperties;
