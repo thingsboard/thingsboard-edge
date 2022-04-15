@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -45,6 +44,7 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.cache.EntitiesCacheManager;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -72,14 +72,13 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     private IntegrationDao integrationDao;
 
     @Autowired
+    private EntitiesCacheManager entitiesCacheManager;
+
+    @Autowired
     private IntegrationInfoDao integrationInfoDao;
 
     @Autowired
     private DataValidator<Integration> integrationValidator;
-
-    @Lazy
-    @Autowired
-    private IntegrationService self;
 
     @Override
     @CacheEvict(
@@ -145,14 +144,11 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    @CacheEvict(
-            cacheNames = INTEGRATIONS_CACHE,
-            key = "{#tenantId, #integrationId}"
-    )
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
         deleteEntityRelations(tenantId, integrationId);
+        entitiesCacheManager.removeIntegrationFromCacheById(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
     }
 
@@ -179,7 +175,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void removeEntity(TenantId tenantId, Integration entity) {
-                    self.deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
+                    deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
                 }
             };
 
