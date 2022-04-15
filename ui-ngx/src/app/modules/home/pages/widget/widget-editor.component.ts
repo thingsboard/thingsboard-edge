@@ -113,6 +113,9 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   @ViewChild('dataKeySettingsJsonInput', {static: true})
   dataKeySettingsJsonInputElmRef: ElementRef;
 
+  @ViewChild('latestDataKeySettingsJsonInput', {static: true})
+  latestDataKeySettingsJsonInputElmRef: ElementRef;
+
   @ViewChild('javascriptInput', {static: true})
   javascriptInputElmRef: ElementRef;
 
@@ -141,6 +144,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   cssFullscreen = false;
   jsonSettingsFullscreen = false;
   jsonDataKeySettingsFullscreen = false;
+  jsonLatestDataKeySettingsFullscreen = false;
   javascriptFullscreen = false;
   iFrameFullscreen = false;
 
@@ -150,6 +154,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   cssEditor: Ace.Editor;
   jsonSettingsEditor: Ace.Editor;
   dataKeyJsonSettingsEditor: Ace.Editor;
+  latestDataKeyJsonSettingsEditor: Ace.Editor;
   jsEditor: Ace.Editor;
   aceResize$: ResizeObserver;
 
@@ -358,6 +363,19 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
       })
     ));
 
+    editorsObservables.push(this.createAceEditor(this.latestDataKeySettingsJsonInputElmRef, 'json').pipe(
+      tap((editor) => {
+        this.latestDataKeyJsonSettingsEditor = editor;
+        this.latestDataKeyJsonSettingsEditor.on('input', () => {
+          const editorValue = this.latestDataKeyJsonSettingsEditor.getValue();
+          if (this.widget.latestDataKeySettingsSchema !== editorValue) {
+            this.widget.latestDataKeySettingsSchema = editorValue;
+            this.isDirty = true;
+          }
+        });
+      })
+    ));
+
     editorsObservables.push(this.createAceEditor(this.javascriptInputElmRef, 'javascript').pipe(
       tap((editor) => {
         this.jsEditor = editor;
@@ -388,6 +406,8 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     this.cssEditor.setValue(this.widget.templateCss ? this.widget.templateCss : '', -1);
     this.jsonSettingsEditor.setValue(this.widget.settingsSchema ? this.widget.settingsSchema : '', -1);
     this.dataKeyJsonSettingsEditor.setValue(this.widget.dataKeySettingsSchema ? this.widget.dataKeySettingsSchema : '', -1);
+    this.latestDataKeyJsonSettingsEditor.setValue(this.widget.latestDataKeySettingsSchema ?
+      this.widget.latestDataKeySettingsSchema : '', -1);
     this.jsEditor.setValue(this.widget.controllerScript ? this.widget.controllerScript : '', -1);
   }
 
@@ -683,6 +703,19 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
           this.isDirty = true;
           this.widget.dataKeySettingsSchema = res;
           this.dataKeyJsonSettingsEditor.setValue(this.widget.dataKeySettingsSchema ? this.widget.dataKeySettingsSchema : '', -1);
+        }
+      }
+    );
+  }
+
+  beautifyLatestDataKeyJson(): void {
+    beautifyJs(this.widget.latestDataKeySettingsSchema, {indent_size: 4}).subscribe(
+      (res) => {
+        if (this.widget.latestDataKeySettingsSchema !== res) {
+          this.isDirty = true;
+          this.widget.latestDataKeySettingsSchema = res;
+          this.latestDataKeyJsonSettingsEditor.setValue(this.widget.latestDataKeySettingsSchema ?
+            this.widget.latestDataKeySettingsSchema : '', -1);
         }
       }
     );

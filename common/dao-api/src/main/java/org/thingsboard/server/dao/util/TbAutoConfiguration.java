@@ -28,37 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration;
+package org.thingsboard.server.dao.util;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 
-import java.util.Arrays;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-@SpringBootApplication(exclude = {CassandraAutoConfiguration.class, CassandraDataAutoConfiguration.class})
-@EnableAsync
-@ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api"})
-public class ThingsboardPubsubIntegrationApplication {
-
-    private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
-    private static final String DEFAULT_SPRING_CONFIG_PARAM = SPRING_CONFIG_NAME_KEY + "=" + "tb-pubsub-integration";
-
-    public static void main(String[] args) {
-        SpringApplication.run(ThingsboardPubsubIntegrationApplication.class, updateArguments(args));
-    }
-
-    private static String[] updateArguments(String[] args) {
-        if (Arrays.stream(args).noneMatch(arg -> arg.startsWith(SPRING_CONFIG_NAME_KEY))) {
-            String[] modifiedArgs = new String[args.length + 1];
-            System.arraycopy(args, 0, modifiedArgs, 0, args.length);
-            modifiedArgs[args.length] = DEFAULT_SPRING_CONFIG_PARAM;
-            return modifiedArgs;
-        }
-        return args;
-    }
-
+@Retention(RetentionPolicy.RUNTIME)
+@EnableAutoConfiguration(exclude = {CassandraAutoConfiguration.class, CassandraDataAutoConfiguration.class, RedisAutoConfiguration.class})
+public @interface TbAutoConfiguration {
 }

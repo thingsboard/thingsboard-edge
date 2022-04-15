@@ -79,66 +79,66 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
-    private final InMemoryStorage storage = InMemoryStorage.getInstance();
+    private final InMemoryStorage storage;
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToTransportMsg>> createTransportNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(transportNotificationSettings.getNotificationsTopic());
+        return new InMemoryTbQueueProducer<>(storage, transportNotificationSettings.getNotificationsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> createRuleEngineMsgProducer() {
-        return new InMemoryTbQueueProducer<>(ruleEngineSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, ruleEngineSettings.getTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineNotificationMsg>> createRuleEngineNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(ruleEngineSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, ruleEngineSettings.getTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> createTbCoreMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createTbCoreNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> createToRuleEngineMsgConsumer(TbRuleEngineQueueConfiguration configuration) {
-        return new InMemoryTbQueueConsumer<>(configuration.getTopic());
+        return new InMemoryTbQueueConsumer<>(storage, configuration.getTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineNotificationMsg>> createToRuleEngineNotificationsMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceInfoProvider.getServiceId()).getFullTopicName());
+        return new InMemoryTbQueueConsumer<>(storage, partitionService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceInfoProvider.getServiceId()).getFullTopicName());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> createToCoreMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createToCoreNotificationsMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());
+        return new InMemoryTbQueueConsumer<>(storage, partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getIntegrationsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getIntegrationsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg>> createTransportApiRequestConsumer() {
-        return new InMemoryTbQueueConsumer<>(transportApiSettings.getRequestsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, transportApiSettings.getRequestsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.TransportApiResponseMsg>> createTransportApiResponseProducer() {
-        return new InMemoryTbQueueProducer<>(transportApiSettings.getResponsesTopic());
+        return new InMemoryTbQueueProducer<>(storage, transportApiSettings.getResponsesTopic());
     }
 
     @Override
@@ -148,52 +148,52 @@ public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleE
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getUsageStatsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getUsageStatsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getOtaPackageTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getOtaPackageTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getOtaPackageTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getOtaPackageTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getUsageStatsTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getUsageStatsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
-        return new InMemoryTbQueueConsumer<>(integrationApiSettings.getRequestsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, integrationApiSettings.getRequestsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
-        return new InMemoryTbQueueProducer<>(integrationApiSettings.getResponsesTopic());
+        return new InMemoryTbQueueProducer<>(storage, integrationApiSettings.getResponsesTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
+        return new InMemoryTbQueueConsumer<>(storage, partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getNotificationsTopic());
+        return new InMemoryTbQueueProducer<>(storage, integrationNotificationSettings.getNotificationsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
-        return new InMemoryTbQueueConsumer<>(HashPartitionService.getIntegrationDownlinkTopic(integrationType));
+        return new InMemoryTbQueueConsumer<>(storage, HashPartitionService.getIntegrationDownlinkTopic(integrationType));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
-        return new InMemoryTbQueueProducer<>(integrationNotificationSettings.getDownlinkTopic());
+        return new InMemoryTbQueueProducer<>(storage, integrationNotificationSettings.getDownlinkTopic());
     }
 
 
