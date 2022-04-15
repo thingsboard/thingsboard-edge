@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -75,6 +76,10 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
     @Autowired
     private DataValidator<Integration> integrationValidator;
+
+    @Lazy
+    @Autowired
+    private IntegrationService self;
 
     @Override
     @CacheEvict(
@@ -152,7 +157,6 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
-    @CacheEvict(cacheNames = INTEGRATIONS_CACHE, allEntries = true)
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -175,7 +179,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void removeEntity(TenantId tenantId, Integration entity) {
-                    deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
+                    self.deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
                 }
             };
 
