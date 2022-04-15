@@ -41,8 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.gcloud.pubsub.PubSubIntegration;
-import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -51,26 +49,7 @@ import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
-import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
-import org.thingsboard.integration.azure.AzureEventHubIntegration;
-import org.thingsboard.integration.coap.CoapIntegration;
-import org.thingsboard.integration.http.basic.BasicHttpIntegration;
-import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
-import org.thingsboard.integration.http.loriot.LoriotIntegration;
-import org.thingsboard.integration.http.oc.OceanConnectIntegration;
-import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
-import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
-import org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise;
-import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
-import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
-import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
-import org.thingsboard.integration.mqtt.azure.AzureIotHubIntegration;
-import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
-import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
-import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
-import org.thingsboard.integration.opcua.OpcUaIntegration;
-import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
+import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -275,7 +254,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         callback.onSuccess();
     }
 
-    private void doValidateLocally(ValidationTaskType validationTaskType, Integration configuration) throws ThingsboardException {
+    private void doValidateLocally(ValidationTaskType validationTaskType, Integration configuration) throws Exception {
         IntegrationContext context = integrationContextProvider.buildIntegrationContext(configuration);
         ThingsboardPlatformIntegration<?> integration = createPlatformIntegration(configuration);
         switch (validationTaskType) {
@@ -530,7 +509,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         }
     }
 
-    private void processUpdateEvent(IntegrationState state, Integration configuration) throws ThingsboardException {
+    private void processUpdateEvent(IntegrationState state, Integration configuration) throws Exception {
         state.setConfiguration(configuration);
         if (log.isDebugEnabled()) {
             log.debug("[{}][{}] Going to update the integration: {}", state.getTenantId(), configuration.getId(), configuration);
@@ -584,6 +563,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         } else {
             log.info("[{}][{}] Updated the integration successfully.", state.getTenantId(), configuration.getId());
         }
+    }
+
+    private ThingsboardPlatformIntegration<?> createPlatformIntegration(Integration configuration) throws Exception {
+        return IntegrationUtil.createPlatformIntegration(configuration.getType(), configuration.getConfiguration(), true, coapServerService);
     }
 
     private void processStop(IntegrationState state, ComponentLifecycleEvent event) {
@@ -655,7 +638,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 if (state.getUpdateLock().tryLock()) {
                     try {
                         processUpdateEvent(state, state.getConfiguration());
-                    } catch (ThingsboardException e) {
+                    } catch (Exception e) {
                         log.trace("[{}][{}] Failed to re-initialize the integration:", state.getTenantId(), state.getId(), e);
                     } finally {
                         state.getUpdateLock().unlock();
@@ -676,62 +659,6 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 log.warn("[{}] Failed to persist statistics: {}", id, statistics, e);
             }
         });
-    }
-
-    public ThingsboardPlatformIntegration<?> createPlatformIntegration(Integration integration) {
-        switch (integration.getType()) {
-            case HTTP:
-                return new BasicHttpIntegration();
-            case LORIOT:
-                return new LoriotIntegration();
-            case SIGFOX:
-                return new SigFoxIntegration();
-            case OCEANCONNECT:
-                return new OceanConnectIntegration();
-            case THINGPARK:
-                return new ThingParkIntegration();
-            case TPE:
-                return new ThingParkIntegrationEnterprise();
-            case TMOBILE_IOT_CDP:
-                return new TMobileIotCdpIntegration();
-            case MQTT:
-                return new BasicMqttIntegration();
-            case PUB_SUB:
-                return new PubSubIntegration();
-            case AWS_IOT:
-                return new AwsIotIntegration();
-            case AWS_SQS:
-                return new AwsSqsIntegration();
-            case IBM_WATSON_IOT:
-                return new IbmWatsonIotIntegration();
-            case TTN:
-            case TTI:
-                return new TtnIntegration();
-            case CHIRPSTACK:
-                return new ChirpStackIntegration();
-            case AZURE_EVENT_HUB:
-                return new AzureEventHubIntegration();
-            case AZURE_IOT_HUB:
-                return new AzureIotHubIntegration();
-            case OPC_UA:
-                return new OpcUaIntegration();
-            case AWS_KINESIS:
-                return new AwsKinesisIntegration();
-            case KAFKA:
-                return new BasicKafkaIntegration();
-            case RABBITMQ:
-                return new BasicRabbitMQIntegration();
-            case APACHE_PULSAR:
-                return new BasicPulsarIntegration();
-            case COAP:
-                return new CoapIntegration(coapServerService.get());
-            case CUSTOM:
-            case TCP:
-            case UDP:
-                throw new RuntimeException("Custom Integrations should be executed remotely!");
-            default:
-                throw new RuntimeException("Not Implemented!");
-        }
     }
 
     private RuntimeException handleException(Exception e) {

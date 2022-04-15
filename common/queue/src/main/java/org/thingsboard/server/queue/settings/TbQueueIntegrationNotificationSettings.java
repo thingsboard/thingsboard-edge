@@ -32,10 +32,12 @@ package org.thingsboard.server.queue.settings;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Data
 @Component
+@ConditionalOnExpression("'${service.type:null}'!='tb-transport'")
 public class TbQueueIntegrationNotificationSettings {
 
     @Value("${queue.integration.downlink_topic:tb_ie.downlink}")
