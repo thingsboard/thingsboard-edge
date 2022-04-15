@@ -31,6 +31,7 @@
 package org.thingsboard.server.queue.memory;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.thingsboard.server.queue.TbQueueMsg;
 
 import java.util.ArrayList;
@@ -40,14 +41,10 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@Component
 @Slf4j
 public final class InMemoryStorage {
-    private static InMemoryStorage instance;
-    private final ConcurrentHashMap<String, BlockingQueue<TbQueueMsg>> storage;
-
-    private InMemoryStorage() {
-        storage = new ConcurrentHashMap<>();
-    }
+    private final ConcurrentHashMap<String, BlockingQueue<TbQueueMsg>> storage = new ConcurrentHashMap<>();
 
     public void printStats() {
         storage.forEach((topic, queue) -> {
@@ -59,17 +56,6 @@ public final class InMemoryStorage {
 
     public int getLagTotal() {
         return storage.values().stream().map(BlockingQueue::size).reduce(0, Integer::sum);
-    }
-
-    public static InMemoryStorage getInstance() {
-        if (instance == null) {
-            synchronized (InMemoryStorage.class) {
-                if (instance == null) {
-                    instance = new InMemoryStorage();
-                }
-            }
-        }
-        return instance;
     }
 
     public boolean put(String topic, TbQueueMsg msg) {
@@ -97,13 +83,6 @@ public final class InMemoryStorage {
             return entities;
         }
         return Collections.emptyList();
-    }
-
-    /**
-     * Used primarily for testing.
-     */
-    public void cleanup() {
-        storage.clear();
     }
 
 }
