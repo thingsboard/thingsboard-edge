@@ -65,12 +65,12 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloudNodeConfiguration, CloudEvent, CloudEventType> {
 
     @Override
-    CloudEvent buildEvent(TenantId tenantId, EdgeEventActionType edgeEventAction, UUID entityId, CloudEventType edgeEventType, JsonNode entityBody) {
+    CloudEvent buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, CloudEventType eventType, JsonNode entityBody) {
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(tenantId);
-        cloudEvent.setCloudEventAction(edgeEventAction.name());
+        cloudEvent.setCloudEventAction(eventAction.name());
         cloudEvent.setEntityId(entityId);
-        cloudEvent.setCloudEventType(edgeEventType);
+        cloudEvent.setCloudEventType(eventType);
         cloudEvent.setEntityBody(entityBody);
         return cloudEvent;
     }
