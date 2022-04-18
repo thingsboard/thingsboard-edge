@@ -53,7 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { isDefinedAndNotNull, isEqual, isString } from '@core/utils';
+import { isDefined, isDefinedAndNotNull, isEqual, isString } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -81,7 +81,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   @Input()
   set ownerId(value: EntityId) {
-    if (isDefinedAndNotNull(value) && !isEqual(this.ownerIdValue, value)) {
+    if (isDefinedAndNotNull(value) && isDefined(this.ownerIdValue) && !isEqual(this.ownerIdValue, value)) {
       const currentEntityGroup = this.getCurrentEntityGroup();
       const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
       this.reset(keepEntityGroup);
