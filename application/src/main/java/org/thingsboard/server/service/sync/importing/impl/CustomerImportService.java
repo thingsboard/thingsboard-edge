@@ -48,12 +48,12 @@ public class CustomerImportService extends BaseGroupEntityImportService<Customer
     private final CustomerService customerService;
 
     @Override
-    protected void setOwner(TenantId tenantId, Customer customer, NewIdProvider idProvider) {
+    protected void setOwner(TenantId tenantId, Customer customer, IdProvider idProvider) {
         customer.setTenantId(tenantId);
     }
 
     @Override
-    protected Customer prepareAndSave(TenantId tenantId, Customer customer, GroupEntityExportData<Customer> exportData, NewIdProvider idProvider) {
+    protected Customer prepareAndSave(TenantId tenantId, Customer customer, GroupEntityExportData<Customer> exportData, IdProvider idProvider) {
         return customerService.saveCustomer(customer);
     }
 

@@ -46,6 +46,5 @@ public class EntityImportSettings {
     private boolean importOutboundRelations;
     private boolean removeExistingRelations;
 
-    private boolean updateReferencesToOtherEntities;
     private boolean updateEntityGroups;
 }
