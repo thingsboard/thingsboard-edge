@@ -89,13 +89,13 @@ public class TbMsgPushToEdgeNode extends AbstractTbMsgPushNode<TbMsgPushToEdgeNo
     static final int DEFAULT_PAGE_SIZE = 100;
 
     @Override
-    EdgeEvent buildEvent(TenantId tenantId, EdgeEventActionType edgeEventAction, UUID entityId,
-                         EdgeEventType edgeEventType, JsonNode entityBody) {
+    EdgeEvent buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId,
+                         EdgeEventType eventType, JsonNode entityBody) {
         EdgeEvent edgeEvent = new EdgeEvent();
         edgeEvent.setTenantId(tenantId);
-        edgeEvent.setAction(edgeEventAction);
+        edgeEvent.setAction(eventAction);
         edgeEvent.setEntityId(entityId);
-        edgeEvent.setType(edgeEventType);
+        edgeEvent.setType(eventType);
         edgeEvent.setBody(entityBody);
         return edgeEvent;
     }
@@ -120,6 +120,7 @@ public class TbMsgPushToEdgeNode extends AbstractTbMsgPushNode<TbMsgPushToEdgeNo
         return TbMsgPushToEdgeNodeConfiguration.class;
     }
 
+    @Override
     protected void processMsg(TbContext ctx, TbMsg msg) {
         if (EntityType.EDGE.equals(msg.getOriginator().getEntityType())) {
             EdgeEvent edgeEvent = buildEvent(msg, ctx);
