@@ -16,10 +16,11 @@
 package org.thingsboard.rule.engine.edge;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -29,9 +30,9 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -78,8 +79,6 @@ public class TbMsgPushToCloudNode implements TbNode {
 
     private TbMsgPushToCloudNodeConfiguration config;
 
-    private static final ObjectMapper json = new ObjectMapper();
-
     private static final String SCOPE = "scope";
 
     @Override
@@ -96,19 +95,7 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
         if (isSupportedOriginator(msg.getOriginator().getEntityType())) {
             if (isSupportedMsgType(msg.getType())) {
-                try {
-                    CloudEvent cloudEvent = buildCloudEvent(msg, ctx);
-                    if (cloudEvent == null) {
-                        log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
-                        ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
-                    } else {
-                        ctx.getCloudEventService().save(cloudEvent);
-                        ctx.tellNext(msg, SUCCESS);
-                    }
-                } catch (JsonProcessingException e) {
-                    log.error("Failed to build cloud event", e);
-                    ctx.tellFailure(msg, e);
-                }
+                processMsg(ctx, msg);
             } else {
                 log.debug("Unsupported msg type {}", msg.getType());
                 ctx.tellFailure(msg, new RuntimeException("Unsupported msg type '" + msg.getType() + "'"));
@@ -119,25 +106,41 @@ public class TbMsgPushToCloudNode implements TbNode {
         }
     }
 
-    private UUID getUUIDFromMsgData(TbMsg msg) throws JsonProcessingException {
-        JsonNode data = json.readTree(msg.getData()).get("id");
-        String id = json.treeToValue(data.get("id"), String.class);
+    private void processMsg(TbContext ctx, TbMsg msg) {
+        try {
+            CloudEvent cloudEvent = buildCloudEvent(msg, ctx);
+            if (cloudEvent == null) {
+                log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
+                ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
+            } else {
+                ctx.getCloudEventService().save(cloudEvent);
+                ctx.tellNext(msg, SUCCESS);
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Failed to build cloud event", e);
+            ctx.tellFailure(msg, e);
+        }
+    }
+
+    private UUID getUUIDFromMsgData(TbMsg msg) {
+        JsonNode data = JacksonUtil.toJsonNode(msg.getData()).get("id");
+        String id = JacksonUtil.convertValue(data.get("id"), String.class);
         return UUID.fromString(id);
     }
 
     private CloudEvent buildCloudEvent(TbMsg msg, TbContext ctx) throws JsonProcessingException {
         String msgType = msg.getType();
         if (DataConstants.ALARM.equals(msgType)) {
-            return buildCloudEvent(ctx.getTenantId(), ActionType.ADDED, getUUIDFromMsgData(msg), CloudEventType.ALARM, null);
+            return buildCloudEvent(ctx.getTenantId(), EdgeEventActionType.ADDED, getUUIDFromMsgData(msg), CloudEventType.ALARM, null);
         } else {
             CloudEventType cloudEventTypeByEntityType = CloudUtils.getCloudEventTypeByEntityType(msg.getOriginator().getEntityType());
             if (cloudEventTypeByEntityType == null) {
                 return null;
             }
-            ActionType actionType = getActionTypeByMsgType(msgType);
+            EdgeEventActionType actionType = getEdgeEventActionTypeByMsgType(msgType);
             Map<String, Object> entityBody = new HashMap<>();
             Map<String, String> metadata = msg.getMetaData().getData();
-            JsonNode dataJson = json.readTree(msg.getData());
+            JsonNode dataJson = JacksonUtil.toJsonNode(msg.getData());
             switch (actionType) {
                 case ATTRIBUTES_UPDATED:
                     entityBody.put("kv", dataJson);
@@ -147,7 +150,7 @@ public class TbMsgPushToCloudNode implements TbNode {
                     }
                     break;
                 case ATTRIBUTES_DELETED:
-                    List<String> keys = json.treeToValue(dataJson.get("attributes"), List.class);
+                    List<String> keys = JacksonUtil.convertValue(dataJson.get("attributes"), new TypeReference<>() {});
                     entityBody.put("keys", keys);
                     entityBody.put(SCOPE, getScope(metadata));
                     break;
@@ -156,7 +159,7 @@ public class TbMsgPushToCloudNode implements TbNode {
                     entityBody.put("ts", metadata.get("ts"));
                     break;
             }
-            return buildCloudEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), cloudEventTypeByEntityType, json.valueToTree(entityBody));
+            return buildCloudEvent(ctx.getTenantId(), actionType, msg.getOriginator().getId(), cloudEventTypeByEntityType, JacksonUtil.valueToTree(entityBody));
         }
     }
 
@@ -168,7 +171,7 @@ public class TbMsgPushToCloudNode implements TbNode {
         return scope;
     }
 
-    private CloudEvent buildCloudEvent(TenantId tenantId, ActionType cloudEventAction, UUID entityId, CloudEventType cloudEventType, JsonNode entityBody) {
+    private CloudEvent buildCloudEvent(TenantId tenantId, EdgeEventActionType cloudEventAction, UUID entityId, CloudEventType cloudEventType, JsonNode entityBody) {
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(tenantId);
         cloudEvent.setCloudEventAction(cloudEventAction.name());
@@ -178,16 +181,17 @@ public class TbMsgPushToCloudNode implements TbNode {
         return cloudEvent;
     }
 
-    private ActionType getActionTypeByMsgType(String msgType) {
-        ActionType actionType;
+    protected EdgeEventActionType getEdgeEventActionTypeByMsgType(String msgType) {
+        EdgeEventActionType actionType;
         if (SessionMsgType.POST_TELEMETRY_REQUEST.name().equals(msgType)
                 || DataConstants.TIMESERIES_UPDATED.equals(msgType)) {
-            actionType = ActionType.TIMESERIES_UPDATED;
-        } else if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)
-                || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)) {
-            actionType = ActionType.ATTRIBUTES_UPDATED;
+            actionType = EdgeEventActionType.TIMESERIES_UPDATED;
+        } else if (DataConstants.ATTRIBUTES_UPDATED.equals(msgType)) {
+            actionType = EdgeEventActionType.ATTRIBUTES_UPDATED;
+        } else if (SessionMsgType.POST_ATTRIBUTES_REQUEST.name().equals(msgType)) {
+            actionType = EdgeEventActionType.POST_ATTRIBUTES;
         } else {
-            actionType = ActionType.ATTRIBUTES_DELETED;
+            actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
         }
         return actionType;
     }
