@@ -279,7 +279,7 @@ public class DeviceController extends BaseController {
             sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
              */
 
-            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.DELETED);
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, EdgeEventActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE),
                     null,
@@ -436,7 +436,7 @@ public class DeviceController extends BaseController {
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);
 
-            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED);
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED);
 
             return result;
         } catch (Exception e) {

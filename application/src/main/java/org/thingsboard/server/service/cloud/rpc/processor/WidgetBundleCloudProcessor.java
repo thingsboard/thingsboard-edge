@@ -21,9 +21,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -71,7 +71,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                     if (created) {
-                        saveCloudEvent(tenantId, CloudEventType.WIDGETS_BUNDLE, ActionType.WIDGET_BUNDLE_TYPES_REQUEST, widgetsBundleId, null);
+                        saveCloudEvent(tenantId, CloudEventType.WIDGETS_BUNDLE, EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, widgetsBundleId, null);
                     }
                 } finally {
                     widgetCreationLock.unlock();

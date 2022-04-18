@@ -422,7 +422,7 @@ public class DefaultTbClusterService implements TbClusterService {
         }
          */
 
-        sendNotificationMsgToCloudService(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? ActionType.ADDED : ActionType.UPDATED);
+        sendNotificationMsgToCloudService(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
     }
 
     @Override
@@ -483,13 +483,13 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                   ActionType cloudEventAction) {
+                                                   EdgeEventActionType cloudEventAction) {
         sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
     }
 
     @Override
     public void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
-                                                  CloudEventType cloudEventType, ActionType cloudEventAction) {
+                                                  CloudEventType cloudEventType, EdgeEventActionType cloudEventAction) {
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());

@@ -18,7 +18,7 @@ package org.thingsboard.server.dao.sql.cloud;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -56,7 +56,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
-    protected CrudRepository<CloudEventEntity, UUID> getCrudRepository() {
+    protected JpaRepository<CloudEventEntity, UUID> getRepository() {
         return cloudEventRepository;
     }
 

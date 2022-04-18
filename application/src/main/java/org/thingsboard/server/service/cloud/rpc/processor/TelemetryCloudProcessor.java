@@ -178,7 +178,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
     }
 
     private void logAttributesUpdated(TenantId tenantId, EntityId entityId, String scope, String attributes) {
-        pushEntityActionToRuleEngine(tenantId, entityId, null, null, ActionType.ATTRIBUTES_UPDATED, scope, attributes);
+        pushEntityActionToRuleEngine(tenantId, entityId, null, null, EdgeEventActionType.ATTRIBUTES_UPDATED, scope, attributes);
     }
 
     private ListenableFuture<Void> processPostAttributes(TenantId tenantId, EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
@@ -268,12 +268,12 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                 throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getCloudEventType() + "]");
         }
 
-        ActionType actionType = ActionType.valueOf(cloudEvent.getCloudEventAction());
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction());
         return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(cloudEvent.getEntityBody())));
     }
 
 
-    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, ActionType actionType, JsonElement entityData) {
+    private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {
         // TODO: voba - get rid of this dummy conversion
         EdgeEventActionType edgeEventActionType = EdgeEventActionType.valueOf(actionType.name());
         EntityDataProto entityDataProto = entityDataMsgConstructor.constructEntityDataMsg(entityId, edgeEventActionType, entityData);

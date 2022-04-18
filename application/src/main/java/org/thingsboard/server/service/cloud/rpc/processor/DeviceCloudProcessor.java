@@ -28,9 +28,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -97,10 +97,10 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
                         UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
                     if (requestForAdditionalData != null && requestForAdditionalData) {
-                        saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_REQUEST, deviceId, null);
+                        saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null);
                     }
                 } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                    saveCloudEvent(tenantId, CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED, deviceId, null);
+                    saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null);
                 }
                 futureToSet.set(null);
             }
@@ -228,7 +228,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 body.put("response", response.getResponse().orElse("{}"));
             }
-            saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, ActionType.RPC_CALL, rpcRequest.getDeviceId(), body);
+            saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, rpcRequest.getDeviceId(), body);
         } catch (Exception e) {
             log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response);
         }
@@ -242,7 +242,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();
     }
 
-    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, ActionType edgeActionType) {
+    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, EdgeEventActionType edgeActionType) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (edgeActionType) {

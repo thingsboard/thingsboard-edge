@@ -23,9 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -91,7 +91,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
                     }
 
-                    saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, ActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
+                    saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
 
                     tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);

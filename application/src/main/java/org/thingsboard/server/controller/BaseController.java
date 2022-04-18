@@ -928,7 +928,7 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, ActionType cloudEventAction) {
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
         try {
             tbClusterService.sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);
         } catch (Exception e) {
@@ -936,7 +936,7 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, ActionType cloudEventAction) {
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
             tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
@@ -945,14 +945,14 @@ public abstract class BaseController {
 
     protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, Alarm alarm) {
         try {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, ActionType.DELETED);
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED);
         } catch (Exception e) {
             log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
     }
 
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                     ActionType cloudEventAction) {
+                                                     EdgeEventActionType cloudEventAction) {
         tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
     }
 

@@ -37,10 +37,10 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -371,7 +371,7 @@ public class CloudManagerService extends BaseCloudEventService {
             log.trace("Processing cloud event [{}]", cloudEvent);
             UplinkMsg uplinkMsg = null;
             try {
-                ActionType edgeEventAction = ActionType.valueOf(cloudEvent.getCloudEventAction());
+                EdgeEventActionType edgeEventAction = EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction());
                 switch (edgeEventAction) {
                     case UPDATED:
                     case ADDED:
@@ -384,6 +384,7 @@ public class CloudManagerService extends BaseCloudEventService {
                         uplinkMsg = processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
                         break;
                     case ATTRIBUTES_UPDATED:
+                    case POST_ATTRIBUTES:
                     case ATTRIBUTES_DELETED:
                     case TIMESERIES_UPDATED:
                         uplinkMsg = telemetryProcessor.processTelemetryMessageMsgToCloud(cloudEvent);
@@ -423,9 +424,9 @@ public class CloudManagerService extends BaseCloudEventService {
         return result;
     }
 
-    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent, ActionType edgeEventAction)
+    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent, EdgeEventActionType edgeEventAction)
             throws ExecutionException, InterruptedException {
-        UpdateMsgType msgType = getResponseMsgType(ActionType.valueOf(cloudEvent.getCloudEventAction()));
+        UpdateMsgType msgType = getResponseMsgType(EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction()));
         log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}], msgType [{}]", cloudEvent, edgeEventAction, msgType);
         switch (cloudEvent.getCloudEventType()) {
             case DEVICE:
@@ -440,7 +441,7 @@ public class CloudManagerService extends BaseCloudEventService {
         }
     }
 
-    private UpdateMsgType getResponseMsgType(ActionType actionType) {
+    private UpdateMsgType getResponseMsgType(EdgeEventActionType actionType) {
         switch (actionType) {
             case UPDATED:
             case CREDENTIALS_UPDATED:
@@ -577,8 +578,8 @@ public class CloudManagerService extends BaseCloudEventService {
         edge.setSecret(edgeConfiguration.getSecret());
         edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
         edgeService.saveEdge(edge, false);
-        saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.ATTRIBUTES_REQUEST, edgeId, null);
-        saveCloudEvent(tenantId, CloudEventType.EDGE, ActionType.RELATION_REQUEST, edgeId, null);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null);
     }
 
     private void cleanUp() {

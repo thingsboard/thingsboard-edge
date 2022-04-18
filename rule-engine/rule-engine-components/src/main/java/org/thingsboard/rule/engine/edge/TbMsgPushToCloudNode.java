@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -77,7 +78,7 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
 
     @Override
     CloudEventType getEventTypeByEntityType(EntityType entityType) {
-        return null;
+        return CloudUtils.getCloudEventTypeByEntityType(entityType);
     }
 
     @Override

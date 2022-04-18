@@ -18,9 +18,9 @@ package org.thingsboard.server.service.cloud;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
@@ -32,10 +32,10 @@ public abstract class BaseCloudEventService {
     protected CloudEventService cloudEventService;
 
     protected CloudEvent saveCloudEvent(TenantId tenantId,
-                                                        CloudEventType cloudEventType,
-                                                        ActionType cloudEventAction,
-                                                        EntityId entityId,
-                                                        JsonNode entityBody) {
+                                        CloudEventType cloudEventType,
+                                        EdgeEventActionType cloudEventAction,
+                                        EntityId entityId,
+                                        JsonNode entityBody) {
         log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
