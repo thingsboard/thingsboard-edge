@@ -116,7 +116,6 @@ public final class EdgeGrpcSession implements Closeable {
     private final UUID sessionId;
     private final BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener;
     private final Consumer<EdgeId> sessionCloseListener;
-    private final ObjectMapper mapper;
 
     private final EdgeSessionState sessionState = new EdgeSessionState();
 
@@ -132,13 +131,12 @@ public final class EdgeGrpcSession implements Closeable {
     private ScheduledExecutorService sendDownlinkExecutorService;
 
     EdgeGrpcSession(EdgeContextComponent ctx, StreamObserver<ResponseMsg> outputStream, BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener,
-                    Consumer<EdgeId> sessionCloseListener, ObjectMapper mapper, ScheduledExecutorService sendDownlinkExecutorService) {
+                    Consumer<EdgeId> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService) {
         this.sessionId = UUID.randomUUID();
         this.ctx = ctx;
         this.outputStream = outputStream;
         this.sessionOpenListener = sessionOpenListener;
         this.sessionCloseListener = sessionCloseListener;
-        this.mapper = mapper;
         this.sendDownlinkExecutorService = sendDownlinkExecutorService;
         initInputStream();
     }
@@ -244,9 +242,9 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
-    private void syncEdgeOwner(TenantId tenantId, Edge edge) throws Exception {
+    private void syncEdgeOwner(TenantId tenantId, Edge edge) {
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-            EdgeEvent customerEdgeEvent = EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
+            EdgeEvent customerEdgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
                     EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null);
             DownlinkMsg customerDownlinkMsg = convertToDownlinkMsg(customerEdgeEvent);
             sendDownlinkMsgsPack(Collections.singletonList(customerDownlinkMsg));
@@ -691,12 +689,12 @@ public final class EdgeGrpcSession implements Closeable {
                     result.add(ctx.getEdgeRequestsService().processEntityViewsRequestMsg(edge.getTenantId(), edge, entityViewRequestMsg));
                 }
             }
-            if (uplinkMsg.getEntityGroupEntitiesRequestMsgList() != null && !uplinkMsg.getEntityGroupEntitiesRequestMsgList().isEmpty()) {
+            if (uplinkMsg.getEntityGroupEntitiesRequestMsgCount() > 0) {
                 for (EntityGroupRequestMsg entityGroupEntitiesRequestMsg : uplinkMsg.getEntityGroupEntitiesRequestMsgList()) {
                     result.add(ctx.getEdgeRequestsService().processEntityGroupEntitiesRequest(edge.getTenantId(), edge, entityGroupEntitiesRequestMsg));
                 }
             }
-            if (uplinkMsg.getEntityGroupPermissionsRequestMsgList() != null && !uplinkMsg.getEntityGroupPermissionsRequestMsgList().isEmpty()) {
+            if (uplinkMsg.getEntityGroupPermissionsRequestMsgCount() > 0) {
                 for (EntityGroupRequestMsg userGroupPermissionsRequestMsg : uplinkMsg.getEntityGroupPermissionsRequestMsgList()) {
                     result.add(ctx.getEdgeRequestsService().processEntityGroupPermissionsRequest(edge.getTenantId(), edge, userGroupPermissionsRequestMsg));
                 }
