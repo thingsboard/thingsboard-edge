@@ -82,6 +82,4 @@ public interface RuleChainRepository extends JpaRepository<RuleChainEntity, UUID
 
     List<RuleChainEntity> findByTenantIdAndTypeAndName(UUID tenantId, RuleChainType type, String name);
 
-    RuleChainEntity findFirstByTenantIdAndName(UUID tenantId, String name);
-
 }

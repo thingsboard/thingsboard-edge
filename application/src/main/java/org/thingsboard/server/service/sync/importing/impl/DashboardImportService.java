@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.sql.query.DefaultEntityQueryRepository;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.exporting.data.GroupEntityExportData;
+import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -68,6 +69,15 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     @Override
     protected void setOwner(TenantId tenantId, Dashboard dashboard, NewIdProvider idProvider) {
         dashboard.setTenantId(tenantId);
+    }
+
+    @Override
+    protected Dashboard findExistingEntity(TenantId tenantId, Dashboard dashboard, EntityImportSettings importSettings) {
+        Dashboard existingDashboard = super.findExistingEntity(tenantId, dashboard, importSettings);
+        if (existingDashboard == null && importSettings.isFindExistingByName()) {
+            existingDashboard = dashboardService.findTenantDashboardsByTitle(tenantId, dashboard.getName()).stream().findFirst().orElse(null);
+        }
+        return existingDashboard;
     }
 
     @Override

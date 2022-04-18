@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
 import org.thingsboard.server.common.data.rule.RuleNode;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -79,6 +80,8 @@ public interface RuleChainService {
     List<EntityRelation> getRuleNodeRelations(TenantId tenantId, RuleNodeId ruleNodeId);
 
     PageData<RuleChain> findTenantRuleChainsByType(TenantId tenantId, RuleChainType type, PageLink pageLink);
+
+    Collection<RuleChain> findTenantRuleChainsByTypeAndName(TenantId tenantId, RuleChainType type, String name);
 
     void deleteRuleChainById(TenantId tenantId, RuleChainId ruleChainId);
 
