@@ -457,5 +457,8 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         if (fwUpdatesAdmin != null) {
             fwUpdatesAdmin.destroy();
         }
+        if (integrationApiAdmin != null) {
+            integrationApiAdmin.destroy();
+        }
     }
 }

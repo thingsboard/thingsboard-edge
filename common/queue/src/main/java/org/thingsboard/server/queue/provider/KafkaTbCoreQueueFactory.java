@@ -428,5 +428,8 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         if (fwUpdatesAdmin != null) {
             fwUpdatesAdmin.destroy();
         }
+        if (integrationApiAdmin != null) {
+            integrationApiAdmin.destroy();
+        }
     }
 }
