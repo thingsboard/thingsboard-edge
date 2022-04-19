@@ -186,6 +186,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             RuleNode ruleNode = new RuleNode();
             RuleNodeId ruleNodeId = new RuleNodeId(new UUID(proto.getIdMSB(), proto.getIdLSB()));
             ruleNode.setId(ruleNodeId);
+            ruleNode.setCreatedTime(Uuids.unixTimestamp(ruleNodeId.getId()));
             ruleNode.setRuleChainId(ruleChainId);
             ruleNode.setType(proto.getType());
             ruleNode.setName(proto.getName());

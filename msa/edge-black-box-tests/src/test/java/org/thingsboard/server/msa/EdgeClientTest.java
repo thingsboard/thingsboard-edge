@@ -223,8 +223,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 return false;
             }
             RuleNode actualNode = actualNodeOpt.get();
-            // TODO: @voba - fix send of created time from cloud to edge
-            actualNode.setCreatedTime(0);
             if (!expectedNode.equals(actualNode)) {
                 return false;
             }
