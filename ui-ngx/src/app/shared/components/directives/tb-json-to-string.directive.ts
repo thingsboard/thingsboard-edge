@@ -41,6 +41,7 @@ import {
   Validator
 } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
+import { isObject } from "@core/utils";
 
 @Directive({
   selector: '[tb-json-to-string]',
@@ -68,7 +69,11 @@ export class TbJsonToStringDirective implements ControlValueAccessor, Validator,
   @HostListener('input', ['$event.target.value']) input(newValue: any): void {
     try {
       this.data = JSON.parse(newValue);
-      this.parseError = false;
+      if (isObject(this.data)) {
+        this.parseError = false;
+      } else {
+        this.parseError = true;
+      }
     } catch (e) {
       this.parseError = true;
     }
