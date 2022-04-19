@@ -1483,7 +1483,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case EDGE_SEARCH_QUERY:
             case ENTITY_GROUP:
             case ENTITY_GROUP_NAME:
-                return this.defaultPermissionQuery(ctx);
+                return this.defaultPermissionQuery(ctx, entityFilter);
             case API_USAGE_STATE:
                 CustomerId filterCustomerId = ((ApiUsageStateFilter) entityFilter).getCustomerId();
                 if (ctx.getCustomerId() != null && !ctx.getCustomerId().isNullUid()) {
@@ -1505,17 +1505,18 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     ctx.addUuidParameter("permissions_tenant_id", ctx.getTenantId().getId());
                     return "e.id=:permissions_tenant_id";
                 } else {
-                    return this.defaultPermissionQuery(ctx);
+                    return this.defaultPermissionQuery(ctx, entityFilter);
                 }
         }
     }
 
-    private String defaultPermissionQuery(QueryContext ctx) {
+    private String defaultPermissionQuery(QueryContext ctx, EntityFilter entityFilter) {
         ctx.addUuidParameter("permissions_tenant_id", ctx.getTenantId().getId());
         QuerySecurityContext securityCtx = ctx.getSecurityCtx();
         if (!securityCtx.isTenantUser() && securityCtx.hasGeneric(Operation.READ) && securityCtx.getMergedReadPermissionsByEntityType().getEntityGroupIds().isEmpty()) {
             ctx.addUuidParameter("permissions_customer_id", ctx.getCustomerId().getId());
-            if (ctx.getEntityType() == EntityType.CUSTOMER) {
+            if (ctx.getEntityType() == EntityType.CUSTOMER && entityFilter.getType() != EntityFilterType.ENTITY_GROUP_LIST
+                    && entityFilter.getType() != EntityFilterType.ENTITY_GROUP_NAME) {
                 return "e.tenant_id=:permissions_tenant_id and e.id in " + HIERARCHICAL_SUB_CUSTOMERS_QUERY;
             } else {
                 return "e.tenant_id=:permissions_tenant_id and e.customer_id in " + HIERARCHICAL_SUB_CUSTOMERS_QUERY;
@@ -1620,7 +1621,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 " CASE WHEN owner_type = 'CUSTOMER' THEN owner_id END as customer_id" +
                 " FROM entity_group WHERE type = :entity_group_type";
         ctx.addStringParameter("entity_group_type", entityType.name());
-        if (StringUtils.isEmpty(entityFilter.getEntityGroupNameFilter())) {
+        if (StringUtils.isNotEmpty(entityFilter.getEntityGroupNameFilter())) {
             select = select + " and LOWER(name) LIKE concat(:entity_group_name_prefix, '%%')";
             ctx.addStringParameter("entity_group_name_prefix", entityFilter.getEntityGroupNameFilter());
         }
