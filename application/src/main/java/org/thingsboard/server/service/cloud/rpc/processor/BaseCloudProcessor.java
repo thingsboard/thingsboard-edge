@@ -335,11 +335,11 @@ public abstract class BaseCloudProcessor {
         return result;
     }
 
-    protected CloudEvent saveCloudEvent(TenantId tenantId,
-                                        CloudEventType cloudEventType,
-                                        EdgeEventActionType cloudEventAction,
-                                        EntityId entityId,
-                                        JsonNode entityBody) {
+    protected ListenableFuture<Void> saveCloudEvent(TenantId tenantId,
+                                                    CloudEventType cloudEventType,
+                                                    EdgeEventActionType cloudEventAction,
+                                                    EntityId entityId,
+                                                    JsonNode entityBody) {
         log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 

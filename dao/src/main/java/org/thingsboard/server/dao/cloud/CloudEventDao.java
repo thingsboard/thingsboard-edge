@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.dao.cloud;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -34,7 +35,7 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      * @param cloudEvent the event object
      * @return saved cloud event object future
      */
-    CloudEvent save(CloudEvent cloudEvent);
+    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
 
     /**
