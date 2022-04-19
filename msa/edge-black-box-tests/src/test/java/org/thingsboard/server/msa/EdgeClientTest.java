@@ -755,6 +755,10 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         sourceRestClient.deleteEntityAttributes(device.getId(), DataConstants.CLIENT_SCOPE, keys);
 
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == 0);
+
         return attributeKvEntries;
     }
 
