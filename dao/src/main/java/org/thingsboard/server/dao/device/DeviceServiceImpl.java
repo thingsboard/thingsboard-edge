@@ -338,8 +338,6 @@ public class DeviceServiceImpl extends AbstractEntityService implements DeviceSe
         cacheManager.removeDeviceFromCacheById(tenantId, deviceId);
     }
 
-
-
     @Override
     public PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);

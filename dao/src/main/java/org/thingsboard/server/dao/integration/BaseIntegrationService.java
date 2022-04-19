@@ -33,6 +33,9 @@ package org.thingsboard.server.dao.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -50,6 +53,7 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.List;
 import java.util.Optional;
 
+import static org.thingsboard.server.common.data.CacheConstants.INTEGRATIONS_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -73,7 +77,16 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     @Autowired
     private DataValidator<Integration> integrationValidator;
 
+    @Lazy
+    @Autowired
+    private IntegrationService self;
+
     @Override
+    @CacheEvict(
+            cacheNames = INTEGRATIONS_CACHE,
+            key = "{#integration.tenantId, #integration.id}",
+            condition = "{#integration.id != null}"
+    )
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
@@ -81,6 +94,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    @Cacheable(cacheNames = INTEGRATIONS_CACHE, key = "{#tenantId, #integrationId}")
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
@@ -131,6 +145,10 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    @CacheEvict(
+            cacheNames = INTEGRATIONS_CACHE,
+            key = "{#tenantId, #integrationId}"
+    )
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
@@ -161,7 +179,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
 
                 @Override
                 protected void removeEntity(TenantId tenantId, Integration entity) {
-                    deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
+                    self.deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
                 }
             };
 

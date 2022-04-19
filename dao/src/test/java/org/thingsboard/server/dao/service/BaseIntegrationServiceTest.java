@@ -39,6 +39,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -49,9 +50,15 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.dao.integration.IntegrationDao;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
@@ -68,6 +75,9 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
     static {
         INTEGRATION_CONFIGURATION.putObject("metadata").put("key1", "val1");
     }
+
+    @SpyBean
+    IntegrationDao integrationDao;
 
     @Before
     public void beforeRun() {
@@ -241,6 +251,118 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         Assert.assertTrue(pageData.getData().isEmpty());
 
         tenantService.deleteTenant(tenantId);
+    }
+
+    @Test
+    public void testFindIntegrationUseCache() {
+        Integration integration = new Integration();
+        integration.setTenantId(tenantId);
+        integration.setDefaultConverterId(converterId);
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        Integration savedIntegration = integrationService.saveIntegration(integration);
+
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
+        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        Assert.assertNotNull(foundIntegration);
+        Assert.assertEquals(savedIntegration, foundIntegration);
+
+        for (int i = 0; i < 10; i++) {
+            foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
+            verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+            Assert.assertNotNull(foundIntegration);
+            Assert.assertEquals(savedIntegration, foundIntegration);
+        }
+
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
+    }
+
+    @Test
+    public void testSaveIntegrationEvictCache() {
+        Integration integration = new Integration();
+        integration.setTenantId(tenantId);
+        integration.setDefaultConverterId(converterId);
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        Integration savedIntegration = integrationService.saveIntegration(integration);
+
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
+        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        Assert.assertNotNull(foundIntegration);
+        Assert.assertEquals(savedIntegration, foundIntegration);
+
+
+        savedIntegration.setName("New name");
+        integrationService.saveIntegration(savedIntegration);
+
+        foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
+        verify(integrationDao, times(2)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        Assert.assertNotNull(foundIntegration);
+        Assert.assertEquals(savedIntegration, foundIntegration);
+
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
+    }
+
+    @Test
+    public void testDeleteIntegrationEvictCache() {
+        Integration integration = new Integration();
+        integration.setTenantId(tenantId);
+        integration.setDefaultConverterId(converterId);
+        integration.setName("My integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        Integration savedIntegration = integrationService.saveIntegration(integration);
+
+        Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
+        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        Assert.assertNotNull(foundIntegration);
+        Assert.assertEquals(savedIntegration, foundIntegration);
+
+        integrationService.deleteIntegration(savedIntegration.getTenantId(), savedIntegration.getId());
+
+        foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
+        Assert.assertNull(foundIntegration);
+        verify(integrationDao, times(2)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+    }
+
+    @Test
+    public void testDeleteIntegrationsByTenantIdEvictAllEntries() {
+        final int integrationNumber = 10;
+        List<Integration> savedIntegrations = new LinkedList<>();
+        for (int i = 0; i < integrationNumber; i++) {
+            Integration integration = new Integration();
+            integration.setTenantId(tenantId);
+            integration.setDefaultConverterId(converterId);
+            integration.setName("My integration" + i);
+            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+            integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
+            savedIntegrations.add(
+                    integrationService.saveIntegration(integration)
+            );
+        }
+
+        for (int i = 0; i < integrationNumber; i++) {
+            Integration integration = savedIntegrations.get(i);
+            Integration foundIntegration = integrationService.findIntegrationById(integration.getTenantId(), integration.getId());
+            verify(integrationDao, times(1)).findById(eq(tenantId), eq(integration.getUuidId()));
+            Assert.assertNotNull(foundIntegration);
+            Assert.assertEquals(integration, foundIntegration);
+        }
+
+        integrationService.deleteIntegrationsByTenantId(tenantId);
+
+        for (int i = 0; i < integrationNumber; i++) {
+            Integration integration = savedIntegrations.get(i);
+            Integration foundIntegration = integrationService.findIntegrationById(integration.getTenantId(), integration.getId());
+            verify(integrationDao, times(2)).findById(eq(tenantId), eq(integration.getUuidId()));
+            Assert.assertNull(foundIntegration);
+        }
     }
 
 }
