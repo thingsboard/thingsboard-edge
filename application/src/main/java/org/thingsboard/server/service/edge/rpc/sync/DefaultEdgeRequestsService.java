@@ -664,7 +664,17 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
         log.trace("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}], entityGroupId [{}]",
                 tenantId, edgeId, type, action, entityId, body, entityGroupId);
         EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
-        edgeEventService.save(edgeEvent);
-        tbClusterService.onEdgeEventUpdate(tenantId, edgeId);
+        Futures.addCallback(edgeEventService.saveAsync(edgeEvent), new FutureCallback<>() {
+            @Override
+            public void onSuccess(@Nullable Void unused) {
+                tbClusterService.onEdgeEventUpdate(tenantId, edgeId);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                String errMsg = String.format("Failed to save edge event. edge event [%s]", edgeEvent);
+                log.warn(errMsg, t);
+            }
+        }, dbCallbackExecutorService);
     }
 }
