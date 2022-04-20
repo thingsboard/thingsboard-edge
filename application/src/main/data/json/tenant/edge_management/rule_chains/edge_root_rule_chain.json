@@ -225,6 +225,21 @@
         "fromIndex": 6,
         "toIndex": 10,
         "type": "Attributes Updated"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 10,
+        "type": "Attributes Deleted"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 10,
+        "type": "Timeseries Deleted"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 10,
+        "type": "Timeseries Updated"
       }
     ],
     "ruleChainConnections": null
