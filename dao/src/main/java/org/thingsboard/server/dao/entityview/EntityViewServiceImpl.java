@@ -102,7 +102,9 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
 
         if (entityView.getId() != null) {
             EntityView oldEntityView = entityViewDao.findById(entityView.getTenantId(), entityView.getUuidId());
-            evictCache(oldEntityView);
+            if (oldEntityView != null) {
+                evictCache(oldEntityView);
+            }
         }
 
         return entityViewDao.save(entityView.getTenantId(), entityView);

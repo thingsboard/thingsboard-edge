@@ -24,6 +24,7 @@ public enum CloudEventType {
     RULE_CHAIN,
     RULE_CHAIN_METADATA,
     USER,
+    TENANT,
     CUSTOMER,
     RELATION,
     ENTITY_GROUP,

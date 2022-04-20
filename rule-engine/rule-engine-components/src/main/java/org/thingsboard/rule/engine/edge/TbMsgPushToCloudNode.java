@@ -104,23 +104,18 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
     void processMsg(TbContext ctx, TbMsg msg) {
         try {
             CloudEvent cloudEvent = buildEvent(msg, ctx);
-            if (cloudEvent == null) {
-                log.debug("Cloud event type is null. Entity Type {}", msg.getOriginator().getEntityType());
-                ctx.tellFailure(msg, new RuntimeException("Cloud event type is null. Entity Type '" + msg.getOriginator().getEntityType() + "'"));
-            } else {
-                ListenableFuture<Void> saveFuture = ctx.getCloudEventService().save(cloudEvent);
-                Futures.addCallback(saveFuture, new FutureCallback<>() {
-                    @Override
-                    public void onSuccess(@Nullable Void unused) {
-                        ctx.tellNext(msg, SUCCESS);
-                    }
+            ListenableFuture<Void> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
+            Futures.addCallback(saveFuture, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void unused) {
+                    ctx.tellNext(msg, SUCCESS);
+                }
 
-                    @Override
-                    public void onFailure(Throwable throwable) {
-                        ctx.tellFailure(msg, throwable);
-                    }
-                }, ctx.getDbCallbackExecutor());
-            }
+                @Override
+                public void onFailure(Throwable throwable) {
+                    ctx.tellFailure(msg, throwable);
+                }
+            }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
             log.error("Failed to build cloud event", e);
             ctx.tellFailure(msg, e);

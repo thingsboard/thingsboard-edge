@@ -40,8 +40,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Comparator;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
@@ -51,7 +49,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, CloudEvent> implements CloudEventDao {
 
     private final UUID systemTenantId = NULL_UUID;
-    private final Lock readWriteLock = new ReentrantLock();
 
     @Autowired
     ScheduledLogExecutorComponent logExecutor;
@@ -77,7 +74,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     private CloudEventRepository cloudEventRepository;
 
     @Autowired
-    private CloudEventInsertRepository cloudInsertEventRepository;
+    private CloudEventInsertRepository cloudEventInsertRepository;
 
     @Autowired
     private CloudEventCleanupRepository cloudEventCleanupRepository;
@@ -110,7 +107,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
             }
         };
         queue = new TbSqlBlockingQueueWrapper<>(params, hashcodeFunction, batchThreads, statsFactory);
-        queue.init(logExecutor, v -> cloudInsertEventRepository.save(v),
+        queue.init(logExecutor, v -> cloudEventInsertRepository.save(v),
                 Comparator.comparing(CloudEventEntity::getTs)
         );
     }
@@ -160,18 +157,13 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     @Override
     public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
-        readWriteLock.lock();
-        try {
-            return DaoUtil.toPageData(
-                    cloudEventRepository
-                            .findEventsByTenantId(
-                                    tenantId,
-                                    pageLink.getStartTime(),
-                                    pageLink.getEndTime(),
-                                    DaoUtil.toPageable(pageLink)));
-        } finally {
-            readWriteLock.unlock();
-        }
+        return DaoUtil.toPageData(
+                cloudEventRepository
+                        .findEventsByTenantId(
+                                tenantId,
+                                pageLink.getStartTime(),
+                                pageLink.getEndTime(),
+                                DaoUtil.toPageable(pageLink)));
     }
 
     @Override

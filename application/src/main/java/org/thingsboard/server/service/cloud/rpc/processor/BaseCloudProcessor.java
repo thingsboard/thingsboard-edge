@@ -351,6 +351,6 @@ public abstract class BaseCloudProcessor {
             cloudEvent.setEntityId(entityId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.save(cloudEvent);
+        return cloudEventService.saveAsync(cloudEvent);
     }
 }
