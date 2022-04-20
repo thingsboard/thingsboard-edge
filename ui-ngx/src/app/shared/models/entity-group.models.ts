@@ -98,7 +98,6 @@ export interface EntityGroupSettings {
   detailsMode: EntityGroupDetailsMode;
   displayPagination: boolean;
   defaultPageSize: number;
-  // enableAssignment: boolean;
   enableCredentialsManagement: boolean;
   enableLoginAsUser: boolean;
   enableUsersManagement: boolean;
