@@ -102,7 +102,6 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.cluster.TbClusterService;
 
@@ -664,7 +663,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                                EntityId entityGroupId) {
         log.trace("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}], entityGroupId [{}]",
                 tenantId, edgeId, type, action, entityId, body, entityGroupId);
-        EdgeEvent edgeEvent = EdgeEventUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
         edgeEventService.save(edgeEvent);
         tbClusterService.onEdgeEventUpdate(tenantId, edgeId);
     }
