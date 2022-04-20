@@ -101,13 +101,15 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             entityViewValidator.validate(entityView, EntityView::getTenantId);
         }
 
+        EntityView save = entityViewDao.save(entityView.getTenantId(), entityView);
+
         if (entityView.getId() != null) {
             EntityView oldEntityView = entityViewDao.findById(entityView.getTenantId(), entityView.getUuidId());
             // VB - evict cache for the new entity view if old entity view doesn't exits yet on edge
             evictCache(Objects.requireNonNullElse(oldEntityView, entityView));
         }
 
-        return entityViewDao.save(entityView.getTenantId(), entityView);
+        return save;
     }
 
     @Override
