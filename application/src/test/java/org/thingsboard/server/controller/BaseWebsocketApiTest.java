@@ -33,7 +33,6 @@ package org.thingsboard.server.controller;
 import com.google.common.util.concurrent.FutureCallback;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,9 +76,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public abstract class BaseWebsocketApiTest extends AbstractWebsocketTest {
+public abstract class BaseWebsocketApiTest extends AbstractControllerTest {
     @Autowired
     private TelemetrySubscriptionService tsService;
+
+    @Before
+    public void setUp() throws Exception {
+        loginTenantAdmin();
+    }
 
     @Test
     public void testEntityDataHistoryWsCmd() throws Exception {
