@@ -75,8 +75,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     ListeningExecutorService executor;
 
-    List<ListenableFuture<Device>> createFutures;
-    List<ListenableFuture<ResultActions>> deleteFutures;
+    List<ListenableFuture<Device>> futures;
     PageData<Device> pageData;
 
     private Tenant savedTenant;
@@ -84,8 +83,8 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @Before
     public void beforeTest() throws Exception {
-        log.warn("beforeTest");
-        executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(12, getClass()));
+        log.debug("beforeTest");
+        executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
 
         loginSysAdmin();
 
@@ -106,14 +105,14 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @After
     public void afterTest() throws Exception {
-        log.warn("afterTest...");
+        log.debug("afterTest...");
         executor.shutdownNow();
 
         loginSysAdmin();
 
         doDelete("/api/tenant/" + savedTenant.getId().getId())
                 .andExpect(status().isOk());
-        log.warn("afterTest done");
+        log.debug("afterTest done");
     }
 
     @Test
@@ -214,6 +213,8 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Assert.assertEquals("typeA", deviceTypes.get(0).getType());
         Assert.assertEquals("typeB", deviceTypes.get(1).getType());
         Assert.assertEquals("typeC", deviceTypes.get(2).getType());
+
+        deleteDevicesAsync("/api/device/", devices);
     }
 
     @Test
@@ -346,19 +347,19 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantDevices() throws Exception {
-        log.warn("testFindTenantDevices");
-        createFutures = new ArrayList<>(178);
+        log.debug("testFindTenantDevices");
+        futures = new ArrayList<>(178);
         for (int i = 0; i < 178; i++) {
             Device device = new Device();
             device.setName("Device" + i);
             device.setType("default");
-            createFutures.add(executor.submit(() ->
+            futures.add(executor.submit(() ->
                     doPost("/api/device", device, Device.class)));
         }
-        log.warn("await create devices");
-        List<Device> devices = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
+        log.debug("await create devices");
+        List<Device> devices = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
-        log.warn("start reading");
+        log.debug("start reading");
         List<Device> loadedDevices = new ArrayList<>(178);
         PageLink pageLink = new PageLink(23);
         do {
@@ -371,18 +372,18 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        log.warn("asserting");
+        log.debug("asserting");
         assertThat(devices).containsExactlyInAnyOrderElementsOf(loadedDevices);
-        log.warn("delete devices async");
+        log.debug("delete devices async");
         deleteDevicesAsync("/api/device/", loadedDevices).get(TIMEOUT, TimeUnit.SECONDS);
-        log.warn("done");
+        log.debug("done");
     }
 
     @Test
     public void testFindTenantDevicesByName() throws Exception {
         String title1 = "Device title 1";
 
-        createFutures = new ArrayList<>(143);
+        futures = new ArrayList<>(143);
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -390,13 +391,13 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
-            createFutures.add(executor.submit(() ->
+            futures.add(executor.submit(() ->
                     doPost("/api/device", device, Device.class)));
         }
-        List<Device> devicesTitle1 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
+        List<Device> devicesTitle1 = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
         String title2 = "Device title 2";
-        createFutures = new ArrayList<>(75);
+        futures = new ArrayList<>(75);
         for (int i = 0; i < 75; i++) {
             Device device = new Device();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -404,10 +405,10 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType("default");
-            createFutures.add(executor.submit(() ->
+            futures.add(executor.submit(() ->
                     doPost("/api/device", device, Device.class)));
         }
-        List<Device> devicesTitle2 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
+        List<Device> devicesTitle2 = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
         List<Device> loadedDevicesTitle1 = new ArrayList<>(143);
         PageLink pageLink = new PageLink(15, 0, title1);
@@ -453,20 +454,20 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
     }
 
     ListenableFuture<List<ResultActions>> deleteDevicesAsync(String urlTemplate, List<Device> loadedDevicesTitle1) {
-        deleteFutures = new ArrayList<>(loadedDevicesTitle1.size());
+        List<ListenableFuture<ResultActions>> futures = new ArrayList<>(loadedDevicesTitle1.size());
         for (Device device : loadedDevicesTitle1) {
-            deleteFutures.add(executor.submit(() ->
+            futures.add(executor.submit(() ->
                     doDelete(urlTemplate + device.getId().getId())
                             .andExpect(status().isOk())));
         }
-        return Futures.allAsList(deleteFutures);
+        return Futures.allAsList(futures);
     }
 
     @Test
     public void testFindTenantDevicesByType() throws Exception {
         String title1 = "Device title 1";
         String type1 = "typeA";
-        createFutures = new ArrayList<>(143);
+        futures = new ArrayList<>(143);
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -474,17 +475,17 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType(type1);
-            createFutures.add(executor.submit(() ->
+            futures.add(executor.submit(() ->
                     doPost("/api/device", device, Device.class)));
             if (i == 0) {
-                createFutures.get(0).get(TIMEOUT, TimeUnit.SECONDS); // wait for the device profile created first time
+                futures.get(0).get(TIMEOUT, TimeUnit.SECONDS); // wait for the device profile created first time
             }
         }
-        List<Device> devicesType1 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
+        List<Device> devicesType1 = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
         String title2 = "Device title 2";
         String type2 = "typeB";
-        createFutures = new ArrayList<>(75);
+        futures = new ArrayList<>(75);
         for (int i = 0; i < 75; i++) {
             Device device = new Device();
             String suffix = RandomStringUtils.randomAlphanumeric(15);
@@ -492,14 +493,14 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
             device.setType(type2);
-            createFutures.add(executor.submit(() ->
+            futures.add(executor.submit(() ->
                     doPost("/api/device", device, Device.class)));
             if (i == 0) {
-                createFutures.get(0).get(TIMEOUT, TimeUnit.SECONDS); // wait for the device profile created first time
+                futures.get(0).get(TIMEOUT, TimeUnit.SECONDS); // wait for the device profile created first time
             }
         }
 
-        List<Device> devicesType2 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
+        List<Device> devicesType2 = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
         List<Device> loadedDevicesType1 = new ArrayList<>(143);
         PageLink pageLink = new PageLink(15);
