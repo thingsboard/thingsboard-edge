@@ -31,7 +31,6 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
-import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
@@ -40,7 +39,6 @@ import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -73,9 +71,6 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     @Value("${sql.cloud_events.batch_threads:3}")
     private int batchThreads;
 
-    @Value("${sql.batch_sort:false}")
-    private boolean batchSortEnabled;
-
     private TbSqlBlockingQueueWrapper<CloudEventEntity> queue;
 
     @Autowired
@@ -105,7 +100,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                 .maxDelay(maxDelay)
                 .statsPrintIntervalMs(statsPrintIntervalMs)
                 .statsNamePrefix("cloud.events")
-                .batchSortEnabled(batchSortEnabled)
+                .batchSortEnabled(true)
                 .build();
         Function<CloudEventEntity, Integer> hashcodeFunction = entity -> {
             if (entity.getEntityId() != null) {
@@ -162,6 +157,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     private ListenableFuture<Void> addToQueue(CloudEventEntity entity) {
         return queue.add(entity);
     }
+
     @Override
     public PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink) {
         readWriteLock.lock();
