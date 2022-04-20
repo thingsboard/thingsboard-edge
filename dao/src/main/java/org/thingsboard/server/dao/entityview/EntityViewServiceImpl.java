@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -102,9 +103,8 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
 
         if (entityView.getId() != null) {
             EntityView oldEntityView = entityViewDao.findById(entityView.getTenantId(), entityView.getUuidId());
-            if (oldEntityView != null) {
-                evictCache(oldEntityView);
-            }
+            // VB - evict cache for the new entity view if old entity view doesn't exits yet on edge
+            evictCache(Objects.requireNonNullElse(oldEntityView, entityView));
         }
 
         return entityViewDao.save(entityView.getTenantId(), entityView);
