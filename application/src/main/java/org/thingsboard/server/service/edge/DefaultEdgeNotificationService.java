@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,6 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,7 +63,6 @@ import org.thingsboard.server.service.edge.rpc.processor.RoleEdgeProcessor;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -117,45 +116,27 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
     }
 
     @Override
-    public Edge setEdgeRootRuleChain(TenantId tenantId, Edge edge, RuleChainId ruleChainId) throws IOException {
+    public Edge setEdgeRootRuleChain(TenantId tenantId, Edge edge, RuleChainId ruleChainId) throws Exception {
         edge.setRootRuleChainId(ruleChainId);
         Edge savedEdge = edgeService.saveEdge(edge);
-        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.RULE_CHAIN, EdgeEventActionType.UPDATED, ruleChainId, null);
+        saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.RULE_CHAIN, EdgeEventActionType.UPDATED, ruleChainId, null).get();
         return savedEdge;
     }
 
-    private void saveEdgeEvent(TenantId tenantId,
+    private ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
                                EdgeId edgeId,
                                EdgeEventType type,
                                EdgeEventActionType action,
                                EntityId entityId,
                                JsonNode body) {
-        saveEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
-    }
-
-    private void saveEdgeEvent(TenantId tenantId,
-                               EdgeId edgeId,
-                               EdgeEventType type,
-                               EdgeEventActionType action,
-                               EntityId entityId,
-                               JsonNode body,
-                               EntityGroupId entityGroupId) {
         log.debug("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}]",
                 tenantId, edgeId, type, action, entityId, body);
 
-        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body);
 
-        Futures.addCallback(edgeEventService.saveAsync(edgeEvent), new FutureCallback<>() {
-            @Override
-            public void onSuccess(@Nullable Void unused) {
-                clusterService.onEdgeEventUpdate(tenantId, edgeId);
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                String errMsg = String.format("Failed to save edge event. edge event [%s]", edgeEvent);
-                log.warn(errMsg, t);
-            }
+        return Futures.transform(edgeEventService.saveAsync(edgeEvent), unused -> {
+            clusterService.onEdgeEventUpdate(tenantId, edgeId);
+            return null;
         }, dbCallBackExecutor);
     }
 
@@ -165,9 +146,10 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
         try {
             TenantId tenantId = TenantId.fromUUID(new UUID(edgeNotificationMsg.getTenantIdMSB(), edgeNotificationMsg.getTenantIdLSB()));
             EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+            ListenableFuture<Void> future;
             switch (type) {
                 case EDGE:
-                    edgeProcessor.processEdgeNotification(tenantId, edgeNotificationMsg);
+                    future = edgeProcessor.processEdgeNotification(tenantId, edgeNotificationMsg);
                     break;
                 case USER:
                 case ASSET:
@@ -179,34 +161,48 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case RULE_CHAIN:
                 case SCHEDULER_EVENT:
                 case ENTITY_GROUP:
-                    entityProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
+                    future = entityProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case WIDGETS_BUNDLE:
                 case WIDGET_TYPE:
-                    entityProcessor.processEntityNotificationForAllEdges(tenantId, edgeNotificationMsg);
+                    future = entityProcessor.processEntityNotificationForAllEdges(tenantId, edgeNotificationMsg);
                     break;
                 case ALARM:
-                    alarmProcessor.processAlarmNotification(tenantId, edgeNotificationMsg);
+                    future = alarmProcessor.processAlarmNotification(tenantId, edgeNotificationMsg);
                     break;
                 case ROLE:
-                    roleProcessor.processRoleNotification(tenantId, edgeNotificationMsg);
+                    future = roleProcessor.processRoleNotification(tenantId, edgeNotificationMsg);
                     break;
                 case GROUP_PERMISSION:
-                    entityGroupProcessor.processGroupPermissionNotification(tenantId, edgeNotificationMsg);
+                    future = entityGroupProcessor.processGroupPermissionNotification(tenantId, edgeNotificationMsg);
                     break;
                 case RELATION:
-                    relationProcessor.processRelationNotification(tenantId, edgeNotificationMsg);
+                    future = relationProcessor.processRelationNotification(tenantId, edgeNotificationMsg);
                     break;
                 default:
                     log.warn("Edge event type [{}] is not designed to be pushed to edge", type);
+                    future = Futures.immediateFuture(null);
             }
+            Futures.addCallback(future, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void unused) {
+                    callback.onSuccess();
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    callBackFailure(edgeNotificationMsg, callback, throwable);
+                }
+            }, dbCallBackExecutor);
         } catch (Exception e) {
-            callback.onFailure(e);
-            String errMsg = String.format("Can't push to edge updates, edgeNotificationMsg [%s]", edgeNotificationMsg);
-            log.error(errMsg, e);
-        } finally {
-            callback.onSuccess();
+            callBackFailure(edgeNotificationMsg, callback, e);
         }
+    }
+
+    private void callBackFailure(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback, Throwable throwable) {
+        String errMsg = String.format("Can't push to edge updates, edgeNotificationMsg [%s]", edgeNotificationMsg);
+        log.error(errMsg, throwable);
+        callback.onFailure(throwable);
     }
 
 }
