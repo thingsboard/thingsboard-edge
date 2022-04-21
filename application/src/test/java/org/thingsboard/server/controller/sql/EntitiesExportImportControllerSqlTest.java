@@ -1224,6 +1224,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         ImportRequest importRequest = new ImportRequest();
         importRequest.setImportSettings(EntityImportSettings.builder()
                 .updateEntityGroups(true)
+                .updateUserGroupPermissions(true)
                 .findExistingByName(true)
                 .build());
         importRequest.setExportDataList(exportDataList);
@@ -1451,11 +1452,11 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
                 .exportUserGroupPermissions(true)
                 .build()).get(0);
         verify(accessControlService).checkPermission(getIdMatcher(tenantAdmin1), eq(Resource.GROUP_PERMISSION), eq(Operation.READ));
-        
+
         logInAsTenantAdmin2();
         EntityGroup importedUserGroup = (EntityGroup) ((EntityImportResult<?>) importEntities(List.of(exportData), EntityImportSettings.builder()
-                        .updateUserGroupPermissions(true)
-                        .build()).get(0)).getSavedEntity();
+                .updateUserGroupPermissions(true)
+                .build()).get(0)).getSavedEntity();
         verify(accessControlService).checkPermission(getIdMatcher(tenantAdmin2), eq(Resource.GROUP_PERMISSION), eq(Operation.CREATE),
                 isNull(), argThat(entity -> ((GroupPermission) entity).getUserGroupId().equals(importedUserGroup.getId())));
         assertPermissionCheck(tenantAdmin2, Operation.READ, importedRole, false);

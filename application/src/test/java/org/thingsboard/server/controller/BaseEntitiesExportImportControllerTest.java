@@ -560,7 +560,7 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         ImportRequest importRequest = new ImportRequest();
         importRequest.setImportSettings(importSettings == null ? new EntityImportSettings() : importSettings);
         importRequest.setExportDataList(exportDataList);
-        return importEntities(exportDataList);
+        return importEntities(importRequest);
     }
 
     protected void resetUniqueProperties(EntityExportData<?> exportData) {
