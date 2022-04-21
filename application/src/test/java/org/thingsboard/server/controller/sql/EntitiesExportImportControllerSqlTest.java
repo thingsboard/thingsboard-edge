@@ -552,8 +552,8 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
 
         EntityExportData<?> deviceExportData = exportDataList.stream().filter(exportData -> exportData.getEntityType() == EntityType.DEVICE).findFirst().orElse(null);
-        assertThat(deviceExportData.getInboundRelations()).size().isOne();
-        assertThat(deviceExportData.getInboundRelations().get(0)).matches(entityRelation -> {
+        assertThat(deviceExportData.getRelations()).size().isOne();
+        assertThat(deviceExportData.getRelations().get(0)).matches(entityRelation -> {
             return entityRelation.getFrom().equals(asset.getId()) && entityRelation.getTo().equals(device.getId());
         });
         ((DeviceExportData) deviceExportData).getCredentials().setCredentialsId("ab");
@@ -564,7 +564,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         ImportRequest importRequest = new ImportRequest();
         importRequest.setExportDataList(exportDataList);
         importRequest.setImportSettings(EntityImportSettings.builder()
-                .importInboundRelations(true)
+                .updateRelations(true)
                 .build());
         Map<EntityType, EntityImportResult<?>> importResults = importEntities(importRequest).stream().collect(Collectors.toMap(EntityImportResult::getEntityType, r -> r));
 
@@ -598,7 +598,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
                 .build());
         List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
 
-        assertThat(exportDataList).allMatch(exportData -> exportData.getInboundRelations().size() + exportData.getOutboundRelations().size() == 1);
+        assertThat(exportDataList).allMatch(exportData -> exportData.getRelations().size() == 1);
 
         EntityExportData<?> deviceExportData = exportDataList.stream().filter(exportData -> exportData.getEntityType() == EntityType.DEVICE).findFirst().orElse(null);
         ((DeviceExportData) deviceExportData).getCredentials().setCredentialsId("ab");
@@ -609,8 +609,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         ImportRequest importRequest = new ImportRequest();
         importRequest.setExportDataList(exportDataList);
         importRequest.setImportSettings(EntityImportSettings.builder()
-                .importInboundRelations(true)
-                .importOutboundRelations(true)
+                .updateRelations(true)
                 .build());
         Map<EntityType, EntityImportResult<?>> importResults = importEntities(importRequest).stream().collect(Collectors.toMap(EntityImportResult::getEntityType, r -> r));
 
@@ -640,7 +639,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
                 .exportOutboundRelations(true)
                 .build());
         EntityExportData<Asset> assetExportData = (EntityExportData<Asset>) exportEntities(exportRequest).get(0);
-        assertThat(assetExportData.getOutboundRelations()).size().isOne();
+        assertThat(assetExportData.getRelations()).size().isOne();
 
         Device device2 = createDevice(tenantId1, null, null, null, "Device 2");
         EntityRelation relation2 = createRelation(asset.getId(), device2.getId());
@@ -648,13 +647,14 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         ImportRequest importRequest = new ImportRequest();
         importRequest.setExportDataList(List.of(assetExportData));
         importRequest.setImportSettings(EntityImportSettings.builder()
-                .importOutboundRelations(true)
+                .updateRelations(true)
                 .build());
 
         importEntities(importRequest);
 
         List<EntityRelation> relations = relationService.findByFrom(TenantId.SYS_TENANT_ID, asset.getId(), RelationTypeGroup.COMMON);
-        assertThat(relations).contains(relation1, relation2);
+        assertThat(relations).contains(relation1);
+        assertThat(relations).doesNotContain(relation2);
     }
 
     @Test
@@ -671,7 +671,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
                 .exportInboundRelations(true)
                 .build());
         EntityExportData<?> deviceExportData = exportEntities(exportRequest).get(0);
-        assertThat(deviceExportData.getInboundRelations()).size().isOne();
+        assertThat(deviceExportData.getRelations()).size().isOne();
 
         Asset asset2 = createAsset(tenantId1, null, null, "A", "Asset 2");
         EntityRelation relation2 = createRelation(asset2.getId(), device.getId());
@@ -679,8 +679,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         ImportRequest importRequest = new ImportRequest();
         importRequest.setExportDataList(List.of(deviceExportData));
         importRequest.setImportSettings(EntityImportSettings.builder()
-                .importInboundRelations(true)
-                .removeExistingRelations(true)
+                .updateRelations(true)
                 .build());
 
         importEntities(importRequest);
