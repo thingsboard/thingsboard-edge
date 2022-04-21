@@ -546,8 +546,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         EntityListExportRequest exportRequest = new EntityListExportRequest();
         exportRequest.setEntitiesIds(List.of(asset.getId(), device.getId()));
         exportRequest.setExportSettings(EntityExportSettings.builder()
-                .exportInboundRelations(true)
-                .exportOutboundRelations(false)
+                .exportRelations(true)
                 .build());
         List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
 
@@ -593,8 +592,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         EntityListExportRequest exportRequest = new EntityListExportRequest();
         exportRequest.setEntitiesIds(List.of(asset.getId(), device.getId()));
         exportRequest.setExportSettings(EntityExportSettings.builder()
-                .exportInboundRelations(true)
-                .exportOutboundRelations(true)
+                .exportRelations(true)
                 .build());
         List<EntityExportData<?>> exportDataList = exportEntities(exportRequest);
 
@@ -636,7 +634,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         SingleEntityExportRequest exportRequest = new SingleEntityExportRequest();
         exportRequest.setEntityId(asset.getId());
         exportRequest.setExportSettings(EntityExportSettings.builder()
-                .exportOutboundRelations(true)
+                .exportRelations(true)
                 .build());
         EntityExportData<Asset> assetExportData = (EntityExportData<Asset>) exportEntities(exportRequest).get(0);
         assertThat(assetExportData.getRelations()).size().isOne();
@@ -668,7 +666,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         SingleEntityExportRequest exportRequest = new SingleEntityExportRequest();
         exportRequest.setEntityId(device.getId());
         exportRequest.setExportSettings(EntityExportSettings.builder()
-                .exportInboundRelations(true)
+                .exportRelations(true)
                 .build());
         EntityExportData<?> deviceExportData = exportEntities(exportRequest).get(0);
         assertThat(deviceExportData.getRelations()).size().isOne();
