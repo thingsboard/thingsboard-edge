@@ -37,6 +37,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;
+import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNodeConfiguration;
 import org.thingsboard.server.common.data.Customer;
@@ -67,14 +68,20 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -87,27 +94,33 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.service.sync.exporting.data.DeviceExportData;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
+import org.thingsboard.server.service.sync.exporting.data.request.EntityListExportRequest;
 import org.thingsboard.server.service.sync.exporting.data.request.ExportRequest;
-import org.thingsboard.server.service.sync.exporting.data.request.SingleEntityExportRequest;
 import org.thingsboard.server.service.sync.importing.data.EntityImportResult;
 import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
 import org.thingsboard.server.service.sync.importing.data.request.ImportRequest;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseEntitiesExportImportControllerTest extends AbstractControllerTest {
@@ -136,6 +149,10 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
     protected ConverterService converterService;
     @Autowired
     protected IntegrationService integrationService;
+    @Autowired
+    protected RoleService roleService;
+    @Autowired
+    protected GroupPermissionService groupPermissionService;
 
     protected TenantId tenantId1;
     protected User tenantAdmin1;
@@ -182,7 +199,7 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         DeviceData deviceData = new DeviceData();
         deviceData.setTransportConfiguration(new DefaultDeviceTransportConfiguration());
         device.setDeviceData(deviceData);
-        device =  deviceService.saveDevice(device);
+        device = deviceService.saveDevice(device);
         if (entityGroupId != null) {
             entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, device.getId());
         }
@@ -261,6 +278,12 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
     protected Customer createCustomer(TenantId tenantId, EntityGroupId entityGroupId, String name) {
         Customer customer = new Customer();
         customer.setTenantId(tenantId);
+        if (entityGroupId != null) {
+            EntityGroup customerGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+            if (customerGroup.getOwnerId() instanceof CustomerId) {
+                customer.setParentCustomerId((CustomerId) customerGroup.getOwnerId());
+            }
+        }
         customer.setTitle(name);
         customer.setCountry("ua");
         customer.setAddress("abb");
@@ -283,15 +306,12 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
     protected Dashboard createDashboard(TenantId tenantId, CustomerId customerId, EntityGroupId entityGroupId, String name) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTenantId(tenantId);
+        dashboard.setCustomerId(customerId);
         dashboard.setTitle(name);
         dashboard.setConfiguration(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
         dashboard.setImage("abvregewrg");
         dashboard.setMobileHide(true);
         dashboard = dashboardService.saveDashboard(dashboard);
-        if (customerId != null) {
-            dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerId);
-            return dashboardService.findDashboardById(tenantId, dashboard.getId());
-        }
         if (entityGroupId != null) {
             entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, dashboard.getId());
         }
@@ -303,9 +323,6 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         assertThat(importedDashboard.getConfiguration()).isEqualTo(initialDashboard.getConfiguration());
         assertThat(importedDashboard.getImage()).isEqualTo(initialDashboard.getImage());
         assertThat(importedDashboard.isMobileHide()).isEqualTo(initialDashboard.isMobileHide());
-        if (initialDashboard.getAssignedCustomers() != null) {
-            assertThat(importedDashboard.getAssignedCustomers()).containsAll(initialDashboard.getAssignedCustomers());
-        }
     }
 
     protected RuleChain createRuleChain(TenantId tenantId, String name) {
@@ -433,6 +450,38 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         assertThat(importedIntegration.getSecret()).isEqualTo(initialIntegration.getSecret());
     }
 
+    protected Role createGenericRole(TenantId tenantId, CustomerId customerId, String name, Map<Resource, List<Operation>> permissions) {
+        return createRole(tenantId, customerId, name, RoleType.GENERIC, permissions);
+    }
+
+    protected Role createGroupRole(TenantId tenantId, CustomerId customerId, String name, List<Operation> permissions) {
+        return createRole(tenantId, customerId, name, RoleType.GROUP, permissions);
+    }
+
+    private Role createRole(TenantId tenantId, CustomerId customerId, String name, RoleType roleType, Object permissions) {
+        Role role = new Role();
+        role.setTenantId(tenantId);
+        role.setCustomerId(customerId);
+        role.setName(name);
+        role.setType(roleType);
+        role.setPermissions(JacksonUtil.valueToTree(permissions));
+        return roleService.saveRole(tenantId, role);
+    }
+
+    protected GroupPermission createGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId genericRoleId) {
+        return createGroupPermission(tenantId, userGroupId, genericRoleId, null, null);
+    }
+
+    protected GroupPermission createGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId, EntityGroupId entityGroupId, EntityType entityGroupType) {
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setTenantId(tenantId);
+        groupPermission.setUserGroupId(userGroupId);
+        groupPermission.setRoleId(roleId);
+        groupPermission.setEntityGroupId(entityGroupId);
+        groupPermission.setEntityGroupType(entityGroupType);
+        return groupPermissionService.saveGroupPermission(tenantId, groupPermission);
+    }
+
     protected <E extends ExportableEntity<?> & HasTenantId> void checkImportedEntity(TenantId tenantId1, E initialEntity, TenantId tenantId2, E importedEntity) {
         assertThat(initialEntity.getTenantId()).isEqualTo(tenantId1);
         assertThat(importedEntity.getTenantId()).isEqualTo(tenantId2);
@@ -461,8 +510,10 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         boolean sameTenant = tenantId1.equals(tenantId2);
         if (!sameTenant) {
             assertThat(importedEntity.getId()).isNotEqualTo(initialEntity.getId());
+            assertThat(importedEntity.getOwnerId()).isNotEqualTo(initialEntity.getOwnerId());
         } else {
             assertThat(importedEntity.getId()).isEqualTo(initialEntity.getId());
+            assertThat(importedEntity.getOwnerId()).isEqualTo(initialEntity.getOwnerId());
         }
     }
 
@@ -475,10 +526,18 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
 
 
     protected <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportSingleEntity(I entityId) throws Exception {
-        SingleEntityExportRequest exportRequest = new SingleEntityExportRequest();
-        exportRequest.setEntityId(entityId);
-        exportRequest.setExportSettings(new EntityExportSettings());
-        return (EntityExportData<E>) exportEntities(exportRequest).get(0);
+        return (EntityExportData<E>) exportEntities(entityId).get(0);
+    }
+
+    protected List<EntityExportData<?>> exportEntities(EntityId... entitiesIds) throws Exception {
+        return exportEntities(Arrays.asList(entitiesIds), new EntityExportSettings());
+    }
+
+    protected List<EntityExportData<?>> exportEntities(Collection<EntityId> entitiesIds, EntityExportSettings exportSettings) throws Exception {
+        EntityListExportRequest exportRequest = new EntityListExportRequest();
+        exportRequest.setEntitiesIds(new ArrayList<>(entitiesIds));
+        exportRequest.setExportSettings(exportSettings);
+        return exportEntities(exportRequest);
     }
 
     protected List<EntityExportData<?>> exportEntities(ExportRequest exportRequest) throws Exception {
@@ -489,14 +548,45 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         return getResponse(doPost("/api/entities/export?multiple", exportRequests), new TypeReference<List<EntityExportData<?>>>() {});
     }
 
+    protected List<EntityImportResult<?>> exportAndImport(List<EntityId> entitiesIds, EntityExportSettings exportSettings,
+                                                        EntityImportSettings importSettings) throws Exception {
+        logInAsTenantAdmin1();
+        List<EntityExportData<?>> exportDataList = exportEntities(entitiesIds,
+                exportSettings == null ? new EntityExportSettings() : exportSettings);
+        updateExportData(exportDataList, EntityType.DEVICE, this::resetUniqueProperties);
+        updateExportData(exportDataList, EntityType.INTEGRATION, this::resetUniqueProperties);
+
+        logInAsTenantAdmin2();
+        ImportRequest importRequest = new ImportRequest();
+        importRequest.setImportSettings(importSettings == null ? new EntityImportSettings() : importSettings);
+        importRequest.setExportDataList(exportDataList);
+        return importEntities(exportDataList);
+    }
+
+    protected void resetUniqueProperties(EntityExportData<?> exportData) {
+        if (exportData.getEntityType() == EntityType.DEVICE) {
+            ((DeviceExportData) exportData).setCredentials(null);
+        } else if (exportData.getEntityType() == EntityType.INTEGRATION) {
+            ((EntityExportData<Integration>) exportData).getEntity().setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
+        }
+    }
+
+    protected List<EntityImportResult<?>> exportAndImport(EntityId... entitiesIds) throws Exception {
+        return exportAndImport(Arrays.asList(entitiesIds), new EntityExportSettings(), new EntityImportSettings());
+    }
+
 
     protected <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(EntityExportData<E> exportData) throws Exception {
         return (EntityImportResult<E>) importEntities(List.of((EntityExportData<ExportableEntity<EntityId>>) exportData)).get(0);
     }
 
     protected List<EntityImportResult<?>> importEntities(List<EntityExportData<?>> exportDataList) throws Exception {
+        return importEntities(exportDataList, new EntityImportSettings());
+    }
+
+    protected List<EntityImportResult<?>> importEntities(List<EntityExportData<?>> exportDataList, EntityImportSettings importSettings) throws Exception {
         ImportRequest importRequest = new ImportRequest();
-        importRequest.setImportSettings(new EntityImportSettings());
+        importRequest.setImportSettings(importSettings);
         importRequest.setExportDataList(exportDataList);
         return importEntities(importRequest);
     }
@@ -513,6 +603,16 @@ public abstract class BaseEntitiesExportImportControllerTest extends AbstractCon
         }
     }
 
+    @SuppressWarnings("unchecked")
+    protected <E extends ExportableEntity<?>> E findImportedEntity(List<EntityImportResult<?>> importResults, EntityType entityType, Predicate<E> entityPredicate) {
+        return (E) importResults.stream().filter(importResult -> {
+            return importResult.getEntityType() == entityType && entityPredicate.test((E) importResult.getSavedEntity());
+        }).findFirst().map(EntityImportResult::getSavedEntity).orElse(null);
+    }
+
+    protected <E extends ExportableEntity<?>> E findImportedEntity(List<EntityImportResult<?>> importResults, EntityType entityType) {
+        return findImportedEntity(importResults, entityType, e -> true);
+    }
 
     protected void logInAsTenantAdmin1() throws Exception {
         login(tenantAdmin1.getEmail(), "12345678");
