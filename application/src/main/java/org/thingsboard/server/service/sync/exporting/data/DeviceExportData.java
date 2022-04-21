@@ -36,9 +36,9 @@ import lombok.ToString;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 
-@Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@Data
 public class DeviceExportData extends GroupEntityExportData<Device> {
 
     private DeviceCredentials credentials;

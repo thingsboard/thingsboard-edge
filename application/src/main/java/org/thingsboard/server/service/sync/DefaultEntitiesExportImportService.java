@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.sync;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,25 +39,13 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.sync.exporting.EntityExportService;
-import org.thingsboard.server.service.sync.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
 import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
 import org.thingsboard.server.service.sync.exporting.impl.BaseEntityExportService;
@@ -73,20 +62,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class DefaultEntitiesExportImportService implements EntitiesExportImportService, ExportableEntitiesService {
+@Slf4j
+public class DefaultEntitiesExportImportService implements EntitiesExportImportService {
 
     private final Map<EntityType, EntityExportService<?, ?, ?>> exportServices = new HashMap<>();
     private final Map<EntityType, EntityImportService<?, ?, ?>> importServices = new HashMap<>();
-    private final Map<EntityType, Dao<?>> daos = new HashMap<>();
-
-    private final AccessControlService accessControlService;
-    private final OwnersCacheService ownersCacheService;
 
     protected static final List<EntityType> SUPPORTED_ENTITY_TYPES = List.of(
             EntityType.CUSTOMER, EntityType.ENTITY_GROUP, EntityType.ASSET, EntityType.RULE_CHAIN,
@@ -152,7 +137,6 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
         }
     }
 
-
     private <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(SecurityUser user, EntityExportData<E> exportData, EntityImportSettings importSettings) throws ThingsboardException {
         if (exportData.getEntity() == null || exportData.getEntity().getId() == null) {
             throw new DataValidationException("Invalid entity data");
@@ -165,91 +149,23 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     }
 
 
-    @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndExternalId(TenantId tenantId, I externalId) {
-        EntityType entityType = externalId.getEntityType();
-        if (SUPPORTED_ENTITY_TYPES.contains(entityType)) {
-            ExportableEntityDao<E> dao = (ExportableEntityDao<E>) getDao(entityType);
-            return dao.findByTenantIdAndExternalId(tenantId.getId(), externalId.getId());
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public <E extends HasId<I>, I extends EntityId> E findEntityByTenantIdAndId(TenantId tenantId, I id) {
-        Dao<E> dao = (Dao<E>) getDao(id.getEntityType());
-        E entity = dao.findById(tenantId, id.getId());
-
-        Set<EntityId> owners;
-        if (entity instanceof HasOwnerId) {
-            owners = ownersCacheService.getOwners(tenantId, entity.getId(), (HasOwnerId) entity);
-        } else {
-            owners = Set.of(((HasTenantId) entity).getTenantId());
-        }
-
-        if (owners.contains(tenantId)) {
-            return entity;
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name) {
-        ExportableEntityDao<E> dao = (ExportableEntityDao<E>) getDao(entityType);
-        try {
-            return dao.findByTenantIdAndName(tenantId.getId(), name);
-        } catch (UnsupportedOperationException e) {
-            return null;
-        }
-    }
-
-
-    @Override
-    public void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException {
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (entity instanceof TenantEntity) {
-            accessControlService.checkPermission(user, resource, operation, entity.getId(), (TenantEntity) entity);
-        } else if (entity instanceof EntityGroup) {
-            accessControlService.checkEntityGroupPermission(user, operation, (EntityGroup) entity);
-        } else {
-            accessControlService.checkPermission(user, resource, operation);
-        }
-    }
-
-    @Override
-    public <E extends TenantEntity & HasId<? extends EntityId>> void checkPermission(SecurityUser user, E entity, EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.resourceFromEntityType(entity.getEntityType()), operation, entity.getId(), entity, entityGroupId);
-    }
-
-    @Override
-    public void checkPermission(SecurityUser user, EntityId entityId, Operation operation) throws ThingsboardException {
-        HasId<EntityId> entity = findEntityByTenantIdAndId(user.getTenantId(), entityId);
-        checkPermission(user, entity, entityId.getEntityType(), operation);
-    }
-
-
     @SuppressWarnings("unchecked")
     private <I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> EntityExportService<I, E, D> getExportService(EntityType entityType) {
-        if (!SUPPORTED_ENTITY_TYPES.contains(entityType)) {
+        EntityExportService<?, ?, ?> exportService = exportServices.get(entityType);
+        if (exportService == null) {
             throw new IllegalArgumentException("Export for entity type " + entityType + " is not supported");
         }
-        return (EntityExportService<I, E, D>) exportServices.get(entityType);
+        return (EntityExportService<I, E, D>) exportService;
     }
 
     @SuppressWarnings("unchecked")
     private <I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> EntityImportService<I, E, D> getImportService(EntityType entityType) {
-        if (!SUPPORTED_ENTITY_TYPES.contains(entityType)) {
+        EntityImportService<?, ?, ?> importService = importServices.get(entityType);
+        if (importService == null) {
             throw new IllegalArgumentException("Import for entity type " + entityType + " is not supported");
         }
-        return (EntityImportService<I, E, D>) importServices.get(entityType);
+        return (EntityImportService<I, E, D>) importService;
     }
-
-    private Dao<?> getDao(EntityType entityType) {
-        return daos.get(entityType);
-    }
-
 
     @Autowired
     private void setExportServices(DefaultEntityExportService<?, ?, ?> defaultExportService,
@@ -270,15 +186,6 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     private void setImportServices(Collection<EntityImportService<?, ?, ?>> importServices) {
         importServices.forEach(entityImportService -> {
             this.importServices.put(entityImportService.getEntityType(), entityImportService);
-        });
-    }
-
-    @Autowired
-    private void setDaos(Collection<Dao<?>> daos) {
-        daos.forEach(dao -> {
-            if (dao.getEntityType() != null) {
-                this.daos.put(dao.getEntityType(), dao);
-            }
         });
     }
 
