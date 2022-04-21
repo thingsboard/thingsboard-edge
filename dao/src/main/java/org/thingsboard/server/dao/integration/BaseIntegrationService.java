@@ -126,6 +126,11 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    public List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name) {
+        return integrationDao.findTenantIntegrationsByName(tenantId.getId(), name);
+    }
+
+    @Override
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);

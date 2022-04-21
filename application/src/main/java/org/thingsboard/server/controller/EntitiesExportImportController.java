@@ -130,6 +130,10 @@ public class EntitiesExportImportController extends BaseController {
             }
             case ENTITY_TYPE: {
                 EntityTypeExportRequest exportRequest = (EntityTypeExportRequest) request;
+                if (exportRequest.getEntityType() == EntityType.ENTITY_GROUP) {
+                    throw new IllegalArgumentException("Entity type filter is not applicable for exporting Entity Groups. Use Custom entity filter instead");
+                }
+
                 EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
                 entityTypeFilter.setEntityType(exportRequest.getEntityType());
 

@@ -51,12 +51,12 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     private final ConverterService converterService;
 
     @Override
-    protected void setOwner(TenantId tenantId, Converter converter, NewIdProvider idProvider) {
+    protected void setOwner(TenantId tenantId, Converter converter, IdProvider idProvider) {
         converter.setTenantId(tenantId);
     }
 
     @Override
-    protected Converter prepareAndSave(TenantId tenantId, Converter converter, EntityExportData<Converter> exportData, NewIdProvider idProvider) {
+    protected Converter prepareAndSave(TenantId tenantId, Converter converter, EntityExportData<Converter> exportData, IdProvider idProvider) {
         return converterService.saveConverter(converter);
     }
 

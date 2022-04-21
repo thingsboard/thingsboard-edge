@@ -28,67 +28,61 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.importing.impl;
+package org.thingsboard.server.service.sync.exporting.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
+import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
+import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
-public class RoleImportService extends BaseEntityImportService<RoleId, Role, EntityExportData<Role>> {
+public class EntityGroupExportService extends BaseEntityExportService<EntityGroupId, EntityGroup, EntityGroupExportData> {
 
+    private final GroupPermissionService groupPermissionService;
     private final RoleService roleService;
-    private final UserPermissionsService userPermissionsService;
 
     @Override
-    protected void setOwner(TenantId tenantId, Role role, IdProvider idProvider) {
-        role.setTenantId(tenantId);
-        role.setCustomerId(idProvider.getInternalId(role.getCustomerId()));
-    }
+    protected void setAdditionalExportData(SecurityUser user, EntityGroup entityGroup, EntityGroupExportData exportData, EntityExportSettings exportSettings) throws ThingsboardException {
+        super.setAdditionalExportData(user, entityGroup, exportData, exportSettings);
 
-    @Override
-    protected Role findExistingEntity(TenantId tenantId, Role role, EntityImportSettings importSettings) {
-        Role existingRole = super.findExistingEntity(tenantId, role, importSettings);
-        if (existingRole == null && importSettings.isFindExistingByName()) {
-            if (role.getOwnerId().getEntityType() == EntityType.TENANT) {
-                existingRole = roleService.findRoleByTenantIdAndName(tenantId, role.getName()).orElse(null);
-            } else {
-                existingRole = roleService.findRoleByByTenantIdAndCustomerIdAndName(tenantId,
-                        findInternalEntity(tenantId, role.getCustomerId()).getId(), role.getName()).orElse(null);
-            }
+        if (exportSettings.isExportUserGroupPermissions() && entityGroup.getType() == EntityType.USER) {
+            exportableEntitiesService.checkPermission(user, null, EntityType.GROUP_PERMISSION, Operation.READ);
+            List<GroupPermission> permissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(user.getTenantId(), entityGroup.getId()).stream()
+                    .filter(permission -> {
+                        Role role = roleService.findRoleById(user.getTenantId(), permission.getRoleId());
+                        return !role.getOwnerId().equals(TenantId.SYS_TENANT_ID);
+                    })
+                    .collect(Collectors.toList());
+            exportData.setPermissions(permissions);
         }
-        return existingRole;
     }
 
     @Override
-    protected Role prepareAndSave(TenantId tenantId, Role role, EntityExportData<Role> exportData, IdProvider idProvider) {
-        return roleService.saveRole(tenantId, role);
+    protected EntityGroupExportData newExportData() {
+        return new EntityGroupExportData();
     }
 
     @Override
-    protected void onEntitySaved(SecurityUser user, Role savedRole, Role oldRole) throws ThingsboardException {
-        super.onEntitySaved(user, savedRole, oldRole);
-        userPermissionsService.onRoleUpdated(savedRole);
-        entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedRole.getId(),
-                oldRole == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-    }
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.ROLE;
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.ENTITY_GROUP);
     }
 
 }

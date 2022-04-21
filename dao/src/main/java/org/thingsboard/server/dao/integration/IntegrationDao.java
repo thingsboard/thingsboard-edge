@@ -82,5 +82,6 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, Expor
      */
     ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
 
+    List<Integration> findTenantIntegrationsByName(UUID tenantId, String name);
 
 }

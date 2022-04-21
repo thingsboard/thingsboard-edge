@@ -33,14 +33,16 @@ package org.thingsboard.server.service.sync.exporting.data;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+
+import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class DeviceExportData extends GroupEntityExportData<Device> {
+public class EntityGroupExportData extends EntityExportData<EntityGroup> {
 
-    private DeviceCredentials credentials;
+    private List<GroupPermission> permissions;
 
 }

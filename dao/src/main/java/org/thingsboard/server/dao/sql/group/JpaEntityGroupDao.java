@@ -146,11 +146,6 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    public EntityGroup findFirstByTenantIdAndName(UUID tenantId, String name) {
-        return null;
-    }
-
-    @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
     }

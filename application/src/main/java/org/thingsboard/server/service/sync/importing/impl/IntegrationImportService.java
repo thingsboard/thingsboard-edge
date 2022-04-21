@@ -43,6 +43,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
+import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
 
 @Service
 @TbCoreComponent
@@ -53,14 +54,23 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
     private final PlatformIntegrationService platformIntegrationService;
 
     @Override
-    protected void setOwner(TenantId tenantId, Integration integration, NewIdProvider idProvider) {
+    protected void setOwner(TenantId tenantId, Integration integration, IdProvider idProvider) {
         integration.setTenantId(tenantId);
     }
 
     @Override
-    protected Integration prepareAndSave(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, NewIdProvider idProvider) {
-        integration.setDefaultConverterId(idProvider.get(Integration::getDefaultConverterId));
-        integration.setDownlinkConverterId(idProvider.get(Integration::getDownlinkConverterId));
+    protected Integration findExistingEntity(TenantId tenantId, Integration integration, EntityImportSettings importSettings) {
+        Integration existingIntegration = super.findExistingEntity(tenantId, integration, importSettings);
+        if (existingIntegration == null && importSettings.isFindExistingByName()) {
+            existingIntegration = integrationService.findTenantIntegrationsByName(tenantId, integration.getName()).stream().findFirst().orElse(null);
+        }
+        return existingIntegration;
+    }
+
+    @Override
+    protected Integration prepareAndSave(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider) {
+        integration.setDefaultConverterId(idProvider.getInternalId(integration.getDefaultConverterId()));
+        integration.setDownlinkConverterId(idProvider.getInternalId(integration.getDownlinkConverterId()));
         platformIntegrationService.validateIntegrationConfiguration(integration);
         return integrationService.saveIntegration(integration);
     }

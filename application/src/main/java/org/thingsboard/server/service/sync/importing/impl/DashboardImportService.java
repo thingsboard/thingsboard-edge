@@ -69,6 +69,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     @Override
     protected void setOwner(TenantId tenantId, Dashboard dashboard, IdProvider idProvider) {
         dashboard.setTenantId(tenantId);
+        dashboard.setCustomerId(idProvider.getInternalId(dashboard.getCustomerId()));
     }
 
     @Override
@@ -102,37 +103,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
                             });
                 }));
 
-        Set<ShortCustomerInfo> assignedCustomers = Optional.ofNullable(dashboard.getAssignedCustomers()).orElse(Collections.emptySet()).stream()
-                .peek(customerInfo -> customerInfo.setCustomerId(idProvider.getInternalId(customerInfo.getCustomerId())))
-                .collect(Collectors.toSet());
-
-        if (dashboard.getId() == null) {
-            dashboard.setAssignedCustomers(null);
-            dashboard = dashboardService.saveDashboard(dashboard);
-            for (ShortCustomerInfo customerInfo : assignedCustomers) {
-                dashboard = dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerInfo.getCustomerId());
-            }
-        } else {
-            Set<CustomerId> existingAssignedCustomers = Optional.ofNullable(dashboardService.findDashboardById(tenantId, dashboard.getId()).getAssignedCustomers())
-                    .orElse(Collections.emptySet()).stream().map(ShortCustomerInfo::getCustomerId).collect(Collectors.toSet());
-            Set<CustomerId> newAssignedCustomers = assignedCustomers.stream().map(ShortCustomerInfo::getCustomerId).collect(Collectors.toSet());
-
-            Set<CustomerId> toUnassign = new HashSet<>(existingAssignedCustomers);
-            toUnassign.removeAll(newAssignedCustomers);
-            for (CustomerId customerId : toUnassign) {
-                assignedCustomers = dashboardService.unassignDashboardFromCustomer(tenantId, dashboard.getId(), customerId).getAssignedCustomers();
-            }
-
-            Set<CustomerId> toAssign = new HashSet<>(newAssignedCustomers);
-            toAssign.removeAll(existingAssignedCustomers);
-            for (CustomerId customerId : toAssign) {
-                assignedCustomers = dashboardService.assignDashboardToCustomer(tenantId, dashboard.getId(), customerId).getAssignedCustomers();
-            }
-
-            dashboard.setAssignedCustomers(assignedCustomers);
-            dashboard = dashboardService.saveDashboard(dashboard);
-        }
-        return dashboard;
+        return dashboardService.saveDashboard(dashboard);
     }
 
     @Override

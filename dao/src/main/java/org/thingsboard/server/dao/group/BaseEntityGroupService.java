@@ -557,6 +557,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public Optional<EntityGroup> findEntityGroupByTypeAndNameSync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEntityGroupByTypeAndNameSync(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), relationType, name);
+    }
+
+    @Override
     public void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
@@ -575,9 +582,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
 
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + entityId.getEntityType().name();
-        Optional<EntityGroup> entityGroup = this.entityGroupDao.findEntityGroupByTypeAndNameSync(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, EntityGroup.GROUP_ALL_NAME);
+        Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndNameSync(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME);
         if (entityGroup.isPresent()) {
             addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
         } else {

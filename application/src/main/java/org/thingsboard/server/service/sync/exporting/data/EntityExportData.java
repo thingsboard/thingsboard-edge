@@ -49,6 +49,7 @@ import java.util.List;
 @JsonSubTypes({
         @Type(name = "DEVICE", value = DeviceExportData.class),
         @Type(name = "RULE_CHAIN", value = RuleChainExportData.class),
+        @Type(name = "ENTITY_GROUP", value = EntityGroupExportData.class),
         @Type(name = "ASSET", value = GroupEntityExportData.class),
         @Type(name = "DASHBOARD", value = GroupEntityExportData.class),
         @Type(name = "CUSTOMER", value = GroupEntityExportData.class)

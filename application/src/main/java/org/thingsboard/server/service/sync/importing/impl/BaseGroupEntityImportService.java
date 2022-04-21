@@ -58,7 +58,8 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
     private EntityGroupService entityGroupService;
 
     @Override
-    protected void processAfterSaved(SecurityUser user, EntityImportResult<E> importResult, D exportData, NewIdProvider idProvider, EntityImportSettings importSettings) throws ThingsboardException {
+    protected void processAfterSaved(SecurityUser user, EntityImportResult<E> importResult, D exportData,
+                                     IdProvider idProvider, EntityImportSettings importSettings) throws ThingsboardException {
         super.processAfterSaved(user, importResult, exportData, idProvider, importSettings);
 
         importResult.addSaveReferencesCallback(() -> {
@@ -69,11 +70,11 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
                 return;
             }
 
-            if (oldEntity == null) {
-                List<EntityGroupId> entityGroupsIds = exportData.getEntityGroupsIds().stream()
-                        .map(idProvider::getInternal)
-                        .collect(Collectors.toList());
+            List<EntityGroupId> entityGroupsIds = exportData.getEntityGroupsIds().stream()
+                    .map(idProvider::getInternalId)
+                    .collect(Collectors.toList());
 
+            if (oldEntity == null) {
                 for (EntityGroupId entityGroupId : entityGroupsIds) {
                     EntityGroup entityGroup = exportableEntitiesService.findEntityByTenantIdAndId(user.getTenantId(), entityGroupId);
                     addEntityToGroup(user, importResult, entityGroup);
@@ -86,14 +87,10 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
                     throw new RuntimeException(e);
                 }
 
-                List<EntityGroupId> newEntityGroups = exportData.getEntityGroupsIds().stream()
-                        .map(idProvider::getInternal)
-                        .collect(Collectors.toList());
-
                 List<EntityGroupId> toRemove = new ArrayList<>(existingEntityGroups);
-                toRemove.removeAll(newEntityGroups);
+                toRemove.removeAll(entityGroupsIds);
 
-                List<EntityGroupId> toAdd = new ArrayList<>(newEntityGroups);
+                List<EntityGroupId> toAdd = new ArrayList<>(entityGroupsIds);
                 toAdd.removeAll(existingEntityGroups);
 
                 for (EntityGroupId entityGroupId : toRemove) {
@@ -121,6 +118,7 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
             }
         });
     }
+
     private void addEntityToGroup(SecurityUser user, EntityImportResult<E> importResult, EntityGroup entityGroup) throws ThingsboardException {
         E savedEntity = importResult.getSavedEntity();
 
@@ -142,6 +140,7 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
             entityActionService.sendGroupEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(), entityGroup.getId(), EdgeEventActionType.ADDED_TO_ENTITY_GROUP);
         });
     }
+
     @Override
     protected void onEntitySaved(SecurityUser user, E savedEntity, E oldEntity) throws ThingsboardException {
         super.onEntitySaved(user, savedEntity, oldEntity);

@@ -50,6 +50,7 @@ public class CustomerImportService extends BaseGroupEntityImportService<Customer
     @Override
     protected void setOwner(TenantId tenantId, Customer customer, IdProvider idProvider) {
         customer.setTenantId(tenantId);
+        customer.setParentCustomerId(idProvider.getInternalId(customer.getParentCustomerId()));
     }
 
     @Override

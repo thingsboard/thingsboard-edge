@@ -97,6 +97,8 @@ public interface EntityGroupService {
 
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
+    Optional<EntityGroup> findEntityGroupByTypeAndNameSync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
+
     void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId);
 
     void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId);

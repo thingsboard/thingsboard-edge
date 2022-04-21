@@ -193,7 +193,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
                 .orElse(null);
     }
 
-    private <ID extends EntityId> HasId<ID> findInternalEntity(TenantId tenantId, ID externalId) {
+    protected <ID extends EntityId> HasId<ID> findInternalEntity(TenantId tenantId, ID externalId) {
         return (HasId<ID>) Optional.ofNullable(exportableEntitiesService.findEntityByTenantIdAndExternalId(tenantId, externalId))
                 .or(() -> Optional.ofNullable(exportableEntitiesService.findEntityByTenantIdAndId(tenantId, externalId)))
                 .orElseThrow(() -> new IllegalArgumentException("Cannot find " + externalId.getEntityType() + " by external id " + externalId));

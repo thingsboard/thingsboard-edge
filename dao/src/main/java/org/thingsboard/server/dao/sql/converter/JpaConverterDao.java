@@ -96,7 +96,7 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    public Converter findFirstByTenantIdAndName(UUID tenantId, String name) {
+    public Converter findByTenantIdAndName(UUID tenantId, String name) {
         return findConverterByTenantIdAndName(tenantId, name).orElse(null);
     }
 

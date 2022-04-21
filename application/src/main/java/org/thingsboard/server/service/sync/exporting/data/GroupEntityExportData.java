@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.sync.exporting.data;
 
 import lombok.Data;
+import lombok.ToString;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -39,6 +40,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import java.util.List;
 
 @Data
+@ToString(callSuper = true)
 public class GroupEntityExportData<E extends ExportableEntity<? extends EntityId> & GroupEntity<? extends EntityId>> extends EntityExportData<E> {
 
     private List<EntityGroupId> entityGroupsIds;

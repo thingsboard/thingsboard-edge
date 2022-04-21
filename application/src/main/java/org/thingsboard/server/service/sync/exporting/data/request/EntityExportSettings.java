@@ -42,4 +42,5 @@ import lombok.NoArgsConstructor;
 public class EntityExportSettings {
     private boolean exportRelations;
     private boolean exportEntityGroupsInfo;
+    private boolean exportUserGroupPermissions;
 }

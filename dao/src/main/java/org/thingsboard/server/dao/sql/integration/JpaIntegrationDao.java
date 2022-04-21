@@ -82,6 +82,11 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
+    public List<Integration> findTenantIntegrationsByName(UUID tenantId, String name) {
+        return DaoUtil.convertDataList(integrationRepository.findByTenantIdAndName(tenantId, name));
+    }
+
+    @Override
     protected Class<IntegrationEntity> getEntityClass() {
         return IntegrationEntity.class;
     }
@@ -99,11 +104,6 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     @Override
     public Integration findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
         return DaoUtil.getData(integrationRepository.findByTenantIdAndExternalId(tenantId, externalId));
-    }
-
-    @Override
-    public Integration findFirstByTenantIdAndName(UUID tenantId, String name) {
-        return DaoUtil.getData(integrationRepository.findFirstByTenantIdAndName(tenantId, name));
     }
 
     @Override

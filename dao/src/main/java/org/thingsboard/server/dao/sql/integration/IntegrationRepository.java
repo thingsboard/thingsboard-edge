@@ -57,6 +57,6 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
 
     Long countByTenantId(UUID tenantId);
 
-    IntegrationEntity findFirstByTenantIdAndName(UUID tenantId, String name);
+    List<IntegrationEntity> findByTenantIdAndName(UUID tenantId, String name);
 
 }

@@ -132,11 +132,6 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
-    public Role findFirstByTenantIdAndName(UUID tenantId, String name) {
-        return findRoleByTenantIdAndName(tenantId, name).orElse(null); // FIXME [viacheslav]: roles of customers
-    }
-
-    @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;
     }

@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -72,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -124,8 +126,32 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     }
 
     private void fixOrder(List<EntityExportData<?>> exportDataList) {
-        exportDataList.sort(Comparator.comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType())));
+        Map<EntityId, EntityId> entitiesOwners = new HashMap<>();
+        exportDataList.stream().map(EntityExportData::getEntity).forEach(entity -> {
+            EntityId entityId = entity.getId();
+            EntityId ownerId = entity instanceof HasOwnerId ? ((HasOwnerId) entity).getOwnerId() : ((HasTenantId) entity).getTenantId();
+            entitiesOwners.put(entityId, ownerId);
+        });
+
+        exportDataList.sort(Comparator.<EntityExportData<?>, Integer>comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType()))
+                .thenComparing((exportData) -> {
+                    if (exportData.getEntityType() == EntityType.CUSTOMER) {
+                        return getNestingLevel((CustomerId) exportData.getEntity().getId(), entitiesOwners);
+                    } else {
+                        return 0;
+                    }
+                }));
     }
+
+    private int getNestingLevel(CustomerId customerId, Map<EntityId, EntityId> entitiesOwners) {
+        EntityId customerOwner = entitiesOwners.get(customerId);
+        if (customerOwner == null || customerOwner.getEntityType() == EntityType.TENANT) {
+            return 0;
+        } else {
+            return 1 + getNestingLevel((CustomerId) customerOwner, entitiesOwners);
+        }
+    }
+
 
     private <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(SecurityUser user, EntityExportData<E> exportData, EntityImportSettings importSettings) throws ThingsboardException {
         if (exportData.getEntity() == null || exportData.getEntity().getId() == null) {
@@ -155,20 +181,19 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
         Dao<E> dao = (Dao<E>) getDao(id.getEntityType());
         E entity = dao.findById(tenantId, id.getId());
 
+        Set<EntityId> owners;
         if (entity instanceof HasOwnerId) {
-            if (ownersCacheService.getOwners(tenantId, entity.getId(), (HasOwnerId) entity).contains(tenantId)) {
-                return entity;
-            }
-        } else if (entity instanceof HasTenantId) {
-            if (((HasTenantId) entity).getTenantId().equals(tenantId)) {
-                return entity;
-            }
-        } else if (Objects.equals(ownersCacheService.getOwner(tenantId, entity.getId()), tenantId)) {
-            return entity;
+            owners = ownersCacheService.getOwners(tenantId, entity.getId(), (HasOwnerId) entity);
+        } else {
+            owners = Set.of(((HasTenantId) entity).getTenantId());
         }
 
-        return null;
-}
+        if (owners.contains(tenantId)) {
+            return entity;
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name) {
@@ -183,12 +208,13 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
 
     @Override
     public void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException {
+        Resource resource = Resource.resourceFromEntityType(entityType);
         if (entity instanceof TenantEntity) {
-            accessControlService.checkPermission(user, Resource.resourceFromEntityType(entityType), operation, entity.getId(), (TenantEntity) entity);
+            accessControlService.checkPermission(user, resource, operation, entity.getId(), (TenantEntity) entity);
         } else if (entity instanceof EntityGroup) {
             accessControlService.checkEntityGroupPermission(user, operation, (EntityGroup) entity);
-        } else if (entity != null) {
-            accessControlService.checkPermission(user, Resource.resourceFromEntityType(entityType), operation);
+        } else {
+            accessControlService.checkPermission(user, resource, operation);
         }
     }
 
