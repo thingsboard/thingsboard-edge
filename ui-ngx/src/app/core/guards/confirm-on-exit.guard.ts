@@ -36,11 +36,7 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AuthState } from '@core/auth/auth.models';
 import { selectAuth } from '@core/auth/auth.selectors';
-<<<<<<< HEAD
 import { map, mergeMap, take } from 'rxjs/operators';
-=======
-import { map, take } from 'rxjs/operators';
->>>>>>> ce/fix/displayHorizontalBarWidget
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
 import { isDefined } from '../utils';
