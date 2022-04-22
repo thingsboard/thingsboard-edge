@@ -117,7 +117,6 @@ const defaultDigitalGaugeOptions: CanvasDigitalGaugeOptions = { ...GenericOption
     levelColors: ['blue'],
 
     symbol: '',
-    label: '',
     hideValue: false,
     hideMinMax: false,
 
