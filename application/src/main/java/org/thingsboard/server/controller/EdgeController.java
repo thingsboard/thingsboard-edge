@@ -77,7 +77,6 @@ import org.thingsboard.server.service.importing.BulkImportRequest;
 import org.thingsboard.server.service.importing.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -202,7 +201,7 @@ public class EdgeController extends BaseController {
         }
     }
 
-    private void onEdgeCreatedOrUpdated(TenantId tenantId, Edge savedEdge, RuleChain edgeTemplateRootRuleChain, String oldEdgeName, EntityGroupId entityGroupId, boolean updated, SecurityUser user) throws IOException, ThingsboardException {
+    private void onEdgeCreatedOrUpdated(TenantId tenantId, Edge savedEdge, RuleChain edgeTemplateRootRuleChain, String oldEdgeName, EntityGroupId entityGroupId, boolean updated, SecurityUser user) throws Exception {
         if (entityGroupId != null && !updated) {
             entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());
         }
