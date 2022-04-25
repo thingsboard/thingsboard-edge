@@ -29,10 +29,20 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-export JAVA_OPTS="$JAVA_OPTS -Xlog:gc*,heap*,age*,safepoint=debug:file=@pkg.logFolder@/gc.log:time,uptime,level,tags:filecount=10,filesize=10M"
-export JAVA_OPTS="$JAVA_OPTS -XX:+IgnoreUnrecognizedVMOptions -XX:+HeapDumpOnOutOfMemoryError"
-export JAVA_OPTS="$JAVA_OPTS -XX:-UseBiasedLocking -XX:+UseTLAB -XX:+ResizeTLAB -XX:+PerfDisableSharedMem -XX:+UseCondCardMark"
-export JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled -XX:MaxTenuringThreshold=10"
-export LOG_FILENAME=${pkg.name}.out
-export LOADER_PATH=${pkg.installFolder}/conf
+FROM thingsboard/openjdk11
 
+COPY start-tb-integration-executor.sh ${pkg.name}.deb /tmp/
+
+RUN chmod a+x /tmp/*.sh \
+    && mv /tmp/start-tb-integration-executor.sh /usr/bin
+
+RUN yes | dpkg -i /tmp/${pkg.name}.deb
+RUN rm /tmp/${pkg.name}.deb
+
+RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
+
+RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
+
+USER ${pkg.user}
+
+CMD ["start-tb-integration-executor.sh"]

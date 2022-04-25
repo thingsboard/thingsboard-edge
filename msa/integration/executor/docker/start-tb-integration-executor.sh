@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 #
@@ -29,10 +30,18 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-export JAVA_OPTS="$JAVA_OPTS -Xlog:gc*,heap*,age*,safepoint=debug:file=@pkg.logFolder@/gc.log:time,uptime,level,tags:filecount=10,filesize=10M"
-export JAVA_OPTS="$JAVA_OPTS -XX:+IgnoreUnrecognizedVMOptions -XX:+HeapDumpOnOutOfMemoryError"
-export JAVA_OPTS="$JAVA_OPTS -XX:-UseBiasedLocking -XX:+UseTLAB -XX:+ResizeTLAB -XX:+PerfDisableSharedMem -XX:+UseCondCardMark"
-export JAVA_OPTS="$JAVA_OPTS -XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled -XX:MaxTenuringThreshold=10"
-export LOG_FILENAME=${pkg.name}.out
-export LOADER_PATH=${pkg.installFolder}/conf
+CONF_FOLDER="/config"
+jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
+configfile=${pkg.name}.conf
 
+source "${CONF_FOLDER}/${configfile}"
+
+export LOADER_PATH=/config,${LOADER_PATH}
+
+echo "Starting '${project.name}' ..."
+
+cd ${pkg.installFolder}/bin
+
+exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.integration.ThingsboardIntegrationExecutorApplication \
+                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
+                    org.springframework.boot.loader.PropertiesLauncher
