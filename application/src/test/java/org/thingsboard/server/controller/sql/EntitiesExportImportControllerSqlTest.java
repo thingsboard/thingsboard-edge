@@ -900,7 +900,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
             exportRequest.setExportSettings(new EntityExportSettings());
             exportRequest.setPageSize(10);
             exportRequest.setEntityType(entityType);
-            exportRequest.setCustomerId(customer.getId());
+            exportRequest.setCustomerId(customer.getUuidId());
             exportRequests.add(exportRequest);
         }
 
@@ -1339,7 +1339,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         for (EntityType entityType : Set.of(EntityType.CUSTOMER, EntityType.DASHBOARD, EntityType.ROLE)) {
             EntityTypeExportRequest exportRequest = new EntityTypeExportRequest();
             exportRequest.setExportSettings(new EntityExportSettings());
-            exportRequest.setCustomerId(customerId);
+            exportRequest.setCustomerId(customerId.getId());
             exportRequest.setEntityType(entityType);
             exportRequest.setPageSize(200);
             exportRequests.add(exportRequest);
@@ -1347,7 +1347,7 @@ public class EntitiesExportImportControllerSqlTest extends BaseEntitiesExportImp
         for (EntityType groupType : Set.of(EntityType.CUSTOMER, EntityType.DASHBOARD, EntityType.USER)) {
             CustomEntityFilterExportRequest exportRequest = new CustomEntityFilterExportRequest();
             exportRequest.setExportSettings(new EntityExportSettings());
-            exportRequest.setCustomerId(customerId);
+            exportRequest.setCustomerId(customerId.getId());
             exportRequest.setPageSize(200);
 
             EntityGroupNameFilter filter = new EntityGroupNameFilter();
