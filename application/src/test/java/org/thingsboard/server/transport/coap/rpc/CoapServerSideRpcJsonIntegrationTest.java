@@ -28,23 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport;
+package org.thingsboard.server.transport.coap.rpc;
 
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.runner.RunWith;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.common.data.CoapDeviceType;
+import org.thingsboard.server.common.data.TransportPayloadType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-@RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({
-        "org.thingsboard.server.transport.*.rpc.*Test",
-        "org.thingsboard.server.transport.*.telemetry.timeseries.sql.*Test",
-        "org.thingsboard.server.transport.*.telemetry.attributes.*Test",
-        "org.thingsboard.server.transport.*.attributes.updates.*Test",
-        "org.thingsboard.server.transport.*.attributes.request.*Test",
-        "org.thingsboard.server.transport.*.claim.*Test",
-        "org.thingsboard.server.transport.*.provision.*Test",
-        "org.thingsboard.server.transport.*.credentials.*Test",
-        "org.thingsboard.server.transport.lwm2m.*.sql.*Test"
-})
-public class TransportSqlTestSuite {
+@Slf4j
+@DaoSqlTest
+public class CoapServerSideRpcJsonIntegrationTest extends AbstractCoapServerSideRpcIntegrationTest {
+
+    @Before
+    public void beforeTest() throws Exception {
+        processBeforeTest("RPC test device", CoapDeviceType.DEFAULT, TransportPayloadType.JSON);
+    }
+
+    @After
+    public void afterTest() throws Exception {
+        super.processAfterTest();
+    }
+
+    @Test
+    public void testServerCoapOneWayRpc() throws Exception {
+        processOneWayRpcTest();
+    }
+
+    @Test
+    public void testServerCoapTwoWayRpc() throws Exception {
+        processTwoWayRpcTest("{\"value1\":\"A\",\"value2\":\"B\"}");
+    }
 
 }

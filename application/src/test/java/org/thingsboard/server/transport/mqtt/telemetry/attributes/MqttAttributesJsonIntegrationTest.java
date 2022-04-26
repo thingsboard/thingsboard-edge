@@ -28,23 +28,52 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport;
+package org.thingsboard.server.transport.mqtt.telemetry.attributes;
 
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.runner.RunWith;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.thingsboard.server.common.data.TransportPayloadType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-@RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({
-        "org.thingsboard.server.transport.*.rpc.*Test",
-        "org.thingsboard.server.transport.*.telemetry.timeseries.sql.*Test",
-        "org.thingsboard.server.transport.*.telemetry.attributes.*Test",
-        "org.thingsboard.server.transport.*.attributes.updates.*Test",
-        "org.thingsboard.server.transport.*.attributes.request.*Test",
-        "org.thingsboard.server.transport.*.claim.*Test",
-        "org.thingsboard.server.transport.*.provision.*Test",
-        "org.thingsboard.server.transport.*.credentials.*Test",
-        "org.thingsboard.server.transport.lwm2m.*.sql.*Test"
-})
-public class TransportSqlTestSuite {
+import java.util.Arrays;
+import java.util.List;
 
+@Slf4j
+@DaoSqlTest
+public class MqttAttributesJsonIntegrationTest extends MqttAttributesIntegrationTest {
+
+    private static final String POST_DATA_ATTRIBUTES_TOPIC = "data/attributes";
+
+    @Before
+    public void beforeTest() throws Exception {
+        processBeforeTest("Test Post Attributes device", "Test Post Attributes gateway", TransportPayloadType.JSON, null, POST_DATA_ATTRIBUTES_TOPIC);
+    }
+
+    @After
+    public void afterTest() throws Exception {
+        processAfterTest();
+    }
+
+    @Test
+    public void testPushAttributes() throws Exception {
+        List<String> expectedKeys = Arrays.asList("key1", "key2", "key3", "key4", "key5");
+        processJsonPayloadAttributesTest(POST_DATA_ATTRIBUTES_TOPIC, expectedKeys, PAYLOAD_VALUES_STR.getBytes());
+    }
+
+    @Test
+    public void testPushAttributesOnShortTopic() throws Exception {
+        super.testPushAttributesOnShortTopic();
+    }
+
+    @Test
+    public void testPushAttributesOnShortJsonTopic() throws Exception {
+        super.testPushAttributesOnShortJsonTopic();
+    }
+
+    @Test
+    public void testPushAttributesGateway() throws Exception {
+        super.testPushAttributesGateway();
+    }
 }
