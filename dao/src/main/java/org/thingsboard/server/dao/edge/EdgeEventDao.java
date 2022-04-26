@@ -50,7 +50,7 @@ public interface EdgeEventDao extends Dao<EdgeEvent> {
      * @param edgeEvent the event object
      * @return saved edge event object future
      */
-    EdgeEvent save(EdgeEvent edgeEvent);
+    ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent);
 
 
     /**
