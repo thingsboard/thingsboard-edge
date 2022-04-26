@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.coap.AbstractCoapIntegrationTest;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.msg.session.FeatureType;
+import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -66,7 +67,10 @@ public class CoapAttributesIntegrationTest extends AbstractCoapIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
-        processBeforeTest("Test Post Attributes device", null, null);
+        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
+                .deviceName("Test Post Attributes device")
+                .build();
+        processBeforeTest(configProperties);
     }
 
     @After

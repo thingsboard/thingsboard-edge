@@ -39,19 +39,20 @@ import org.eclipse.californium.elements.exception.ConnectorException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.group.EntityGroupInfo;
-import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.coap.AbstractCoapIntegrationTest;
 import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.coap.AbstractCoapIntegrationTest;
+import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
 
 import java.io.IOException;
 
@@ -70,21 +71,24 @@ public class CoapClaimDeviceTest extends AbstractCoapIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
-        super.processBeforeTest("Test Claim device", null, null);
+        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
+                .deviceName("Test Claim device")
+                .build();
+        processBeforeTest(configProperties);
         createCustomerAndUser();
     }
 
     protected void createCustomerAndUser() throws Exception {
         Customer customer = new Customer();
-        customer.setTenantId(savedTenant.getId());
+        customer.setTenantId(tenantId);
         customer.setTitle("Test Claiming Customer");
         savedCustomer = doPost("/api/customer", customer, Customer.class);
         assertNotNull(savedCustomer);
-        assertEquals(savedTenant.getId(), savedCustomer.getTenantId());
+        assertEquals(tenantId, savedCustomer.getTenantId());
 
         User user = new User();
         user.setAuthority(Authority.CUSTOMER_USER);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setCustomerId(savedCustomer.getId());
         user.setEmail("customer@thingsboard.org");
 
@@ -99,7 +103,7 @@ public class CoapClaimDeviceTest extends AbstractCoapIntegrationTest {
 
     @After
     public void afterTest() throws Exception {
-        super.processAfterTest();
+        processAfterTest();
     }
 
     @Test

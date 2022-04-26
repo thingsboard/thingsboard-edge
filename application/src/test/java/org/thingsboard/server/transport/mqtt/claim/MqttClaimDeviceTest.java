@@ -33,7 +33,6 @@ package org.thingsboard.server.transport.mqtt.claim;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.ClaimRequest;
@@ -50,6 +49,7 @@ import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
+import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -66,21 +66,25 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
-        super.processBeforeTest("Test Claim device", "Test Claim gateway", null, null, null);
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("Test Claim device")
+                .gatewayName("Test Claim gateway")
+                .build();
+        processBeforeTest(configProperties);
         createCustomerAndUser();
     }
 
     protected void createCustomerAndUser() throws Exception {
         Customer customer = new Customer();
-        customer.setTenantId(savedTenant.getId());
+        customer.setTenantId(tenantId);
         customer.setTitle("Test Claiming Customer");
         savedCustomer = doPost("/api/customer", customer, Customer.class);
         assertNotNull(savedCustomer);
-        assertEquals(savedTenant.getId(), savedCustomer.getTenantId());
+        assertEquals(tenantId, savedCustomer.getTenantId());
 
         User user = new User();
         user.setAuthority(Authority.CUSTOMER_USER);
-        user.setTenantId(savedTenant.getId());
+        user.setTenantId(tenantId);
         user.setCustomerId(savedCustomer.getId());
         user.setEmail("customer@thingsboard.org");
 
@@ -91,11 +95,6 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
         assertNotNull(customerAdmin);
         assertEquals(customerAdmin.getCustomerId(), savedCustomer.getId());
-    }
-
-    @After
-    public void afterTest() throws Exception {
-        super.processAfterTest();
     }
 
     @Test
