@@ -128,7 +128,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private static final String SYS_ADMIN_PASSWORD = "sysadmin";
 
     protected static final String TENANT_ADMIN_EMAIL = "testtenant@thingsboard.org";
-    private static final String TENANT_ADMIN_PASSWORD = "tenant";
+    protected static final String TENANT_ADMIN_PASSWORD = "tenant";
 
     protected static final String DIFFERENT_TENANT_ADMIN_EMAIL = "testdifftenant@thingsboard.org";
     private static final String DIFFERENT_TENANT_ADMIN_PASSWORD = "difftenant";
