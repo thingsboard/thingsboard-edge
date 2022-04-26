@@ -25,7 +25,8 @@ RUN chmod a+x /tmp/*.sh \
     && mv /tmp/upgrade-tb-edge.sh /usr/bin \
     && mv /tmp/install-tb-edge.sh /usr/bin
 
-RUN yes | dpkg -i /tmp/${pkg.name}.deb
+RUN dpkg -i /tmp/${pkg.name}.deb
+RUN rm /tmp/${pkg.name}.deb
 
 RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
 
