@@ -137,7 +137,7 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
         public Optional<EntityGroupId> load(GroupKey key) throws Exception {
             EntityGroupService service = ctx.getPeContext().getEntityGroupService();
             Optional<EntityGroup> entityGroup =
-                    service.findEntityGroupByTypeAndName(ctx.getTenantId(), key.getOwnerId(), key.getGroupType(), key.getGroupName()).get();
+                    service.findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), key.getOwnerId(), key.getGroupType(), key.getGroupName()).get();
             if (entityGroup.isPresent()) {
                 return Optional.of(entityGroup.get().getId());
             } else if (createIfNotExists) {
