@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class BaseCustomerServiceTest extends AbstractBeforeTest {
-    static final int TIMEOUT = 30;
+    static final int TIMEOUT = 300;
 
     ListeningExecutorService executor;
 
