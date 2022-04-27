@@ -123,7 +123,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final EventStorageService eventStorageService;
     private final TbQueueProducerProvider producerProvider;
     private final Optional<CoapServerService> coapServerService;
-    private final Optional<IntegrationRpcService> remoteRpcService;
+    private final Optional<RemoteIntegrationRpcService> remoteRpcService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
 

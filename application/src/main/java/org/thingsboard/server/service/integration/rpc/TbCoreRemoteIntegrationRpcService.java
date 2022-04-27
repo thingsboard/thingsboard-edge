@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.service.integration.IntegrationRpcService;
+import org.thingsboard.server.service.integration.RemoteIntegrationRpcService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 @ConditionalOnExpression("('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core') && ('${integrations.rpc.enabled:false}'=='true')")
-public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements IntegrationRpcService {
+public class TbCoreRemoteIntegrationRpcService extends IntegrationTransportGrpc.IntegrationTransportImplBase implements RemoteIntegrationRpcService {
 
     private final Map<IntegrationId, IntegrationGrpcSession> sessions = new ConcurrentHashMap<>();
 
@@ -86,8 +86,8 @@ public class GrpcIntegrationRpcService extends IntegrationTransportGrpc.Integrat
     private final DeviceService deviceService;
     private Server server;
 
-    public GrpcIntegrationRpcService(TbServiceInfoProvider serviceInfoProvider, IntegrationContextComponent ctx,
-                                     RemoteIntegrationSessionService sessionsCache, TbClusterService clusterService, DeviceService deviceService) {
+    public TbCoreRemoteIntegrationRpcService(TbServiceInfoProvider serviceInfoProvider, IntegrationContextComponent ctx,
+                                             RemoteIntegrationSessionService sessionsCache, TbClusterService clusterService, DeviceService deviceService) {
         this.serviceInfoProvider = serviceInfoProvider;
         this.ctx = ctx;
         this.sessionsCache = sessionsCache;

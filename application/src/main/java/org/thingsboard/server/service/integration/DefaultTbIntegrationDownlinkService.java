@@ -62,7 +62,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
 
     private final PartitionService partitionService;
     private final IntegrationService integrationService;
-    private final IntegrationRpcService remoteRpcService;
+    private final RemoteIntegrationRpcService remoteRpcService;
     private final TbQueueProducerProvider producerProvider;
 
     @Override

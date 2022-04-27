@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.integration.EventStorageService;
-import org.thingsboard.server.service.integration.IntegrationRpcService;
+import org.thingsboard.server.service.integration.RemoteIntegrationRpcService;
 
 import javax.annotation.PreDestroy;
 import java.util.Optional;
@@ -69,7 +69,7 @@ public class DefaultDataConverterService implements DataConverterService {
     private LogSettingsComponent logSettingsComponent;
 
     @Autowired(required = false)
-    private IntegrationRpcService rpcService;
+    private RemoteIntegrationRpcService rpcService;
 
     @Autowired
     private EventStorageService eventStorageService;

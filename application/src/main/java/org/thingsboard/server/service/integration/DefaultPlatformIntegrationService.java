@@ -184,7 +184,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private TelemetrySubscriptionService telemetrySubscriptionService;
 
     @Autowired
-    private IntegrationRpcService integrationRpcService;
+    private RemoteIntegrationRpcService remoteIntegrationRpcService;
 
     @Autowired
     private DeviceService deviceService;
