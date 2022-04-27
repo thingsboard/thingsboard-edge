@@ -52,7 +52,7 @@
     "profile": "Chiller",
     "attributes": {
       "xPos": 0.5121248625980332,
-      "yPos": 0.13135823879258277,
+      "yPos": 0.1313582387925827,
       "chillerHighTemperatureMajorThreshold": 10,
       "chillerHighTemperatureCriticalThreshold": 15
     },
@@ -73,7 +73,7 @@
     "customer": "Retail Company A",
     "profile": "Freezer",
     "attributes": {
-      "xPos": 0.06905060096603549,
+      "xPos": 0.0690506009660354,
       "yPos": 0.7218696071835972,
       "freezerHighTemperatureMajorThreshold": -10,
       "freezerHighTemperatureCriticalThreshold": -3
@@ -553,7 +553,7 @@
     "customer": "Retail Company A",
     "profile": "Chiller",
     "attributes": {
-      "xPos": 0.04916282921733878,
+      "xPos": 0.0491628292173387,
       "yPos": 0.9502955437131321,
       "chillerHighTemperatureMajorThreshold": 10,
       "chillerHighTemperatureCriticalThreshold": 15
@@ -597,8 +597,8 @@
     "customer": "Retail Company A",
     "profile": "Door Sensor",
     "attributes": {
-      "xPos": 0.08672322904097433,
-      "yPos": 0.06918620262565178,
+      "xPos": 0.0867232290409743,
+      "yPos": 0.0691862026256517,
       "lowBatteryMajorThreshold": 30,
       "lowBatteryCriticalThreshold": 10,
       "maxDoorOpenDurationMajorThreshold": 30,
@@ -644,7 +644,7 @@
     "profile": "Chiller",
     "attributes": {
       "xPos": 0.3240744362093502,
-      "yPos": 0.23297034417911724,
+      "yPos": 0.2329703441791172,
       "chillerHighTemperatureMajorThreshold": 10,
       "chillerHighTemperatureCriticalThreshold": 15
     },
@@ -666,7 +666,7 @@
     "profile": "Freezer",
     "attributes": {
       "xPos": 0.8647263298256778,
-      "yPos": 0.25065742616032766,
+      "yPos": 0.2506574261603276,
       "freezerHighTemperatureMajorThreshold": -10,
       "freezerHighTemperatureCriticalThreshold": -3
     },

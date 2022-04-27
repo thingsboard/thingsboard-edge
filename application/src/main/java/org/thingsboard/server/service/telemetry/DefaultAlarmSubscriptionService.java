@@ -108,13 +108,18 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
     @Override
     public Alarm createOrUpdateAlarm(Alarm alarm) {
         AlarmOperationResult result = alarmService.createOrUpdateAlarm(alarm, apiUsageStateService.getApiUsageState(alarm.getTenantId()).isAlarmCreationEnabled());
-        if (result.isSuccessful()) {
-            onAlarmUpdated(result);
+        if (result != null) {
+            if (result.isSuccessful()) {
+                onAlarmUpdated(result);
+            }
+            if (result.isCreated()) {
+                apiUsageClient.report(alarm.getTenantId(), null, ApiUsageRecordKey.CREATED_ALARMS_COUNT);
+            }
+            return result.getAlarm();
+        } else {
+            log.warn("Failed to Alarm Operation, Result is null. Alarm: [{}].", alarm);
+            return null;
         }
-        if (result.isCreated()) {
-            apiUsageClient.report(alarm.getTenantId(), null, ApiUsageRecordKey.CREATED_ALARMS_COUNT);
-        }
-        return result.getAlarm();
     }
 
     @Override
