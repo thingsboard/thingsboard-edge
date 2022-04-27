@@ -361,6 +361,7 @@ public class ActorSystemContext {
     @Getter
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private PlatformIntegrationService platformIntegrationService;
 
