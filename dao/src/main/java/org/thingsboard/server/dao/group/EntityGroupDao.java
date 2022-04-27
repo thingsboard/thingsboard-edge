@@ -60,8 +60,11 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
 
     ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
 
-    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
-                                                                         EntityType parentEntityType, String relationType, String name);
+    Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
+                                                       EntityType parentEntityType, String relationType, String name);
+
+    ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId,
+                                                                              EntityType parentEntityType, String relationType, String name);
 
     ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
 
