@@ -34,7 +34,6 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
-import org.thingsboard.server.queue.TbQueueCallback;
 
 public interface TbIntegrationDownlinkService {
 

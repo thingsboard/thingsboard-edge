@@ -128,7 +128,7 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private void initInputStream() {
-        this.inputStream = new StreamObserver<RequestMsg>() {
+        this.inputStream = new StreamObserver<>() {
             @Override
             public void onNext(RequestMsg requestMsg) {
                 if (!connected && requestMsg.getMessageType().equals(MessageType.CONNECT_RPC_MESSAGE)) {

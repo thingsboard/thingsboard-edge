@@ -34,9 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.server.service.integration.IntegrationRpcService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.service.integration.IntegrationRpcService;
 
 @Service
 @Slf4j

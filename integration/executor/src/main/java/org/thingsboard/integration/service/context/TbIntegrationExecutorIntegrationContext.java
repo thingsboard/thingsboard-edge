@@ -40,6 +40,7 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
@@ -66,12 +67,16 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     private final TbIntegrationExecutorContextComponent contextComponent;
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
+    private final LogSettingsComponent logSettingsComponent;
 
-    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, TbIntegrationExecutorContextComponent contextComponent, Integration configuration) {
+    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService,
+                                                   TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
+                                                   Integration configuration) {
         this.serviceId = serviceId;
         this.apiService = apiService;
         this.contextComponent = contextComponent;
         this.configuration = configuration;
+        this.logSettingsComponent = logSettingsComponent;
         this.integrationInfoProto = IntegrationProtoUtil.toProto(configuration);
     }
 
@@ -168,7 +173,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     @Override
     public boolean isExceptionStackTraceEnabled() {
-        return false;
+        return logSettingsComponent.isExceptionStackTraceEnabled();
     }
 
     private void saveEvent(TbEventSource tbEventSource, EntityId entityId, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {

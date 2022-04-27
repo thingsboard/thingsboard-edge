@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface IntegrationConfigurationService {
 

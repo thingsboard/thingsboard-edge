@@ -30,13 +30,11 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.DataConstants;

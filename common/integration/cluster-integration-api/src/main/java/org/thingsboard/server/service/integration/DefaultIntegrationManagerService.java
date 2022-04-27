@@ -128,10 +128,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
 
     @Value("${integrations.reinit.enabled:false}")
-    private boolean reinitEnabled;
+    private boolean reInitEnabled;
 
     @Value("${integrations.reinit.frequency:3600000}")
-    private long reinitFrequency;
+    private long reInitFrequency;
 
     @Value("${integrations.statistics.enabled}")
     private boolean statisticsEnabled;
@@ -144,7 +144,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     private ExecutorService commandExecutorService;
     private ScheduledExecutorService statisticsExecutorService;
-    private ScheduledExecutorService reinitExecutorService;
+    private ScheduledExecutorService reInitExecutorService;
     private ScheduledExecutorService lifecycleExecutorService;
 
     @PostConstruct
@@ -152,9 +152,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         lifecycleExecutorService = Executors.newScheduledThreadPool(4, ThingsBoardThreadFactory.forName("ie-lifecycle"));
         lifecycleExecutorService.scheduleWithFixedDelay(this::cleanupPendingValidationTasks, 1, 1, TimeUnit.MINUTES);
         commandExecutorService = ThingsBoardExecutors.newWorkStealingPool(4, "ie-commands");
-        if (reinitEnabled) {
-            reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-reinit"));
-            reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
+        if (reInitEnabled) {
+            reInitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-reinit"));
+            reInitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reInitFrequency, reInitFrequency, TimeUnit.MILLISECONDS);
         }
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("ie-stats"));
@@ -174,8 +174,8 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         if (statisticsEnabled) {
             statisticsExecutorService.shutdownNow();
         }
-        if (reinitEnabled) {
-            reinitExecutorService.shutdownNow();
+        if (reInitEnabled) {
+            reInitExecutorService.shutdownNow();
         }
     }
 
@@ -566,7 +566,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private ThingsboardPlatformIntegration<?> createPlatformIntegration(Integration configuration) throws Exception {
-        return IntegrationUtil.createPlatformIntegration(configuration.getType(), configuration.getConfiguration(), true, coapServerService);
+        return IntegrationUtil.createPlatformIntegration(configuration.getType(), configuration.getConfiguration(), false, coapServerService);
     }
 
     private void processStop(IntegrationState state, ComponentLifecycleEvent event) {

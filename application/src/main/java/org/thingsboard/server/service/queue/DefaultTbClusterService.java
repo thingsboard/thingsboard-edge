@@ -72,10 +72,9 @@ import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -90,6 +89,7 @@ import org.thingsboard.server.queue.common.MultipleTbQueueCallbackWrapper;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -169,12 +169,8 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void pushNotificationToCore(String serviceId, FromDeviceRpcResponse response, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);
-        log.trace("PUSHING msg: {} to:{}", response, tpi);
-        FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
-                .setRequestIdMSB(response.getId().getMostSignificantBits())
-                .setRequestIdLSB(response.getId().getLeastSignificantBits())
-                .setError(response.getError().isPresent() ? response.getError().get().ordinal() : -1);
-        response.getResponse().ifPresent(builder::setResponse);
+        log.trace("PUSHING msg: {} to core: {}", response, tpi);
+        var builder = prepareRPCResponseProto(response);
         ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setFromDeviceRpcResponse(builder).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(response.getId(), msg), callback);
         toCoreNfs.incrementAndGet();
@@ -242,12 +238,8 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void pushNotificationToRuleEngine(String serviceId, FromDeviceRpcResponse response, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceId);
-        log.trace("PUSHING msg: {} to:{}", response, tpi);
-        FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
-                .setRequestIdMSB(response.getId().getMostSignificantBits())
-                .setRequestIdLSB(response.getId().getLeastSignificantBits())
-                .setError(response.getError().isPresent() ? response.getError().get().ordinal() : -1);
-        response.getResponse().ifPresent(builder::setResponse);
+        log.trace("PUSHING msg: {} to rule engine: {}", response, tpi);
+        var builder = prepareRPCResponseProto(response);
         ToRuleEngineNotificationMsg msg = ToRuleEngineNotificationMsg.newBuilder().setFromDeviceRpcResponse(builder).build();
         producerProvider.getRuleEngineNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(response.getId(), msg), callback);
         toRuleEngineNfs.incrementAndGet();
@@ -607,5 +599,14 @@ public class DefaultTbClusterService implements TbClusterService {
         } else {
             return null;
         }
+    }
+
+    private static FromDeviceRPCResponseProto.Builder prepareRPCResponseProto(FromDeviceRpcResponse response) {
+        FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
+                .setRequestIdMSB(response.getId().getMostSignificantBits())
+                .setRequestIdLSB(response.getId().getLeastSignificantBits())
+                .setError(response.getError().isPresent() ? response.getError().get().ordinal() : -1);
+        response.getResponse().ifPresent(builder::setResponse);
+        return builder;
     }
 }

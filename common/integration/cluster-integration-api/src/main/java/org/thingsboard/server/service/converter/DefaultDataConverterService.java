@@ -38,13 +38,13 @@ import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
-import org.thingsboard.server.service.integration.EventStorageService;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.server.service.integration.EventStorageService;
 import org.thingsboard.server.service.integration.IntegrationRpcService;
 
 import javax.annotation.PreDestroy;

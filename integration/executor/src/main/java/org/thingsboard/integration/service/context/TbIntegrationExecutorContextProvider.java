@@ -33,6 +33,7 @@ package org.thingsboard.integration.service.context;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
@@ -49,10 +50,12 @@ public class TbIntegrationExecutorContextProvider implements IntegrationContextP
     private final TbServiceInfoProvider serviceInfoProvider;
     private final IntegrationApiService apiService;
     private final TbIntegrationExecutorContextComponent contextComponent;
+    private final LogSettingsComponent logSettingsComponent;
 
     @Override
     public IntegrationContext buildIntegrationContext(Integration configuration) {
-        return new TbIntegrationExecutorIntegrationContext(serviceInfoProvider.getServiceId(), apiService, contextComponent, configuration);
+        return new TbIntegrationExecutorIntegrationContext(serviceInfoProvider.getServiceId(), apiService,
+                contextComponent, logSettingsComponent, configuration);
     }
 
     @Override
