@@ -63,7 +63,6 @@ import {
 import { FormattedData, JsonSettingsSchema, WidgetConfig } from '@shared/models/widget.models';
 import moment from 'moment';
 import {
-  deepClone,
   formattedDataArrayFromDatasourceData, formattedDataFormDatasourceData,
   isDefined,
   isUndefined, mergeFormattedData,
@@ -151,14 +150,12 @@ export class TripAnimationComponent implements OnInit, AfterViewInit, OnDestroy 
         item => this.clearIncorrectFirsLastDatapoint(item)).filter(arr => arr.length);
       this.interpolatedTimeData.length = 0;
       this.formattedInterpolatedTimeData.length = 0;
-      if (this.historicalData.length) {
-        const prevMinTime = this.minTime;
-        const prevMaxTime = this.maxTime;
-        this.calculateIntervals();
-        const currentTime = this.calculateCurrentTime(prevMinTime, prevMaxTime);
-        if (currentTime !== this.currentTime) {
-          this.timeUpdated(currentTime);
-        }
+      const prevMinTime = this.minTime;
+      const prevMaxTime = this.maxTime;
+      this.calculateIntervals();
+      const currentTime = this.calculateCurrentTime(prevMinTime, prevMaxTime);
+      if (currentTime !== this.currentTime) {
+        this.timeUpdated(currentTime);
       }
       this.mapWidget.map.map?.invalidateSize();
       this.mapWidget.map.setLoading(false);
