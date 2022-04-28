@@ -117,7 +117,7 @@ public class TbCoreRemoteIntegrationRpcService extends IntegrationTransportGrpc.
             server.start();
         } catch (IOException e) {
             log.error("Failed to start RPC server!", e);
-            throw new RuntimeException("Failed to start RPC server!");
+            throw new RuntimeException("Failed to start RPC server!", e);
         }
         log.info("RPC service initialized!");
     }

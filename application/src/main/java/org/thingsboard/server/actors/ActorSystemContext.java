@@ -365,6 +365,7 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter private PlatformIntegrationService platformIntegrationService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private DataConverterService dataConverterService;
 
