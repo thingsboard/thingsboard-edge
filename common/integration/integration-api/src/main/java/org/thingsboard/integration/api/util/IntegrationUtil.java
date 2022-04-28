@@ -36,7 +36,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 
 public class IntegrationUtil {
 
-    public static ThingsboardPlatformIntegration<?> createPlatformIntegration(IntegrationType type, JsonNode configuration, boolean remote, Object coapServer) throws Exception {
+    public static ThingsboardPlatformIntegration<?> createPlatformIntegration(IntegrationType type, JsonNode configuration, boolean remote, Object param) throws Exception {
         switch (type) {
             case HTTP:
                 return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
@@ -82,7 +82,7 @@ public class IntegrationUtil {
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
             case COAP:
-                return newInstance("org.thingsboard.integration.coap.CoapIntegration", coapServer);
+                return newInstance("org.thingsboard.integration.coap.CoapIntegration", param);
             case TCP:
                 if (remote) {
                     return newInstance("org.thingsboard.integration.tcpip.tcp.BasicTcpIntegration");
@@ -106,12 +106,15 @@ public class IntegrationUtil {
         }
     }
 
-    private static ThingsboardPlatformIntegration<?> newInstance(String clazz, Object... params) throws Exception {
-        var constructor = Class.forName(clazz).getDeclaredConstructor();
-        if (params.length > 0) {
-            return (ThingsboardPlatformIntegration<?>) constructor.newInstance(params);
+    private static ThingsboardPlatformIntegration<?> newInstance(String clazz) throws Exception {
+        return newInstance(clazz, null);
+    }
+
+    private static ThingsboardPlatformIntegration<?> newInstance(String clazz, Object param) throws Exception {
+        if (param != null) {
+            return (ThingsboardPlatformIntegration<?>) Class.forName(clazz).getDeclaredConstructors()[0].newInstance(param);
         } else {
-            return (ThingsboardPlatformIntegration<?>) constructor.newInstance();
+            return (ThingsboardPlatformIntegration<?>) Class.forName(clazz).getDeclaredConstructor().newInstance();
         }
     }
 

@@ -566,7 +566,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private ThingsboardPlatformIntegration<?> createPlatformIntegration(Integration configuration) throws Exception {
-        return IntegrationUtil.createPlatformIntegration(configuration.getType(), configuration.getConfiguration(), false, coapServerService);
+        return IntegrationUtil.createPlatformIntegration(configuration.getType(), configuration.getConfiguration(), false, coapServerService.orElse(null));
     }
 
     private void processStop(IntegrationState state, ComponentLifecycleEvent event) {
