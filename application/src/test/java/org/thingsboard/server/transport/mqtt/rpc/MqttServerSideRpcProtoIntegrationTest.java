@@ -28,44 +28,69 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.telemetry.timeseries;
+package org.thingsboard.server.transport.mqtt.rpc;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.thingsboard.server.common.data.device.profile.MqttTopics;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
 
 @Slf4j
-public abstract class AbstractCoapTimeseriesJsonIntegrationTest extends AbstractCoapTimeseriesIntegrationTest {
+@DaoSqlTest
+public class MqttServerSideRpcProtoIntegrationTest extends AbstractMqttServerSideRpcIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("Test Post Telemetry device json payload")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
-                .transportPayloadType(TransportPayloadType.JSON)
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("RPC test device")
+                .gatewayName("RPC test gateway")
+                .transportPayloadType(TransportPayloadType.PROTOBUF)
+                .rpcRequestProtoSchema(RPC_REQUEST_PROTO_SCHEMA)
                 .build();
         processBeforeTest(configProperties);
     }
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
-    }
-
-
     @Test
-    public void testPushTelemetry() throws Exception {
-        super.testPushTelemetry();
+    public void testServerMqttOneWayRpc() throws Exception {
+        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
     }
 
     @Test
-    public void testPushTelemetryWithTs() throws Exception {
-        super.testPushTelemetryWithTs();
+    public void testServerMqttOneWayRpcOnShortTopic() throws Exception {
+        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
     }
 
+    @Test
+    public void testServerMqttOneWayRpcOnShortProtoTopic() throws Exception {
+        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttTwoWayRpc() throws Exception {
+        processProtoTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttTwoWayRpcOnShortTopic() throws Exception {
+        processProtoTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
+    }
+
+    @Test
+    public void testServerMqttTwoWayRpcOnShortProtoTopic() throws Exception {
+        processProtoTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC);
+    }
+
+    @Test
+    public void testGatewayServerMqttOneWayRpc() throws Exception {
+        processProtoOneWayRpcTestGateway("Gateway Device OneWay RPC Proto");
+    }
+
+    @Test
+    public void testGatewayServerMqttTwoWayRpc() throws Exception {
+        processProtoTwoWayRpcTestGateway("Gateway Device TwoWay RPC Proto");
+    }
 
 }

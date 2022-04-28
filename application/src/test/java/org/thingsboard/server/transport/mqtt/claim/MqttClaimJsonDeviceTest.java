@@ -28,44 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.telemetry.timeseries;
+package org.thingsboard.server.transport.mqtt.claim;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
 
 @Slf4j
-public abstract class AbstractCoapTimeseriesJsonIntegrationTest extends AbstractCoapTimeseriesIntegrationTest {
-
+@DaoSqlTest
+public class MqttClaimJsonDeviceTest extends MqttClaimDeviceTest {
+    
     @Before
     public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("Test Post Telemetry device json payload")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("Test Claim device")
+                .gatewayName("Test Claim gateway")
                 .transportPayloadType(TransportPayloadType.JSON)
                 .build();
         processBeforeTest(configProperties);
-    }
-
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
-    }
-
-
-    @Test
-    public void testPushTelemetry() throws Exception {
-        super.testPushTelemetry();
+        createCustomerAndUser();
     }
 
     @Test
-    public void testPushTelemetryWithTs() throws Exception {
-        super.testPushTelemetryWithTs();
+    public void testClaimingDevice() throws Exception {
+        processTestClaimingDevice(false);
     }
 
+    @Test
+    public void testClaimingDeviceWithoutSecretAndDuration() throws Exception {
+        processTestClaimingDevice(true);
+    }
 
+    @Test
+    public void testGatewayClaimingDevice() throws Exception {
+        processTestGatewayClaimingDevice("Test claiming gateway device Json", false);
+    }
+
+    @Test
+    public void testGatewayClaimingDeviceWithoutSecretAndDuration() throws Exception {
+        processTestGatewayClaimingDevice("Test claiming gateway device empty payload Json", true);
+    }
 }

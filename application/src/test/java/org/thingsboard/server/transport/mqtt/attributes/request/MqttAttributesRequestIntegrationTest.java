@@ -28,44 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.telemetry.timeseries;
+package org.thingsboard.server.transport.mqtt.attributes.request;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
-import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.thingsboard.server.common.data.device.profile.MqttTopics;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+import org.thingsboard.server.transport.mqtt.attributes.AbstractMqttAttributesIntegrationTest;
 
 @Slf4j
-public abstract class AbstractCoapTimeseriesJsonIntegrationTest extends AbstractCoapTimeseriesIntegrationTest {
+@DaoSqlTest
+public class MqttAttributesRequestIntegrationTest extends AbstractMqttAttributesIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("Test Post Telemetry device json payload")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
-                .transportPayloadType(TransportPayloadType.JSON)
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("Test Request attribute values from the server")
+                .gatewayName("Gateway Test Request attribute values from the server")
                 .build();
         processBeforeTest(configProperties);
     }
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
-    }
-
-
     @Test
-    public void testPushTelemetry() throws Exception {
-        super.testPushTelemetry();
+    public void testRequestAttributesValuesFromTheServer() throws Exception {
+        processJsonTestRequestAttributesValuesFromTheServer(MqttTopics.DEVICE_ATTRIBUTES_TOPIC, MqttTopics.DEVICE_ATTRIBUTES_RESPONSES_TOPIC, MqttTopics.DEVICE_ATTRIBUTES_REQUEST_TOPIC_PREFIX);
     }
 
     @Test
-    public void testPushTelemetryWithTs() throws Exception {
-        super.testPushTelemetryWithTs();
+    public void testRequestAttributesValuesFromTheServerOnShortTopic() throws Exception {
+        processJsonTestRequestAttributesValuesFromTheServer(MqttTopics.DEVICE_ATTRIBUTES_SHORT_TOPIC, MqttTopics.DEVICE_ATTRIBUTES_RESPONSES_SHORT_TOPIC, MqttTopics.DEVICE_ATTRIBUTES_REQUEST_SHORT_TOPIC_PREFIX);
     }
 
+    @Test
+    public void testRequestAttributesValuesFromTheServerOnShortJsonTopic() throws Exception {
+        processJsonTestRequestAttributesValuesFromTheServer(MqttTopics.DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC, MqttTopics.DEVICE_ATTRIBUTES_RESPONSES_SHORT_JSON_TOPIC, MqttTopics.DEVICE_ATTRIBUTES_REQUEST_SHORT_JSON_TOPIC_PREFIX);
+    }
 
+    @Test
+    public void testRequestAttributesValuesFromTheServerGateway() throws Exception {
+        processJsonTestGatewayRequestAttributesValuesFromTheServer();
+    }
 }

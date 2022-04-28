@@ -28,44 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.telemetry.timeseries;
+package org.thingsboard.server.transport.coap;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import lombok.Builder;
+import lombok.Data;
 import org.thingsboard.server.common.data.CoapDeviceType;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
 
-@Slf4j
-public abstract class AbstractCoapTimeseriesJsonIntegrationTest extends AbstractCoapTimeseriesIntegrationTest {
+@Data
+@Builder
+public class CoapTestConfigProperties {
 
-    @Before
-    public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("Test Post Telemetry device json payload")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
-                .transportPayloadType(TransportPayloadType.JSON)
-                .build();
-        processBeforeTest(configProperties);
-    }
+    String deviceName;
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
-    }
+    CoapDeviceType coapDeviceType;
 
+    TransportPayloadType transportPayloadType;
 
-    @Test
-    public void testPushTelemetry() throws Exception {
-        super.testPushTelemetry();
-    }
+    String telemetryTopicFilter;
+    String attributesTopicFilter;
 
-    @Test
-    public void testPushTelemetryWithTs() throws Exception {
-        super.testPushTelemetryWithTs();
-    }
+    String telemetryProtoSchema;
+    String attributesProtoSchema;
+    String rpcResponseProtoSchema;
+    String rpcRequestProtoSchema;
 
+    DeviceProfileProvisionType provisionType;
+    String provisionKey;
+    String provisionSecret;
 
 }

@@ -28,44 +28,54 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.telemetry.timeseries;
+package org.thingsboard.server.transport.mqtt.attributes.updates;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.thingsboard.server.common.data.device.profile.MqttTopics;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+import org.thingsboard.server.transport.mqtt.attributes.AbstractMqttAttributesIntegrationTest;
 
 @Slf4j
-public abstract class AbstractCoapTimeseriesJsonIntegrationTest extends AbstractCoapTimeseriesIntegrationTest {
+@DaoSqlTest
+public class MqttAttributesUpdatesProtoIntegrationTest extends AbstractMqttAttributesIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("Test Post Telemetry device json payload")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
-                .transportPayloadType(TransportPayloadType.JSON)
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("Test Subscribe to attribute updates")
+                .gatewayName("Gateway Test Subscribe to attribute updates")
+                .transportPayloadType(TransportPayloadType.PROTOBUF)
                 .build();
         processBeforeTest(configProperties);
     }
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
-    }
-
-
     @Test
-    public void testPushTelemetry() throws Exception {
-        super.testPushTelemetry();
+    public void testProtoSubscribeToAttributesUpdatesFromTheServer() throws Exception {
+        processProtoTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
     }
 
     @Test
-    public void testPushTelemetryWithTs() throws Exception {
-        super.testPushTelemetryWithTs();
+    public void testProtoSubscribeToAttributesUpdatesFromTheServerOnShortTopic() throws Exception {
+        processProtoTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_TOPIC);
     }
 
+    @Test
+    public void testProtoSubscribeToAttributesUpdatesFromTheServerOnShortJsonTopic() throws Exception {
+        processJsonTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC);
+    }
+
+    @Test
+    public void testProtoSubscribeToAttributesUpdatesFromTheServerOnShortProtoTopic() throws Exception {
+        processProtoTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_PROTO_TOPIC);
+    }
+
+    @Test
+    public void testProtoSubscribeToAttributesUpdatesFromTheServerGateway() throws Exception {
+        processProtoGatewayTestSubscribeToAttributesUpdates();
+    }
 
 }

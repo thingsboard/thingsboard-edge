@@ -28,44 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.telemetry.timeseries;
+package org.thingsboard.server.transport.mqtt.telemetry.attributes;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
-public abstract class AbstractCoapTimeseriesJsonIntegrationTest extends AbstractCoapTimeseriesIntegrationTest {
+@DaoSqlTest
+public class MqttAttributesJsonIntegrationTest extends MqttAttributesIntegrationTest {
+
+    private static final String POST_DATA_ATTRIBUTES_TOPIC = "data/attributes";
 
     @Before
     public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("Test Post Telemetry device json payload")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .deviceName("Test Post Attributes device")
+                .gatewayName("Test Post Attributes gateway")
                 .transportPayloadType(TransportPayloadType.JSON)
+                .attributesTopicFilter(POST_DATA_ATTRIBUTES_TOPIC)
                 .build();
         processBeforeTest(configProperties);
     }
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
-    }
-
-
     @Test
-    public void testPushTelemetry() throws Exception {
-        super.testPushTelemetry();
+    public void testPushAttributes() throws Exception {
+        List<String> expectedKeys = Arrays.asList("key1", "key2", "key3", "key4", "key5");
+        processJsonPayloadAttributesTest(POST_DATA_ATTRIBUTES_TOPIC, expectedKeys, PAYLOAD_VALUES_STR.getBytes());
     }
 
     @Test
-    public void testPushTelemetryWithTs() throws Exception {
-        super.testPushTelemetryWithTs();
+    public void testPushAttributesOnShortTopic() throws Exception {
+        super.testPushAttributesOnShortTopic();
     }
 
+    @Test
+    public void testPushAttributesOnShortJsonTopic() throws Exception {
+        super.testPushAttributesOnShortJsonTopic();
+    }
 
+    @Test
+    public void testPushAttributesGateway() throws Exception {
+        super.testPushAttributesGateway();
+    }
 }
