@@ -117,7 +117,7 @@ public class DefaultAlarmSubscriptionService extends AbstractSubscriptionService
             }
             return result.getAlarm();
         } else {
-            log.warn("Failed to Alarm Operation, Result is null. Alarm: [{}].", alarm);
+            log.warn("Failed to create or update the Alarm: [{}].", alarm);
             return null;
         }
     }
