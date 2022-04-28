@@ -28,42 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.controller;
+package org.thingsboard.server.service.script;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootContextLoader;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
+import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@ActiveProfiles("test")
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = AbstractControllerTest.class, loader = SpringBootContextLoader.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@Configuration
-@ComponentScan({"org.thingsboard.server"})
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+import java.util.UUID;
+
 @Slf4j
-public abstract class AbstractWebsocketTest extends AbstractWebTest {
+@Service
+@ConditionalOnProperty(prefix = "js", value = "evaluator", havingValue = "mock")
+public class MockJsInvokeService implements JsInvokeService {
 
-    protected static final String WS_URL = "ws://localhost:";
-
-    @LocalServerPort
-    protected int wsPort;
-
-    protected TbTestWebSocketClient buildAndConnectWebSocketClient() throws URISyntaxException, InterruptedException {
-        TbTestWebSocketClient wsClient = new TbTestWebSocketClient(new URI(WS_URL + wsPort + "/api/ws/plugins/telemetry?token=" + token));
-        Assert.assertTrue(wsClient.connectBlocking());
-        return wsClient;
+    @Override
+    public ListenableFuture<UUID> eval(TenantId tenantId, JsScriptType scriptType, String scriptBody, String... argNames) {
+        log.warn("eval {} {} {} {}", tenantId, scriptType, scriptBody, argNames);
+        return Futures.immediateFuture(UUID.randomUUID());
     }
 
+    @Override
+    public ListenableFuture<Object> invokeFunction(TenantId tenantId, CustomerId customerId, UUID scriptId, Object... args) {
+        log.warn("invokeFunction {} {} {} {}", tenantId, customerId, scriptId, args);
+        return Futures.immediateFuture("{}");
+    }
+
+    @Override
+    public ListenableFuture<Void> release(UUID scriptId) {
+        log.warn("release {}", scriptId);
+        return Futures.immediateFuture(null);
+    }
 }

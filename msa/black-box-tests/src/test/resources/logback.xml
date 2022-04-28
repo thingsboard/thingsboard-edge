@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
@@ -30,36 +31,17 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div [formGroup]="smsProviderConfigurationFormGroup">
-  <mat-form-field class="mat-block">
-    <mat-label translate>admin.sms-provider-type</mat-label>
-    <mat-select formControlName="type" [required]="required">
-      <mat-option *ngFor="let type of smsProviderTypes" [value]="type">
-        {{smsProviderTypeTranslations.get(type) | translate}}
-      </mat-option>
-    </mat-select>
-    <mat-error *ngIf="smsProviderConfigurationFormGroup.get('type').hasError('required')">
-      {{ 'admin.sms-provider-type-required' | translate }}
-    </mat-error>
-  </mat-form-field>
-  <div [ngSwitch]="smsProviderConfigurationFormGroup.get('type').value">
-    <ng-template [ngSwitchCase]="smsProviderType.AWS_SNS">
-      <tb-aws-sns-provider-configuration
-        [required]="required"
-        formControlName="configuration">
-      </tb-aws-sns-provider-configuration>
-    </ng-template>
-    <ng-template [ngSwitchCase]="smsProviderType.TWILIO">
-      <tb-twilio-sms-provider-configuration
-        [required]="required"
-        formControlName="configuration">
-      </tb-twilio-sms-provider-configuration>
-    </ng-template>
-    <ng-template [ngSwitchCase]="smsProviderType.SMPP">
-      <tb-smpp-sms-provider-configuration
-        [required]="required"
-        formControlName="configuration">
-      </tb-smpp-sms-provider-configuration>
-    </ng-template>
-  </div>
-</div>
+<!DOCTYPE configuration>
+<configuration scan="true" scanPeriod="10 seconds">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

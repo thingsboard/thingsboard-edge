@@ -34,17 +34,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
@@ -71,35 +74,33 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private IdComparator<EntityGroup> idComparator = new IdComparator<>();
+public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
+    static final int TIMEOUT = 30;
 
     @Autowired
     private AttributesService attributesService;
 
     private MergedUserPermissions mergedUserPermissions;
 
-    class EntityIdComparator implements Comparator<EntityId> {
-        @Override
-        public int compare(EntityId id1, EntityId id2) {
-            return id1.getId().compareTo(id2.getId());
-        }
-    }
-
     private TenantId tenantId;
+
+    ListeningExecutorService executor;
 
     @Before
     public void beforeRun() {
+        executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
         tenantId = before();
         Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.DEVICE), Collections.singleton(Operation.ALL));
@@ -108,51 +109,43 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
 
     @After
     public void after() {
+        executor.shutdownNow();
         tenantService.deleteTenant(tenantId);
     }
 
     @Test
-    public void testFindGroupEntityIds() throws ExecutionException, InterruptedException {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
+    public void testFindGroupEntityIds() throws ExecutionException, InterruptedException, TimeoutException {
+        List<ListenableFuture<Device>> futures = new ArrayList<>(97);
 
-        TenantId tenantId = tenant.getId();
-
-        List<Device> devices = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
             device.setName("Device" + i);
             device.setType("default");
             device.setLabel("testLabel" + (int) (Math.random() * 1000));
-            devices.add(deviceService.saveDevice(device));
+            futures.add(executor.submit(() -> deviceService.saveDevice(device)));
         }
 
+        List<Device> devices = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
+
         Optional<EntityGroup> devicesGroupOptional =
-                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME).get();
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
         Assert.assertTrue(devicesGroupOptional.isPresent());
         EntityGroup devicesGroup = devicesGroupOptional.get();
 
         PageLink pageLink = new PageLink(Integer.MAX_VALUE);
         List<EntityId> entityIds = entityGroupService.findAllEntityIds(tenantId, devicesGroup.getId(), pageLink).get();
-        Assert.assertNotNull(entityIds);
+        assertThat(entityIds).containsExactlyInAnyOrderElementsOf(
+                devices.stream().map(IdBased::getId).collect(Collectors.toList()));
 
-        List<EntityId> sortedIds = entityIds.stream().sorted(new EntityIdComparator()).collect(Collectors.toList());
-        List<EntityId> sortedDeviceIds = devices.stream().map(IdBased::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
-        Assert.assertEquals(sortedIds, sortedDeviceIds);
-
-        tenantService.deleteTenant(tenantId);
+        Futures.allAsList(devices.stream()
+                        .map(d -> executor.submit(() -> deviceService.deleteDevice(d.getTenantId(), d.getId())))
+                        .collect(Collectors.toList()))
+                .get(TIMEOUT, TimeUnit.SECONDS);
     }
 
     @Test
     public void testFindGroupEntities() throws ExecutionException, InterruptedException {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
         List<Device> devices = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
             Device device = new Device();
@@ -164,7 +157,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         }
 
         Optional<EntityGroup> devicesGroupOptional =
-                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME).get();
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
         Assert.assertTrue(devicesGroupOptional.isPresent());
         EntityGroup devicesGroup = devicesGroupOptional.get();
 
@@ -183,9 +176,10 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
             allGroupEntities.addAll(groupEntities.getData());
         }
         Assert.assertEquals(97, allGroupEntities.size());
-        List<EntityId> sortedIds = allGroupEntities.stream().map(ShortEntityView::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
-        List<EntityId> sortedDeviceIds = devices.stream().map(IdBased::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
-        Assert.assertEquals(sortedIds, sortedDeviceIds);
+
+        assertThat(allGroupEntities.stream().map(ShortEntityView::getId).collect(Collectors.toList()))
+                .containsExactlyInAnyOrderElementsOf(
+                        devices.stream().map(IdBased::getId).collect(Collectors.toList()));
 
         pageLink = new PageLink(20, 0, "device1", new SortOrder("name", SortOrder.Direction.DESC));
         groupEntities = entityGroupService.findGroupEntities(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissions, devicesGroup.getId(), pageLink);
@@ -240,21 +234,13 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals("Device0", allGroupEntities.get(0).getName());
         Assert.assertEquals("Device9", allGroupEntities.get(allGroupEntities.size() - 1).getName());
 
-        sortedIds = allGroupEntities.stream().map(ShortEntityView::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
-        sortedDeviceIds = testGroupDevices.stream().map(IdBased::getId).sorted(new EntityIdComparator()).collect(Collectors.toList());
-        Assert.assertEquals(sortedIds, sortedDeviceIds);
-
-        tenantService.deleteTenant(tenantId);
+        assertThat(allGroupEntities.stream().map(ShortEntityView::getId).collect(Collectors.toList()))
+                .containsExactlyInAnyOrderElementsOf(
+                        testGroupDevices.stream().map(IdBased::getId).collect(Collectors.toList()));
     }
 
     @Test
     public void testFindGroupEntitiesWithAttributes() throws ExecutionException, InterruptedException {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
         EntityGroup testDevicesWithAttributesGroup = new EntityGroup();
         testDevicesWithAttributesGroup.setType(EntityType.DEVICE);
         testDevicesWithAttributesGroup.setName("Test devices with attributes");
@@ -291,7 +277,6 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
             device.setType("default");
             device.setLabel("testLabel" + (int) (Math.random() * 1000));
             devices.add(deviceService.saveDevice(device));
-            Thread.sleep(1);
         }
 
         List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
@@ -336,18 +321,10 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals(false, groupEntities.hasNext());
         Assert.assertEquals(11, groupEntities.getData().size());
         Assert.assertEquals("serverValue1_19", groupEntities.getData().get(0).properties().get("server_serverAttr1"));
-
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
     public void testFindGroupEntity() throws ExecutionException, InterruptedException {
-        Tenant tenant = new Tenant();
-        tenant.setTitle("Test tenant");
-        tenant = tenantService.saveTenant(tenant);
-
-        TenantId tenantId = tenant.getId();
-
         EntityGroup testDevicesWithAttributesGroup = new EntityGroup();
         testDevicesWithAttributesGroup.setType(EntityType.DEVICE);
         testDevicesWithAttributesGroup.setName("Test devices with attributes");
@@ -408,8 +385,6 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         Assert.assertEquals("clientValue1_1", shortEntityView.properties().get("client_clientAttr1"));
         Assert.assertEquals("1", shortEntityView.properties().get("client_clientAttr2"));
         Assert.assertEquals("", shortEntityView.properties().get("server_emptyAttr"));
-
-        tenantService.deleteTenant(tenantId);
     }
 
     @Test
@@ -456,10 +431,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(entityGroupsName1, idComparator);
-        Collections.sort(loadedEntityGroupsName1, idComparator);
-
-        Assert.assertEquals(entityGroupsName1, loadedEntityGroupsName1);
+        assertThat(entityGroupsName1).as(name1).containsExactlyInAnyOrderElementsOf(loadedEntityGroupsName1);
 
         List<EntityGroup> loadedEntityGroupsName2 = new ArrayList<>();
         pageLink = new PageLink(4, 0, name2);
@@ -471,10 +443,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
             }
         } while (pageData.hasNext());
 
-        Collections.sort(entityGroupsName2, idComparator);
-        Collections.sort(loadedEntityGroupsName2, idComparator);
-
-        Assert.assertEquals(entityGroupsName2, loadedEntityGroupsName2);
+        assertThat(entityGroupsName2).as(name2).containsExactlyInAnyOrderElementsOf(loadedEntityGroupsName2);
 
         for (EntityGroup entityGroup : loadedEntityGroupsName1) {
             entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
@@ -493,6 +462,8 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, savedEdge.getId(), EntityType.ASSET, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
+
+        edgeService.deleteEdge(tenantId, savedEdge.getId());
     }
 
     private ListenableFuture<List<Void>> saveStringAttribute(EntityId entityId, String key, String value, String scope) {

@@ -640,7 +640,7 @@ public class DefaultSolutionService implements SolutionService {
             ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
             EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());
             if (entityGroupId == null) {
-                entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().get().getId();
+                entityGroupId = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME).get().getId();
             }
             if (entityDef.isMain()) {
                 ctx.getSolutionInstructions().setDashboardGroupId(entityGroupId);
@@ -972,7 +972,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private EntityGroup getGroupInfo(SolutionInstallContext ctx, EntityId entityId, EntityType entityType, String ugName) throws ExecutionException, InterruptedException {
-        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entityId, entityType, ugName).get();
+        Optional<EntityGroup> ugEntityOpt = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entityId, entityType, ugName);
         EntityGroup ugEntity;
         if (ugEntityOpt.isPresent()) {
             ugEntity = ugEntityOpt.get();

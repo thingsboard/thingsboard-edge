@@ -602,7 +602,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     private void addEntityToEntityGroup(String groupName, IntegrationInfo integration, EntityId entityId, EntityId parentId, EntityType entityType) {
         TenantId tenantId = integration.getTenantId();
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
-                .findEntityGroupByTypeAndName(tenantId, parentId, entityType, groupName);
+                .findEntityGroupByTypeAndNameAsync(tenantId, parentId, entityType, groupName);
 
         DonAsynchron.withCallback(futureEntityGroup, optionalEntityGroup -> {
             EntityGroup entityGroup =
