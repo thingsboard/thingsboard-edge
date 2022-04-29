@@ -68,7 +68,7 @@ public class ContainerTestSuite {
     public static DockerComposeContainer getTestContainer() {
         HashMap<String, String> env = new HashMap<>();
         env.put("EDGE_DOCKER_REPO", "thingsboard");
-        env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
+        env.put("TB_EDGE_DOCKER_NAME", "tb-edge-pe");
         env.put("TB_EDGE_VERSION", "3.3.4.1EDGEPE");
         env.put("CLOUD_ROUTING_KEY", "280629c7-f853-ee3d-01c0-fffbb6f2ef38");
         env.put("CLOUD_ROUTING_SECRET", "g9ta4soeylw6smqkky8g");
