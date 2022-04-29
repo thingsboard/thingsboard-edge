@@ -27,6 +27,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -148,14 +149,21 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
             device = deviceService.findDeviceById(tenantId, deviceId);
             boolean created = false;
+            String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
                 device = new Device();
                 device.setTenantId(tenantId);
                 device.setId(deviceId);
                 device.setCreatedTime(Uuids.unixTimestamp(deviceId.getId()));
                 created = true;
+                Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
+                if (deviceByName != null) {
+                    deviceName = deviceName + "_" + RandomStringUtils.randomAlphabetic(15);
+                    log.warn("Device with name {} already exists on the edge. Renaming device name to {}",
+                            deviceUpdateMsg.getName(), deviceName);
+                }
             }
-            device.setName(deviceUpdateMsg.getName());
+            device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
             if (deviceUpdateMsg.hasLabel()) {
                 device.setLabel(deviceUpdateMsg.getLabel());
