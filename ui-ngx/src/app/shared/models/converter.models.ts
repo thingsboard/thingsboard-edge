@@ -53,6 +53,7 @@ export interface Converter extends BaseData<ConverterId> {
   debugMode: boolean;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
 }
 
 export interface TestUpLinkInputParams {

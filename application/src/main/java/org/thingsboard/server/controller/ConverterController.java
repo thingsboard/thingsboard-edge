@@ -183,6 +183,8 @@ public class ConverterController extends BaseController {
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
             @RequestParam int page,
+            @ApiParam(value = "Fetch edge template converters")
+            @RequestParam(value = "edgeTemplates", required = false, defaultValue = "false") boolean isEdgeTemplates,
             @ApiParam(value = CONVERTER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
             @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = CONVERTER_SORT_PROPERTY_ALLOWABLE_VALUES)
@@ -193,7 +195,7 @@ public class ConverterController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
+            return checkNotNull(converterService.findTenantConverters(tenantId, isEdgeTemplates, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -275,6 +275,7 @@ public class ModelConstants {
     public static final String CONVERTER_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "converter_by_tenant_and_search_text";
     public static final String CONVERTER_BY_TENANT_AND_NAME_VIEW_NAME = "converter_by_tenant_and_name";

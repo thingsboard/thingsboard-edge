@@ -129,7 +129,8 @@ CREATE TABLE IF NOT EXISTS converter (
     name varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    is_edge_template boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (

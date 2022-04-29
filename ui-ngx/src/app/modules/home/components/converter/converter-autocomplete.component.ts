@@ -237,7 +237,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
       limit += this.excludeEntityIds.length;
     }
     const pageLink = new PageLink(limit, 0, this.searchText);
-    return this.converterService.getConverters(pageLink, {ignoreLoading: true}).pipe(
+    return this.converterService.getConverters(pageLink, false, {ignoreLoading: true}).pipe(
       catchError(() => of(null)),
       map((data) => {
           if (data) {

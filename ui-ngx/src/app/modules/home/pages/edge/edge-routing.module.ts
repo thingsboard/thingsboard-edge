@@ -33,14 +33,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
-import { EdgesTableConfigResolver } from '@home/pages/edge/edges-table-config.resolver';
-import { AssetsTableConfigResolver } from '@home/pages/asset/assets-table-config.resolver';
-import { DevicesTableConfigResolver } from '@home/pages/device/devices-table-config.resolver';
-import { EntityViewsTableConfigResolver } from '@home/pages/entity-view/entity-views-table-config.resolver';
-import { DashboardsTableConfigResolver } from '@home/pages/dashboard/dashboards-table-config.resolver';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
-import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
-import { dashboardBreadcumbLabelFunction, DashboardResolver } from '@home/pages/dashboard/dashboard-routing.module';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { RuleChainPageComponent } from '@home/pages/rulechain/rulechain-page.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -54,11 +47,12 @@ import {
   RuleNodeComponentsResolver,
   TooltipsterResolver
 } from '@home/pages/rulechain/rulechain-routing.module';
+import { ConvertersTableConfigResolver } from '@home/pages/converter/converters-table-config.resolver';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 
 const routes: Routes = [
-  {
+  /* {
     path: 'edgeInstances',
     data: {
       breadcrumb: {
@@ -299,7 +293,7 @@ const routes: Routes = [
         ]
       }
     ]
-  },
+  }, */
   {
     path: 'edgeManagement',
     data: {
@@ -379,6 +373,45 @@ const routes: Routes = [
             }
           }
         ]
+      },
+      {
+        path: 'converters',
+        data: {
+          breadcrumb: {
+            label: 'edge.converter-templates',
+            icon: 'transform'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN],
+              title: 'edge.converter-templates',
+              isEdgeTemplates: true
+            },
+            resolve: {
+              entitiesTableConfig: ConvertersTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'transform'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.TENANT_ADMIN],
+              title: 'edge.converter-templates'
+            },
+            resolve: {
+              entitiesTableConfig: ConvertersTableConfigResolver
+            }
+          }
+        ]
       }
     ]
   }];
@@ -387,7 +420,7 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    EdgesTableConfigResolver
+    /* EdgesTableConfigResolver */
   ]
 })
 export class EdgeRoutingModule {

@@ -100,11 +100,11 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
-    public PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findTenantConverters, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public PageData<Converter> findTenantConverters(TenantId tenantId, boolean isEdgeTemplates, PageLink pageLink) {
+        log.trace("Executing findTenantConverters, tenantId [{}], isEdgeTemplates [{}], pageLink [{}]", tenantId, isEdgeTemplates, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
-        return converterDao.findByTenantId(tenantId.getId(), pageLink);
+        return converterDao.findByTenantIdAndIsEdgeTemplate(tenantId.getId(), isEdgeTemplates, pageLink);
     }
 
     @Override

@@ -535,7 +535,7 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.converterService.getConverters(pageLink, config);
+        entitiesObservable = this.converterService.getConverters(pageLink, false, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';

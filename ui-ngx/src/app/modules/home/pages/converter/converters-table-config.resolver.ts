@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   DateEntityTableColumn,
   defaultEntityTablePermissions,
@@ -49,6 +49,8 @@ import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.com
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Subject } from 'rxjs';
+import { DeviceCredentials } from '@shared/models/device.models';
 
 @Injectable()
 export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<Converter>> {
@@ -115,16 +117,26 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     this.config.deleteEntityContent = () => this.translate.instant('converter.delete-converter-text');
     this.config.deleteEntitiesTitle = count => this.translate.instant('converter.delete-converters-title', {count});
     this.config.deleteEntitiesContent = () => this.translate.instant('converter.delete-converters-text');
-    this.config.entitiesFetchFunction = pageLink => this.converterService.getConverters(pageLink);
+    this.config.entitiesFetchFunction = pageLink => this.converterService.getConverters(pageLink, this.config.componentsData.isEdgeTemplates);
     this.config.loadEntity = id => this.converterService.getConverter(id.id);
-    this.config.saveEntity = converter => this.converterService.saveConverter(converter);
+    this.config.saveEntity = converter => {
+      converter.edgeTemplate = this.config.componentsData.isEdgeTemplates;
+      return this.converterService.saveConverter(converter);
+    }
     this.config.deleteEntity = id => this.converterService.deleteConverter(id.id);
 
     this.config.onEntityAction = action => this.onConverterAction(action);
   }
 
-  resolve(): EntityTableConfig<Converter> {
-    this.config.tableTitle = this.translate.instant('converter.converters');
+  resolve(route: ActivatedRouteSnapshot): EntityTableConfig<Converter> {
+    this.config.componentsData = {
+      isEdgeTemplates: route.data.isEdgeTemplates ? route.data.isEdgeTemplates : false
+    };
+    if (this.config.componentsData.isEdgeTemplates) {
+      this.config.tableTitle = this.translate.instant('edge.converter-templates');
+    } else {
+      this.config.tableTitle = this.translate.instant('converter.converters');
+    }
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
@@ -133,7 +145,12 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree(['converters', converter.id.id]);
+    let url;
+    if (this.config.componentsData.isEdgeTemplates) {
+      url = this.router.createUrlTree(['edgeManagement/converters', converter.id.id]);
+    } else {
+      url = this.router.createUrlTree(['converters', converter.id.id]);
+    }
     this.router.navigateByUrl(url);
   }
 
