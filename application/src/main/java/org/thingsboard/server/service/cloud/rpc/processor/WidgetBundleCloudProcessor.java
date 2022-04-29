@@ -34,6 +34,7 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -49,6 +50,7 @@ import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -62,6 +64,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 widgetCreationLock.lock();
                 try {
+                    deleteSystemWidgetBundleIfAlreadyExists(tenantId, widgetsBundleUpdateMsg.getAlias(), widgetsBundleId);
                     WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                     boolean created = false;
                     if (widgetsBundle == null) {
@@ -86,7 +89,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                     if (created) {
-                        saveCloudEvent(tenantId, CloudEventType.WIDGETS_BUNDLE, ActionType.WIDGET_BUNDLE_TYPES_REQUEST, widgetsBundleId, null);
+                        requestWidgetsBundleTypes(tenantId, widgetsBundleId);
                     }
                 } finally {
                     widgetCreationLock.unlock();
@@ -103,6 +106,35 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + widgetsBundleUpdateMsg.getMsgType()));
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void requestWidgetsBundleTypes(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
+        saveCloudEvent(tenantId,
+                CloudEventType.WIDGETS_BUNDLE,
+                ActionType.WIDGET_BUNDLE_TYPES_REQUEST,
+                widgetsBundleId,
+                null);
+    }
+
+    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId) {
+        try {
+            WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
+            if (widgetsBundle != null && !widgetsBundleId.equals(widgetsBundle.getId())) {
+                widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
+                requestWidgetsBundleTypes(tenantId, widgetsBundleId);
+            }
+        } catch (IncorrectResultSizeDataAccessException e) {
+            // fix for duplicate entries of system widgets
+            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+            for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+                if (systemWidgetsBundle.getAlias().equals(bundleAlias) &&
+                        !systemWidgetsBundle.getId().equals(widgetsBundleId)) {
+                    widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                }
+            }
+            log.warn("Duplicate widgets bundle found, alias {}. Removed all duplicates!", bundleAlias);
+            requestWidgetsBundleTypes(tenantId, widgetsBundleId);
+        }
     }
 
     public UplinkMsg processWidgetBundleTypesRequestMsgToCloud(CloudEvent cloudEvent) {

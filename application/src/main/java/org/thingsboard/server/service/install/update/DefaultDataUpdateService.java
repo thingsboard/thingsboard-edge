@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
@@ -68,6 +69,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -101,6 +103,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.alarm.AlarmService;
@@ -110,6 +113,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -121,7 +125,6 @@ import org.thingsboard.server.dao.oauth2.OAuth2Utils;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
-import org.thingsboard.server.dao.model.sql.RelationEntity;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -130,6 +133,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 
@@ -230,6 +234,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private OAuth2Service oAuth2Service;
 
+    @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
+    private CloudEventService cloudEventService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -262,7 +272,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantsEdgeSettingsUpdater.updateEntities(null);
                 break;
             case "3.3.4":
-                log.info("Updating data from version 3.3.4 to 3.3.4PE ...");
+                log.info("Updating data from version 3.3.4 to 3.3.4.1 ...");
+                boolean fullSyncRequired = fixDuplicateSystemWidgetsBundles();
+                if (fullSyncRequired) {
+                    tenantsFullSyncRequiredUpdater.updateEntities(null);
+                }
+            case "3.3.4.1":
+                log.info("Updating data from version 3.3.4.1 to 3.3.4.1PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);
@@ -280,7 +296,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
-
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -473,6 +488,60 @@ public class DefaultDataUpdateService implements DataUpdateService {
             log.error("Unable to update Tenant", e);
         }
     }
+
+    private boolean fixDuplicateSystemWidgetsBundles() {
+        boolean fullSyncRequired = false;
+        try {
+            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+            for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
+                try {
+                    widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
+                } catch (IncorrectResultSizeDataAccessException e) {
+                    fullSyncRequired = true;
+                    // fix for duplicate entries of system widgets
+                    for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+                        if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
+                            widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            fullSyncRequired = true;
+            log.error("Unable to fix duplicate system widgets bundles", e);
+        }
+        return fullSyncRequired;
+    }
+
+    private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants edge full sync required updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
+                        edgeSettings.setFullSyncRequired(true);
+                        cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
             new PaginatedUpdater<>() {

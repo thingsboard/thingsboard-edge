@@ -117,17 +117,21 @@ public class ThingsboardInstallService {
                         log.info("Upgrading ThingsBoard Edge from version 3.3.3 to 3.3.3PE ...");
                         dataUpdateService.updateData("3.3.3");
                     case "3.3.4": // to 3.3.4PE
+                        log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.3.4.1 ...");
+                        dataUpdateService.updateData("3.3.4");
+                    case "3.3.4.1": // to 3.3.4.1PE
                         log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.3.4PE ...");
                         databaseEntitiesUpgradeService.upgradeDatabase("3.3.4");
-                        dataUpdateService.updateData("3.3.4");
-                        log.info("Updating system data...");
-                        systemDataLoaderService.updateSystemWidgets();
+                        dataUpdateService.updateData("3.3.4.1");
+//                        log.info("Updating system data...");
+//                        systemDataLoaderService.updateSystemWidgets();
                         break;
                     //TODO update CacheCleanupService on the next version upgrade
 
                     default:
-                        throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
+                        throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
                 }
+
                 log.info("Upgrade finished successfully!");
 
             } else {
