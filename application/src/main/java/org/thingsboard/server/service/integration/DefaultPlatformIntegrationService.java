@@ -53,10 +53,8 @@ import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-/* voba - merge comment
 import org.thingsboard.gcloud.pubsub.PubSubIntegration;
 import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
- */
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
@@ -66,7 +64,6 @@ import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-/* voba - merge comment
 import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
 import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
 import org.thingsboard.integration.azure.AzureEventHubIntegration;
@@ -87,7 +84,6 @@ import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
 import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
 import org.thingsboard.integration.opcua.OpcUaIntegration;
 import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
- */
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.coapserver.CoapServerService;
@@ -1056,7 +1052,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private ThingsboardPlatformIntegration<?> createThingsboardPlatformIntegration(Integration integration) {
         switch (integration.getType()) {
-        /* merge comment
             case HTTP:
                 return new BasicHttpIntegration();
             case LORIOT:
@@ -1106,7 +1101,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
             case TCP:
             case UDP:
                 throw new RuntimeException("Custom Integrations should be executed remotely!");
-         */
             default:
                 throw new RuntimeException("Not Implemented!");
         }

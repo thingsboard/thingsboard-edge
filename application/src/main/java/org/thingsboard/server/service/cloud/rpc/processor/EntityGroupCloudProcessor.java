@@ -41,9 +41,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -180,8 +180,8 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
             ObjectNode body = mapper.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
-            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
-            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, ActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body);
+            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
+            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body);
         }
         return Futures.immediateFuture(null);
     }

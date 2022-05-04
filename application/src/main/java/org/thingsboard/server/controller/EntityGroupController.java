@@ -542,7 +542,7 @@ public class EntityGroupController extends BaseController {
                  */
                 sendGroupEntityNotificationMsg(getTenantId(), entityId,
                         CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
-                        ActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
+                        EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
             if (entityGroup != null) {

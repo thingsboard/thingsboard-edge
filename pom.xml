@@ -167,7 +167,7 @@
         <module>rule-engine-pe</module>
         <module>dao</module>
         <!--<module>transport</module>-->
-        <!--<module>integration</module>-->
+        <module>integration</module>
         <module>ui-ngx</module>
         <module>tools</module>
         <module>application</module>
@@ -938,7 +938,6 @@
                 <artifactId>integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <!-- voba - merge comment
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>http-integrations</artifactId>
@@ -1009,7 +1008,7 @@
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>remote-integration-api</artifactId>
                 <version>${project.version}</version>
-            </dependency>-->
+            </dependency>
             <dependency>
                 <groupId>org.thingsboard.rule-engine</groupId>
                 <artifactId>rule-engine-components</artifactId>
@@ -1457,11 +1456,6 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-validator</groupId>
-                <artifactId>commons-validator</artifactId>
-                <version>${commons-validator.version}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>
