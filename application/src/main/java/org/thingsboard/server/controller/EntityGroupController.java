@@ -398,7 +398,7 @@ public class EntityGroupController extends BaseController {
             EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
             checkEntityId(ownerId, Operation.READ);
             Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), ownerId,
-                    groupType, EntityGroup.GROUP_ALL_NAME).get();
+                    groupType, EntityGroup.GROUP_ALL_NAME);
             if (entityGroup.isPresent()) {
                 accessControlService.checkEntityGroupPermission(getCurrentUser(), Operation.READ, entityGroup.get());
                 return toEntityGroupInfo(entityGroup.get());
@@ -866,7 +866,7 @@ public class EntityGroupController extends BaseController {
             EntityGroup userGroup;
             if (shareGroupRequest.isAllUserGroup()) {
                 Optional<EntityGroup> userGroupOptional = entityGroupService.findEntityGroupByTypeAndName(getTenantId(), shareGroupRequest.getOwnerId(),
-                        EntityType.USER, EntityGroup.GROUP_ALL_NAME).get();
+                        EntityType.USER, EntityGroup.GROUP_ALL_NAME);
                 if (userGroupOptional.isPresent()) {
                     userGroup = userGroupOptional.get();
                 } else {

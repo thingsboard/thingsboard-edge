@@ -33,12 +33,14 @@ package org.thingsboard.server.common.data.scheduler;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
+import java.util.Calendar;
+
 /**
  * Created by ashvayka on 28.11.17.
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DailyRepeat implements SchedulerRepeat {
+public class DailyRepeat extends SchedulerDate implements SchedulerRepeat {
 
     public static final long _1DAY = 1000 * 60 * 60 * 24;
     private long endsOn;
@@ -51,11 +53,6 @@ public class DailyRepeat implements SchedulerRepeat {
 
     @Override
     public long getNext(long startTime, long ts, String timezone) {
-        for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
-            if (tmp > ts) {
-                return tmp;
-            }
-        }
-        return 0L;
+        return getNext(startTime, ts, timezone, endsOn, Calendar.DAY_OF_YEAR);
     }
 }

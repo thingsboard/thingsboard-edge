@@ -158,6 +158,7 @@ export interface WidgetTypeDescriptor {
   controllerScript: string;
   settingsSchema?: string | any;
   dataKeySettingsSchema?: string | any;
+  latestDataKeySettingsSchema?: string | any;
   defaultConfig: string;
   sizeX: number;
   sizeY: number;
@@ -172,6 +173,7 @@ export interface WidgetTypeParameters {
   stateData?: boolean;
   hasDataPageLink?: boolean;
   singleEntity?: boolean;
+  hasAdditionalLatestDataKeys?: boolean;
   warnOnPageDataOverflow?: boolean;
   ignoreDataUpdateOnIntervalTick?: boolean;
 }
@@ -180,6 +182,7 @@ export interface WidgetControllerDescriptor {
   widgetTypeFunction?: any;
   settingsSchema?: string | any;
   dataKeySettingsSchema?: string | any;
+  latestDataKeySettingsSchema?: string | any;
   typeParameters?: WidgetTypeParameters;
   actionSources?: {[actionSourceId: string]: WidgetActionSource};
 }
@@ -298,6 +301,7 @@ export interface Datasource {
   name?: string;
   aliasName?: string;
   dataKeys?: Array<DataKey>;
+  latestDataKeys?: Array<DataKey>;
   entityType?: EntityType;
   entityId?: string;
   entityName?: string;
@@ -315,7 +319,29 @@ export interface Datasource {
   keyFilters?: Array<KeyFilter>;
   entityFilter?: EntityFilter;
   dataKeyStartIndex?: number;
+  latestDataKeyStartIndex?: number;
   [key: string]: any;
+}
+
+export interface FormattedData {
+  $datasource: Datasource;
+  entityName: string;
+  deviceName: string;
+  entityId: string;
+  entityType: EntityType;
+  entityLabel: string;
+  entityDescription: string;
+  aliasName: string;
+  dsIndex: number;
+  dsName: string;
+  deviceType: string;
+  [key: string]: any;
+}
+
+export interface ReplaceInfo {
+  variable: string;
+  valDec?: number;
+  dataKeyName: string;
 }
 
 export type DataSet = [number, any][];

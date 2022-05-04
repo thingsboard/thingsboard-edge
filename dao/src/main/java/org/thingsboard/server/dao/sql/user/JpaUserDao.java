@@ -33,7 +33,7 @@ package org.thingsboard.server.dao.sql.user;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -67,7 +67,7 @@ public class JpaUserDao extends JpaAbstractSearchTextDao<UserEntity, User> imple
     }
 
     @Override
-    protected CrudRepository<UserEntity, UUID> getCrudRepository() {
+    protected JpaRepository<UserEntity, UUID> getRepository() {
         return userRepository;
     }
 

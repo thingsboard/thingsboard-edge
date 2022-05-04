@@ -277,8 +277,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 if (fullSyncRequired) {
                     tenantsFullSyncRequiredUpdater.updateEntities(null);
                 }
-            case "3.3.4.1":
-                log.info("Updating data from version 3.3.4.1 to 3.3.4.1PE ...");
+            case "3.4.0":
+                log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
                 tenantIntegrationUpdater.updateEntities(null);
@@ -687,7 +687,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         }
                         EntityGroup entityGroup;
                         Optional<EntityGroup> customerGroupOptional =
-                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
                         if (!customerGroupOptional.isPresent()) {
                             entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
                         } else {
@@ -720,7 +720,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         for (EntityType groupType : entityGroupTypes) {
                             EntityGroup entityGroup;
                             Optional<EntityGroup> entityGroupOptional =
-                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
                             boolean fetchAllTenantEntities;
                             if (!entityGroupOptional.isPresent()) {
                                 entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), groupType);
@@ -734,7 +734,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     new CustomerUsersTenantGroupAllRemover(entityGroup).updateEntities(tenant.getId());
                                     entityGroupService.findOrCreateTenantUsersGroup(tenant.getId());
                                     Optional<EntityGroup> tenantAdminsOptional =
-                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
+                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
                                     if (!tenantAdminsOptional.isPresent()) {
                                         EntityGroup tenantAdmins = entityGroupService.findOrCreateTenantAdminsGroup(tenant.getId());
                                         new TenantAdminsGroupAllUpdater(entityGroup, tenantAdmins).updateEntities(tenant.getId());
@@ -757,7 +757,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     break;
                             }
                         }
-                    } catch (InterruptedException | ExecutionException e) {
+                    } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
                     }
                 }
@@ -894,14 +894,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                 for (EntityType groupType : entityGroupTypes) {
                     Optional<EntityGroup> entityGroupOptional =
-                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
                     if (!entityGroupOptional.isPresent()) {
                         EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
                         if (groupType == EntityType.USER) {
                             if (!customer.isPublic()) {
                                 entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
                                 Optional<EntityGroup> customerUsersOptional =
-                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME).get();
+                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
                                 if (!customerUsersOptional.isPresent()) {
                                     EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
                                     new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());

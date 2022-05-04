@@ -33,7 +33,7 @@ package org.thingsboard.server.dao.sql.group;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -66,7 +66,7 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    protected CrudRepository<EntityGroupEntity, UUID> getCrudRepository() {
+    protected JpaRepository<EntityGroupEntity, UUID> getRepository() {
         return entityGroupRepository;
     }
 
@@ -103,14 +103,19 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
-    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
-                                                                                String relationType, String name) {
-        return service.submit(() ->
-                Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
-                        parentEntityId,
-                        parentEntityType.name(),
-                        relationType,
-                        name))));
+    public Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
+                                                              String relationType, String name) {
+        return Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
+                parentEntityId,
+                parentEntityType.name(),
+                relationType,
+                name)));
+    }
+
+    @Override
+    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
+                                                                                     String relationType, String name) {
+        return service.submit(() -> findEntityGroupByTypeAndName(tenantId, parentEntityId, parentEntityType, relationType, name));
     }
 
     @Override

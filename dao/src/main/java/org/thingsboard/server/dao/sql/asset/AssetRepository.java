@@ -32,8 +32,8 @@ package org.thingsboard.server.dao.sql.asset;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 
@@ -43,7 +43,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
  */
-public interface AssetRepository extends PagingAndSortingRepository<AssetEntity, UUID> {
+public interface AssetRepository extends JpaRepository<AssetEntity, UUID> {
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")

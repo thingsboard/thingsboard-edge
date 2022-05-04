@@ -95,7 +95,7 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgToOri
     private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) throws ExecutionException, InterruptedException {
         EntityGroupId entityGroupId = ctx.getPeContext().getEntityGroupService()
                 .findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId, config.getGroupType(), config.getGroupName())
-                .get().map(IdBased::getId).orElse(null);
+                .map(IdBased::getId).orElse(null);
         if (entityGroupId != null) {
             return entityGroupId;
         } else {

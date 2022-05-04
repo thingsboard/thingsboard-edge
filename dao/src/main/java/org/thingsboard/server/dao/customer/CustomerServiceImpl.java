@@ -234,7 +234,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     private List<CustomerId> fetchSubcustomers(TenantId tenantId, CustomerId customerId) throws Exception {
         List<CustomerId> customerIds = new ArrayList<>();
-        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
         if (entityGroup.isPresent()) {
             List<EntityId> childCustomerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             childCustomerIds.forEach(entityId -> customerIds.add(new CustomerId(entityId.getId())));
@@ -249,7 +249,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
         try {
             Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
-                    EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+                    EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
             if (entityGroup.isPresent()) {
                 Customer publicCustomer = null;
                 PageLink pageLink = new PageLink(100);

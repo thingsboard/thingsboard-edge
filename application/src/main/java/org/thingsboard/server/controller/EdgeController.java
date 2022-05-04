@@ -189,7 +189,7 @@ public class EdgeController extends BaseController {
         }
     }
 
-    private void onEdgeCreatedOrUpdated(TenantId tenantId, Edge savedEdge, RuleChain edgeTemplateRootRuleChain, String oldEdgeName, EntityGroupId entityGroupId, boolean updated, SecurityUser user) throws IOException, ThingsboardException {
+    private void onEdgeCreatedOrUpdated(TenantId tenantId, Edge savedEdge, RuleChain edgeTemplateRootRuleChain, String oldEdgeName, EntityGroupId entityGroupId, boolean updated, SecurityUser user) throws Exception {
         if (entityGroupId != null && !updated) {
             entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());
         }

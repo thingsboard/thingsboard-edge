@@ -39,9 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
@@ -98,19 +96,11 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
     @Autowired
     private DataValidator<EntityView> entityViewValidator;
 
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.entityId}"),
-            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.name}"),
-            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
     @Override
     public EntityView saveEntityView(EntityView entityView, boolean doValidate) {
         return doSaveEntityView(entityView, doValidate);
     }
 
-    @Caching(evict = {
-            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.entityId}"),
-            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.tenantId, #entityView.name}"),
-            @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityView.id}")})
     @Override
     public EntityView saveEntityView(EntityView entityView) {
         return doSaveEntityView(entityView, true);
@@ -121,6 +111,12 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         if (doValidate) {
             entityViewValidator.validate(entityView, EntityView::getTenantId);
         }
+
+        if (entityView.getId() != null) {
+            EntityView oldEntityView = entityViewDao.findById(entityView.getTenantId(), entityView.getUuidId());
+            evictCache(oldEntityView);
+        }
+
         EntityView savedEntityView = entityViewDao.save(entityView.getTenantId(), entityView);
         if (entityView.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
@@ -260,15 +256,13 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
         }
     }
 
-    @CacheEvict(cacheNames = ENTITY_VIEW_CACHE, key = "{#entityViewId}")
     @Override
     public void deleteEntityView(TenantId tenantId, EntityViewId entityViewId) {
         log.trace("Executing deleteEntityView [{}]", entityViewId);
         validateId(entityViewId, INCORRECT_ENTITY_VIEW_ID + entityViewId);
         deleteEntityRelations(tenantId, entityViewId);
         EntityView entityView = entityViewDao.findById(tenantId, entityViewId.getId());
-        cacheManager.getCache(ENTITY_VIEW_CACHE).evict(Arrays.asList(entityView.getTenantId(), entityView.getEntityId()));
-        cacheManager.getCache(ENTITY_VIEW_CACHE).evict(Arrays.asList(entityView.getTenantId(), entityView.getName()));
+        evictCache(entityView);
         entityViewDao.removeById(tenantId, entityViewId.getId());
     }
 
@@ -347,4 +341,11 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             deleteEntityView(tenantId, new EntityViewId(entity.getUuidId()));
         }
     };
+
+    private void evictCache(EntityView entityView) {
+        Cache cache = cacheManager.getCache(ENTITY_VIEW_CACHE);
+        cache.evict(Arrays.asList(entityView.getTenantId(), entityView.getEntityId()));
+        cache.evict(Arrays.asList(entityView.getTenantId(), entityView.getName()));
+        cache.evict(Arrays.asList(entityView.getId()));
+    }
 }
