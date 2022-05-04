@@ -40,9 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -94,7 +94,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
 
     private void saveCloudEvent(TenantId tenantId,
                                 CloudEventType cloudEventType,
-                                ActionType cloudEventAction,
+                                EdgeEventActionType cloudEventAction,
                                 EntityId entityId,
                                 JsonNode entityBody,
                                 EntityId entityGroupId) {
@@ -113,7 +113,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             cloudEvent.setEntityGroupId(entityGroupId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        cloudEventService.save(cloudEvent);
+        cloudEventService.saveAsync(cloudEvent);
     }
 
     @Override
@@ -149,7 +149,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     }
 
     private void processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
-        ActionType cloudEventActionType = ActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
+        EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (cloudEventActionType) {
@@ -182,7 +182,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     }
 
     private void processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws JsonProcessingException {
-        ActionType actionType = ActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (actionType) {
             case DELETED:
@@ -202,7 +202,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                         if (cloudEventType != null) {
                             saveCloudEvent(tenantId,
                                     CloudEventType.ALARM,
-                                    ActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
+                                    EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                                     alarmId,
                                     null,
                                     null);
@@ -217,7 +217,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         EntityRelation relation = mapper.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
         saveCloudEvent(tenantId,
                 CloudEventType.RELATION,
-                ActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
+                EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                 null,
                 mapper.valueToTree(relation),
                 null);

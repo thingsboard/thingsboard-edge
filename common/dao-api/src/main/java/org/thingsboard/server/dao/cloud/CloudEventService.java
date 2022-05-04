@@ -43,7 +43,7 @@ import java.util.List;
 
 public interface CloudEventService {
 
-    CloudEvent save(CloudEvent cloudEvent);
+    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
     PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
 

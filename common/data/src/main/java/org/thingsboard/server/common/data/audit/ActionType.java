@@ -69,16 +69,7 @@ public enum ActionType {
     PROVISION_SUCCESS(false),
     PROVISION_FAILURE(false),
     ASSIGNED_TO_EDGE(false), // log edge name
-    UNASSIGNED_FROM_EDGE(false),
-    ATTRIBUTES_REQUEST(false),
-    RULE_CHAIN_METADATA_REQUEST(false),
-    RELATION_REQUEST(false),
-    CREDENTIALS_REQUEST(false),
-    GROUP_ENTITIES_REQUEST(false),
-    GROUP_PERMISSIONS_REQUEST(false),
-    DEVICE_PROFILE_DEVICES_REQUEST(false),
-    WIDGET_BUNDLE_TYPES_REQUEST(false),
-    ENTITY_VIEW_REQUEST(false);
+    UNASSIGNED_FROM_EDGE(false);
 
     private final boolean isRead;
 

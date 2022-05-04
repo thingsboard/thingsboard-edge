@@ -64,6 +64,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -112,15 +113,21 @@ public class EntityViewServiceImpl extends AbstractEntityService implements Enti
             entityViewValidator.validate(entityView, EntityView::getTenantId);
         }
 
+        EntityView oldEntityView = null;
         if (entityView.getId() != null) {
-            EntityView oldEntityView = entityViewDao.findById(entityView.getTenantId(), entityView.getUuidId());
-            evictCache(oldEntityView);
+            oldEntityView = entityViewDao.findById(entityView.getTenantId(), entityView.getUuidId());
         }
 
         EntityView savedEntityView = entityViewDao.save(entityView.getTenantId(), entityView);
         if (entityView.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedEntityView.getTenantId(), savedEntityView.getOwnerId(), savedEntityView.getId());
         }
+
+        if (entityView.getId() != null) {
+            // VB - evict cache for the new entity view if old entity view doesn't exits yet on edge
+            evictCache(Objects.requireNonNullElse(oldEntityView, entityView));
+        }
+
         return savedEntityView;
     }
 

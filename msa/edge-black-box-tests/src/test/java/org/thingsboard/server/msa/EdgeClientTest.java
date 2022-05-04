@@ -360,8 +360,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 return false;
             }
             RuleNode actualNode = actualNodeOpt.get();
-            // TODO: @voba - fix send of created time from cloud to edge
-            actualNode.setCreatedTime(0);
             if (!expectedNode.equals(actualNode)) {
                 return false;
             }
@@ -946,6 +944,10 @@ public class EdgeClientTest extends AbstractContainerTest {
         List<AttributeKvEntry> attributeKvEntries = targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys);
 
         sourceRestClient.deleteEntityAttributes(device.getId(), DataConstants.CLIENT_SCOPE, keys);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == 0);
 
         return attributeKvEntries;
     }

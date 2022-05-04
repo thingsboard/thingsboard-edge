@@ -31,7 +31,11 @@
 package org.thingsboard.rule.engine.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.data.CloudUtils;
@@ -45,6 +49,8 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
+
+import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
 @Slf4j
 @RuleNode(
@@ -114,18 +120,18 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
     void processMsg(TbContext ctx, TbMsg msg) {
         try {
             CloudEvent cloudEvent = buildEvent(msg, ctx);
-//            ListenableFuture<Void> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
-//            Futures.addCallback(saveFuture, new FutureCallback<>() {
-//                @Override
-//                public void onSuccess(@Nullable Void unused) {
-//                    ctx.tellNext(msg, SUCCESS);
-//                }
-//
-//                @Override
-//                public void onFailure(Throwable throwable) {
-//                    ctx.tellFailure(msg, throwable);
-//                }
-//            }, ctx.getDbCallbackExecutor());
+            ListenableFuture<Void> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
+            Futures.addCallback(saveFuture, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable Void unused) {
+                    ctx.tellNext(msg, SUCCESS);
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    ctx.tellFailure(msg, throwable);
+                }
+            }, ctx.getDbCallbackExecutor());
         } catch (Exception e) {
             log.error("Failed to build cloud event", e);
             ctx.tellFailure(msg, e);

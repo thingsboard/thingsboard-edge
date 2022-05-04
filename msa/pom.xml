@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.4.1EDGEPE</version>
+        <version>3.4.0EDGEPE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>msa</artifactId>
@@ -48,8 +48,8 @@
         <main.dir>${basedir}/..</main.dir>
         <docker.repo>thingsboard</docker.repo>
         <dockerfile.skip>true</dockerfile.skip>
-        <tb.docker.id>edge-pe</tb.docker.id>
         <blackBoxTests.skip>true</blackBoxTests.skip>
+        <edgeBlackBoxTests.skip>true</edgeBlackBoxTests.skip>
         <dockerfile-maven.version>1.4.13</dockerfile-maven.version>
         <docker.push-arm-amd-image.phase>none</docker.push-arm-amd-image.phase>
     </properties>

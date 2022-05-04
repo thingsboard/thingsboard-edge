@@ -32,16 +32,16 @@ package org.thingsboard.server.dao.sql.cloud;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
 import java.util.UUID;
 
-public interface CloudEventRepository extends PagingAndSortingRepository<CloudEventEntity, UUID>, JpaSpecificationExecutor<CloudEventEntity> {
+public interface CloudEventRepository extends JpaRepository<CloudEventEntity, UUID>, JpaSpecificationExecutor<CloudEventEntity> {
 
     @Query("SELECT e FROM CloudEventEntity e WHERE " +
             "e.tenantId = :tenantId " +

@@ -157,6 +157,8 @@ public class EntityIdFactory {
         switch (cloudEventType) {
             case EDGE:
                 return new EdgeId(uuid);
+            case TENANT:
+                return new TenantId(uuid);
             case CUSTOMER:
                 return new CustomerId(uuid);
             case USER:

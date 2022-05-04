@@ -38,7 +38,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -109,11 +108,9 @@ public interface TbClusterService {
 
     void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
 
-    void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                          EdgeEventType type, EdgeEventActionType action,
+    void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action,
                                           EntityType entityGroupType, EntityGroupId entityGroupId);
 
-    void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
-                                           CloudEventType cloudEventType, ActionType cloudEventAction,
+    void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
                                            EntityGroupId entityGroupId);
 }

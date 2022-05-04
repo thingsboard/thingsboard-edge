@@ -48,11 +48,11 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -224,7 +224,7 @@ public abstract class BaseCloudProcessor {
 
             PageData<CloudEvent> cloudEventsByEntityIdAndCloudEventActionAndCloudEventType =
                     cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
-                            tenantId, entityId, cloudEventType, ActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
+                            tenantId, entityId, cloudEventType, EdgeEventActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
 
             if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
                 log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);
@@ -232,12 +232,12 @@ public abstract class BaseCloudProcessor {
             } else {
                 log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
                 saveCloudEvent(tenantId, cloudEventType,
-                        ActionType.ATTRIBUTES_REQUEST, entityId, null);
+                        EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null);
                 saveCloudEvent(tenantId, cloudEventType,
-                        ActionType.RELATION_REQUEST, entityId, null);
+                        EdgeEventActionType.RELATION_REQUEST, entityId, null);
                 if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
                     saveCloudEvent(tenantId, cloudEventType,
-                            ActionType.ENTITY_VIEW_REQUEST, entityId, null);
+                            EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null);
                 }
             }
         }
@@ -294,8 +294,8 @@ public abstract class BaseCloudProcessor {
     }
 
     // TODO: voba - not used at the moment, but could be used in future releases
-    protected  <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(TenantId tenantId, I entityId, E entity, CustomerId customerId,
-                                                                                      ActionType actionType, Object... additionalInfo) {
+    protected <E extends HasName, I extends EntityId> void pushEntityActionToRuleEngine(TenantId tenantId, I entityId, E entity, CustomerId customerId,
+                                                                                        EdgeEventActionType actionType, Object... additionalInfo) {
         String msgType = null;
         switch (actionType) {
             case ADDED:
@@ -306,12 +306,6 @@ public abstract class BaseCloudProcessor {
                 break;
             case UPDATED:
                 msgType = DataConstants.ENTITY_UPDATED;
-                break;
-            case ASSIGNED_TO_CUSTOMER:
-                msgType = DataConstants.ENTITY_ASSIGNED;
-                break;
-            case UNASSIGNED_FROM_CUSTOMER:
-                msgType = DataConstants.ENTITY_UNASSIGNED;
                 break;
             case ATTRIBUTES_UPDATED:
                 msgType = DataConstants.ATTRIBUTES_UPDATED;
@@ -333,17 +327,6 @@ public abstract class BaseCloudProcessor {
                 if (customerId != null && !customerId.isNullUid()) {
                     metaData.putValue("customerId", customerId.toString());
                 }
-                if (actionType == ActionType.ASSIGNED_TO_CUSTOMER) {
-                    String strCustomerId = extractParameter(String.class, 1, additionalInfo);
-                    String strCustomerName = extractParameter(String.class, 2, additionalInfo);
-                    metaData.putValue("assignedCustomerId", strCustomerId);
-                    metaData.putValue("assignedCustomerName", strCustomerName);
-                } else if (actionType == ActionType.UNASSIGNED_FROM_CUSTOMER) {
-                    String strCustomerId = extractParameter(String.class, 1, additionalInfo);
-                    String strCustomerName = extractParameter(String.class, 2, additionalInfo);
-                    metaData.putValue("unassignedCustomerId", strCustomerId);
-                    metaData.putValue("unassignedCustomerName", strCustomerName);
-                }
                 ObjectNode entityNode;
                 if (entity != null) {
                     entityNode = mapper.valueToTree(entity);
@@ -352,13 +335,12 @@ public abstract class BaseCloudProcessor {
                     }
                 } else {
                     entityNode = mapper.createObjectNode();
-                    if (actionType == ActionType.ATTRIBUTES_UPDATED) {
+                    if (actionType == EdgeEventActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
                         String attributes = extractParameter(String.class, 1, additionalInfo);
                         metaData.putValue("scope", scope);
-                        // TODO: voba - verify that this is correct
                         entityNode.set("attributes", mapper.readTree(attributes));
-                    } else if (actionType == ActionType.ATTRIBUTES_DELETED) {
+                    } else if (actionType == EdgeEventActionType.ATTRIBUTES_DELETED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
                         List<String> keys = extractParameter(List.class, 1, additionalInfo);
                         metaData.putValue("scope", scope);
@@ -387,11 +369,11 @@ public abstract class BaseCloudProcessor {
         return result;
     }
 
-    protected CloudEvent saveCloudEvent(TenantId tenantId,
-                                                          CloudEventType cloudEventType,
-                                                          ActionType cloudEventAction,
-                                                          EntityId entityId,
-                                                          JsonNode entityBody) {
+    protected ListenableFuture<Void> saveCloudEvent(TenantId tenantId,
+                                                    CloudEventType cloudEventType,
+                                                    EdgeEventActionType cloudEventAction,
+                                                    EntityId entityId,
+                                                    JsonNode entityBody) {
         log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
 
@@ -403,6 +385,6 @@ public abstract class BaseCloudProcessor {
             cloudEvent.setEntityId(entityId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.save(cloudEvent);
+        return cloudEventService.saveAsync(cloudEvent);
     }
 }

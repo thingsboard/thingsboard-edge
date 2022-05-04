@@ -43,10 +43,10 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -127,7 +127,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     }
                     deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
-                    saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, ActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
+                    saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, EdgeEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
                 } finally {
                     deviceCreationLock.unlock();
                 }

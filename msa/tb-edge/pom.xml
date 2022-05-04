@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.4.1EDGEPE</version>
+        <version>3.4.0EDGEPE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -50,7 +50,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>tb-edge</pkg.name>
-        <tb.docker.name>tb-${tb.docker.id}</tb.docker.name>
+        <tb.docker.name>tb-edge</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.upgradeVersion>3.3.3</pkg.upgradeVersion>
     </properties>

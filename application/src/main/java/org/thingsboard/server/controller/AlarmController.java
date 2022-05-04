@@ -160,7 +160,7 @@ public class AlarmController extends BaseController {
             /* merge comment
             sendEntityNotificationMsg(getTenantId(), savedAlarm.getId(), alarm.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
              */
-            sendNotificationMsgToCloudService(getTenantId(), savedAlarm.getId(), alarm.getId() == null ? ActionType.ADDED : ActionType.UPDATED);
+            sendNotificationMsgToCloudService(getTenantId(), savedAlarm.getId(), alarm.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedAlarm;
         } catch (Exception e) {
@@ -220,7 +220,7 @@ public class AlarmController extends BaseController {
             /* merge comment
             sendEntityNotificationMsg(getTenantId(), alarmId, EdgeEventActionType.ALARM_ACK);
              */
-            sendNotificationMsgToCloudService(getTenantId(), alarmId, ActionType.ALARM_ACK);
+            sendNotificationMsgToCloudService(getTenantId(), alarmId, EdgeEventActionType.ALARM_ACK);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -248,7 +248,7 @@ public class AlarmController extends BaseController {
             /* merge comment
             sendEntityNotificationMsg(getTenantId(), alarmId, EdgeEventActionType.ALARM_CLEAR);
              */
-            sendNotificationMsgToCloudService(getTenantId(), alarmId, ActionType.ALARM_CLEAR);
+            sendNotificationMsgToCloudService(getTenantId(), alarmId, EdgeEventActionType.ALARM_CLEAR);
         } catch (Exception e) {
             throw handleException(e);
         }

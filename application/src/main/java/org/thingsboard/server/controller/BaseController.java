@@ -73,6 +73,7 @@ import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -659,7 +660,7 @@ public abstract class BaseController {
 
                 sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
                         CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                        ActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
 
             logEntityAction(savedEntity.getId(), savedEntity,
@@ -1346,7 +1347,7 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, ActionType cloudEventAction) {
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
         try {
             tbClusterService.sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
         } catch (Exception e) {
@@ -1354,7 +1355,7 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, ActionType cloudEventAction) {
+    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
             tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
@@ -1363,19 +1364,19 @@ public abstract class BaseController {
 
     protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, Alarm alarm) {
         try {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, ActionType.DELETED, null);
+            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED, null);
         } catch (Exception e) {
             log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
     }
 
     protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                     ActionType cloudEventAction) {
+                                                     EdgeEventActionType cloudEventAction) {
         tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
     }
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                  ActionType cloudEventAction, EntityGroupId entityGroupId) {
+                                                  EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
         tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
     }
 }

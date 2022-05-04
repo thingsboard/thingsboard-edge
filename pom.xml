@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.3.4.1EDGEPE</version>
+    <version>3.4.0EDGEPE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard Edge PE</name>
@@ -156,8 +156,8 @@
         <!--      BLACKBOX TEST SCOPE     -->
         <testcontainers.version>1.16.0</testcontainers.version>
         <zeroturnaround.version>1.12</zeroturnaround.version>
-        <dotenv-java.version>2.2.0</dotenv-java.version>
         <opensmpp.version>3.0.0</opensmpp.version>
+        <dotenv-java.version>2.2.0</dotenv-java.version>
     </properties>
 
     <modules>

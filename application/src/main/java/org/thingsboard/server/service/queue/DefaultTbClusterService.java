@@ -52,7 +52,6 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -484,8 +483,7 @@ public class DefaultTbClusterService implements TbClusterService {
         }
          */
 
-        sendNotificationMsgToCloudService(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? ActionType.ADDED : ActionType.UPDATED);
-
+        sendNotificationMsgToCloudService(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
     }
 
     @Override
@@ -604,14 +602,14 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                     ActionType cloudEventAction) {
+                                                   EdgeEventActionType cloudEventAction) {
         sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
     }
 
     @Override
     public void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
-                                                   CloudEventType cloudEventType, ActionType cloudEventAction,
-                                                   EntityGroupId entityGroupId) {
+                                                  CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
+                                                  EntityGroupId entityGroupId) {
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());

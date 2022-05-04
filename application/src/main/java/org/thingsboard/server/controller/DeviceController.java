@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -257,8 +258,7 @@ public class DeviceController extends BaseController {
             sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
              */
 
-            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.DELETED);
-
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, EdgeEventActionType.DELETED);
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.DEVICE),
                     null,
@@ -319,7 +319,7 @@ public class DeviceController extends BaseController {
                     device.getCustomerId(),
                     ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);
 
-            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, ActionType.CREDENTIALS_UPDATED);
+            sendNotificationMsgToCloudService(getTenantId(), device.getId(), CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED);
 
             return result;
         } catch (Exception e) {

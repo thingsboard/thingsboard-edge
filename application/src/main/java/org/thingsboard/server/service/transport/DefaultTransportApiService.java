@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfig
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProvisionDeviceProfileCredentials;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -574,7 +575,7 @@ public class DefaultTransportApiService implements TransportApiService {
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
         builder.setCloudEventType(CloudEventType.DEVICE.name());
-        builder.setCloudEventAction(ActionType.ADDED.name());
+        builder.setCloudEventAction(EdgeEventActionType.ADDED.name());
         builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
         builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
         builder.setEntityType(entityId.getEntityType().name());

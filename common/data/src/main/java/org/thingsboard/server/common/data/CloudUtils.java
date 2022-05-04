@@ -53,6 +53,8 @@ public final class CloudUtils {
                 return CloudEventType.USER;
             case ALARM:
                 return CloudEventType.ALARM;
+            case TENANT:
+                return CloudEventType.TENANT;
             case CUSTOMER:
                 return CloudEventType.CUSTOMER;
             case ENTITY_GROUP:
