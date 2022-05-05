@@ -52,7 +52,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.rule.engine.api.msg.DeviceCredentialsUpdateNotificationMsg;
 import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -62,16 +61,13 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -82,14 +78,12 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.importing.BulkImportRequest;
 import org.thingsboard.server.service.importing.BulkImportResult;
@@ -144,8 +138,8 @@ public class DeviceController extends BaseController {
     protected static final String RBAC_ASSIGN_TO_TENANT_CHECK = " Security check is performed to verify that the user has 'ASSIGN_TO_TENANT' permission for the entity (entities).";
 
     private final DeviceBulkImportService deviceBulkImportService;
-
     private final GatewayNotificationsService gatewayNotificationsService;
+    private final TbDeviceService tbDeviceService;
 
     @ApiOperation(value = "Get Device (getDeviceById)",
             notes = "Fetch the Device object based on the provided Device Id. "
@@ -179,24 +173,9 @@ public class DeviceController extends BaseController {
                              @ApiParam(value = "Optional value of the device credentials to be used during device creation. " +
                                      "If omitted, access token will be auto-generated.") @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        boolean created = device.getId() == null;
-        try {
-            Device oldDevice = null;
-            if (!created) {
-                oldDevice = deviceService.findDeviceById(getTenantId(), device.getId());
-            }
-
-            Device savedDevice = saveGroupEntity(device, strEntityGroupId,
-                    device1 -> deviceService.saveDeviceWithAccessToken(device1, accessToken));
-
-            tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
-
-            return savedDevice;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), device,
-                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
-        }
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(device, strEntityGroupId,
+                (device1, entityGroup) -> tbDeviceService.save(device1, accessToken, entityGroup, user));
     }
 
     @ApiOperation(value = "Create Device (saveDevice) with credentials ",
@@ -213,19 +192,9 @@ public class DeviceController extends BaseController {
                                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         Device device = checkNotNull(deviceAndCredentials.getDevice());
         DeviceCredentials credentials = checkNotNull(deviceAndCredentials.getCredentials());
-        boolean created = device.getId() == null;
-        try {
-            Device savedDevice = saveGroupEntity(device, strEntityGroupId,
-                    device1 -> deviceService.saveDeviceWithCredentials(device1, credentials));
-
-            tbClusterService.onDeviceUpdated(savedDevice, device);
-
-            return savedDevice;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), device,
-                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
-        }
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(device, strEntityGroupId,
+                (device1, entityGroup) -> tbDeviceService.saveDeviceWithCredentials(device1, credentials, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete device (deleteDevice)",
@@ -237,31 +206,14 @@ public class DeviceController extends BaseController {
     public void deleteDevice(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
                              @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
         checkParameter(DEVICE_ID, strDeviceId);
+        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
+        Device device = checkDeviceId(deviceId, Operation.DELETE);
         try {
-            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            Device device = checkDeviceId(deviceId, Operation.DELETE);
-
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), deviceId);
-
-            deviceService.deleteDevice(getCurrentUser().getTenantId(), deviceId);
-
-            gatewayNotificationsService.onDeviceDeleted(device);
-            tbClusterService.onDeviceDeleted(device, null);
-
-            logEntityAction(deviceId, device,
-                    device.getCustomerId(),
-                    ActionType.DELETED, null, strDeviceId);
-
-            sendDeleteNotificationMsg(getTenantId(), deviceId, relatedEdgeIds);
+            tbDeviceService.deleteDevice(device, getCurrentUser()).get();
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strDeviceId);
             throw handleException(e);
         }
     }
-
 
     @ApiOperation(value = "Get Device Credentials (getDeviceCredentialsByDeviceId)",
             notes = "If during device creation there wasn't specified any credentials, platform generates random 'ACCESS_TOKEN' credentials."
@@ -272,20 +224,9 @@ public class DeviceController extends BaseController {
     public DeviceCredentials getDeviceCredentialsByDeviceId(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
                                                             @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
         checkParameter(DEVICE_ID, strDeviceId);
-        try {
-            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            Device device = checkDeviceId(deviceId, Operation.READ_CREDENTIALS);
-            DeviceCredentials deviceCredentials = checkNotNull(deviceCredentialsService.findDeviceCredentialsByDeviceId(getCurrentUser().getTenantId(), deviceId));
-            logEntityAction(deviceId, device,
-                    device.getCustomerId(),
-                    ActionType.CREDENTIALS_READ, null, strDeviceId);
-            return deviceCredentials;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), null,
-                    null,
-                    ActionType.CREDENTIALS_READ, e, strDeviceId);
-            throw handleException(e);
-        }
+        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
+        Device device = checkDeviceId(deviceId, Operation.READ_CREDENTIALS);
+        return tbDeviceService.getDeviceCredentialsByDeviceId(device, getCurrentUser());
     }
 
     @ApiOperation(value = "Update device credentials (updateDeviceCredentials)", notes = "During device creation, platform generates random 'ACCESS_TOKEN' credentials. " +
@@ -300,23 +241,8 @@ public class DeviceController extends BaseController {
             @ApiParam(value = "A JSON value representing the device credentials.")
             @RequestBody DeviceCredentials deviceCredentials) throws ThingsboardException {
         checkNotNull(deviceCredentials);
-        try {
-            Device device = checkDeviceId(deviceCredentials.getDeviceId(), Operation.WRITE_CREDENTIALS);
-            DeviceCredentials result = checkNotNull(deviceCredentialsService.updateDeviceCredentials(getCurrentUser().getTenantId(), deviceCredentials));
-            tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(getCurrentUser().getTenantId(), deviceCredentials.getDeviceId(), result), null);
-
-            sendEntityNotificationMsg(getTenantId(), device.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
-
-            logEntityAction(device.getId(), device,
-                    device.getCustomerId(),
-                    ActionType.CREDENTIALS_UPDATED, null, deviceCredentials);
-            return result;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DEVICE), null,
-                    null,
-                    ActionType.CREDENTIALS_UPDATED, e, deviceCredentials);
-            throw handleException(e);
-        }
+        Device device = checkDeviceId(deviceCredentials.getDeviceId(), Operation.WRITE_CREDENTIALS);
+        return tbDeviceService.updateDeviceCredentials(device, deviceCredentials, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Devices (getTenantDevices)",
@@ -560,61 +486,50 @@ public class DeviceController extends BaseController {
                                                       @RequestBody(required = false) ClaimRequest claimRequest,
                                                       @RequestParam(required = false) String subCustomerId) throws ThingsboardException {
         checkParameter(DEVICE_NAME, deviceName);
-        try {
-            final DeferredResult<ResponseEntity> deferredResult = new DeferredResult<>();
+        final DeferredResult<ResponseEntity> deferredResult = new DeferredResult<>();
 
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            CustomerId parentCustomerId = user.getCustomerId();
-            CustomerId customerId;
-            Device device = checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
-            accessControlService.checkPermission(user, Resource.DEVICE, Operation.CLAIM_DEVICES,
-                    device.getId(), device);
-            String secretKey = getSecretKey(claimRequest);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        CustomerId parentCustomerId = user.getCustomerId();
+        CustomerId customerId;
+        Device device = checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
+        accessControlService.checkPermission(user, Resource.DEVICE, Operation.CLAIM_DEVICES,
+                device.getId(), device);
+        String secretKey = getSecretKey(claimRequest);
 
-            if (StringUtils.isEmpty(subCustomerId)) {
-                customerId = parentCustomerId;
-            } else {
-                Customer subCustomer = checkNotNull(customerService.findCustomerById(tenantId, new CustomerId(UUID.fromString(subCustomerId))));
-                customerId = subCustomer.getId();
-                if (!ownersCacheService.isChildOwner(tenantId, parentCustomerId, customerId)) {
-                    throw new ThingsboardException("Requested sub-customer wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+        if (StringUtils.isEmpty(subCustomerId)) {
+            customerId = parentCustomerId;
+        } else {
+            Customer subCustomer = checkNotNull(customerService.findCustomerById(tenantId, new CustomerId(UUID.fromString(subCustomerId))));
+            customerId = subCustomer.getId();
+            if (!ownersCacheService.isChildOwner(tenantId, parentCustomerId, customerId)) {
+                throw new ThingsboardException("Requested sub-customer wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
+            }
+        }
+        ListenableFuture<ClaimResult> future = tbDeviceService.claimDevice(tenantId, device, customerId, secretKey, user);
+        Futures.addCallback(future, new FutureCallback<>() {
+            @Override
+            public void onSuccess(@Nullable ClaimResult result) {
+                HttpStatus status;
+                if (result != null) {
+                    if (result.getResponse().equals(ClaimResponse.SUCCESS)) {
+                        status = HttpStatus.OK;
+                        deferredResult.setResult(new ResponseEntity<>(result, status));
+                    } else {
+                        status = HttpStatus.BAD_REQUEST;
+                        deferredResult.setResult(new ResponseEntity<>(result.getResponse(), status));
+                    }
+                } else {
+                    deferredResult.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
                 }
             }
-            ListenableFuture<ClaimResult> future = claimDevicesService.claimDevice(device, customerId, secretKey);
-            Futures.addCallback(future, new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable ClaimResult result) {
-                    HttpStatus status;
-                    if (result != null) {
-                        if (result.getResponse().equals(ClaimResponse.SUCCESS)) {
-                            status = HttpStatus.OK;
-                            deferredResult.setResult(new ResponseEntity<>(result, status));
 
-                            try {
-                                logEntityAction(user, device.getId(), result.getDevice(), customerId, ActionType.ASSIGNED_TO_CUSTOMER, null,
-                                        device.getId().toString(), customerId.toString(), customerService.findCustomerById(tenantId, customerId).getName());
-                            } catch (ThingsboardException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            status = HttpStatus.BAD_REQUEST;
-                            deferredResult.setResult(new ResponseEntity<>(result.getResponse(), status));
-                        }
-                    } else {
-                        deferredResult.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    deferredResult.setErrorResult(t);
-                }
-            }, MoreExecutors.directExecutor());
-            return deferredResult;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            @Override
+            public void onFailure(Throwable t) {
+                deferredResult.setErrorResult(t);
+            }
+        }, MoreExecutors.directExecutor());
+        return deferredResult;
     }
 
     @ApiOperation(value = "Reclaim device (reClaimDevice)",
@@ -626,42 +541,28 @@ public class DeviceController extends BaseController {
     public DeferredResult<ResponseEntity> reClaimDevice(@ApiParam(value = "Unique name of the device which is going to be reclaimed")
                                                         @PathVariable(DEVICE_NAME) String deviceName) throws ThingsboardException {
         checkParameter(DEVICE_NAME, deviceName);
-        try {
-            final DeferredResult<ResponseEntity> deferredResult = new DeferredResult<>();
+        final DeferredResult<ResponseEntity> deferredResult = new DeferredResult<>();
 
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
 
-            Device device = checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
-            accessControlService.checkPermission(user, Resource.DEVICE, Operation.CLAIM_DEVICES,
-                    device.getId(), device);
+        Device device = checkNotNull(deviceService.findDeviceByTenantIdAndName(tenantId, deviceName));
+        accessControlService.checkPermission(user, Resource.DEVICE, Operation.CLAIM_DEVICES,
+                device.getId(), device);
 
-            ListenableFuture<ReclaimResult> result = claimDevicesService.reClaimDevice(tenantId, device);
-            Futures.addCallback(result, new FutureCallback<>() {
-                @Override
-                public void onSuccess(ReclaimResult reclaimResult) {
-                    deferredResult.setResult(new ResponseEntity(HttpStatus.OK));
+        ListenableFuture<ReclaimResult> result = tbDeviceService.reclaimDevice(tenantId, device, user);
+        Futures.addCallback(result, new FutureCallback<>() {
+            @Override
+            public void onSuccess(ReclaimResult reclaimResult) {
+                deferredResult.setResult(new ResponseEntity(HttpStatus.OK));
+            }
 
-                    Customer unassignedCustomer = reclaimResult.getUnassignedCustomer();
-                    if (unassignedCustomer != null) {
-                        try {
-                            logEntityAction(user, device.getId(), device, device.getCustomerId(), ActionType.UNASSIGNED_FROM_CUSTOMER, null,
-                                    device.getId().toString(), unassignedCustomer.getId().toString(), unassignedCustomer.getName());
-                        } catch (ThingsboardException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    deferredResult.setErrorResult(t);
-                }
-            }, MoreExecutors.directExecutor());
-            return deferredResult;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            @Override
+            public void onFailure(Throwable t) {
+                deferredResult.setErrorResult(t);
+            }
+        }, MoreExecutors.directExecutor());
+        return deferredResult;
     }
 
     private String getSecretKey(ClaimRequest claimRequest) {
@@ -684,47 +585,16 @@ public class DeviceController extends BaseController {
                                        @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
         checkParameter(TENANT_ID, strTenantId);
         checkParameter(DEVICE_ID, strDeviceId);
-        try {
-            DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
-            Device device = checkDeviceId(deviceId, Operation.ASSIGN_TO_TENANT);
+        DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
+        Device device = checkDeviceId(deviceId, Operation.ASSIGN_TO_TENANT);
 
-            TenantId newTenantId = TenantId.fromUUID(toUUID(strTenantId));
-            Tenant newTenant = tenantService.findTenantById(newTenantId);
-            if (newTenant == null) {
-                throw new ThingsboardException("Could not find the specified Tenant!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-
-            Device assignedDevice = deviceService.assignDeviceToTenant(newTenantId, device);
-
-            logEntityAction(getCurrentUser(), deviceId, assignedDevice,
-                    assignedDevice.getCustomerId(),
-                    ActionType.ASSIGNED_TO_TENANT, null, strTenantId, newTenant.getName());
-
-            Tenant currentTenant = tenantService.findTenantById(getTenantId());
-            pushAssignedFromNotification(currentTenant, newTenantId, assignedDevice);
-
-            return assignedDevice;
-        } catch (Exception e) {
-            logEntityAction(getCurrentUser(), emptyId(EntityType.DEVICE), null,
-                    null,
-                    ActionType.ASSIGNED_TO_TENANT, e, strTenantId);
-            throw handleException(e);
+        TenantId newTenantId = TenantId.fromUUID(toUUID(strTenantId));
+        Tenant newTenant = tenantService.findTenantById(newTenantId);
+        if (newTenant == null) {
+            throw new ThingsboardException("Could not find the specified Tenant!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-    }
 
-    private void pushAssignedFromNotification(Tenant currentTenant, TenantId newTenantId, Device assignedDevice) {
-        String data = entityToStr(assignedDevice);
-        if (data != null) {
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_ASSIGNED_FROM_TENANT, assignedDevice.getId(), assignedDevice.getCustomerId(), getMetaDataForAssignedFrom(currentTenant), TbMsgDataType.JSON, data);
-            tbClusterService.pushMsgToRuleEngine(newTenantId, assignedDevice.getId(), tbMsg, null);
-        }
-    }
-
-    private TbMsgMetaData getMetaDataForAssignedFrom(Tenant tenant) {
-        TbMsgMetaData metaData = new TbMsgMetaData();
-        metaData.putValue("assignedFromTenantId", tenant.getId().getId().toString());
-        metaData.putValue("assignedFromTenantName", tenant.getName());
-        return metaData;
+        return tbDeviceService.assignDeviceToTenant(device, newTenant, getCurrentUser());
     }
 
     @ApiOperation(value = "Count devices by device profile  (countByDeviceProfileAndEmptyOtaPackage)",
@@ -784,9 +654,7 @@ public class DeviceController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping("/device/bulk_import")
     public BulkImportResult<Device> processDevicesBulkImport(@RequestBody BulkImportRequest request) throws Exception {
-        return deviceBulkImportService.processBulkImport(request, getCurrentUser(), importedDeviceInfo -> {
-            tbClusterService.onDeviceUpdated(importedDeviceInfo.getEntity(), importedDeviceInfo.getOldEntity());
-        }, (device, savingFunction) -> {
+        return deviceBulkImportService.processBulkImport(request, getCurrentUser(), (device, savingFunction) -> {
             try {
                 saveGroupEntity(device, request.getEntityGroupId(), savingFunction);
             } catch (ThingsboardException e) {
