@@ -50,7 +50,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
         <pkg.name>tb-edge</pkg.name>
-        <tb.docker.name>tb-edge</tb.docker.name>
+        <tb.docker.name>tb-edge-pe</tb.docker.name>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <pkg.upgradeVersion>3.3.3</pkg.upgradeVersion>
     </properties>
