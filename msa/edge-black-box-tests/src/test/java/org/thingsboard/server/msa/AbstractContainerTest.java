@@ -134,7 +134,7 @@ public abstract class AbstractContainerTest {
                 until(() -> {
                             Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
                             return cloudLoginWhiteLabelParams.isPresent() &&
-                                    cloudLoginWhiteLabelParams.get().getDomainName().equals("tenant.org");
+                                    "tenant.org".equals(cloudLoginWhiteLabelParams.get().getDomainName());
                         });
 
         edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
