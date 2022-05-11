@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,6 +64,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.customer.TbCustomerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -95,8 +97,11 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class CustomerController extends BaseController {
+
+    private final TbCustomerService tbCustomerService;
 
     public static final String IS_PUBLIC = "isPublic";
     public static final String CUSTOMER_SECURITY_CHECK = "If the user has the authority of 'Tenant Administrator', the server checks that the customer is owned by the same tenant. " +
@@ -199,7 +204,8 @@ public class CustomerController extends BaseController {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
-        return saveGroupEntity(customer, strEntityGroupId, customerService::saveCustomer);
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(customer, strEntityGroupId, (customer1, entityGroup) -> tbCustomerService.save(customer, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete Customer (deleteCustomer)",

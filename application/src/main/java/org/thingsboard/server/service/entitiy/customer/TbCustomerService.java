@@ -32,10 +32,11 @@ package org.thingsboard.server.service.entitiy.customer;
 
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbCustomerService {
-    Customer save (Customer customer, SecurityUser user) throws ThingsboardException;
+    Customer save (Customer customer, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
     void delete (Customer customer, SecurityUser user) throws ThingsboardException;
 }
