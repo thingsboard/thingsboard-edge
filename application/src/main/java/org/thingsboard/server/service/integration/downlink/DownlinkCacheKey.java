@@ -28,34 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.rpc;
+package org.thingsboard.server.service.integration.downlink;
 
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 
-import static org.thingsboard.server.common.data.CacheConstants.REMOTE_INTEGRATIONS_CACHE;
+import java.io.Serializable;
 
-@Service
-public class DefaultRemoteIntegrationSessionService implements RemoteIntegrationSessionService {
+@Getter
+@RequiredArgsConstructor
+public class DownlinkCacheKey implements Serializable {
 
-    @Cacheable(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}", unless="#result==null")
+    private final IntegrationId integrationId;
+    private final EntityId entityId;
+
     @Override
-    public IntegrationSession findIntegrationSession(IntegrationId integrationId) {
-        return null;
-    }
-
-    @CachePut(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
-    @Override
-    public IntegrationSession putIntegrationSession(IntegrationId integrationId, IntegrationSession session) {
-        return session;
-    }
-
-    @CacheEvict(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
-    @Override
-    public void removeIntegrationSession(IntegrationId integrationId) {
-
+    public String toString() {
+        return integrationId + "_" + entityId;
     }
 }

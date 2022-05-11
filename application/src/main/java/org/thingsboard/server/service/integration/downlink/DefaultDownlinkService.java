@@ -30,15 +30,15 @@
  */
 package org.thingsboard.server.service.integration.downlink;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 
@@ -52,17 +52,16 @@ import static org.thingsboard.server.common.data.CacheConstants.DOWNLINK_CACHE;
 /**
  * Created by ashvayka on 22.02.18.
  */
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class DefaultDownlinkService implements DownlinkService {
 
-    @Autowired
-    private CacheManager cacheManager;
+    private final TbTransactionalCache<DownlinkCacheKey, DownLinkMsg> cache;
 
-    @Cacheable(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
     @Override
     public DownLinkMsg get(IntegrationId integrationId, EntityId entityId) {
-        return null;
+        return cache.getAndPutInTransaction(new DownlinkCacheKey(integrationId, entityId), () -> null, true);
     }
 
     @Override
@@ -73,16 +72,14 @@ public class DefaultDownlinkService implements DownlinkService {
     @CacheEvict(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
     @Override
     public void remove(IntegrationId integrationId, EntityId entityId) {
-
+        cache.evict(new DownlinkCacheKey(integrationId, entityId));
     }
 
     private <T extends IntegrationDownlinkMsg> DownLinkMsg getAndMerge(T msg, Function<T, DownLinkMsg> from, BiFunction<DownLinkMsg, T, DownLinkMsg> merge) {
-        Cache cache = cacheManager.getCache(DOWNLINK_CACHE);
-        List<Object> key = new ArrayList<>();
-        key.add(msg.getIntegrationId());
-        key.add(msg.getEntityId());
+        var cacheKey = new DownlinkCacheKey(msg.getIntegrationId(), msg.getEntityId());
+        var cacheValue = cache.get(cacheKey);
 
-        DownLinkMsg result = cache.get(key, DownLinkMsg.class);
+        DownLinkMsg result = cacheValue != null ? cacheValue.get() : null;
 
         if (result == null) {
             result = from.apply(msg);
@@ -90,7 +87,7 @@ public class DefaultDownlinkService implements DownlinkService {
             result = merge.apply(result, msg);
         }
 
-        cache.put(key, result);
+        cache.put(cacheKey, result);
         return result;
     }
 }
