@@ -31,8 +31,6 @@
 package org.thingsboard.server.dao.device;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 class DeviceCredentialsEvictEvent {

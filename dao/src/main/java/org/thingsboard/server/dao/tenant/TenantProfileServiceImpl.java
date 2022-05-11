@@ -45,9 +45,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
-import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -74,7 +73,9 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
     @Override
     public void handleEvictEvent(TenantProfileEvictEvent event) {
         List<TenantProfileCacheKey> keys = new ArrayList<>(2);
-        keys.add(TenantProfileCacheKey.fromId(event.getTenantProfileId()));
+        if (event.getTenantProfileId() != null) {
+            keys.add(TenantProfileCacheKey.fromId(event.getTenantProfileId()));
+        }
         if (event.isDefaultProfile()) {
             keys.add(TenantProfileCacheKey.defaultProfile());
         }
@@ -106,6 +107,7 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
             savedTenantProfile = tenantProfileDao.save(tenantId, tenantProfile);
             publishEvictEvent(new TenantProfileEvictEvent(savedTenantProfile.getId(), savedTenantProfile.isDefault()));
         } catch (Exception t) {
+            handleEvictEvent(new TenantProfileEvictEvent(null, tenantProfile.isDefault()));
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("tenant_profile_name_unq_key")) {
                 throw new DataValidationException("Tenant profile with such name already exists!");

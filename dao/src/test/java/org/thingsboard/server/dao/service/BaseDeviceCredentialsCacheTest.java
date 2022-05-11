@@ -86,7 +86,6 @@ public abstract class BaseDeviceCredentialsCacheTest extends AbstractServiceTest
 
         ReflectionTestUtils.setField(unwrapDeviceCredentialsService(), "deviceCredentialsDao", deviceCredentialsDao);
         ReflectionTestUtils.setField(unwrapDeviceCredentialsService(), "credentialsValidator", credentialsValidator);
-
     }
 
     @After
