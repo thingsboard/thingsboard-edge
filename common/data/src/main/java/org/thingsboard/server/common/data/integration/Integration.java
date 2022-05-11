@@ -70,6 +70,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     private String secret;
     private transient JsonNode configuration;
     private transient JsonNode additionalInfo;
+    private boolean edgeTemplate;
 
     public Integration() {
         super();
@@ -94,6 +95,7 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
+        this.edgeTemplate = integration.isEdgeTemplate();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +
@@ -235,6 +237,15 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.name = name;
     }
 
+    @ApiModelProperty(position = 16, value = "Boolean flag that specifies that is regular or edge template integration")
+    public boolean isEdgeTemplate() {
+        return edgeTemplate;
+    }
+
+    public void setEdgeTemplate(boolean edgeTemplate) {
+        this.edgeTemplate = edgeTemplate;
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -263,6 +274,8 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         builder.append(configuration);
         builder.append(", additionalInfo=");
         builder.append(additionalInfo);
+        builder.append(", edgeTemplate=");
+        builder.append(edgeTemplate);
         builder.append(", createdTime=");
         builder.append(createdTime);
         builder.append(", id=");

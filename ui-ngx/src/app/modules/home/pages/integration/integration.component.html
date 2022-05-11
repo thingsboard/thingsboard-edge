@@ -88,13 +88,15 @@
         labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
         [converterType]="converterType.UPLINK"
         [showDetailsPageLink]="true"
-        [useFullEntityId]="true">
+        [useFullEntityId]="true"
+        [isEdgeTemplate]="isEdgeTemplate">
       </tb-converter-autocomplete>
       <tb-converter-autocomplete formControlName="downlinkConverterId"
         labelText="integration.downlink-converter"
         [converterType]="converterType.DOWNLINK"
         [showDetailsPageLink]="true"
-        [useFullEntityId]="true">
+        [useFullEntityId]="true"
+        [isEdgeTemplate]="isEdgeTemplate">
       </tb-converter-autocomplete>
       <mat-slide-toggle formControlName="remote" style="padding-bottom: 48px;">
         {{'integration.execute-remotely' | translate}}

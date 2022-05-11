@@ -297,6 +297,7 @@ public class ModelConstants {
     public static final String INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS = "allow_create_devices_or_assets";
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_tenant_and_search_text";
     public static final String INTEGRATION_BY_ROUTING_KEY_VIEW_NAME = "integration_by_routing_key";

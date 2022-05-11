@@ -613,6 +613,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         conn.createStatement().execute("ALTER TABLE converter ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception e) {}
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");

@@ -49,7 +49,9 @@ public interface ConverterService {
 
     ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
 
-    PageData<Converter> findTenantConverters(TenantId tenantId, boolean isEdgeTemplates, PageLink pageLink);
+    PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink);
+
+    PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink);
 
     void deleteConverter(TenantId tenantId, ConverterId converterId);
 

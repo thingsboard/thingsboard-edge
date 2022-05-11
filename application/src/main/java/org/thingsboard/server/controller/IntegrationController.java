@@ -169,6 +169,8 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Integration> getIntegrations(
+            @ApiParam(value = "Fetch edge template integrations")
+            @RequestParam(value = "edgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
@@ -183,7 +185,11 @@ public class IntegrationController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
+            if (isEdgeTemplate) {
+                return checkNotNull(integrationService.findTenantEdgeTemplateIntegrations(tenantId, pageLink));
+            } else {
+                return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }

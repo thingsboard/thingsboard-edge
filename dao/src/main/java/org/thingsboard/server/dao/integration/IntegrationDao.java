@@ -57,6 +57,15 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao {
     PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
+     * Find edge template integrations by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findEdgeTemplateIntegrationsByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
      * Find integrations by routing Key.
      *
      * @param routingKey the integration routingKey

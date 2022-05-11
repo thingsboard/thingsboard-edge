@@ -43,18 +43,18 @@ import java.util.UUID;
 public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID> {
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
+            "AND a.edgeTemplate = false " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<ConverterEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                          @Param("searchText") String searchText,
                                          Pageable pageable);
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
-            "AND a.edgeTemplate = :isEdgeTemplate " +
+            "AND a.edgeTemplate = true " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<ConverterEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
-                                                          @Param("searchText") String searchText,
-                                                          @Param("isEdgeTemplate") boolean isEdgeTemplate,
-                                                          Pageable pageable);
+    Page<ConverterEntity> findEdgeTemplateConvertersByTenantId(@Param("tenantId") UUID tenantId,
+                                                               @Param("searchText") String searchText,
+                                                               Pageable pageable);
 
     ConverterEntity findByTenantIdAndName(UUID tenantId, String name);
 

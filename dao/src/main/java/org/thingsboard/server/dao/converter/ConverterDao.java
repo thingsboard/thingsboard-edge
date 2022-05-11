@@ -57,14 +57,13 @@ public interface ConverterDao extends Dao<Converter>, TenantEntityDao {
     PageData<Converter> findByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
-     * Find converters by tenantId and page link.
+     * Find edge template converters by tenantId and page link.
      *
      * @param tenantId the tenantId
-     * @param isEdgeTemplate fetch regular or edge template converters
      * @param pageLink the page link
      * @return the list of converter objects
      */
-    PageData<Converter> findByTenantIdAndIsEdgeTemplate(UUID tenantId, boolean isEdgeTemplate, PageLink pageLink);
+    PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find converter by tenantId and converter name.

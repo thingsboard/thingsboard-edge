@@ -74,9 +74,9 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.name = converter.getName();
         this.type = converter.getType();
         this.debugMode = converter.isDebugMode();
-        this.edgeTemplate = converter.isEdgeTemplate();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
+        this.edgeTemplate = converter.isEdgeTemplate();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Converter Id. " +

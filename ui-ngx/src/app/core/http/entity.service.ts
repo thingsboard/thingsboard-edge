@@ -535,11 +535,13 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
+        // TODO: vb - fixme
         entitiesObservable = this.converterService.getConverters(pageLink, false, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.integrationService.getIntegrations(pageLink, config);
+        // TODO: vb - fixme
+        entitiesObservable = this.integrationService.getIntegrations(pageLink, false, config);
         break;
       case EntityType.SCHEDULER_EVENT:
         pageLink.sortOrder.property = 'name';

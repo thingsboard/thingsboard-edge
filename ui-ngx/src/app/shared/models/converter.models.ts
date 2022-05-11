@@ -96,3 +96,7 @@ export function getConverterHelpLink (converter: Converter) {
   }
   return link;
 }
+
+export interface ConverterParams {
+  isEdgeTemplate: boolean;
+}

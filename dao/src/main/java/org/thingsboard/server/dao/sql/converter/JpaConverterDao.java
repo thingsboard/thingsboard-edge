@@ -64,12 +64,11 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    public PageData<Converter> findByTenantIdAndIsEdgeTemplate(UUID tenantId, boolean isEdgeTemplate, PageLink pageLink) {
+    public PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(
-                converterRepository.findByTenantIdAndIsEdgeTemplate(
+                converterRepository.findEdgeTemplateConvertersByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
-                        isEdgeTemplate,
                         DaoUtil.toPageable(pageLink)));
     }
 

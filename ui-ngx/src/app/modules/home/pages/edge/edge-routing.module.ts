@@ -50,6 +50,7 @@ import {
 import { ConvertersTableConfigResolver } from '@home/pages/converter/converters-table-config.resolver';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
+import { IntegrationsTableConfigResolver } from '@home/pages/integration/integrations-table-config.resolver';
 
 const routes: Routes = [
   /* {
@@ -389,7 +390,7 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN],
               title: 'edge.converter-templates',
-              isEdgeTemplates: true
+              isEdgeTemplate: true
             },
             resolve: {
               entitiesTableConfig: ConvertersTableConfigResolver
@@ -409,6 +410,45 @@ const routes: Routes = [
             },
             resolve: {
               entitiesTableConfig: ConvertersTableConfigResolver
+            }
+          }
+        ]
+      },
+      {
+        path: 'integrations',
+        data: {
+          breadcrumb: {
+            label: 'edge.integration-templates',
+            icon: 'input'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN],
+              title: 'edge.integration-templates',
+              isEdgeTemplate: true
+            },
+            resolve: {
+              entitiesTableConfig: IntegrationsTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'input'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.TENANT_ADMIN],
+              title: 'edge.integration-templates'
+            },
+            resolve: {
+              entitiesTableConfig: IntegrationsTableConfigResolver
             }
           }
         ]

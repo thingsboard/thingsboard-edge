@@ -126,6 +126,14 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    public PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantEdgeTemplateIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return integrationDao.findEdgeTemplateIntegrationsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);

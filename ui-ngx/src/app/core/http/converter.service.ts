@@ -54,8 +54,8 @@ export class ConverterService {
     private http: HttpClient
   ) { }
 
-  public getConverters(pageLink: PageLink, isEdgeTemplates: boolean, config?: RequestConfig): Observable<PageData<Converter>> {
-    return this.http.get<PageData<Converter>>(`/api/converters${pageLink.toQuery()}&edgeTemplates=${isEdgeTemplates}`,
+  public getConverters(pageLink: PageLink, isEdgeTemplate: boolean, config?: RequestConfig): Observable<PageData<Converter>> {
+    return this.http.get<PageData<Converter>>(`/api/converters${pageLink.toQuery()}&edgeTemplate=${isEdgeTemplate}`,
       defaultHttpOptionsFromConfig(config));
   }
 

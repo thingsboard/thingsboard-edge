@@ -65,6 +65,15 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
+    public PageData<Integration> findEdgeTemplateIntegrationsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                integrationRepository.findEdgeTemplateIntegrationsByTenantId(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey) {
         Integration integration = DaoUtil.getData(integrationRepository.findByRoutingKey(routingKey));
         return Optional.ofNullable(integration);

@@ -248,4 +248,9 @@ export interface Integration extends BaseData<IntegrationId> {
   secret: string;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
+}
+
+export interface IntegrationParams {
+  isEdgeTemplate: boolean;
 }
