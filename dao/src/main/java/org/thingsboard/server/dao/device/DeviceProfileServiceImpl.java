@@ -166,7 +166,6 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         return savedDeviceProfile;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId) {
         log.trace("Executing deleteDeviceProfile [{}]", deviceProfileId);
@@ -229,7 +228,6 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         return deviceProfile;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public DeviceProfile createDefaultDeviceProfile(TenantId tenantId) {
         log.trace("Executing createDefaultDeviceProfile tenantId [{}]", tenantId);
@@ -272,7 +270,6 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         return toDeviceProfileInfo(findDefaultDeviceProfile(tenantId));
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public boolean setDefaultDeviceProfile(TenantId tenantId, DeviceProfileId deviceProfileId) {
         log.trace("Executing setDefaultDeviceProfile [{}]", deviceProfileId);
@@ -299,7 +296,6 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         return false;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteDeviceProfilesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteDeviceProfilesByTenantId, tenantId [{}]", tenantId);

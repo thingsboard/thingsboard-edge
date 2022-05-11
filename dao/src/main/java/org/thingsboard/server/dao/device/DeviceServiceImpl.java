@@ -129,7 +129,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Autowired
     private DataValidator<Device> deviceValidator;
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
@@ -156,7 +155,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public Device findDeviceByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findDeviceByTenantIdAndName [{}][{}]", tenantId, name);
@@ -165,19 +163,16 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                 () -> deviceDao.findDeviceByTenantIdAndName(tenantId.getId(), name).orElse(null), true);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public Device saveDeviceWithAccessToken(Device device, String accessToken) {
         return doSaveDevice(device, accessToken, true);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public Device saveDevice(Device device, boolean doValidate) {
         return doSaveDevice(device, null, doValidate);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public Device saveDevice(Device device) {
         return doSaveDevice(device, null, true);
@@ -336,7 +331,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     }
 
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
@@ -370,7 +364,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         tenantDevicesRemover.removeEntities(tenantId, tenantId);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public PageData<Device> findDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
@@ -380,7 +373,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         return deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
@@ -389,7 +381,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         customerDevicesRemover.removeEntities(tenantId, customerId);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public PageData<Device> findDevicesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
@@ -436,7 +427,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         return devices;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public ListenableFuture<List<EntitySubtype>> findDeviceTypesByTenantId(TenantId tenantId) {
         log.trace("Executing findDeviceTypesByTenantId, tenantId [{}]", tenantId);
@@ -558,7 +548,6 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         return savedDevice;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public PageData<UUID> findDevicesIdsByDeviceProfileTransportType(DeviceTransportType transportType, PageLink pageLink) {
         return deviceDao.findDevicesIdsByDeviceProfileTransportType(transportType, pageLink);

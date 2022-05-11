@@ -111,7 +111,6 @@ public class BaseRelationService implements RelationService {
         return relationDao.checkRelation(tenantId, from, to, relationType, typeGroup);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public EntityRelation getRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         log.trace("Executing EntityRelation [{}][{}][{}][{}]", from, to, relationType, typeGroup);
@@ -126,7 +125,6 @@ public class BaseRelationService implements RelationService {
                 relations -> RelationCacheValue.builder().relation(relations).build(), false);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public boolean saveRelation(TenantId tenantId, EntityRelation relation) {
         log.trace("Executing saveRelation [{}]", relation);
@@ -145,7 +143,6 @@ public class BaseRelationService implements RelationService {
         return future;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public boolean deleteRelation(TenantId tenantId, EntityRelation relation) {
         log.trace("Executing DeleteRelation [{}]", relation);
@@ -165,7 +162,6 @@ public class BaseRelationService implements RelationService {
         return future;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public boolean deleteRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         log.trace("Executing deleteRelation [{}][{}][{}][{}]", from, to, relationType, typeGroup);
@@ -186,7 +182,6 @@ public class BaseRelationService implements RelationService {
         return future;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
         log.trace("Executing deleteEntityRelations [{}]", entityId);
@@ -284,7 +279,6 @@ public class BaseRelationService implements RelationService {
         return false;
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public List<EntityRelation> findByFrom(TenantId tenantId, EntityId from, RelationTypeGroup typeGroup) {
         validate(from);
@@ -330,7 +324,6 @@ public class BaseRelationService implements RelationService {
                 }, MoreExecutors.directExecutor());
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public List<EntityRelation> findByFromAndType(TenantId tenantId, EntityId from, String relationType, RelationTypeGroup typeGroup) {
         RelationCacheKey cacheKey = RelationCacheKey.builder().from(from).type(relationType).typeGroup(typeGroup).direction(EntitySearchDirection.FROM).build();
@@ -349,7 +342,6 @@ public class BaseRelationService implements RelationService {
         return executor.submit(() -> findByFromAndType(tenantId, from, relationType, typeGroup));
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public List<EntityRelation> findByTo(TenantId tenantId, EntityId to, RelationTypeGroup typeGroup) {
         validate(to);
@@ -478,7 +470,6 @@ public class BaseRelationService implements RelationService {
                 }, MoreExecutors.directExecutor());
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void removeRelations(TenantId tenantId, EntityId entityId) {
         log.trace("removeRelations {}", entityId);

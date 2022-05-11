@@ -159,7 +159,6 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         return edgeDao.findByRoutingKey(tenantId.getId(), routingKey);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public Edge saveEdge(Edge edge) {
         log.trace("Executing saveEdge [{}]", edge);
@@ -182,7 +181,6 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteEdge(TenantId tenantId, EdgeId edgeId) {
         log.trace("Executing deleteEdge [{}]", edgeId);

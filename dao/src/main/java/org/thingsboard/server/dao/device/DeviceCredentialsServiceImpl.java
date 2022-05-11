@@ -100,13 +100,11 @@ public class DeviceCredentialsServiceImpl extends AbstractCachedEntityService<St
                 false);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public DeviceCredentials updateDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials) {
         return saveOrUpdate(tenantId, deviceCredentials);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public DeviceCredentials createDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials) {
         return saveOrUpdate(tenantId, deviceCredentials);
@@ -399,7 +397,6 @@ public class DeviceCredentialsServiceImpl extends AbstractCachedEntityService<St
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials) {
         log.trace("Executing deleteDeviceCredentials [{}]", deviceCredentials);

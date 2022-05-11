@@ -110,7 +110,6 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         cache.evict(keys);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public EntityView saveEntityView(EntityView entityView) {
         log.trace("Executing save entity view [{}]", entityView);
@@ -235,7 +234,6 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
                 EntityViewCacheValue::getEntityViews, v -> new EntityViewCacheValue(null, v), true));
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
     @Override
     public void deleteEntityView(TenantId tenantId, EntityViewId entityViewId) {
         log.trace("Executing deleteEntityView [{}]", entityViewId);
