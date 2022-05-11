@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.service.validator;
 
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionDao;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -54,13 +56,15 @@ public class GroupPermissionDataValidator extends DataValidator<GroupPermission>
     private final TenantDao tenantDao;
     private final EntityGroupDao entityGroupDao;
     private final RoleDao roleDao;
+    private final GroupPermissionDao groupPermissionDao;
 
     @Override
     protected void validateCreate(TenantId tenantId, GroupPermission groupPermission) {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, GroupPermission groupPermission) {
+    protected GroupPermission validateUpdate(TenantId tenantId, GroupPermission groupPermission) {
+        return groupPermissionDao.findById(tenantId, groupPermission.getId().getId());
     }
 
     @Override
