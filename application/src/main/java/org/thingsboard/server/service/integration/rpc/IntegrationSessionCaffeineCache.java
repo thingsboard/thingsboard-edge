@@ -30,37 +30,21 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
-import org.thingsboard.server.cache.TbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.dao.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheKey;
 
-import static org.thingsboard.server.common.data.CacheConstants.REMOTE_INTEGRATIONS_CACHE;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("RemoteIntegrationCache")
+public class IntegrationSessionCaffeineCache extends CaffeineTbTransactionalCache<IntegrationId, IntegrationSession> {
 
-@RequiredArgsConstructor
-@Service
-public class DefaultRemoteIntegrationSessionService implements RemoteIntegrationSessionService {
-
-    private final TbTransactionalCache<IntegrationId, IntegrationSession> cache;
-
-    @Override
-    public IntegrationSession findIntegrationSession(IntegrationId integrationId) {
-        return cache.getAndPutInTransaction(integrationId, () -> null, true);
+    public IntegrationSessionCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.REMOTE_INTEGRATIONS_CACHE);
     }
 
-    @Override
-    public IntegrationSession putIntegrationSession(IntegrationId integrationId, IntegrationSession session) {
-        cache.put(integrationId, session);
-        return session;
-    }
-
-    @Override
-    public void removeIntegrationSession(IntegrationId integrationId) {
-        cache.evict(integrationId);
-    }
 }

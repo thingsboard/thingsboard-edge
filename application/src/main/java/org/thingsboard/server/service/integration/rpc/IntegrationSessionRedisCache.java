@@ -30,37 +30,23 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
-import org.thingsboard.server.cache.TbTransactionalCache;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.dao.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.dao.cache.TbRedisSerializer;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheKey;
 
-import static org.thingsboard.server.common.data.CacheConstants.REMOTE_INTEGRATIONS_CACHE;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("RemoteIntegrationCache")
+public class IntegrationSessionRedisCache extends RedisTbTransactionalCache<IntegrationId, IntegrationSession> {
 
-@RequiredArgsConstructor
-@Service
-public class DefaultRemoteIntegrationSessionService implements RemoteIntegrationSessionService {
-
-    private final TbTransactionalCache<IntegrationId, IntegrationSession> cache;
-
-    @Override
-    public IntegrationSession findIntegrationSession(IntegrationId integrationId) {
-        return cache.getAndPutInTransaction(integrationId, () -> null, true);
-    }
-
-    @Override
-    public IntegrationSession putIntegrationSession(IntegrationId integrationId, IntegrationSession session) {
-        cache.put(integrationId, session);
-        return session;
-    }
-
-    @Override
-    public void removeIntegrationSession(IntegrationId integrationId) {
-        cache.evict(integrationId);
+    public IntegrationSessionRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.REMOTE_INTEGRATIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
     }
 }

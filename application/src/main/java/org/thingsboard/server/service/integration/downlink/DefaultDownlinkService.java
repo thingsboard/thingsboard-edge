@@ -65,7 +65,6 @@ public class DefaultDownlinkService implements DownlinkService {
         return getAndMerge(msg, DownLinkMsg::from, DownLinkMsg::merge);
     }
 
-    @CacheEvict(cacheNames = DOWNLINK_CACHE, key = "{#integrationId, #entityId}")
     @Override
     public void remove(IntegrationId integrationId, EntityId entityId) {
         cache.evict(new DownlinkCacheKey(integrationId, entityId));
