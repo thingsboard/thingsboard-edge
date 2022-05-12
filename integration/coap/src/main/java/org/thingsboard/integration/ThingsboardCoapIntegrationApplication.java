@@ -39,7 +39,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import java.util.Arrays;
 
-@SpringBootApplication(exclude = {CassandraAutoConfiguration.class, CassandraDataAutoConfiguration.class})
+@SpringBootApplication
 @EnableAsync
 @ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api", "org.thingsboard.server.coapserver"})
 public class ThingsboardCoapIntegrationApplication {

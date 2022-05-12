@@ -33,13 +33,19 @@ package org.thingsboard.server.dao.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.cache.EntitiesCacheManager;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -48,6 +54,7 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.List;
 import java.util.Optional;
 
+import static org.thingsboard.server.common.data.CacheConstants.INTEGRATIONS_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -66,9 +73,20 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     private IntegrationDao integrationDao;
 
     @Autowired
+    private EntitiesCacheManager entitiesCacheManager;
+
+    @Autowired
+    private IntegrationInfoDao integrationInfoDao;
+
+    @Autowired
     private DataValidator<Integration> integrationValidator;
 
     @Override
+    @CacheEvict(
+            cacheNames = INTEGRATIONS_CACHE,
+            key = "{#integration.tenantId, #integration.id}",
+            condition = "{#integration.id != null}"
+    )
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
@@ -76,6 +94,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    @Cacheable(cacheNames = INTEGRATIONS_CACHE, key = "{#tenantId, #integrationId}")
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
@@ -126,18 +145,27 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    @Transactional
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
         deleteEntityRelations(tenantId, integrationId);
+        entitiesCacheManager.removeIntegrationFromCacheById(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
     }
 
     @Override
+    @Transactional
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        log.trace("Executing findAllIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
+        return integrationInfoDao.findAllIntegrationInfos(integrationType, remote, enabled);
     }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =

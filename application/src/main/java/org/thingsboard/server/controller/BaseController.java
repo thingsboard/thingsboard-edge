@@ -145,7 +145,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -199,6 +199,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -1365,6 +1366,15 @@ public abstract class BaseController {
             return MediaType.parseMediaType(contentType);
         } catch (Exception e) {
             return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
+
+    protected void throwRealCause(ExecutionException e) throws Exception {
+        if (e.getCause() != null && e.getCause() instanceof Exception) {
+            throw (Exception) e.getCause();
+        } else {
+            throw e;
         }
     }
 }

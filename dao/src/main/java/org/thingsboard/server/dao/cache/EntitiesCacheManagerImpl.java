@@ -35,6 +35,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.Arrays;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 import static org.thingsboard.server.common.data.CacheConstants.ASSET_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.EDGE_CACHE;
+import static org.thingsboard.server.common.data.CacheConstants.INTEGRATIONS_CACHE;
 
 @Component
 @AllArgsConstructor
@@ -74,6 +76,12 @@ public class EntitiesCacheManagerImpl implements EntitiesCacheManager {
     public void removeEdgeFromCacheByName(TenantId tenantId, String name) {
         Cache cache = cacheManager.getCache(EDGE_CACHE);
         cache.evict(Arrays.asList(tenantId, name));
+    }
+
+    @Override
+    public void removeIntegrationFromCacheById(TenantId tenantId, IntegrationId integrationId) {
+        Cache cache = cacheManager.getCache(INTEGRATIONS_CACHE);
+        cache.evict(Arrays.asList(tenantId, integrationId));
     }
 
 }
