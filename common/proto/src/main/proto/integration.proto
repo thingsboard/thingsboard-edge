@@ -157,6 +157,8 @@ message IntegrationConfigurationProto {
   string configuration = 9;
   string additionalInfo = 10;
   bool enabled = 11;
+  int64 integrationIdMSB = 12;
+  int64 integrationIdLSB = 13;
 }
 
 message UplinkProcessingResultProto {

@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -320,11 +321,13 @@ public class RemoteIntegrationManagerService {
     private Integration createIntegrationConfiguration(IntegrationConfigurationProto integrationConfigurationProto) throws IOException {
         Integration integration = new Integration();
 
+        IntegrationId integrationId = new IntegrationId(new UUID(integrationConfigurationProto.getIntegrationIdMSB(), integrationConfigurationProto.getIntegrationIdLSB()));
         TenantId tenantId = new TenantId(new UUID(integrationConfigurationProto.getTenantIdMSB(), integrationConfigurationProto.getTenantIdLSB()));
 
         ConverterId defaultConverterId = new ConverterId(new UUID(integrationConfigurationProto.getUplinkConverter().getConverterIdMSB(), integrationConfigurationProto.getUplinkConverter().getConverterIdLSB()));
         ConverterId downlinkConverterId = new ConverterId(new UUID(integrationConfigurationProto.getDownlinkConverter().getConverterIdMSB(), integrationConfigurationProto.getDownlinkConverter().getConverterIdLSB()));
 
+        integration.setId(integrationId);
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(defaultConverterId);
         integration.setDownlinkConverterId(downlinkConverterId);

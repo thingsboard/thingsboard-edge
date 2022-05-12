@@ -366,6 +366,8 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
         return IntegrationConfigurationProto.newBuilder()
+                .setIntegrationIdMSB(configuration.getId().getId().getMostSignificantBits())
+                .setIntegrationIdLSB(configuration.getId().getId().getLeastSignificantBits())
                 .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits())
                 .setUplinkConverter(defaultConverterProto)
