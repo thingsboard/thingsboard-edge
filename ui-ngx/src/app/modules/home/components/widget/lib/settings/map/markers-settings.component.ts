@@ -1,0 +1,279 @@
+///
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+///
+/// Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+///
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
+///
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+///
+
+import { Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  Validator, Validators
+} from '@angular/forms';
+import { PageComponent } from '@shared/components/page.component';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { TranslateService } from '@ngx-translate/core';
+import {
+  MapProviders,
+  MarkersSettings, ShowTooltipAction, showTooltipActionTranslationMap
+} from '@home/components/widget/lib/maps/map-models';
+import { WidgetService } from '@core/http/widget.service';
+
+@Component({
+  selector: 'tb-markers-settings',
+  templateUrl: './markers-settings.component.html',
+  styleUrls: ['./../widget-settings.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => MarkersSettingsComponent),
+      multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => MarkersSettingsComponent),
+      multi: true
+    }
+  ]
+})
+export class MarkersSettingsComponent extends PageComponent implements OnInit, ControlValueAccessor, Validator, OnChanges {
+
+  @Input()
+  disabled: boolean;
+
+  @Input()
+  provider: MapProviders;
+
+  mapProvider = MapProviders;
+
+  functionScopeVariables = this.widgetService.getWidgetScopeVariables();
+
+  private modelValue: MarkersSettings;
+
+  private propagateChange = null;
+
+  public markersSettingsFormGroup: FormGroup;
+
+  showTooltipActions = Object.values(ShowTooltipAction);
+
+  showTooltipActionTranslations = showTooltipActionTranslationMap;
+
+  constructor(protected store: Store<AppState>,
+              private translate: TranslateService,
+              private widgetService: WidgetService,
+              private fb: FormBuilder) {
+    super(store);
+  }
+
+  ngOnInit(): void {
+    this.markersSettingsFormGroup = this.fb.group({
+      markerOffsetX: [null, []],
+      markerOffsetY: [null, []],
+      posFunction: [null, []],
+      draggableMarker: [null, []],
+      showLabel: [null, []],
+      useLabelFunction: [null, []],
+      label: [null, []],
+      labelFunction: [null, []],
+      showTooltip: [null, []],
+      showTooltipAction: [null, []],
+      autocloseTooltip: [null, []],
+      useTooltipFunction: [null, []],
+      tooltipPattern: [null, []],
+      tooltipFunction: [null, []],
+      tooltipOffsetX: [null, []],
+      tooltipOffsetY: [null, []],
+      color: [null, []],
+      useColorFunction: [null, []],
+      colorFunction: [null, []],
+      useMarkerImageFunction: [null, []],
+      markerImage: [null, []],
+      markerImageSize: [null, [Validators.min(1)]],
+      markerImageFunction: [null, []],
+      markerImages: [null, []]
+    });
+    this.markersSettingsFormGroup.valueChanges.subscribe(() => {
+      this.updateModel();
+    });
+    this.markersSettingsFormGroup.get('showLabel').valueChanges.subscribe(() => {
+      this.updateValidators(true);
+    });
+    this.markersSettingsFormGroup.get('useLabelFunction').valueChanges.subscribe(() => {
+      this.updateValidators(true);
+    });
+    this.markersSettingsFormGroup.get('showTooltip').valueChanges.subscribe(() => {
+      this.updateValidators(true);
+    });
+    this.markersSettingsFormGroup.get('useTooltipFunction').valueChanges.subscribe(() => {
+      this.updateValidators(true);
+    });
+    this.markersSettingsFormGroup.get('useColorFunction').valueChanges.subscribe(() => {
+      this.updateValidators(true);
+    });
+    this.markersSettingsFormGroup.get('useMarkerImageFunction').valueChanges.subscribe(() => {
+      this.updateValidators(true);
+    });
+    this.updateValidators(false);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'provider') {
+          this.updateValidators(false);
+        }
+      }
+    }
+  }
+
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+    if (isDisabled) {
+      this.markersSettingsFormGroup.disable({emitEvent: false});
+    } else {
+      this.markersSettingsFormGroup.enable({emitEvent: false});
+    }
+  }
+
+  writeValue(value: MarkersSettings): void {
+    this.modelValue = value;
+    this.markersSettingsFormGroup.patchValue(
+      value, {emitEvent: false}
+    );
+    this.updateValidators(false);
+  }
+
+  public validate(c: FormControl) {
+    return this.markersSettingsFormGroup.valid ? null : {
+      markersSettings: {
+        valid: false,
+      },
+    };
+  }
+
+  private updateModel() {
+    const value: MarkersSettings = this.markersSettingsFormGroup.value;
+    this.modelValue = value;
+    this.propagateChange(this.modelValue);
+  }
+
+  private updateValidators(emitEvent?: boolean): void {
+    const showLabel: boolean = this.markersSettingsFormGroup.get('showLabel').value;
+    const useLabelFunction: boolean = this.markersSettingsFormGroup.get('useLabelFunction').value;
+    const showTooltip: boolean = this.markersSettingsFormGroup.get('showTooltip').value;
+    const useTooltipFunction: boolean = this.markersSettingsFormGroup.get('useTooltipFunction').value;
+    const useColorFunction: boolean = this.markersSettingsFormGroup.get('useColorFunction').value;
+    const useMarkerImageFunction: boolean = this.markersSettingsFormGroup.get('useMarkerImageFunction').value;
+    if (this.provider === MapProviders.image) {
+      this.markersSettingsFormGroup.get('posFunction').enable({emitEvent});
+    } else {
+      this.markersSettingsFormGroup.get('posFunction').disable({emitEvent});
+    }
+    if (showLabel) {
+      this.markersSettingsFormGroup.get('useLabelFunction').enable({emitEvent: false});
+      if (useLabelFunction) {
+        this.markersSettingsFormGroup.get('labelFunction').enable({emitEvent});
+        this.markersSettingsFormGroup.get('label').disable({emitEvent});
+      } else {
+        this.markersSettingsFormGroup.get('labelFunction').disable({emitEvent});
+        this.markersSettingsFormGroup.get('label').enable({emitEvent});
+      }
+    } else {
+      this.markersSettingsFormGroup.get('useLabelFunction').disable({emitEvent: false});
+      this.markersSettingsFormGroup.get('labelFunction').disable({emitEvent});
+      this.markersSettingsFormGroup.get('label').disable({emitEvent});
+    }
+    if (showTooltip) {
+      this.markersSettingsFormGroup.get('showTooltipAction').enable({emitEvent});
+      this.markersSettingsFormGroup.get('autocloseTooltip').enable({emitEvent});
+      this.markersSettingsFormGroup.get('useTooltipFunction').enable({emitEvent: false});
+      this.markersSettingsFormGroup.get('tooltipOffsetX').enable({emitEvent});
+      this.markersSettingsFormGroup.get('tooltipOffsetY').enable({emitEvent});
+      if (useTooltipFunction) {
+        this.markersSettingsFormGroup.get('tooltipFunction').enable({emitEvent});
+        this.markersSettingsFormGroup.get('tooltipPattern').disable({emitEvent});
+      } else {
+        this.markersSettingsFormGroup.get('tooltipFunction').disable({emitEvent});
+        this.markersSettingsFormGroup.get('tooltipPattern').enable({emitEvent});
+      }
+    } else {
+      this.markersSettingsFormGroup.get('showTooltipAction').disable({emitEvent});
+      this.markersSettingsFormGroup.get('autocloseTooltip').disable({emitEvent});
+      this.markersSettingsFormGroup.get('useTooltipFunction').disable({emitEvent: false});
+      this.markersSettingsFormGroup.get('tooltipFunction').disable({emitEvent});
+      this.markersSettingsFormGroup.get('tooltipPattern').disable({emitEvent});
+      this.markersSettingsFormGroup.get('tooltipOffsetX').disable({emitEvent});
+      this.markersSettingsFormGroup.get('tooltipOffsetY').disable({emitEvent});
+    }
+    if (useColorFunction) {
+      this.markersSettingsFormGroup.get('colorFunction').enable({emitEvent});
+    } else {
+      this.markersSettingsFormGroup.get('colorFunction').disable({emitEvent});
+    }
+    if (useMarkerImageFunction) {
+      this.markersSettingsFormGroup.get('markerImageFunction').enable({emitEvent});
+      this.markersSettingsFormGroup.get('markerImages').enable({emitEvent});
+      this.markersSettingsFormGroup.get('markerImage').disable({emitEvent});
+      this.markersSettingsFormGroup.get('markerImageSize').disable({emitEvent});
+    } else {
+      this.markersSettingsFormGroup.get('markerImageFunction').disable({emitEvent});
+      this.markersSettingsFormGroup.get('markerImages').disable({emitEvent});
+      this.markersSettingsFormGroup.get('markerImage').enable({emitEvent});
+      this.markersSettingsFormGroup.get('markerImageSize').enable({emitEvent});
+    }
+    this.markersSettingsFormGroup.get('posFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('useLabelFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('labelFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('label').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('showTooltipAction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('autocloseTooltip').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('useTooltipFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('tooltipFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('tooltipPattern').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('tooltipOffsetX').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('tooltipOffsetY').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('colorFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('markerImageFunction').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('markerImages').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('markerImage').updateValueAndValidity({emitEvent: false});
+    this.markersSettingsFormGroup.get('markerImageSize').updateValueAndValidity({emitEvent: false});
+  }
+}

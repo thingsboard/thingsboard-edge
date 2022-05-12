@@ -1,0 +1,212 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-widget-settings" [formGroup]="markersSettingsFormGroup">
+  <fieldset class="fields-group">
+    <legend class="group-title" translate>widgets.maps.markers-settings</legend>
+    <section fxLayout="row" fxLayoutGap="8px">
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.maps.marker-offset-x</mat-label>
+        <input matInput type="number" formControlName="markerOffsetX">
+      </mat-form-field>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.maps.marker-offset-y</mat-label>
+        <input matInput type="number" formControlName="markerOffsetY">
+      </mat-form-field>
+    </section>
+    <tb-js-func [fxShow]="provider === mapProvider.image"
+                formControlName="posFunction"
+                minHeight="100px"
+                [globalVariables]="functionScopeVariables"
+                [functionArgs]="['origXPos', 'origYPos']"
+                functionTitle="{{ 'widgets.maps.position-function' | translate }}"
+                helpId="widget/lib/map/position_fn">
+    </tb-js-func>
+    <mat-checkbox formControlName="draggableMarker" style="margin-bottom: 16px;">
+      {{ 'widgets.maps.draggable-marker' | translate }}
+    </mat-checkbox>
+    <fieldset class="fields-group fields-group-slider">
+      <legend class="group-title" translate>widgets.maps.label</legend>
+      <mat-expansion-panel class="tb-settings" [expanded]="markersSettingsFormGroup.get('showLabel').value">
+        <mat-expansion-panel-header fxLayout="row wrap">
+          <mat-panel-title>
+            <mat-slide-toggle formControlName="showLabel" (click)="$event.stopPropagation()"
+                              fxLayoutAlign="center">
+              {{ 'widgets.maps.show-label' | translate }}
+            </mat-slide-toggle>
+          </mat-panel-title>
+          <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+            widget-config.advanced-settings
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <mat-slide-toggle formControlName="useLabelFunction" class="slide-block">
+            {{ 'widgets.maps.use-label-function' | translate }}
+          </mat-slide-toggle>
+          <tb-html [fxShow]="!markersSettingsFormGroup.get('useLabelFunction').value"
+                   formControlName="label"
+                   minHeight="100px"
+                   label="{{ 'widgets.maps.label-pattern' | translate }}">
+          </tb-html>
+          <tb-js-func [fxShow]="markersSettingsFormGroup.get('useLabelFunction').value"
+                      formControlName="labelFunction"
+                      [globalVariables]="functionScopeVariables"
+                      [functionArgs]="['data', 'dsData', 'dsIndex']"
+                      functionTitle="{{ 'widgets.maps.label-function' | translate }}"
+                      helpId="widget/lib/map/label_fn">
+          </tb-js-func>
+        </ng-template>
+      </mat-expansion-panel>
+    </fieldset>
+    <fieldset class="fields-group fields-group-slider">
+      <legend class="group-title" translate>widgets.maps.tooltip</legend>
+      <mat-expansion-panel class="tb-settings" [expanded]="markersSettingsFormGroup.get('showTooltip').value">
+        <mat-expansion-panel-header fxLayout="row wrap">
+          <mat-panel-title>
+            <mat-slide-toggle formControlName="showTooltip" (click)="$event.stopPropagation()"
+                              fxLayoutAlign="center">
+              {{ 'widgets.maps.show-tooltip' | translate }}
+            </mat-slide-toggle>
+          </mat-panel-title>
+          <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+            widget-config.advanced-settings
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>widgets.maps.show-tooltip-action</mat-label>
+            <mat-select required formControlName="showTooltipAction">
+              <mat-option *ngFor="let action of showTooltipActions" [value]="action">
+                {{showTooltipActionTranslations.get(action) | translate}}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-slide-toggle formControlName="autocloseTooltip" class="slide-block">
+            {{ 'widgets.maps.auto-close-tooltips' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="useTooltipFunction" class="slide-block">
+            {{ 'widgets.maps.use-tooltip-function' | translate }}
+          </mat-slide-toggle>
+          <tb-html [fxShow]="!markersSettingsFormGroup.get('useTooltipFunction').value"
+                   formControlName="tooltipPattern"
+                   minHeight="100px"
+                   label="{{ 'widgets.maps.tooltip-pattern' | translate }}">
+          </tb-html>
+          <tb-js-func [fxShow]="markersSettingsFormGroup.get('useTooltipFunction').value"
+                      formControlName="tooltipFunction"
+                      [globalVariables]="functionScopeVariables"
+                      [functionArgs]="['data', 'dsData', 'dsIndex']"
+                      functionTitle="{{ 'widgets.maps.tooltip-function' | translate }}"
+                      helpId="widget/lib/map/tooltip_fn">
+          </tb-js-func>
+          <section fxLayout="row" fxLayoutGap="8px">
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.tooltip-offset-x</mat-label>
+              <input matInput type="number" formControlName="tooltipOffsetX">
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.tooltip-offset-y</mat-label>
+              <input matInput type="number" formControlName="tooltipOffsetY">
+            </mat-form-field>
+          </section>
+        </ng-template>
+      </mat-expansion-panel>
+    </fieldset>
+    <fieldset class="fields-group">
+      <legend class="group-title" translate>widgets.maps.color</legend>
+      <tb-color-input
+        formControlName="color"
+        icon="format_color_fill"
+        label="{{ 'widgets.maps.color' | translate }}" openOnInput colorClearButton>
+      </tb-color-input>
+      <mat-expansion-panel class="tb-settings" [expanded]="markersSettingsFormGroup.get('useColorFunction').value">
+        <mat-expansion-panel-header fxLayout="row wrap">
+          <mat-panel-title>
+            <mat-slide-toggle formControlName="useColorFunction" (click)="$event.stopPropagation()"
+                              fxLayoutAlign="center">
+              {{ 'widgets.maps.use-color-function' | translate }}
+            </mat-slide-toggle>
+          </mat-panel-title>
+          <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+            widget-config.advanced-settings
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <tb-js-func formControlName="colorFunction"
+                      [globalVariables]="functionScopeVariables"
+                      [functionArgs]="['data', 'dsData', 'dsIndex']"
+                      functionTitle="{{ 'widgets.maps.color-function' | translate }}"
+                      helpId="widget/lib/map/color_fn">
+          </tb-js-func>
+        </ng-template>
+      </mat-expansion-panel>
+    </fieldset>
+    <fieldset class="fields-group fields-group-slider">
+      <legend class="group-title" translate>widgets.maps.marker-image</legend>
+      <mat-expansion-panel class="tb-settings" expanded>
+        <mat-expansion-panel-header fxLayout="row wrap">
+          <mat-panel-title>
+            <mat-slide-toggle formControlName="useMarkerImageFunction" (click)="$event.stopPropagation()"
+                              fxLayoutAlign="center">
+              {{ 'widgets.maps.use-marker-image-function' | translate }}
+            </mat-slide-toggle>
+          </mat-panel-title>
+          <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+            widget-config.advanced-settings
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <tb-image-input [fxShow]="!markersSettingsFormGroup.get('useMarkerImageFunction').value"
+                          label="{{ 'widgets.maps.custom-marker-image' | translate }}"
+                          formControlName="markerImage">
+          </tb-image-input>
+          <mat-form-field [fxShow]="!markersSettingsFormGroup.get('useMarkerImageFunction').value"
+                          fxFlex class="mat-block">
+            <mat-label translate>widgets.maps.custom-marker-image-size</mat-label>
+            <input matInput type="number" min="1" formControlName="markerImageSize">
+          </mat-form-field>
+          <tb-js-func [fxShow]="markersSettingsFormGroup.get('useMarkerImageFunction').value"
+                      formControlName="markerImageFunction"
+                      [globalVariables]="functionScopeVariables"
+                      [functionArgs]="['data', 'images', 'dsData', 'dsIndex']"
+                      functionTitle="{{ 'widgets.maps.marker-image-function' | translate }}"
+                      helpId="widget/lib/map/marker_image_fn">
+          </tb-js-func>
+          <tb-multiple-image-input [fxShow]="markersSettingsFormGroup.get('useMarkerImageFunction').value"
+                                   label="{{ 'widgets.maps.marker-images' | translate }}"
+                                   formControlName="markerImages">
+          </tb-multiple-image-input>
+        </ng-template>
+      </mat-expansion-panel>
+    </fieldset>
+  </fieldset>
+</section>

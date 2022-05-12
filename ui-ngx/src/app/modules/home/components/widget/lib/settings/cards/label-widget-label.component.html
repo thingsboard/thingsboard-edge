@@ -1,0 +1,88 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-expansion-panel class="label-widget-label" fxFlex [formGroup]="labelWidgetLabelFormGroup" [(expanded)]="expanded">
+  <mat-expansion-panel-header>
+    <div fxFlex fxLayout="row" fxLayoutAlign="start center">
+      <mat-panel-title>
+        <div fxLayout="row" fxFlex fxLayoutAlign="start center">
+          {{ labelWidgetLabelFormGroup.get('pattern').value }}
+        </div>
+      </mat-panel-title>
+      <span fxFlex></span>
+      <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;"
+              type="button"
+              (click)="removeLabel.emit()"
+              matTooltip="{{ 'action.remove' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </mat-expansion-panel-header>
+  <ng-template matExpansionPanelContent>
+    <div fxLayout="column" fxLayoutGap="0.5em">
+      <mat-divider></mat-divider>
+      <section class="tb-widget-settings" fxLayout="column">
+        <mat-form-field style="padding-bottom: 16px;">
+          <mat-label translate>widgets.label-widget.label-pattern</mat-label>
+          <input required matInput formControlName="pattern">
+          <mat-error *ngIf="labelWidgetLabelFormGroup.get('pattern').hasError('required')">
+            {{ 'widgets.label-widget.label-pattern-required' | translate }}
+          </mat-error>
+          <mat-hint [innerHTML]="'widgets.label-widget.label-pattern-hint' | translate | safe: 'html'"></mat-hint>
+        </mat-form-field>
+        <fieldset class="fields-group">
+          <legend class="group-title" translate>widgets.label-widget.label-position</legend>
+          <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
+            <mat-form-field fxFlex>
+              <mat-label translate>widgets.label-widget.x-pos</mat-label>
+              <input matInput type="number" min="0" max="100" formControlName="x">
+            </mat-form-field>
+            <mat-form-field fxFlex>
+              <mat-label translate>widgets.label-widget.y-pos</mat-label>
+              <input matInput type="number" min="0" max="100" formControlName="y">
+            </mat-form-field>
+          </section>
+        </fieldset>
+        <tb-color-input
+          formControlName="backgroundColor"
+          icon="format_color_fill"
+          label="{{ 'widgets.label-widget.background-color' | translate }}" openOnInput colorClearButton>
+        </tb-color-input>
+        <fieldset class="fields-group">
+          <legend class="group-title" translate>widgets.label-widget.font-settings</legend>
+          <tb-widget-font formControlName="font" sizeTitle="widgets.widget-font.relative-font-size"></tb-widget-font>
+        </fieldset>
+      </section>
+    </div>
+  </ng-template>
+</mat-expansion-panel>
