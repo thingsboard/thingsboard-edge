@@ -28,23 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.server.cache;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CacheSpecsMap;
-import org.thingsboard.server.cache.TBRedisCacheConfiguration;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.dao.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.dao.cache.TbRedisSerializer;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
-@Service("DeviceCache")
-public class DeviceRedisCache extends RedisTbTransactionalCache<DeviceCacheKey, Device> {
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-    public DeviceRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.DEVICE_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
+@Slf4j
+@RequiredArgsConstructor
+public class CaffeineTbCacheTransaction<K extends Serializable, V extends Serializable> implements TbCacheTransaction<K, V> {
+    @Getter
+    private final UUID id = UUID.randomUUID();
+    private final CaffeineTbTransactionalCache<K, V> cache;
+    @Getter
+    private final List<K> keys;
+    @Getter
+    @Setter
+    private boolean failed;
+
+    private final Map<Object, Object> pendingPuts = new LinkedHashMap<>();
+
+    @Override
+    public void putIfAbsent(K key, V value) {
+        pendingPuts.put(key, value);
     }
+
+    @Override
+    public boolean commit() {
+        return cache.commit(id, pendingPuts);
+    }
+
+    @Override
+    public void rollback() {
+        cache.rollback(id);
+    }
+
+
 }

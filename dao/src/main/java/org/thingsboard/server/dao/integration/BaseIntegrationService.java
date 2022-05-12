@@ -33,10 +33,9 @@ package org.thingsboard.server.dao.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -45,8 +44,7 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.cache.EntitiesCacheManager;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -54,7 +52,6 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.List;
 import java.util.Optional;
 
-import static org.thingsboard.server.common.data.CacheConstants.INTEGRATIONS_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -62,10 +59,9 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
-public class BaseIntegrationService extends AbstractEntityService implements IntegrationService {
+public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
     public static final String INCORRECT_CONVERTER_ID = "Incorrect converterId ";
 
@@ -73,32 +69,31 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     private IntegrationDao integrationDao;
 
     @Autowired
-    private EntitiesCacheManager entitiesCacheManager;
-
-    @Autowired
     private IntegrationInfoDao integrationInfoDao;
 
     @Autowired
     private DataValidator<Integration> integrationValidator;
 
+    @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
     @Override
-    @CacheEvict(
-            cacheNames = INTEGRATIONS_CACHE,
-            key = "{#integration.tenantId, #integration.id}",
-            condition = "{#integration.id != null}"
-    )
-    public Integration saveIntegration(Integration integration) {
-        log.trace("Executing saveIntegration [{}]", integration);
-        integrationValidator.validate(integration, Integration::getTenantId);
-        return integrationDao.save(integration.getTenantId(), integration);
+    public void handleEvictEvent(IntegrationCacheEvictEvent event) {
+        cache.evict(event.getIntegrationId());
     }
 
     @Override
-    @Cacheable(cacheNames = INTEGRATIONS_CACHE, key = "{#tenantId, #integrationId}")
+    public Integration saveIntegration(Integration integration) {
+        log.trace("Executing saveIntegration [{}]", integration);
+        integrationValidator.validate(integration, Integration::getTenantId);
+        var result = integrationDao.save(integration.getTenantId(), integration);
+        publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+        return result;
+    }
+
+    @Override
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        return integrationDao.findById(tenantId, integrationId.getId());
+        return cache.getAndPutInTransaction(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()), true);
     }
 
     @Override
@@ -150,8 +145,8 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
         deleteEntityRelations(tenantId, integrationId);
-        entitiesCacheManager.removeIntegrationFromCacheById(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
+        publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
     }
 
     @Override
@@ -169,7 +164,7 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =
-            new PaginatedRemover<TenantId, Integration>() {
+            new PaginatedRemover<>() {
 
                 @Override
                 protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {

@@ -28,47 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cache;
+package org.thingsboard.server.cache;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisStringCommands;
-import org.thingsboard.server.cache.TbCacheTransaction;
+import org.springframework.cache.Cache;
 
-import java.io.Serializable;
-import java.util.Objects;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class SimpleTbCacheValueWrapper<T> implements TbCacheValueWrapper<T> {
 
-@Slf4j
-@RequiredArgsConstructor
-public class RedisTbCacheTransaction<K extends Serializable, V extends Serializable> implements TbCacheTransaction<K, V> {
-
-    private final RedisTbTransactionalCache<K, V> cache;
-    private final RedisConnection connection;
+    private final T value;
 
     @Override
-    public void putIfAbsent(K key, V value) {
-        cache.put(connection, key, value, RedisStringCommands.SetOption.UPSERT);
+    public T get() {
+        return value;
     }
 
-    @Override
-    public boolean commit() {
-        try {
-            var execResult = connection.exec();
-            var result = execResult != null && execResult.stream().anyMatch(Objects::nonNull);
-            return result;
-        } finally {
-            connection.close();
-        }
+    public static <T> SimpleTbCacheValueWrapper<T> empty() {
+        return new SimpleTbCacheValueWrapper<>(null);
     }
 
-    @Override
-    public void rollback() {
-        try {
-            connection.discard();
-        } finally {
-            connection.close();
-        }
+    public static <T> SimpleTbCacheValueWrapper<T> wrap(T value) {
+        return new SimpleTbCacheValueWrapper<>(value);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> SimpleTbCacheValueWrapper<T> wrap(Cache.ValueWrapper source) {
+        return source == null ? null : new SimpleTbCacheValueWrapper<>((T) source.get());
+    }
 }

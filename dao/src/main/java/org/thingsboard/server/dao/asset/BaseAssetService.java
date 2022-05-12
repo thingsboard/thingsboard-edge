@@ -81,7 +81,6 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey, Asset, AssetCacheEvictEvent> implements AssetService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ASSET_ID = "Incorrect assetId ";
     public static final String TB_SERVICE_QUEUE = "TbServiceQueue";

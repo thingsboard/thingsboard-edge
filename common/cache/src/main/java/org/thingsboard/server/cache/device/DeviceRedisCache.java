@@ -28,23 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.downlink;
+package org.thingsboard.server.cache.device;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.device.DeviceCacheKey;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
 import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.dao.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.dao.cache.TbRedisSerializer;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TbRedisSerializer;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
-@Service("DownlinkCache")
-public class DownlinkRedisCache extends RedisTbTransactionalCache<DownlinkCacheKey, DownLinkMsg> {
+@Service("DeviceCache")
+public class DeviceRedisCache extends RedisTbTransactionalCache<DeviceCacheKey, Device> {
 
-    public DownlinkRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.DOWNLINK_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
+    public DeviceRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.DEVICE_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
     }
 }

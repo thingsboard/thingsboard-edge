@@ -28,18 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.server.dao.integration;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.dao.asset.AssetCacheKey;
 
-@Data
-class DeviceCacheEvictEvent {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("IntegrationCache")
+public class IntegrationCaffeineCache extends CaffeineTbTransactionalCache<IntegrationId, Integration> {
 
-    private final TenantId tenantId;
-    private final DeviceId deviceId;
-    private final String newName;
-    private final String oldName;
+    public IntegrationCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.INTEGRATIONS_CACHE);
+    }
 
 }

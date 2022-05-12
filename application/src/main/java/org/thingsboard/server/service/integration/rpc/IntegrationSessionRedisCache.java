@@ -33,14 +33,12 @@ package org.thingsboard.server.service.integration.rpc;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.server.cache.CacheSpecsMap;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.dao.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.dao.cache.TbRedisSerializer;
-import org.thingsboard.server.service.integration.downlink.DownlinkCacheKey;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TbRedisSerializer;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
 @Service("RemoteIntegrationCache")

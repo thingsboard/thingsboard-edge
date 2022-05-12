@@ -28,22 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cache;
+package org.thingsboard.server.dao.integration;
 
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.dao.asset.AssetCacheKey;
 
-public class TbRedisSerializer<T> implements RedisSerializer<T> {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("IntegrationCache")
+public class IntegrationRedisCache extends RedisTbTransactionalCache<IntegrationId, Integration> {
 
-    private final RedisSerializer<Object> java = RedisSerializer.java();
-
-    @Override
-    public byte[] serialize(T t) throws SerializationException {
-        return java.serialize(t);
-    }
-
-    @Override
-    public T deserialize(byte[] bytes) throws SerializationException {
-        return (T) java.deserialize(bytes);
+    public IntegrationRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.INTEGRATIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
     }
 }

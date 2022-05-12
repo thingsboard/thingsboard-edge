@@ -28,33 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cache;
+package org.thingsboard.server.cache.device;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cache.Cache;
-import org.thingsboard.server.cache.TbCacheValueWrapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.device.DeviceCacheKey;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class SimpleTbCacheValueWrapper<T> implements TbCacheValueWrapper<T> {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("DeviceCache")
+public class DeviceCaffeineCache extends CaffeineTbTransactionalCache<DeviceCacheKey, Device> {
 
-    private final T value;
-
-    @Override
-    public T get() {
-        return value;
+    public DeviceCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.DEVICE_CACHE);
     }
 
-    public static <T> SimpleTbCacheValueWrapper<T> empty() {
-        return new SimpleTbCacheValueWrapper<>(null);
-    }
-
-    public static <T> SimpleTbCacheValueWrapper<T> wrap(T value) {
-        return new SimpleTbCacheValueWrapper<>(value);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> SimpleTbCacheValueWrapper<T> wrap(Cache.ValueWrapper source) {
-        return source == null ? null : new SimpleTbCacheValueWrapper<>((T) source.get());
-    }
 }

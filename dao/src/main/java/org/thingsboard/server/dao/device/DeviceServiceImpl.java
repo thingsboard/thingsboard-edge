@@ -39,11 +39,12 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.cache.device.DeviceCacheEvictEvent;
+import org.thingsboard.server.cache.device.DeviceCacheKey;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
@@ -106,8 +107,6 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKey, Device, DeviceCacheEvictEvent> implements DeviceService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_DEVICE_PROFILE_ID = "Incorrect deviceProfileId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_DEVICE_ID = "Incorrect deviceId ";
 

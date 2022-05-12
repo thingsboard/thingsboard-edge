@@ -28,14 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cache;
+package org.thingsboard.server.cache;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
-import org.thingsboard.server.cache.TbCacheTransaction;
-import org.thingsboard.server.cache.TbCacheValueWrapper;
-import org.thingsboard.server.cache.TbTransactionalCache;
 
 import java.io.Serializable;
 import java.util.Collection;

@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -56,7 +55,6 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import java.util.List;
 import java.util.Optional;
 
-import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -99,12 +97,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         return savedRole;
     }
 
-    @Cacheable(cacheNames = ROLE_CACHE, key = "{#roleId}")
     @Override
     public Role findRoleById(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        return roleDao.findById(tenantId, roleId.getId());
+        return cache.getAndPutInTransaction(roleId, () -> roleDao.findById(tenantId, roleId.getId()), true);
     }
 
     @Override

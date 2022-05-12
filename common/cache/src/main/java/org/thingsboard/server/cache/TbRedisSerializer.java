@@ -28,21 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration.downlink;
+package org.thingsboard.server.cache;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.data.DownLinkMsg;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.dao.cache.CaffeineTbTransactionalCache;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("DownlinkCache")
-public class DownlinkCaffeineCache extends CaffeineTbTransactionalCache<DownlinkCacheKey, DownLinkMsg> {
+public class TbRedisSerializer<T> implements RedisSerializer<T> {
 
-    public DownlinkCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.DOWNLINK_CACHE);
+    private final RedisSerializer<Object> java = RedisSerializer.java();
+
+    @Override
+    public byte[] serialize(T t) throws SerializationException {
+        return java.serialize(t);
     }
 
+    @Override
+    public T deserialize(byte[] bytes) throws SerializationException {
+        return (T) java.deserialize(bytes);
+    }
 }

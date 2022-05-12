@@ -28,22 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.role;
+package org.thingsboard.server.service.integration.downlink;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("RoleCache")
-public class RoleCaffeineCache extends CaffeineTbTransactionalCache<RoleId, Role> {
+@Service("DownlinkCache")
+public class DownlinkCaffeineCache extends CaffeineTbTransactionalCache<DownlinkCacheKey, DownLinkMsg> {
 
-    public RoleCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.ROLE_CACHE);
+    public DownlinkCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.DOWNLINK_CACHE);
     }
 
 }

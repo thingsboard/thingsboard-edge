@@ -28,42 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.server.dao.integration;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import java.io.Serializable;
-
-@Getter
-@EqualsAndHashCode
+@Data
 @RequiredArgsConstructor
-@Builder
-public class DeviceCacheKey implements Serializable {
+class IntegrationCacheEvictEvent {
 
-    private final TenantId tenantId;
-    private final DeviceId deviceId;
-    private final String deviceName;
-
-    public DeviceCacheKey(TenantId tenantId, DeviceId deviceId) {
-        this(tenantId, deviceId, null);
-    }
-
-    public DeviceCacheKey(TenantId tenantId, String deviceName) {
-        this(tenantId, null, deviceName);
-    }
-
-    @Override
-    public String toString() {
-        if (deviceId != null) {
-            return tenantId + "_" + deviceId;
-        } else {
-            return tenantId + "_n_" + deviceName;
-        }
-    }
+    private final IntegrationId integrationId;
 
 }

@@ -28,21 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.server.cache.device;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.dao.cache.CaffeineTbTransactionalCache;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("DeviceCache")
-public class DeviceCaffeineCache extends CaffeineTbTransactionalCache<DeviceCacheKey, Device> {
+import java.io.Serializable;
 
-    public DeviceCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.DEVICE_CACHE);
+@Getter
+@EqualsAndHashCode
+@RequiredArgsConstructor
+@Builder
+public class DeviceCacheKey implements Serializable {
+
+    private final TenantId tenantId;
+    private final DeviceId deviceId;
+    private final String deviceName;
+
+    public DeviceCacheKey(TenantId tenantId, DeviceId deviceId) {
+        this(tenantId, deviceId, null);
+    }
+
+    public DeviceCacheKey(TenantId tenantId, String deviceName) {
+        this(tenantId, null, deviceName);
+    }
+
+    @Override
+    public String toString() {
+        if (deviceId != null) {
+            return tenantId + "_" + deviceId;
+        } else {
+            return tenantId + "_n_" + deviceName;
+        }
     }
 
 }
