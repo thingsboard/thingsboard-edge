@@ -95,7 +95,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing save role [{}]", role);
         roleValidator.validate(role, Role::getTenantId);
         Role savedRole = roleDao.save(tenantId, role);
-        publishEvictEvent(new RoleEvictEvent(role.getId()));
+        publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
         return savedRole;
     }
 
