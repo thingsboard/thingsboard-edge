@@ -83,7 +83,7 @@ public abstract class BaseRelationCacheTest extends AbstractServiceTest {
             Object target = ((Advised) relationService).getTargetSource().getTarget();
             return (RelationService) target;
         }
-        return null;
+        return relationService;
     }
 
     @Test
