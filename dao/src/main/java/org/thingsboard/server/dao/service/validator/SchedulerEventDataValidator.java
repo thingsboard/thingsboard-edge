@@ -57,7 +57,7 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.service.DataValidator;

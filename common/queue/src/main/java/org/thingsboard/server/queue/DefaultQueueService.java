@@ -33,12 +33,14 @@ package org.thingsboard.server.queue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -50,19 +52,25 @@ public class DefaultQueueService implements QueueService {
 
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private Set<String> ruleEngineQueues;
+    private Set<String> ieQueues;
 
     @PostConstruct
     public void init() {
         ruleEngineQueues = ruleEngineSettings.getQueues().stream()
                 .map(TbRuleEngineQueueConfiguration::getName).collect(Collectors.toCollection(LinkedHashSet::new));
+        ieQueues = Arrays.asList(IntegrationType.values()).stream()
+                .map(Enum::name).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override
     public Set<String> getQueuesByServiceType(ServiceType type) {
-        if (type == ServiceType.TB_RULE_ENGINE) {
-            return ruleEngineQueues;
-        } else {
-            return Collections.emptySet();
+        switch (type) {
+            case TB_RULE_ENGINE:
+                return ruleEngineQueues;
+            case TB_INTEGRATION_EXECUTOR:
+                return ieQueues;
+            default:
+                return Collections.emptySet();
         }
     }
 

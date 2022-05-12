@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionDao;
 import org.thingsboard.server.dao.role.RoleDao;

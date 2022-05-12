@@ -30,18 +30,18 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
@@ -51,19 +51,17 @@ import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
  */
 public interface PlatformIntegrationService {
 
-    void validateIntegrationConfiguration(Integration integration);
+    void processUplinkData(IntegrationInfo info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    void checkIntegrationConnection(Integration integration) throws Exception;
+    void processUplinkData(IntegrationInfo info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
 
-    ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration integration);
+    void processUplinkData(IntegrationInfo info, EntityViewDataProto data, IntegrationCallback<Void> callback);
 
-    void updateIntegration(Integration integration);
+    void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback integrationApiCallback);
 
-    ListenableFuture<Void> deleteIntegration(IntegrationId integration);
+    void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback integrationApiCallback);
 
-    ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key);
-
-    void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msg, TbCallback callback);
+    void processUplinkData(TbIntegrationTsDataProto data, IntegrationApiCallback integrationApiCallback);
 
     void process(SessionInfoProto sessionInfo, PostTelemetryMsg msg, IntegrationCallback<Void> callback);
 
@@ -71,9 +69,10 @@ public interface PlatformIntegrationService {
 
     void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
 
-    Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
+    Device getOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
 
-    Asset getOrCreateAsset(Integration configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
+    Asset getOrCreateAsset(IntegrationInfo configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
 
-    EntityView getOrCreateEntityView(Integration configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
+    EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
+
 }

@@ -36,8 +36,6 @@ import org.eclipse.leshan.core.util.SecurityUtil;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
@@ -58,7 +56,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 

@@ -1,0 +1,413 @@
+#
+# ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+#
+# Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+#
+# NOTICE: All information contained herein is, and remains
+# the property of ThingsBoard, Inc. and its suppliers,
+# if any.  The intellectual and technical concepts contained
+# herein are proprietary to ThingsBoard, Inc.
+# and its suppliers and may be covered by U.S. and Foreign Patents,
+# patents in process, and are protected by trade secret or copyright law.
+#
+# Dissemination of this information or reproduction of this material is strictly forbidden
+# unless prior written permission is obtained from COMPANY.
+#
+# Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+# managers or contractors who have executed Confidentiality and Non-disclosure agreements
+# explicitly covering such access.
+#
+# The copyright notice above does not evidence any actual or intended publication
+# or disclosure  of  this source code, which includes
+# information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+# ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+# OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+# THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+# AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+# THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+# DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+# OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+#
+
+server:
+  # Server bind address
+  address: "${HTTP_BIND_ADDRESS:0.0.0.0}"
+  # Server bind port
+  port: "${HTTP_BIND_PORT:8082}"
+  tomcat:
+    # Maximum size of data that could be sent over HTTP form POST request
+    max-http-form-post-size: "${MAX_HTTP_FORM_POST_SIZE:10000000}" # 10Mb
+
+# Zookeeper connection parameters. Used for service discovery.
+zk:
+  # Enable/disable zookeeper discovery service.
+  enabled: "${ZOOKEEPER_ENABLED:true}"
+  # Zookeeper connect string
+  url: "${ZOOKEEPER_URL:localhost:2181}"
+  # Zookeeper retry interval in milliseconds
+  retry_interval_ms: "${ZOOKEEPER_RETRY_INTERVAL_MS:3000}"
+  # Zookeeper connection timeout in milliseconds
+  connection_timeout_ms: "${ZOOKEEPER_CONNECTION_TIMEOUT_MS:3000}"
+  # Zookeeper session timeout in milliseconds
+  session_timeout_ms: "${ZOOKEEPER_SESSION_TIMEOUT_MS:3000}"
+  # Name of the directory in zookeeper 'filesystem'
+  zk_dir: "${ZOOKEEPER_NODES_DIR:/thingsboard}"
+
+integrations:
+  statistics:
+    # Enable/disable integrations statistics
+    enabled: "${INTEGRATIONS_STATISTICS_ENABLED:true}"
+    persist_frequency: "${INTEGRATIONS_STATISTICS_PERSIST_FREQUENCY:3600000}"
+  reinit:
+    enabled: "${INTEGRATIONS_REINIT_ENABLED:true}"
+    frequency: "${INTEGRATIONS_REINIT_FREQUENCY:300000}"
+  rate_limits:
+    enabled: "${TB_INTEGRATION_RATE_LIMITS_ENABLED:false}"
+    tenant: "${TB_INTEGRATION_RATE_LIMITS_TENANT:1000:1,20000:60}"
+    device: "${TB_INTEGRATION_RATE_LIMITS_DEVICE:10:1,300:60}"
+  allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
+
+queue:
+  type: "${TB_QUEUE_TYPE:kafka}" # kafka (Apache Kafka) or aws-sqs (AWS SQS) or pubsub (PubSub) or service-bus (Azure Service Bus) or rabbitmq (RabbitMQ)
+  kafka:
+    bootstrap.servers: "${TB_KAFKA_SERVERS:localhost:9092}"
+    acks: "${TB_KAFKA_ACKS:all}"
+    retries: "${TB_KAFKA_RETRIES:1}"
+    compression.type: "${TB_KAFKA_COMPRESSION_TYPE:none}" # none or gzip
+    batch.size: "${TB_KAFKA_BATCH_SIZE:16384}"
+    linger.ms: "${TB_KAFKA_LINGER_MS:1}"
+    max.request.size: "${TB_KAFKA_MAX_REQUEST_SIZE:1048576}"
+    max.in.flight.requests.per.connection: "${TB_KAFKA_MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION:5}"
+    buffer.memory: "${TB_BUFFER_MEMORY:33554432}"
+    replication_factor: "${TB_QUEUE_KAFKA_REPLICATION_FACTOR:1}"
+    max_poll_interval_ms: "${TB_QUEUE_KAFKA_MAX_POLL_INTERVAL_MS:300000}"
+    max_poll_records: "${TB_QUEUE_KAFKA_MAX_POLL_RECORDS:8192}"
+    max_partition_fetch_bytes: "${TB_QUEUE_KAFKA_MAX_PARTITION_FETCH_BYTES:16777216}"
+    fetch_max_bytes: "${TB_QUEUE_KAFKA_FETCH_MAX_BYTES:134217728}"
+    use_confluent_cloud: "${TB_QUEUE_KAFKA_USE_CONFLUENT_CLOUD:false}"
+    confluent:
+      ssl.algorithm: "${TB_QUEUE_KAFKA_CONFLUENT_SSL_ALGORITHM:https}"
+      sasl.mechanism: "${TB_QUEUE_KAFKA_CONFLUENT_SASL_MECHANISM:PLAIN}"
+      sasl.config: "${TB_QUEUE_KAFKA_CONFLUENT_SASL_JAAS_CONFIG:org.apache.kafka.common.security.plain.PlainLoginModule required username=\"CLUSTER_API_KEY\" password=\"CLUSTER_API_SECRET\";}"
+      security.protocol: "${TB_QUEUE_KAFKA_CONFLUENT_SECURITY_PROTOCOL:SASL_SSL}"
+    # Key-value properties for Kafka consumer per specific topic, e.g. tb_ota_package is a topic name for ota, tb_rule_engine.sq is a topic name for default SequentialByOriginator queue.
+    # Check TB_QUEUE_CORE_OTA_TOPIC and TB_QUEUE_RE_SQ_TOPIC params
+    consumer-properties-per-topic:
+      tb_ota_package:
+        - key: max.poll.records
+          value: "${TB_QUEUE_KAFKA_OTA_MAX_POLL_RECORDS:10}"
+#      tb_rule_engine.sq:
+#        - key: max.poll.records
+#          value: "${TB_QUEUE_KAFKA_SQ_MAX_POLL_RECORDS:1024}"
+    other: # In this section you can specify custom parameters for Kafka consumer/producer and expose the env variables to configure outside
+      - key: "request.timeout.ms" # refer to https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#producerconfigs_request.timeout.ms
+        value: "${TB_QUEUE_KAFKA_REQUEST_TIMEOUT_MS:30000}" # (30 seconds)
+      - key: "session.timeout.ms" # refer to https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#consumerconfigs_session.timeout.ms
+        value: "${TB_QUEUE_KAFKA_SESSION_TIMEOUT_MS:10000}" # (10 seconds)
+    topic-properties:
+      rule-engine: "${TB_QUEUE_KAFKA_RE_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      core: "${TB_QUEUE_KAFKA_CORE_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      transport-api: "${TB_QUEUE_KAFKA_TA_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      notifications: "${TB_QUEUE_KAFKA_NOTIFICATIONS_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      js-executor: "${TB_QUEUE_KAFKA_JE_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:104857600;partitions:100;min.insync.replicas:1}"
+      ota-updates: "${TB_QUEUE_KAFKA_OTA_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:10;min.insync.replicas:1}"
+      integration-api: "${TB_QUEUE_KAFKA_INTEGRATION_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:10;min.insync.replicas:1}"
+    consumer-stats:
+      enabled: "${TB_QUEUE_KAFKA_CONSUMER_STATS_ENABLED:true}"
+      print-interval-ms: "${TB_QUEUE_KAFKA_CONSUMER_STATS_MIN_PRINT_INTERVAL_MS:60000}"
+      kafka-response-timeout-ms: "${TB_QUEUE_KAFKA_CONSUMER_STATS_RESPONSE_TIMEOUT_MS:1000}"
+  aws_sqs:
+    use_default_credential_provider_chain: "${TB_QUEUE_AWS_SQS_USE_DEFAULT_CREDENTIAL_PROVIDER_CHAIN:false}"
+    access_key_id: "${TB_QUEUE_AWS_SQS_ACCESS_KEY_ID:YOUR_KEY}"
+    secret_access_key: "${TB_QUEUE_AWS_SQS_SECRET_ACCESS_KEY:YOUR_SECRET}"
+    region: "${TB_QUEUE_AWS_SQS_REGION:YOUR_REGION}"
+    threads_per_topic: "${TB_QUEUE_AWS_SQS_THREADS_PER_TOPIC:1}"
+    queue-properties:
+      rule-engine: "${TB_QUEUE_AWS_SQS_RE_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"
+      core: "${TB_QUEUE_AWS_SQS_CORE_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"
+      transport-api: "${TB_QUEUE_AWS_SQS_TA_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"
+      notifications: "${TB_QUEUE_AWS_SQS_NOTIFICATIONS_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"
+      js-executor: "${TB_QUEUE_AWS_SQS_JE_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"
+      integration-api: "${TB_QUEUE_AWS_SQS_INTEGRATION_QUEUE_PROPERTIES:VisibilityTimeout:30;MaximumMessageSize:262144;MessageRetentionPeriod:604800}"
+      #    VisibilityTimeout in seconds;MaximumMessageSize in bytes;MessageRetentionPeriod in seconds
+  pubsub:
+    project_id: "${TB_QUEUE_PUBSUB_PROJECT_ID:YOUR_PROJECT_ID}"
+    service_account: "${TB_QUEUE_PUBSUB_SERVICE_ACCOUNT:YOUR_SERVICE_ACCOUNT}"
+    max_msg_size: "${TB_QUEUE_PUBSUB_MAX_MSG_SIZE:1048576}" #in bytes
+    max_messages: "${TB_QUEUE_PUBSUB_MAX_MESSAGES:1000}"
+    queue-properties:
+      rule-engine: "${TB_QUEUE_PUBSUB_RE_QUEUE_PROPERTIES:ackDeadlineInSec:30;messageRetentionInSec:604800}"
+      core: "${TB_QUEUE_PUBSUB_CORE_QUEUE_PROPERTIES:ackDeadlineInSec:30;messageRetentionInSec:604800}"
+      transport-api: "${TB_QUEUE_PUBSUB_TA_QUEUE_PROPERTIES:ackDeadlineInSec:30;messageRetentionInSec:604800}"
+      notifications: "${TB_QUEUE_PUBSUB_NOTIFICATIONS_QUEUE_PROPERTIES:ackDeadlineInSec:30;messageRetentionInSec:604800}"
+      js-executor: "${TB_QUEUE_PUBSUB_JE_QUEUE_PROPERTIES:ackDeadlineInSec:30;messageRetentionInSec:604800}"
+      integration-api: "${TB_QUEUE_PUBSUB_INTEGRATION_QUEUE_PROPERTIES:ackDeadlineInSec:30;messageRetentionInSec:604800}"
+  service_bus:
+    namespace_name: "${TB_QUEUE_SERVICE_BUS_NAMESPACE_NAME:YOUR_NAMESPACE_NAME}"
+    sas_key_name: "${TB_QUEUE_SERVICE_BUS_SAS_KEY_NAME:YOUR_SAS_KEY_NAME}"
+    sas_key: "${TB_QUEUE_SERVICE_BUS_SAS_KEY:YOUR_SAS_KEY}"
+    max_messages: "${TB_QUEUE_SERVICE_BUS_MAX_MESSAGES:1000}"
+    queue-properties:
+      rule-engine: "${TB_QUEUE_SERVICE_BUS_RE_QUEUE_PROPERTIES:lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800}"
+      core: "${TB_QUEUE_SERVICE_BUS_CORE_QUEUE_PROPERTIES:lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800}"
+      transport-api: "${TB_QUEUE_SERVICE_BUS_TA_QUEUE_PROPERTIES:lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800}"
+      notifications: "${TB_QUEUE_SERVICE_BUS_NOTIFICATIONS_QUEUE_PROPERTIES:lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800}"
+      js-executor: "${TB_QUEUE_SERVICE_BUS_JE_QUEUE_PROPERTIES:lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800}"
+      integration-api: "${TB_QUEUE_SERVICE_BUS_INTEGRATION_QUEUE_PROPERTIES:lockDurationInSec:30;maxSizeInMb:1024;messageTimeToLiveInSec:604800}"
+  rabbitmq:
+    exchange_name: "${TB_QUEUE_RABBIT_MQ_EXCHANGE_NAME:}"
+    host: "${TB_QUEUE_RABBIT_MQ_HOST:localhost}"
+    port: "${TB_QUEUE_RABBIT_MQ_PORT:5672}"
+    virtual_host: "${TB_QUEUE_RABBIT_MQ_VIRTUAL_HOST:/}"
+    username: "${TB_QUEUE_RABBIT_MQ_USERNAME:YOUR_USERNAME}"
+    password: "${TB_QUEUE_RABBIT_MQ_PASSWORD:YOUR_PASSWORD}"
+    automatic_recovery_enabled: "${TB_QUEUE_RABBIT_MQ_AUTOMATIC_RECOVERY_ENABLED:false}"
+    connection_timeout: "${TB_QUEUE_RABBIT_MQ_CONNECTION_TIMEOUT:60000}"
+    handshake_timeout: "${TB_QUEUE_RABBIT_MQ_HANDSHAKE_TIMEOUT:10000}"
+    queue-properties:
+      rule-engine: "${TB_QUEUE_RABBIT_MQ_RE_QUEUE_PROPERTIES:x-max-length-bytes:1048576000;x-message-ttl:604800000}"
+      core: "${TB_QUEUE_RABBIT_MQ_CORE_QUEUE_PROPERTIES:x-max-length-bytes:1048576000;x-message-ttl:604800000}"
+      transport-api: "${TB_QUEUE_RABBIT_MQ_TA_QUEUE_PROPERTIES:x-max-length-bytes:1048576000;x-message-ttl:604800000}"
+      notifications: "${TB_QUEUE_RABBIT_MQ_NOTIFICATIONS_QUEUE_PROPERTIES:x-max-length-bytes:1048576000;x-message-ttl:604800000}"
+      js-executor: "${TB_QUEUE_RABBIT_MQ_JE_QUEUE_PROPERTIES:x-max-length-bytes:1048576000;x-message-ttl:604800000}"
+      integration-api: "${TB_QUEUE_RABBIT_MQ_INTEGRATION_QUEUE_PROPERTIES:x-max-length-bytes:1048576000;x-message-ttl:604800000}"
+  partitions:
+    hash_function_name: "${TB_QUEUE_PARTITIONS_HASH_FUNCTION_NAME:murmur3_128}" # murmur3_32, murmur3_128 or sha256
+  transport_api:
+    requests_topic: "${TB_QUEUE_TRANSPORT_API_REQUEST_TOPIC:tb_transport.api.requests}"
+    responses_topic: "${TB_QUEUE_TRANSPORT_API_RESPONSE_TOPIC:tb_transport.api.responses}"
+    max_pending_requests: "${TB_QUEUE_TRANSPORT_MAX_PENDING_REQUESTS:10000}"
+    max_requests_timeout: "${TB_QUEUE_TRANSPORT_MAX_REQUEST_TIMEOUT:10000}"
+    max_callback_threads: "${TB_QUEUE_TRANSPORT_MAX_CALLBACK_THREADS:100}"
+    request_poll_interval: "${TB_QUEUE_TRANSPORT_REQUEST_POLL_INTERVAL_MS:25}"
+    response_poll_interval: "${TB_QUEUE_TRANSPORT_RESPONSE_POLL_INTERVAL_MS:25}"
+  core:
+    topic: "${TB_QUEUE_CORE_TOPIC:tb_core}"
+    poll-interval: "${TB_QUEUE_CORE_POLL_INTERVAL_MS:25}"
+    partitions: "${TB_QUEUE_CORE_PARTITIONS:10}"
+    pack-processing-timeout: "${TB_QUEUE_CORE_PACK_PROCESSING_TIMEOUT_MS:2000}"
+    ota:
+      topic: "${TB_QUEUE_CORE_OTA_TOPIC:tb_ota_package}"
+      pack-interval-ms: "${TB_QUEUE_CORE_OTA_PACK_INTERVAL_MS:60000}"
+      pack-size: "${TB_QUEUE_CORE_OTA_PACK_SIZE:100}"
+    usage-stats-topic: "${TB_QUEUE_US_TOPIC:tb_usage_stats}"
+    stats:
+      enabled: "${TB_QUEUE_CORE_STATS_ENABLED:true}"
+      print-interval-ms: "${TB_QUEUE_CORE_STATS_PRINT_INTERVAL_MS:60000}"
+  js:
+    # JS Eval request topic
+    request_topic: "${REMOTE_JS_EVAL_REQUEST_TOPIC:js_eval.requests}"
+    # JS Eval responses topic prefix that is combined with node id
+    response_topic_prefix: "${REMOTE_JS_EVAL_RESPONSE_TOPIC:js_eval.responses}"
+    # JS Eval max pending requests
+    max_pending_requests: "${REMOTE_JS_MAX_PENDING_REQUESTS:10000}"
+    # JS Eval max request timeout
+    max_eval_requests_timeout: "${REMOTE_JS_MAX_EVAL_REQUEST_TIMEOUT:60000}"
+    # JS max request timeout
+    max_requests_timeout: "${REMOTE_JS_MAX_REQUEST_TIMEOUT:10000}"
+    # JS response poll interval
+    response_poll_interval: "${REMOTE_JS_RESPONSE_POLL_INTERVAL_MS:25}"
+  rule-engine:
+    topic: "${TB_QUEUE_RULE_ENGINE_TOPIC:tb_rule_engine}"
+    poll-interval: "${TB_QUEUE_RULE_ENGINE_POLL_INTERVAL_MS:25}"
+    pack-processing-timeout: "${TB_QUEUE_RULE_ENGINE_PACK_PROCESSING_TIMEOUT_MS:2000}"
+    stats:
+      enabled: "${TB_QUEUE_RULE_ENGINE_STATS_ENABLED:true}"
+      print-interval-ms: "${TB_QUEUE_RULE_ENGINE_STATS_PRINT_INTERVAL_MS:60000}"
+    queues:
+      - name: "${TB_QUEUE_RE_MAIN_QUEUE_NAME:Main}"
+        topic: "${TB_QUEUE_RE_MAIN_TOPIC:tb_rule_engine.main}"
+        poll-interval: "${TB_QUEUE_RE_MAIN_POLL_INTERVAL_MS:25}"
+        partitions: "${TB_QUEUE_RE_MAIN_PARTITIONS:10}"
+        consumer-per-partition: "${TB_QUEUE_RE_MAIN_CONSUMER_PER_PARTITION:true}"
+        pack-processing-timeout: "${TB_QUEUE_RE_MAIN_PACK_PROCESSING_TIMEOUT_MS:2000}"
+        submit-strategy:
+          type: "${TB_QUEUE_RE_MAIN_SUBMIT_STRATEGY_TYPE:BURST}" # BURST, BATCH, SEQUENTIAL_BY_ORIGINATOR, SEQUENTIAL_BY_TENANT, SEQUENTIAL
+          # For BATCH only
+          batch-size: "${TB_QUEUE_RE_MAIN_SUBMIT_STRATEGY_BATCH_SIZE:1000}" # Maximum number of messages in batch
+        processing-strategy:
+          type: "${TB_QUEUE_RE_MAIN_PROCESSING_STRATEGY_TYPE:SKIP_ALL_FAILURES}" # SKIP_ALL_FAILURES, SKIP_ALL_FAILURES_AND_TIMED_OUT, RETRY_ALL, RETRY_FAILED, RETRY_TIMED_OUT, RETRY_FAILED_AND_TIMED_OUT
+          # For RETRY_ALL, RETRY_FAILED, RETRY_TIMED_OUT, RETRY_FAILED_AND_TIMED_OUT
+          retries: "${TB_QUEUE_RE_MAIN_PROCESSING_STRATEGY_RETRIES:3}" # Number of retries, 0 is unlimited
+          failure-percentage: "${TB_QUEUE_RE_MAIN_PROCESSING_STRATEGY_FAILURE_PERCENTAGE:0}" # Skip retry if failures or timeouts are less then X percentage of messages;
+          pause-between-retries: "${TB_QUEUE_RE_MAIN_PROCESSING_STRATEGY_RETRY_PAUSE:3}" # Time in seconds to wait in consumer thread before retries;
+          max-pause-between-retries: "${TB_QUEUE_RE_MAIN_PROCESSING_STRATEGY_MAX_RETRY_PAUSE:3}" # Max allowed time in seconds for pause between retries.
+      - name: "${TB_QUEUE_RE_HP_QUEUE_NAME:HighPriority}"
+        topic: "${TB_QUEUE_RE_HP_TOPIC:tb_rule_engine.hp}"
+        poll-interval: "${TB_QUEUE_RE_HP_POLL_INTERVAL_MS:25}"
+        partitions: "${TB_QUEUE_RE_HP_PARTITIONS:10}"
+        consumer-per-partition: "${TB_QUEUE_RE_HP_CONSUMER_PER_PARTITION:true}"
+        pack-processing-timeout: "${TB_QUEUE_RE_HP_PACK_PROCESSING_TIMEOUT_MS:2000}"
+        submit-strategy:
+          type: "${TB_QUEUE_RE_HP_SUBMIT_STRATEGY_TYPE:BURST}" # BURST, BATCH, SEQUENTIAL_BY_ORIGINATOR, SEQUENTIAL_BY_TENANT, SEQUENTIAL
+          # For BATCH only
+          batch-size: "${TB_QUEUE_RE_HP_SUBMIT_STRATEGY_BATCH_SIZE:100}" # Maximum number of messages in batch
+        processing-strategy:
+          type: "${TB_QUEUE_RE_HP_PROCESSING_STRATEGY_TYPE:RETRY_FAILED_AND_TIMED_OUT}" # SKIP_ALL_FAILURES, SKIP_ALL_FAILURES_AND_TIMED_OUT, RETRY_ALL, RETRY_FAILED, RETRY_TIMED_OUT, RETRY_FAILED_AND_TIMED_OUT
+          # For RETRY_ALL, RETRY_FAILED, RETRY_TIMED_OUT, RETRY_FAILED_AND_TIMED_OUT
+          retries: "${TB_QUEUE_RE_HP_PROCESSING_STRATEGY_RETRIES:0}" # Number of retries, 0 is unlimited
+          failure-percentage: "${TB_QUEUE_RE_HP_PROCESSING_STRATEGY_FAILURE_PERCENTAGE:0}" # Skip retry if failures or timeouts are less then X percentage of messages;
+          pause-between-retries: "${TB_QUEUE_RE_HP_PROCESSING_STRATEGY_RETRY_PAUSE:5}" # Time in seconds to wait in consumer thread before retries;
+          max-pause-between-retries: "${TB_QUEUE_RE_HP_PROCESSING_STRATEGY_MAX_RETRY_PAUSE:5}" # Max allowed time in seconds for pause between retries.
+      - name: "${TB_QUEUE_RE_SQ_QUEUE_NAME:SequentialByOriginator}"
+        topic: "${TB_QUEUE_RE_SQ_TOPIC:tb_rule_engine.sq}"
+        poll-interval: "${TB_QUEUE_RE_SQ_POLL_INTERVAL_MS:25}"
+        partitions: "${TB_QUEUE_RE_SQ_PARTITIONS:10}"
+        consumer-per-partition: "${TB_QUEUE_RE_SQ_CONSUMER_PER_PARTITION:true}"
+        pack-processing-timeout: "${TB_QUEUE_RE_SQ_PACK_PROCESSING_TIMEOUT_MS:2000}"
+        submit-strategy:
+          type: "${TB_QUEUE_RE_SQ_SUBMIT_STRATEGY_TYPE:SEQUENTIAL_BY_ORIGINATOR}" # BURST, BATCH, SEQUENTIAL_BY_ORIGINATOR, SEQUENTIAL_BY_TENANT, SEQUENTIAL
+          # For BATCH only
+          batch-size: "${TB_QUEUE_RE_SQ_SUBMIT_STRATEGY_BATCH_SIZE:100}" # Maximum number of messages in batch
+        processing-strategy:
+          type: "${TB_QUEUE_RE_SQ_PROCESSING_STRATEGY_TYPE:RETRY_FAILED_AND_TIMED_OUT}" # SKIP_ALL_FAILURES, SKIP_ALL_FAILURES_AND_TIMED_OUT, RETRY_ALL, RETRY_FAILED, RETRY_TIMED_OUT, RETRY_FAILED_AND_TIMED_OUT
+          # For RETRY_ALL, RETRY_FAILED, RETRY_TIMED_OUT, RETRY_FAILED_AND_TIMED_OUT
+          retries: "${TB_QUEUE_RE_SQ_PROCESSING_STRATEGY_RETRIES:3}" # Number of retries, 0 is unlimited
+          failure-percentage: "${TB_QUEUE_RE_SQ_PROCESSING_STRATEGY_FAILURE_PERCENTAGE:0}" # Skip retry if failures or timeouts are less then X percentage of messages;
+          pause-between-retries: "${TB_QUEUE_RE_SQ_PROCESSING_STRATEGY_RETRY_PAUSE:5}" # Time in seconds to wait in consumer thread before retries;
+          max-pause-between-retries: "${TB_QUEUE_RE_SQ_PROCESSING_STRATEGY_MAX_RETRY_PAUSE:5}" # Max allowed time in seconds for pause between retries.
+  integration:
+    partitions: "${TB_QUEUE_INTEGRATION_PARTITIONS:3}"
+    notifications_topic: "${TB_QUEUE_INTEGRATION_NOTIFICATIONS_TOPIC:tb_ie.notifications}"
+    downlink_topic: "${TB_QUEUE_INTEGRATION_DOWNLINK_TOPIC:tb_ie.downlink}"
+    poll_interval: "${TB_QUEUE_INTEGRATION_POLL_INTERVAL_MS:25}"
+    pack-processing-timeout: "${TB_QUEUE_INTEGRATION_PACK_PROCESSING_TIMEOUT_MS:10000}"
+  integration_api:
+    requests_topic: "${TB_QUEUE_INTEGRATION_EXECUTOR_API_REQUEST_TOPIC:tb_ie.api.requests}"
+    responses_topic: "${TB_QUEUE_INTEGRATION_EXECUTOR_API_RESPONSE_TOPIC:tb_ie.api.responses}"
+    max_pending_requests: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_PENDING_REQUESTS:10000}"
+    max_requests_timeout: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_REQUEST_TIMEOUT:10000}"
+    max_callback_threads: "${TB_QUEUE_INTEGRATION_EXECUTOR_MAX_CALLBACK_THREADS:10}"
+    request_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_REQUEST_POLL_INTERVAL_MS:25}"
+    response_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_RESPONSE_POLL_INTERVAL_MS:25}"
+
+js:
+  evaluator: "${JS_EVALUATOR:local}" # local/remote
+  # Built-in JVM JavaScript environment properties
+  local:
+    # Use Sandboxed (secured) JVM JavaScript environment
+    use_js_sandbox: "${USE_LOCAL_JS_SANDBOX:true}"
+    # Specify thread pool size for JavaScript sandbox resource monitor
+    monitor_thread_pool_size: "${LOCAL_JS_SANDBOX_MONITOR_THREAD_POOL_SIZE:4}"
+    # Maximum CPU time in milliseconds allowed for script execution
+    max_cpu_time: "${LOCAL_JS_SANDBOX_MAX_CPU_TIME:8000}"
+    # Maximum allowed JavaScript execution errors before JavaScript will be blacklisted
+    max_errors: "${LOCAL_JS_SANDBOX_MAX_ERRORS:3}"
+    # JS Eval max request timeout. 0 - no timeout
+    max_requests_timeout: "${LOCAL_JS_MAX_REQUEST_TIMEOUT:0}"
+    # Maximum time in seconds for black listed function to stay in the list.
+    max_black_list_duration_sec: "${LOCAL_JS_SANDBOX_MAX_BLACKLIST_DURATION_SEC:60}"
+    stats:
+      enabled: "${TB_JS_LOCAL_STATS_ENABLED:false}"
+      print_interval_ms: "${TB_JS_LOCAL_STATS_PRINT_INTERVAL_MS:10000}"
+  # Remote JavaScript environment properties
+  remote:
+    # Specify thread pool size for javascript executor service
+    js_thread_pool_size: "${REMOTE_JS_THREAD_POOL_SIZE:50}"
+    # Maximum allowed JavaScript execution errors before JavaScript will be blacklisted
+    max_errors: "${REMOTE_JS_SANDBOX_MAX_ERRORS:3}"
+    # Maximum time in seconds for black listed function to stay in the list.
+    max_black_list_duration_sec: "${REMOTE_JS_SANDBOX_MAX_BLACKLIST_DURATION_SEC:60}"
+    stats:
+      enabled: "${TB_JS_REMOTE_STATS_ENABLED:false}"
+      print_interval_ms: "${TB_JS_REMOTE_STATS_PRINT_INTERVAL_MS:10000}"
+
+# Cache parameters
+cache:
+  # caffeine or redis
+  type: "${CACHE_TYPE:redis}"
+  maximumPoolSize: "${CACHE_MAXIMUM_POOL_SIZE:16}" # max pool size to process futures that calls the external cache
+
+redis:
+  # standalone or cluster
+  connection:
+    type: "${REDIS_CONNECTION_TYPE:standalone}"
+  standalone:
+    host: "${REDIS_HOST:localhost}"
+    port: "${REDIS_PORT:6379}"
+    useDefaultClientConfig: "${REDIS_USE_DEFAULT_CLIENT_CONFIG:true}"
+    # this value may be used only if you used not default ClientConfig
+    clientName: "${REDIS_CLIENT_NAME:standalone}"
+    # this value may be used only if you used not default ClientConfig
+    connectTimeout: "${REDIS_CLIENT_CONNECT_TIMEOUT:30000}"
+    # this value may be used only if you used not default ClientConfig
+    readTimeout: "${REDIS_CLIENT_READ_TIMEOUT:60000}"
+    # this value may be used only if you used not default ClientConfig
+    usePoolConfig: "${REDIS_CLIENT_USE_POOL_CONFIG:false}"
+  cluster:
+    # Comma-separated list of "host:port" pairs to bootstrap from.
+    nodes: "${REDIS_NODES:}"
+    # Maximum number of redirects to follow when executing commands across the cluster.
+    max-redirects: "${REDIS_MAX_REDIRECTS:12}"
+    useDefaultPoolConfig: "${REDIS_USE_DEFAULT_POOL_CONFIG:true}"
+  # db index
+  db: "${REDIS_DB:0}"
+  # db password
+  password: "${REDIS_PASSWORD:}"
+  # pool config
+  pool_config:
+    maxTotal: "${REDIS_POOL_CONFIG_MAX_TOTAL:128}"
+    maxIdle: "${REDIS_POOL_CONFIG_MAX_IDLE:128}"
+    minIdle: "${REDIS_POOL_CONFIG_MIN_IDLE:16}"
+    testOnBorrow: "${REDIS_POOL_CONFIG_TEST_ON_BORROW:true}"
+    testOnReturn: "${REDIS_POOL_CONFIG_TEST_ON_RETURN:true}"
+    testWhileIdle: "${REDIS_POOL_CONFIG_TEST_WHILE_IDLE:true}"
+    minEvictableMs: "${REDIS_POOL_CONFIG_MIN_EVICTABLE_MS:60000}"
+    evictionRunsMs: "${REDIS_POOL_CONFIG_EVICTION_RUNS_MS:30000}"
+    maxWaitMills: "${REDIS_POOL_CONFIG_MAX_WAIT_MS:60000}"
+    numberTestsPerEvictionRun: "${REDIS_POOL_CONFIG_NUMBER_TESTS_PER_EVICTION_RUN:3}"
+    blockWhenExhausted: "${REDIS_POOL_CONFIG_BLOCK_WHEN_EXHAUSTED:true}"
+
+# CoAP server parameters
+coap:
+  # Enable/disable coap transport protocol.
+  enabled: "${COAP_ENABLED:true}"
+  bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
+  bind_port: "${COAP_BIND_PORT:5683}"
+  timeout: "${COAP_TIMEOUT:10000}"
+  psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
+  paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
+  dtls:
+    # Enable/disable DTLS 1.2 support
+    enabled: "${COAP_DTLS_ENABLED:false}"
+    # CoAP DTLS bind address
+    bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
+    # CoAP DTLS bind port
+    bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # Server DTLS credentials
+    credentials:
+      # Server credentials type (PEM - pem certificate file; KEYSTORE - java keystore)
+      type:  "${COAP_DTLS_CREDENTIALS_TYPE:PEM}"
+      # PEM server credentials
+      pem:
+        # Path to the server certificate file (holds server certificate or certificate chain, may include server private key)
+        cert_file: "${COAP_DTLS_PEM_CERT:coapserver.pem}"
+        # Path to the server certificate private key file. Optional by default. Required if the private key is not present in server certificate file;
+        key_file: "${COAP_DTLS_PEM_KEY:coapserver_key.pem}"
+        # Server certificate private key password (optional)
+        key_password: "${COAP_DTLS_PEM_KEY_PASSWORD:server_key_password}"
+      # Keystore server credentials
+      keystore:
+        # Type of the key store
+        type: "${COAP_DTLS_KEY_STORE_TYPE:JKS}"
+        # Path to the key store that holds the SSL certificate
+        store_file: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
+        # Password used to access the key store
+        store_password: "${COAP_DTLS_KEY_STORE_PASSWORD:server_ks_password}"
+        # Key alias
+        key_alias: "${COAP_DTLS_KEY_ALIAS:serveralias}"
+        # Password used to access the key
+        key_password: "${COAP_DTLS_KEY_PASSWORD:server_key_password}"
+    x509:
+      # Skip certificate validity check for client certificates.
+      skip_validity_check_for_client_cert: "${TB_COAP_X509_DTLS_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT:false}"
+      dtls_session_inactivity_timeout: "${TB_COAP_X509_DTLS_SESSION_INACTIVITY_TIMEOUT:86400000}"
+      dtls_session_report_timeout: "${TB_COAP_X509_DTLS_SESSION_REPORT_TIMEOUT:1800000}"
+
+service:
+  type: "${TB_SERVICE_TYPE:tb-integration-executor}"
+  # Unique id for this service (autogenerated if empty)
+  id: "${TB_SERVICE_ID:}"
+  integrations:
+    supported: "${TB_SERVICE_INTEGRATIONS_SUPPORTED:ALL}"
+    excluded: "${TB_SERVICE_INTEGRATIONS_EXCLUDED:NONE}"

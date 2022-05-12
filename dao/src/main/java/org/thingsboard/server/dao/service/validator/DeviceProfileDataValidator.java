@@ -76,7 +76,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.rule.RuleChainService;

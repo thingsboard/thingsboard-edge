@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
