@@ -28,21 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.alarm;
+package org.thingsboard.server.service.entitiy.customer;
 
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-public interface TbAlarmService  {
+public interface TbCustomerService extends SimpleTbEntityService<Customer> {
 
-    Alarm save(Alarm alarm, SecurityUser user) throws ThingsboardException;
+    void delete(Customer customer, SecurityUser user) throws ThingsboardException;
 
-    void ack(Alarm alarm, SecurityUser user) throws ThingsboardException;
-
-    void clear(Alarm alarm, SecurityUser user) throws ThingsboardException;
-
-    Boolean delete(Alarm alarm, SecurityUser user) throws ThingsboardException;
 }

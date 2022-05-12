@@ -28,19 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.asset;
+package org.thingsboard.server.service.entitiy.customer;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -50,34 +49,31 @@ import java.util.List;
 @Service
 @TbCoreComponent
 @AllArgsConstructor
-public class DefaultTbAssetService extends AbstractTbEntityService implements TbAssetService {
+public class DefaultTbCustomerService extends AbstractTbEntityService implements TbCustomerService {
+
     @Override
-    public Asset save(Asset asset, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        TenantId tenantId = asset.getTenantId();
+    public Customer save(Customer customer, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
+        ActionType actionType = customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        TenantId tenantId = customer.getTenantId();
         try {
-            Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
-            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
-            return savedAsset;
+            Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+            createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
+            return savedCustomer;
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), asset, null, actionType, user, e);
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), customer, null, actionType, user, e);
             throw handleException(e);
         }
     }
 
     @Override
-    public ListenableFuture<Void> delete(Asset asset, SecurityUser user) throws ThingsboardException {
-        TenantId tenantId = asset.getTenantId();
-        AssetId assetId = asset.getId();
+    public void delete(Customer customer, SecurityUser user) throws ThingsboardException {
+        TenantId tenantId = customer.getTenantId();
         try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, assetId);
-            assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(),
-                    ActionType.DELETED, relatedEdgeIds, user, false, asset.toString());
-            return removeAlarmsByEntityId(tenantId, assetId);
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, customer.getId());
+            customerService.deleteCustomer(tenantId, customer.getId());
+            notificationEntityService.notifyDeleteCustomer(customer, user, relatedEdgeIds);
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), null, null,
-                    ActionType.DELETED, user, e, asset.toString());
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), null, null, ActionType.DELETED, user, e);
             throw handleException(e);
         }
     }
