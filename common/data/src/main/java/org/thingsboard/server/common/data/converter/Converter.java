@@ -56,8 +56,8 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private String name;
     private ConverterType type;
     private boolean debugMode;
-    private transient JsonNode configuration;
-    private transient JsonNode additionalInfo;
+    private JsonNode configuration;
+    private JsonNode additionalInfo;
 
     public Converter() {
         super();

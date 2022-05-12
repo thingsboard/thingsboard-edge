@@ -49,7 +49,7 @@ import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
 import org.thingsboard.server.common.data.oauth2.OAuth2RegistrationInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.oauth2.SchemeType;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 
 import java.util.Arrays;

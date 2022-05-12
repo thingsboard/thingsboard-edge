@@ -38,7 +38,6 @@
         <version>3.4.0PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
-    <groupId>org.thingsboard</groupId>
     <artifactId>ui-ngx</artifactId>
     <packaging>jar</packaging>
 

@@ -101,11 +101,6 @@ public class DefaultCoapServerService implements CoapServerService {
     }
 
     @Override
-    public long getTimeout() {
-        return coapServerContext.getTimeout();
-    }
-
-    @Override
     public synchronized Resource addResourceHierarchicallyAndReturnLast(List<String> resourceHierarchy) throws UnknownHostException {
         Resource childResource = null;
         CoapServer coapServer = getCoapServer();

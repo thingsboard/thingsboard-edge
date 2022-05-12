@@ -124,33 +124,33 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testIntegrationRegularConnect() throws Exception {
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected( 1, 3000));
+        Assert.assertTrue(isIntegrationConnected(1, 3000));
     }
 
     @Test
     public void testIntegrationRegularDisconnect() throws Exception {
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected( 1, 3000));
+        Assert.assertTrue(isIntegrationConnected(1, 3000));
         stopServer();
-        Assert.assertFalse(isIntegrationConnected( 1, 6000));
+        Assert.assertFalse(isIntegrationConnected(1, 6000));
     }
 
     @Test
     public void testIntegrationReconnectAfterServerRestart() throws Exception {
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected( 1, 3000));
+        Assert.assertTrue(isIntegrationConnected(1, 3000));
         stopServer();
-        Assert.assertFalse(isIntegrationConnected( 1, 6000));
+        Assert.assertFalse(isIntegrationConnected(1, 6000));
         startServer();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected( 5, 20000));
+        Assert.assertTrue(isIntegrationConnected(5, 20000));
     }
 
     @Test
     public void testIntegrationReconnectToNotStartedServer() throws Exception {
         stopServer();
         enableIntegration();
-        Assert.assertFalse(isIntegrationConnected( 1, 15000));
+        Assert.assertFalse(isIntegrationConnected(1, 15000));
         startServer();
         Assert.assertTrue(isIntegrationConnected(1, 20000));
     }
@@ -166,7 +166,8 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
         List<String> actualKeys = null;
         while (start <= end) {
-            actualKeys = doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/keys/timeseries", new TypeReference<>() {});
+            actualKeys = doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/keys/timeseries", new TypeReference<>() {
+            });
             if (actualKeys.size() == expectedNodes.size()) {
                 break;
             }
@@ -186,9 +187,10 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         enableIntegration();
         Assert.assertTrue(isIntegrationConnected(1, 5000));
 
+
         TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = createIntegrationDownlinkMessage();
 
-        platformIntegrationService.onQueueMsg(downlinkMsgProto, new TbCallback() {
+        downlinkService.onRuleEngineDownlinkMsg(integration.getTenantId(), integration.getId(), downlinkMsgProto, new TbCallback() {
             @Override
             public void onSuccess() {
                 log.info("SUCCESS");
@@ -272,7 +274,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         dataNode.set("data", writeValuesNode);
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
 
-        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", new DeviceId(UUID.randomUUID()),tbMsgMetaData, writeValueNode.toString());
+        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", new DeviceId(UUID.randomUUID()), tbMsgMetaData, writeValueNode.toString());
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
@@ -281,7 +283,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                 .setData(TbMsg.toByteString(tbMsg)).build();
     }
 
-    private List<Event> getIntegrationDebugConnectionMessages(int eventsCount, long timeout) throws Exception{
+    private List<Event> getIntegrationDebugConnectionMessages(int eventsCount, long timeout) throws Exception {
         long startTs = System.currentTimeMillis();
         long endTs = startTs + timeout;
         List<Event> connectionMsgs;

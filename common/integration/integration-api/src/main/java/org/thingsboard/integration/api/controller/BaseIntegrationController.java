@@ -48,16 +48,6 @@ public class BaseIntegrationController {
     @Autowired(required = false)
     protected IntegrationControllerApi api;
 
-    protected boolean checkIntegrationPlatform(DeferredResult<ResponseEntity> result, ThingsboardPlatformIntegration integration, IntegrationType type) {
-        if (integration == null) {
-            result.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-            return true;
-        }
-        if (integration.getConfiguration().getType() != type) {
-            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-            return true;
-        }
-        return false;
-    }
+
 
 }

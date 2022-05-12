@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.api;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -64,6 +63,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -111,7 +111,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) {
+    public void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) throws ThingsboardException {
         if (configuration == null || configuration.getConfiguration() == null) {
             throw new IllegalArgumentException("Integration configuration is empty!");
         }
@@ -160,7 +160,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
     }
 
-    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) {
+    protected void doValidateConfiguration(JsonNode configuration, boolean allowLocalNetworkHosts) throws ThingsboardException {
 
     }
 
@@ -254,7 +254,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             node = node.put("error", toString(exception));
         }
 
-        context.saveEvent(DataConstants.DEBUG_INTEGRATION, Uuids.timeBased().toString(), node, new DebugEventCallback());
+        context.saveEvent(DataConstants.DEBUG_INTEGRATION, UUID.randomUUID().toString(), node, new DebugEventCallback());
     }
 
     protected String toString(Exception e) {

@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -65,7 +66,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -106,13 +107,13 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.mail.MailExecutorService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRpcService;
 import org.thingsboard.server.service.rpc.TbRuleEngineDeviceRpcService;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
-import org.thingsboard.server.service.script.JsExecutorService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.session.DeviceSessionCacheService;
 import org.thingsboard.server.service.sms.SmsExecutorService;
@@ -220,6 +221,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private TbClusterService clusterService;
+
+    @Autowired
+    @Getter
+    private TbIntegrationDownlinkService downlinkService;
 
     @Autowired
     @Getter
@@ -356,9 +361,11 @@ public class ActorSystemContext {
     @Getter
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private PlatformIntegrationService platformIntegrationService;
 
+    @Lazy
     @Autowired(required = false)
     @Getter private DataConverterService dataConverterService;
 
@@ -515,7 +522,7 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.ERROR);
-        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), method, toString(e)));
+        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), method, EventUtil.toString(e)));
         persistEvent(event);
     }
 
@@ -524,29 +531,12 @@ public class ActorSystemContext {
         event.setTenantId(tenantId);
         event.setEntityId(entityId);
         event.setType(DataConstants.LC_EVENT);
-        event.setBody(toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
+        event.setBody(EventUtil.toBodyJson(serviceInfoProvider.getServiceInfo().getServiceId(), lcEvent, Optional.ofNullable(e)));
         persistEvent(event);
     }
 
     private void persistEvent(Event event) {
         eventService.saveAsync(event);
-    }
-
-    private String toString(Throwable e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
-
-    private JsonNode toBodyJson(String serviceId, ComponentLifecycleEvent event, Optional<Exception> e) {
-        ObjectNode node = mapper.createObjectNode().put("server", serviceId).put("event", event.name());
-        if (e.isPresent()) {
-            node = node.put("success", false);
-            node = node.put("error", toString(e.get()));
-        } else {
-            node = node.put("success", true);
-        }
-        return node;
     }
 
     private JsonNode toBodyJson(String serviceId, String method, String body) {
@@ -608,7 +598,7 @@ public class ActorSystemContext {
                         .put("metadata", metadata);
 
                 if (error != null) {
-                    node = node.put("error", toString(error));
+                    node = node.put("error", EventUtil.toString(error));
                 } else if (failureMessage != null) {
                     node = node.put("error", failureMessage);
                 }
@@ -663,7 +653,7 @@ public class ActorSystemContext {
                 .put("message", "Reached debug mode rate limit!");
 
         if (error != null) {
-            node = node.put("error", toString(error));
+            node = node.put("error", EventUtil.toString(error));
         }
 
         event.setBody(node);

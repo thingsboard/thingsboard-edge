@@ -34,25 +34,24 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.integration.api.IntegrationControllerApi;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
+import org.thingsboard.integration.api.controller.AbstractIntegrationControllerApi;
 import org.thingsboard.integration.service.RemoteIntegrationManagerService;
 import org.thingsboard.server.queue.util.TbIntegrationComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 @TbIntegrationComponent
 @Component
-@Data
-public class RemoteIntegrationControllerApi implements IntegrationControllerApi {
+@Slf4j
+public class RemoteIntegrationControllerApi extends AbstractIntegrationControllerApi {
 
     private ListeningExecutorService service;
 
@@ -74,18 +73,14 @@ public class RemoteIntegrationControllerApi implements IntegrationControllerApi 
         }
     }
 
+    @SuppressWarnings({"rawtypes"})
     @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String routingKey) {
+    protected ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String routingKey) {
         return Futures.immediateFuture(managerService.getIntegration());
     }
 
     @Override
-    public <T> void process(ThingsboardPlatformIntegration<T> integration, T msg) {
-        integration.process(msg);
-    }
-
-    @Override
-    public Executor getCallbackExecutor() {
+    protected Executor getCallbackExecutor() {
         return service;
     }
 }
