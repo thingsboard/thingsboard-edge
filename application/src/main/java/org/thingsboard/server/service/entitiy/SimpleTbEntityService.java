@@ -28,15 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.customer;
+package org.thingsboard.server.service.entitiy;
 
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-public interface TbCustomerService extends SimpleTbEntityService<Customer> {
+public interface SimpleTbEntityService<T> {
 
-    void delete(Customer customer, SecurityUser user) throws ThingsboardException;
+    T save(T entity, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
 }
