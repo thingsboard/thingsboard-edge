@@ -107,4 +107,18 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
+  <mat-form-field fxFlex class="mat-block">
+    <mat-label translate>widgets.table.column-export-option</mat-label>
+    <mat-select formControlName="columnExportOption">
+      <mat-option [value]="'always'">
+        {{ 'widgets.table.column-export-option-always' | translate }}
+      </mat-option>
+      <mat-option [value]="'onlyVisible'">
+        {{ 'widgets.table.column-export-option-only-visible' | translate }}
+      </mat-option>
+      <mat-option [value]="'never'">
+        {{ 'widgets.table.column-export-option-never' | translate }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
 </section>

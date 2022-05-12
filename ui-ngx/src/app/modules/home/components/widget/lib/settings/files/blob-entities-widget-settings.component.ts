@@ -36,13 +36,13 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
 @Component({
-  selector: 'tb-alarms-table-key-settings',
-  templateUrl: './alarms-table-key-settings.component.html',
+  selector: 'tb-blob-entities-widget-settings',
+  templateUrl: './blob-entities-widget-settings.component.html',
   styleUrls: ['./../widget-settings.scss']
 })
-export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
+export class BlobEntitiesWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  alarmsTableKeySettingsForm: FormGroup;
+  blobEntitiesWidgetSettingsForm: FormGroup;
 
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder) {
@@ -50,54 +50,48 @@ export class AlarmsTableKeySettingsComponent extends WidgetSettingsComponent {
   }
 
   protected settingsForm(): FormGroup {
-    return this.alarmsTableKeySettingsForm;
+    return this.blobEntitiesWidgetSettingsForm;
   }
 
   protected defaultSettings(): WidgetSettings {
     return {
-      columnWidth: '0px',
-      useCellStyleFunction: false,
-      cellStyleFunction: '',
-      useCellContentFunction: false,
-      cellContentFunction: '',
-      defaultColumnVisibility: 'visible',
-      columnSelectionToDisplay: 'enabled',
-      columnExportOption: 'onlyVisible'
+      title: '',
+      displayCreatedTime: true,
+      displayType: true,
+      displayCustomer: true,
+      displayPagination: true,
+      defaultPageSize: 10,
+      defaultSortOrder: 'name',
+      noDataDisplayMessage: '',
+      forceDefaultType: ''
     };
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
-    this.alarmsTableKeySettingsForm = this.fb.group({
-      columnWidth: [settings.columnWidth, []],
-      useCellStyleFunction: [settings.useCellStyleFunction, []],
-      cellStyleFunction: [settings.cellStyleFunction, [Validators.required]],
-      useCellContentFunction: [settings.useCellContentFunction, []],
-      cellContentFunction: [settings.cellContentFunction, [Validators.required]],
-      defaultColumnVisibility: [settings.defaultColumnVisibility, []],
-      columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
-      columnExportOption: [settings.columnExportOption, []]
+    this.blobEntitiesWidgetSettingsForm = this.fb.group({
+      title: [settings.title, []],
+      displayCreatedTime: [settings.displayCreatedTime, []],
+      displayType: [settings.displayType, []],
+      displayCustomer: [settings.displayCustomer, []],
+      displayPagination: [settings.displayPagination, []],
+      defaultPageSize: [settings.defaultPageSize, [Validators.min(1)]],
+      defaultSortOrder: [settings.defaultSortOrder, []],
+      noDataDisplayMessage: [settings.noDataDisplayMessage, []],
+      forceDefaultType: [settings.forceDefaultType, []]
     });
   }
 
   protected validatorTriggers(): string[] {
-    return ['useCellStyleFunction', 'useCellContentFunction'];
+    return ['displayPagination'];
   }
 
   protected updateValidators(emitEvent: boolean) {
-    const useCellStyleFunction: boolean = this.alarmsTableKeySettingsForm.get('useCellStyleFunction').value;
-    const useCellContentFunction: boolean = this.alarmsTableKeySettingsForm.get('useCellContentFunction').value;
-    if (useCellStyleFunction) {
-      this.alarmsTableKeySettingsForm.get('cellStyleFunction').enable();
+    const displayPagination: boolean = this.blobEntitiesWidgetSettingsForm.get('displayPagination').value;
+    if (displayPagination) {
+      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').enable();
     } else {
-      this.alarmsTableKeySettingsForm.get('cellStyleFunction').disable();
+      this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').disable();
     }
-    if (useCellContentFunction) {
-      this.alarmsTableKeySettingsForm.get('cellContentFunction').enable();
-    } else {
-      this.alarmsTableKeySettingsForm.get('cellContentFunction').disable();
-    }
-    this.alarmsTableKeySettingsForm.get('cellStyleFunction').updateValueAndValidity({emitEvent});
-    this.alarmsTableKeySettingsForm.get('cellContentFunction').updateValueAndValidity({emitEvent});
+    this.blobEntitiesWidgetSettingsForm.get('defaultPageSize').updateValueAndValidity({emitEvent});
   }
-
 }

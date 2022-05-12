@@ -274,6 +274,15 @@ import {
 import {
   TripAnimationPointSettingsComponent
 } from '@home/components/widget/lib/settings/map/trip-animation-point-settings.component';
+import {
+  BlobEntitiesWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/files/blob-entities-widget-settings.component';
+import {
+  CustomSchedulerEventTypeComponent
+} from '@home/components/widget/lib/settings/scheduler/custom-scheduler-event-type.component';
+import {
+  SchedulerEventsWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/scheduler/scheduler-events-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -372,7 +381,10 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
-    TripAnimationWidgetSettingsComponent
+    TripAnimationWidgetSettingsComponent,
+    BlobEntitiesWidgetSettingsComponent,
+    CustomSchedulerEventTypeComponent,
+    SchedulerEventsWidgetSettingsComponent
   ],
   imports: [
     CommonModule,
@@ -475,7 +487,10 @@ import {
     TripAnimationPointSettingsComponent,
     MapWidgetSettingsComponent,
     RouteMapWidgetSettingsComponent,
-    TripAnimationWidgetSettingsComponent
+    TripAnimationWidgetSettingsComponent,
+    BlobEntitiesWidgetSettingsComponent,
+    CustomSchedulerEventTypeComponent,
+    SchedulerEventsWidgetSettingsComponent
   ]
 })
 export class WidgetSettingsModule {
@@ -542,5 +557,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-update-multiple-attributes-key-settings': UpdateMultipleAttributesKeySettingsComponent,
   'tb-map-widget-settings': MapWidgetSettingsComponent,
   'tb-route-map-widget-settings': RouteMapWidgetSettingsComponent,
-  'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent
+  'tb-trip-animation-widget-settings': TripAnimationWidgetSettingsComponent,
+  'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
+  'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

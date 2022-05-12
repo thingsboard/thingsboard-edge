@@ -65,7 +65,10 @@ export class DeviceClaimingWidgetSettingsComponent extends WidgetSettingsCompone
       deviceNotFound: '',
       failedClaimDevice: '',
       requiredErrorDevice: '',
-      requiredErrorSecretKey: ''
+      requiredErrorSecretKey: '',
+      relateDevice: false,
+      relateDirection: 'from',
+      relateType: 'Contains'
     };
   }
 
@@ -90,17 +93,24 @@ export class DeviceClaimingWidgetSettingsComponent extends WidgetSettingsCompone
       deviceNotFound: [settings.deviceNotFound, []],
       failedClaimDevice: [settings.failedClaimDevice, []],
       requiredErrorDevice: [settings.requiredErrorDevice, []],
-      requiredErrorSecretKey: [settings.requiredErrorSecretKey, []]
+      requiredErrorSecretKey: [settings.requiredErrorSecretKey, []],
+
+      // Relations settings
+
+      relateDevice: [settings.relateDevice, []],
+      relateDirection: [settings.relateDirection, []],
+      relateType: [settings.relateType, []]
     });
   }
 
   protected validatorTriggers(): string[] {
-    return ['deviceSecret', 'showLabel'];
+    return ['deviceSecret', 'showLabel', 'relateDevice'];
   }
 
   protected updateValidators(emitEvent: boolean) {
     const deviceSecret: boolean = this.deviceClaimingWidgetSettingsForm.get('deviceSecret').value;
     const showLabel: boolean = this.deviceClaimingWidgetSettingsForm.get('showLabel').value;
+    const relateDevice: boolean = this.deviceClaimingWidgetSettingsForm.get('relateDevice').value;
     if (deviceSecret) {
       if (showLabel) {
         this.deviceClaimingWidgetSettingsForm.get('secretKeyLabel').enable();
@@ -117,9 +127,18 @@ export class DeviceClaimingWidgetSettingsComponent extends WidgetSettingsCompone
     } else {
       this.deviceClaimingWidgetSettingsForm.get('deviceLabel').disable();
     }
+    if (relateDevice) {
+      this.deviceClaimingWidgetSettingsForm.get('relateDirection').enable();
+      this.deviceClaimingWidgetSettingsForm.get('relateType').enable();
+    } else {
+      this.deviceClaimingWidgetSettingsForm.get('relateDirection').disable();
+      this.deviceClaimingWidgetSettingsForm.get('relateType').disable();
+    }
     this.deviceClaimingWidgetSettingsForm.get('secretKeyLabel').updateValueAndValidity({emitEvent});
     this.deviceClaimingWidgetSettingsForm.get('deviceLabel').updateValueAndValidity({emitEvent});
     this.deviceClaimingWidgetSettingsForm.get('requiredErrorSecretKey').updateValueAndValidity({emitEvent});
+    this.deviceClaimingWidgetSettingsForm.get('relateDirection').updateValueAndValidity({emitEvent});
+    this.deviceClaimingWidgetSettingsForm.get('relateType').updateValueAndValidity({emitEvent});
   }
 
 }
