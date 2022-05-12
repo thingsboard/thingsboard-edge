@@ -151,14 +151,6 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
-    public  <E extends HasName, I extends EntityId>  void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, E entity, CustomerId customerId, ActionType actionType, SecurityUser user, Object... additionalInfo) {
-        logEntityAction(tenantId, entityId, entity, customerId, actionType, user, additionalInfo);
-        if (actionType == ActionType.UPDATED)  {
-            sendEntityNotificationMsg(tenantId, entityId, EdgeEventActionType.UPDATED);
-        }
-    }
-
-    @Override
     public void notifyEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge, ActionType actionType,
                            SecurityUser user, Object... additionalInfo) {
         ComponentLifecycleEvent lifecycleEvent;

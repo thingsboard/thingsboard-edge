@@ -58,7 +58,6 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
         try {
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
             createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
-            notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedAsset.getId(), asset, savedAsset.getCustomerId(), actionType, user);
             return savedAsset;
         } catch (Exception e) {
             notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), asset, null, actionType, user, e);

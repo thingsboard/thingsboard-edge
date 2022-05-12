@@ -109,7 +109,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Customer (getCustomerById)",
             notes = "Get the Customer object based on the provided Customer Id. "
-                    + CUSTOMER_SECURITY_CHECK+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
@@ -211,35 +211,19 @@ public class CustomerController extends BaseController {
     @ApiOperation(value = "Delete Customer (deleteCustomer)",
             notes = "Deletes the Customer and all customer Users. " +
                     "All assigned Dashboards, Assets, Devices, etc. will be unassigned but not deleted. " +
-                    "Referencing non-existing Customer Id will cause an error."+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_DELETE_CHECK)
+                    "Referencing non-existing Customer Id will cause an error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteCustomer(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
                                @PathVariable(CUSTOMER_ID) String strCustomerId) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        Customer customer = checkCustomerId(customerId, Operation.DELETE);
         try {
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            Customer customer = checkCustomerId(customerId, Operation.DELETE);
-
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), customerId);
-
-            customerService.deleteCustomer(getTenantId(), customerId);
-
-            logEntityAction(customerId, customer,
-                    customer.getId(),
-                    ActionType.DELETED, null, strCustomerId);
-
-            sendDeleteNotificationMsg(getTenantId(), customerId, relatedEdgeIds);
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), customerId, ComponentLifecycleEvent.DELETED);
+            tbCustomerService.delete(customer, getCurrentUser());
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.CUSTOMER),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strCustomerId);
-
-            throw handleException(e);
+            throw (handleException(e));
         }
     }
 

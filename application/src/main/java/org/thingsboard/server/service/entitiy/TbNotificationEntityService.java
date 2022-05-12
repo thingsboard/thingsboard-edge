@@ -59,10 +59,6 @@ public interface TbNotificationEntityService {
                                                                         CustomerId customerId, EntityGroupId entityGroupId,
                                                                         SecurityUser user, Object... additionalInfo);
 
-    <E extends HasName, I extends EntityId> void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, E entity,
-                                                                            CustomerId customerId, ActionType actionType,
-                                                                            SecurityUser user, Object... additionalInfo);
-
     <E extends HasName, I extends EntityId> void notifyDeleteEntity(TenantId tenantId, I entityId, E entity, CustomerId customerId,
                                                                     ActionType actionType, List<EdgeId> relatedEdgeIds, SecurityUser user,
                                                                     Object... additionalInfo);

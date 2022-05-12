@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -57,7 +58,6 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
         try {
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
             createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
-            notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedCustomer.getId(), customer, savedCustomer.getCustomerId(), actionType, user);
             return savedCustomer;
         } catch (Exception e) {
             notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), customer, null, actionType, user, e);
