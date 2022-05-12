@@ -54,6 +54,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Observable } from 'rxjs';
 import { isUndefined } from '@core/utils';
+import { PageData } from '@shared/models/page/page-data';
 
 export class ConvertersTableConfig extends EntityTableConfig<Converter> {
 
@@ -123,26 +124,41 @@ export class ConvertersTableConfig extends EntityTableConfig<Converter> {
     this.deleteEntityContent = () => this.translate.instant('converter.delete-converter-text');
     this.deleteEntitiesTitle = count => this.translate.instant('converter.delete-converters-title', {count});
     this.deleteEntitiesContent = () => this.translate.instant('converter.delete-converters-text');
-    this.entitiesFetchFunction = pageLink => this.converterService.getConverters(pageLink, this.componentsData.isEdgeTemplate);
+    this.entitiesFetchFunction = this.configureEntityFunctions(this.componentsData.converterScope);
     this.loadEntity = id => this.converterService.getConverter(id.id);
     this.saveEntity = converter => this.saveConverter(converter);
     this.deleteEntity = id => this.converterService.deleteConverter(id.id);
 
     this.onEntityAction = action => this.onConverterAction(action);
 
-    this.tableTitle = this.configureTableTitle(this.componentsData.isEdgeTemplate);
+    this.tableTitle = this.configureTableTitle(this.componentsData.converterScope);
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
   private setComponentsData(params: any): ConverterParams {
     return {
-      isEdgeTemplate: params.data.isEdgeTemplate ? params.data.isEdgeTemplate : false
+      converterScope: params.data.convertersType ? params.data.convertersType : 'tenant'
     };
+  }
+
+  private configureEntityFunctions(converterScope: string): (pageLink) => Observable<PageData<Converter>> {
+    if (converterScope === 'tenant') {
+      return pageLink => this.converterService.getConverters(pageLink, false);
+    } else if (converterScope === 'edges') {
+      return pageLink => this.converterService.getConverters(pageLink, true);
+    }
   }
 
   private saveConverter(converter: Converter): Observable<Converter> {
     if (isUndefined(converter.edgeTemplate)) {
-      converter.edgeTemplate = this.componentsData.isEdgeTemplate;
+      if (this.componentsData.converterScope === 'tenant') {
+        converter.edgeTemplate = false;
+      } else if (this.componentsData.converterScope === 'edges') {
+        converter.edgeTemplate = true;
+      } else {
+        // safe fallback to default
+        converter.edgeTemplate = false;
+      }
     }
     return this.converterService.saveConverter(converter);
   }
@@ -151,8 +167,11 @@ export class ConvertersTableConfig extends EntityTableConfig<Converter> {
     if ($event) {
       $event.stopPropagation();
     }
-    let url = this.configureNavigateUrl(this.componentsData.isEdgeTemplate, converter);
-    this.router.navigateByUrl(url);
+    if (this.componentsData.converterScope === 'edges') {
+      this.router.navigateByUrl(`edgeManagement/converters/${converter.id.id}`);
+    } else {
+      this.router.navigateByUrl(`converters/${converter.id.id}`);
+    }
   }
 
   exportConverter($event: Event, converter: Converter) {
@@ -183,19 +202,11 @@ export class ConvertersTableConfig extends EntityTableConfig<Converter> {
     return false;
   }
 
-  private configureNavigateUrl(isEdgeTemplate: boolean, converter: Converter): UrlTree {
-    if (isEdgeTemplate) {
-      return this.router.createUrlTree(['edgeManagement/converters', converter.id.id]);
-    } else {
-      return this.router.createUrlTree(['converters', converter.id.id]);
-    }
-  }
-
-  private configureTableTitle(isEdgeTemplate: boolean): string {
-    if (isEdgeTemplate) {
-      return this.translate.instant('edge.converter-templates');
-    } else {
+  private configureTableTitle(converterScope: string): string {
+    if (converterScope === 'tenant') {
       return this.translate.instant('converter.converters');
+    } else if (converterScope === 'edges') {
+      return this.translate.instant('edge.converter-templates');
     }
   }
 

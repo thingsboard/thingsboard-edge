@@ -91,7 +91,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   ngOnInit() {
-    this.isEdgeTemplate = this.entitiesTableConfig.componentsData.isEdgeTemplate;
+    this.isEdgeTemplate = this.entitiesTableConfig.componentsData.integrationScope === 'edges';
     super.ngOnInit();
   }
 

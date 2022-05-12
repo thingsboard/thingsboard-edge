@@ -53,5 +53,6 @@ public enum EdgeEventType {
     CUSTOM_TRANSLATION,
     ADMIN_SETTINGS,
     ROLE,
-    GROUP_PERMISSION
+    GROUP_PERMISSION,
+    INTEGRATION
 }

@@ -75,6 +75,8 @@ import { Authority } from '@shared/models/authority.enum';
 import { EdgeService } from '@core/http/edge.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { RuleChainParams } from '@shared/models/rule-chain.models';
+import { IntegrationParams } from '@shared/models/integration.models';
+import { IntegrationsTableConfigResolver } from '@home/pages/integration/integrations-table-config.resolver';
 
 const groupTypes: EntityType[] = [
   EntityType.USER,
@@ -162,7 +164,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
               private translate: TranslateService,
               private entityGroupsTableConfigResolver: EntityGroupsTableConfigResolver,
               private entityGroupConfigResolver: EntityGroupConfigResolver,
-              private ruleChainsTableConfigResolver: RuleChainsTableConfigResolver) {
+              private ruleChainsTableConfigResolver: RuleChainsTableConfigResolver,
+              private integrationsTableConfigResolver: IntegrationsTableConfigResolver) {
     super(store);
   }
 
@@ -356,6 +359,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         ruleChainParams.ruleChainScope = 'edge';
         this.updateRuleChains(ruleChainParams);
         break;
+      case EntityType.INTEGRATION:
+        const integrationParams = entityGroupParams as IntegrationParams;
+        integrationParams.integrationScope = 'edge';
+        this.updateIntegrations(integrationParams);
+        break;
     }
   }
 
@@ -376,6 +384,15 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   private resolveRuleChainsTableConfig(ruleChainParams: RuleChainParams): EntityTableConfig<BaseData<HasId>> {
     return this.ruleChainsTableConfigResolver.resolveRuleChainsTableConfig(ruleChainParams);
+  }
+
+  private updateIntegrations(integrationParams: IntegrationParams) {
+    const integrationsTableConfig = this.resolveIntegrationsTableConfig(integrationParams);
+    this.updateView('groups', integrationParams, integrationsTableConfig, null);
+  }
+
+  private resolveIntegrationsTableConfig(integrationParams: IntegrationParams): EntityTableConfig<BaseData<HasId>> {
+    return this.integrationsTableConfigResolver.resolveIntegrationsTableConfig(integrationParams);
   }
 
   selectRootNode() {

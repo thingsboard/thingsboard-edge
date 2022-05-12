@@ -77,8 +77,6 @@ import { UsersTableConfigResolver } from '@home/pages/user/users-table-config.re
 import { isDefined } from '@core/utils';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -86,6 +84,7 @@ import { AppState } from '@core/core.state';
 import _ from 'lodash';
 import { EntityService } from '@core/http/entity.service';
 import { entityIdEquals } from '@shared/models/id/entity-id';
+import { IntegrationsTableConfigResolver } from '@home/pages/integration/integrations-table-config.resolver';
 
 @Injectable()
 export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
@@ -565,7 +564,7 @@ const DASHBOARD_GROUPS_ROUTE: Route =   {
   ]
 };
 
-const SCHEDULER_ROUTE: Route = {
+const EDGE_SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
@@ -583,7 +582,7 @@ const SCHEDULER_ROUTE: Route = {
   }
 };
 
-const RULE_CHAINS_ROUTE: Route = {
+const EDGE_RULE_CHAINS_ROUTE: Route = {
   path: ':edgeId/ruleChains',
   data: {
     groupType: EntityType.RULE_CHAIN,
@@ -628,6 +627,50 @@ const RULE_CHAINS_ROUTE: Route = {
         ruleChainMetaData: RuleChainMetaDataResolver,
         ruleNodeComponents: RuleNodeComponentsResolver,
         tooltipster: TooltipsterResolver
+      }
+    }
+  ]
+};
+
+const EDGE_INTEGRATIONS_ROUTE: Route = {
+  path: ':edgeId/integrations',
+  data: {
+    groupType: EntityType.INTEGRATION,
+    breadcrumb: {
+      labelFunction: (route, translate, component, data) => {
+        return data.entityGroup.edgeGroupsTitle;
+      },
+      icon: 'input'
+    }
+  },
+  children: [
+    {
+      path: '',
+      component: EntitiesTableComponent,
+      data: {
+        integrationsType: 'edge',
+        title: 'edge.integrations',
+        auth: [Authority.TENANT_ADMIN]
+      },
+      resolve: {
+        entityGroup: EntityGroupResolver,
+        entitiesTableConfig: IntegrationsTableConfigResolver
+      }
+    },
+    {
+      path: ':entityId',
+      component: EntityDetailsPageComponent,
+      canDeactivate: [ConfirmOnExitGuard],
+      data: {
+        breadcrumb: {
+          labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+          icon: 'input'
+        } as BreadCrumbConfig<EntityDetailsPageComponent>,
+        auth: [Authority.TENANT_ADMIN],
+        title: 'edge.integration-templates'
+      },
+      resolve: {
+        entitiesTableConfig: IntegrationsTableConfigResolver
       }
     }
   ]
@@ -961,7 +1004,7 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {...SCHEDULER_ROUTE, ...{
+                  {...EDGE_SCHEDULER_ROUTE, ...{
                         data: {
                           grandChildGroupType: EntityType.SCHEDULER_EVENT,
                           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
@@ -974,7 +1017,7 @@ const routes: Routes = [
                         },
                       }
                     },
-                  {...RULE_CHAINS_ROUTE, ...{
+                  {...EDGE_RULE_CHAINS_ROUTE, ...{
                       data: {
                         grandChildGroupType: EntityType.RULE_CHAIN,
                         breadcrumb: {
@@ -982,6 +1025,18 @@ const routes: Routes = [
                             return data.entityGroup.edgeGroupsTitle;
                           },
                           icon: 'settings_ethernet'
+                        }
+                      }
+                    }
+                  },
+                  {...EDGE_INTEGRATIONS_ROUTE, ...{
+                      data: {
+                        grandChildGroupType: EntityType.INTEGRATION,
+                        breadcrumb: {
+                          labelFunction: (route, translate, component, data) => {
+                            return data.entityGroup.edgeGroupsTitle;
+                          },
+                          icon: 'input'
                         }
                       }
                     }
@@ -1162,8 +1217,9 @@ const routes: Routes = [
               }
             }
           },
-          {...SCHEDULER_ROUTE},
-          {...RULE_CHAINS_ROUTE}
+          {...EDGE_SCHEDULER_ROUTE},
+          {...EDGE_RULE_CHAINS_ROUTE},
+          {...EDGE_INTEGRATIONS_ROUTE}
         ]
       }
     ]

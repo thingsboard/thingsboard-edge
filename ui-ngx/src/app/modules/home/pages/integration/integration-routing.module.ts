@@ -55,7 +55,8 @@ const routes: Routes = [
         component: EntitiesTableComponent,
         data: {
           auth: [Authority.TENANT_ADMIN],
-          title: 'integration.integrations'
+          title: 'integration.integrations',
+          integrationsType: 'tenant'
         },
         resolve: {
           entitiesTableConfig: IntegrationsTableConfigResolver

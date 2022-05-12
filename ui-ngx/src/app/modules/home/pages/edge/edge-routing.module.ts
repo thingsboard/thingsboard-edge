@@ -307,7 +307,7 @@ const routes: Routes = [
       {
         path: '',
         data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          auth: [Authority.TENANT_ADMIN],
           redirectTo: '/edgeManagement/ruleChains'
         }
       },
@@ -390,7 +390,7 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN],
               title: 'edge.converter-templates',
-              isEdgeTemplate: true
+              convertersType: 'edges'
             },
             resolve: {
               entitiesTableConfig: ConvertersTableConfigResolver
@@ -429,7 +429,7 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN],
               title: 'edge.integration-templates',
-              isEdgeTemplate: true
+              integrationsType: 'edges'
             },
             resolve: {
               entitiesTableConfig: IntegrationsTableConfigResolver

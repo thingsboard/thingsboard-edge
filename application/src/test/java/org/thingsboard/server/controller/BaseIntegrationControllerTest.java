@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -429,5 +430,54 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 "Expected that local integration is present in PlatformIntegrationService but it is not!",
                 platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
         );
+    }
+
+    @Test
+    public void testFindEdgeIntegrationsByEdgeId() throws Exception {
+        Edge edge = constructEdge("Edge with integration", "default");
+        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+
+        List<Integration> edgeIntegrations = new ArrayList<>();
+        for (int i = 0; i < 27; i++) {
+            Integration integration = new Integration();
+            integration.setName("Edge integration " + i);
+            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+            integration.setDefaultConverterId(savedConverter.getId());
+            integration.setType(IntegrationType.HTTP);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
+            integration.setEdgeTemplate(true);
+            Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
+            doPost("/api/edge/" + savedEdge.getId().getId().toString()
+            + "/integration/" + savedIntegration.getId().getId().toString(), Integration.class);
+            edgeIntegrations.add(savedIntegration);
+        }
+
+        List<Integration> loadedEdgeIntegrations = new ArrayList<>();
+        PageLink pageLink = new PageLink(13);
+        PageData<Integration> pageData;
+        do {
+            pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId() + "/integrations?",
+                    new TypeReference<>() {}, pageLink);
+            loadedEdgeIntegrations.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(edgeIntegrations, idComparator);
+        Collections.sort(loadedEdgeIntegrations, idComparator);
+
+        Assert.assertEquals(edgeIntegrations, loadedEdgeIntegrations);
+
+        for (Integration integration : loadedEdgeIntegrations) {
+            doDelete("/api/edge/" + savedEdge.getId().getId().toString()
+                    + "/integration/" + integration.getId().getId().toString(), Integration.class);
+        }
+
+        pageLink = new PageLink(13);
+        pageData = doGetTypedWithPageLink("/api/edge/" + savedEdge.getId().getId() + "/integrations?",
+                new TypeReference<>() {}, pageLink);
+        Assert.assertFalse(pageData.hasNext());
+        Assert.assertEquals(0, pageData.getTotalElements());
     }
 }
