@@ -30,6 +30,12 @@
  */
 @import '../../../../../scss/constants';
 
+.tb-datasource-list-item.tb-draggable {
+  &.cdk-drag-preview {
+    background: #fff;
+  }
+}
+
 :host {
   .tb-widget-config {
     .tb-advanced-widget-config {
@@ -50,13 +56,6 @@
         height: auto;
         min-height: 68px;
         display: block;
-        &.dndDraggingSource {
-          display: none;
-        }
-        &.dndPlaceholder {
-          display: block;
-          background-color: #ddd;
-        }
       }
     }
     .tb-datasource-type {
@@ -155,8 +154,10 @@
         .mat-expansion-panel-header-description {
           align-items: center;
         }
-        .mat-expansion-panel-body{
-          padding: 0;
+        > .mat-expansion-panel-content {
+          > .mat-expansion-panel-body {
+            padding: 0;
+          }
         }
         .tb-json-object-panel, .tb-css-content-panel {
           margin: 0 0 8px;
