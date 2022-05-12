@@ -37,7 +37,6 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -66,7 +65,7 @@ public interface TbNotificationEntityService {
 
     <E extends HasName, I extends EntityId> void notifyDeleteEntity(TenantId tenantId, I entityId, E entity, CustomerId customerId,
                                                                     ActionType actionType, List<EdgeId> relatedEdgeIds, SecurityUser user,
-                                                                    boolean isBody, Object... additionalInfo);
+                                                                    Object... additionalInfo);
 
     <E extends HasName, I extends EntityId> void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, CustomerId customerId, E entity,
                                                                             ActionType actionType, SecurityUser user, Object... additionalInfo);
@@ -87,6 +86,8 @@ public interface TbNotificationEntityService {
     void notifyEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge, ActionType actionType, SecurityUser user, Object... additionalInfo);
 
     void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, SecurityUser user, Object... additionalInfo);
+
+    void notifyDeleteAlarm(Alarm alarm, SecurityUser user, List<EdgeId> relatedEdgeIds);
 
     void notifyDeleteCustomer(Customer customer, SecurityUser user, List<EdgeId> relatedEdgeIds);
 }
