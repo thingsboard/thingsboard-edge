@@ -30,14 +30,12 @@
  */
 package org.thingsboard.server.dao.grouppermission;
 
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface GroupPermissionDao extends Dao<GroupPermission> {

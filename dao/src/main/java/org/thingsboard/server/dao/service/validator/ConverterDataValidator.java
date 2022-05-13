@@ -74,14 +74,16 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Converter converter) {
-        converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
+    protected Converter validateUpdate(TenantId tenantId, Converter converter) {
+        var oldConverter = converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName());
+        oldConverter.ifPresent(
                 d -> {
                     if (!d.getId().equals(converter.getId())) {
                         throw new DataValidationException("Converter with such name already exists!");
                     }
                 }
         );
+        return oldConverter.orElse(null);
     }
 
     @Override

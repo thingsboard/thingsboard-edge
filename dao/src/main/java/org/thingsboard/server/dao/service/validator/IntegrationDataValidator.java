@@ -77,14 +77,16 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Integration integration) {
-        integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
+    protected Integration validateUpdate(TenantId tenantId, Integration integration) {
+        var old = integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey());
+        old.ifPresent(
                 d -> {
                     if (!d.getId().equals(integration.getId())) {
                         throw new DataValidationException("Integration with such routing key already exists!");
                     }
                 }
         );
+        return old.orElse(null);
     }
 
     @Override

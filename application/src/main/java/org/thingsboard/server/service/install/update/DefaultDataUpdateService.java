@@ -894,7 +894,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             for (ListenableFuture<WhiteLabelingParams> future : futures) {
                 future.get();
             }
-            ListenableFuture<List<Void>> future = updateTenantMailTemplates(tenant.getId());
+            ListenableFuture<List<String>> future = updateTenantMailTemplates(tenant.getId());
             return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
                     MoreExecutors.directExecutor());
         }
@@ -1030,7 +1030,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return result;
     }
 
-    private ListenableFuture<List<Void>> updateTenantMailTemplates(TenantId tenantId) {
+    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
             Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
@@ -1241,7 +1241,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private ListenableFuture<List<Void>> saveEntityAttribute(EntityId entityId, String key, String value) {
+    private ListenableFuture<List<String>> saveEntityAttribute(EntityId entityId, String key, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));

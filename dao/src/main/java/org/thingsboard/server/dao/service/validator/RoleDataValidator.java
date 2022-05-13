@@ -80,7 +80,7 @@ public class RoleDataValidator extends DataValidator<Role> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Role role) {
+    protected Role validateUpdate(TenantId tenantId, Role role) {
         if (role.getCustomerId() == null || role.getCustomerId().isNullUid()) {
             roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
                     .ifPresent(e -> {
@@ -101,6 +101,7 @@ public class RoleDataValidator extends DataValidator<Role> {
         if (role.getType() != before.getType()) {
             throw new DataValidationException("Role type cannot be changed after role creation");
         }
+        return before;
     }
 
     @Override

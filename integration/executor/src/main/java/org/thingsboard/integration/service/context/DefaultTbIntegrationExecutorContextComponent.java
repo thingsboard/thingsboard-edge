@@ -34,9 +34,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.cache.device.DeviceCacheKey;
+import org.thingsboard.server.cache.TbCacheValueWrapper;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
@@ -48,14 +50,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.common.data.CacheConstants.DEVICE_CACHE;
-
 @Component
 @Data
 @RequiredArgsConstructor
 public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent {
 
     private final DownlinkCacheService downlinkCacheService;
+    private final TbTransactionalCache<DeviceCacheKey, Device> deviceCache;
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService callBackExecutorService;
@@ -81,9 +82,9 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
 
 
     @Override
-    @Cacheable(cacheNames = DEVICE_CACHE, key = "{#tenantId, #name}", unless="#result == null")
     public Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName) {
-        return null;
+        TbCacheValueWrapper<Device> cacheValue = deviceCache.get(new DeviceCacheKey(tenantId, deviceName));
+        return cacheValue == null ? null : cacheValue.get();
     }
 
 }

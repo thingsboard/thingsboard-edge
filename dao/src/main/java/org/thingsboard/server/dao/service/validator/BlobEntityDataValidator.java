@@ -52,7 +52,7 @@ public class BlobEntityDataValidator extends DataValidator<BlobEntity> {
     private final CustomerDao customerDao;
 
     @Override
-    protected void validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
+    protected BlobEntity validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
         throw new DataValidationException("Update of BlobEntity is prohibited!");
     }
 

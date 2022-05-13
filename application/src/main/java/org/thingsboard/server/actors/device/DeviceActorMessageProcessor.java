@@ -853,8 +853,8 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         log.debug("[{}] Restoring sessions from cache", deviceId);
         DeviceSessionsCacheEntry sessionsDump;
         try {
-            sessionsDump = DeviceSessionsCacheEntry.parseFrom(systemContext.getDeviceSessionCacheService().get(deviceId));
-        } catch (InvalidProtocolBufferException e) {
+            sessionsDump = systemContext.getDeviceSessionCacheService().get(deviceId);
+        } catch (Exception e) {
             log.warn("[{}] Failed to decode device sessions from cache", deviceId);
             return;
         }
@@ -909,7 +909,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         });
         systemContext.getDeviceSessionCacheService()
                 .put(deviceId, DeviceSessionsCacheEntry.newBuilder()
-                        .addAllSessions(sessionsList).build().toByteArray());
+                        .addAllSessions(sessionsList).build());
     }
 
     void init(TbActorCtx ctx) {

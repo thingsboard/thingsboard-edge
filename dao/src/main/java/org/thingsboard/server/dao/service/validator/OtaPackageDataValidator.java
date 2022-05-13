@@ -101,7 +101,7 @@ public class OtaPackageDataValidator extends BaseOtaPackageDataValidator<OtaPack
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, OtaPackage otaPackage) {
+    protected OtaPackage validateUpdate(TenantId tenantId, OtaPackage otaPackage) {
         OtaPackage otaPackageOld = otaPackageDao.findById(tenantId, otaPackage.getUuidId());
 
         validateUpdate(otaPackage, otaPackageOld);
@@ -116,5 +116,6 @@ public class OtaPackageDataValidator extends BaseOtaPackageDataValidator<OtaPack
             long maxOtaPackagesInBytes = profileConfiguration.getMaxOtaPackagesInBytes();
             validateMaxSumDataSizePerTenant(tenantId, otaPackageDao, maxOtaPackagesInBytes, otaPackage.getDataSize(), OTA_PACKAGE);
         }
+        return otaPackageOld;
     }
 }
