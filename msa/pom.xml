@@ -62,10 +62,21 @@
         <module>tb-node</module>
         <module>transport</module>
         <module>integration</module>
-        <module>black-box-tests</module>
     </modules>
 
     <profiles>
+        <profile>
+            <id>black-box-tests</id>
+            <activation>
+                <property>
+                    <name>blackBoxTests.skip</name>
+                    <value>false</value>
+                </property>
+            </activation>
+            <modules>
+                <module>black-box-tests</module>
+            </modules>
+        </profile>
         <profile>
             <id>push-docker-amd-arm-images</id>
             <activation>
