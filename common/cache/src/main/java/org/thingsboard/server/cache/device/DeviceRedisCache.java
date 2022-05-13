@@ -34,12 +34,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.CacheSpecsMap;
-import org.thingsboard.server.cache.device.DeviceCacheKey;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbRedisSerializer;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.cache.TbRedisSerializer;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
 @Service("DeviceCache")

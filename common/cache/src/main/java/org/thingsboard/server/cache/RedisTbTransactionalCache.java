@@ -68,11 +68,12 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
         this.connectionFactory = connectionFactory;
         this.valueSerializer = valueSerializer;
         this.evictExpiration = Expiration.from(configuration.getEvictTtlInMs(), TimeUnit.MILLISECONDS);
-        CacheSpecs cacheSpecs = cacheSpecsMap.getSpecs().get(cacheName);
-        if (cacheSpecs == null) {
-            throw new RuntimeException("Missing cache specs for " + cacheSpecs);
+        if (cacheSpecsMap.getSpecs() != null && cacheSpecsMap.getSpecs().get(cacheName) != null) {
+            CacheSpecs cacheSpecs = cacheSpecsMap.getSpecs().get(cacheName);
+            this.cacheTtl = Expiration.from(cacheSpecs.getTimeToLiveInMinutes(), TimeUnit.MINUTES);
+        } else {
+            this.cacheTtl = Expiration.persistent();
         }
-        this.cacheTtl = Expiration.from(cacheSpecs.getTimeToLiveInMinutes(), TimeUnit.MINUTES);
     }
 
     @Override
