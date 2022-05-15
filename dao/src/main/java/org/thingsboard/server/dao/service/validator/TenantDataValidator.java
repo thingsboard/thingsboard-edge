@@ -51,7 +51,7 @@ public class TenantDataValidator extends DataValidator<Tenant> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Tenant tenant) {
+    protected Tenant validateUpdate(TenantId tenantId, Tenant tenant) {
         /* merge comment
         Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
         if (old == null) {
@@ -59,6 +59,7 @@ public class TenantDataValidator extends DataValidator<Tenant> {
         }
         validateTenantProfile(tenantId, tenant);
          */
+        return tenant;
     }
 
     private void validateTenantProfile(TenantId tenantId, Tenant tenant) {
