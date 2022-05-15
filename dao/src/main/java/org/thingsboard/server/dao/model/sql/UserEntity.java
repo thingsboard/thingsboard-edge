@@ -50,10 +50,8 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import java.util.UUID;
 
 /**

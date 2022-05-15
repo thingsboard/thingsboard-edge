@@ -52,11 +52,11 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;

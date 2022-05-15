@@ -51,6 +51,8 @@
     </properties>
     <modules>
         <module>integration-api</module>
+        <module>remote-integration-api</module>
+        <module>cluster-integration-api</module>
         <module>http-integrations</module>
         <module>mqtt-integrations</module>
         <module>azure-integrations</module>
@@ -59,7 +61,6 @@
         <module>opcua-integrations</module>
         <module>kafka-integrations</module>
         <module>rabbitmq-integrations</module>
-        <module>remote-integration-api</module>
         <module>apache-pulsar</module>
         <module>coap-integrations</module>
     </modules>

@@ -90,7 +90,6 @@ export class MarkdownEditorComponent implements OnInit, ControlValueAccessor {
       const editorElement = this.markdownEditorElmRef.nativeElement;
       let editorOptions: Partial<Ace.EditorOptions> = {
         mode: 'ace/mode/markdown',
-        theme: 'ace/theme/github',
         showGutter: true,
         showPrintMargin: false,
         readOnly: false

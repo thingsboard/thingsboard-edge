@@ -50,7 +50,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
+import org.thingsboard.server.service.integration.IntegrationManagerService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +64,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public abstract class BaseIntegrationControllerTest extends AbstractControllerTest {
 
     @Autowired
-    PlatformIntegrationService platformIntegrationService;
+    IntegrationManagerService integrationManagerService;
 
     private IdComparator<Integration> idComparator = new IdComparator<>();
 
@@ -357,7 +357,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     try {
-                        platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
                         return true;
                     } catch (Exception e) {
                         return false;
@@ -365,7 +365,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 });
 
         Assert.assertNotNull(
-                platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
+                integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
         );
 
         foundIntegration.setRemote(true);
@@ -376,7 +376,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     try {
-                        platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
                         return false;
                     } catch (Exception e) {
                         return true;
@@ -384,7 +384,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 });
 
         try {
-            platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+            integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
             Assert.fail("Remote integration wasn't deleted from PlatformIntegrationService");
         } catch (ExecutionException e) {
             if (!e.getMessage().contains("The integration is executed remotely!")) {
@@ -411,7 +411,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     try {
-                        platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
                         return false;
                     } catch (Exception e) {
                         return true;
@@ -419,7 +419,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 });
 
         try {
-            platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+            integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
             Assert.fail("Expected that remote integration is not present in PlatformIntegrationService but it is not!");
         } catch (ExecutionException e) {
             if (!e.getMessage().contains("The integration is executed remotely!")) {
@@ -434,7 +434,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     try {
-                        platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
                         return true;
                     } catch (Exception e) {
                         return false;
@@ -443,7 +443,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Assert.assertNotNull(
                 "Expected that local integration is present in PlatformIntegrationService but it is not!",
-                platformIntegrationService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
+                integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
         );
     }
 }

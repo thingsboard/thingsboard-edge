@@ -72,9 +72,9 @@ import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -89,6 +89,7 @@ import org.thingsboard.server.queue.common.MultipleTbQueueCallbackWrapper;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -113,6 +114,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
     private final AtomicInteger toCoreMsgs = new AtomicInteger(0);
     private final AtomicInteger toCoreNfs = new AtomicInteger(0);
+    private final AtomicInteger toIntegrationExecutorNfs = new AtomicInteger(0);
     private final AtomicInteger toRuleEngineMsgs = new AtomicInteger(0);
     private final AtomicInteger toRuleEngineNfs = new AtomicInteger(0);
     private final AtomicInteger toTransportNfs = new AtomicInteger(0);
@@ -167,12 +169,8 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void pushNotificationToCore(String serviceId, FromDeviceRpcResponse response, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceId);
-        log.trace("PUSHING msg: {} to:{}", response, tpi);
-        FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
-                .setRequestIdMSB(response.getId().getMostSignificantBits())
-                .setRequestIdLSB(response.getId().getLeastSignificantBits())
-                .setError(response.getError().isPresent() ? response.getError().get().ordinal() : -1);
-        response.getResponse().ifPresent(builder::setResponse);
+        log.trace("PUSHING msg: {} to core: {}", response, tpi);
+        var builder = prepareRPCResponseProto(response);
         ToCoreNotificationMsg msg = ToCoreNotificationMsg.newBuilder().setFromDeviceRpcResponse(builder).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(response.getId(), msg), callback);
         toCoreNfs.incrementAndGet();
@@ -240,12 +238,8 @@ public class DefaultTbClusterService implements TbClusterService {
     @Override
     public void pushNotificationToRuleEngine(String serviceId, FromDeviceRpcResponse response, TbQueueCallback callback) {
         TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceId);
-        log.trace("PUSHING msg: {} to:{}", response, tpi);
-        FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
-                .setRequestIdMSB(response.getId().getMostSignificantBits())
-                .setRequestIdLSB(response.getId().getLeastSignificantBits())
-                .setError(response.getError().isPresent() ? response.getError().get().ordinal() : -1);
-        response.getResponse().ifPresent(builder::setResponse);
+        log.trace("PUSHING msg: {} to rule engine: {}", response, tpi);
+        var builder = prepareRPCResponseProto(response);
         ToRuleEngineNotificationMsg msg = ToRuleEngineNotificationMsg.newBuilder().setFromDeviceRpcResponse(builder).build();
         producerProvider.getRuleEngineNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(response.getId(), msg), callback);
         toRuleEngineNfs.incrementAndGet();
@@ -253,7 +247,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void pushNotificationToTransport(String serviceId, ToTransportMsg response, TbQueueCallback callback) {
-        if (serviceId == null || serviceId.isEmpty()){
+        if (serviceId == null || serviceId.isEmpty()) {
             log.trace("pushNotificationToTransport: skipping message without serviceId [{}], (ToTransportMsg) response [{}]", serviceId, response);
             if (callback != null) {
                 callback.onSuccess(null); //callback that message already sent, no useful payload expected
@@ -394,17 +388,28 @@ public class DefaultTbClusterService implements TbClusterService {
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
         Set<String> tbRuleEngineServices = new HashSet<>(partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE));
         EntityType entityType = msg.getEntityId().getEntityType();
+
+        boolean toIntegrationExecutor = entityType.equals(EntityType.CONVERTER) || entityType.equals(EntityType.INTEGRATION);
+
+        if (toIntegrationExecutor) {
+            TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIeNfProducer = producerProvider.getTbIntegrationExecutorNotificationsMsgProducer();
+            Set<String> tbIeServices = partitionService.getAllServiceIds(ServiceType.TB_INTEGRATION_EXECUTOR);
+            for (String serviceId : tbIeServices) {
+                TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceId);
+                ToIntegrationExecutorNotificationMsg toIeMsg = ToIntegrationExecutorNotificationMsg.newBuilder().setComponentLifecycleMsg(ByteString.copyFrom(msgBytes)).build();
+                toIeNfProducer.send(tpi, new TbProtoQueueMsg<>(msg.getEntityId().getId(), toIeMsg), null);
+                toIntegrationExecutorNfs.incrementAndGet();
+            }
+        }
+
         boolean toCore = entityType.equals(EntityType.TENANT) ||
                 entityType.equals(EntityType.TENANT_PROFILE) ||
                 entityType.equals(EntityType.DEVICE_PROFILE) ||
-                entityType.equals(EntityType.CONVERTER) ||
-                entityType.equals(EntityType.INTEGRATION) ||
                 entityType.equals(EntityType.API_USAGE_STATE) ||
                 (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
                 msg.getEntityId().getEntityType().equals(EntityType.EDGE);
 
-        boolean toRuleEngine = !entityType.equals(EntityType.CONVERTER) &&
-                !entityType.equals(EntityType.INTEGRATION);
+        boolean toRuleEngine = !toIntegrationExecutor;
 
         if (toCore) {
             TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toCoreNfProducer = producerProvider.getTbCoreNotificationsMsgProducer();
@@ -433,12 +438,13 @@ public class DefaultTbClusterService implements TbClusterService {
         if (statsEnabled) {
             int toCoreMsgCnt = toCoreMsgs.getAndSet(0);
             int toCoreNfsCnt = toCoreNfs.getAndSet(0);
+            int toIeNfsCnt = toIntegrationExecutorNfs.getAndSet(0);
             int toRuleEngineMsgsCnt = toRuleEngineMsgs.getAndSet(0);
             int toRuleEngineNfsCnt = toRuleEngineNfs.getAndSet(0);
             int toTransportNfsCnt = toTransportNfs.getAndSet(0);
-            if (toCoreMsgCnt > 0 || toCoreNfsCnt > 0 || toRuleEngineMsgsCnt > 0 || toRuleEngineNfsCnt > 0 || toTransportNfsCnt > 0) {
-                log.info("To TbCore: [{}] messages [{}] notifications; To TbRuleEngine: [{}] messages [{}] notifications; To Transport: [{}] notifications",
-                        toCoreMsgCnt, toCoreNfsCnt, toRuleEngineMsgsCnt, toRuleEngineNfsCnt, toTransportNfsCnt);
+            if (toCoreMsgCnt > 0 || toCoreNfsCnt > 0 || toIeNfsCnt > 0 || toRuleEngineMsgsCnt > 0 || toRuleEngineNfsCnt > 0 || toTransportNfsCnt > 0) {
+                log.info("To TbCore: [{}] messages [{}] notifications; To TbRuleEngine: [{}] messages [{}] notifications; To Transport: [{}] notifications; To Integration Executor: [{}] notifications",
+                        toCoreMsgCnt, toCoreNfsCnt, toRuleEngineMsgsCnt, toRuleEngineNfsCnt, toTransportNfsCnt, toIeNfsCnt);
             }
         }
     }
@@ -632,4 +638,12 @@ public class DefaultTbClusterService implements TbClusterService {
                 TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
     }
 
+    private static FromDeviceRPCResponseProto.Builder prepareRPCResponseProto(FromDeviceRpcResponse response) {
+        FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
+                .setRequestIdMSB(response.getId().getMostSignificantBits())
+                .setRequestIdLSB(response.getId().getLeastSignificantBits())
+                .setError(response.getError().isPresent() ? response.getError().get().ordinal() : -1);
+        response.getResponse().ifPresent(builder::setResponse);
+        return builder;
+    }
 }

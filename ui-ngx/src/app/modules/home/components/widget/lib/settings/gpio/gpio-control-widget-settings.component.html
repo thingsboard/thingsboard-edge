@@ -1,0 +1,111 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-widget-settings" [formGroup]="gpioControlWidgetSettingsForm" fxLayout="column">
+  <fieldset class="fields-group">
+    <legend class="group-title" translate>widgets.gpio.panel-settings</legend>
+    <tb-color-input
+      required
+      formControlName="switchPanelBackgroundColor"
+      icon="format_color_fill"
+      label="{{ 'widgets.gpio.background-color' | translate }}" openOnInput colorClearButton>
+    </tb-color-input>
+    <fieldset class="fields-group">
+      <legend class="group-title" translate>widgets.gpio.gpio-switches</legend>
+      <div fxLayout="column">
+        <div class="tb-control-list">
+          <div *ngFor="let gpioItemControl of gpioListFormArray().controls; trackBy: trackByGpioItem;
+                 let $index = index; last as isLast;"
+               fxLayout="column" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
+            <tb-gpio-item [formControl]="gpioItemControl"
+                          [expanded]="gpioItemControl.new"
+                          (removeGpioItem)="removeGpioItem($index)">
+            </tb-gpio-item>
+          </div>
+        </div>
+        <div *ngIf="!gpioListFormArray().controls.length">
+            <span translate fxLayoutAlign="center center"
+                  class="tb-prompt">widgets.gpio.no-gpio-switches</span>
+        </div>
+        <div style="padding-top: 16px;">
+          <button mat-raised-button color="primary"
+                  type="button"
+                  (click)="addGpioItem()">
+            <span translate>widgets.gpio.add-gpio-switch</span>
+          </button>
+        </div>
+      </div>
+    </fieldset>
+  </fieldset>
+  <fieldset class="fields-group">
+    <legend class="group-title" translate>widgets.rpc.rpc-settings</legend>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>widgets.rpc.request-timeout</mat-label>
+      <input required matInput type="number" min="0" formControlName="requestTimeout">
+    </mat-form-field>
+    <fieldset class="fields-group" formGroupName="gpioStatusRequest">
+      <legend class="group-title" translate>widgets.gpio.gpio-status-request</legend>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.gpio.method-name</mat-label>
+        <input required matInput formControlName="method">
+      </mat-form-field>
+      <tb-json-content
+        required
+        label="{{ 'widgets.gpio.method-body' | translate }}"
+        [contentType]="contentTypes.JSON"
+        validateOnChange
+        formControlName="paramsBody">
+      </tb-json-content>
+    </fieldset>
+    <fieldset class="fields-group" formGroupName="gpioStatusChangeRequest">
+      <legend class="group-title" translate>widgets.gpio.gpio-status-change-request</legend>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.gpio.method-name</mat-label>
+        <input required matInput formControlName="method">
+      </mat-form-field>
+      <tb-json-content
+        required
+        label="{{ 'widgets.gpio.method-body' | translate }}"
+        [contentType]="contentTypes.JSON"
+        validateOnChange
+        formControlName="paramsBody">
+      </tb-json-content>
+    </fieldset>
+    <tb-js-func formControlName="parseGpioStatusFunction"
+                required
+                [globalVariables]="functionScopeVariables"
+                [functionArgs]="['body', 'pin']"
+                functionTitle="{{ 'widgets.gpio.parse-gpio-status-function' | translate }}"
+                helpId="widget/lib/rpc/parse_gpio_status_fn">
+    </tb-js-func>
+  </fieldset>
+</section>

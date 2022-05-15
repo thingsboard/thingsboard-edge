@@ -43,6 +43,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
@@ -144,7 +145,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -196,6 +197,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -522,8 +524,12 @@ public abstract class BaseController {
         return groupType;
     }
 
-    UUID toUUID(String id) {
-        return UUID.fromString(id);
+    UUID toUUID(String id) throws ThingsboardException {
+        try {
+            return UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw handleException(e, false);
+        }
     }
 
     PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
@@ -625,7 +631,7 @@ public abstract class BaseController {
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> T
-    saveGroupEntity(T entity, String strEntityGroupId, Function<T, T> saveEntityFunction) throws ThingsboardException {
+    saveGroupEntity(T entity, String strEntityGroupId, TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
         try {
             entity.setTenantId(getCurrentUser().getTenantId());
 
@@ -645,36 +651,7 @@ public abstract class BaseController {
 
             checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
 
-            T savedEntity = checkNotNull(saveEntityFunction.apply(entity));
-
-            if (entityGroup != null && entity.getId() == null) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntity.getId());
-                logEntityAction(savedEntity.getId(), savedEntity,
-                        savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-                        savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
-
-                /* merge comment
-                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
-                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
-                 */
-
-                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
-                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
-                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
-            }
-
-            logEntityAction(savedEntity.getId(), savedEntity,
-                    savedEntity.getCustomerId(),
-                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            /* merge comment
-            if (entity.getId() != null) {
-                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
-            }
-             */
-
-            return savedEntity;
-
+            return saveEntityFunction.apply(entity, entityGroup);
         } catch (Exception e) {
             logEntityAction(emptyId(entity.getEntityType()), entity,
                     null, entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
@@ -1355,28 +1332,16 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
-        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
-        if (cloudEventType != null) {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
-        }
-    }
-
-    protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, Alarm alarm) {
-        try {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED, null);
-        } catch (Exception e) {
-            log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
-        }
-    }
-
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                     EdgeEventActionType cloudEventAction) {
-        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
-    }
-
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
                                                   EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
         tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
+    }
+
+    protected void throwRealCause(ExecutionException e) throws Exception {
+        if (e.getCause() != null && e.getCause() instanceof Exception) {
+            throw (Exception) e.getCause();
+        } else {
+            throw e;
+        }
     }
 }

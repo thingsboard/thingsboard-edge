@@ -48,6 +48,8 @@ public class TbServiceBusQueueConfigs {
     private String ruleEngineProperties;
     @Value("${queue.service-bus.queue-properties.transport-api}")
     private String transportApiProperties;
+    @Value("${queue.service-bus.queue-properties.integration-api}")
+    private String integrationApiProperties;
     @Value("${queue.service-bus.queue-properties.notifications}")
     private String notificationsProperties;
     @Value("${queue.service-bus.queue-properties.js-executor}")
@@ -60,6 +62,8 @@ public class TbServiceBusQueueConfigs {
     @Getter
     private Map<String, String> transportApiConfigs;
     @Getter
+    private Map<String, String> integrationConfigs;
+    @Getter
     private Map<String, String> notificationsConfigs;
     @Getter
     private Map<String, String> jsExecutorConfigs;
@@ -69,6 +73,7 @@ public class TbServiceBusQueueConfigs {
         coreConfigs = getConfigs(coreProperties);
         ruleEngineConfigs = getConfigs(ruleEngineProperties);
         transportApiConfigs = getConfigs(transportApiProperties);
+        integrationConfigs = getConfigs(integrationApiProperties);
         notificationsConfigs = getConfigs(notificationsProperties);
         jsExecutorConfigs = getConfigs(jsExecutorProperties);
     }

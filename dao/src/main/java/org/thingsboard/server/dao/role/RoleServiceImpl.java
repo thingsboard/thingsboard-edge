@@ -36,9 +36,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -48,7 +47,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -56,7 +55,6 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import java.util.List;
 import java.util.Optional;
 
-import static org.thingsboard.server.common.data.CacheConstants.ROLE_CACHE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -65,7 +63,7 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
-public class RoleServiceImpl extends AbstractEntityService implements RoleService {
+public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, RoleEvictEvent> implements RoleService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
@@ -84,7 +82,12 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
     @Autowired
     private DataValidator<Role> roleValidator;
 
-    @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
+    @TransactionalEventListener(classes = RoleEvictEvent.class)
+    @Override
+    public void handleEvictEvent(RoleEvictEvent event) {
+        cache.evict(event.getRoleId());
+    }
+
     @Override
     public Role saveRole(TenantId tenantId, Role role, boolean doValidate) {
         log.trace("Executing save role [{}]", role);
@@ -92,21 +95,20 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
             roleValidator.validate(role, Role::getTenantId);
         }
         Role savedRole = roleDao.save(tenantId, role);
+        publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
         return savedRole;
     }
 
-    @CacheEvict(cacheNames = ROLE_CACHE, key = "{#role.id}")
     @Override
     public Role saveRole(TenantId tenantId, Role role) {
         return saveRole(tenantId, role, true);
     }
 
-    @Cacheable(cacheNames = ROLE_CACHE, key = "{#roleId}")
     @Override
     public Role findRoleById(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, INCORRECT_ROLE_ID + roleId);
-        return roleDao.findById(tenantId, roleId.getId());
+        return cache.getAndPutInTransaction(roleId, () -> roleDao.findById(tenantId, roleId.getId()), true);
     }
 
     @Override
@@ -157,7 +159,6 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         return roleDao.findByIdAsync(tenantId, roleId.getId());
     }
 
-    @CacheEvict(cacheNames = ROLE_CACHE, key = "{#roleId}")
     @Override
     public void deleteRole(TenantId tenantId, RoleId roleId) {
         log.trace("Executing deleteRole [{}]", roleId);
@@ -165,6 +166,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
         groupPermissionService.deleteGroupPermissionsByTenantIdAndRoleId(tenantId, roleId);
         deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
+        publishEvictEvent(new RoleEvictEvent(roleId));
     }
 
     @Override
@@ -205,7 +207,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
             if (additionalInfo == null) {
                 additionalInfo = mapper.createObjectNode();
             }
-            ((ObjectNode)additionalInfo).put("description", description);
+            ((ObjectNode) additionalInfo).put("description", description);
             role.setAdditionalInfo(additionalInfo);
             return saveRole(tenantId, role);
         } else {
@@ -227,7 +229,7 @@ public class RoleServiceImpl extends AbstractEntityService implements RoleServic
 
     @Override
     public Role findOrCreateCustomerUserRole(TenantId tenantId, CustomerId customerId) {
-        return findOrCreateRole(tenantId, customerId, RoleType.GENERIC,  Role.ROLE_CUSTOMER_USER_NAME,
+        return findOrCreateRole(tenantId, customerId, RoleType.GENERIC, Role.ROLE_CUSTOMER_USER_NAME,
                 GroupPermission.READ_ONLY_USER_PERMISSIONS,
                 "Autogenerated Customer User role with read-only permissions.");
     }

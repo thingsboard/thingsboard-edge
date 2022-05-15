@@ -276,7 +276,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
             devices.add(deviceService.saveDevice(device));
         }
 
-        List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_" + i, DataConstants.SERVER_SCOPE));
@@ -357,7 +357,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         device.setLabel("testLabel1");
         device = deviceService.saveDevice(device);
 
-        List<ListenableFuture<List<Void>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
         attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_1", DataConstants.SERVER_SCOPE));
         attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", 1, DataConstants.SERVER_SCOPE));
         attributeFutures.add(saveStringAttribute(device.getId(), "sharedAttr1", "sharedValue1_1", DataConstants.SHARED_SCOPE));
@@ -465,13 +465,13 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
     }
      */
 
-    private ListenableFuture<List<Void>> saveStringAttribute(EntityId entityId, String key, String value, String scope) {
+    private ListenableFuture<List<String>> saveStringAttribute(EntityId entityId, String key, String value, String scope) {
         KvEntry attrValue = new StringDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<List<Void>> saveLongAttribute(EntityId entityId, String key, long value, String scope) {
+    private ListenableFuture<List<String>> saveLongAttribute(EntityId entityId, String key, long value, String scope) {
         KvEntry attrValue = new LongDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));

@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -80,7 +80,7 @@ public class RoleDataValidator extends DataValidator<Role> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Role role) {
+    protected Role validateUpdate(TenantId tenantId, Role role) {
         if (role.getCustomerId() == null || role.getCustomerId().isNullUid()) {
             roleDao.findRoleByTenantIdAndName(role.getTenantId().getId(), role.getName())
                     .ifPresent(e -> {
@@ -101,6 +101,7 @@ public class RoleDataValidator extends DataValidator<Role> {
         if (role.getType() != before.getType()) {
             throw new DataValidationException("Role type cannot be changed after role creation");
         }
+        return before;
     }
 
     @Override

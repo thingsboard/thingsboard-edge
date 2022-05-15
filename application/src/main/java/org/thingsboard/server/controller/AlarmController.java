@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -44,15 +45,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -63,6 +61,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.alarm.TbAlarmService;
 
 import static org.thingsboard.server.controller.ControllerConstants.ALARM_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ALARM_INFO_DESCRIPTION;
@@ -85,8 +84,11 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class AlarmController extends BaseController {
+
+    private final TbAlarmService tbAlarmService;
 
     public static final String ALARM_ID = "alarmId";
     private static final String ALARM_QUERY_SEARCH_STATUS_DESCRIPTION = "A string value representing one of the AlarmSearchStatus enumeration value";
@@ -148,27 +150,9 @@ public class AlarmController extends BaseController {
     @RequestMapping(value = "/alarm", method = RequestMethod.POST)
     @ResponseBody
     public Alarm saveAlarm(@ApiParam(value = "A JSON value representing the alarm.") @RequestBody Alarm alarm) throws ThingsboardException {
-        try {
-            alarm.setTenantId(getCurrentUser().getTenantId());
-
-            checkEntity(alarm.getId(), alarm, Resource.ALARM, null);
-
-            Alarm savedAlarm = checkNotNull(alarmService.createOrUpdateAlarm(alarm));
-            logEntityAction(savedAlarm.getOriginator(), savedAlarm,
-                    getCurrentUser().getCustomerId(),
-                    alarm.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            /* merge comment
-            sendEntityNotificationMsg(getTenantId(), savedAlarm.getId(), alarm.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-             */
-            sendNotificationMsgToCloudService(getTenantId(), savedAlarm.getId(), alarm.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-
-            return savedAlarm;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ALARM), alarm,
-                    null, alarm.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
-        }
+        alarm.setTenantId(getCurrentUser().getTenantId());
+        checkEntity(alarm.getId(), alarm, Resource.ALARM, null);
+        return tbAlarmService.save(alarm, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete Alarm (deleteAlarm)",
@@ -182,18 +166,7 @@ public class AlarmController extends BaseController {
         try {
             AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
             Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
-
-            /* merge comment
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), alarm.getOriginator());
-             */
-
-            logEntityAction(alarm.getOriginator(), alarm,
-                    getCurrentUser().getCustomerId(),
-                    ActionType.ALARM_DELETE, null);
-
-            sendAlarmDeleteNotificationMsg(getTenantId(), alarmId, alarm);
-
-            return alarmService.deleteAlarm(getTenantId(), alarmId);
+            return tbAlarmService.delete(alarm, getCurrentUser());
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -209,22 +182,9 @@ public class AlarmController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void ackAlarm(@ApiParam(value = ALARM_ID_PARAM_DESCRIPTION) @PathVariable(ALARM_ID) String strAlarmId) throws ThingsboardException {
         checkParameter(ALARM_ID, strAlarmId);
-        try {
-            AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
-            Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
-            long ackTs = System.currentTimeMillis();
-            alarmService.ackAlarm(getCurrentUser().getTenantId(), alarmId, ackTs).get();
-            alarm.setAckTs(ackTs);
-            alarm.setStatus(alarm.getStatus().isCleared() ? AlarmStatus.CLEARED_ACK : AlarmStatus.ACTIVE_ACK);
-            logEntityAction(alarm.getOriginator(), alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_ACK, null);
-
-            /* merge comment
-            sendEntityNotificationMsg(getTenantId(), alarmId, EdgeEventActionType.ALARM_ACK);
-             */
-            sendNotificationMsgToCloudService(getTenantId(), alarmId, EdgeEventActionType.ALARM_ACK);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
+        Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
+        tbAlarmService.ack(alarm, getCurrentUser());
     }
 
     @ApiOperation(value = "Clear Alarm (clearAlarm)",
@@ -237,22 +197,9 @@ public class AlarmController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void clearAlarm(@ApiParam(value = ALARM_ID_PARAM_DESCRIPTION) @PathVariable(ALARM_ID) String strAlarmId) throws ThingsboardException {
         checkParameter(ALARM_ID, strAlarmId);
-        try {
-            AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
-            Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
-            long clearTs = System.currentTimeMillis();
-            alarmService.clearAlarm(getCurrentUser().getTenantId(), alarmId, null, clearTs).get();
-            alarm.setClearTs(clearTs);
-            alarm.setStatus(alarm.getStatus().isAck() ? AlarmStatus.CLEARED_ACK : AlarmStatus.CLEARED_UNACK);
-            logEntityAction(alarm.getOriginator(), alarm, getCurrentUser().getCustomerId(), ActionType.ALARM_CLEAR, null);
-
-            /* merge comment
-            sendEntityNotificationMsg(getTenantId(), alarmId, EdgeEventActionType.ALARM_CLEAR);
-             */
-            sendNotificationMsgToCloudService(getTenantId(), alarmId, EdgeEventActionType.ALARM_CLEAR);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        AlarmId alarmId = new AlarmId(toUUID(strAlarmId));
+        Alarm alarm = checkAlarmId(alarmId, Operation.WRITE);
+        tbAlarmService.clear(alarm, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Alarms (getAlarms)",

@@ -230,10 +230,10 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
         Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(json);
-        ListenableFuture<List<Void>> future = attributesService.save(tenantId, entityId, metaData.getValue("scope"), new ArrayList<>(attributes));
-        Futures.addCallback(future, new FutureCallback<List<Void>>() {
+        ListenableFuture<List<String>> future = attributesService.save(tenantId, entityId, metaData.getValue("scope"), new ArrayList<>(attributes));
+        Futures.addCallback(future, new FutureCallback<>() {
             @Override
-            public void onSuccess(@Nullable List<Void> voids) {
+            public void onSuccess(@Nullable List<String> strings) {
                 futureToSet.set(null);
                 logAttributesUpdated(tenantId, entityId, metaData.getValue("scope"), gson.toJson(json));
             }

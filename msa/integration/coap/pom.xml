@@ -154,10 +154,10 @@
 </build>
 <profiles>
     <profile>
-        <id>push-docker-image</id>
+        <id>push-integration-docker-image</id>
         <activation>
             <property>
-                <name>push-docker-image</name>
+                <name>push-integration-docker-image</name>
             </property>
         </activation>
         <build>

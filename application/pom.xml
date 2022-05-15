@@ -88,8 +88,16 @@
             <artifactId>js-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common.js</groupId>
+            <artifactId>remote-js-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>integration-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.integration</groupId>
+            <artifactId>cluster-integration-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
@@ -448,14 +456,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surfire.version}</version>
                 <configuration>
                     <systemPropertyVariables>
                         <spring.config.name>tb-edge</spring.config.name>
                     </systemPropertyVariables>
                     <excludes>
-                        <exclude>**/sql/*Test.java</exclude>
-                        <exclude>**/psql/*Test.java</exclude>
                         <exclude>**/nosql/*Test.java</exclude>
                     </excludes>
                     <includes>

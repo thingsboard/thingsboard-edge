@@ -205,7 +205,7 @@ public class DashboardController extends BaseController {
             @ApiParam(value = "A JSON value representing the dashboard.")
             @RequestBody Dashboard dashboard,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        return saveGroupEntity(dashboard, strEntityGroupId, dashboardService::saveDashboard);
+        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> dashboardService.saveDashboard(dashboard));
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",

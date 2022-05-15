@@ -30,29 +30,22 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.AbstractControllerTest;
-import org.thingsboard.server.service.telemetry.TsData;
-
-import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractIntegrationTest extends AbstractControllerTest {
 
     @Autowired
-    protected PlatformIntegrationService platformIntegrationService;
+    protected TbIntegrationDownlinkService downlinkService;
 
     protected Converter uplinkConverter;
     protected Converter downlinkConverter;

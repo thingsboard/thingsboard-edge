@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -77,14 +77,16 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Integration integration) {
-        integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
+    protected Integration validateUpdate(TenantId tenantId, Integration integration) {
+        var old = integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey());
+        old.ifPresent(
                 d -> {
                     if (!d.getId().equals(integration.getId())) {
                         throw new DataValidationException("Integration with such routing key already exists!");
                     }
                 }
         );
+        return old.orElse(null);
     }
 
     @Override

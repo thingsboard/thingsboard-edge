@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Copy of Executors.DefaultThreadFactory but with ability to set name of the pool
  */
 public class ThingsBoardThreadFactory implements ThreadFactory {
+    private static final String THREAD_TOPIC_SEPARATOR = " | ";
     private static final AtomicInteger poolNumber = new AtomicInteger(1);
     private final ThreadGroup group;
     private final AtomicInteger threadNumber = new AtomicInteger(1);
@@ -53,6 +54,16 @@ public class ThingsBoardThreadFactory implements ThreadFactory {
         namePrefix = name + "-" +
                 poolNumber.getAndIncrement() +
                 "-thread-";
+    }
+
+    public static void updateCurrentThreadName(String threadSuffix) {
+        String name = Thread.currentThread().getName();
+        int spliteratorIndex = name.indexOf(THREAD_TOPIC_SEPARATOR);
+        if (spliteratorIndex > 0) {
+            name = name.substring(0, spliteratorIndex);
+        }
+        name = name + THREAD_TOPIC_SEPARATOR + threadSuffix;
+        Thread.currentThread().setName(name);
     }
 
     @Override

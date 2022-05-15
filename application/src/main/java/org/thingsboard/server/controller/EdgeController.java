@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeBulkImportService;
+import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -96,6 +97,7 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CU
 public class EdgeController extends BaseController {
 
     private final EdgeBulkImportService edgeBulkImportService;
+    private final TbEdgeService tbEdgeService;
 
     public static final String EDGE_ID = "edgeId";
     public static final String EDGE_SECURITY_CHECK = "If the user has the authority of 'Tenant Administrator', the server checks that the edge is owned by the same tenant. " +
@@ -143,10 +145,10 @@ public class EdgeController extends BaseController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge", method = RequestMethod.POST)
     @ResponseBody
-        public Edge saveEdge(
-                @ApiParam(value = "A JSON value representing the edge.", required = true)
-                @RequestBody Edge edge,
-                @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+    public Edge saveEdge(
+            @ApiParam(value = "A JSON value representing the edge.", required = true)
+            @RequestBody Edge edge,
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             edge.setTenantId(tenantId);
@@ -160,17 +162,11 @@ public class EdgeController extends BaseController {
                 }
             }
 
-            String oldEdgeName = null;
-            if (!created) {
-                Edge edgeById = edgeService.findEdgeById(tenantId, edge.getId());
-                if (edgeById != null) {
-                    oldEdgeName = edgeById.getName();
-                }
-            }
-
             EntityGroupId entityGroupId = null;
+            EntityGroup entityGroup = null;
             if (!StringUtils.isEmpty(strEntityGroupId)) {
                 entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
             }
 
             Operation operation = created ? Operation.CREATE : Operation.WRITE;
@@ -178,37 +174,12 @@ public class EdgeController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
                     edge.getId(), edge, entityGroupId);
 
-            Edge savedEdge = checkNotNull(edgeService.saveEdge(edge));
-            onEdgeCreatedOrUpdated(tenantId, savedEdge, edgeTemplateRootRuleChain, oldEdgeName, entityGroupId, !created, getCurrentUser());
-
-            return savedEdge;
+            return tbEdgeService.saveEdge(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.EDGE), edge,
                     null, edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
-    }
-
-    private void onEdgeCreatedOrUpdated(TenantId tenantId, Edge savedEdge, RuleChain edgeTemplateRootRuleChain, String oldEdgeName, EntityGroupId entityGroupId, boolean updated, SecurityUser user) throws Exception {
-        if (entityGroupId != null && !updated) {
-            entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEdge.getId());
-        }
-
-        if (!updated) {
-            ruleChainService.assignRuleChainToEdge(tenantId, edgeTemplateRootRuleChain.getId(), savedEdge.getId());
-            edgeNotificationService.setEdgeRootRuleChain(tenantId, savedEdge, edgeTemplateRootRuleChain.getId());
-            edgeService.assignDefaultRuleChainsToEdge(tenantId, savedEdge.getId());
-            edgeService.assignTenantAdministratorsAndUsersGroupToEdge(tenantId, savedEdge.getId());
-        }
-
-        if (oldEdgeName != null && !oldEdgeName.equals(savedEdge.getName())) {
-            edgeService.renameDeviceEdgeAllGroup(tenantId, savedEdge, oldEdgeName);
-        }
-
-        tbClusterService.broadcastEntityStateChangeEvent(savedEdge.getTenantId(), savedEdge.getId(),
-                updated ? ComponentLifecycleEvent.UPDATED : ComponentLifecycleEvent.CREATED);
-
-        logEntityAction(user, savedEdge.getId(), savedEdge, null, updated ? ActionType.UPDATED : ActionType.ADDED, null);
     }
 
     @ApiOperation(value = "Delete edge (deleteEdge)",
@@ -220,27 +191,9 @@ public class EdgeController extends BaseController {
     public void deleteEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                            @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.DELETE);
-            edgeService.deleteEdge(getTenantId(), edgeId);
-
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), edgeId,
-                    ComponentLifecycleEvent.DELETED);
-
-            logEntityAction(edgeId, edge,
-                    null,
-                    ActionType.DELETED, null, strEdgeId);
-
-        } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.EDGE),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strEdgeId);
-
-            throw handleException(e);
-        }
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        Edge edge = checkEdgeId(edgeId, Operation.DELETE);
+        tbEdgeService.deleteEdge(edge, getCurrentUser());
     }
      */
 
@@ -334,27 +287,12 @@ public class EdgeController extends BaseController {
                                      @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
         checkParameter("ruleChainId", strRuleChainId);
-        try {
-            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.READ);
+        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+        checkRuleChain(ruleChainId, Operation.READ);
 
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
-
-            Edge updatedEdge = edgeNotificationService.setEdgeRootRuleChain(getTenantId(), edge, ruleChainId);
-
-            tbClusterService.broadcastEntityStateChangeEvent(updatedEdge.getTenantId(), updatedEdge.getId(), ComponentLifecycleEvent.UPDATED);
-
-            logEntityAction(updatedEdge.getId(), updatedEdge, null, ActionType.UPDATED, null);
-
-            return updatedEdge;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.EDGE),
-                    null,
-                    null,
-                    ActionType.UPDATED, e, strEdgeId);
-            throw handleException(e);
-        }
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+        return tbEdgeService.setEdgeRootRuleChain(edge, ruleChainId, getCurrentUser());
     }
      */
 
@@ -435,7 +373,7 @@ public class EdgeController extends BaseController {
     }
 
     @ApiOperation(value = "Get Edges By Ids (getEdgesByIds)",
-            notes = "Requested edges must be owned by tenant or assigned to customer which user is performing the request."+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            notes = "Requested edges must be owned by tenant or assigned to customer which user is performing the request." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edges", params = {"edgeIds"}, method = RequestMethod.GET)
@@ -609,24 +547,20 @@ public class EdgeController extends BaseController {
         if (edgeTemplateRootRuleChain == null) {
             throw new DataValidationException("Root edge rule chain is not available!");
         }
-
-        return edgeBulkImportService.processBulkImport(request, user, importedAssetInfo -> {
-            try {
-                EntityGroupId entityGroupId = null;
-                if (!StringUtils.isEmpty(request.getEntityGroupId())) {
-                    entityGroupId = new EntityGroupId(toUUID(request.getEntityGroupId()));
-                }
-
-                onEdgeCreatedOrUpdated(user.getTenantId(),
-                        importedAssetInfo.getEntity(),
-                        edgeTemplateRootRuleChain,
-                        Optional.ofNullable(importedAssetInfo.getOldEntity()).map(Edge::getName).orElse(null),
-                        entityGroupId,
-                        importedAssetInfo.isUpdated(), user);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }, null);
+        return edgeBulkImportService.processBulkImport(request, user,
+                (edge, savingFunction) -> {
+                    try {
+                        EntityGroupId entityGroupId;
+                        EntityGroup entityGroup = null;
+                        if (!StringUtils.isEmpty(request.getEntityGroupId())) {
+                            entityGroupId = new EntityGroupId(toUUID(request.getEntityGroupId()));
+                            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+                        }
+                        savingFunction.apply(edge, entityGroup);
+                    } catch (ThingsboardException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     @ApiOperation(value = "Check edge license (checkInstance)",
@@ -700,6 +634,6 @@ public class EdgeController extends BaseController {
 
     private boolean hasPermissionEdgeCreateOrWrite(SecurityUser user) throws ThingsboardException {
         return accessControlService.hasPermission(user, Resource.EDGE, Operation.CREATE) ||
-               accessControlService.hasPermission(user, Resource.EDGE, Operation.WRITE);
+                accessControlService.hasPermission(user, Resource.EDGE, Operation.WRITE);
     }
 }

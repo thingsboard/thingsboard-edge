@@ -55,7 +55,7 @@ public interface CloudEventService {
 
     EdgeSettings findEdgeSettings(TenantId tenantId);
 
-    ListenableFuture<List<Void>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
+    ListenableFuture<List<String>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
 
     void deleteCloudEventsByTenantId(TenantId tenantId);
 

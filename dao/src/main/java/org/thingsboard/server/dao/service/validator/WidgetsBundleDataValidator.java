@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -84,7 +84,7 @@ public class WidgetsBundleDataValidator extends DataValidator<WidgetsBundle> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, WidgetsBundle widgetsBundle) {
+    protected WidgetsBundle validateUpdate(TenantId tenantId, WidgetsBundle widgetsBundle) {
         WidgetsBundle storedWidgetsBundle = widgetsBundleDao.findById(tenantId, widgetsBundle.getId().getId());
         if (!storedWidgetsBundle.getTenantId().getId().equals(widgetsBundle.getTenantId().getId())) {
             throw new DataValidationException("Can't move existing widgets bundle to different tenant!");
@@ -92,5 +92,6 @@ public class WidgetsBundleDataValidator extends DataValidator<WidgetsBundle> {
         if (!storedWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
             throw new DataValidationException("Update of widgets bundle alias is prohibited!");
         }
+        return storedWidgetsBundle;
     }
 }

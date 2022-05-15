@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 
 public abstract class BaseAdminSettingsServiceTest extends AbstractServiceTest {
 

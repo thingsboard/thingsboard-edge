@@ -76,13 +76,14 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,6 +140,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private EdgeService edgeService;
+
+    @Autowired
+    private JpaExecutorService executorService;
 
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
@@ -802,15 +806,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId) {
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(tenantId, entityId,
-                EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
-        return Futures.transform(relations, input -> {
-            List<EntityGroupId> entityGroupIds = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
+        return executorService.submit(() -> {
+            var relations = relationDao.findAllByToAndType(tenantId, entityId,
+                    EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+            List<EntityGroupId> entityGroupIds = new ArrayList<>(relations.size());
+            for (EntityRelation relation : relations) {
                 entityGroupIds.add(new EntityGroupId(relation.getFrom().getId()));
             }
             return entityGroupIds;
-        }, MoreExecutors.directExecutor());
+        });
     }
 
     @Override
@@ -838,7 +842,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new DataValidationException("Can't unassign entity group from non-existent edge!");
         }
         try {
-            String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX +  groupType.name();
+            String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
             deleteRelation(tenantId, new EntityRelation(edgeId, entityGroupId, relationType, RelationTypeGroup.EDGE));
         } catch (Exception e) {
             log.warn("[{}] Failed to delete entity group relation. Edge id: [{}]", entityGroupId, edgeId);
@@ -960,7 +964,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
 
         @Override
-        protected void validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
+        protected EntityGroup validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
             try {
                 findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
                         d -> {
@@ -973,6 +977,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             } catch (Exception e) {
                 log.error("Unable to validate update of entity group.", e);
             }
+            return entityGroupDao.findById(tenantId, entityGroup.getId().getId());
         }
 
         @Override

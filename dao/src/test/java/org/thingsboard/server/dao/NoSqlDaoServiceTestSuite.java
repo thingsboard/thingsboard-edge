@@ -42,7 +42,7 @@ import java.util.Arrays;
 // NoSQL is not supported on edge
 //@RunWith(ClasspathSuite.class)
 @ClassnameFilters({
-        "org.thingsboard.server.dao.service.nosql.*ServiceNoSqlTest",
+        "org.thingsboard.server.dao.service.*.nosql.*ServiceNoSqlTest",
 })
 public class NoSqlDaoServiceTestSuite {
 

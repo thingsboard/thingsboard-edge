@@ -82,6 +82,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -111,6 +112,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
@@ -741,26 +743,32 @@ class DefaultTbContext implements TbContext, TbPeContext {
             serviceId = null;
         }
 
-        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
+        IntegrationDownlinkMsgProto downlinkMsgProto = IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
                 .setData(TbMsg.toByteString(msg)).build();
-        mainCtx.getClusterService().pushMsgToCore(getTenantId(), integrationId, TransportProtos.ToCoreMsg.newBuilder().setIntegrationDownlinkMsg(downlinkMsgProto).build(),
-                new SimpleTbQueueCallback(() -> {
-                    if (restApiCall) {
-                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
-                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
-                    }
-                    callback.onSuccess(null);
-                }, error -> {
-                    if (restApiCall) {
-                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
-                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
-                    }
-                    callback.onFailure(error);
-                }));
+        mainCtx.getDownlinkService().onRuleEngineDownlinkMsg(getTenantId(), integrationId, downlinkMsgProto, new TbCallback() {
+
+            @Override
+            public void onSuccess() {
+                if (restApiCall) {
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
+                    mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
+                }
+                callback.onSuccess(null);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                if (restApiCall) {
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
+                    mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
+                }
+                callback.onFailure(t);
+            }
+        });
     }
 
     @Override
