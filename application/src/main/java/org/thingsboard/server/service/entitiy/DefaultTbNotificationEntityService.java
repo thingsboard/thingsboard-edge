@@ -105,7 +105,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                                                                            SecurityUser user, Object... additionalInfo) {
         logEntityAction(tenantId, entityId, entity, customerId, actionType, user, additionalInfo);
         sendDeleteNotificationMsg(tenantId, entityId, entity,  relatedEdgeIds);
-        sendNotificationMsgToCloudService(tenantId, entityId, CloudEventType.valueOf(entityId.getEntityType().name()), EdgeEventActionType.DELETED);
+        sendNotificationMsgToCloud(tenantId, entityId, CloudEventType.valueOf(entityId.getEntityType().name()), EdgeEventActionType.DELETED);
     }
 
     @Override
@@ -139,6 +139,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         tbClusterService.onDeviceDeleted(device, null);
 
         notifyDeleteEntity(tenantId, deviceId, device, customerId, ActionType.DELETED, relatedEdgeIds, user, false, additionalInfo);
+
+        sendNotificationMsgToCloud(tenantId, device.getId(), CloudEventType.DEVICE, EdgeEventActionType.DELETED);
     }
 
     @Override
@@ -147,7 +149,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(tenantId, deviceCredentials.getDeviceId(), deviceCredentials), null);
         sendEntityNotificationMsg(tenantId, deviceId, EdgeEventActionType.CREDENTIALS_UPDATED);
         logEntityAction(tenantId, deviceId, device, customerId, ActionType.CREDENTIALS_UPDATED, user, deviceCredentials);
-        sendNotificationMsgToCloudService(tenantId, device.getId(), CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED);
+        sendNotificationMsgToCloud(tenantId, device.getId(), CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED);
     }
 
     @Override
@@ -183,14 +185,14 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     public void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, SecurityUser user, Object... additionalInfo) {
         logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarm, alarm.getCustomerId(), actionType, user, additionalInfo);
         sendEntityNotificationMsg(alarm.getTenantId(), alarm.getId(), edgeTypeByActionType(actionType));
-        sendNotificationMsgToCloudService(alarm.getTenantId(), alarm.getId(), edgeTypeByActionType(actionType));
+        sendNotificationMsgToCloud(alarm.getTenantId(), alarm.getId(), edgeTypeByActionType(actionType));
     }
 
     @Override
     public void notifyDeleteAlarm(Alarm alarm, SecurityUser user, List<EdgeId> relatedEdgeIds) {
         logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarm, alarm.getCustomerId(), ActionType.ALARM_DELETE, user, null);
         sendAlarmDeleteNotificationMsg(alarm, relatedEdgeIds);
-        sendAlarmDeleteNotificationMsgToCloudService(alarm.getTenantId(), alarm.getId(), alarm);
+        sendAlarmDeleteNotificationMsgToCloud(alarm.getTenantId(), alarm.getId(), alarm);
     }
 
     @Override
@@ -226,7 +228,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.UPDATED);
                 }
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
             }
         }
     }
@@ -235,7 +237,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         try {
             if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
                     !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
-                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
+                sendNotificationMsgToEdge(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
             }
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
@@ -257,7 +259,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     private void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, String body) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
             }
         }
     }
@@ -271,31 +273,31 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, null, action, groupType, null);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action, groupType, null);
     }
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
                                                   EntityGroupId entityGroupId) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                                  EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                           EdgeEventActionType action) {
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, null, action, null, null);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                                  EdgeEventType type, EdgeEventActionType action,
-                                                  EntityType entityGroupType, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                           EdgeEventType type, EdgeEventActionType action,
+                                           EntityType entityGroupType, EntityGroupId entityGroupId) {
+        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
     }
 
     private void pushAssignedFromNotification(Tenant currentTenant, TenantId newTenantId, Device assignedDevice) {
@@ -339,36 +341,28 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
-        try {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
-        } catch (Exception e) {
-            log.warn("Failed to push relation to core: {}", relation, e);
-        }
-    }
-
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
+    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+            sendNotificationMsgToCloud(tenantId, entityId, cloudEventType, cloudEventAction);
         }
     }
 
-    protected void sendAlarmDeleteNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, Alarm alarm) {
+    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                            EdgeEventActionType cloudEventAction) {
+        tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+    }
+
+    private void sendAlarmDeleteNotificationMsgToCloud(TenantId tenantId, EntityId entityId, Alarm alarm) {
         try {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED, null);
+            tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED, null);
         } catch (Exception e) {
             log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                     EdgeEventActionType cloudEventAction) {
-        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
-    }
-
-    protected void sendGroupEntityNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+    private void sendGroupEntityNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
                                                          EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
+        tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
     }
 }

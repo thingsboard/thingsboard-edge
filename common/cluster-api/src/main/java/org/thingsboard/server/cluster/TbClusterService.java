@@ -108,9 +108,9 @@ public interface TbClusterService {
 
     void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
 
-    void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action,
-                                          EntityType entityGroupType, EntityGroupId entityGroupId);
+    void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action,
+                                   EntityType entityGroupType, EntityGroupId entityGroupId);
 
-    void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
-                                           EntityGroupId entityGroupId);
+    void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
+                                    EntityGroupId entityGroupId);
 }

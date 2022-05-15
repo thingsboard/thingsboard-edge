@@ -45,7 +45,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -198,7 +197,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.thingsboard.server.controller.ControllerConstants.INCORRECT_TENANT_ID;
@@ -1221,7 +1219,7 @@ public abstract class BaseController {
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.UPDATED);
                 }
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
             }
         }
     }
@@ -1230,7 +1228,7 @@ public abstract class BaseController {
         try {
             if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
                     !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
-                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
+                sendNotificationMsgToEdge(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
             }
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
@@ -1244,7 +1242,7 @@ public abstract class BaseController {
     protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, String body) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
             }
         }
     }
@@ -1258,31 +1256,31 @@ public abstract class BaseController {
     }
 
     protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, null, action, groupType, null);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action, groupType, null);
     }
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
                                                   EntityGroupId entityGroupId) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
                                                   EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, null, action, null, null);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
                                                   EdgeEventType type, EdgeEventActionType action,
                                                   EntityType entityGroupType, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
+        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
@@ -1324,9 +1322,9 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendNotificationMsgToCloudService(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
+    protected void sendNotificationMsgToCloud(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
         try {
-            tbClusterService.sendNotificationMsgToCloudService(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
+            tbClusterService.sendNotificationMsgToCloud(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction, null);
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
         }
@@ -1334,7 +1332,7 @@ public abstract class BaseController {
 
     protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
                                                   EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
+        tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
     }
 
     protected void throwRealCause(ExecutionException e) throws Exception {

@@ -73,7 +73,6 @@ public class TenantDataValidator extends DataValidator<Tenant> {
             throw new DataValidationException("Can't update non existing tenant!");
         }
         validateTenantProfile(tenantId, tenant);
-        return old;
          */
         return tenant;
     }

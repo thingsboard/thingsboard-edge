@@ -534,8 +534,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         ruleChain.setName("Edge Test Rule Chain");
         ruleChain.setType(RuleChainType.EDGE);
         RuleChain savedRuleChain = restClient.saveRuleChain(ruleChain);
-        restClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
         createRuleChainMetadata(savedRuleChain);
+
+        restClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
