@@ -445,7 +445,8 @@ const routes: Routes = [
                 icon: 'input'
               } as BreadCrumbConfig<EntityDetailsPageComponent>,
               auth: [Authority.TENANT_ADMIN],
-              title: 'edge.integration-templates'
+              title: 'edge.integration-templates',
+              integrationsType: 'edges'
             },
             resolve: {
               entitiesTableConfig: IntegrationsTableConfigResolver

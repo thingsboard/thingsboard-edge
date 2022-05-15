@@ -89,14 +89,14 @@
         [converterType]="converterType.UPLINK"
         [showDetailsPageLink]="true"
         [useFullEntityId]="true"
-        [isEdgeTemplate]="isEdgeTemplate">
+        [isEdgeTemplate]="integrationScope === 'edges'">
       </tb-converter-autocomplete>
       <tb-converter-autocomplete formControlName="downlinkConverterId"
         labelText="integration.downlink-converter"
         [converterType]="converterType.DOWNLINK"
         [showDetailsPageLink]="true"
         [useFullEntityId]="true"
-        [isEdgeTemplate]="isEdgeTemplate">
+        [isEdgeTemplate]="integrationScope === 'edges'">
       </tb-converter-autocomplete>
       <mat-slide-toggle formControlName="remote" style="padding-bottom: 48px;">
         {{'integration.execute-remotely' | translate}}

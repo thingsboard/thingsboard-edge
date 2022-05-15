@@ -77,7 +77,7 @@ import { UsersTableConfigResolver } from '@home/pages/user/users-table-config.re
 import { isDefined } from '@core/utils';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 
@@ -598,9 +598,9 @@ const EDGE_RULE_CHAINS_ROUTE: Route = {
       path: '',
       component: EntitiesTableComponent,
       data: {
-        ruleChainsType: 'edge',
         title: 'edge.rulechains',
-        auth: [Authority.TENANT_ADMIN]
+        auth: [Authority.TENANT_ADMIN],
+        ruleChainsType: 'edge'
       },
       resolve: {
         entityGroup: EntityGroupResolver,
@@ -619,7 +619,8 @@ const EDGE_RULE_CHAINS_ROUTE: Route = {
         auth: [Authority.TENANT_ADMIN],
         title: 'rulechain.edge-rulechain',
         import: false,
-        ruleChainType: RuleChainType.EDGE
+        ruleChainType: RuleChainType.EDGE,
+        ruleChainsType: 'edge'
       },
       resolve: {
         entityGroup: EntityGroupResolver,
@@ -635,7 +636,7 @@ const EDGE_RULE_CHAINS_ROUTE: Route = {
 const EDGE_INTEGRATIONS_ROUTE: Route = {
   path: ':edgeId/integrations',
   data: {
-    groupType: EntityType.INTEGRATION,
+    grandChildGroupType: EntityType.INTEGRATION,
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
         return data.entityGroup.edgeGroupsTitle;
@@ -648,9 +649,9 @@ const EDGE_INTEGRATIONS_ROUTE: Route = {
       path: '',
       component: EntitiesTableComponent,
       data: {
-        integrationsType: 'edge',
         title: 'edge.integrations',
-        auth: [Authority.TENANT_ADMIN]
+        auth: [Authority.TENANT_ADMIN],
+        integrationsType: 'edge'
       },
       resolve: {
         entityGroup: EntityGroupResolver,
@@ -667,9 +668,11 @@ const EDGE_INTEGRATIONS_ROUTE: Route = {
           icon: 'input'
         } as BreadCrumbConfig<EntityDetailsPageComponent>,
         auth: [Authority.TENANT_ADMIN],
-        title: 'edge.integration-templates'
+        title: 'edge.integration-templates',
+        integrationsType: 'edge'
       },
       resolve: {
+        entityGroup: EntityGroupResolver,
         entitiesTableConfig: IntegrationsTableConfigResolver
       }
     }

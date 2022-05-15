@@ -112,6 +112,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     this.onEntityAction = action => this.onIntegrationAction(action, this.componentsData);
 
     this.configureIntegrationScope();
+
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
@@ -271,8 +272,10 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
         this.componentsData.edge = edge;
         this.tableTitle = this.configureTableTitle(this.componentsData.integrationScope, edge);
       });
-      this.entitiesDeleteEnabled = false;
       this.addEnabled = false;
+      this.entitiesDeleteEnabled = false;
+      this.deleteEnabled = () => false;
+      this.detailsReadonly = () => true;
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
         this.headerActionDescriptors.push({
             name: this.translate.instant('edge.assign-to-edge'),

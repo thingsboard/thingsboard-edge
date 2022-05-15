@@ -98,7 +98,14 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
     super(store, injector, cd, componentFactoryResolver);
     if (isDefined(this.route.snapshot.data.entityGroup)) {
       this.entityGroup = this.route.snapshot.data.entityGroup;
-      this.entitiesTableConfig = this.entityGroup.entityGroupConfig;
+      // TODO: @voba - review with FE team
+      let grandChildGroupType = this.route.snapshot.data.grandChildGroupType;
+      if (!isDefined(grandChildGroupType) || grandChildGroupType === this.entityGroup.type) {
+        this.entitiesTableConfig = this.entityGroup.entityGroupConfig;
+      } else {
+        // fallback in case of edge integration template - to be able to show it in group and customers hierarchy
+        this.entitiesTableConfig = this.route.snapshot.data.entitiesTableConfig;
+      }
     } else {
       this.entitiesTableConfig = this.route.snapshot.data.entitiesTableConfig;
     }

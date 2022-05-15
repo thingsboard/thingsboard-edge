@@ -72,7 +72,8 @@ const routes: Routes = [
             icon: 'input'
           } as BreadCrumbConfig<EntityDetailsPageComponent>,
           auth: [Authority.TENANT_ADMIN],
-          title: 'integration.integrations'
+          title: 'integration.integrations',
+          integrationsType: 'tenant'
         },
         resolve: {
           entitiesTableConfig: IntegrationsTableConfigResolver

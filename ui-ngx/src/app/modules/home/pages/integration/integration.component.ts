@@ -78,7 +78,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationInfo: IntegrationTypeInfo;
 
-  isEdgeTemplate: boolean;
+  integrationScope: 'tenant' | 'edges' | 'edge';
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -91,7 +91,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   ngOnInit() {
-    this.isEdgeTemplate = this.entitiesTableConfig.componentsData.integrationScope === 'edges';
+    this.integrationScope = this.entitiesTableConfig.componentsData.integrationScope;
     super.ngOnInit();
   }
 

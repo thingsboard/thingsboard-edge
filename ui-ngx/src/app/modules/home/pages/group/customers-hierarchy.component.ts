@@ -603,10 +603,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     });
+    // TODO: @voba - review groupType - looks like this is not really group type, but more like entityType
     if (this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ)) {
       const groupType = EntityType.SCHEDULER_EVENT;
       const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
-          text: entitiesNodeText(this.translate, groupType, 'scheduler.scheduler')
+          text: entitiesNodeText(this.translate, groupType, 'entity.type-scheduler-events')
         }
       };
       nodes.push(node);
@@ -618,6 +619,17 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       const groupType = EntityType.RULE_CHAIN;
       const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
           text: entitiesNodeText(this.translate, groupType, 'entity.type-rulechains')
+        }
+      };
+      nodes.push(node);
+      nodesMap[groupType] = node.id;
+      this.registerNode(node, parentNodeId);
+    }
+    if (this.userPermissionsService.hasGenericPermission(Resource.INTEGRATION, Operation.READ) &&
+      getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
+      const groupType = EntityType.INTEGRATION;
+      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
+          text: entitiesNodeText(this.translate, groupType, 'entity.type-integrations')
         }
       };
       nodes.push(node);
