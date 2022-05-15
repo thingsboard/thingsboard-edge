@@ -24,8 +24,6 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.msg.DeviceEdgeUpdateMsg;
 import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -418,7 +416,7 @@ public class DefaultTbClusterService implements TbClusterService {
         otaPackageStateService.update(device, old);
         /* voba - merge comment
         if (!created && notifyEdge) {
-            sendNotificationMsgToEdgeService(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED);
+            sendNotificationMsgToEdge(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED);
         }
          */
 
@@ -426,7 +424,7 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
+    public void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
         /* voba - merge comment
         if (!edgesEnabled) {
             return;
@@ -484,12 +482,12 @@ public class DefaultTbClusterService implements TbClusterService {
 
     private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
                                                    EdgeEventActionType cloudEventAction) {
-        sendNotificationMsgToCloudService(tenantId, entityId, null, cloudEventType, cloudEventAction);
+        sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction);
     }
 
     @Override
-    public void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody,
-                                                  CloudEventType cloudEventType, EdgeEventActionType cloudEventAction) {
+    public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody,
+                                           CloudEventType cloudEventType, EdgeEventActionType cloudEventAction) {
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());

@@ -85,7 +85,7 @@ public interface TbClusterService {
 
     void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
 
-    void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action);
+    void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action);
 
-    void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction);
+    void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction);
 }
