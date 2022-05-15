@@ -95,6 +95,7 @@ public class HashPartitionServiceTest {
         when(ruleEngineSettings.getQueues()).thenReturn(Collections.emptyList());
         ReflectionTestUtils.setField(clusterRoutingService, "coreTopic", "tb.core");
         ReflectionTestUtils.setField(clusterRoutingService, "corePartitions", 10);
+        ReflectionTestUtils.setField(clusterRoutingService, "integrationPartitions", 3);
         ReflectionTestUtils.setField(clusterRoutingService, "hashFunctionName", hashFunctionName);
         TransportProtos.ServiceInfo currentServer = TransportProtos.ServiceInfo.newBuilder()
                 .setServiceId("tb-core-0")

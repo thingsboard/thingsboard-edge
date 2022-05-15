@@ -157,7 +157,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Device> deviceListenableFuture = ctx.getDeviceService().findDeviceByIdAsync(ctx.getTenantId(), new DeviceId(msg.getOriginator().getId()));
                 return Futures.transformAsync(deviceListenableFuture, device -> {
                     if (device != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), device.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), device.getOwnerId(), EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -166,7 +166,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Asset> assetListenableFuture = ctx.getAssetService().findAssetByIdAsync(ctx.getTenantId(), new AssetId(msg.getOriginator().getId()));
                 return Futures.transformAsync(assetListenableFuture, asset -> {
                     if (asset != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), asset.getOwnerId(), EntityType.ASSET, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), asset.getOwnerId(), EntityType.ASSET, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -175,7 +175,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Customer> customerListenableFuture = ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), new CustomerId(msg.getOriginator().getId()));
                 return Futures.transformAsync(customerListenableFuture, customer -> {
                     if (customer != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), customer.getOwnerId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), customer.getOwnerId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -184,7 +184,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<EntityView> entityViewListenableFuture = ctx.getEntityViewService().findEntityViewByIdAsync(ctx.getTenantId(), new EntityViewId(msg.getOriginator().getId()));
                 return Futures.transformAsync(entityViewListenableFuture, entityView -> {
                     if (entityView != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), entityView.getOwnerId(), EntityType.ENTITY_VIEW, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), entityView.getOwnerId(), EntityType.ENTITY_VIEW, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -193,7 +193,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Edge> edgeListenableFuture = ctx.getEdgeService().findEdgeByIdAsync(ctx.getTenantId(), new EdgeId(msg.getOriginator().getId()));
                 return Futures.transformAsync(edgeListenableFuture, edge -> {
                     if (edge != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), edge.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), edge.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }
@@ -202,7 +202,7 @@ public class TbAddToGroupNode extends TbAbstractGroupActionNode<TbAddToGroupConf
                 ListenableFuture<Dashboard> dashboardListenableFuture = ctx.getDashboardService().findDashboardByIdAsync(ctx.getTenantId(), new DashboardId(msg.getOriginator().getId()));
                 return Futures.transformAsync(dashboardListenableFuture, dashboard -> {
                     if (dashboard != null) {
-                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndName(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME);
+                        return ctx.getPeContext().getEntityGroupService().findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), dashboard.getOwnerId(), EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME);
                     } else {
                         return Futures.immediateFuture(Optional.empty());
                     }

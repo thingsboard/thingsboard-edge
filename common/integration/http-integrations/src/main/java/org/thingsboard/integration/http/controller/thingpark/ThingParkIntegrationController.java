@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
+import org.thingsboard.integration.api.controller.JsonHttpIntegrationMsg;
 import org.thingsboard.integration.http.thingpark.ThingParkIntegrationMsg;
 import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
 import org.thingsboard.common.util.DonAsynchron;
@@ -66,59 +67,51 @@ public class ThingParkIntegrationController extends BaseIntegrationController {
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
             @PathVariable("routingKey") String routingKey,
-            @RequestParam Map<String,String> allRequestParams,
+            @RequestParam Map<String, String> allRequestParams,
             @RequestBody JsonNode msg,
             @RequestHeader Map<String, String> requestHeaders,
             HttpServletRequest request) {
         log.debug("[{}] Received request: {}", routingKey, msg);
-        return getResult (allRequestParams, IntegrationType.THINGPARK, request, requestHeaders, routingKey, msg);
+        return getResult(allRequestParams, IntegrationType.THINGPARK, requestHeaders, routingKey, msg);
     }
 
     @ApiOperation(value = "Process request from ThingPark integrations", hidden = true)
     @SuppressWarnings("rawtypes")
-    @RequestMapping( "/tpe/{routingKey}")
+    @RequestMapping("/tpe/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequestTPE(
             @PathVariable("routingKey") String routingKey,
-            @RequestParam Map<String,String> allRequestParams,
+            @RequestParam Map<String, String> allRequestParams,
             @RequestBody JsonNode msg,
             @RequestHeader Map<String, String> requestHeaders,
             HttpServletRequest request) {
         log.debug("[{}] Received request: {}", routingKey, msg);
-        return getResult (allRequestParams, IntegrationType.TPE, request, requestHeaders, routingKey, msg);
+        return getResult(allRequestParams, IntegrationType.TPE, requestHeaders, routingKey, msg);
     }
 
     @SuppressWarnings("unchecked")
     private DeferredResult<ResponseEntity> getResult(Map<String, String> allRequestParams, IntegrationType typeIntegration,
-                                                     HttpServletRequest request, Map<String, String>  requestHeaders, String routingKey, JsonNode msg) {
-        final ObjectMapper mapper = new ObjectMapper();
+                                                     Map<String, String> requestHeaders, String routingKey, JsonNode msg) {
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, typeIntegration)) {
-                return;
-            }
-            JsonNode jsonNode = mapper.convertValue(allRequestParams, JsonNode.class);
-            String asId = jsonNode.has("AS_ID") ? jsonNode.get("AS_ID").asText() : "false";
-            String lrnDevEui = jsonNode.has("LrnDevEui") ? jsonNode.get("LrnDevEui").asText() : "false";
-            String lrnFPort = jsonNode.has("LrnFPort") ? jsonNode.get("LrnFPort").asText() : "false";
-            String lrnInfos = jsonNode.has("LrnInfos") ? jsonNode.get("LrnInfos").asText() : "false";
-            String time = jsonNode.has("Time") ? jsonNode.get("Time").asText() : "false";
-            String token = jsonNode.has("Token") ? jsonNode.get("Token").asText() : "false";
-            ThingParkRequestParameters params = ThingParkRequestParameters.builder()
-                    .asId(asId)
-                    .lrnDevEui(lrnDevEui)
-                    .lrnFPort(lrnFPort)
-                    .lrnInfos(lrnInfos)
-                    .time(time)
-                    .token(token)
-                    .build();
 
-            api.process(integration, new ThingParkIntegrationMsg(requestHeaders, msg, params, result));
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
+        JsonNode jsonNode = new ObjectMapper().convertValue(allRequestParams, JsonNode.class);
+        String asId = jsonNode.has("AS_ID") ? jsonNode.get("AS_ID").asText() : "false";
+        String lrnDevEui = jsonNode.has("LrnDevEui") ? jsonNode.get("LrnDevEui").asText() : "false";
+        String lrnFPort = jsonNode.has("LrnFPort") ? jsonNode.get("LrnFPort").asText() : "false";
+        String lrnInfos = jsonNode.has("LrnInfos") ? jsonNode.get("LrnInfos").asText() : "false";
+        String time = jsonNode.has("Time") ? jsonNode.get("Time").asText() : "false";
+        String token = jsonNode.has("Token") ? jsonNode.get("Token").asText() : "false";
+        ThingParkRequestParameters params = ThingParkRequestParameters.builder()
+                .asId(asId)
+                .lrnDevEui(lrnDevEui)
+                .lrnFPort(lrnFPort)
+                .lrnInfos(lrnInfos)
+                .time(time)
+                .token(token)
+                .build();
+
+        api.process(typeIntegration, routingKey, result, new ThingParkIntegrationMsg(requestHeaders, msg, params, result));
+
         return result;
     }
 }

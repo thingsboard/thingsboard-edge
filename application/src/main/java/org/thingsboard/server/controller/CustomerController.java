@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,6 +64,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.customer.TbCustomerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -95,8 +97,11 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class CustomerController extends BaseController {
+
+    private final TbCustomerService tbCustomerService;
 
     public static final String IS_PUBLIC = "isPublic";
     public static final String CUSTOMER_SECURITY_CHECK = "If the user has the authority of 'Tenant Administrator', the server checks that the customer is owned by the same tenant. " +
@@ -104,7 +109,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Customer (getCustomerById)",
             notes = "Get the Customer object based on the provided Customer Id. "
-                    + CUSTOMER_SECURITY_CHECK+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
+                    + CUSTOMER_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.GET)
     @ResponseBody
@@ -199,41 +204,26 @@ public class CustomerController extends BaseController {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
-        return saveGroupEntity(customer, strEntityGroupId, customerService::saveCustomer);
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(customer, strEntityGroupId, (customer1, entityGroup) -> tbCustomerService.save(customer, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete Customer (deleteCustomer)",
             notes = "Deletes the Customer and all customer Users. " +
                     "All assigned Dashboards, Assets, Devices, etc. will be unassigned but not deleted. " +
-                    "Referencing non-existing Customer Id will cause an error."+ TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_DELETE_CHECK)
+                    "Referencing non-existing Customer Id will cause an error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteCustomer(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
                                @PathVariable(CUSTOMER_ID) String strCustomerId) throws ThingsboardException {
         checkParameter(CUSTOMER_ID, strCustomerId);
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        Customer customer = checkCustomerId(customerId, Operation.DELETE);
         try {
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            Customer customer = checkCustomerId(customerId, Operation.DELETE);
-
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), customerId);
-
-            customerService.deleteCustomer(getTenantId(), customerId);
-
-            logEntityAction(customerId, customer,
-                    customer.getId(),
-                    ActionType.DELETED, null, strCustomerId);
-
-            sendDeleteNotificationMsg(getTenantId(), customerId, relatedEdgeIds);
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), customerId, ComponentLifecycleEvent.DELETED);
+            tbCustomerService.delete(customer, getCurrentUser());
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.CUSTOMER),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strCustomerId);
-
-            throw handleException(e);
+            throw (handleException(e));
         }
     }
 

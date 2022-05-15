@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.asset.AssetBulkImportService;
+import org.thingsboard.server.service.entitiy.asset.TbAssetService;
 import org.thingsboard.server.service.importing.BulkImportRequest;
 import org.thingsboard.server.service.importing.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -106,6 +107,7 @@ import static org.thingsboard.server.dao.asset.BaseAssetService.TB_SERVICE_QUEUE
 @Slf4j
 public class AssetController extends BaseController {
     private final AssetBulkImportService assetBulkImportService;
+    private final TbAssetService tbAssetService;
 
     public static final String ASSET_ID = "assetId";
 
@@ -145,7 +147,8 @@ public class AssetController extends BaseController {
         if (TB_SERVICE_QUEUE.equals(asset.getType())) {
             throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        return saveGroupEntity(asset, strEntityGroupId, assetService::saveAsset);
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> tbAssetService.save(asset, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete asset (deleteAsset)",
@@ -159,21 +162,8 @@ public class AssetController extends BaseController {
         try {
             AssetId assetId = new AssetId(toUUID(strAssetId));
             Asset asset = checkAssetId(assetId, Operation.DELETE);
-
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), assetId);
-
-            assetService.deleteAsset(getTenantId(), assetId);
-
-            logEntityAction(assetId, asset,
-                    asset.getCustomerId(),
-                    ActionType.DELETED, null, strAssetId);
-
-            sendDeleteNotificationMsg(getTenantId(), assetId, relatedEdgeIds);
+            tbAssetService.delete(asset, getCurrentUser()).get();
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ASSET),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strAssetId);
             throw handleException(e);
         }
     }
@@ -404,8 +394,7 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping("/asset/bulk_import")
     public BulkImportResult<Asset> processAssetBulkImport(@RequestBody BulkImportRequest request) throws Exception {
-        return assetBulkImportService.processBulkImport(request, getCurrentUser(), importedAssetInfo -> {
-        }, (asset, savingFunction) -> {
+        return assetBulkImportService.processBulkImport(request, getCurrentUser(), (asset, savingFunction) -> {
             try {
                 saveGroupEntity(asset, request.getEntityGroupId(), savingFunction);
             } catch (ThingsboardException e) {

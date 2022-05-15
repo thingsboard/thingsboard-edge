@@ -42,7 +42,7 @@ public interface ThingsboardPlatformIntegration<T> {
 
     Integration getConfiguration();
 
-    void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts);
+    void validateConfiguration(Integration configuration, boolean allowLocalNetworkHosts) throws ThingsboardException;
 
     void checkConnection(Integration integration, IntegrationContext ctx) throws ThingsboardException;
 

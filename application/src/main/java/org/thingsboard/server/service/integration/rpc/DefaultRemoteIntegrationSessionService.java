@@ -30,32 +30,37 @@
  */
 package org.thingsboard.server.service.integration.rpc;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.data.DownLinkMsg;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.service.integration.downlink.DownlinkCacheKey;
 
 import static org.thingsboard.server.common.data.CacheConstants.REMOTE_INTEGRATIONS_CACHE;
 
+@RequiredArgsConstructor
 @Service
 public class DefaultRemoteIntegrationSessionService implements RemoteIntegrationSessionService {
 
-    @Cacheable(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
+    private final TbTransactionalCache<IntegrationId, IntegrationSession> cache;
+
     @Override
     public IntegrationSession findIntegrationSession(IntegrationId integrationId) {
-        return null;
+        return cache.getAndPutInTransaction(integrationId, () -> null, true);
     }
 
-    @CachePut(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
     @Override
     public IntegrationSession putIntegrationSession(IntegrationId integrationId, IntegrationSession session) {
+        cache.put(integrationId, session);
         return session;
     }
 
-    @CacheEvict(cacheNames = REMOTE_INTEGRATIONS_CACHE, key = "{#integrationId}")
     @Override
     public void removeIntegrationSession(IntegrationId integrationId) {
-
+        cache.evict(integrationId);
     }
 }

@@ -31,6 +31,9 @@
 package org.thingsboard.server.queue.provider;
 
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -47,14 +50,17 @@ import javax.annotation.PostConstruct;
 @TbCoreComponent
 public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
 
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by TB Core!";
     private final TbCoreQueueFactory tbQueueProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToTransportMsg>> toTransport;
     private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toRuleEngine;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreMsg>> toTbCore;
     private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineNotifications;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNotifications;
+    private TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIntegrationExecutorNotifications;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
     private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toIntegrationRuleEngine;
+    private TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> toIntegrationDownlink;
 
     public TbCoreQueueProducerProvider(TbCoreQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -67,6 +73,8 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
         this.toRuleEngine = tbQueueProvider.createRuleEngineMsgProducer();
         this.toRuleEngineNotifications = tbQueueProvider.createRuleEngineNotificationsMsgProducer();
         this.toTbCoreNotifications = tbQueueProvider.createTbCoreNotificationsMsgProducer();
+        this.toIntegrationExecutorNotifications = tbQueueProvider.createIntegrationExecutorNotificationsMsgProducer();
+        this.toIntegrationDownlink = tbQueueProvider.createIntegrationExecutorDownlinkMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
         this.toIntegrationRuleEngine = tbQueueProvider.createIntegrationRuleEngineMsgProducer();
     }
@@ -92,8 +100,18 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> getTbCoreIntegrationMsgProducer() {
+       throw new RuntimeException(NOT_IMPLEMENTED);
+    }
+
+    @Override
     public TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> getTbCoreNotificationsMsgProducer() {
         return toTbCoreNotifications;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> getTbIntegrationExecutorNotificationsMsgProducer() {
+        return toIntegrationExecutorNotifications;
     }
 
     @Override
@@ -104,5 +122,10 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
         return toIntegrationRuleEngine;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> getTbIntegrationExecutorDownlinkMsgProducer() {
+        return toIntegrationDownlink;
     }
 }

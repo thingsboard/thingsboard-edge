@@ -43,6 +43,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -116,7 +117,6 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -145,7 +145,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -199,6 +199,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -521,8 +522,12 @@ public abstract class BaseController {
         return groupType;
     }
 
-    UUID toUUID(String id) {
-        return UUID.fromString(id);
+    UUID toUUID(String id) throws ThingsboardException {
+        try {
+            return UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            throw handleException(e, false);
+        }
     }
 
     PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
@@ -666,6 +671,35 @@ public abstract class BaseController {
 
             return savedEntity;
 
+        } catch (Exception e) {
+            logEntityAction(emptyId(entity.getEntityType()), entity,
+                    null, entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            throw handleException(e);
+        }
+    }
+
+    protected <I extends EntityId, T extends GroupEntity<I>> T
+    saveGroupEntity(T entity, String strEntityGroupId, TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
+        try {
+            entity.setTenantId(getCurrentUser().getTenantId());
+
+            EntityGroupId entityGroupId = null;
+            EntityGroup entityGroup = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            }
+            if (entity.getId() == null && (entity.getCustomerId() == null || entity.getCustomerId().isNullUid())) {
+                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    entity.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                    entity.setOwnerId(getCurrentUser().getCustomerId());
+                }
+            }
+
+            checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
+
+            return saveEntityFunction.apply(entity, entityGroup);
         } catch (Exception e) {
             logEntityAction(emptyId(entity.getEntityType()), entity,
                     null, entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
@@ -1332,6 +1366,15 @@ public abstract class BaseController {
             return MediaType.parseMediaType(contentType);
         } catch (Exception e) {
             return MediaType.APPLICATION_OCTET_STREAM;
+        }
+    }
+
+
+    protected void throwRealCause(ExecutionException e) throws Exception {
+        if (e.getCause() != null && e.getCause() instanceof Exception) {
+            throw (Exception) e.getCause();
+        } else {
+            throw e;
         }
     }
 }
