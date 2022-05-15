@@ -28,32 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-public enum EdgeEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    DEVICE_PROFILE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    EDGE,
-    USER,
-    CUSTOMER,
-    RELATION,
-    TENANT,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ENTITY_GROUP,
-    SCHEDULER_EVENT,
-    WHITE_LABELING,
-    LOGIN_WHITE_LABELING,
-    CUSTOM_TRANSLATION,
-    ADMIN_SETTINGS,
-    ROLE,
-    GROUP_PERMISSION,
-    CONVERTER,
-    INTEGRATION
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+
+@Component
+@Slf4j
+public class ConverterProtoConstructor {
+
+    public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter) {
+        ConverterUpdateMsg.Builder builder = ConverterUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(converter.getId().getId().getMostSignificantBits())
+                .setIdLSB(converter.getId().getId().getLeastSignificantBits())
+                .setName(converter.getName())
+                .setDebugMode(converter.isDebugMode())
+                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
+                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        return builder.build();
+    }
 }

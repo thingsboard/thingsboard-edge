@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -157,12 +158,19 @@ public class ConverterController extends BaseController {
             checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
 
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+            if (!converter.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
+                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            }
 
             logEntityAction(result.getId(), result,
                     null,
                     converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (converter.isEdgeTemplate() && !created) {
+                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
+            }
 
             return result;
         } catch (Exception e) {
@@ -218,7 +226,10 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId, Operation.DELETE);
             converterService.deleteConverter(getTenantId(), converterId);
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+
+            if (!converter.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+            }
 
             logEntityAction(converterId, converter,
                     null,

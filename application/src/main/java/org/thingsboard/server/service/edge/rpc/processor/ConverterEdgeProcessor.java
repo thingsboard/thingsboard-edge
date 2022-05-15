@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -28,32 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.processor;
 
-public enum EdgeEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    DEVICE_PROFILE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    EDGE,
-    USER,
-    CUSTOMER,
-    RELATION,
-    TENANT,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ENTITY_GROUP,
-    SCHEDULER_EVENT,
-    WHITE_LABELING,
-    LOGIN_WHITE_LABELING,
-    CUSTOM_TRANSLATION,
-    ADMIN_SETTINGS,
-    ROLE,
-    GROUP_PERMISSION,
-    CONVERTER,
-    INTEGRATION
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+
+@Component
+@Slf4j
+@TbCoreComponent
+public class ConverterEdgeProcessor extends BaseEdgeProcessor {
+
+    public DownlinkMsg processConverterToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);
+                if (converter != null) {
+                    return DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addConverterMsg(converterProtoConstructor.constructConverterUpdateMsg(msgType, converter))
+                            .build();
+                }
+                break;
+        }
+        return downlinkMsg;
+    }
 }

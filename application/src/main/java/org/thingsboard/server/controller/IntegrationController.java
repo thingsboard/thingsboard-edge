@@ -161,9 +161,18 @@ public class IntegrationController extends BaseController {
             platformIntegrationService.validateIntegrationConfiguration(integration);
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+            if (!result.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
+                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            }
+
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (result.isEdgeTemplate() && !created) {
+                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
+            }
+
             return result;
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.INTEGRATION), integration,
@@ -235,13 +244,25 @@ public class IntegrationController extends BaseController {
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = null;
+            if (integration.isEdgeTemplate()) {
+                relatedEdgeIds = findRelatedEdgeIds(getTenantId(), integrationId);
+            }
+
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
-            tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            if (!integration.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            }
 
             logEntityAction(integrationId, integration,
                     null,
                     ActionType.DELETED, null, strIntegrationId);
+
+            if (integration.isEdgeTemplate()) {
+                sendDeleteNotificationMsg(integration.getTenantId(), integrationId, relatedEdgeIds);
+            }
 
         } catch (Exception e) {
 

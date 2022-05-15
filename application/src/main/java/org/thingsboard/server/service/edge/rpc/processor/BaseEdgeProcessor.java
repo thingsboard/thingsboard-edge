@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -64,6 +65,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -77,6 +79,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.ConverterProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
@@ -86,6 +89,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstruc
 import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.GroupPermissionProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.IntegrationProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RoleProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.RuleChainMsgConstructor;
@@ -237,6 +241,12 @@ public abstract class BaseEdgeProcessor {
     protected SchedulerEventService schedulerEventService;
 
     @Autowired
+    protected IntegrationService integrationService;
+
+    @Autowired
+    protected ConverterService converterService;
+
+    @Autowired
     protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
 
     @Autowired
@@ -253,6 +263,12 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected EntityGroupMsgConstructor entityGroupMsgConstructor;
+
+    @Autowired
+    protected ConverterProtoConstructor converterProtoConstructor;
+
+    @Autowired
+    protected IntegrationProtoConstructor integrationProtoConstructor;
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
                                EdgeId edgeId,
