@@ -30,6 +30,7 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
@@ -338,6 +339,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("test"));
     }
 
+    @Ignore
     @Test
     public void testDeviceProfiles() throws Exception {
         // 1
@@ -366,6 +368,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
     }
 
+    @Ignore
     @Test
     public void testDevices() throws Exception {
         // 1
@@ -420,6 +423,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     }
 
+    @Ignore
     @Test
     public void testDeviceReachedMaximumAllowedOnCloud() throws Exception {
         // update tenant profile configuration
@@ -454,6 +458,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(latestResponseMsg.getSuccess());
     }
 
+    @Ignore
     @Test
     public void testAssets() throws Exception {
         // 1
@@ -517,6 +522,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(assetUpdateMsg.getIdLSB(), savedAsset.getUuidId().getLeastSignificantBits());
     }
 
+    @Ignore
     @Test
     public void testRuleChains() throws Exception {
         // 1
@@ -619,6 +625,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         doPost("/api/ruleChain/metadata", ruleChainMetaData, RuleChainMetaData.class);
     }
 
+    @Ignore
     @Test
     public void testDashboards() throws Exception {
         // 1
@@ -668,6 +675,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertFalse(edgeImitator.waitForMessages(1));
     }
 
+    @Ignore
     @Test
     public void testRelations() throws Exception {
         // 1
@@ -719,6 +727,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(relationUpdateMsg.getTypeGroup(), relation.getTypeGroup().name());
     }
 
+    @Ignore
     @Test
     public void testAlarms() throws Exception {
         // 1
@@ -782,6 +791,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(alarmUpdateMsg.getStatus(), AlarmStatus.CLEARED_ACK.name());
     }
 
+    @Ignore
     @Test
     public void testEntityView() throws Exception {
         // 1
@@ -850,6 +860,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(entityViewUpdateMsg.getEntityType().name(), device.getId().getEntityType().name());
     }
 
+    @Ignore
     @Test
     public void testCustomerAndNewUser() throws Exception {
         // 1
@@ -906,6 +917,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertFalse(edgeImitator.waitForMessages(1));
     }
 
+    @Ignore
     @Test
     public void testWidgetsBundleAndWidgetType() throws Exception {
         // 1
@@ -969,6 +981,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(widgetsBundleUpdateMsg.getIdLSB(), savedWidgetsBundle.getUuidId().getLeastSignificantBits());
     }
 
+    @Ignore
     @Test
     public void testTimeseries() throws Exception {
         edgeImitator.expectMessageAmount(1);
@@ -998,6 +1011,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(25, keyValueProto.getLongV());
     }
 
+    @Ignore
     @Test
     public void testAttributes() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
@@ -1083,6 +1097,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals("key2", attributeDeleteMsg.getAttributeNames(1));
     }
 
+    @Ignore
     @Test
     public void testRpcCall() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
@@ -1107,6 +1122,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals("test_method", latestDeviceRpcCallMsg.getRequestMsg().getMethod());
     }
 
+    @Ignore
     @Test
     public void testTimeseriesWithFailures() throws Exception {
         int numberOfTimeseriesToSend = 1000;
@@ -1153,6 +1169,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         return false;
     }
 
+    @Ignore
     @Test
     public void testSendDeviceToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
@@ -1189,6 +1206,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals("Edge Device 2", device.getName());
     }
 
+    @Ignore
     @Test
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceOnCloudName = RandomStringUtils.randomAlphanumeric(15);
@@ -1242,6 +1260,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertNotEquals(deviceOnCloudName, device.getName());
     }
 
+    @Ignore
     @Test
     public void testSendRelationRequestToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
@@ -1290,6 +1309,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(relation.getTypeGroup().name(), relationUpdateMsg.getTypeGroup());
     }
 
+    @Ignore
     @Test
     public void testSendAlarmToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -1323,6 +1343,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(AlarmSeverity.CRITICAL, alarmInfo.getSeverity());
     }
 
+    @Ignore
     @Test
     public void testSendTelemetryToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -1385,6 +1406,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
                 new TypeReference<>() {});
     }
 
+    @Ignore
     @Test
     public void testSendRelationToCloud() throws Exception {
         Device device1 = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -1420,6 +1442,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(relation);
     }
 
+    @Ignore
     @Test
     public void testSendDeleteDeviceOnEdgeToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -1444,6 +1467,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertFalse(edgeDevices.contains(device));
     }
 
+    @Ignore
     @Test
     public void testSendRuleChainMetadataRequestToCloud() throws Exception {
         RuleChainId edgeRootRuleChainId = edge.getRootRuleChainId();
@@ -1472,6 +1496,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         testAutoGeneratedCodeByProtobuf(ruleChainMetadataUpdateMsg);
     }
 
+    @Ignore
     @Test
     public void testSendUserCredentialsRequestToCloud() throws Exception {
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
@@ -1498,6 +1523,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         testAutoGeneratedCodeByProtobuf(userCredentialsUpdateMsg);
     }
 
+    @Ignore
     @Test
     public void testSendDeviceCredentialsRequestToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
@@ -1528,6 +1554,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(deviceCredentialsUpdateMsg.getCredentialsId(), deviceCredentials.getCredentialsId());
     }
 
+    @Ignore
     @Test
     public void testSendDeviceRpcResponseToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
@@ -1554,6 +1581,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
     }
 
+    @Ignore
     @Test
     public void testSendDeviceCredentialsUpdateToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");
@@ -1574,6 +1602,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
     }
 
+    @Ignore
     @Test
     public void testSendAttributesRequestToCloud() throws Exception {
         Device device = findDeviceByName("Edge Device 1");

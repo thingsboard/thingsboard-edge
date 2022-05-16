@@ -20,6 +20,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -117,8 +118,9 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
     }
 
     // @voba - merge comment
-    // edge assign functionality only in CE/PE
-    // @Test
+    // edge entities support available in CE/PE
+    @Ignore
+    @Test
     public void testFindEdgeRuleChainsByTenantIdAndName() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
