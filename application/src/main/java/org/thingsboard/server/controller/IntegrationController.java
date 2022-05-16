@@ -203,7 +203,7 @@ public class IntegrationController extends BaseController {
     @ResponseBody
     public PageData<Integration> getIntegrations(
             @ApiParam(value = "Fetch edge template integrations")
-            @RequestParam(value = "edgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
+            @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")

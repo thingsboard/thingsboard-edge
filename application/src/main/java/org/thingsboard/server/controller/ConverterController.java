@@ -190,7 +190,7 @@ public class ConverterController extends BaseController {
     @ResponseBody
     public PageData<Converter> getConverters(
             @ApiParam(value = "Fetch edge template converters")
-            @RequestParam(value = "edgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
+            @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
