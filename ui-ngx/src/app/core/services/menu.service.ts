@@ -568,6 +568,26 @@ export class MenuService {
           disabled: disabledItems.indexOf('rulechain_templates') > -1
         }
       );
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.converter-templates',
+          type: 'link',
+          path: '/edgeManagement/converters',
+          icon: 'transform',
+          disabled: disabledItems.indexOf('converter_templates') > -1
+        }
+      );
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.integration-templates',
+          type: 'link',
+          path: '/edgeManagement/integrations',
+          icon: 'input',
+          disabled: disabledItems.indexOf('integration_templates') > -1
+        }
+      );
       sections.push(this.createEntityGroupSection(EntityType.EDGE));
       sections.push(
         {
@@ -998,7 +1018,19 @@ export class MenuService {
               name: 'edge.rulechain-templates',
               icon: 'settings_ethernet',
               path: '/edgeManagement/ruleChains',
-              disabled: disabledItems.indexOf('edge_groups') > -1
+              disabled: disabledItems.indexOf('rulechain_templates') > -1
+            },
+            {
+              name: 'edge.converter-templates',
+              icon: 'transform',
+              path: '/edgeManagement/converters',
+              disabled: disabledItems.indexOf('converter_templates') > -1
+            },
+            {
+              name: 'edge.integration-templates',
+              icon: 'input',
+              path: '/edgeManagement/integrations',
+              disabled: disabledItems.indexOf('integration_templates') > -1
             }
           ]
         }

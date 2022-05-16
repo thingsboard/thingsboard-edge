@@ -52,14 +52,17 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -69,6 +72,7 @@ import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -114,6 +118,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Autowired
     private EntityGroupService entityGroupService;
+
+    @Autowired
+    private IntegrationService integrationService;
 
     @Autowired
     private DataValidator<Edge> edgeValidator;
@@ -364,6 +371,17 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(TenantId tenantId, List<EntityId> entityIds, EntityType entityType, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndEntityIds, tenantId [{}], entityIds [{}], entityType [{}], pageLink [{}]", tenantId, entityIds, entityType, pageLink);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndEntityIds(tenantId.getId(),
+                entityIds.stream().map(EntityId::getId).collect(Collectors.toList()),
+                entityType,
+                pageLink);
+    }
+
+    @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
@@ -432,7 +450,13 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                     return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
                 case RULE_CHAIN:
                 case SCHEDULER_EVENT:
+                case INTEGRATION:
                     return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
+                case CONVERTER:
+                    List<Integration> integrationsByConverterId =
+                            integrationService.findIntegrationsByConverterId(tenantId, new ConverterId(entityId.getId()));
+                    List<EntityId> integrationIds = integrationsByConverterId.stream().map(Integration::getId).collect(Collectors.toList());
+                    return findEdgeIdsByTenantIdAndEntityIds(tenantId, integrationIds, EntityType.INTEGRATION, pageLink);
                 default:
                     log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
                     return createEmptyEdgeIdPageData();

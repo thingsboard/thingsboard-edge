@@ -88,7 +88,7 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
 import { Converter } from '@shared/models/converter.models';
-import { Integration } from '@shared/models/integration.models';
+import { Integration, IntegrationSubType } from '@shared/models/integration.models';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { Role } from '@shared/models/role.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -115,14 +115,9 @@ import {
 import { alarmFields } from '@shared/models/alarm.models';
 import { CloudEventType } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
-import {
-  Edge,
-  EdgeEvent,
-  EdgeEventType,
-  bodyContentEdgeEventActionTypes
-} from '@shared/models/edge.models';
+import { bodyContentEdgeEventActionTypes, Edge, EdgeEvent, EdgeEventType } from '@shared/models/edge.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
-import { RuleChainMetaData, RuleChainType, RuleChain } from '@shared/models/rule-chain.models';
+import { RuleChain, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 
@@ -536,11 +531,19 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.converterService.getConverters(pageLink, config);
+        // TODO: @voba - fixme
+        entitiesObservable = this.converterService.getConverters(pageLink, false, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.integrationService.getIntegrations(pageLink, config);
+        // TODO: @voba - review with FE team
+        if (IntegrationSubType[subType]) {
+          let isEdgeTemplate = subType as IntegrationSubType === IntegrationSubType.EDGE;
+          entitiesObservable = this.integrationService.getIntegrations(pageLink, isEdgeTemplate, config);
+        } else {
+          // safe fallback to default core type
+          entitiesObservable = this.integrationService.getIntegrations(pageLink, false, config);
+        }
         break;
       case EntityType.SCHEDULER_EVENT:
         pageLink.sortOrder.property = 'name';

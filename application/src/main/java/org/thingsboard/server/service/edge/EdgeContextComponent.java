@@ -56,6 +56,7 @@ import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
 import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.ConverterEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
@@ -64,6 +65,7 @@ import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityViewEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.IntegrationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RelationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RoleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RuleChainEdgeProcessor;
@@ -207,4 +209,10 @@ public class EdgeContextComponent {
 
     @Autowired
     private SchedulerEventEdgeProcessor schedulerEventProcessor;
+
+    @Autowired
+    private ConverterEdgeProcessor converterProcessor;
+
+    @Autowired
+    private IntegrationEdgeProcessor integrationProcessor;
 }

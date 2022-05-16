@@ -206,7 +206,7 @@ export class RuleChainAutocompleteComponent implements ControlValueAccessor, OnI
 
   fetchRuleChain(searchText?: string): Observable<Array<BaseData<EntityId>>> {
     this.searchText = searchText;
-    // @voba: at the moment device profiles are not supported by edge, so 'core' hardcoded
+    // @voba: at the moment creation or management device profiles are not supported by edge, so 'core' hardcoded
     return this.entityService.getEntitiesByNameFilter(EntityType.RULE_CHAIN, searchText,
       50, RuleChainType.CORE, {ignoreLoading: true}).pipe(
         catchError(() => of([]))

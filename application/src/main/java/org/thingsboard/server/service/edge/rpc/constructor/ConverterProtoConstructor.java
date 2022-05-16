@@ -28,33 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.converter;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-import java.util.List;
+@Component
+@Slf4j
+public class ConverterProtoConstructor {
 
-public interface ConverterService {
-
-    Converter saveConverter(Converter converter);
-
-    Converter findConverterById(TenantId tenantId, ConverterId converterId);
-
-    ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
-
-    ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
-
-    PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink);
-
-    PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink);
-
-    void deleteConverter(TenantId tenantId, ConverterId converterId);
-
-    void deleteConvertersByTenantId(TenantId tenantId);
-
+    public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter) {
+        ConverterUpdateMsg.Builder builder = ConverterUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(converter.getId().getId().getMostSignificantBits())
+                .setIdLSB(converter.getId().getId().getLeastSignificantBits())
+                .setName(converter.getName())
+                .setDebugMode(converter.isDebugMode())
+                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
+                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        return builder.build();
+    }
 }

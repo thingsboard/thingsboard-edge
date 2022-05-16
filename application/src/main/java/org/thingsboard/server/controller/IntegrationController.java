@@ -30,17 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,11 +44,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -72,12 +68,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_CONFIGURATION_DEFINITION;
+import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.INTEGRATION_TEXT_SEARCH_DESCRIPTION;
@@ -168,9 +170,18 @@ public class IntegrationController extends BaseController {
             }
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
-            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+            if (!result.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
+                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            }
+
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            if (result.isEdgeTemplate() && !created) {
+                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
+            }
+
             return result;
         } catch (TimeoutException e) {
             throw handleException(new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL));
@@ -188,6 +199,8 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Integration> getIntegrations(
+            @ApiParam(value = "Fetch edge template integrations")
+            @RequestParam(value = "edgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
@@ -202,7 +215,11 @@ public class IntegrationController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
+            if (isEdgeTemplate) {
+                return checkNotNull(integrationService.findTenantEdgeTemplateIntegrations(tenantId, pageLink));
+            } else {
+                return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -244,13 +261,25 @@ public class IntegrationController extends BaseController {
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
+
+            List<EdgeId> relatedEdgeIds = null;
+            if (integration.isEdgeTemplate()) {
+                relatedEdgeIds = findRelatedEdgeIds(getTenantId(), integrationId);
+            }
+
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
-            tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            if (!integration.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
+            }
 
             logEntityAction(integrationId, integration,
                     null,
                     ActionType.DELETED, null, strIntegrationId);
+
+            if (integration.isEdgeTemplate()) {
+                sendDeleteNotificationMsg(integration.getTenantId(), integrationId, relatedEdgeIds);
+            }
 
         } catch (Exception e) {
 
@@ -298,6 +327,114 @@ public class IntegrationController extends BaseController {
                 return false;
             }
         }).collect(Collectors.toList());
+    }
+
+    @ApiOperation(value = "Assign integration to edge (assignIntegrationToEdge)",
+            notes = "Creates assignment of an existing integration edge template to an instance of The Edge. " +
+                    EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
+                    "Second, remote edge service will receive a copy of assignment integration " +
+                    EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
+                    "Third, once integration will be delivered to edge service, it's going to start locally. " +
+                    "\n\nOnly integration edge template can be assigned to edge." + TENANT_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.POST)
+    @ResponseBody
+    public Integration assignIntegrationToEdge(@PathVariable("edgeId") String strEdgeId,
+                                            @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        checkParameter(INTEGRATION_ID, strIntegrationId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+
+            IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
+            checkIntegrationId(integrationId, Operation.READ);
+
+            Integration savedIntegration = checkNotNull(integrationService.assignIntegrationToEdge(getCurrentUser().getTenantId(), integrationId, edgeId));
+
+            logEntityAction(integrationId, savedIntegration,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, null, strIntegrationId, strEdgeId, edge.getName());
+
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
+
+            return savedIntegration;
+        } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.INTEGRATION), null,
+                    null,
+                    ActionType.ASSIGNED_TO_EDGE, e, strIntegrationId, strEdgeId);
+
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Unassign integration from edge (unassignIntegrationFromEdge)",
+            notes = "Clears assignment of the integration to the edge. " +
+                    EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
+                    "Second, remote edge service will receive an 'unassign' command to remove integration " +
+                    EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
+                    "Third, once 'unassign' command will be delivered to edge service, it's going to remove integration locally." + TENANT_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.DELETE)
+    @ResponseBody
+    public Integration unassignIntegrationFromEdge(@PathVariable("edgeId") String strEdgeId,
+                                                 @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+        checkParameter("edgeId", strEdgeId);
+        checkParameter(INTEGRATION_ID, strIntegrationId);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+            IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
+            Integration integration = checkIntegrationId(integrationId, Operation.READ);
+
+            Integration savedIntegration = checkNotNull(integrationService.unassignIntegrationFromEdge(getCurrentUser().getTenantId(), integrationId, edgeId, false));
+
+            logEntityAction(integrationId, integration,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, null, strIntegrationId, strEdgeId, edge.getName());
+
+            sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+
+            return savedIntegration;
+        } catch (Exception e) {
+            logEntityAction(emptyId(EntityType.INTEGRATION), null,
+                    null,
+                    ActionType.UNASSIGNED_FROM_EDGE, e, strIntegrationId, strEdgeId);
+
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Get Edge Integrations (getEdgeIntegrations)",
+            notes = "Returns a page of Integrations assigned to the specified edge. " + INTEGRATION_DESCRIPTION + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<Integration> getEdgeIntegrations(
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(EDGE_ID) String strEdgeId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(EDGE_ID, strEdgeId);
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            checkEdgeId(edgeId, Operation.READ);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            return checkNotNull(integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
 }

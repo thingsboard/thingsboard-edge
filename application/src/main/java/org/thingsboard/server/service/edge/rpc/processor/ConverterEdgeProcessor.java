@@ -28,33 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.converter;
+package org.thingsboard.server.service.edge.rpc.processor;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.List;
+@Component
+@Slf4j
+@TbCoreComponent
+public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
-public interface ConverterService {
-
-    Converter saveConverter(Converter converter);
-
-    Converter findConverterById(TenantId tenantId, ConverterId converterId);
-
-    ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
-
-    ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);
-
-    PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink);
-
-    PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink);
-
-    void deleteConverter(TenantId tenantId, ConverterId converterId);
-
-    void deleteConvertersByTenantId(TenantId tenantId);
-
+    public DownlinkMsg processConverterToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);
+                if (converter != null) {
+                    return DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addConverterMsg(converterProtoConstructor.constructConverterUpdateMsg(msgType, converter))
+                            .build();
+                }
+                break;
+        }
+        return downlinkMsg;
+    }
 }

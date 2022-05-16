@@ -118,6 +118,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = ModelConstants.INTEGRATION_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
+    private boolean edgeTemplate;
+
     public IntegrationEntity() {
         super();
     }
@@ -146,6 +149,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
+        this.edgeTemplate = integration.isEdgeTemplate();
     }
 
     public String getSearchText() {
@@ -185,6 +189,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
+        integration.setEdgeTemplate(edgeTemplate);
         return integration;
     }
 }

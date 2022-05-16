@@ -83,6 +83,10 @@ public final class EdgeUtils {
                 return EdgeEventType.ROLE;
             case GROUP_PERMISSION:
                 return EdgeEventType.GROUP_PERMISSION;
+            case INTEGRATION:
+                return EdgeEventType.INTEGRATION;
+            case CONVERTER:
+                return EdgeEventType.CONVERTER;
             default:
                 log.warn("Unsupported entity type [{}]", entityType);
                 return null;

@@ -78,6 +78,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationInfo: IntegrationTypeInfo;
 
+  integrationScope: 'tenant' | 'edges' | 'edge';
+
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Integration,
@@ -89,6 +91,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   ngOnInit() {
+    this.integrationScope = this.entitiesTableConfig.componentsData.integrationScope;
     super.ngOnInit();
   }
 

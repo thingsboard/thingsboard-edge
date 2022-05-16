@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -48,7 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-
+@Slf4j
 @Component
 public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntity, Integration> implements IntegrationDao {
 
@@ -61,6 +62,26 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
                 integrationRepository.findByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Integration> findCoreIntegrationsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                integrationRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        false,
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Integration> findEdgeTemplateIntegrationsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                integrationRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        true,
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -78,6 +99,17 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     @Override
     public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
         return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(tenantId, integrationIds)));
+    }
+
+    @Override
+    public PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
+        log.debug("Try to find integrations by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
+        return DaoUtil.toPageData(integrationRepository
+                .findByTenantIdAndEdgeId(
+                        tenantId,
+                        edgeId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
     }
 
     @Override

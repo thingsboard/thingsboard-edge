@@ -48,13 +48,31 @@ import java.util.UUID;
 public interface IntegrationDao extends Dao<Integration>, TenantEntityDao {
 
     /**
-     * Find integrations by tenantId and page link.
+     * Find all (core and edge template) integrations by tenantId and page link.
      *
      * @param tenantId the tenantId
      * @param pageLink the page link
      * @return the list of integration objects
      */
     PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
+     * Find core integrations by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findCoreIntegrationsByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
+     * Find edge template integrations by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findEdgeTemplateIntegrationsByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find integrations by routing Key.
@@ -81,5 +99,13 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao {
      */
     ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
 
-
+    /**
+     * Find integrations by tenantId, edgeId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param edgeId the edgeId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 }

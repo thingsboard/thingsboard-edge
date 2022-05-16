@@ -34,6 +34,7 @@ import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { DeviceTransportType } from '@shared/models/device.models';
+import { EntityGroupParams } from '@shared/models/entity-group.models';
 
 export enum IntegrationType {
   HTTP = 'HTTP',
@@ -248,4 +249,15 @@ export interface Integration extends BaseData<IntegrationId> {
   secret: string;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
+}
+
+export interface IntegrationParams extends EntityGroupParams {
+  integrationScope: string;
+}
+
+// TODO: @voba - review with FE team
+export enum IntegrationSubType {
+  CORE = 'CORE',
+  EDGE = 'EDGE'
 }

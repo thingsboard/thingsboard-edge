@@ -100,7 +100,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.loadEntity = id => this.ruleChainService.getRuleChain(id.id);
     this.saveEntity = ruleChain => this.saveRuleChain(ruleChain);
     this.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
-    this.onEntityAction = action => this.onRuleChainAction(action);
+    this.onEntityAction = action => this.onRuleChainAction(action, this.componentsData);
 
     this.configureRuleChainScope();
     defaultEntityTablePermissions(this.userPermissionsService, this);
@@ -406,10 +406,10 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     return this.ruleChainService.saveRuleChain(ruleChain);
   }
 
-  private onRuleChainAction(action: EntityAction<RuleChain>): boolean {
+  private onRuleChainAction(action: EntityAction<RuleChain>, params: RuleChainParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openRuleChain(action.event, action.entity);
+        this.openRuleChain(action.event, action.entity, params);
         return true;
       case 'export':
         this.exportRuleChain(action.event, action.entity);

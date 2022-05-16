@@ -33,6 +33,7 @@ import { BaseData } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
+import { EntityGroupParams } from '@shared/models/entity-group.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -53,6 +54,7 @@ export interface Converter extends BaseData<ConverterId> {
   debugMode: boolean;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
 }
 
 export interface TestUpLinkInputParams {
@@ -94,4 +96,8 @@ export function getConverterHelpLink (converter: Converter) {
     }
   }
   return link;
+}
+
+export interface ConverterParams {
+  converterScope: string;
 }

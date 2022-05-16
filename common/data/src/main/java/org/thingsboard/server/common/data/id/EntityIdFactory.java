@@ -149,6 +149,10 @@ public class EntityIdFactory {
                 return new RoleId(uuid);
             case GROUP_PERMISSION:
                 return new GroupPermissionId(uuid);
+            case INTEGRATION:
+                return new IntegrationId(uuid);
+            case CONVERTER:
+                return new ConverterId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }

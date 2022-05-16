@@ -172,6 +172,9 @@ function materialIconByEntityType (entityType: EntityType): string {
     case EntityType.RULE_CHAIN:
       materialIcon = 'settings_ethernet';
       break;
+    case EntityType.INTEGRATION:
+      materialIcon = 'input';
+      break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
 }
