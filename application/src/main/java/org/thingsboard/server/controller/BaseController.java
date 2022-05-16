@@ -45,6 +45,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -197,6 +198,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import static org.thingsboard.server.controller.ControllerConstants.INCORRECT_TENANT_ID;
@@ -625,6 +627,64 @@ public abstract class BaseController {
             return user;
         } catch (Exception e) {
             throw handleException(e, false);
+        }
+    }
+
+    protected <I extends EntityId, T extends GroupEntity<I>> T
+    saveGroupEntity(T entity, String strEntityGroupId, Function<T, T> saveEntityFunction) throws ThingsboardException {
+        try {
+            entity.setTenantId(getCurrentUser().getTenantId());
+
+            EntityGroupId entityGroupId = null;
+            EntityGroup entityGroup = null;
+            if (!StringUtils.isEmpty(strEntityGroupId)) {
+                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+            }
+            if (entity.getId() == null && (entity.getCustomerId() == null || entity.getCustomerId().isNullUid())) {
+                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                    entity.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+                } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                    entity.setOwnerId(getCurrentUser().getCustomerId());
+                }
+            }
+
+            checkEntity(entity.getId(), entity, Resource.resourceFromEntityType(entity.getEntityType()), entityGroupId);
+
+            T savedEntity = checkNotNull(saveEntityFunction.apply(entity));
+
+            if (entityGroup != null && entity.getId() == null) {
+                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedEntity.getId());
+                logEntityAction(savedEntity.getId(), savedEntity,
+                        savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
+                        savedEntity.getId().toString(), strEntityGroupId, entityGroup.getName());
+
+                /* merge comment
+                sendGroupEntityNotificationMsg(getTenantId(), savedEntity.getId(),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+                 */
+
+                sendGroupEntityNotificationMsgToCloud(getTenantId(), savedEntity.getId(),
+                        CloudUtils.getCloudEventTypeByEntityType(savedEntity.getEntityType()),
+                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
+            }
+
+            logEntityAction(savedEntity.getId(), savedEntity,
+                    savedEntity.getCustomerId(),
+                    entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+
+            /* merge comment
+            if (entity.getId() != null) {
+                sendEntityNotificationMsg(savedEntity.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
+            }
+             */
+
+            return savedEntity;
+
+        } catch (Exception e) {
+            logEntityAction(emptyId(entity.getEntityType()), entity,
+                    null, entity.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            throw handleException(e);
         }
     }
 
@@ -1330,8 +1390,8 @@ public abstract class BaseController {
         }
     }
 
-    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                  EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
+    protected void sendGroupEntityNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                                         EdgeEventActionType cloudEventAction, EntityGroupId entityGroupId) {
         tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, entityGroupId);
     }
 

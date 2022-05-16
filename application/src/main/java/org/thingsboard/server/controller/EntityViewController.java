@@ -169,7 +169,7 @@ public class EntityViewController extends BaseController {
                 futures.add(deleteLatestFromEntityView(existingEntityView, tsKeys, getCurrentUser()));
             }
 
-            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> entityViewService.saveEntityView(entityView1));
+            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, (eV) -> entityViewService.saveEntityView(eV));
             if (savedEntityView.getKeys() != null) {
                 if (savedEntityView.getKeys().getAttributes() != null) {
                     futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), getCurrentUser()));

@@ -79,8 +79,6 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         READ_ONLY_USER_PERMISSIONS.put(Resource.PROFILE, Arrays.asList(Operation.ALL));
     }
 
-    private static final List<Operation> NONE_PERMISSIONS = Arrays.asList();
-
     public static final Map<Resource, List<Operation>> PUBLIC_USER_PERMISSIONS = new HashMap<>();
     static {
         PUBLIC_USER_PERMISSIONS.put(Resource.DASHBOARD, Arrays.asList(
