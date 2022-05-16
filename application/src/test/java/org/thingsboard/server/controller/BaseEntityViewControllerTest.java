@@ -512,7 +512,10 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         return loadedItems;
     }
 
-    @Ignore // CE specific test
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    // CE specific test
+    @Ignore
     @Test
     public void testAssignEntityViewToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");

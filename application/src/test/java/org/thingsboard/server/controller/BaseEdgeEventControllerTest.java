@@ -36,6 +36,7 @@ import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.Device;
@@ -99,12 +100,10 @@ public abstract class BaseEdgeEventControllerTest extends AbstractControllerTest
                 .andExpect(status().isOk());
     }
 
-    @Test
-    public void dummyTest() {}
-
     // @voba - merge comment
-    // edge assign functionality only in CE/PE
-    // @Test
+    // edge entities support available in CE/PE
+    @Ignore
+    @Test
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
