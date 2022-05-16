@@ -18,6 +18,7 @@ package org.thingsboard.server.edge.sql;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.edge.BaseEdgeTest;
 
-@DaoSqlTest
+// edge functionality tested only in CE/PE
+// @DaoSqlTest
 public class EdgeSqlTest extends BaseEdgeTest {
 }
