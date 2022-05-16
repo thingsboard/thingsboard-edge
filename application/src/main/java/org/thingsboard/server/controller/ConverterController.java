@@ -168,9 +168,11 @@ public class ConverterController extends BaseController {
                     null,
                     converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            /* merge comment
             if (converter.isEdgeTemplate() && !created) {
                 sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
             }
+             */
 
             return result;
         } catch (Exception e) {

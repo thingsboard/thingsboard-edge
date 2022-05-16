@@ -178,9 +178,12 @@ public class IntegrationController extends BaseController {
 
             logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
 
+            /* merge comment
             if (result.isEdgeTemplate() && !created) {
                 sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
             }
+             */
+
 
             return result;
         } catch (TimeoutException e) {
@@ -263,9 +266,11 @@ public class IntegrationController extends BaseController {
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
 
             List<EdgeId> relatedEdgeIds = null;
+            /* merge comment
             if (integration.isEdgeTemplate()) {
                 relatedEdgeIds = findRelatedEdgeIds(getTenantId(), integrationId);
             }
+             */
 
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
@@ -276,10 +281,11 @@ public class IntegrationController extends BaseController {
             logEntityAction(integrationId, integration,
                     null,
                     ActionType.DELETED, null, strIntegrationId);
-
+            /* merge comment
             if (integration.isEdgeTemplate()) {
                 sendDeleteNotificationMsg(integration.getTenantId(), integrationId, relatedEdgeIds);
             }
+             */
 
         } catch (Exception e) {
 
@@ -357,7 +363,9 @@ public class IntegrationController extends BaseController {
                     null,
                     ActionType.ASSIGNED_TO_EDGE, null, strIntegrationId, strEdgeId, edge.getName());
 
+            /* merge comment
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
+             */
 
             return savedIntegration;
         } catch (Exception e) {
@@ -395,7 +403,9 @@ public class IntegrationController extends BaseController {
                     null,
                     ActionType.UNASSIGNED_FROM_EDGE, null, strIntegrationId, strEdgeId, edge.getName());
 
+            /* merge comment
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
+             */
 
             return savedIntegration;
         } catch (Exception e) {
