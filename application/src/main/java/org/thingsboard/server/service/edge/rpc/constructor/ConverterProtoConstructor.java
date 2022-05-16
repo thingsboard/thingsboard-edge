@@ -47,6 +47,7 @@ public class ConverterProtoConstructor {
                 .setIdMSB(converter.getId().getId().getMostSignificantBits())
                 .setIdLSB(converter.getId().getId().getLeastSignificantBits())
                 .setName(converter.getName())
+                .setType(converter.getType().name())
                 .setDebugMode(converter.isDebugMode())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
                 .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
