@@ -118,6 +118,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    public void dummyTest() {}
+
     // @voba - merge comment
     // edge assign functionality only in CE/PE 
     // @Test
