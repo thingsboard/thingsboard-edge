@@ -103,6 +103,7 @@ export class ImageMap extends LeafletMap {
       const imageUrlSubscriptionOptions: WidgetSubscriptionOptions = {
         datasources,
         hasDataPageLink: true,
+        singleEntity: true,
         useDashboardTimewindow: false,
         type: widgetType.latest,
         callbacks: {
