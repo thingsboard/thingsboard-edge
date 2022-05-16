@@ -72,8 +72,15 @@ public class BaseConverterService extends AbstractEntityService implements Conve
 
     @Override
     public Converter saveConverter(Converter converter) {
+        return saveConverter(converter, true);
+    }
+
+    @Override
+    public Converter saveConverter(Converter converter, boolean doValidate) {
         log.trace("Executing saveConverter [{}]", converter);
-        converterValidator.validate(converter, Converter::getTenantId);
+        if (doValidate) {
+            converterValidator.validate(converter, Converter::getTenantId);
+        }
         return converterDao.save(converter.getTenantId(), converter);
     }
 

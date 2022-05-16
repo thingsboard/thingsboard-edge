@@ -40,6 +40,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
@@ -56,9 +57,12 @@ import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -66,11 +70,14 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
@@ -99,6 +106,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
@@ -299,6 +308,12 @@ public class EdgeClientTest extends AbstractContainerTest {
             case USER:
                 assertUsers(entityIds);
                 break;
+            case CONVERTER:
+                assertConverters(entityIds);
+                break;
+            case INTEGRATION:
+                assertIntegrations(entityIds);
+                break;
         }
     }
 
@@ -457,6 +472,31 @@ public class EdgeClientTest extends AbstractContainerTest {
             Assert.assertEquals("Users on cloud and edge are different (except lastLoginTs)", expected, actual);
         }
     }
+
+    private void assertConverters(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            ConverterId converterId = new ConverterId(entityId.getId());
+            Optional<Converter> edgeConverter = edgeRestClient.getConverterById(converterId);
+            Optional<Converter> cloudConverter = restClient.getConverterById(converterId);
+            Converter expected = edgeConverter.get();
+            Converter actual = cloudConverter.get();
+            // permissions field is transient and not used in comparison
+            Assert.assertEquals("Converters on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertIntegrations(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            IntegrationId integrationId = new IntegrationId(entityId.getId());
+            Optional<Integration> edgeIntegration = edgeRestClient.getIntegrationById(integrationId);
+            Optional<Integration> cloudIntegration = restClient.getIntegrationById(integrationId);
+            Integration expected = edgeIntegration.get();
+            Integration actual = cloudIntegration.get();
+            // permissions field is transient and not used in comparison
+            Assert.assertEquals("Integrations on cloud and edge are different", expected, actual);
+        }
+    }
+
 
     private JsonNode cleanLastLoginTsFromAdditionalInfo(JsonNode additionalInfo) {
         if (additionalInfo != null && additionalInfo.has("lastLoginTs")) {
@@ -1318,6 +1358,127 @@ public class EdgeClientTest extends AbstractContainerTest {
                     JsonNode responseBody = rpcTwoWayRequest[0];
                     return "ok".equals(responseBody.get("result").textValue());
                 });
+    }
+
+    @Test
+    public void testIntegrations() throws Exception {
+        // TODO - add check for replacements of edge attributes
+        ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+                .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+        Converter converter = new Converter();
+        converter.setName("My converter");
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(converterConfiguration);
+        Converter savedConverter = restClient.saveConverter(converter);
+
+        Integration integration = new Integration();
+        integration.setName("Edge integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setDefaultConverterId(savedConverter.getId());
+        integration.setType(IntegrationType.HTTP);
+        ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        integrationConfiguration.putObject("metadata").put("key1", "val1");
+        integration.setConfiguration(integrationConfiguration);
+        integration.setEdgeTemplate(true);
+        Integration savedIntegration = restClient.saveIntegration(integration);
+
+        // TODO - add check for downlink converters
+
+        // 1
+        validateIntegrationAssignToEdge(savedIntegration);
+
+        // 2
+        // TODO - add check that integration started and device is able to send timeseries data
+
+        // 3
+        validateIntegrationConfigurationUpdate(savedIntegration);
+
+        // 4
+        validateIntegrationDefaultConverterUpdate(savedIntegration);
+
+        // 5
+        validateIntegrationUnassignFromEdge(savedIntegration);
+
+        // 6
+        validateRemoveOfIntegration(savedIntegration);
+    }
+
+    private void validateIntegrationAssignToEdge(Integration savedIntegration) {
+        restClient.assignIntegrationToEdge(edge.getId(), savedIntegration.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getIntegrations(new PageLink(100)).getTotalElements() == 1);
+
+        PageData<Converter> converters = edgeRestClient.getConverters(new PageLink(100));
+        assertEntitiesByIdsAndType(converters.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.CONVERTER);
+
+        PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
+        assertEntitiesByIdsAndType(integrations.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.INTEGRATION);
+    }
+
+    private void validateIntegrationConfigurationUpdate(Integration savedIntegration) {
+        ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        updatedIntegrationConfig.putObject("metadata").put("key2", "val2");
+        savedIntegration.setConfiguration(updatedIntegrationConfig);
+        restClient.saveIntegration(savedIntegration);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
+                    Integration integration = integrations.getData().get(0);
+                    return updatedIntegrationConfig.equals(integration.getConfiguration());
+                });
+
+        // TODO - add check that configuration was updated and device is able to send timeseries data using new integration configuration
+    }
+
+    private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) {
+        ObjectNode newConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
+                .put("decoder", "return {deviceName: 'Device B', deviceType: 'default'};");
+        Converter converter = new Converter();
+        converter.setName("My new converter");
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(newConverterConfiguration);
+        Converter newSavedConverter = restClient.saveConverter(converter);
+
+        savedIntegration.setDefaultConverterId(newSavedConverter.getId());
+        restClient.saveIntegration(savedIntegration);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
+                    Integration integration = integrations.getData().get(0);
+                    return newSavedConverter.getId().equals(integration.getDefaultConverterId());
+                });
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
+
+        // TODO - add check that configuration was updated and device is able to send timeseries data using new converter configuration
+    }
+
+    private void validateIntegrationUnassignFromEdge(Integration savedIntegration) {
+        restClient.unassignIntegrationFromEdge(edge.getId(), savedIntegration.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getIntegrations(new PageLink(100)).getTotalElements() == 0);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 0);
+    }
+
+    private void validateRemoveOfIntegration(Integration savedIntegration) {
+        restClient.deleteIntegration(savedIntegration.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getIntegrations(new PageLink(100), true).getTotalElements() == 0);
     }
 
     // Utility methods

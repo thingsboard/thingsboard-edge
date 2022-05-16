@@ -107,19 +107,23 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + groupPermissionProto.getMsgType()));
+                    String errMsg = "Unsupported msg type " + groupPermissionProto.getMsgType();
+                    log.error(errMsg);
+                    return Futures.immediateFailedFuture(new RuntimeException(errMsg));
             }
         } catch (Exception e) {
             if (e instanceof DataValidationException
                     && e.getMessage().contains("Group Permission is referencing to non-existent entity group!")) {
-                log.warn("Group Permission is referencing to non-existent entity group! This permission will be saved with an appropriate entity group on next messages [{}]", groupPermissionProto, e);
+                String errMsg = String.format("Group Permission is referencing to non-existent entity group! This permission will be saved with an appropriate entity group on next messages [%s]", groupPermissionProto);
+                log.warn(errMsg, e);
             } else if (e instanceof DataValidationException
                     && e.getMessage().contains("Group Permission is referencing to non-existent role!")) {
-                log.warn("Group Permission is referencing to non-existent role! This role will be saved with an appropriate entity group on next messages [{}]", groupPermissionProto, e);
+                String errMsg = String.format("Group Permission is referencing to non-existent role! This role will be saved with an appropriate entity group on next messages [%s]", groupPermissionProto);
+                log.warn(errMsg, e);
             } else {
-                log.error("Can't process groupPermissionProto [{}]", groupPermissionProto, e);
-                return Futures.immediateFailedFuture(new RuntimeException("Can't process groupPermissionProto " + groupPermissionProto, e));
+                String errMsg = String.format("Can't process groupPermissionProto [%s]", groupPermissionProto);
+                log.error(errMsg, e);
+                return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
             }
         }
         return Futures.immediateFuture(null);

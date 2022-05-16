@@ -46,6 +46,8 @@ import java.util.Optional;
 
 public interface IntegrationService {
 
+    Integration saveIntegration(Integration integration, boolean doValidate);
+    
     Integration saveIntegration(Integration integration);
 
     Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId);

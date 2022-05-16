@@ -47,6 +47,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -59,6 +60,7 @@ import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
+import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -71,6 +73,7 @@ import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
@@ -78,6 +81,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProc
 import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.IntegrationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
@@ -163,6 +167,12 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
 
     @Autowired
     private AdminSettingsCloudProcessor adminSettingsProcessor;
+
+    @Autowired
+    private ConverterCloudProcessor converterProcessor;
+
+    @Autowired
+    private IntegrationCloudProcessor integrationProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -334,6 +344,16 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             if (downlinkMsg.getGroupPermissionMsgCount() > 0) {
                 for (GroupPermissionProto groupPermissionProto : downlinkMsg.getGroupPermissionMsgList()) {
                     result.add(groupPermissionProcessor.processGroupPermissionMsgFromCloud(tenantId, groupPermissionProto));
+                }
+            }
+            if (downlinkMsg.getConverterMsgCount() > 0) {
+                for (ConverterUpdateMsg converterUpdateMsg : downlinkMsg.getConverterMsgList()) {
+                    result.add(converterProcessor.processConverterMsgFromCloud(tenantId, converterUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getIntegrationMsgCount() > 0) {
+                for (IntegrationUpdateMsg integrationUpdateMsg : downlinkMsg.getIntegrationMsgList()) {
+                    result.add(integrationProcessor.processIntegrationMsgFromCloud(tenantId, integrationUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());

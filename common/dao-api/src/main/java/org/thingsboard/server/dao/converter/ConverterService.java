@@ -41,6 +41,8 @@ import java.util.List;
 
 public interface ConverterService {
 
+    Converter saveConverter(Converter converter, boolean doValidate);
+
     Converter saveConverter(Converter converter);
 
     Converter findConverterById(TenantId tenantId, ConverterId converterId);

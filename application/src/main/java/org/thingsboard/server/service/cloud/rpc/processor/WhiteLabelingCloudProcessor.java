@@ -82,8 +82,9 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
                     break;
             }
         } catch (Exception e) {
-            log.error("Exception during updating custom translation", e);
-            return Futures.immediateFailedFuture(new RuntimeException("Exception during updating custom translation", e));
+            String errMsg = "Exception during updating custom translation";
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }
@@ -106,8 +107,9 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
                     break;
             }
         } catch (Exception e) {
-            log.error("Exception during updating login white labeling params", e);
-            return Futures.immediateFailedFuture(new RuntimeException("Exception during updating login white labeling params", e));
+            String errMsg = "Exception during updating login white labeling params";
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }
@@ -149,8 +151,9 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
                     break;
             }
         } catch (Exception e) {
-            log.error("Exception during updating white labeling params", e);
-            return Futures.immediateFailedFuture(new RuntimeException("Exception during updating white labeling params", e));
+            String errMsg = "Exception during updating white labeling params";
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }

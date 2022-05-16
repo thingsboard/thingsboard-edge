@@ -51,12 +51,14 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -195,6 +197,12 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected DataValidator<Role> roleValidator;
+
+    @Autowired
+    protected DataValidator<Converter> converterValidator;
+
+    @Autowired
+    protected DataValidator<Integration> integrationValidator;
 
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
         TimePageLink pageLink = new TimePageLink(100);

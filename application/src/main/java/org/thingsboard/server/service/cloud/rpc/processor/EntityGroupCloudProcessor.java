@@ -159,7 +159,8 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
 
                                 @Override
                                 public void onFailure(Throwable t) {
-                                    log.error("Can't find entity ids, entityGroupUpdateMsg [{}]", entityGroupUpdateMsg, t);
+                                    String errMsg = String.format("Can't find entity ids, entityGroupUpdateMsg [%s]", entityGroupUpdateMsg);
+                                    log.error(errMsg, t);
                                 }
                             }, dbCallbackExecutor);
                         }
@@ -167,13 +168,15 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
 
                     @Override
                     public void onFailure(Throwable t) {
-                        log.error("Can't delete entity group by id, entityGroupUpdateMsg [{}]", entityGroupUpdateMsg, t);
+                        String errMsg = String.format("Can't delete entity group by id, entityGroupUpdateMsg [%s]", entityGroupUpdateMsg);
+                        log.error(errMsg, t);
                     }
                 }, dbCallbackExecutor);
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + entityGroupUpdateMsg.getMsgType()));
+                String errMsg = "Unsupported msg type " + entityGroupUpdateMsg.getMsgType();
+                log.error(errMsg);
+                return Futures.immediateFailedFuture(new RuntimeException(errMsg));
         }
 
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||

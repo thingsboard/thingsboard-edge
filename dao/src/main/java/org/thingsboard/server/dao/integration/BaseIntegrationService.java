@@ -87,8 +87,15 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
 
     @Override
     public Integration saveIntegration(Integration integration) {
+        return saveIntegration(integration, true);
+    }
+
+    @Override
+    public Integration saveIntegration(Integration integration, boolean doValidate) {
         log.trace("Executing saveIntegration [{}]", integration);
-        integrationValidator.validate(integration, Integration::getTenantId);
+        if (doValidate) {
+            integrationValidator.validate(integration, Integration::getTenantId);
+        }
         var result = integrationDao.save(integration.getTenantId(), integration);
         publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
         return result;

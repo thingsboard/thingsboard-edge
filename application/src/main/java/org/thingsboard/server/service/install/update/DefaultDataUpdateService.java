@@ -277,11 +277,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 if (fullSyncRequired) {
                     tenantsFullSyncRequiredUpdater.updateEntities(null);
                 }
+                break;
             case "3.4.0":
                 log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);
-                tenantIntegrationUpdater.updateEntities(null);
+//                tenantIntegrationUpdater.updateEntities(null);
                 //for 2.4.0
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {

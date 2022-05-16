@@ -74,10 +74,10 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    private Set<Operation> allowedEntityGroupOperations = new HashSet<>(Arrays.asList(Operation.READ,
+    private final Set<Operation> allowedEntityGroupOperations = new HashSet<>(Arrays.asList(Operation.READ,
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY));
 
-    private Set<Operation> allowedGenericOperations = new HashSet<>(Arrays.asList(Operation.READ,
+    private final Set<Operation> allowedGenericOperations = new HashSet<>(Arrays.asList(Operation.READ,
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
             Operation.READ_CREDENTIALS));
 
@@ -92,8 +92,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     if (role == null) {
                         role = new Role();
                         role.setCreatedTime(Uuids.unixTimestamp(roleId.getId()));
-                        TenantId roleTenantId = new TenantId(new UUID(roleProto.getTenantIdMSB(), roleProto.getTenantIdLSB()));
-                        role.setTenantId(roleTenantId);
+                        role.setTenantId(tenantId);
                         created = true;
                     }
                     role.setName(roleProto.getName());
@@ -128,12 +127,14 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + roleProto.getMsgType()));
+                    String errMsg = "Unsupported msg type " + roleProto.getMsgType();
+                    log.error(errMsg);
+                    return Futures.immediateFailedFuture(new RuntimeException(errMsg));
             }
         } catch (Exception e) {
-            log.error("Can't process roleProto [{}]", roleProto, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process roleProto " + roleProto, e));
+            String errMsg = String.format("Can't process roleProto [%s]", roleProto);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }
