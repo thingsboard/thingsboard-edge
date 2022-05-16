@@ -558,9 +558,10 @@ message ConverterUpdateMsg {
   int64 idMSB = 2;
   int64 idLSB = 3;
   string name = 4;
-  bool debugMode = 5;
-  string configuration = 6;
-  string additionalInfo = 7;
+  string type = 5;
+  bool debugMode = 6;
+  string configuration = 7;
+  string additionalInfo = 8;
 }
 
 message IntegrationUpdateMsg {
