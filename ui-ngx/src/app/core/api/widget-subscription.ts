@@ -114,6 +114,7 @@ export class WidgetSubscription implements IWidgetSubscription {
 
   hasDataPageLink: boolean;
   singleEntity: boolean;
+  pageSize: number;
   warnOnPageDataOverflow: boolean;
   ignoreDataUpdateOnIntervalTick: boolean;
 
@@ -246,6 +247,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.entityDataListeners = [];
       this.hasDataPageLink = options.hasDataPageLink;
       this.singleEntity = options.singleEntity;
+      this.pageSize = options.pageSize;
       this.warnOnPageDataOverflow = options.warnOnPageDataOverflow;
       this.ignoreDataUpdateOnIntervalTick = options.ignoreDataUpdateOnIntervalTick;
       this.datasourcePages = [];
@@ -404,7 +406,7 @@ export class WidgetSubscription implements IWidgetSubscription {
           }
         );
       } else {
-        this.ctx.aliasController.resolveDatasources(this.configuredDatasources, this.singleEntity).subscribe(
+        this.ctx.aliasController.resolveDatasources(this.configuredDatasources, this.singleEntity, this.pageSize).subscribe(
           (datasources) => {
             this.configuredDatasources = datasources;
             this.prepareDataSubscriptions().subscribe(
@@ -1149,7 +1151,7 @@ export class WidgetSubscription implements IWidgetSubscription {
         }
       );
     } else {
-      this.ctx.aliasController.resolveDatasources(this.configuredDatasources, this.singleEntity).subscribe(
+      this.ctx.aliasController.resolveDatasources(this.configuredDatasources, this.singleEntity, this.pageSize).subscribe(
         (datasources) => {
           this.configuredDatasources = datasources;
           this.prepareDataSubscriptions().subscribe(
@@ -1394,7 +1396,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       totalPages: pageData.totalPages
     };
     if (datasource.type === DatasourceType.entity &&
-        pageData.hasNext && pageLink.pageSize > 1) {
+        pageData.hasNext && !this.singleEntity) {
       if (this.warnOnPageDataOverflow) {
         const message = this.ctx.translate.instant('widget.data-overflow',
           {count: pageData.data.length, total: pageData.totalElements});

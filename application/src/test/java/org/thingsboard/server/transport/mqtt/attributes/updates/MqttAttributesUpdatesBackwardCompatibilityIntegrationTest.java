@@ -31,13 +31,16 @@
 package org.thingsboard.server.transport.mqtt.attributes.updates;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Test;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
 import org.thingsboard.server.transport.mqtt.attributes.AbstractMqttAttributesIntegrationTest;
+
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_ATTRIBUTES_SHORT_PROTO_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_ATTRIBUTES_SHORT_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_ATTRIBUTES_TOPIC;
 
 @Slf4j
 @DaoSqlTest
@@ -51,7 +54,7 @@ public class MqttAttributesUpdatesBackwardCompatibilityIntegrationTest extends A
                 .enableCompatibilityWithJsonPayloadFormat(true)
                 .build();
         processBeforeTest(configProperties);
-        processProtoTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
+        processProtoTestSubscribeToAttributesUpdates(DEVICE_ATTRIBUTES_TOPIC);
     }
 
     @Test
@@ -63,7 +66,7 @@ public class MqttAttributesUpdatesBackwardCompatibilityIntegrationTest extends A
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processJsonTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
+        processJsonTestSubscribeToAttributesUpdates(DEVICE_ATTRIBUTES_TOPIC);
     }
 
     @Test
@@ -75,7 +78,7 @@ public class MqttAttributesUpdatesBackwardCompatibilityIntegrationTest extends A
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processProtoTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_TOPIC);
+        processProtoTestSubscribeToAttributesUpdates(DEVICE_ATTRIBUTES_SHORT_TOPIC);
     }
 
     @Test
@@ -87,7 +90,7 @@ public class MqttAttributesUpdatesBackwardCompatibilityIntegrationTest extends A
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processJsonTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC);
+        processJsonTestSubscribeToAttributesUpdates(DEVICE_ATTRIBUTES_SHORT_JSON_TOPIC);
     }
 
     @Test
@@ -99,13 +102,12 @@ public class MqttAttributesUpdatesBackwardCompatibilityIntegrationTest extends A
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processProtoTestSubscribeToAttributesUpdates(MqttTopics.DEVICE_ATTRIBUTES_SHORT_PROTO_TOPIC);
+        processProtoTestSubscribeToAttributesUpdates(DEVICE_ATTRIBUTES_SHORT_PROTO_TOPIC);
     }
 
     @Test
     public void testProtoSubscribeToAttributesUpdatesFromTheServerGatewayWithEnabledJsonCompatibilityAndJsonDownlinks() throws Exception {
         MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
-                .deviceName("Test Subscribe to attribute updates")
                 .gatewayName("Gateway Test Subscribe to attribute updates")
                 .transportPayloadType(TransportPayloadType.PROTOBUF)
                 .enableCompatibilityWithJsonPayloadFormat(true)

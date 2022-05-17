@@ -31,12 +31,15 @@
 package org.thingsboard.server.transport.mqtt.rpc;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
 import org.junit.Test;
 import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.common.data.device.profile.MqttTopics;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_JSON_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC;
 
 @Slf4j
 @DaoSqlTest
@@ -52,7 +55,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         processBeforeTest(configProperties);
-        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
+        processOneWayRpcTest(DEVICE_RPC_REQUESTS_SUB_TOPIC);
     }
 
     @Test
@@ -65,7 +68,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
+        processOneWayRpcTest(DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
     }
 
     @Test
@@ -78,7 +81,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processOneWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC);
+        processOneWayRpcTest(DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC);
     }
 
     @Test
@@ -90,7 +93,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .enableCompatibilityWithJsonPayloadFormat(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processProtoTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
+        processProtoTwoWayRpcTest(DEVICE_RPC_REQUESTS_SUB_TOPIC);
     }
 
     @Test
@@ -103,7 +106,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processJsonTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_TOPIC);
+        processJsonTwoWayRpcTest(DEVICE_RPC_REQUESTS_SUB_TOPIC);
     }
 
     @Test
@@ -114,7 +117,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .rpcRequestProtoSchema(RPC_REQUEST_PROTO_SCHEMA)
                 .build();
         super.processBeforeTest(configProperties);
-        processProtoTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
+        processProtoTwoWayRpcTest(DEVICE_RPC_REQUESTS_SUB_SHORT_TOPIC);
     }
 
     @Test
@@ -127,7 +130,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processProtoTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC);
+        processProtoTwoWayRpcTest(DEVICE_RPC_REQUESTS_SUB_SHORT_PROTO_TOPIC);
     }
 
     @Test
@@ -140,7 +143,7 @@ public class MqttServerSideRpcBackwardCompatibilityIntegrationTest extends Abstr
                 .useJsonPayloadFormatForDefaultDownlinkTopics(true)
                 .build();
         super.processBeforeTest(configProperties);
-        processJsonTwoWayRpcTest(MqttTopics.DEVICE_RPC_REQUESTS_SUB_SHORT_JSON_TOPIC);
+        processJsonTwoWayRpcTest(DEVICE_RPC_REQUESTS_SUB_SHORT_JSON_TOPIC);
     }
 
     @Test

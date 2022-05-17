@@ -41,7 +41,7 @@ import {
   fillDataPattern,
   flatFormattedData,
   formattedDataFormDatasourceData,
-  hashCode,
+  hashCode, isDefinedAndNotNull,
   isNotEmptyStr,
   parseFunction, processDataPattern,
   safeExecute
@@ -98,9 +98,11 @@ export class MarkdownWidgetComponent extends PageComponent implements OnInit {
       cssParser.cssPreviewNamespace = this.markdownClass;
       cssParser.createStyleElement(this.markdownClass, cssString);
     }
+    const pageSize = isDefinedAndNotNull(this.ctx.widgetConfig.pageSize) &&
+                      this.ctx.widgetConfig.pageSize > 0 ? this.ctx.widgetConfig.pageSize : 16384;
     const pageLink: EntityDataPageLink = {
       page: 0,
-      pageSize: 16384,
+      pageSize,
       textSearch: null,
       dynamic: true
     };
