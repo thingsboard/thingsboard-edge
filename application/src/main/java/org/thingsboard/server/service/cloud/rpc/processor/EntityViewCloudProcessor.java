@@ -72,9 +72,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     entityView.setName(entityViewUpdateMsg.getName());
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
-                    if (entityViewUpdateMsg.hasAdditionalInfo()) {
-                        entityView.setAdditionalInfo(JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()));
-                    }
+                    entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
                     entityViewService.saveEntityView(entityView, false);
                 } finally {
                     entityViewCreationLock.unlock();

@@ -126,9 +126,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, device.getId());
                 deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(deviceCredentialsUpdateMsg.getCredentialsType()));
                 deviceCredentials.setCredentialsId(deviceCredentialsUpdateMsg.getCredentialsId());
-                if (deviceCredentialsUpdateMsg.hasCredentialsValue()) {
-                    deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.getCredentialsValue());
-                }
+                deviceCredentials.setCredentialsValue(deviceCredentialsUpdateMsg.hasCredentialsValue()
+                        ? deviceCredentialsUpdateMsg.getCredentialsValue() : null);
                 deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
             } catch (Exception e) {
                 log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]",
@@ -165,18 +164,16 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             }
             device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
-            if (deviceUpdateMsg.hasLabel()) {
-                device.setLabel(deviceUpdateMsg.getLabel());
-            }
+            device.setLabel(deviceUpdateMsg.hasLabel() ? deviceUpdateMsg.getLabel() : null);
             if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
                 DeviceProfileId deviceProfileId = new DeviceProfileId(
                         new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(),
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
+            } else {
+                device.setDeviceProfileId(null);
             }
-            if (deviceUpdateMsg.hasAdditionalInfo()) {
-                device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
-            }
+            device.setAdditionalInfo(deviceUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()) : null);
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();

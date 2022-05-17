@@ -54,12 +54,8 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                     }
                     asset.setName(assetUpdateMsg.getName());
                     asset.setType(assetUpdateMsg.getType());
-                    if (assetUpdateMsg.hasLabel()) {
-                        asset.setLabel(assetUpdateMsg.getLabel());
-                    }
-                    if (assetUpdateMsg.hasAdditionalInfo()) {
-                        asset.setAdditionalInfo(JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()));
-                    }
+                    asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
+                    asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
                     assetService.saveAsset(asset, false);
                 } finally {
                     assetCreationLock.unlock();

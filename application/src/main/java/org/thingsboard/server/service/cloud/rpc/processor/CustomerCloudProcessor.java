@@ -56,33 +56,15 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                         customer.setTenantId(tenantId);
                     }
                     customer.setTitle(customerUpdateMsg.getTitle());
-                    if (customerUpdateMsg.hasCountry()) {
-                        customer.setCountry(customerUpdateMsg.getCountry());
-                    }
-                    if (customerUpdateMsg.hasState()) {
-                        customer.setState(customerUpdateMsg.getState());
-                    }
-                    if (customerUpdateMsg.hasCity()) {
-                        customer.setCity(customerUpdateMsg.getCity());
-                    }
-                    if (customerUpdateMsg.hasAddress()) {
-                        customer.setAddress(customerUpdateMsg.getAddress());
-                    }
-                    if (customerUpdateMsg.hasAddress2()) {
-                        customer.setAddress2(customerUpdateMsg.getAddress2());
-                    }
-                    if (customerUpdateMsg.hasZip()) {
-                        customer.setZip(customerUpdateMsg.getZip());
-                    }
-                    if (customerUpdateMsg.hasPhone()) {
-                        customer.setPhone(customerUpdateMsg.getPhone());
-                    }
-                    if (customerUpdateMsg.hasEmail()) {
-                        customer.setEmail(customerUpdateMsg.getEmail());
-                    }
-                    if (customerUpdateMsg.hasAdditionalInfo()) {
-                        customer.setAdditionalInfo(JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()));
-                    }
+                    customer.setCountry(customerUpdateMsg.hasCountry() ? customerUpdateMsg.getCountry() : null);
+                    customer.setState(customerUpdateMsg.hasState() ? customerUpdateMsg.getState() : null);
+                    customer.setCity(customerUpdateMsg.hasCity() ? customerUpdateMsg.getCity() : null);
+                    customer.setAddress(customerUpdateMsg.hasAddress() ? customerUpdateMsg.getAddress() : null);
+                    customer.setAddress2(customerUpdateMsg.hasAddress2() ? customerUpdateMsg.getAddress2() : null);
+                    customer.setZip(customerUpdateMsg.hasZip() ? customerUpdateMsg.getZip() : null);
+                    customer.setPhone(customerUpdateMsg.hasPhone() ? customerUpdateMsg.getPhone() : null);
+                    customer.setEmail(customerUpdateMsg.hasEmail() ? customerUpdateMsg.getEmail() : null);
+                    customer.setAdditionalInfo(customerUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(customerUpdateMsg.getAdditionalInfo()) : null);
                     customerService.saveCustomer(customer, false);
                 } finally {
                     customerCreationLock.unlock();
