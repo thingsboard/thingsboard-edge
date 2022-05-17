@@ -37,16 +37,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -91,7 +95,9 @@ public class IntegrationCloudProcessor extends BaseCloudProcessor {
                         integration.setDownlinkConverterId(downlinkConverterId);
                     }
                     integration.setRoutingKey(integrationMsg.getRoutingKey());
-                    integration.setSecret(integrationMsg.getSecret());
+                    if (integrationMsg.hasSecret()) {
+                        integration.setSecret(integrationMsg.getSecret());
+                    }
 
                     integration.setConfiguration(JacksonUtil.toJsonNode(integrationMsg.getConfiguration()));
                     integration.setAdditionalInfo(JacksonUtil.toJsonNode(integrationMsg.getAdditionalInfo()));
@@ -108,7 +114,7 @@ public class IntegrationCloudProcessor extends BaseCloudProcessor {
                     tbClusterService.broadcastEntityStateChangeEvent(savedIntegration.getTenantId(), savedIntegration.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
-                    cleanUpUnusedConverters(tenantId, savedIntegration);
+                    cleanUpUnusedConverters(tenantId);
 
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
@@ -116,7 +122,7 @@ public class IntegrationCloudProcessor extends BaseCloudProcessor {
                     if (integrationById != null) {
                         integrationService.deleteIntegration(tenantId, integrationId);
                         tbClusterService.broadcastEntityStateChangeEvent(integrationById.getTenantId(), integrationById.getId(), ComponentLifecycleEvent.DELETED);
-                        cleanUpUnusedConverters(tenantId, integrationById);
+                        cleanUpUnusedConverters(tenantId);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -132,10 +138,19 @@ public class IntegrationCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private void cleanUpUnusedConverters(TenantId tenantId, Integration integration) {
-        cleanUpUnusedConverters(tenantId, integration.getDefaultConverterId());
-        if (integration.getDownlinkConverterId() != null) {
-            cleanUpUnusedConverters(tenantId, integration.getDownlinkConverterId());
+    private void cleanUpUnusedConverters(TenantId tenantId) {
+        List<Converter> tenantConverters = new ArrayList<>();
+        PageData<Converter> pageData;
+        PageLink pageLink = new PageLink(100);
+        do {
+            pageData = converterService.findTenantConverters(tenantId, pageLink);
+            tenantConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+        for (Converter tenantConverter : tenantConverters) {
+            cleanUpUnusedConverters(tenantId, tenantConverter.getId());
         }
     }
 

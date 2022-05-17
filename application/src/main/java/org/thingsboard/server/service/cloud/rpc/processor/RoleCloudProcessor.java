@@ -92,7 +92,9 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     if (role == null) {
                         role = new Role();
                         role.setCreatedTime(Uuids.unixTimestamp(roleId.getId()));
-                        role.setTenantId(tenantId);
+                        // role can be on sys level or tenant level
+                        TenantId roleTenantId = new TenantId(new UUID(roleProto.getTenantIdMSB(), roleProto.getTenantIdLSB()));
+                        role.setTenantId(roleTenantId);
                         created = true;
                     }
                     role.setName(roleProto.getName());

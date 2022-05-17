@@ -477,7 +477,6 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
       sections.push(
         {
@@ -502,6 +501,7 @@ export class MenuService {
         }
       );
     }
+    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
       sections.push(
         {
@@ -846,7 +846,6 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)) {
       homeSections.push(
         {
@@ -877,6 +876,7 @@ export class MenuService {
         }
       );
     }
+    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.ROLE)) {
       homeSections.push(
         {

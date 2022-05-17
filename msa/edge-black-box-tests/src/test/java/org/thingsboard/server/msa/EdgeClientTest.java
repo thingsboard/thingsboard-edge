@@ -480,7 +480,9 @@ public class EdgeClientTest extends AbstractContainerTest {
             Optional<Converter> cloudConverter = restClient.getConverterById(converterId);
             Converter expected = edgeConverter.get();
             Converter actual = cloudConverter.get();
-            // permissions field is transient and not used in comparison
+            Assert.assertEquals("Edge converter isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
+            Assert.assertEquals("Cloud converter isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
+            actual.setEdgeTemplate(false);
             Assert.assertEquals("Converters on cloud and edge are different", expected, actual);
         }
     }
@@ -492,7 +494,9 @@ public class EdgeClientTest extends AbstractContainerTest {
             Optional<Integration> cloudIntegration = restClient.getIntegrationById(integrationId);
             Integration expected = edgeIntegration.get();
             Integration actual = cloudIntegration.get();
-            // permissions field is transient and not used in comparison
+            Assert.assertEquals("Edge integration isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
+            Assert.assertEquals("Cloud integration isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
+            actual.setEdgeTemplate(false);
             Assert.assertEquals("Integrations on cloud and edge are different", expected, actual);
         }
     }
@@ -1369,6 +1373,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(converterConfiguration);
+        converter.setEdgeTemplate(true);
         Converter savedConverter = restClient.saveConverter(converter);
 
         Integration integration = new Integration();
