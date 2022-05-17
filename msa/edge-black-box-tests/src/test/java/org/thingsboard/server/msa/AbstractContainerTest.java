@@ -33,6 +33,7 @@ package org.thingsboard.server.msa;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -175,7 +177,7 @@ public abstract class AbstractContainerTest {
 
         for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
             Awaitility.await()
-                    .atMost(30, TimeUnit.SECONDS).
+                    .atMost(60, TimeUnit.SECONDS).
                     until(() -> {
                         List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                         List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
@@ -214,11 +216,13 @@ public abstract class AbstractContainerTest {
         return restClient.saveDeviceProfile(deviceProfile);
     }
 
-    private static void setWhiteLabelingAndCustomTranslation() {
+    private static void setWhiteLabelingAndCustomTranslation() throws JsonProcessingException {
         restClient.login("sysadmin@thingsboard.org", "sysadmin");
 
         CustomTranslation content = new CustomTranslation();
-        content.getTranslationMap().put("key", "sys_admin_value");
+        ObjectNode enUsSysAdmin = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        enUsSysAdmin.put("home.home", "SYS_ADMIN_HOME");
+        content.getTranslationMap().put("en_us", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsSysAdmin));
         restClient.saveCustomTranslation(content);
 
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
@@ -232,7 +236,9 @@ public abstract class AbstractContainerTest {
         restClient.login("tenant@thingsboard.org", "tenant");
 
         content = new CustomTranslation();
-        content.getTranslationMap().put("key", "tenant_value");
+        ObjectNode enUsTenant = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        enUsTenant.put("home.home", "TENANT_HOME");
+        content.getTranslationMap().put("en_us", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsTenant));
         restClient.saveCustomTranslation(content);
 
         whiteLabelingParams = new WhiteLabelingParams();

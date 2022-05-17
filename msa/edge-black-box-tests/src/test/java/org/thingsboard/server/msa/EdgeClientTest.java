@@ -221,11 +221,28 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
-                    Optional<CustomTranslation> edgeCustomTranslation = edgeRestClient.getCustomTranslation();
-                    Optional<CustomTranslation> cloudCustomTranslation = restClient.getCustomTranslation();
-                    return edgeCustomTranslation.isPresent() &&
-                            cloudCustomTranslation.isPresent() &&
-                            edgeCustomTranslation.get().equals(cloudCustomTranslation.get());
+                    Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCustomTranslation();
+                    Optional<CustomTranslation> cloudCustomTranslationOpt = restClient.getCustomTranslation();
+                    if (edgeCustomTranslationOpt.isEmpty() || cloudCustomTranslationOpt.isEmpty()) {
+                        return false;
+                    }
+                    CustomTranslation edgeCustomTranslation = edgeCustomTranslationOpt.get();
+                    if (edgeCustomTranslation.getTranslationMap().get("en_us") == null) {
+                        return false;
+                    }
+                    JsonNode enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(edgeCustomTranslation.getTranslationMap().get("en_us"));
+                    if (!"TENANT_HOME".equals(enUsNode.get("home.home").asText())) {
+                        return false;
+                    }
+                    CustomTranslation cloudCustomTranslation = cloudCustomTranslationOpt.get();
+                    if (cloudCustomTranslation.getTranslationMap().get("en_us") == null) {
+                        return false;
+                    }
+                    enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(cloudCustomTranslation.getTranslationMap().get("en_us"));
+                    if (!"TENANT_HOME".equals(enUsNode.get("home.home").asText())) {
+                        return false;
+                    }
+                    return edgeCustomTranslation.equals(cloudCustomTranslation);
                 });
     }
 
@@ -1446,6 +1463,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         converter.setName("My new converter");
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(newConverterConfiguration);
+        converter.setEdgeTemplate(true);
         Converter newSavedConverter = restClient.saveConverter(converter);
 
         savedIntegration.setDefaultConverterId(newSavedConverter.getId());
