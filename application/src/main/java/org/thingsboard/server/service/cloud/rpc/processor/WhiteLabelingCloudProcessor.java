@@ -118,20 +118,11 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         LoginWhiteLabelingParams loginWLP = new LoginWhiteLabelingParams();
         WhiteLabelingParams whiteLabelingParams = constructWhiteLabelingParams(loginWLPProto.getWhiteLabelingParams());
         loginWLP.merge(whiteLabelingParams);
-        if (loginWLPProto.hasPageBackgroundColor()) {
-            loginWLP.setPageBackgroundColor(loginWLPProto.getPageBackgroundColor());
-        }
+        loginWLP.setPageBackgroundColor(loginWLPProto.hasPageBackgroundColor() ? loginWLPProto.getPageBackgroundColor() : null);
         loginWLP.setDarkForeground(loginWLPProto.getDarkForeground());
-        if (loginWLPProto.hasDomainName()) {
-            loginWLP.setDomainName(loginWLPProto.getDomainName());
-        }
-        if (loginWLPProto.hasAdminSettingsId()) {
-            loginWLP.setAdminSettingsId(loginWLPProto.getAdminSettingsId());
-        }
-        if (loginWLPProto.hasShowNameBottom()) {
-            loginWLP.setShowNameBottom(loginWLPProto.getShowNameBottom());
-        }
-
+        loginWLP.setDomainName(loginWLPProto.hasDomainName() ? loginWLPProto.getDomainName() : null);
+        loginWLP.setAdminSettingsId(loginWLPProto.hasAdminSettingsId() ? loginWLPProto.getAdminSettingsId() : null);
+        loginWLP.setShowNameBottom(loginWLPProto.hasShowNameBottom() ? loginWLPProto.getShowNameBottom() : null);
         return loginWLP;
     }
 
@@ -160,38 +151,18 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
 
     private WhiteLabelingParams constructWhiteLabelingParams(WhiteLabelingParamsProto whiteLabelingParamsProto) {
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        if (whiteLabelingParamsProto.hasLogoImageUrl()) {
-            whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.getLogoImageUrl());
-        }
-        if (whiteLabelingParamsProto.hasLogoImageChecksum()) {
-            whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.getLogoImageChecksum());
-        }
-        if (whiteLabelingParamsProto.hasLogoImageHeight()) {
-            whiteLabelingParams.setLogoImageHeight((int) whiteLabelingParamsProto.getLogoImageHeight());
-        }
-        if (whiteLabelingParamsProto.hasAppTitle()) {
-            whiteLabelingParams.setAppTitle(whiteLabelingParamsProto.getAppTitle());
-        }
+        whiteLabelingParams.setLogoImageUrl(whiteLabelingParamsProto.hasLogoImageUrl() ? whiteLabelingParamsProto.getLogoImageUrl() : null);
+        whiteLabelingParams.setLogoImageChecksum(whiteLabelingParamsProto.hasLogoImageChecksum() ? whiteLabelingParamsProto.getLogoImageChecksum() : null);
+        whiteLabelingParams.setLogoImageHeight(whiteLabelingParamsProto.hasLogoImageHeight() ? (int) whiteLabelingParamsProto.getLogoImageHeight() : null);
+        whiteLabelingParams.setAppTitle(whiteLabelingParamsProto.hasAppTitle() ? whiteLabelingParamsProto.getAppTitle() : null);
         whiteLabelingParams.setFavicon(constructFavicon(whiteLabelingParamsProto.getFavicon()));
-        if (whiteLabelingParamsProto.hasFaviconChecksum()) {
-            whiteLabelingParams.setFaviconChecksum(whiteLabelingParamsProto.getFaviconChecksum());
-        }
+        whiteLabelingParams.setFaviconChecksum(whiteLabelingParamsProto.hasFaviconChecksum() ? whiteLabelingParamsProto.getFaviconChecksum() : null);
         whiteLabelingParams.setPaletteSettings(constructPaletteSettings(whiteLabelingParamsProto.getPaletteSettings()));
-        if (whiteLabelingParamsProto.hasHelpLinkBaseUrl()) {
-            whiteLabelingParams.setHelpLinkBaseUrl(whiteLabelingParamsProto.getHelpLinkBaseUrl());
-        }
-        if (whiteLabelingParamsProto.hasEnableHelpLinks()) {
-            whiteLabelingParams.setEnableHelpLinks(whiteLabelingParamsProto.getEnableHelpLinks());
-        }
-        if (whiteLabelingParamsProto.hasShowNameVersion()) {
-            whiteLabelingParams.setShowNameVersion(whiteLabelingParamsProto.getShowNameVersion());
-        }
-        if (whiteLabelingParamsProto.hasPlatformName()) {
-            whiteLabelingParams.setPlatformName(whiteLabelingParamsProto.getPlatformName());
-        }
-        if (whiteLabelingParamsProto.hasPlatformVersion()) {
-            whiteLabelingParams.setPlatformVersion(whiteLabelingParamsProto.getPlatformVersion());
-        }
+        whiteLabelingParams.setHelpLinkBaseUrl(whiteLabelingParamsProto.hasHelpLinkBaseUrl() ? whiteLabelingParamsProto.getHelpLinkBaseUrl() : null);
+        whiteLabelingParams.setEnableHelpLinks(whiteLabelingParamsProto.hasEnableHelpLinks() ? whiteLabelingParamsProto.getEnableHelpLinks() : null);
+        whiteLabelingParams.setShowNameVersion(whiteLabelingParamsProto.hasShowNameVersion() ? whiteLabelingParamsProto.getShowNameVersion() : null);
+        whiteLabelingParams.setPlatformName(whiteLabelingParamsProto.hasPlatformName() ? whiteLabelingParamsProto.getPlatformName() : null);
+        whiteLabelingParams.setPlatformVersion(whiteLabelingParamsProto.hasPlatformVersion() ? whiteLabelingParamsProto.getPlatformVersion() : null);
         return whiteLabelingParams;
     }
 
@@ -200,12 +171,8 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
             return null;
         }
         Favicon favicon = new Favicon();
-        if (faviconProto.hasUrl()) {
-            favicon.setUrl(faviconProto.getUrl());
-        }
-        if (faviconProto.hasType()) {
-            favicon.setType(faviconProto.getType());
-        }
+        favicon.setUrl(faviconProto.hasUrl() ? faviconProto.getUrl() : null);
+        favicon.setType(faviconProto.hasType() ? faviconProto.getType() : null);
         return favicon;
     }
 
@@ -228,15 +195,9 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
             return null;
         }
         Palette palette = new Palette();
-        if (paletteProto.hasType()) {
-            palette.setType(paletteProto.getType());
-        }
-        if (paletteProto.hasExtendsPalette()) {
-            palette.setExtendsPalette(paletteProto.getExtendsPalette());
-        }
-        if (!paletteProto.getColorsMap().isEmpty()) {
-            palette.setColors(paletteProto.getColorsMap());
-        }
+        palette.setType(paletteProto.hasType() ? paletteProto.getType() : null);
+        palette.setExtendsPalette(paletteProto.hasExtendsPalette() ? paletteProto.getExtendsPalette() : null);
+        palette.setColors(!paletteProto.getColorsMap().isEmpty() ? paletteProto.getColorsMap() : null);
         return palette;
     }
 }

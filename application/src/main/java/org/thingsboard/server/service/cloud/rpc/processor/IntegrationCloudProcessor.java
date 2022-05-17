@@ -93,11 +93,11 @@ public class IntegrationCloudProcessor extends BaseCloudProcessor {
                         ConverterId downlinkConverterId =
                                 new ConverterId(new UUID(integrationMsg.getDownlinkConverterIdMSB(), integrationMsg.getDownlinkConverterIdLSB()));
                         integration.setDownlinkConverterId(downlinkConverterId);
+                    } else {
+                        integration.setDownlinkConverterId(null);
                     }
                     integration.setRoutingKey(integrationMsg.getRoutingKey());
-                    if (integrationMsg.hasSecret()) {
-                        integration.setSecret(integrationMsg.getSecret());
-                    }
+                    integration.setSecret(integrationMsg.hasSecret() ? integrationMsg.getSecret() : null);
 
                     integration.setConfiguration(JacksonUtil.toJsonNode(integrationMsg.getConfiguration()));
                     integration.setAdditionalInfo(JacksonUtil.toJsonNode(integrationMsg.getAdditionalInfo()));

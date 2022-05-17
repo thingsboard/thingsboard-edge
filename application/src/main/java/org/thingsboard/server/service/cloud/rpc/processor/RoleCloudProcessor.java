@@ -108,6 +108,8 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                         UUID customerUUID = safeGetUUID(roleProto.getCustomerIdMSB(),
                                 roleProto.getCustomerIdLSB());
                         role.setCustomerId(new CustomerId(customerUUID));
+                    } else {
+                        role.setCustomerId(null);
                     }
 
                     if (created) {
