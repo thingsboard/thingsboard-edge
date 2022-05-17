@@ -94,26 +94,19 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                         }
                     }
                     deviceProfile.setName(deviceProfileName);
-                    if (deviceProfileUpdateMsg.hasDescription()) {
-                        deviceProfile.setDescription(deviceProfileUpdateMsg.getDescription());
-                    }
+                    deviceProfile.setDescription(deviceProfileUpdateMsg.hasDescription() ? deviceProfileUpdateMsg.getDescription() : null);
                     deviceProfile.setDefault(deviceProfileUpdateMsg.getDefault());
                     deviceProfile.setType(DeviceProfileType.valueOf(deviceProfileUpdateMsg.getType()));
-                    if (deviceProfileUpdateMsg.hasTransportType()) {
-                        deviceProfile.setTransportType(DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()));
-                    }
-                    if (deviceProfileUpdateMsg.hasImage()) {
-                        deviceProfile.setImage(new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8));
-                    }
-                    if (deviceProfileUpdateMsg.hasProvisionType()) {
-                        deviceProfile.setProvisionType(DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()));
-                    }
+                    deviceProfile.setTransportType(deviceProfileUpdateMsg.hasTransportType()
+                            ? DeviceTransportType.valueOf(deviceProfileUpdateMsg.getTransportType()) : DeviceTransportType.DEFAULT);
+                    deviceProfile.setImage(deviceProfileUpdateMsg.hasImage()
+                            ? new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
+                    deviceProfile.setProvisionType(deviceProfileUpdateMsg.hasProvisionType()
+                            ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
                     String defaultQueueName = StringUtils.isBlank(deviceProfileUpdateMsg.getDefaultQueueName())
                             ? null : deviceProfileUpdateMsg.getDefaultQueueName();
                     deviceProfile.setDefaultQueueName(defaultQueueName);
-                    if (deviceProfileUpdateMsg.hasProvisionDeviceKey()) {
-                        deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.getProvisionDeviceKey());
-                    }
+                    deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey() ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
                     if (profileDataOpt.isPresent()) {

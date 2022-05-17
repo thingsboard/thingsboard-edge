@@ -66,24 +66,12 @@ public class WidgetTypeCloudProcessor extends BaseCloudProcessor {
                         widgetTypeDetails.setId(widgetTypeId);
                         widgetTypeDetails.setCreatedTime(Uuids.unixTimestamp(widgetTypeId.getId()));
                     }
-                    if (widgetTypeUpdateMsg.hasBundleAlias()) {
-                        widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.getBundleAlias());
-                    }
-                    if (widgetTypeUpdateMsg.hasAlias()) {
-                        widgetTypeDetails.setAlias(widgetTypeUpdateMsg.getAlias());
-                    }
-                    if (widgetTypeUpdateMsg.hasName()) {
-                        widgetTypeDetails.setName(widgetTypeUpdateMsg.getName());
-                    }
-                    if (widgetTypeUpdateMsg.hasDescriptorJson()) {
-                        widgetTypeDetails.setDescriptor(JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()));
-                    }
-                    if (widgetTypeUpdateMsg.hasImage()) {
-                        widgetTypeDetails.setImage(widgetTypeUpdateMsg.getImage());
-                    }
-                    if (widgetTypeUpdateMsg.hasDescription()) {
-                        widgetTypeDetails.setDescription(widgetTypeUpdateMsg.getDescription());
-                    }
+                    widgetTypeDetails.setBundleAlias(widgetTypeUpdateMsg.hasBundleAlias() ? widgetTypeUpdateMsg.getBundleAlias() : null);
+                    widgetTypeDetails.setAlias(widgetTypeUpdateMsg.hasAlias() ? widgetTypeUpdateMsg.getAlias() : null);
+                    widgetTypeDetails.setName(widgetTypeUpdateMsg.hasName() ? widgetTypeUpdateMsg.getName() : null);
+                    widgetTypeDetails.setDescriptor(widgetTypeUpdateMsg.hasDescriptorJson() ? JacksonUtil.toJsonNode(widgetTypeUpdateMsg.getDescriptorJson()) : null);
+                    widgetTypeDetails.setImage(widgetTypeUpdateMsg.hasImage() ? widgetTypeUpdateMsg.getImage() : null);
+                    widgetTypeDetails.setDescription(widgetTypeUpdateMsg.hasDescription() ? widgetTypeUpdateMsg.getDescription() : null);
                     widgetTypeService.saveWidgetType(widgetTypeDetails, false);
                 } finally {
                     widgetCreationLock.unlock();

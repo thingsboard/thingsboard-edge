@@ -87,15 +87,9 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                     }
                     user.setEmail(userUpdateMsg.getEmail());
                     user.setAuthority(Authority.valueOf(userUpdateMsg.getAuthority()));
-                    if (userUpdateMsg.hasFirstName()) {
-                        user.setFirstName(userUpdateMsg.getFirstName());
-                    }
-                    if (userUpdateMsg.hasLastName()) {
-                        user.setLastName(userUpdateMsg.getLastName());
-                    }
-                    if (userUpdateMsg.hasAdditionalInfo()) {
-                        user.setAdditionalInfo(JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()));
-                    }
+                    user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
+                    user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
+                    user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
                     safeSetCustomerId(userUpdateMsg, user);
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
