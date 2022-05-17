@@ -333,9 +333,17 @@
           </mat-expansion-panel-header>
           <ng-template matExpansionPanelContent>
             <mat-slide-toggle formControlName="enableDataExport"
-                          [fxShow]="widgetType !== widgetTypes.rpc">
+                          [fxShow]="widgetType !== widgetTypes.rpc" style="margin-bottom: 8px;">
               {{ 'widget-config.enable-data-export' | translate }}
             </mat-slide-toggle>
+            <div fxLayout="row" *ngIf="widgetType !== widgetTypes.rpc &&
+                                    widgetType !== widgetTypes.alarm &&
+                                    modelValue?.isDataEnabled && !modelValue?.typeParameters?.singleEntity">
+              <mat-form-field fxFlex>
+                <mat-label translate>widget-config.data-page-size</mat-label>
+                <input matInput formControlName="pageSize" type="number" min="1" step="1">
+              </mat-form-field>
+            </div>
             <div fxLayout.xs="column" fxLayout="row" fxLayoutGap="8px">
               <mat-form-field fxFlex>
                 <mat-label translate>widget-config.units</mat-label>

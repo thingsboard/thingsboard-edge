@@ -232,6 +232,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
       widgetStyle: [null, []],
       widgetCss: [null, []],
       titleStyle: [null, []],
+      pageSize: [1024, [Validators.min(1), Validators.pattern(/^\d*$/)]],
       units: [null, []],
       decimals: [null, [Validators.min(0), Validators.max(15), Validators.pattern(/^\d*$/)]],
       noDataDisplayMessage: [null, []],
@@ -440,6 +441,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
               fontSize: '16px',
               fontWeight: 400
             },
+            pageSize: isDefined(config.pageSize) ? config.pageSize : 1024,
             units: config.units,
             decimals: config.decimals,
             noDataDisplayMessage: isDefined(config.noDataDisplayMessage) ? config.noDataDisplayMessage : '',

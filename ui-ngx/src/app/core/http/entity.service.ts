@@ -1747,7 +1747,8 @@ export class EntityService {
         pageLink = deepClone(singleEntityDataPageLink);
       } else {
         nameFilter = subscriptionInfo.entityNamePrefix;
-        pageLink = deepClone(defaultEntityDataPageLink);
+        const pageSize = isDefinedAndNotNull(subscriptionInfo.pageSize) && subscriptionInfo.pageSize > 0 ? subscriptionInfo.pageSize : 1024;
+        pageLink = createDefaultEntityDataPageLink(pageSize);
       }
       datasource.entityFilter = {
         type: AliasFilterType.entityName,
@@ -1761,7 +1762,8 @@ export class EntityService {
         entityType: subscriptionInfo.entityType,
         entityList: subscriptionInfo.entityIds
       };
-      datasource.pageLink = deepClone(defaultEntityDataPageLink);
+      const pageSize = isDefinedAndNotNull(subscriptionInfo.pageSize) && subscriptionInfo.pageSize > 0 ? subscriptionInfo.pageSize : 1024;
+      datasource.pageLink = createDefaultEntityDataPageLink(pageSize);
     }
   }
 
