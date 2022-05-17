@@ -31,15 +31,15 @@
 package org.thingsboard.server.transport.mqtt.telemetry.timeseries;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.TransportPayloadType;
+import org.thingsboard.server.transport.mqtt.MqttTestCallback;
+import org.thingsboard.server.transport.mqtt.MqttTestClient;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertFalse;
@@ -136,13 +136,14 @@ public abstract class AbstractMqttTimeseriesJsonIntegrationTest extends Abstract
                 .sendAckOnValidationException(true)
                 .build();
         processBeforeTest(configProperties);
-        CountDownLatch latch = new CountDownLatch(1);
-        MqttAsyncClient client = getMqttAsyncClient(accessToken);
-        TestMqttPublishCallback callback = new TestMqttPublishCallback(latch);
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(accessToken);
+        MqttTestCallback callback = new MqttTestCallback();
         client.setCallback(callback);
-        publishMqttMsg(client, MALFORMED_JSON_PAYLOAD.getBytes(), POST_DATA_TELEMETRY_TOPIC);
-        latch.await(3, TimeUnit.SECONDS);
+        client.publish(POST_DATA_TELEMETRY_TOPIC, MALFORMED_JSON_PAYLOAD.getBytes());
+        callback.getDeliveryLatch().await(3, TimeUnit.SECONDS);
         assertTrue(callback.isPubAckReceived());
+        client.disconnect();
     }
 
     @Test
@@ -153,12 +154,12 @@ public abstract class AbstractMqttTimeseriesJsonIntegrationTest extends Abstract
                 .telemetryTopicFilter(POST_DATA_TELEMETRY_TOPIC)
                 .build();
         processBeforeTest(configProperties);
-        CountDownLatch latch = new CountDownLatch(1);
-        MqttAsyncClient client = getMqttAsyncClient(accessToken);
-        TestMqttPublishCallback callback = new TestMqttPublishCallback(latch);
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(accessToken);
+        MqttTestCallback callback = new MqttTestCallback();
         client.setCallback(callback);
-        publishMqttMsg(client, MALFORMED_JSON_PAYLOAD.getBytes(), POST_DATA_TELEMETRY_TOPIC);
-        latch.await(3, TimeUnit.SECONDS);
+        client.publish(POST_DATA_TELEMETRY_TOPIC, MALFORMED_JSON_PAYLOAD.getBytes());
+        callback.getDeliveryLatch().await(3, TimeUnit.SECONDS);
         assertFalse(callback.isPubAckReceived());
     }
 
@@ -172,13 +173,14 @@ public abstract class AbstractMqttTimeseriesJsonIntegrationTest extends Abstract
                 .sendAckOnValidationException(true)
                 .build();
         processBeforeTest(configProperties);
-        CountDownLatch latch = new CountDownLatch(1);
-        MqttAsyncClient client = getMqttAsyncClient(gatewayAccessToken);
-        TestMqttPublishCallback callback = new TestMqttPublishCallback(latch);
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(gatewayAccessToken);
+        MqttTestCallback callback = new MqttTestCallback();
         client.setCallback(callback);
-        publishMqttMsg(client, MALFORMED_JSON_PAYLOAD.getBytes(), POST_DATA_TELEMETRY_TOPIC);
-        latch.await(3, TimeUnit.SECONDS);
+        client.publish(POST_DATA_TELEMETRY_TOPIC, MALFORMED_JSON_PAYLOAD.getBytes());
+        callback.getDeliveryLatch().await(3, TimeUnit.SECONDS);
         assertTrue(callback.isPubAckReceived());
+        client.disconnect();
     }
 
     @Test
@@ -190,12 +192,12 @@ public abstract class AbstractMqttTimeseriesJsonIntegrationTest extends Abstract
                 .telemetryTopicFilter(POST_DATA_TELEMETRY_TOPIC)
                 .build();
         processBeforeTest(configProperties);
-        CountDownLatch latch = new CountDownLatch(1);
-        MqttAsyncClient client = getMqttAsyncClient(gatewayAccessToken);
-        TestMqttPublishCallback callback = new TestMqttPublishCallback(latch);
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(gatewayAccessToken);
+        MqttTestCallback callback = new MqttTestCallback();
         client.setCallback(callback);
-        publishMqttMsg(client, MALFORMED_JSON_PAYLOAD.getBytes(), POST_DATA_TELEMETRY_TOPIC);
-        latch.await(3, TimeUnit.SECONDS);
+        client.publish(POST_DATA_TELEMETRY_TOPIC, MALFORMED_JSON_PAYLOAD.getBytes());
+        callback.getDeliveryLatch().await(3, TimeUnit.SECONDS);
         assertFalse(callback.isPubAckReceived());
     }
 
