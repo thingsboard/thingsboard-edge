@@ -569,8 +569,8 @@ message IntegrationUpdateMsg {
   int64 idMSB = 2;
   int64 idLSB = 3;
   string name = 4;
-  optional int64 defaultConverterIdMSB = 5;
-  optional int64 defaultConverterIdLSB = 6;
+  int64 defaultConverterIdMSB = 5;
+  int64 defaultConverterIdLSB = 6;
   optional int64 downlinkConverterIdMSB = 7;
   optional int64 downlinkConverterIdLSB = 8;
   string routingKey = 9;
@@ -579,7 +579,7 @@ message IntegrationUpdateMsg {
   bool enabled = 12;
   bool remote = 13;
   bool allowCreateDevicesOrAssets = 14;
-  string secret = 15;
+  optional string secret = 15;
   string configuration = 16;
   string additionalInfo = 17;
 }
