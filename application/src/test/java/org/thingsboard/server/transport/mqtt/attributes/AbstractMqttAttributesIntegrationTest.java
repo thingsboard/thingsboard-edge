@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
+import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.gen.transport.TransportApiProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.telemetry.cmd.v2.EntityDataUpdate;
@@ -334,7 +335,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
     protected void processJsonTestRequestAttributesValuesFromTheServer(String attrPubTopic, String attrSubTopic, String attrReqTopicPrefix) throws Exception {
         MqttTestClient client = new MqttTestClient();
         client.connectAndWait(accessToken);
-        DeviceTypeFilter dtf = new DeviceTypeFilter(savedDevice.getType(), savedDevice.getName());
+        SingleEntityFilter dtf = new SingleEntityFilter();
+        dtf.setSingleEntity(savedDevice.getId());
         String clientKeysStr = "clientStr,clientBool,clientDbl,clientLong,clientJson";
         String sharedKeysStr = "sharedStr,sharedBool,sharedDbl,sharedLong,sharedJson";
         List<String> clientKeysList = List.of(clientKeysStr.split(","));
@@ -404,7 +406,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 100);
         assertNotNull(device);
 
-        DeviceTypeFilter dtf = new DeviceTypeFilter(device.getType(), device.getName());
+        SingleEntityFilter dtf = new SingleEntityFilter();
+        dtf.setSingleEntity(device.getId());
         String clientKeysStr = "clientStr,clientBool,clientDbl,clientLong,clientJson";
         String sharedKeysStr = "sharedStr,sharedBool,sharedDbl,sharedLong,sharedJson";
         List<String> clientKeysList = List.of(clientKeysStr.split(","));
@@ -458,7 +461,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 100);
         assertNotNull(device);
 
-        DeviceTypeFilter dtf = new DeviceTypeFilter(device.getType(), device.getName());
+        SingleEntityFilter dtf = new SingleEntityFilter();
+        dtf.setSingleEntity(device.getId());
         String sharedKeysStr = "sharedStr,sharedBool,sharedDbl,sharedLong,sharedJson";
         List<String> sharedKeysList = List.of(sharedKeysStr.split(","));
         List<EntityKey> csKeys = getEntityKeys(clientKeysList, CLIENT_ATTRIBUTE);
@@ -584,7 +588,7 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         assertEquals(JacksonUtil.toJsonNode(expectedRequestPayload), JacksonUtil.fromBytes(callback.getPayloadBytes()));
     }
 
-    protected void validateProtoClientResponseGateway(MqttTestCallback callback,  String deviceName) throws InterruptedException, InvalidProtocolBufferException {
+    protected void validateProtoClientResponseGateway(MqttTestCallback callback, String deviceName) throws InterruptedException, InvalidProtocolBufferException {
         callback.getSubscribeLatch().await(3, TimeUnit.SECONDS);
         assertEquals(MqttQoS.AT_LEAST_ONCE.value(), callback.getQoS());
         TransportApiProtos.GatewayAttributeResponseMsg expectedGatewayAttributeResponseMsg = getExpectedGatewayAttributeResponseMsg(deviceName, true);

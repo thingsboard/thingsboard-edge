@@ -75,11 +75,11 @@ public class TbTestWebSocketClient extends WebSocketClient {
     public void onMessage(String s) {
         log.info("RECEIVED: {}", s);
         lastMsg = s;
-        if (reply != null) {
-            reply.countDown();
-        }
         if (update != null) {
             update.countDown();
+        }
+        if (reply != null) {
+            reply.countDown();
         }
     }
 
