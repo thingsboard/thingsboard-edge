@@ -43,6 +43,7 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -194,6 +195,9 @@ public class EdgeContextComponent {
 
     @Autowired
     protected EntityGroupService entityGroupService;
+
+    @Autowired
+    protected IntegrationService integrationService;
 
     @Autowired
     private EntityGroupEdgeProcessor entityGroupProcessor;
