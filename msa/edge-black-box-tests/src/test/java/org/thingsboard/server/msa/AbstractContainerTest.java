@@ -15,11 +15,8 @@
  */
 package org.thingsboard.server.msa;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
@@ -41,7 +38,6 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.rest.client.RestClient;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
@@ -113,13 +109,14 @@ public abstract class AbstractContainerTest {
         edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(90, TimeUnit.SECONDS).
                 until(() -> {
                     boolean loginSuccessful = false;
                     try {
                         edgeRestClient.login("tenant@thingsboard.org", "tenant");
                         loginSuccessful = true;
-                    } catch (Exception ignored1) {
+                    } catch (Throwable ignored1) {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException ignored2) {}
@@ -141,19 +138,31 @@ public abstract class AbstractContainerTest {
 
     private static void verifyWidgetBundles() {
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
+                until(() ->  {
+                    try {
+                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14;
+                    } catch (Throwable e) {
+                        return false;
+                    }
+                });
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
 
         for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
             Awaitility.await()
+                    .pollInterval(1000, TimeUnit.MILLISECONDS)
                     .atMost(30, TimeUnit.SECONDS).
                     until(() -> {
-                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
-                                && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
+                        try {
+                            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                            return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
+                                    && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
+                        } catch (Throwable e) {
+                            return false;
+                        }
                     });
             List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
             List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
@@ -214,24 +223,6 @@ public abstract class AbstractContainerTest {
         }
     };
 
-    protected Device createGatewayDevice() throws JsonProcessingException {
-        String isGateway = "{\"gateway\":true}";
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode additionalInfo = objectMapper.readTree(isGateway);
-        Device gatewayDeviceTemplate = new Device();
-        gatewayDeviceTemplate.setName("mqtt_gateway");
-        gatewayDeviceTemplate.setType("gateway");
-        gatewayDeviceTemplate.setAdditionalInfo(additionalInfo);
-        return restClient.saveDevice(gatewayDeviceTemplate);
-    }
-
-    protected Device createDevice(String name) {
-        Device device = new Device();
-        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
-        device.setType("DEFAULT");
-        return restClient.saveDevice(device);
-    }
-
     protected static DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
@@ -282,63 +273,6 @@ public abstract class AbstractContainerTest {
         alarms.add(deviceProfileAlarm);
         profileData.setAlarms(alarms);
         profileData.setProvisionConfiguration(new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("123"));
-    }
-
-
-    protected JsonObject createGatewayConnectPayload(String deviceName){
-        JsonObject payload = new JsonObject();
-        payload.addProperty("device", deviceName);
-        return payload;
-    }
-
-    protected JsonObject createGatewayPayload(String deviceName, long ts){
-        JsonObject payload = new JsonObject();
-        payload.add(deviceName, createGatewayTelemetryArray(ts));
-        return payload;
-    }
-
-    protected JsonArray createGatewayTelemetryArray(long ts){
-        JsonArray telemetryArray = new JsonArray();
-        if (ts > 0)
-            telemetryArray.add(createPayload(ts));
-        else
-            telemetryArray.add(createPayload());
-        return telemetryArray;
-    }
-
-    protected JsonObject createPayload(long ts) {
-        JsonObject values = createPayload();
-        JsonObject payload = new JsonObject();
-        payload.addProperty("ts", ts);
-        payload.add("values", values);
-        return payload;
-    }
-
-    protected JsonObject createPayload() {
-        JsonObject values = new JsonObject();
-        values.addProperty("stringKey", "value1");
-        values.addProperty("booleanKey", true);
-        values.addProperty("doubleKey", 42.0);
-        values.addProperty("longKey", 73L);
-
-        return values;
-    }
-
-    protected enum CmdsType {
-        TS_SUB_CMDS("tsSubCmds"),
-        HISTORY_CMDS("historyCmds"),
-        ATTR_SUB_CMDS("attrSubCmds");
-
-        private final String text;
-
-        CmdsType(final String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return text;
-        }
     }
 
     private static HttpComponentsClientHttpRequestFactory getRequestFactoryForSelfSignedCert() throws Exception {
