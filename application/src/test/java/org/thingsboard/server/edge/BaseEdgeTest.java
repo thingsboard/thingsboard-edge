@@ -1723,6 +1723,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(converterConfiguration);
+        converter.setEdgeTemplate(true);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         Integration integration = new Integration();
@@ -1803,6 +1804,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         converter.setName("My new converter");
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(newConverterConfiguration);
+        converter.setEdgeTemplate(true);
         Converter newSavedConverter = doPost("/api/converter", converter, Converter.class);
 
         savedIntegration.setDefaultConverterId(newSavedConverter.getId());

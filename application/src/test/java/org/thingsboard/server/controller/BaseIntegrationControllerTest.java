@@ -434,6 +434,13 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
     @Test
     public void testFindEdgeIntegrationsByEdgeId() throws Exception {
+        Converter edgeConverter = new Converter();
+        edgeConverter.setName("My edge converter");
+        edgeConverter.setType(ConverterType.UPLINK);
+        edgeConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        edgeConverter.setEdgeTemplate(true);
+        edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
+
         Edge edge = constructEdge("Edge with integration", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
@@ -442,7 +449,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             Integration integration = new Integration();
             integration.setName("Edge integration " + i);
             integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
-            integration.setDefaultConverterId(savedConverter.getId());
+            integration.setDefaultConverterId(edgeConverter.getId());
             integration.setType(IntegrationType.HTTP);
             integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setEdgeTemplate(true);
