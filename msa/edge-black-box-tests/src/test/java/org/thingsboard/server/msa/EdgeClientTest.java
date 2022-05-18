@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,7 +38,6 @@ import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
@@ -108,18 +108,16 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
 
-    @Ignore
-@Test
+    @Test
     public void testUsers() {
         verifyEntityGroups(EntityType.USER, 3);
     }
 
-        @Ignore
     @Test
     public void testRoles() {
         Awaitility.await()
@@ -139,7 +137,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(genericIds, EntityType.ROLE);
     }
 
-        @Ignore
     @Test
     public void testDeviceProfiles() {
         verifyDeviceProfilesOnEdge(3);
@@ -200,7 +197,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
     }
 
-    @Ignore
     @Test
     public void testWhiteLabeling() {
         Awaitility.await()
@@ -251,7 +247,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 });
     }
 
-    @Ignore
     @Test
     public void testTenantAdminSettings() {
         verifyTenantAdminSettingsByKey("general");
@@ -274,7 +269,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         Assert.assertEquals("Admin settings on cloud and edge are different", edgeAdminSettings.get(), cloudAdminSettings.get());
     }
 
-    @Ignore
     @Test
     public void testWidgetsBundles() {
         Awaitility.await()
@@ -533,7 +527,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         return additionalInfo;
     }
 
-    @Ignore
     @Test
     public void testDevices() throws Exception {
         EntityGroup savedDeviceEntityGroup = createEntityGroup(EntityType.DEVICE);
@@ -568,7 +561,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         return attributeKvEntry.getValueAsString().equals(expectedValue);
     }
 
-    @Ignore
     @Test
     public void testAssets() throws Exception {
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
@@ -591,7 +583,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         restClient.assignEntityGroupToEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
     }
 
-    @Ignore
     @Test
     public void testRuleChains() throws Exception {
         Awaitility.await()
@@ -661,7 +652,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         restClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
-    @Ignore
     @Test
     public void testDashboards() throws Exception {
         verifyEntityGroups(EntityType.DASHBOARD, 1);
@@ -699,7 +689,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         restClient.deleteDashboard(savedDashboardOnCloud.getId());
     }
 
-    @Ignore
     @Test
     public void testRelations() throws Exception {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
@@ -723,7 +712,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
     }
 
-    @Ignore
     @Test
     public void testAlarms() throws Exception {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
@@ -783,7 +771,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
     }
 
-    @Ignore
     @Test
     public void testEntityViews() throws Exception {
         verifyEntityGroups(EntityType.ENTITY_VIEW, 1);
@@ -823,7 +810,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         restClient.deleteEntityView(savedEntityViewOnCloud.getId());
     }
 
-    @Ignore
     @Test
     public void testWidgetsBundleAndWidgetType() throws Exception {
         WidgetsBundle widgetsBundle = new WidgetsBundle();
@@ -859,7 +845,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
     }
 
-    @Ignore
     @Test
     public void testSendPostTelemetryRequestToCloud() throws Exception {
         List<String> keys = Arrays.asList("strTelemetryToCloud", "boolTelemetryToCloud", "doubleTelemetryToCloud", "longTelemetryToCloud");
@@ -888,7 +873,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
     }
 
-    @Ignore
     @Test
     public void testSendPostTelemetryRequestToEdge() throws Exception {
         List<String> keys = Arrays.asList("strTelemetryToEdge", "boolTelemetryToEdge", "doubleTelemetryToEdge", "longTelemetryToEdge");
@@ -945,7 +929,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         return targetRestClient.getLatestTimeseries(device.getId(), keys);
     }
 
-    @Ignore
     @Test
     public void testSendPostAttributesRequestToCloud() throws Exception {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
@@ -975,7 +958,6 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     }
 
-    @Ignore
     @Test
     public void testSendPostAttributesRequestToEdge() throws Exception {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
@@ -1033,7 +1015,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         return attributeKvEntries;
     }
 
-    @Ignore
     @Test
     public void testSendAttributesUpdatedToEdge() throws Exception {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
@@ -1068,7 +1049,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         }
     }
 
-    @Ignore
     @Test
     public void testSendAttributesUpdatedToCloud() throws Exception {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
@@ -1122,7 +1102,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         return attributeKvEntries;
     }
 
-    @Ignore
     @Test
     public void sendDeviceToCloud() throws Exception {
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
@@ -1178,7 +1157,6 @@ public class EdgeClientTest extends AbstractContainerTest {
                 });
     }
 
-    @Ignore
     @Test
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceName = RandomStringUtils.randomAlphanumeric(15);
@@ -1199,7 +1177,6 @@ public class EdgeClientTest extends AbstractContainerTest {
         restClient.deleteDevice(savedDeviceOnCloud.getId());
     }
 
-    @Ignore
     @Test
     public void sendRelationToCloud() throws Exception {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
@@ -1231,7 +1208,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void sendAlarmToCloud() throws Exception {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
@@ -1287,7 +1263,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testOneWayRpcCall() throws Exception {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
@@ -1337,7 +1312,6 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     @Test
-    @Ignore
     public void testTwoWayRpcCall() throws Exception {
         // create device on cloud and assign to edge
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
@@ -1412,7 +1386,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     public void testIntegrations() throws Exception {
         // TODO - add check for replacements of edge attributes
         ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
-                .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
+                .put("decoder", "return {deviceName: 'Device Converter ' + metadata['key'], deviceType: 'thermostat'};");
         Converter converter = new Converter();
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
@@ -1422,18 +1396,22 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Integration integration = new Integration();
         integration.setName("Edge integration");
+        integration.setAllowCreateDevicesOrAssets(true);
         integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
+
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        integrationConfiguration.putObject("metadata").put("key1", "val1");
+        integrationConfiguration.putObject("metadata").put("key", "val1");
+        integrationConfiguration.put("baseUrl", edgeUrl);
         integration.setConfiguration(integrationConfiguration);
         integration.setEdgeTemplate(true);
+        integration.setEnabled(true);
         Integration savedIntegration = restClient.saveIntegration(integration);
 
         validateIntegrationAssignToEdge(savedIntegration);
 
-        // TODO - add check that integration started and device is able to send timeseries data
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val1");
 
         validateIntegrationConfigurationUpdate(savedIntegration);
 
@@ -1444,6 +1422,26 @@ public class EdgeClientTest extends AbstractContainerTest {
         validateIntegrationUnassignFromEdge(savedIntegration);
 
         validateRemoveOfIntegration(savedIntegration);
+    }
+
+    private void verifyHttpIntegrationUpAndRunning(Integration integration, String expectedDeviceName) throws JsonProcessingException {
+        try {
+            SECONDS.sleep(1); // wait for integration to be recompiled and restarted with updated config
+        } catch (Throwable ignored) {}
+
+        ObjectNode values = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        values.put("deviceName", expectedDeviceName);
+        edgeRestClient.getRestTemplate().postForEntity(edgeUrl + "/api/v1/integrations/http/" + integration.getRoutingKey(),
+                        values,
+                        ResponseEntity.class);
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<Device> tenantDevice = edgeRestClient.getTenantDevice(expectedDeviceName);
+                    return tenantDevice.isPresent();
+                });
     }
 
     private void validateIntegrationAssignToEdge(Integration savedIntegration) {
@@ -1460,9 +1458,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(integrations.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.INTEGRATION);
     }
 
-    private void validateIntegrationConfigurationUpdate(Integration savedIntegration) {
+    private void validateIntegrationConfigurationUpdate(Integration savedIntegration) throws JsonProcessingException {
         ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        updatedIntegrationConfig.putObject("metadata").put("key2", "val2");
+        updatedIntegrationConfig.putObject("metadata").put("key", "val2");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
         restClient.saveIntegration(savedIntegration);
 
@@ -1474,12 +1472,12 @@ public class EdgeClientTest extends AbstractContainerTest {
                     return updatedIntegrationConfig.equals(integration.getConfiguration());
                 });
 
-        // TODO - add check that configuration was updated and device is able to send timeseries data using new integration configuration
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val2");
     }
 
-    private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) {
+    private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws JsonProcessingException {
         ObjectNode newConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
-                .put("decoder", "return {deviceName: 'Device B', deviceType: 'default'};");
+                .put("decoder", "return {deviceName: 'Device Converter val3', deviceType: 'default'};");
         Converter converter = new Converter();
         converter.setName("My new converter");
         converter.setType(ConverterType.UPLINK);
@@ -1491,6 +1489,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         restClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
@@ -1502,7 +1501,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
 
-        // TODO - add check that configuration was updated and device is able to send timeseries data using new converter configuration
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val3");
     }
 
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {

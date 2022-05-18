@@ -129,6 +129,7 @@ public abstract class AbstractContainerTest {
         setWhiteLabelingAndCustomTranslation();
 
         Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                             Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
