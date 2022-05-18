@@ -153,7 +153,7 @@ public abstract class AbstractContainerTest {
         for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
             Awaitility.await()
                     .pollInterval(1000, TimeUnit.MILLISECONDS)
-                    .atMost(30, TimeUnit.SECONDS).
+                    .atMost(60, TimeUnit.SECONDS).
                     until(() -> {
                         try {
                             List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
