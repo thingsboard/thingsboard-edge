@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.Example;
 import io.swagger.annotations.ExampleProperty;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,12 +61,10 @@ import org.thingsboard.server.common.data.HomeDashboard;
 import org.thingsboard.server.common.data.HomeDashboardInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -77,6 +76,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.dashboard.TbDashboardService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 
@@ -98,10 +98,7 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CH
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID;
-import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.WL_READ_CHECK;
@@ -111,9 +108,11 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class DashboardController extends BaseController {
 
+    private final TbDashboardService tbDashboardService;
     public static final String DASHBOARD_ID = "dashboardId";
     private static final String HOME_DASHBOARD_ID = "homeDashboardId";
     private static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
@@ -189,7 +188,6 @@ public class DashboardController extends BaseController {
         }
     }
 
-
     @ApiOperation(value = "Create Or Update Dashboard (saveDashboard)",
             notes = "Create or update the Dashboard. When creating dashboard, platform generates Dashboard Id as " + UUID_WIKI_LINK +
                     "The newly created Dashboard id will be present in the response. " +
@@ -206,7 +204,9 @@ public class DashboardController extends BaseController {
             @ApiParam(value = "A JSON value representing the dashboard.")
             @RequestBody Dashboard dashboard,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        return saveGroupEntity(dashboard, strEntityGroupId, dashboardService::saveDashboard);
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> tbDashboardService.save(dashboard, entityGroup, user));
+//        return saveGroupEntity(dashboard, strEntityGroupId, dashboardService::saveDashboard);
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",
@@ -219,55 +219,9 @@ public class DashboardController extends BaseController {
             @ApiParam(value = DASHBOARD_ID_PARAM_DESCRIPTION)
             @PathVariable(DASHBOARD_ID) String strDashboardId) throws ThingsboardException {
         checkParameter(DASHBOARD_ID, strDashboardId);
-        try {
-            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
-
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), dashboardId);
-
-            dashboardService.deleteDashboard(getCurrentUser().getTenantId(), dashboardId);
-            logEntityAction(dashboardId, dashboard,
-                    null,
-                    ActionType.DELETED, null, strDashboardId);
-
-            sendDeleteNotificationMsg(getTenantId(), dashboardId, relatedEdgeIds);
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.DASHBOARD),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strDashboardId);
-            throw handleException(e);
-        }
-    }
-
-    @ApiOperation(value = "Get Tenant Dashboards by System Administrator (getTenantDashboards)",
-            notes = "Returns a page of dashboard info objects owned by tenant. " + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS +
-                    SYSTEM_AUTHORITY_PARAGRAPH,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/tenant/{tenantId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
-    @ResponseBody
-    public PageData<DashboardInfo> getTenantDashboards(
-            @ApiParam(value = TENANT_ID_PARAM_DESCRIPTION, required = true)
-            @PathVariable(TENANT_ID) String strTenantId,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
-            @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
-            @RequestParam int page,
-            @ApiParam(value = DASHBOARD_TEXT_SEARCH_DESCRIPTION)
-            @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = DASHBOARD_SORT_PROPERTY_ALLOWABLE_VALUES)
-            @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            TenantId tenantId = TenantId.fromUUID(toUUID(strTenantId));
-            checkTenantId(tenantId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(dashboardService.findDashboardsByTenantId(tenantId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
+        Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
+        tbDashboardService.delete(dashboard, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Dashboards (getTenantDashboards)",

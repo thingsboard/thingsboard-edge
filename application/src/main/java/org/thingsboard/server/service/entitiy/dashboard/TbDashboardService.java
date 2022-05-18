@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.customer;
+package org.thingsboard.server.service.entitiy.dashboard;
 
-import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
-public interface TbCustomerService extends SimpleTbEntityService<Customer> {
+public interface  TbDashboardService extends SimpleTbEntityService<Dashboard> {
 
 }
