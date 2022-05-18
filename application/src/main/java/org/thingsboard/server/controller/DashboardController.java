@@ -205,7 +205,7 @@ public class DashboardController extends BaseController {
             @RequestBody Dashboard dashboard,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> tbDashboardService.save(dashboard, entityGroup, user));
+        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> tbDashboardService.save(dashboard1, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",
@@ -223,7 +223,7 @@ public class DashboardController extends BaseController {
         tbDashboardService.delete(dashboard, getCurrentUser());
     }
 
-    @ApiOperation(value = "Get Tenant Dashboards (getTenantDashboards)",
+    @ApiOperation(value = "Get Tenant Dashboards by System Administrator (getTenantDashboards)",
             notes = "Returns a page of dashboard info objects owned by the tenant of a current user. "
                     + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
