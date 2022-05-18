@@ -30,7 +30,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-CONF_FOLDER="${pkg.installFolder}/conf"
+[[ -z "${CONF_FOLDER}" ]] && CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
 firstlaunch=${DATA_FOLDER}/.firstlaunch
