@@ -15,8 +15,7 @@
 # limitations under the License.
 #
 
-#TODO: voba - config can be changed for tests or update logback file
-#CONF_FOLDER="${pkg.installFolder}/conf"
+[[ -z "${CONF_FOLDER}" ]] && CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
 upgradeversion=${DATA_FOLDER}/.upgradeversion

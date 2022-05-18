@@ -37,7 +37,7 @@ else
     loadDemo=false
 fi
 
-CONF_FOLDER="${pkg.installFolder}/conf"
+[[ -z "${CONF_FOLDER}" ]] && CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
 upgradeversion=${DATA_FOLDER}/.upgradeversion
