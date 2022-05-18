@@ -107,7 +107,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                                   SecurityUser user,
                                   String body, Object... additionalInfo) {
         logEntityAction(tenantId, originatorId, alarm, customerId, actionType, user, additionalInfo);
-        sendAlarmDeleteNotificationMsg(tenantId, alarm.getId(), alarm, relatedEdgeIds, body);
+        sendAlarmDeleteNotificationMsg(tenantId, alarm, relatedEdgeIds, body);
     }
 
     @Override
@@ -235,7 +235,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         try {
             sendDeleteNotificationMsg(tenantId, entityId,  edgeIds, null);
         } catch (Exception e) {
-            log.warn("Failed to push delete " + entity.getClass().getName() + " msg to core: {}", entity, e);
+            log.warn("Failed to push delete msg to core: {}", entity, e);
         }
     }
 
@@ -247,12 +247,11 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         }
     }
 
-    protected <E extends HasName, I extends EntityId> void sendAlarmDeleteNotificationMsg(TenantId tenantId, I entityId, E entity,
-                                                                                          List<EdgeId> edgeIds, String body) {
+    protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, Alarm alarm, List<EdgeId> edgeIds, String body) {
         try {
-            sendDeleteNotificationMsg(tenantId, entityId, edgeIds, body);
+            sendDeleteNotificationMsg(tenantId, alarm.getId(), edgeIds, body);
         } catch (Exception e) {
-            log.warn("Failed to push delete " + entity.getClass().getName() + " msg to core: {}", entity, e);
+            log.warn("Failed to push delete msg to core: {}", alarm, e);
         }
     }
 
