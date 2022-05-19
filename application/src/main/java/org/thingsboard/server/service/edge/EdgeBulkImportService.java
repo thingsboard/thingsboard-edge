@@ -99,7 +99,7 @@ public class EdgeBulkImportService extends AbstractBulkImportService<Edge> {
     @Override
     protected Edge saveEntity(SecurityUser user, Edge entity, EntityGroup entityGroup, Map<BulkImportColumnType, String> fields) {
         RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(user.getTenantId());
-        return tbEdgeService.saveEdge(entity, edgeTemplateRootRuleChain, entityGroup, user);
+        return tbEdgeService.save(entity, edgeTemplateRootRuleChain, entityGroup, user);
     }
 
     @Override

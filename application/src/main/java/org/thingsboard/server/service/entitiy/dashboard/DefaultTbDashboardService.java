@@ -28,16 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.customer;
+package org.thingsboard.server.service.entitiy.dashboard;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -49,36 +49,34 @@ import java.util.List;
 @Service
 @TbCoreComponent
 @AllArgsConstructor
-public class DefaultTbCustomerService extends AbstractTbEntityService implements TbCustomerService {
+public class DefaultTbDashboardService extends AbstractTbEntityService implements TbDashboardService {
 
     @Override
-    public Customer save(Customer customer, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        TenantId tenantId = customer.getTenantId();
+    public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
+        ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        TenantId tenantId = user.getTenantId();
         try {
-            Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
-            createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
-            return savedCustomer;
+            Dashboard saveDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
+            createOrUpdateGroupEntity(tenantId, saveDashboard, entityGroup, actionType, user);
+            return saveDashboard;
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), customer, null, actionType, user, e);
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), dashboard, null, actionType, user, e);
             throw handleException(e);
         }
     }
-
-
     @Override
-    public void delete(Customer customer, SecurityUser user) throws ThingsboardException {
-        TenantId tenantId = customer.getTenantId();
-        CustomerId customerId = customer.getId();
+    public void delete(Dashboard dashboard, SecurityUser user) throws ThingsboardException {
+        TenantId tenantId = dashboard.getTenantId();
+        DashboardId dashboardId = dashboard.getId();
         try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, customerId);
-            customerService.deleteCustomer(tenantId, customerId);
-            notificationEntityService.notifyDeleteEntity(tenantId, customerId, customer, customerId,
-                    ActionType.DELETED, relatedEdgeIds, user, customerId.toString());
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, dashboardId);
+            dashboardService.deleteDashboard(tenantId, dashboardId);
+            notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, user.getCustomerId(),
+                    ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), null, null,
-                    ActionType.DELETED, user, e, customerId.toString());
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), null, null,
+                    ActionType.DELETED, user, e, dashboardId.toString());
             throw handleException(e);
         }
     }
-}
+ }
