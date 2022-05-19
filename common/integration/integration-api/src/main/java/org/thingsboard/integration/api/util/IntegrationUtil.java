@@ -41,7 +41,7 @@ public class IntegrationUtil {
             case HTTP:
                 return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
             case LORIOT:
-                return newInstance("org.thingsboard.integration.http.basic.LoriotIntegration");
+                return newInstance("org.thingsboard.integration.http.loriot.LoriotIntegration");
             case SIGFOX:
                 return newInstance("org.thingsboard.integration.http.sigfox.SigFoxIntegration");
             case OCEANCONNECT:
