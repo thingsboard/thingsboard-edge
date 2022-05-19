@@ -139,7 +139,7 @@
           [topicFilters]="integrationForm.get('topicFilters')"
           [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
         </tb-mqtt-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -173,7 +173,7 @@
                                  [topicFilters]="integrationForm.get('topicFilters')"
                                  [integrationType]="integrationType">
         </tb-ttn-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -181,7 +181,7 @@
         <tb-azure-event-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
         [downlinkConverterIdControl]="entityForm.get('downlinkConverterId')">
         </tb-azure-event-hub-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -205,7 +205,7 @@
       <section *ngIf="integrationType === integrationTypes.RABBITMQ">
         <tb-rabbitmq-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-rabbitmq-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>

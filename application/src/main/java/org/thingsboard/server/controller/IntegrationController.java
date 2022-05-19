@@ -163,10 +163,12 @@ public class IntegrationController extends BaseController {
 
             checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
 
-            try {
-                integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
-            } catch (ExecutionException e) {
-                throwRealCause(e);
+            if (!integration.isEdgeTemplate()) {
+                try {
+                    integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
+                } catch (ExecutionException e) {
+                    throwRealCause(e);
+                }
             }
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
