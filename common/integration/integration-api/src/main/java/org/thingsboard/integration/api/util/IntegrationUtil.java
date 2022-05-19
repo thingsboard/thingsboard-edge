@@ -74,7 +74,7 @@ public class IntegrationUtil {
             case AWS_SQS:
                 return newInstance("org.thingsboard.integration.aws.sqs.AwsSqsIntegration");
             case AWS_KINESIS:
-                return newInstance("org.thingsboard.integration.kinesis.AwsKinesisIntegration");
+                return newInstance("org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration");
             case KAFKA:
                 return newInstance("org.thingsboard.integration.kafka.basic.BasicKafkaIntegration");
             case RABBITMQ:
