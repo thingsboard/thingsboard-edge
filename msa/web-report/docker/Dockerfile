@@ -34,12 +34,10 @@ FROM node:16.13.1-bullseye-slim
 ARG TARGETPLATFORM
 
 RUN apt-get update \
-    && apt-get install -yq wget unzip fonts-roboto chromium
-
-RUN apt-get clean \
-    && rm -r /var/lib/apt/lists/*
-
-RUN mkdir /noto
+    && apt-get install -yq wget unzip fonts-roboto chromium \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /noto
 
 WORKDIR /noto
 

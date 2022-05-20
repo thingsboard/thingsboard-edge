@@ -37,10 +37,9 @@ RUN apt-get update \
                             libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
                             libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 libgbm-dev \
                             ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget unzip fonts-roboto \
-        && apt-get clean \
-        && rm -r /var/lib/apt/lists/*
-
-RUN mkdir /noto
+    && apt-get clean \
+    && rm -r /var/lib/apt/lists/* \
+    && mkdir /noto
 
 WORKDIR /noto
 
@@ -82,7 +81,6 @@ ENV SPRING_DATASOURCE_USERNAME=postgres
 ENV SPRING_DATASOURCE_PASSWORD=postgres
 
 RUN chown -R ${pkg.user}:${pkg.user} /tmp
-RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
 
 RUN mkdir -p /data
 RUN chown -R ${pkg.user}:${pkg.user} /data
