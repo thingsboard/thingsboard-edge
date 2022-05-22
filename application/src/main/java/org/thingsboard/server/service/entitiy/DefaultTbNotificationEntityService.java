@@ -323,5 +323,4 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                 return null;
         }
     }
-
 }
