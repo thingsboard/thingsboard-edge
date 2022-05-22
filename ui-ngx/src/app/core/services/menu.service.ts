@@ -274,6 +274,14 @@ export class MenuService {
         path: '/settings/resources-library',
         icon: 'folder',
         disabled: disabledItems.indexOf('resources_library') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.queues',
+        type: 'link',
+        path: '/settings/queues',
+        icon: 'swap_calls',
+        disabled: disabledItems.indexOf('queues') > -1
       }
     ];
 
@@ -360,6 +368,12 @@ export class MenuService {
             name: 'resource.resources-library',
             icon: 'folder',
             path: '/settings/resources-library',
+            disabled: disabledItems.indexOf('resources_library') > -1
+          },
+          {
+            name: 'admin.queues',
+            icon: 'swap_calls',
+            path: '/settings/queues',
             disabled: disabledItems.indexOf('resources_library') > -1
           }
         ]

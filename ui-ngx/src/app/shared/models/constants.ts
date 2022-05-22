@@ -198,7 +198,8 @@ export const HelpLinks = {
     customTranslation: helpBaseUrl +  '/docs/pe/user-guide/custom-translation',
     customMenu: helpBaseUrl +  '/docs/pe/user-guide/custom-menu',
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
-    selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration'
+    selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
+    queue: helpBaseUrl + '/docs/user-guide/queue'
   }
 };
 

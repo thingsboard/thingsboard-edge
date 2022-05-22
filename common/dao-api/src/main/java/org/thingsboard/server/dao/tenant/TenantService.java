@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
@@ -50,12 +51,14 @@ public interface TenantService {
     ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds);
 
     Tenant saveTenant(Tenant tenant);
-    
+
     void deleteTenant(TenantId tenantId);
-    
+
     PageData<Tenant> findTenants(PageLink pageLink);
 
     PageData<TenantInfo> findTenantInfos(PageLink pageLink);
-    
+
+    List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId);
+
     void deleteTenants();
 }

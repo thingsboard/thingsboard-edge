@@ -51,6 +51,7 @@ import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { SendTestSmsDialogComponent } from '@home/pages/admin/send-test-sms-dialog.component';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 import { ResourcesLibraryComponent } from '@home/pages/admin/resource/resources-library.component';
+import { QueueComponent} from '@home/pages/admin/queue/queue.component';
 
 @NgModule({
   declarations:
@@ -71,7 +72,8 @@ import { ResourcesLibraryComponent } from '@home/pages/admin/resource/resources-
       SecuritySettingsComponent,
       OAuth2SettingsComponent,
       HomeSettingsComponent,
-      ResourcesLibraryComponent
+      ResourcesLibraryComponent,
+      QueueComponent
     ],
   imports: [
     CommonModule,

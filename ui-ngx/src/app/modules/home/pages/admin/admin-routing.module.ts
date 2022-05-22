@@ -62,6 +62,7 @@ import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { QueuesTableConfigResolver } from '@home/pages/admin/queue/queues-table-config.resolver';
 
 @Injectable()
 export class MailTemplateSettingsResolver implements Resolve<AdminSettings<MailTemplatesSettings>> {
@@ -273,6 +274,44 @@ const routes: Routes = [
             }
           }
         ]
+      },
+      {
+        path: 'queues',
+        data: {
+          breadcrumb: {
+            label: 'admin.queues',
+            icon: 'swap_calls'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.SYS_ADMIN],
+              title: 'admin.queues'
+            },
+            resolve: {
+              entitiesTableConfig: QueuesTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'swap_calls'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.SYS_ADMIN],
+              title: 'admin.queues'
+            },
+            resolve: {
+              entitiesTableConfig: QueuesTableConfigResolver
+            }
+          }
+        ]
       }
     ]
   },
@@ -385,7 +424,8 @@ const routes: Routes = [
     CustomTranslationResolver,
     CustomMenuResolver,
     OAuth2LoginProcessingUrlResolver,
-    ResourcesLibraryTableConfigResolver
+    ResourcesLibraryTableConfigResolver,
+    QueuesTableConfigResolver
   ]
 })
 export class AdminRoutingModule { }

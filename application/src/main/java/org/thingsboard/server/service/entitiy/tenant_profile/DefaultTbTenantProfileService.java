@@ -28,32 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.discovery;
+package org.thingsboard.server.service.entitiy.tenant_profile;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 
-import java.util.Objects;
+import java.util.List;
 
+@Slf4j
+@Service
+@TbCoreComponent
 @AllArgsConstructor
-public class TopicPartitionInfoKey {
-    private ServiceQueue serviceQueue;
-    private TenantId isolatedTenantId;
-    private int partition;
+public class DefaultTbTenantProfileService implements TbTenantProfileService {
+    private final TbQueueService tbQueueService;
+    private final TenantProfileService tenantProfileService;
+    private final TenantService tenantService;
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TopicPartitionInfoKey that = (TopicPartitionInfoKey) o;
-        return partition == that.partition &&
-                serviceQueue.equals(that.serviceQueue) &&
-                Objects.equals(isolatedTenantId, that.isolatedTenantId);
-    }
+    public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, TenantProfile oldTenantProfile) {
+        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile);
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(serviceQueue, isolatedTenantId, partition);
+        if (oldTenantProfile != null && savedTenantProfile.isIsolatedTbRuleEngine()) {
+            List<TenantId> tenantIds = tenantService.findTenantIdsByTenantProfileId(savedTenantProfile.getId());
+            tbQueueService.updateQueuesByTenants(tenantIds, savedTenantProfile, oldTenantProfile);
+        }
+
+        return savedTenantProfile;
     }
 }

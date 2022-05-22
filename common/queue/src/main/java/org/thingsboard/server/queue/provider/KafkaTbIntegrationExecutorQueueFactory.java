@@ -52,7 +52,7 @@ import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.HashPartitionService;
-import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
 import org.thingsboard.server.queue.kafka.TbKafkaConsumerStatsService;
@@ -73,7 +73,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && '${service.type:null}'=='tb-integration-executor'")
 public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExecutorQueueFactory {
 
-    private final PartitionService partitionService;
+    private final NotificationsTopicService notificationsTopicService;
     private final TbKafkaSettings kafkaSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueCoreSettings coreSettings;
@@ -91,7 +91,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
 
     private final AtomicLong integrationConsumerCount = new AtomicLong();
 
-    public KafkaTbIntegrationExecutorQueueFactory(PartitionService partitionService, TbKafkaSettings kafkaSettings,
+    public KafkaTbIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService, TbKafkaSettings kafkaSettings,
                                                   TbServiceInfoProvider serviceInfoProvider,
                                                   TbQueueCoreSettings coreSettings,
                                                   TbQueueRuleEngineSettings ruleEngineSettings,
@@ -99,7 +99,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
                                                   TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                   TbKafkaConsumerStatsService consumerStatsService,
                                                   TbKafkaTopicConfigs kafkaTopicConfigs) {
-        this.partitionService = partitionService;
+        this.notificationsTopicService = notificationsTopicService;
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.coreSettings = coreSettings;
@@ -140,7 +140,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
-        consumerBuilder.topic(partitionService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
+        consumerBuilder.topic(notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
         consumerBuilder.clientId("tb-ie-notifications-consumer-" + serviceInfoProvider.getServiceId());
         consumerBuilder.groupId("ie-notifications-node-" + serviceInfoProvider.getServiceId());
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));

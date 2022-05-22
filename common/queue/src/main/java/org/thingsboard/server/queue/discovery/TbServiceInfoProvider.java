@@ -42,11 +42,11 @@ public interface TbServiceInfoProvider {
 
     String getServiceId();
 
+    String getServiceType();
+
     ServiceInfo getServiceInfo();
 
     boolean isService(ServiceType serviceType);
-
-    Optional<TenantId> getIsolatedTenant();
 
     List<IntegrationType> getSupportedIntegrationTypes();
 

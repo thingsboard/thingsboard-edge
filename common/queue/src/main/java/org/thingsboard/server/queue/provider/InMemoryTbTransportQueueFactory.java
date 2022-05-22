@@ -92,6 +92,9 @@ public class InMemoryTbTransportQueueFactory implements TbTransportQueueFactory 
 
             @Override
             public void destroy() {}
+
+            @Override
+            public void deleteTopic(String topic) {}
         });
 
         templateBuilder.requestTemplate(producerTemplate);

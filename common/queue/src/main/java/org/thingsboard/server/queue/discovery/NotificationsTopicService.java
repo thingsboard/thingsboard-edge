@@ -28,58 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue;
+package org.thingsboard.server.queue.discovery;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 
-import javax.annotation.PostConstruct;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
-public class DefaultQueueService implements QueueService {
+public class NotificationsTopicService {
 
-    private final TbQueueRuleEngineSettings ruleEngineSettings;
-    private Set<String> ruleEngineQueues;
-    private Set<String> ieQueues;
+    private Map<String, TopicPartitionInfo> tbCoreNotificationTopics = new HashMap<>();
+    private Map<String, TopicPartitionInfo> tbRuleEngineNotificationTopics = new HashMap<>();
+    private Map<String, TopicPartitionInfo> tbIntegrationExecutorNotificationTopics = new HashMap<>();
 
-    @PostConstruct
-    public void init() {
-        ruleEngineQueues = ruleEngineSettings.getQueues().stream()
-                .map(TbRuleEngineQueueConfiguration::getName).collect(Collectors.toCollection(LinkedHashSet::new));
-        ieQueues = Arrays.asList(IntegrationType.values()).stream()
-                .map(Enum::name).collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    @Override
-    public Set<String> getQueuesByServiceType(ServiceType type) {
-        switch (type) {
+    /**
+     * Each Service should start a consumer for messages that target individual service instance based on serviceId.
+     * This topic is likely to have single partition, and is always assigned to the service.
+     * @param serviceType
+     * @param serviceId
+     * @return
+     */
+    public TopicPartitionInfo getNotificationsTopic(ServiceType serviceType, String serviceId) {
+        switch (serviceType) {
+            case TB_CORE:
+                return tbCoreNotificationTopics.computeIfAbsent(serviceId,
+                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
             case TB_RULE_ENGINE:
-                return ruleEngineQueues;
+                return tbRuleEngineNotificationTopics.computeIfAbsent(serviceId,
+                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
             case TB_INTEGRATION_EXECUTOR:
-                return ieQueues;
+                return tbIntegrationExecutorNotificationTopics.computeIfAbsent(serviceId,
+                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
             default:
-                return Collections.emptySet();
+                return buildNotificationsTopicPartitionInfo(serviceType, serviceId);
         }
     }
 
-    @Override
-    public String resolve(ServiceType serviceType, String queueName) {
-        if (StringUtils.isEmpty(queueName) || !getQueuesByServiceType(serviceType).contains(queueName)) {
-            return ServiceQueue.MAIN;
-        } else {
-            return queueName;
-        }
+    private TopicPartitionInfo buildNotificationsTopicPartitionInfo(ServiceType serviceType, String serviceId) {
+        return new TopicPartitionInfo(serviceType.name().toLowerCase() + ".notifications." + serviceId, null, null, false);
     }
 }

@@ -151,7 +151,7 @@ import * as EntitySelectComponent from '@shared/components/entity/entity-select.
 import * as EntityKeysListComponent from '@shared/components/entity/entity-keys-list.component';
 import * as EntityListSelectComponent from '@shared/components/entity/entity-list-select.component';
 import * as EntityTypeListComponent from '@shared/components/entity/entity-type-list.component';
-import * as QueueTypeListComponent from '@shared/components/queue/queue-type-list.component';
+import * as QueueAutocompleteComponent from '@shared/components/queue/queue-autocomplete.component';
 import * as RelationTypeAutocompleteComponent from '@shared/components/relation/relation-type-autocomplete.component';
 import * as SocialSharePanelComponent from '@shared/components/socialshare-panel.component';
 import * as JsonObjectEditComponent from '@shared/components/json-object-edit.component';
@@ -344,6 +344,8 @@ import * as ReportConfigComponent from '@home/components/scheduler/config/report
 import * as SelectDashboardStateDialogComponent from '@home/components/scheduler/config/select-dashboard-state-dialog.component';
 import * as EmailConfigComponent from '@home/components/scheduler/config/email-config.component';
 import * as SchedulerEventScheduleComponent from '@home/components/scheduler/scheduler-event-schedule.component';
+import * as TenantProfileQueuesComponent from '@home/components/profile/queue/tenant-profile-queues.component';
+import * as QueueFormComponent from '@home/components/queue/queue-form.component';
 
 import { IModulesMap } from '@modules/common/modules-map.models';
 
@@ -475,7 +477,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/entity/entity-keys-list.component': EntityKeysListComponent,
     '@shared/components/entity/entity-list-select.component': EntityListSelectComponent,
     '@shared/components/entity/entity-type-list.component': EntityTypeListComponent,
-    '@shared/components/queue/queue-type-list.component': QueueTypeListComponent,
+    '@shared/components/queue/queue-autocomplete.component': QueueAutocompleteComponent,
     '@shared/components/relation/relation-type-autocomplete.component': RelationTypeAutocompleteComponent,
     '@shared/components/socialshare-panel.component': SocialSharePanelComponent,
     '@shared/components/json-object-edit.component': JsonObjectEditComponent,
@@ -668,7 +670,9 @@ class ModulesMap implements IModulesMap {
     '@home/components/scheduler/config/report-config.component': ReportConfigComponent,
     '@home/components/scheduler/config/select-dashboard-state-dialog.component': SelectDashboardStateDialogComponent,
     '@home/components/scheduler/config/email-config.component': EmailConfigComponent,
-    '@home/components/scheduler/scheduler-event-schedule.component': SchedulerEventScheduleComponent
+    '@home/components/scheduler/scheduler-event-schedule.component': SchedulerEventScheduleComponent,
+    '@home/components/profile/queue/tenant-profile-queues.component': TenantProfileQueuesComponent,
+    '@home/components/queue/queue-form.component': QueueFormComponent
   };
 
   init() {

@@ -54,6 +54,7 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
@@ -77,6 +78,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceM
 import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceActorMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -86,7 +88,6 @@ import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -165,8 +166,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
                                         EdgeNotificationService edgeNotificationService,
                                         OtaPackageStateService firmwareStateService,
-                                        TbCoreIntegrationApiService tbCoreIntegrationApiService) {
-        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
+                                        TbCoreIntegrationApiService tbCoreIntegrationApiService,
+                                        PartitionService partitionService) {
+        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();
@@ -371,6 +373,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
                 actorContext.tellWithHighPriority(actorMsg.get());
             }
+            callback.onSuccess();
+        } else if (toCoreNotification.hasQueueUpdateMsg()) {
+            TransportProtos.QueueUpdateMsg queue = toCoreNotification.getQueueUpdateMsg();
+            partitionService.updateQueue(queue);
+            callback.onSuccess();
+        } else if (toCoreNotification.hasQueueDeleteMsg()) {
+            TransportProtos.QueueDeleteMsg queue = toCoreNotification.getQueueDeleteMsg();
+            partitionService.removeQueue(queue);
             callback.onSuccess();
         }
         if (statsEnabled) {
