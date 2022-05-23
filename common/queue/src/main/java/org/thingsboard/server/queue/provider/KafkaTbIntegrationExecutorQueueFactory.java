@@ -77,7 +77,6 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     private final TbKafkaSettings kafkaSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueCoreSettings coreSettings;
-    private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
@@ -91,10 +90,10 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
 
     private final AtomicLong integrationConsumerCount = new AtomicLong();
 
-    public KafkaTbIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService, TbKafkaSettings kafkaSettings,
+    public KafkaTbIntegrationExecutorQueueFactory(NotificationsTopicService notificationsTopicService,
+                                                  TbKafkaSettings kafkaSettings,
                                                   TbServiceInfoProvider serviceInfoProvider,
                                                   TbQueueCoreSettings coreSettings,
-                                                  TbQueueRuleEngineSettings ruleEngineSettings,
                                                   TbQueueIntegrationApiSettings integrationApiSettings,
                                                   TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                   TbKafkaConsumerStatsService consumerStatsService,
@@ -103,7 +102,6 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         this.kafkaSettings = kafkaSettings;
         this.serviceInfoProvider = serviceInfoProvider;
         this.coreSettings = coreSettings;
-        this.ruleEngineSettings = ruleEngineSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.jsInvokeSettings = jsInvokeSettings;
         this.consumerStatsService = consumerStatsService;
