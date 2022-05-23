@@ -75,7 +75,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     private final TimeseriesService tsService;
 
     @Override
-    public EntityView save(EntityView entityView, EntityView existingEntityView, SecurityUser user) throws ThingsboardException {
+    public EntityView save(EntityView entityView, EntityView savedEntityView, EntityView existingEntityView, SecurityUser user) throws ThingsboardException {
         ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             List<ListenableFuture<?>> futures = new ArrayList<>();
@@ -89,7 +89,6 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                         existingEntityView.getKeys().getTimeseries() : Collections.emptyList();
                 futures.add(deleteLatestFromEntityView(existingEntityView, tsKeys, user));
             }
-            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
             if (savedEntityView.getKeys() != null) {
                 if (savedEntityView.getKeys().getAttributes() != null) {
                     futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), user));
