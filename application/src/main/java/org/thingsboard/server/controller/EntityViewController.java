@@ -137,9 +137,7 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-            EntityView existingEntityView = null;
             SecurityUser user = getCurrentUser();
-            EntityView finalExistingEntityView = existingEntityView;
             return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, entityGroup, user));
     }
 
