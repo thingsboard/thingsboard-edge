@@ -137,17 +137,13 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
             EntityView existingEntityView = null;
+            SecurityUser user = getCurrentUser();
             if (entityView.getId() != null) {
                 existingEntityView = checkEntityViewId(entityView.getId(), Operation.WRITE);
             }
-            EntityView savedEntityView = saveGroupEntity(entityView, strEntityGroupId, entityViewService::saveEntityView);
-            return tbEntityViewService.save(entityView, savedEntityView, existingEntityView, getCurrentUser());
-
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            EntityView finalExistingEntityView = existingEntityView;
+            return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, finalExistingEntityView, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete entity view (deleteEntityView)",

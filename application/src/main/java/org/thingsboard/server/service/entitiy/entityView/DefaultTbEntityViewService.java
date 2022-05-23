@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -75,8 +76,9 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     private final TimeseriesService tsService;
 
     @Override
-    public EntityView save(EntityView entityView, EntityView savedEntityView, EntityView existingEntityView, SecurityUser user) throws ThingsboardException {
+    public EntityView save(EntityView entityView, EntityView existingEntityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
         ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        TenantId tenantId = entityView.getTenantId();
         try {
             List<ListenableFuture<?>> futures = new ArrayList<>();
             if (existingEntityView != null) {
@@ -89,6 +91,8 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                         existingEntityView.getKeys().getTimeseries() : Collections.emptyList();
                 futures.add(deleteLatestFromEntityView(existingEntityView, tsKeys, user));
             }
+            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
+            createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);
             if (savedEntityView.getKeys() != null) {
                 if (savedEntityView.getKeys().getAttributes() != null) {
                     futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), user));
