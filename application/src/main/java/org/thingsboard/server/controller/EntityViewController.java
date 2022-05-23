@@ -139,11 +139,8 @@ public class EntityViewController extends BaseController {
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
             EntityView existingEntityView = null;
             SecurityUser user = getCurrentUser();
-            if (entityView.getId() != null) {
-                existingEntityView = checkEntityViewId(entityView.getId(), Operation.WRITE);
-            }
             EntityView finalExistingEntityView = existingEntityView;
-            return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, finalExistingEntityView, entityGroup, user));
+            return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete entity view (deleteEntityView)",

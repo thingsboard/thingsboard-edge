@@ -76,20 +76,21 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
     private final TimeseriesService tsService;
 
     @Override
-    public EntityView save(EntityView entityView, EntityView existingEntityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+    public EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
+        ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;        
         TenantId tenantId = entityView.getTenantId();
         try {
             List<ListenableFuture<?>> futures = new ArrayList<>();
-            if (existingEntityView != null) {
-                if (existingEntityView.getKeys() != null && existingEntityView.getKeys().getAttributes() != null) {
-                    futures.add(deleteAttributesFromEntityView(existingEntityView, DataConstants.CLIENT_SCOPE, existingEntityView.getKeys().getAttributes().getCs(), user));
-                    futures.add(deleteAttributesFromEntityView(existingEntityView, DataConstants.SERVER_SCOPE, existingEntityView.getKeys().getAttributes().getCs(), user));
-                    futures.add(deleteAttributesFromEntityView(existingEntityView, DataConstants.SHARED_SCOPE, existingEntityView.getKeys().getAttributes().getCs(), user));
+            EntityView oldEntityView =  entityView.getId() == null ? null : entityViewService.findEntityViewById(tenantId, entityView.getId());
+            if (oldEntityView != null) {
+                if (oldEntityView.getKeys() != null && oldEntityView.getKeys().getAttributes() != null) {
+                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.CLIENT_SCOPE, oldEntityView.getKeys().getAttributes().getCs(), user));
+                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.SERVER_SCOPE, oldEntityView.getKeys().getAttributes().getCs(), user));
+                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.SHARED_SCOPE, oldEntityView.getKeys().getAttributes().getCs(), user));
                 }
-                List<String> tsKeys = existingEntityView.getKeys() != null && existingEntityView.getKeys().getTimeseries() != null ?
-                        existingEntityView.getKeys().getTimeseries() : Collections.emptyList();
-                futures.add(deleteLatestFromEntityView(existingEntityView, tsKeys, user));
+                List<String> tsKeys = oldEntityView.getKeys() != null && oldEntityView.getKeys().getTimeseries() != null ?
+                        oldEntityView.getKeys().getTimeseries() : Collections.emptyList();
+                futures.add(deleteLatestFromEntityView(oldEntityView, tsKeys, user));
             }
             EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
             createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);

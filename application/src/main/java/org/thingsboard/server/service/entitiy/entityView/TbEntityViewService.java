@@ -37,7 +37,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbEntityViewService {
 
-    EntityView save(EntityView entityView, EntityView existingEntityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
+    EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
     void  delete (EntityView entity, SecurityUser user) throws ThingsboardException;
 }
