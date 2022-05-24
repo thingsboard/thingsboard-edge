@@ -241,6 +241,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         doDelete("/api/tenant/" + tenantId.getId().toString())
                 .andExpect(status().isOk());
+        deleteDifferentTenant();
 
         verifyNoTenantsLeft();
 
@@ -330,6 +331,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             loginSysAdmin();
             doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
                     .andExpect(status().isOk());
+            savedDifferentTenant = null;
         }
     }
 
