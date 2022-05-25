@@ -218,7 +218,29 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
         integration.edgeTemplate = false;
       }
     }
-    return this.integrationService.saveIntegration(integration);
+    let integrationObservable = this.integrationService.saveIntegration(integration);
+    integrationObservable.subscribe((integration) => {
+        if (this.componentsData.integrationScope === 'edges') {
+          this.edgeService.findAllRelatedEdgesMissingAttributes(integration.id.id).subscribe(
+            (missingEdgeAttributes) => {
+              if (missingEdgeAttributes && Object.keys(missingEdgeAttributes).length > 0) {
+                const formattedMissingEdgeAttributes: Array<string> = new Array<string>();
+                for (const missingEdgeAttribute of Object.keys(missingEdgeAttributes)) {
+                  const arrayOfMissingAttributes = missingEdgeAttributes[missingEdgeAttribute];
+                  const tmp = '- \'' + missingEdgeAttribute + '\': \'' + arrayOfMissingAttributes.join('\', \'') + '\'';
+                  formattedMissingEdgeAttributes.push(tmp);
+                }
+                const message = this.translate.instant('edge.missing-all-related-attributes-text',
+                  {missingEdgeAttributes: formattedMissingEdgeAttributes.join('<br>')});
+                this.dialogService.alert(this.translate.instant('edge.missing-all-related-attributes-title'),
+                  message, this.translate.instant('action.close'), true);
+              }
+            }
+          );
+        }
+      }
+    );
+    return integrationObservable;
   }
 
   openIntegration($event: Event, integration: Integration, params?:IntegrationParams) {
@@ -305,7 +327,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       $event.stopPropagation();
     }
     this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
+      Array<string>>(AddEntitiesToEdgeDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -315,7 +337,28 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     }).afterClosed()
       .subscribe((res) => {
           if (res) {
-            this.updateData();
+            this.edgeService.findEdgeMissingAttributes(res, this.componentsData.edgeId).subscribe(
+              (missingEdgeAttributes) => {
+                if (missingEdgeAttributes && Object.keys(missingEdgeAttributes).length > 0) {
+                  const formattedMissingEdgeAttributes: Array<string> = new Array<string>();
+                  for (const missingEdgeAttribute of Object.keys(missingEdgeAttributes)) {
+                    const arrayOfMissingAttributes = missingEdgeAttributes[missingEdgeAttribute];
+                    const tmp = '- \'' + missingEdgeAttribute + '\': \'' + arrayOfMissingAttributes.join('\', \'') + '\'';
+                    formattedMissingEdgeAttributes.push(tmp);
+                  }
+                  const message = this.translate.instant('edge.missing-attributes-text',
+                    {missingEdgeAttributes: formattedMissingEdgeAttributes.join('<br>')});
+                  this.dialogService.alert(this.translate.instant('edge.missing-attributes-title'),
+                    message, this.translate.instant('action.close'), true).subscribe(
+                    () => {
+                      this.updateData();
+                    }
+                  );
+                } else {
+                  this.updateData();
+                }
+              }
+            );
           }
         }
       );

@@ -1843,7 +1843,11 @@
         "assign-scheduler-event-to-edge-text": "Please select the scheduler events to assign to the edge",
         "assign-entity-groups-to-edge-text": "Please select the entity groups to assign to the edge",
         "assign-integration-to-edge-title": "Assign Integrations To Edge",
-        "assign-integration-to-edge-text": "Please select the integrations to assign to the edge"
+        "assign-integration-to-edge-text": "Please select the integrations to assign to the edge",
+        "missing-attributes-title": "Edge has missing attribute(s)",
+        "missing-attributes-text": "Integration(s), assigned to edge, have attribute placeholders that are not available on this edge. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
+        "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
+        "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",

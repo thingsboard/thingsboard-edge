@@ -439,4 +439,48 @@ public class IntegrationController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Find edge missing attributes for assigned integrations (findEdgeMissingAttributes)",
+            notes = "Returns list of edge attribute names that are missing in assigned integrations." + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/integration/{edgeId}/missingAttributes", params = {"integrationIds"})
+    @ResponseBody
+    public String findEdgeMissingAttributes(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+                                            @PathVariable(EDGE_ID) String strEdgeId,
+                                            @ApiParam(value = "A list of assigned integration ids, separated by comma ','", required = true)
+                                            @RequestParam("integrationIds") String[] strIntegrationIds) throws ThingsboardException {
+        checkArrayParameter("integrationIds", strIntegrationIds);
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            edgeId = checkNotNull(edgeId);
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<IntegrationId> integrationIds = new ArrayList<>();
+            for (String strIntegrationId : strIntegrationIds) {
+                integrationIds.add(new IntegrationId(toUUID(strIntegrationId)));
+            }
+            return edgeService.findEdgeMissingAttributes(tenantId, edgeId, integrationIds);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @ApiOperation(value = "Find missing attributes for all related edges (findAllRelatedEdgesMissingAttributes)",
+            notes = "Returns list of attribute names of all related edges that are missing in the integration configuration." + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/integration/{integrationId}/allMissingAttributes")
+    @ResponseBody
+    public String findAllRelatedEdgesMissingAttributes(@ApiParam(value = INTEGRATION_ID_PARAM_DESCRIPTION, required = true)
+                                                       @PathVariable("integrationId") String strIntegrationId) throws ThingsboardException {
+        checkParameter("integrationId", strIntegrationId);
+        try {
+            IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
+            integrationId = checkNotNull(integrationId);
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return edgeService.findAllRelatedEdgesMissingAttributes(tenantId, integrationId);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

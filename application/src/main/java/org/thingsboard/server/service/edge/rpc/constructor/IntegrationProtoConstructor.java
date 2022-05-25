@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -42,7 +43,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 @Slf4j
 public class IntegrationProtoConstructor {
 
-    public IntegrationUpdateMsg constructIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration) {
+    public IntegrationUpdateMsg constructIntegrationUpdateMsg(UpdateMsgType msgType, Integration integration, JsonNode configuration) {
         IntegrationUpdateMsg.Builder builder = IntegrationUpdateMsg.newBuilder()
                 .setMsgType(msgType)
                 .setIdMSB(integration.getId().getId().getMostSignificantBits())
@@ -56,7 +57,7 @@ public class IntegrationProtoConstructor {
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
-                .setConfiguration(JacksonUtil.toString(integration.getConfiguration()))
+                .setConfiguration(JacksonUtil.toString(configuration))
                 .setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
 
         if (integration.getSecret() != null) {

@@ -57,7 +57,7 @@ export interface AddEntitiesToEdgeDialogData {
   styleUrls: []
 })
 export class AddEntitiesToEdgeDialogComponent extends
-  DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+  DialogComponent<AddEntitiesToEdgeDialogComponent, Array<string>> implements OnInit, ErrorStateMatcher {
 
   addEntitiesToEdgeFormGroup: FormGroup;
 
@@ -77,7 +77,7 @@ export class AddEntitiesToEdgeDialogComponent extends
               private schedulerEventService: SchedulerEventService,
               private integrationService: IntegrationService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, boolean>,
+              public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, Array<string>>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     this.entityType = this.data.entityType;
@@ -112,7 +112,7 @@ export class AddEntitiesToEdgeDialogComponent extends
   }
 
   cancel(): void {
-    this.dialogRef.close(false);
+    this.dialogRef.close(undefined);
   }
 
   assign(): void {
@@ -126,7 +126,7 @@ export class AddEntitiesToEdgeDialogComponent extends
     );
     forkJoin(tasks).subscribe(
       () => {
-        this.dialogRef.close(true);
+        this.dialogRef.close(entityIds);
       }
     );
   }

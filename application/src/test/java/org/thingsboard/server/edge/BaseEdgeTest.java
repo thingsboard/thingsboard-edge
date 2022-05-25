@@ -258,7 +258,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
     }
 
-    private void installation() throws Exception {
+    private void installation() {
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
 
         DeviceProfile deviceProfile = this.createDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
@@ -1717,6 +1717,10 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     @Test
     public void testIntegrations() throws Exception {
+        JsonNode baseUrlAttribute = JacksonUtil.toJsonNode("{\"baseUrl\": \"http://localhost:18080\"}");
+        doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", baseUrlAttribute)
+                .andExpect(status().isOk());
+
         ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
                 .put("decoder", "return {deviceName: 'Device A', deviceType: 'thermostat'};");
         Converter converter = new Converter();
@@ -1732,7 +1736,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        integrationConfiguration.putObject("metadata").put("key1", "val1");
+        integrationConfiguration.putObject("metadata")
+                .put("baseUrl", "${{baseUrl}}");
         integration.setConfiguration(integrationConfiguration);
         integration.setEdgeTemplate(true);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
@@ -1747,10 +1752,42 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         validateIntegrationDefaultConverterUpdate(savedIntegration);
 
         // 4
-        validateIntegrationUnassignFromEdge(savedIntegration);
+        validateAddingAndUpdateOfEdgeAttribute();
 
         // 5
+        validateIntegrationUnassignFromEdge(savedIntegration);
+
+        // 6
         validateRemoveOfIntegration(savedIntegration);
+    }
+
+    private void validateAddingAndUpdateOfEdgeAttribute() throws Exception {
+        edgeImitator.expectMessageAmount(2);
+        JsonNode httpsBaseUrlAttribute = JacksonUtil.toJsonNode("{\"baseUrl\": \"https://localhost\"}");
+        doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", httpsBaseUrlAttribute)
+                .andExpect(status().isOk());
+
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        Optional<IntegrationUpdateMsg> integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
+        Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
+        IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
+        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("https://localhost/api/v1"));
+
+        edgeImitator.expectMessageAmount(2);
+        JsonNode deviceHWUrlAttribute = JacksonUtil.toJsonNode("{\"deviceHW\": \"PCM-2230\"}");
+        doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", deviceHWUrlAttribute)
+                .andExpect(status().isOk());
+
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        integrationUpdateMsgOpt = edgeImitator.findMessageByType(IntegrationUpdateMsg.class);
+        Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
+        integrationUpdateMsg = integrationUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
+        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("https://localhost/api/v1"));
+        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("PCM-2230"));
     }
 
     private void validateIntegrationAssignToEdge(Integration savedIntegration, Converter savedConverter) throws Exception {
@@ -1768,6 +1805,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(savedIntegration.getUuidId().getMostSignificantBits(), integrationUpdateMsg.getIdMSB());
         Assert.assertEquals(savedIntegration.getUuidId().getLeastSignificantBits(), integrationUpdateMsg.getIdLSB());
         Assert.assertEquals(savedIntegration.getName(), integrationUpdateMsg.getName());
+        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("http://localhost:18080"));
 
         Optional<ConverterUpdateMsg> converterUpdateMsgOpt = edgeImitator.findMessageByType(ConverterUpdateMsg.class);
         Assert.assertTrue(converterUpdateMsgOpt.isPresent());
@@ -1779,10 +1817,12 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     private void validateIntegrationConfigurationUpdate(Integration savedIntegration) throws Exception {
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
 
         ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        updatedIntegrationConfig.putObject("metadata").put("key2", "val2");
+        updatedIntegrationConfig.putObject("metadata")
+                .put("baseUrl", "${{baseUrl}}/api/v1")
+                .put("deviceHW", "${{deviceHW}}");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
         doPost("/api/integration", savedIntegration, Integration.class);
 
@@ -1792,7 +1832,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(integrationUpdateMsgOpt.isPresent());
         IntegrationUpdateMsg integrationUpdateMsg = integrationUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
-        Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.writeValueAsString(updatedIntegrationConfig), integrationUpdateMsg.getConfiguration());
+        Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("http://localhost:18080/api/v1"));
     }
 
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws Exception {
