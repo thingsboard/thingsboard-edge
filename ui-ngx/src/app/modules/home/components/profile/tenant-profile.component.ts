@@ -38,6 +38,7 @@ import { ActionNotificationShow } from '@app/core/notification/notification.acti
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { EntityComponent } from '../entity/entity.component';
+import { guid } from '@core/utils';
 
 @Component({
   selector: 'tb-tenant-profile',
@@ -69,6 +70,7 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
   buildForm(entity: TenantProfile): FormGroup {
     const mainQueue = [
       {
+        id: guid(),
         consumerPerPartition: true,
         name: 'Main',
         packProcessingTimeout: 2000,
@@ -85,7 +87,10 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
           batchSize: 1000,
           type: 'BURST'
         },
-        topic: 'tb_rule_engine.main'
+        topic: 'tb_rule_engine.main',
+        additionalInfo: {
+          description: ''
+        }
       }
     ];
     const formGroup = this.fb.group(

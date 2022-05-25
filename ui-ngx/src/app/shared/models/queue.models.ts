@@ -58,6 +58,7 @@ export enum QueueProcessingStrategyTypes {
 }
 
 export interface QueueInfo extends BaseData<QueueId> {
+  generatedId?: string;
   name: string;
   packProcessingTimeout: number;
   partitions: number;

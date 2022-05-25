@@ -69,6 +69,7 @@ public class Queue extends SearchTextBasedWithAdditionalInfo<QueueId> implements
         this.packProcessingTimeout = queueConfiguration.getPackProcessingTimeout();
         this.submitStrategy = queueConfiguration.getSubmitStrategy();
         this.processingStrategy = queueConfiguration.getProcessingStrategy();
+        setAdditionalInfo(queueConfiguration.getAdditionalInfo());
     }
 
     @Override

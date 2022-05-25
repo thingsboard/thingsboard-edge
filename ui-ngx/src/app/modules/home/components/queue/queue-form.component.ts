@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -44,6 +44,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { UtilsService } from '@core/services/utils.service';
 import { QueueInfo, QueueProcessingStrategyTypes, QueueSubmitStrategyTypes } from '@shared/models/queue.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-queue-form',
@@ -62,7 +63,7 @@ import { isDefinedAndNotNull } from '@core/utils';
     }
   ]
 })
-export class QueueFormComponent implements ControlValueAccessor, OnInit, Validator {
+export class QueueFormComponent implements ControlValueAccessor, OnInit, OnDestroy, Validator {
 
   @Input()
   disabled: boolean;
@@ -71,19 +72,27 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, Validat
   newQueue = false;
 
   @Input()
+  mainQueue = false;
+
+  @Input()
   systemQueue = false;
 
-  private modelValue: QueueInfo;
+  @Input()
+  expanded = false;
+
+  @Output()
+  removeQueue = new EventEmitter();
 
   queueFormGroup: FormGroup;
-
   submitStrategies: string[] = [];
   processingStrategies: string[] = [];
-
+  queueTitle = '';
   hideBatchSize = false;
 
+  private modelValue: QueueInfo;
   private propagateChange = null;
   private propagateChangePending = false;
+  private valueChange$: Subscription = null;
 
   constructor(private dialog: MatDialog,
               private utils: UtilsService,
@@ -129,10 +138,13 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, Validat
           description: ['']
         })
       });
-    this.queueFormGroup.valueChanges.subscribe(() => {
+    this.valueChange$ = this.queueFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
-    this.queueFormGroup.get('name').valueChanges.subscribe((value) => this.queueFormGroup.patchValue({topic: `tb_rule_engine.${value}`}));
+    this.queueFormGroup.get('name').valueChanges.subscribe((value) => {
+      this.queueFormGroup.patchValue({topic: `tb_rule_engine.${value}`});
+      this.queueTitle = this.utils.customTranslation(value, value);
+    });
     this.queueFormGroup.get('submitStrategy').get('type').valueChanges.subscribe(() => {
       this.submitStrategyTypeChanged();
     });
@@ -140,6 +152,13 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, Validat
       this.queueFormGroup.get('name').enable({emitEvent: false});
     } else {
       this.queueFormGroup.get('name').disable({emitEvent: false});
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.valueChange$) {
+      this.valueChange$.unsubscribe();
+      this.valueChange$ = null;
     }
   }
 
@@ -156,6 +175,10 @@ export class QueueFormComponent implements ControlValueAccessor, OnInit, Validat
   writeValue(value: QueueInfo): void {
     this.propagateChangePending = false;
     this.modelValue = value;
+    if (!this.modelValue.name) {
+      this.expanded = true;
+    }
+    this.queueTitle = this.utils.customTranslation(value.name, value.name);
     if (isDefinedAndNotNull(this.modelValue)) {
       this.queueFormGroup.patchValue(this.modelValue, {emitEvent: false});
     }

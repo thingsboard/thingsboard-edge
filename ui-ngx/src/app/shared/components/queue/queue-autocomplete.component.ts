@@ -51,7 +51,7 @@ import { emptyPageData } from '@shared/models/page/page-data';
 @Component({
   selector: 'tb-queue-autocomplete',
   templateUrl: './queue-autocomplete.component.html',
-  styleUrls: [],
+  styleUrls: ['./queue-autocomplete.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => QueueAutocompleteComponent),
@@ -222,7 +222,10 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
 
   getDescription(value) {
     return value.additionalInfo?.description ? value.additionalInfo.description :
-      `Submit Strategy: ${value.submitStrategy.type}, Processing Strategy: ${value.processingStrategy.type}`;
+      this.translate.instant(
+        'queue.alt-description',
+        {submitStrategy: value.submitStrategy.type, processingStrategy: value.processingStrategy.type}
+      );
   }
 
   clear() {

@@ -28,22 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.tenant.profile;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
-import org.thingsboard.server.common.data.queue.ProcessingStrategy;
-import org.thingsboard.server.common.data.queue.SubmitStrategy;
-
-@Data
-public class TenantProfileQueueConfiguration {
-    private String name;
-    private String topic;
-    private int pollInterval;
-    private int partitions;
-    private boolean consumerPerPartition;
-    private long packProcessingTimeout;
-    private SubmitStrategy submitStrategy;
-    private ProcessingStrategy processingStrategy;
-    private JsonNode additionalInfo;
+::ng-deep {
+  .queue-option {
+    .mat-option-text {
+      display: inline;
+    }
+    .queue-option-description {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 }
