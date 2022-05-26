@@ -77,6 +77,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                                                                            SecurityUser user, Object... additionalInfo) {
         logEntityAction(tenantId, entityId, entity, customerId, actionType, user, additionalInfo);
         sendDeleteNotificationMsg(tenantId, entityId, entity, relatedEdgeIds);
+        sendNotificationMsgToCloud(tenantId, entityId, CloudEventType.valueOf(entityId.getEntityType().name()), EdgeEventActionType.DELETED);
     }
 
     public void notifyDeleteAlarm(TenantId tenantId, Alarm alarm, EntityId originatorId,
@@ -139,8 +140,6 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         tbClusterService.onDeviceDeleted(device, null);
 
         notifyDeleteEntity(tenantId, deviceId, device, customerId, ActionType.DELETED, relatedEdgeIds, user, additionalInfo);
-
-        sendNotificationMsgToCloud(tenantId, device.getId(), CloudEventType.DEVICE, EdgeEventActionType.DELETED);
     }
 
     @Override
