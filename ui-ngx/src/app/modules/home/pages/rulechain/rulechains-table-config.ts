@@ -258,7 +258,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       $event.stopPropagation();
     }
     this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
+      Array<string>>(AddEntitiesToEdgeDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

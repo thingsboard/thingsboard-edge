@@ -65,6 +65,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -108,13 +109,9 @@ public class OwnerController extends BaseController {
         }
         try {
             checkEntityId(entityId, Operation.CHANGE_OWNER);
-            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
-             */
             EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            /* merge comment
             sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
-             */
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -150,13 +147,9 @@ public class OwnerController extends BaseController {
             }
         }
         try {
-            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
-             */
             EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            /* merge comment
             sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
-             */
         } catch (Exception e) {
             throw handleException(e);
         }

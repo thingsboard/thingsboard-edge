@@ -70,7 +70,7 @@ public interface IntegrationService {
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
-    List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+    List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 
     Integration assignIntegrationToEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId);
 

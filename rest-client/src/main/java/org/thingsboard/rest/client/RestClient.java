@@ -3413,6 +3413,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }, params).getBody();
     }
 
+    public String findMissingAttributesForAllRelatedEdges(IntegrationId integrationId) {
+        return restTemplate.getForEntity(baseURL + "/api/edge/integration/{integrationId}/allMissingAttributes", String.class, integrationId.getId()).getBody();
+    }
+
+    public String findMissingAttributesForEdge(EdgeId edgeId, List<IntegrationId> integrationIds) {
+        return restTemplate.getForEntity(baseURL + "/api/edge/integration/{edgeId}/missingAttributes?integrationIds={integrationIds}",
+                String.class, edgeId.getId(), listIdsToString(integrationIds)).getBody();
+    }
+
     public void changeOwnerToTenant(EntityId ownerId, EntityId entityId) {
         restTemplate.postForEntity(baseURL + "/api/owner/TENANT/{ownerId}/{entityType}/{entityId}", null, Object.class, ownerId.getId(), entityId.getEntityType(), entityId.getId());
     }

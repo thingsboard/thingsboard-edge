@@ -39,6 +39,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +56,7 @@ import org.thingsboard.server.common.data.ContactBased;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -62,6 +64,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -96,8 +99,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.group.EntityGroup.EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION;
@@ -112,6 +121,7 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_R
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_REMOVE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
@@ -277,18 +287,16 @@ public class EntityGroupController extends BaseController {
             for (GroupPermission groupPermission : groupPermissions) {
                 userPermissionsService.onGroupPermissionDeleted(groupPermission);
             }
-            /* voba - merge comment
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId, entityGroup.getType());
-             */
+
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId);
 
             entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
             logEntityAction(entityGroupId, entityGroup,
                     null,
                     ActionType.DELETED, null, strEntityGroupId);
-            /* voba - merge comment
+
             sendDeleteNotificationMsg(getTenantId(), entityGroupId, relatedEdgeIds);
-             */
         } catch (Exception e) {
 
             logEntityAction(emptyId(EntityType.ENTITY_GROUP),
@@ -463,9 +471,7 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                /* merge comment
                 sendGroupEntityNotificationMsg(getTenantId(), entityId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
-                 */
             }
         } catch (Exception e) {
             if (entityGroup != null) {
@@ -528,10 +534,8 @@ public class EntityGroupController extends BaseController {
                 logEntityAction((UUIDBased & EntityId) entityId, null,
                         null,
                         ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
-                /* merge comment
                 sendGroupEntityNotificationMsg(getTenantId(), entityId,
                         EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
-                 */
                 sendGroupEntityNotificationMsgToCloud(getTenantId(), entityId,
                         CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType()),
                         EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
@@ -970,7 +974,6 @@ public class EntityGroupController extends BaseController {
         }
     }
 
-    /* merge comment
     @ApiOperation(value = "Assign entity group to edge (assignEntityGroupToEdge)",
             notes = "Creates assignment of an existing entity group to an instance of The Edge. " +
                     "Assignment works in async way - first, notification event pushed to edge service queue on platform. " +
@@ -1139,7 +1142,6 @@ public class EntityGroupController extends BaseController {
             throw handleException(e);
         }
     }
-     */
 
     private PageData<EntityGroupInfo> toEntityGroupsInfo(PageData<EntityGroup> data) throws ThingsboardException {
         List<EntityGroupInfo> entityGroupsInfo = new ArrayList<>(data.getData().size());

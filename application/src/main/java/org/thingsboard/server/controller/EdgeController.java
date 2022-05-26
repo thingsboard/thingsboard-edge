@@ -174,7 +174,7 @@ public class EdgeController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
                     edge.getId(), edge, entityGroupId);
 
-            return tbEdgeService.saveEdge(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
+            return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.EDGE), edge,
                     null, edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
@@ -193,7 +193,7 @@ public class EdgeController extends BaseController {
         checkParameter(EDGE_ID, strEdgeId);
         EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
         Edge edge = checkEdgeId(edgeId, Operation.DELETE);
-        tbEdgeService.deleteEdge(edge, getCurrentUser());
+        tbEdgeService.delete(edge, getCurrentUser());
     }
      */
 

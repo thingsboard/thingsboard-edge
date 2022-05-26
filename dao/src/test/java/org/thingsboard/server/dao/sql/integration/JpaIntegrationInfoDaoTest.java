@@ -88,7 +88,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -125,7 +125,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -143,7 +143,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> emptyIntegrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", emptyIntegrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, emptyIntegrationInfos.size());
 
@@ -171,7 +171,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(null, false, false);
+                .findAllCoreIntegrationInfos(null, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -197,7 +197,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -218,7 +218,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.MQTT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.MQTT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -237,7 +237,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.HTTP, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.HTTP, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -265,7 +265,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfosRemote = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfosRemote);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfosRemote.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -283,7 +283,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> integrationInfosEnabled = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, true);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, true);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfosRemote);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfosRemote.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -300,7 +300,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -328,7 +328,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",

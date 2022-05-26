@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.edge;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Function;
@@ -42,10 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -63,14 +63,16 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -78,6 +80,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -85,7 +88,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
@@ -103,7 +108,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+
 
     private static final int DEFAULT_PAGE_SIZE = 1000;
 
@@ -118,6 +123,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Autowired
     private EntityGroupService entityGroupService;
+
+    @Autowired
+    private AttributesService attributesService;
 
     @Autowired
     private IntegrationService integrationService;
@@ -508,7 +516,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId) {
         List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
         List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
-        ObjectNode result = mapper.createObjectNode();
+        ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
             List<RuleChainConnectionInfo> connectionInfos =
                     ruleChainService.loadRuleChainMetaData(edgeRuleChain.getTenantId(), edgeRuleChain.getId()).getRuleChainConnections();
@@ -523,7 +531,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                     }
                 }
                 if (!missingRuleChains.isEmpty()) {
-                    ArrayNode array = mapper.createArrayNode();
+                    ArrayNode array = JacksonUtil.OBJECT_MAPPER.createArrayNode();
                     for (String missingRuleChain : missingRuleChains) {
                         array.add(missingRuleChain);
                     }
@@ -549,4 +557,66 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         } while (pageData != null && pageData.hasNext());
         return result;
     }
+
+    @Override
+    public String findEdgeMissingAttributes(TenantId tenantId, EdgeId edgeId, List<IntegrationId> integrationIds) throws Exception {
+        ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        for (IntegrationId integrationId : integrationIds) {
+            Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
+            Set<String> attributesKeys = EdgeUtils.getAttributeKeysFromConfiguration(integration.getConfiguration().toString());
+            if (attributesKeys.isEmpty()) {
+                return result.toString();
+            }
+            ArrayNode array = addMissingEdgeAttributes(tenantId, edgeId, attributesKeys);
+            if (array != null) {
+                result.set(integration.getName(), array);
+            }
+        }
+        return result.toString();
+    }
+
+    @Override
+    public String findAllRelatedEdgesMissingAttributes(TenantId tenantId, IntegrationId integrationId) throws Exception {
+        Integration integration = integrationService.findIntegrationById(tenantId, integrationId);
+        Set<String> attributesKeys = EdgeUtils.getAttributeKeysFromConfiguration(integration.getConfiguration().toString());
+        ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EdgeId> pageData;
+        do {
+            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, integrationId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (EdgeId relatedEdgeId : pageData.getData()) {
+                    ArrayNode array = addMissingEdgeAttributes(tenantId, relatedEdgeId, attributesKeys);
+                    if (array != null) {
+                        Edge edgeById = findEdgeById(tenantId, relatedEdgeId);
+                        result.set(edgeById.getName(), array);
+                    }
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
+        return result.toString();
+    }
+
+    private ArrayNode addMissingEdgeAttributes(TenantId tenantId, EdgeId edgeId, Set<String> attributesKeys) throws ExecutionException, InterruptedException {
+        List<AttributeKvEntry> edgeAttributes =
+                attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, attributesKeys).get();
+        List<String> edgeAttributeKeys =
+                edgeAttributes.stream().map(KvEntry::getKey).collect(Collectors.toList());
+        List<String> missingAttributeKeys = attributesKeys.stream()
+                .filter(element -> !edgeAttributeKeys.contains(element))
+                .collect(Collectors.toList());
+        if (missingAttributeKeys.isEmpty()) {
+            return null;
+        }
+
+        ArrayNode array = JacksonUtil.OBJECT_MAPPER.createArrayNode();
+        for (String missingAttributeKey : missingAttributeKeys) {
+            array.add(missingAttributeKey);
+        }
+        return array;
+    }
+
 }

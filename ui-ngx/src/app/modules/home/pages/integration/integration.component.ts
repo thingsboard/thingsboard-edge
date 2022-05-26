@@ -91,7 +91,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   ngOnInit() {
-    this.integrationScope = this.entitiesTableConfig.componentsData.integrationScope;
+    this.integrationScope = this.entitiesTableConfig.componentsData.integrationScope
+      ? this.entitiesTableConfig.componentsData.integrationScope : 'tenant';
     super.ngOnInit();
   }
 
@@ -147,7 +148,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
       delete formTemplate.fieldValidators;
       this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, configuration), ignoreNonPrimitiveFields);
       updateIntegrationFormDefaultFields(this.integrationType, this.integrationForm);
-      updateIntegrationFormValidators(this.integrationForm, fieldValidators);
+      updateIntegrationFormValidators(this.integrationForm, fieldValidators, this.integrationType, this.integrationScope);
       updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
       configurationForm.push(this.integrationForm);
     } else {
@@ -191,6 +192,10 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     } else if (this.isEditValue) {
       form.get('remote').enable({ emitEvent: false });
     }
+  }
+
+  get isCheckConnectionAvailable(): boolean {
+    return this.integrationScope === 'tenant' && !this.isRemoteIntegration;
   }
 
   get isRemoteIntegration(): boolean {

@@ -41,6 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -450,6 +451,13 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
     @Test
     public void testFindEdgeIntegrationsByEdgeId() throws Exception {
+        Converter edgeConverter = new Converter();
+        edgeConverter.setName("My edge converter");
+        edgeConverter.setType(ConverterType.UPLINK);
+        edgeConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        edgeConverter.setEdgeTemplate(true);
+        edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
+
         Edge edge = constructEdge("Edge with integration", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
@@ -458,7 +466,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
             Integration integration = new Integration();
             integration.setName("Edge integration " + i);
             integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
-            integration.setDefaultConverterId(savedConverter.getId());
+            integration.setDefaultConverterId(edgeConverter.getId());
             integration.setType(IntegrationType.HTTP);
             integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setEdgeTemplate(true);
@@ -496,4 +504,81 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getTotalElements());
     }
+
+    @Test
+    public void testFindMissingEdgeAttributesInIntegrationConfig() throws Exception {
+        Converter edgeConverter = new Converter();
+        edgeConverter.setName("My edge converter");
+        edgeConverter.setType(ConverterType.UPLINK);
+        ObjectNode converterConfiguration =
+                JacksonUtil.OBJECT_MAPPER.createObjectNode().put("decoder", "return {deviceName: 'Device Name', deviceType: metadata['deviceType']};");
+        edgeConverter.setConfiguration(converterConfiguration);
+        edgeConverter.setEdgeTemplate(true);
+        edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
+
+        Integration integration = new Integration();
+        integration.setName("Edge integration #1");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setDefaultConverterId(edgeConverter.getId());
+        integration.setType(IntegrationType.HTTP);
+        ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        integrationConfiguration.putObject("metadata").put("deviceType", "${{DEVICE_TYPE}}").put("deviceFirmware", "${{DEVICE_FW}}");
+        integrationConfiguration.put("baseUrl", "${{HTTP_URL}}/api");
+        integration.setConfiguration(integrationConfiguration);
+        integration.setEdgeTemplate(true);
+        Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
+
+        Edge edge1 = constructEdge("Edge #1 with integration", "default");
+        Edge savedEdge1 = doPost("/api/edge", edge1, Edge.class);
+
+        JsonNode attributesData1 = mapper.readTree("{\"HTTP_URL\":\"localhost:18080\"}");
+        doPost("/api/plugins/telemetry/EDGE/" + savedEdge1.getUuidId() + "/attributes/SERVER_SCOPE", attributesData1);
+
+        Edge edge2 = constructEdge("Edge #2 with integration", "default");
+        Edge savedEdge2 = doPost("/api/edge", edge2, Edge.class);
+
+        JsonNode attributesData2 = mapper.readTree("{\"DEVICE_TYPE\":\"thermostat\"}");
+        doPost("/api/plugins/telemetry/EDGE/" + savedEdge2.getUuidId() + "/attributes/SERVER_SCOPE", attributesData2);
+
+        doPost("/api/edge/" + savedEdge1.getUuidId()
+                + "/integration/" + savedIntegration.getUuidId(), Integration.class);
+
+        doPost("/api/edge/" + savedEdge2.getUuidId()
+                + "/integration/" + savedIntegration.getUuidId(), Integration.class);
+
+        String missingAttributesForAllRelatedEdges =
+                doGet("/api/edge/integration/" + savedIntegration.getUuidId() + "/allMissingAttributes", String.class);
+
+        Assert.assertTrue(missingAttributesForAllRelatedEdges.contains("Edge #1 with integration"));
+        Assert.assertTrue(missingAttributesForAllRelatedEdges.contains("Edge #2 with integration"));
+        Assert.assertTrue(missingAttributesForAllRelatedEdges.contains("DEVICE_TYPE"));
+        Assert.assertTrue(missingAttributesForAllRelatedEdges.contains("HTTP_URL"));
+        Assert.assertTrue(missingAttributesForAllRelatedEdges.contains("DEVICE_FW"));
+
+        Integration integration2 = new Integration();
+        integration2.setName("Edge integration #2");
+        integration2.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration2.setDefaultConverterId(edgeConverter.getId());
+        integration2.setType(IntegrationType.HTTP);
+        ObjectNode integrationConfiguration2 = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        integrationConfiguration2.put("baseUrl", "${{HTTPS_URL}}/api");
+        integration2.setConfiguration(integrationConfiguration2);
+        integration2.setEdgeTemplate(true);
+        Integration savedIntegration2 = doPost("/api/integration", integration2, Integration.class);
+
+        doPost("/api/edge/" + savedEdge1.getUuidId()
+                + "/integration/" + savedIntegration2.getUuidId(), Integration.class);
+
+        String integrationIds = savedIntegration.getUuidId() + "," + savedIntegration2.getUuidId();
+        String missingAttributesForEdge1 =
+                doGet("/api/edge/integration/" + savedEdge1.getUuidId() + "/missingAttributes?integrationIds=" + integrationIds, String.class);
+
+        Assert.assertTrue(missingAttributesForEdge1.contains("Edge integration #1"));
+        Assert.assertTrue(missingAttributesForEdge1.contains("DEVICE_TYPE"));
+        Assert.assertTrue(missingAttributesForEdge1.contains("DEVICE_FW"));
+        Assert.assertTrue(missingAttributesForEdge1.contains("Edge integration #2"));
+        Assert.assertTrue(missingAttributesForEdge1.contains("HTTPS_URL"));
+        Assert.assertFalse(missingAttributesForEdge1.contains("HTTP_URL"));
+    }
+
 }

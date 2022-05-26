@@ -30,16 +30,23 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import java.util.List;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -54,9 +61,10 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 Integration integration = integrationService.findIntegrationById(edgeEvent.getTenantId(), integrationId);
                 if (integration != null) {
+                    JsonNode updatedConfiguration = replaceAttributePlaceholders(edgeEvent, integration.getConfiguration());
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addIntegrationMsg(integrationProtoConstructor.constructIntegrationUpdateMsg(msgType, integration));
+                            .addIntegrationMsg(integrationProtoConstructor.constructIntegrationUpdateMsg(msgType, integration, updatedConfiguration));
 
                     Converter uplinkConverter = converterService.findConverterById(edgeEvent.getTenantId(), integration.getDefaultConverterId());
                     builder.addConverterMsg(converterProtoConstructor.constructConverterUpdateMsg(msgType, uplinkConverter));
@@ -77,5 +85,30 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
                 break;
         }
         return downlinkMsg;
+    }
+
+    private JsonNode replaceAttributePlaceholders(EdgeEvent edgeEvent, JsonNode originalConfiguration) {
+        try {
+            Set<String> attributeKeysFromConfiguration =
+                    EdgeUtils.getAttributeKeysFromConfiguration(originalConfiguration.toString());
+            if (attributeKeysFromConfiguration.isEmpty()) {
+                return originalConfiguration;
+            }
+            List<AttributeKvEntry> attributeKvEntries =
+                    attributesService.find(edgeEvent.getTenantId(),
+                            edgeEvent.getEdgeId(),
+                            DataConstants.SERVER_SCOPE,
+                            attributeKeysFromConfiguration).get();
+            String updatedConfiguration = originalConfiguration.toString();
+            for (AttributeKvEntry attributeKvEntry : attributeKvEntries) {
+                updatedConfiguration =
+                        updatedConfiguration.replaceAll(EdgeUtils.formatAttributeKeyToRegexpPlaceholderFormat(attributeKvEntry.getKey()), attributeKvEntry.getValueAsString());
+            }
+            return JacksonUtil.OBJECT_MAPPER.readTree(updatedConfiguration);
+        } catch (Exception e) {
+            String errMsg = String.format("Failed to replace attribute placeholders in configuration [%s]", originalConfiguration);
+            log.warn(errMsg, e);
+            return originalConfiguration;
+        }
     }
 }

@@ -69,9 +69,9 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
             "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
             "AND LOWER(ie.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
-                                                  @Param("edgeId") UUID edgeId,
-                                                  @Param("searchText") String searchText,
-                                                  Pageable pageable);
+                                                    @Param("edgeId") UUID edgeId,
+                                                    @Param("searchText") String searchText,
+                                                    Pageable pageable);
 
     Long countByTenantId(UUID tenantId);
 
