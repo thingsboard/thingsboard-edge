@@ -319,10 +319,8 @@ public class UserController extends BaseController {
                     savedUser.getCustomerId(),
                     user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
 
-            /* merge comment
             sendEntityNotificationMsg(getTenantId(), savedUser.getId(),
                     user.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-             */
 
             return savedUser;
         } catch (Exception e) {
@@ -409,9 +407,7 @@ public class UserController extends BaseController {
                 throw new ThingsboardException("Sysadmin is not allowed to delete himself", ThingsboardErrorCode.PERMISSION_DENIED);
             }
 
-            /* merge comment
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), userId);
-             */
 
             userService.deleteUser(getCurrentUser().getTenantId(), userId);
 
@@ -421,9 +417,7 @@ public class UserController extends BaseController {
                     user.getCustomerId(),
                     ActionType.DELETED, null, strUserId);
 
-            /* merge comment
             sendDeleteNotificationMsg(getTenantId(), userId, relatedEdgeIds);
-             */
 
         } catch (Exception e) {
             logEntityAction(emptyId(EntityType.USER),

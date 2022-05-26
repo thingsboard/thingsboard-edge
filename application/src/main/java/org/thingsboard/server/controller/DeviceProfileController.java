@@ -218,7 +218,7 @@ public class DeviceProfileController extends BaseController {
         deviceProfile.setTenantId(getTenantId());
         checkEntity(deviceProfile.getId(), deviceProfile, Resource.DEVICE_PROFILE, null);
         return tbDeviceProfileService.save(deviceProfile, getCurrentUser());
-     }
+    }
 
     @ApiOperation(value = "Delete device profile (deleteDeviceProfile)",
             notes = "Deletes the device profile. Referencing non-existing device profile Id will cause an error. " +

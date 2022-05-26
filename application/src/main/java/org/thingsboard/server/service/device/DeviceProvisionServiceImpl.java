@@ -219,7 +219,7 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
             pushDeviceCreatedEventToRuleEngine(savedDevice);
             notify(savedDevice, provisionRequest, DataConstants.PROVISION_SUCCESS, true);
 
-            sendDeviceAddedMsgToCloudService(savedDevice.getTenantId(), savedDevice.getId());
+            sendDeviceAddedMsgToCloud(savedDevice.getTenantId(), savedDevice.getId());
 
             return new ProvisionResponse(getDeviceCredentials(savedDevice), ProvisionResponseStatus.SUCCESS);
         } catch (Exception e) {
@@ -281,7 +281,7 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
         auditLogService.logEntityAction(tenantId, customerId, new UserId(UserId.NULL_UUID), device.getName(), device.getId(), device, actionType, null, provisionRequest);
     }
 
-    private void sendDeviceAddedMsgToCloudService(TenantId tenantId, EntityId entityId) {
+    private void sendDeviceAddedMsgToCloud(TenantId tenantId, EntityId entityId) {
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());

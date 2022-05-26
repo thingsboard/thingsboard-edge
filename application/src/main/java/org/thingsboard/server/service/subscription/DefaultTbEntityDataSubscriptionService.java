@@ -146,9 +146,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     private int maxAlarmQueriesPerRefreshInterval;
 
     private ExecutorService wsCallBackExecutor;
-    /* merge comment
     private boolean tsInSqlDB;
-     */
     private String serviceId;
     private SubscriptionServiceStatistics stats = new SubscriptionServiceStatistics();
 
@@ -156,9 +154,12 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     public void initExecutor() {
         serviceId = serviceInfoProvider.getServiceId();
         wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ws-entity-sub-callback"));
+
         /* merge comment
         tsInSqlDB = databaseTsType.equalsIgnoreCase("sql") || databaseTsType.equalsIgnoreCase("timescale");
          */
+        tsInSqlDB = true;
+
         ThreadFactory tbThreadFactory = ThingsBoardThreadFactory.forName("ws-entity-sub-scheduler");
         if (dynamicPageLinkRefreshPoolSize == 1) {
             scheduler = Executors.newSingleThreadScheduledExecutor(tbThreadFactory);
@@ -464,7 +465,6 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     private void handleLatestCmd(TbEntityDataSubCtx ctx, LatestValueCmd latestCmd) {
         log.trace("[{}][{}] Going to process latest command: {}", ctx.getSessionId(), ctx.getCmdId(), latestCmd);
         //Fetch the latest values for telemetry keys (in case they are not copied from NoSQL to SQL DB in hybrid mode.
-        /* merge comment
         if (!tsInSqlDB) {
             log.trace("[{}][{}] Going to fetch missing latest values: {}", ctx.getSessionId(), ctx.getCmdId(), latestCmd);
             List<String> allTsKeys = latestCmd.getKeys().stream()
@@ -531,7 +531,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
                 ctx.getWsLock().unlock();
             }
         }
-         */
+
         if (!ctx.isInitialDataSent()) {
             EntityDataUpdate update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());
             wsService.sendWsMsg(ctx.getSessionId(), update);

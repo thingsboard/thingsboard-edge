@@ -246,6 +246,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     private void sendAlarmDeleteNotificationMsg(TenantId tenantId, Alarm alarm, List<EdgeId> edgeIds, String body) {
         try {
             sendDeleteNotificationMsg(tenantId, alarm.getId(), edgeIds, body);
+            sendAlarmDeleteNotificationMsgToCloud(tenantId, alarm.getId(), alarm);
         } catch (Exception e) {
             log.warn("Failed to push delete msg to core: {}", alarm, e);
         }
@@ -357,5 +358,4 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
             log.warn("Failed to push relation to core: {}", relation, e);
         }
     }
-
 }

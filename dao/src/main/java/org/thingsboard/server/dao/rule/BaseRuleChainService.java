@@ -421,7 +421,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             if (ruleChain.isRoot()) {
                 throw new DataValidationException("Deletion of Root Tenant Rule Chain is prohibited!");
             }
-            /* merge comment
             if (RuleChainType.EDGE.equals(ruleChain.getType())) {
                 PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
                 PageData<Edge> pageData;
@@ -439,7 +438,6 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     }
                 } while (pageData != null && pageData.hasNext());
             }
-             */
         }
         checkRuleNodesAndDelete(tenantId, ruleChainId);
     }

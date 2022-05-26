@@ -176,6 +176,8 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeLicenseService;
+import org.thingsboard.server.service.edge.EdgeNotificationService;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.query.EntityQueryService;
@@ -366,13 +368,11 @@ public abstract class BaseController {
     @Autowired(required = false)
     protected EdgeService edgeService;
 
-    /* voba - merge comment
     @Autowired(required = false)
     protected EdgeNotificationService edgeNotificationService;
 
     @Autowired(required = false)
     protected EdgeRpcService edgeGrpcService;
-    */
 
     @Autowired(required = false)
     protected EdgeLicenseService edgeLicenseService;

@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -79,15 +80,21 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
@@ -127,7 +134,16 @@ public abstract class BaseCloudProcessor {
     protected DeviceService deviceService;
 
     @Autowired
+    protected TenantService tenantService;
+
+    @Autowired
     protected DeviceProfileService deviceProfileService;
+
+    @Autowired
+    protected RuleChainService ruleChainService;
+
+    @Autowired
+    protected ApiUsageStateService apiUsageStateService;
 
     @Autowired
     protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
@@ -157,7 +173,7 @@ public abstract class BaseCloudProcessor {
     protected RoleService roleService;
 
     @Autowired
-    private CloudEventService cloudEventService;
+    protected CloudEventService cloudEventService;
 
     @Autowired
     protected RelationService relationService;
@@ -184,6 +200,15 @@ public abstract class BaseCloudProcessor {
     protected DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
+    protected WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    protected CustomTranslationService customTranslationService;
+
+    @Autowired
+    protected GroupPermissionService groupPermissionService;
+
+    @Autowired
     protected EntityDataMsgConstructor entityDataMsgConstructor;
 
     @Autowired
@@ -203,6 +228,9 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected DataValidator<Integration> integrationValidator;
+
+    @Autowired
+    protected DataValidator<Tenant> tenantValidator;
 
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
         TimePageLink pageLink = new TimePageLink(100);
