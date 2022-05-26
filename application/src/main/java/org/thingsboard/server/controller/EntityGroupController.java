@@ -285,7 +285,7 @@ public class EntityGroupController extends BaseController {
                 userPermissionsService.onGroupPermissionDeleted(groupPermission);
             }
 
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId, entityGroup.getType());
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId);
 
             entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
