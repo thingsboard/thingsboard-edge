@@ -65,14 +65,14 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
-import org.thingsboard.server.common.data.security.model.mfa.TwoFactorAuthSettings;
+import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.audit.AuditLogService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -181,7 +181,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
     }
 
     @Override
-    public void validateTwoFaVerification(SecurityUser securityUser, boolean verificationSuccess, TwoFactorAuthSettings twoFaSettings) {
+    public void validateTwoFaVerification(SecurityUser securityUser, boolean verificationSuccess, PlatformTwoFaSettings twoFaSettings) {
         TenantId tenantId = securityUser.getTenantId();
         UserId userId = securityUser.getId();
 
@@ -193,11 +193,12 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             return;
         }
 
-        if (twoFaSettings.getMaxVerificationFailuresBeforeUserLockout() > 0
-                && failedVerificationAttempts >= twoFaSettings.getMaxVerificationFailuresBeforeUserLockout()) {
+        Integer maxVerificationFailures = twoFaSettings.getMaxVerificationFailuresBeforeUserLockout();
+        if (maxVerificationFailures != null && maxVerificationFailures > 0
+                && failedVerificationAttempts >= maxVerificationFailures) {
             userService.setUserCredentialsEnabled(TenantId.SYS_TENANT_ID, userId, false);
             SecuritySettings securitySettings = self.getSecuritySettings(tenantId);
-            lockAccount(tenantId, userId, securityUser.getEmail(), securitySettings.getUserLockoutNotificationEmail(), twoFaSettings.getMaxVerificationFailuresBeforeUserLockout());
+            lockAccount(tenantId, userId, securityUser.getEmail(), securitySettings.getUserLockoutNotificationEmail(), maxVerificationFailures);
             throw new LockedException("User account was locked due to exceeded 2FA verification attempts");
         }
     }

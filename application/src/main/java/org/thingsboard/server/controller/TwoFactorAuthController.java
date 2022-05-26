@@ -31,7 +31,9 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,15 +41,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
+import org.thingsboard.server.common.data.security.model.mfa.account.EmailTwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.account.SmsTwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
-import org.thingsboard.server.service.security.auth.mfa.config.TwoFactorAuthConfigManager;
-import org.thingsboard.server.common.data.security.model.mfa.account.TwoFactorAuthAccountConfig;
-import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderType;
+import org.thingsboard.server.service.security.auth.mfa.config.TwoFaConfigManager;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.model.JwtTokenPair;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -55,6 +60,10 @@ import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 
@@ -65,7 +74,7 @@ import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 public class TwoFactorAuthController extends BaseController {
 
     private final TwoFactorAuthService twoFactorAuthService;
-    private final TwoFactorAuthConfigManager twoFactorAuthConfigManager;
+    private final TwoFaConfigManager twoFaConfigManager;
     private final JwtTokenFactory tokenFactory;
     private final SystemSecurityService systemSecurityService;
     private final UserService userService;
@@ -80,9 +89,9 @@ public class TwoFactorAuthController extends BaseController {
                     "and Too Many Requests error if rate limits are exceeded.")
     @PostMapping("/verification/send")
     @PreAuthorize("hasAuthority('PRE_VERIFICATION_TOKEN')")
-    public void requestTwoFaVerificationCode() throws Exception {
+    public void requestTwoFaVerificationCode(@RequestParam TwoFaProviderType providerType) throws Exception {
         SecurityUser user = getCurrentUser();
-        twoFactorAuthService.prepareVerificationCode(user, true);
+        twoFactorAuthService.prepareVerificationCode(user, providerType, true);
     }
 
     @ApiOperation(value = "Check 2FA verification code (checkTwoFaVerificationCode)",
@@ -93,10 +102,10 @@ public class TwoFactorAuthController extends BaseController {
                     "and Too Many Requests error if rate limits are exceeded.")
     @PostMapping("/verification/check")
     @PreAuthorize("hasAuthority('PRE_VERIFICATION_TOKEN')")
-    public JwtTokenPair checkTwoFaVerificationCode(@ApiParam(value = "6-digit verification code", required = true)
+    public JwtTokenPair checkTwoFaVerificationCode(@RequestParam TwoFaProviderType providerType,
                                                    @RequestParam String verificationCode, HttpServletRequest servletRequest) throws Exception {
         SecurityUser user = getCurrentUser();
-        boolean verificationSuccess = twoFactorAuthService.checkVerificationCode(user, verificationCode, true);
+        boolean verificationSuccess = twoFactorAuthService.checkVerificationCode(user, providerType, verificationCode, true);
         if (verificationSuccess) {
             systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(servletRequest), ActionType.LOGIN, null);
             user = new SecurityUser(userService.findUserById(user.getTenantId(), user.getId()), true, user.getUserPrincipal(), getMergedUserPermissions(user, false));
@@ -108,13 +117,51 @@ public class TwoFactorAuthController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "Get currently used 2FA provider type (getCurrentlyUsedTwoFaProviderType)")
-    @GetMapping("/provider/type")
+
+    @ApiOperation(value = "Get available 2FA providers (getAvailableTwoFaProviders)", notes =
+            "Get the list of 2FA provider infos available for user to use. Example:\n" +
+                    "```\n[\n" +
+                    "  {\n    \"type\": \"EMAIL\",\n    \"default\": true,\n    \"contact\": \"ab*****ko@gmail.com\"\n  },\n" +
+                    "  {\n    \"type\": \"TOTP\",\n    \"default\": false,\n    \"contact\": null\n  },\n" +
+                    "  {\n    \"type\": \"SMS\",\n    \"default\": false,\n    \"contact\": \"+38********12\"\n  }\n" +
+                    "]\n```")
+    @GetMapping("/providers")
     @PreAuthorize("hasAuthority('PRE_VERIFICATION_TOKEN')")
-    public TwoFactorAuthProviderType getCurrentlyUsedTwoFaProviderType() throws ThingsboardException {
+    public List<TwoFaProviderInfo> getAvailableTwoFaProviders() throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return twoFactorAuthConfigManager.getTwoFaAccountConfig(user.getTenantId(), user.getId())
-                .map(TwoFactorAuthAccountConfig::getProviderType).orElse(null);
+        Optional<PlatformTwoFaSettings> platformTwoFaSettings = twoFaConfigManager.getPlatformTwoFaSettings(user.getTenantId(), true);
+        return twoFaConfigManager.getAccountTwoFaSettings(user.getTenantId(), user.getId())
+                .map(settings -> settings.getConfigs().values()).orElse(Collections.emptyList())
+                .stream().map(config -> {
+                    String contact = null;
+                    switch (config.getProviderType()) {
+                        case SMS:
+                            String phoneNumber = ((SmsTwoFaAccountConfig) config).getPhoneNumber();
+                            contact = StringUtils.obfuscate(phoneNumber, 2, '*', phoneNumber.indexOf('+') + 1, phoneNumber.length());
+                            break;
+                        case EMAIL:
+                            String email = ((EmailTwoFaAccountConfig) config).getEmail();
+                            contact = StringUtils.obfuscate(email, 2, '*', 0, email.indexOf('@'));
+                            break;
+                    }
+                    return TwoFaProviderInfo.builder()
+                            .type(config.getProviderType())
+                            .isDefault(config.isUseByDefault())
+                            .contact(contact)
+                            .minVerificationCodeSendPeriod(platformTwoFaSettings.get().getMinVerificationCodeSendPeriod())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Builder
+    public static class TwoFaProviderInfo {
+        private TwoFaProviderType type;
+        private boolean isDefault;
+        private String contact;
+        private Integer minVerificationCodeSendPeriod;
     }
 
 }

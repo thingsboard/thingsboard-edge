@@ -1,0 +1,128 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-toolbar fxLayout="row" color="primary">
+  <h2 translate>security.2fa.dialog.enable-sms-title</h2>
+  <span fxFlex></span>
+  <button mat-icon-button
+          (click)="closeDialog()"
+          type="button">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+</mat-toolbar>
+<mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+</mat-progress-bar>
+<div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+<div mat-dialog-content tb-toast style="padding: 0">
+  <mat-stepper linear #stepper>
+    <ng-template matStepperIcon="edit">
+      <mat-icon>done</mat-icon>
+    </ng-template>
+    <mat-step [stepControl]="smsConfigForm">
+      <ng-template matStepLabel>{{ 'security.2fa.dialog.sms-step-label' | translate }}</ng-template>
+      <form [formGroup]="smsConfigForm" (ngSubmit)="nextStep()">
+        <p class="mat-body step-description input" translate>security.2fa.dialog.sms-step-description</p>
+        <div fxLayout="row" fxLayoutAlign="space-between center">
+          <mat-form-field  fxFlex class="mat-block input-container" floatLabel="always" hideRequiredMarker>
+            <mat-label></mat-label>
+            <input type="tel" required
+                   [pattern]="phoneNumberPattern"
+                   matInput formControlName="phone"
+                   placeholder="{{ 'security.2fa.dialog.sms-step-label' | translate }}">
+            <mat-error *ngIf="smsConfigForm.get('phone').hasError('required')">
+              {{ 'admin.number-to-required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="smsConfigForm.get('phone').hasError('pattern')">
+              {{ 'admin.phone-number-pattern' | translate }}
+            </mat-error>
+            <mat-hint innerHTML="{{ 'admin.phone-number-hint' | translate }}"></mat-hint>
+          </mat-form-field>
+          <button mat-raised-button
+                  type="submit"
+                  color="primary"
+                  [disabled]="(isLoading$ | async) || smsConfigForm.invalid">
+            {{ 'security.2fa.dialog.send-code' | translate }}
+          </button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="smsVerificationForm">
+      <ng-template matStepLabel>{{ 'security.2fa.dialog.verification-step-label' | translate }}</ng-template>
+      <form [formGroup]="smsVerificationForm" (ngSubmit)="nextStep()">
+        <p class="mat-body step-description input">
+          {{ 'security.2fa.dialog.verification-step-description' | translate : {address: smsConfigForm.get('phone').value} }}
+        </p>
+        <div fxLayout="row" fxLayout.xs="column" fxLayoutAlign="space-between center" fxLayoutAlign.xs="start end">
+          <mat-form-field fxFlex class="mat-block code-container full-width-xs" floatLabel="always" hideRequiredMarker>
+            <mat-label></mat-label>
+            <input matInput formControlName="verificationCode"
+                   maxlength="6" type="text" required
+                   inputmode="numeric" pattern="[0-9]*"
+                   autocomplete="off"
+                   placeholder="{{ 'security.2fa.dialog.verification-code' | translate }}">
+            <mat-error *ngIf="smsVerificationForm.get('verificationCode').invalid">
+              {{ 'security.2fa.dialog.verification-code-invalid' | translate }}
+            </mat-error>
+          </mat-form-field>
+          <div fxLayoutGap="8px">
+            <button mat-button
+                    matStepperPrevious
+                    [disabled]="(isLoading$ | async)">
+              {{ 'action.back' | translate }}
+            </button>
+            <button mat-raised-button
+                    type="submit"
+                    color="primary"
+                    [disabled]="(isLoading$ | async) || smsVerificationForm.invalid">
+              {{ 'action.activate' | translate }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step>
+      <ng-template matStepLabel matStepperIcon="done">{{ 'security.2fa.dialog.activation-step-label' | translate }}</ng-template>
+      <div>
+        <h3 class="result-title" translate>security.2fa.dialog.success</h3>
+        <p class="mat-body result-description" translate>security.2fa.dialog.activation-step-description-sms</p>
+        <div fxLayout="row" fxLayoutAlign="end center">
+          <button mat-raised-button
+                  type="button"
+                  color="primary"
+                  (click)="closeDialog()">
+            {{ 'action.done' | translate }}
+          </button>
+        </div>
+      </div>
+    </mat-step>
+  </mat-stepper>
+</div>

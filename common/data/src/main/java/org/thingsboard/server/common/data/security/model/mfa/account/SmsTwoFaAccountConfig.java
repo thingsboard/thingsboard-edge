@@ -28,24 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.provider;
+package org.thingsboard.server.common.data.security.model.mfa.account;
 
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.security.model.mfa.account.TwoFactorAuthAccountConfig;
-import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderConfig;
-import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderType;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 
-public interface TwoFactorAuthProvider<C extends TwoFactorAuthProviderConfig, A extends TwoFactorAuthAccountConfig> {
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
-    A generateNewAccountConfig(User user, C providerConfig);
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SmsTwoFaAccountConfig extends OtpBasedTwoFaAccountConfig {
 
-    default void prepareVerificationCode(SecurityUser securityUser, C providerConfig, A accountConfig) throws ThingsboardException {}
+    @NotBlank(message = "phone number cannot be blank")
+    @Pattern(regexp = "^\\+[1-9]\\d{1,14}$", message = "phone number is not of E.164 format")
+    private String phoneNumber;
 
-    boolean checkVerificationCode(SecurityUser securityUser, String verificationCode, C providerConfig, A accountConfig);
-
-
-    TwoFactorAuthProviderType getType();
+    @Override
+    public TwoFaProviderType getProviderType() {
+        return TwoFaProviderType.SMS;
+    }
 
 }

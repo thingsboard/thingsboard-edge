@@ -28,25 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model.mfa.provider;
+package org.thingsboard.server.common.data.security.model.mfa.account;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "providerType")
-@JsonSubTypes({
-        @Type(name = "TOTP", value = TotpTwoFactorAuthProviderConfig.class),
-        @Type(name = "SMS", value = SmsTwoFactorAuthProviderConfig.class)
-})
-public interface TwoFactorAuthProviderConfig {
+import javax.validation.constraints.NotEmpty;
+import java.util.Set;
 
-    @JsonIgnore
-    TwoFactorAuthProviderType getProviderType();
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class BackupCodeTwoFaAccountConfig extends TwoFaAccountConfig {
+
+    @NotEmpty
+    private Set<String> codes;
+
+    @Override
+    public TwoFaProviderType getProviderType() {
+        return TwoFaProviderType.BACKUP_CODE;
+    }
+
+
+    @JsonGetter("codes")
+    private Set<String> getCodesForJson() {
+        if (serializeHiddenFields) {
+            return codes;
+        } else {
+            return null;
+        }
+    }
+
+    @JsonGetter
+    private Integer getCodesLeft() {
+        if (codes != null) {
+            return codes.size();
+        } else {
+            return null;
+        }
+    }
 
 }

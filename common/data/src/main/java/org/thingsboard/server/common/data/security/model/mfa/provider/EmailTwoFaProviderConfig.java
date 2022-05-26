@@ -28,10 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model.mfa.account;
+package org.thingsboard.server.common.data.security.model.mfa.provider;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public abstract class OtpBasedTwoFactorAuthAccountConfig implements TwoFactorAuthAccountConfig {
+@EqualsAndHashCode(callSuper = true)
+public class EmailTwoFaProviderConfig extends OtpBasedTwoFaProviderConfig {
+
+    @Override
+    public TwoFaProviderType getProviderType() {
+        return TwoFaProviderType.EMAIL;
+    }
+
 }

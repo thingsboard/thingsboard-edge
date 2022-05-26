@@ -37,6 +37,8 @@ import { AuthGuard } from '@core/guards/auth.guard';
 import { ResetPasswordRequestComponent } from '@modules/login/pages/login/reset-password-request.component';
 import { ResetPasswordComponent } from '@modules/login/pages/login/reset-password.component';
 import { CreatePasswordComponent } from '@modules/login/pages/login/create-password.component';
+import { TwoFactorAuthLoginComponent } from '@modules/login/pages/login/two-factor-auth-login.component';
+import { Authority } from '@shared/models/authority.enum';
 
 const routes: Routes = [
   {
@@ -81,6 +83,16 @@ const routes: Routes = [
     component: CreatePasswordComponent,
     data: {
       title: 'login.create-password',
+      module: 'public'
+    },
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'login/mfa',
+    component: TwoFactorAuthLoginComponent,
+    data: {
+      title: 'login.create-password',
+      auth: [Authority.PRE_VERIFICATION_TOKEN],
       module: 'public'
     },
     canActivate: [AuthGuard]

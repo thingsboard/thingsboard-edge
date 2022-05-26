@@ -117,6 +117,8 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               if (path === 'login') {
                 tasks.push(this.authService.loadOAuth2Clients());
               }
+            } else if (path === 'login.mfa') {
+              return of(this.router.parseUrl('/login'));
             }
             return forkJoin(tasks).pipe(
               map(() => {
@@ -142,6 +144,17 @@ export class AuthGuard implements CanActivate, CanActivateChild {
           }
           if (this.mobileService.isMobileApp() && !path.startsWith('dashboard.')) {
             this.mobileService.handleMobileNavigation(path, params);
+            return of(false);
+          }
+          if (authState.authUser.authority === Authority.PRE_VERIFICATION_TOKEN) {
+            if (path === 'login.mfa') {
+              return this.authService.getAvailableTwoFaLoginProviders().pipe(
+                map(() => {
+                  return true;
+                })
+              );
+            }
+            this.authService.logout();
             return of(false);
           }
           const defaultUrl = this.authService.defaultUrl(true, authState, path, params);

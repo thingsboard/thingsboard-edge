@@ -28,26 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model.mfa.provider;
+package org.thingsboard.server.common.data.security.model.mfa.account;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
-@ApiModel
 @Data
-public class TotpTwoFactorAuthProviderConfig implements TwoFactorAuthProviderConfig {
+@EqualsAndHashCode(callSuper = true)
+public class TotpTwoFaAccountConfig extends TwoFaAccountConfig {
 
-    @ApiModelProperty(value = "Issuer name that will be displayed in an authenticator app near a username. " +
-            "Must not be blank.", example = "ThingsBoard", required = true)
-    @NotBlank(message = "issuer name must not be blank")
-    private String issuerName;
+    @NotBlank(message = "OTP auth URL cannot be blank")
+    @Pattern(regexp = "otpauth://totp/(\\S+?):(\\S+?)\\?issuer=(\\S+?)&secret=(\\w+?)", message = "OTP auth url is invalid")
+    private String authUrl;
 
     @Override
-    public TwoFactorAuthProviderType getProviderType() {
-        return TwoFactorAuthProviderType.TOTP;
+    public TwoFaProviderType getProviderType() {
+        return TwoFaProviderType.TOTP;
     }
 
 }
+

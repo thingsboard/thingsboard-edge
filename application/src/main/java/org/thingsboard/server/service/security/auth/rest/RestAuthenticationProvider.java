@@ -55,7 +55,7 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.MfaAuthenticationToken;
-import org.thingsboard.server.service.security.auth.mfa.config.TwoFactorAuthConfigManager;
+import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
@@ -72,18 +72,18 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
     private final UserService userService;
     private final CustomerService customerService;
     private final UserPermissionsService userPermissionsService;
-    private final TwoFactorAuthConfigManager twoFactorAuthConfigManager;
+    private final TwoFactorAuthService twoFactorAuthService;
 
     @Autowired
     public RestAuthenticationProvider(final UserService userService, final CustomerService customerService,
                                       final UserPermissionsService userPermissionsService,
                                       final SystemSecurityService systemSecurityService,
-                                      TwoFactorAuthConfigManager twoFactorAuthConfigManager) {
+                                      TwoFactorAuthService twoFactorAuthService) {
         this.userService = userService;
         this.customerService = customerService;
         this.userPermissionsService = userPermissionsService;
         this.systemSecurityService = systemSecurityService;
-        this.twoFactorAuthConfigManager = twoFactorAuthConfigManager;
+        this.twoFactorAuthService = twoFactorAuthService;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             String username = userPrincipal.getValue();
             String password = (String) authentication.getCredentials();
             securityUser = authenticateByUsernameAndPassword(authentication, userPrincipal, username, password);
-            if (twoFactorAuthConfigManager.isTwoFaEnabled(securityUser.getTenantId(), securityUser.getId())) {
+            if (twoFactorAuthService.isTwoFaEnabled(securityUser.getTenantId(), securityUser.getId())) {
                 return new MfaAuthenticationToken(securityUser);
             } else {
                 systemSecurityService.logLoginAction(securityUser, authentication.getDetails(), ActionType.LOGIN, null);

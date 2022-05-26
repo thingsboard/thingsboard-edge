@@ -28,31 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.mfa.config;
+package org.thingsboard.server.common.data.security.model.mfa.provider;
 
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.security.model.mfa.TwoFactorAuthSettings;
-import org.thingsboard.server.common.data.security.model.mfa.account.TwoFactorAuthAccountConfig;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.util.Optional;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 
-public interface TwoFactorAuthConfigManager {
+@EqualsAndHashCode(callSuper = true)
+@Data
+public class SmsTwoFaProviderConfig extends OtpBasedTwoFaProviderConfig {
 
-    boolean isTwoFaEnabled(TenantId tenantId, UserId userId);
+    @NotBlank(message = "verification message template is required")
+    @Pattern(regexp = ".*\\$\\{code}.*", message = "template must contain verification code")
+    private String smsVerificationMessageTemplate;
 
-    Optional<TwoFactorAuthAccountConfig> getTwoFaAccountConfig(TenantId tenantId, UserId userId);
-
-    void saveTwoFaAccountConfig(TenantId tenantId, UserId userId, TwoFactorAuthAccountConfig accountConfig) throws ThingsboardException;
-
-    void deleteTwoFaAccountConfig(TenantId tenantId, UserId userId);
-
-
-    Optional<TwoFactorAuthSettings> getTwoFaSettings(TenantId tenantId, boolean sysadminSettingsAsDefault);
-
-    void saveTwoFaSettings(TenantId tenantId, TwoFactorAuthSettings twoFactorAuthSettings);
-
-    void deleteTwoFaSettings(TenantId tenantId);
+    @Override
+    public TwoFaProviderType getProviderType() {
+        return TwoFaProviderType.SMS;
+    }
 
 }

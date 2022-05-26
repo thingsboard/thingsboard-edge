@@ -28,17 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model.mfa.provider;
+package org.thingsboard.server.common.data.security.model.mfa;
 
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
+import java.util.List;
+import java.util.Optional;
 
 @Data
-public abstract class OtpBasedTwoFactorAuthProviderConfig implements TwoFactorAuthProviderConfig {
-    @ApiModelProperty(value = "Verification code lifetime in seconds. Verification codes with a lifetime bigger than this param " +
-            "will be considered incorrect", example = "60", required = true)
-    @Min(value = 1, message = "verification code lifetime is required")
-    private int verificationCodeLifetime;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class PlatformTwoFaSettings {
+
+    @Valid
+    private List<TwoFaProviderConfig> providers;
+
+    @Min(value = 5, message = "minimum verification code sent period must be greater than or equal 5")
+    private Integer minVerificationCodeSendPeriod;
+    @Pattern(regexp = "[1-9]\\d*:[1-9]\\d*", message = "verification code check rate limit configuration is invalid")
+    private String verificationCodeCheckRateLimit;
+    @Min(value = 0, message = "maximum number of verification failure before user lockout must be positive")
+    private Integer maxVerificationFailuresBeforeUserLockout;
+    @Min(value = 1, message = "total amount of time allotted for verification must be greater than 0")
+    private Integer totalAllowedTimeForVerification;
+
+
+    public Optional<TwoFaProviderConfig> getProviderConfig(TwoFaProviderType providerType) {
+        return Optional.ofNullable(providers)
+                .flatMap(providersConfigs -> providersConfigs.stream()
+                        .filter(providerConfig -> providerConfig.getProviderType() == providerType)
+                        .findFirst());
+    }
+
 }

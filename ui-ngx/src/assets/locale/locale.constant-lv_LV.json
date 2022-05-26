@@ -53,7 +53,8 @@
     "share-via": "Dalīties caur {{provider}}",
     "move": "Pārvietot",
     "select": "Atlasīt",
-    "continue": "Turpināt"
+    "continue": "Turpināt",
+    "done": "Darīts"
   },
   "aggregation": {
     "aggregation": "Sakopojums",
@@ -1461,8 +1462,7 @@
       "select-file": "Atlasīt failu",
       "configuration": "Importēt konfigurāciju",
       "column-type": "Atlasīt kolonas tipu",
-      "creat-entities": "Radīt jaunas vienības",
-      "done": "Darīts"
+      "creat-entities": "Radīt jaunas vienības"
     },
     "message": {
       "create-entities": "{{count}} jaunas vienības sekmīgi radītas.",

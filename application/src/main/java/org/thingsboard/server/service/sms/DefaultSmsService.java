@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
@@ -113,6 +112,12 @@ public class DefaultSmsService implements SmsService {
         }
         this.sendSms(testSmsSender, testSmsRequest.getNumberTo(), testSmsRequest.getMessage());
         testSmsSender.destroy();
+    }
+
+    @Override
+    public boolean isConfigured(TenantId tenantId) {
+        // to testConnection
+        return smsSender != null;
     }
 
     private int sendSms(SmsSender smsSender, String numberTo, String message) throws ThingsboardException {

@@ -35,10 +35,12 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.security.model.mfa.account.SmsTwoFactorAuthAccountConfig;
-import org.thingsboard.server.common.data.security.model.mfa.provider.SmsTwoFactorAuthProviderConfig;
-import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.model.mfa.account.SmsTwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.SmsTwoFaProviderConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -46,25 +48,25 @@ import java.util.Map;
 
 @Service
 @TbCoreComponent
-public class SmsTwoFactorAuthProvider extends OtpBasedTwoFactorAuthProvider<SmsTwoFactorAuthProviderConfig, SmsTwoFactorAuthAccountConfig> {
+public class SmsTwoFaProvider extends OtpBasedTwoFaProvider<SmsTwoFaProviderConfig, SmsTwoFaAccountConfig> {
 
     private final SmsService smsService;
 
-    public SmsTwoFactorAuthProvider(CacheManager cacheManager, SmsService smsService) {
+    public SmsTwoFaProvider(CacheManager cacheManager, SmsService smsService) {
         super(cacheManager);
         this.smsService = smsService;
     }
 
 
     @Override
-    public SmsTwoFactorAuthAccountConfig generateNewAccountConfig(User user, SmsTwoFactorAuthProviderConfig providerConfig) {
-        return new SmsTwoFactorAuthAccountConfig();
+    public SmsTwoFaAccountConfig generateNewAccountConfig(User user, SmsTwoFaProviderConfig providerConfig) {
+        return new SmsTwoFaAccountConfig();
     }
 
     @Override
-    protected void sendVerificationCode(SecurityUser user, String verificationCode, SmsTwoFactorAuthProviderConfig providerConfig, SmsTwoFactorAuthAccountConfig accountConfig) throws ThingsboardException {
+    protected void sendVerificationCode(SecurityUser user, String verificationCode, SmsTwoFaProviderConfig providerConfig, SmsTwoFaAccountConfig accountConfig) throws ThingsboardException {
         Map<String, String> messageData = Map.of(
-                "verificationCode", verificationCode,
+                "code", verificationCode,
                 "userEmail", user.getEmail()
         );
         String message = TbNodeUtils.processTemplate(providerConfig.getSmsVerificationMessageTemplate(), messageData);
@@ -73,10 +75,17 @@ public class SmsTwoFactorAuthProvider extends OtpBasedTwoFactorAuthProvider<SmsT
         smsService.sendSms(user.getTenantId(), user.getCustomerId(), new String[]{phoneNumber}, message);
     }
 
+    @Override
+    public void check(TenantId tenantId) throws ThingsboardException {
+        if (!smsService.isConfigured(tenantId)) {
+            throw new ThingsboardException("SMS service in not configured", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+    }
+
 
     @Override
-    public TwoFactorAuthProviderType getType() {
-        return TwoFactorAuthProviderType.SMS;
+    public TwoFaProviderType getType() {
+        return TwoFaProviderType.SMS;
     }
 
 }

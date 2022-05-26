@@ -30,29 +30,19 @@
  */
 package org.thingsboard.server.common.data.security.model.mfa.provider;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Min;
 
-@ApiModel(parent = OtpBasedTwoFactorAuthProviderConfig.class)
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class SmsTwoFactorAuthProviderConfig extends OtpBasedTwoFactorAuthProviderConfig {
+public class BackupCodeTwoFaProviderConfig implements TwoFaProviderConfig {
 
-    @ApiModelProperty(value = "SMS verification message template. Available template variables are ${verificationCode} and ${userEmail}. " +
-            "It must not be blank and must contain verification code variable.",
-            example = "Here is your verification code: ${verificationCode}", required = true)
-    @NotBlank(message = "verification message template is required")
-    @Pattern(regexp = ".*\\$\\{verificationCode}.*", message = "template must contain verification code")
-    private String smsVerificationMessageTemplate;
+    @Min(value = 1, message = "backup codes quantity must be greater than 0")
+    private int codesQuantity;
 
     @Override
-    public TwoFactorAuthProviderType getProviderType() {
-        return TwoFactorAuthProviderType.SMS;
+    public TwoFaProviderType getProviderType() {
+        return TwoFaProviderType.BACKUP_CODE;
     }
 
 }

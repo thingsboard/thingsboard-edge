@@ -37,6 +37,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 public interface SmsService {
 
+    boolean isConfigured(TenantId tenantId);
+
     void sendSms(TenantId tenantId, CustomerId customerId, String[] numbersTo, String message) throws ThingsboardException;;
 
     void sendTestSms(TestSmsRequest testSmsRequest) throws ThingsboardException;

@@ -67,7 +67,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
-import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
@@ -323,6 +323,28 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
+    public void sendTwoFaVerificationEmail(TenantId tenantId, String email, String verificationCode, int expirationTimeSeconds) throws ThingsboardException {
+        String subject = messages.getMessage("2fa.verification.code.subject", null, Locale.US);
+        String message = mergeTemplateIntoString("2fa.verification.code.ftl", Map.of(
+                TARGET_EMAIL, email,
+                "verificationCode", verificationCode,
+                "expirationTimeSeconds", expirationTimeSeconds
+        ));
+
+        sendMail(tenantId, email, subject, message);
+    }
+
+    @Override
+    public boolean isConfigured(TenantId tenantId) {
+        try {
+            mailSender.testConnection();
+            return true;
+        } catch (MessagingException e) {
+            return false;
+        }
+    }
+
+    @Override
     public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException {
         JsonNode mailTemplates = getConfig(null, "mailTemplates");
         String subject = null;
@@ -494,7 +516,7 @@ public class DefaultMailService implements MailService {
                 javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", tlsVersion);
             }
         }
-        
+
         boolean enableProxy = jsonConfig.has("enableProxy") && jsonConfig.get("enableProxy").asBoolean();
 
         if (enableProxy) {

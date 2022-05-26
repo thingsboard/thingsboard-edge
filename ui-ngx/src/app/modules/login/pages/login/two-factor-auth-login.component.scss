@@ -28,26 +28,75 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model.mfa.account;
+@import '../../../../../scss/constants';
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFactorAuthProviderType;
+:host {
+  display: flex;
+  flex: 1 1 0;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonTypeInfo(
-        use = JsonTypeInfo.Id.NAME,
-        property = "providerType")
-@JsonSubTypes({
-        @Type(name = "TOTP", value = TotpTwoFactorAuthAccountConfig.class),
-        @Type(name = "SMS", value = SmsTwoFactorAuthAccountConfig.class)
-})
-public interface TwoFactorAuthAccountConfig {
+  .tb-two-factor-auth-login-content {
+    background-color: #eee;
 
-    @JsonIgnore
-    TwoFactorAuthProviderType getProviderType();
+    .tb-two-factor-auth-login-card {
+      padding: 48px 48px 48px 16px;
 
+      @media #{$mat-gt-xs} {
+        width: 450px !important;
+      }
+
+      .mat-card-title {
+        font: 400 28px / 36px Roboto, "Helvetica Neue", sans-serif;
+      }
+
+      .mat-card-content {
+        margin-top: 44px;
+        margin-left: 40px;
+      }
+
+      .mat-body {
+        letter-spacing: 0.25px;
+        line-height: 16px;
+        margin: 0;
+      }
+
+      .code-block {
+        margin-top: 16px;
+      }
+
+      .providers-container {
+        padding: 0;
+
+        .mat-body {
+          padding-bottom: 8px;
+        }
+      }
+
+      .timer {
+        font: 400 12px / 14px Roboto, "Helvetica Neue", sans-serif;
+        letter-spacing: 0.4px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+    }
+  }
+
+  ::ng-deep {
+    button.provider {
+      text-align: start;
+      font-weight: 400;
+
+      &:not(.mat-button-disabled) {
+        border-color: rgba(255, 255, 255, .8);
+      }
+
+      .icon {
+        height: 18px;
+        width: 18px;
+        vertical-align: sub;
+      }
+    }
+
+    .mat-form-field-invalid .mat-hint {
+      margin-top: 20px;
+    }
+  }
 }

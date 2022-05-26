@@ -36,44 +36,44 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.security.model.mfa.account.OtpBasedTwoFactorAuthAccountConfig;
-import org.thingsboard.server.common.data.security.model.mfa.provider.OtpBasedTwoFactorAuthProviderConfig;
-import org.thingsboard.server.service.security.auth.mfa.provider.TwoFactorAuthProvider;
+import org.thingsboard.server.common.data.security.model.mfa.account.OtpBasedTwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.OtpBasedTwoFaProviderConfig;
+import org.thingsboard.server.service.security.auth.mfa.provider.TwoFaProvider;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.concurrent.TimeUnit;
 
-public abstract class OtpBasedTwoFactorAuthProvider<C extends OtpBasedTwoFactorAuthProviderConfig, A extends OtpBasedTwoFactorAuthAccountConfig> implements TwoFactorAuthProvider<C, A> {
+public abstract class OtpBasedTwoFaProvider<C extends OtpBasedTwoFaProviderConfig, A extends OtpBasedTwoFaAccountConfig> implements TwoFaProvider<C, A> {
 
     private final Cache verificationCodesCache;
 
-    protected OtpBasedTwoFactorAuthProvider(CacheManager cacheManager) {
+    protected OtpBasedTwoFaProvider(CacheManager cacheManager) {
         this.verificationCodesCache = cacheManager.getCache(CacheConstants.TWO_FA_VERIFICATION_CODES_CACHE);
     }
 
 
     @Override
-    public final void prepareVerificationCode(SecurityUser securityUser, C providerConfig, A accountConfig) throws ThingsboardException {
+    public final void prepareVerificationCode(SecurityUser user, C providerConfig, A accountConfig) throws ThingsboardException {
         String verificationCode = RandomStringUtils.randomNumeric(6);
-        verificationCodesCache.put(securityUser.getId(), new Otp(System.currentTimeMillis(), verificationCode, accountConfig));
-        sendVerificationCode(securityUser, verificationCode, providerConfig, accountConfig);
+        sendVerificationCode(user, verificationCode, providerConfig, accountConfig);
+        verificationCodesCache.put(user.getId(), new Otp(System.currentTimeMillis(), verificationCode, accountConfig));
     }
 
     protected abstract void sendVerificationCode(SecurityUser user, String verificationCode, C providerConfig, A accountConfig) throws ThingsboardException;
 
 
     @Override
-    public final boolean checkVerificationCode(SecurityUser securityUser, String verificationCode, C providerConfig, A accountConfig) {
-        Otp correctVerificationCode = verificationCodesCache.get(securityUser.getId(), Otp.class);
+    public final boolean checkVerificationCode(SecurityUser user, String code, C providerConfig, A accountConfig) {
+        Otp correctVerificationCode = verificationCodesCache.get(user.getId(), Otp.class);
         if (correctVerificationCode != null) {
             if (System.currentTimeMillis() - correctVerificationCode.getTimestamp()
                     > TimeUnit.SECONDS.toMillis(providerConfig.getVerificationCodeLifetime())) {
-                verificationCodesCache.evict(securityUser.getId());
+                verificationCodesCache.evict(user.getId());
                 return false;
             }
-            if (verificationCode.equals(correctVerificationCode.getValue())
+            if (code.equals(correctVerificationCode.getValue())
                     && accountConfig.equals(correctVerificationCode.getAccountConfig())) {
-                verificationCodesCache.evict(securityUser.getId());
+                verificationCodesCache.evict(user.getId());
                 return true;
             }
         }
@@ -85,7 +85,7 @@ public abstract class OtpBasedTwoFactorAuthProvider<C extends OtpBasedTwoFactorA
     public static class Otp {
         private final long timestamp;
         private final String value;
-        private final OtpBasedTwoFactorAuthAccountConfig accountConfig;
+        private final OtpBasedTwoFaAccountConfig accountConfig;
     }
 
 }

@@ -28,9 +28,81 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model.mfa.provider;
+@import "../../../../../scss/constants";
 
-public enum TwoFactorAuthProviderType {
-    TOTP,
-    SMS
+:host {
+  .profile-container {
+    padding: 8px;
+  }
+
+  mat-card.profile-card {
+    @media #{$mat-gt-sm} {
+      width: 70%;
+    }
+    @media #{$mat-gt-md} {
+      width: 50%;
+    }
+    @media #{$mat-gt-xl} {
+      width: 45%;
+    }
+
+    .mat-subheader {
+      line-height: 24px;
+      color: rgba(0, 0, 0, 0.54);
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .profile-last-login-ts {
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .profile-btn-subtext {
+      font: 400 14px / 16px Roboto, "Helvetica Neue", sans-serif;
+      letter-spacing: 0.25px;
+      opacity: 0.6;
+      padding: 8px 0;
+    }
+  }
+
+  .description {
+    color: rgba(0, 0, 0, 0.54);
+    letter-spacing: 0.25px;
+    margin-right: 8px;
+  }
+
+  .mat-divider-horizontal {
+    left: 16px;
+    right: 16px;
+    width: auto;
+  }
+
+  .provider {
+    padding: 24px 0;
+
+    .provider-title {
+      font: 400 14px / 16px Roboto, "Helvetica Neue", sans-serif;
+      letter-spacing: 0.25px;
+      margin: 0 0 8px;
+    }
+
+    .description {
+      max-width: 85%;
+    }
+
+    .checkbox-label {
+      font-size: 14px;
+      letter-spacing: 0.25px;
+      opacity: 0.87;
+    }
+
+    .mat-checkbox {
+      margin-top: 8px;
+    }
+
+    .mat-stroked-button {
+      margin-top: 8px;
+    }
+  }
 }
