@@ -1384,7 +1384,9 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testIntegrations() throws Exception {
-        // TODO - add check for replacements of edge attributes
+        JsonNode edgeAttributes = mapper.readTree("{\"valAttr\":\"val3\", \"baseUrl\":\"" + edgeUrl + "\"}");
+        restClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
+
         ObjectNode converterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
                 .put("decoder", "return {deviceName: 'Device Converter ' + metadata['key'], deviceType: 'thermostat'};");
         Converter converter = new Converter();
@@ -1403,7 +1405,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         integrationConfiguration.putObject("metadata").put("key", "val1");
-        integrationConfiguration.put("baseUrl", edgeUrl);
+        integrationConfiguration.put("baseUrl", "${{baseUrl}}");
         integration.setConfiguration(integrationConfiguration);
         integration.setEdgeTemplate(true);
         integration.setEnabled(true);
@@ -1414,6 +1416,8 @@ public class EdgeClientTest extends AbstractContainerTest {
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val1");
 
         validateIntegrationConfigurationUpdate(savedIntegration);
+
+        validateEdgeAttributesUpdate(savedIntegration);
 
         validateIntegrationDefaultConverterUpdate(savedIntegration);
 
@@ -1475,9 +1479,39 @@ public class EdgeClientTest extends AbstractContainerTest {
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val2");
     }
 
+    private void validateEdgeAttributesUpdate(Integration savedIntegration) throws JsonProcessingException {
+        ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        updatedIntegrationConfig.putObject("metadata").put("key", "${{valAttr}}");
+        savedIntegration.setConfiguration(updatedIntegrationConfig);
+        restClient.saveIntegration(savedIntegration);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
+                    Integration integration = integrations.getData().get(0);
+                    return integration.getConfiguration().toString().contains("val3");
+                });
+
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val3");
+
+        JsonNode edgeAttributes = mapper.readTree("{\"valAttr\":\"val4\", \"baseUrl\":\"" + edgeUrl + "\"}");
+        restClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
+                    Integration integration = integrations.getData().get(0);
+                    return integration.getConfiguration().toString().contains("val4");
+                });
+
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val4");
+    }
+
     private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws JsonProcessingException {
         ObjectNode newConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
-                .put("decoder", "return {deviceName: 'Device Converter val3', deviceType: 'default'};");
+                .put("decoder", "return {deviceName: 'Device Converter val5', deviceType: 'default'};");
         Converter converter = new Converter();
         converter.setName("My new converter");
         converter.setType(ConverterType.UPLINK);
@@ -1501,7 +1535,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
 
-        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val3");
+        verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val5");
     }
 
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {
