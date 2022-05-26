@@ -928,12 +928,4 @@ public abstract class BaseController {
             return MediaType.APPLICATION_OCTET_STREAM;
         }
     }
-
-    protected void sendNotificationMsgToCloud(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
-        try {
-            tbClusterService.sendNotificationMsgToCloud(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);
-        } catch (Exception e) {
-            log.warn("Failed to push relation to core: {}", relation, e);
-        }
-    }
 }

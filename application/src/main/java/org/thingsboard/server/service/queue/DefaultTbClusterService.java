@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.msg.DeviceEdgeUpdateMsg;
 import org.thingsboard.rule.engine.api.msg.DeviceNameOrTypeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -425,7 +426,6 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
-        /* voba - merge comment
         if (!edgesEnabled) {
             return;
         }
@@ -465,7 +465,6 @@ public class DefaultTbClusterService implements TbClusterService {
         if (entityId != null && EntityType.DEVICE.equals(entityId.getEntityType())) {
             pushDeviceUpdateMessage(tenantId, edgeId, entityId, action);
         }
-         */
     }
 
     private void pushDeviceUpdateMessage(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
