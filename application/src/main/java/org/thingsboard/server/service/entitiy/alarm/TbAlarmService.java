@@ -31,9 +31,7 @@
 package org.thingsboard.server.service.entitiy.alarm;
 
 import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbAlarmService  {

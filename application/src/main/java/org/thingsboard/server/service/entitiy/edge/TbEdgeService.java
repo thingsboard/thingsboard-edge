@@ -38,9 +38,10 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbEdgeService {
-    Edge saveEdge(Edge edge, RuleChain edgeTemplateRootRuleChain, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
-    void deleteEdge(Edge edge, SecurityUser user) throws ThingsboardException;
+    Edge save(Edge edge, RuleChain edgeTemplateRootRuleChain, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
+
+    void delete(Edge edge, SecurityUser user) throws ThingsboardException;
 
     Edge setEdgeRootRuleChain(Edge edge, RuleChainId ruleChainId, SecurityUser user) throws ThingsboardException;
 }

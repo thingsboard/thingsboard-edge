@@ -38,4 +38,6 @@ public interface SimpleTbEntityService<T> {
 
     T save(T entity, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
+   void  delete (T entity, SecurityUser user) throws ThingsboardException;
+
 }

@@ -34,10 +34,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-public interface TbAssetService extends SimpleTbEntityService<Asset> {
+public interface TbAssetService {
+
+    Asset save(Asset asset, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
     ListenableFuture<Void> delete(Asset asset, SecurityUser user) throws ThingsboardException;
 

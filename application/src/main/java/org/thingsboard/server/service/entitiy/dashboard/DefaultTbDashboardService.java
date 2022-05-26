@@ -28,17 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.asset;
+package org.thingsboard.server.service.entitiy.dashboard;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -50,37 +49,34 @@ import java.util.List;
 @Service
 @TbCoreComponent
 @AllArgsConstructor
-public class DefaultTbAssetService extends AbstractTbEntityService implements TbAssetService {
+public class DefaultTbDashboardService extends AbstractTbEntityService implements TbDashboardService {
 
     @Override
-    public Asset save(Asset asset, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        TenantId tenantId = asset.getTenantId();
+    public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
+        ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        TenantId tenantId = user.getTenantId();
         try {
-            Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
-            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
-            return savedAsset;
+            Dashboard saveDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
+            createOrUpdateGroupEntity(tenantId, saveDashboard, entityGroup, actionType, user);
+            return saveDashboard;
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), asset, null, actionType, user, e);
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), dashboard, null, actionType, user, e);
             throw handleException(e);
         }
     }
-
     @Override
-    public ListenableFuture<Void> delete(Asset asset, SecurityUser user) throws ThingsboardException {
-        TenantId tenantId = asset.getTenantId();
-        AssetId assetId = asset.getId();
+    public void delete(Dashboard dashboard, SecurityUser user) throws ThingsboardException {
+        DashboardId dashboardId = dashboard.getId();
+        TenantId tenantId = dashboard.getTenantId();
         try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, assetId);
-            assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(), ActionType.DELETED,
-                    relatedEdgeIds, user, assetId.toString());
-
-            return removeAlarmsByEntityId(tenantId, assetId);
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, dashboardId);
+            dashboardService.deleteDashboard(tenantId, dashboardId);
+            notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
+                    ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), null, null,
-                    ActionType.DELETED, user, e, assetId.toString());
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), null, null,
+                    ActionType.DELETED, user, e, dashboardId.toString());
             throw handleException(e);
         }
     }
-}
+ }
