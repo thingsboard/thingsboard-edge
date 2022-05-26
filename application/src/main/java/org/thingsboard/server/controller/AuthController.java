@@ -126,9 +126,7 @@ public class AuthController extends BaseController {
             userCredentials.setPassword(passwordEncoder.encode(newPassword));
             userService.replaceUserCredentials(securityUser.getTenantId(), userCredentials);
 
-            /* merge comment
             sendEntityNotificationMsg(getTenantId(), userCredentials.getUserId(), EdgeEventActionType.CREDENTIALS_UPDATED);
-             */
 
             eventPublisher.publishEvent(new UserAuthDataChangedEvent(securityUser.getId()));
             ObjectNode response = JacksonUtil.newObjectNode();
@@ -268,9 +266,7 @@ public class AuthController extends BaseController {
                 }
             }
 
-            /* merge comment
             sendEntityNotificationMsg(user.getTenantId(), user.getId(), EdgeEventActionType.CREDENTIALS_UPDATED);
-             */
 
             JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
             JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);

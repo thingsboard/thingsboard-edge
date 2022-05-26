@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -57,8 +58,12 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -101,7 +106,16 @@ public abstract class BaseCloudProcessor {
     protected DeviceService deviceService;
 
     @Autowired
+    protected TenantService tenantService;
+
+    @Autowired
     protected DeviceProfileService deviceProfileService;
+
+    @Autowired
+    protected RuleChainService ruleChainService;
+
+    @Autowired
+    protected ApiUsageStateService apiUsageStateService;
 
     @Autowired
     protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
@@ -125,7 +139,7 @@ public abstract class BaseCloudProcessor {
     private AuditLogService auditLogService;
 
     @Autowired
-    private CloudEventService cloudEventService;
+    protected CloudEventService cloudEventService;
 
     @Autowired
     protected RelationService relationService;
@@ -162,6 +176,9 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected DeviceMsgConstructor deviceMsgConstructor;
+
+    @Autowired
+    protected DataValidator<Tenant> tenantValidator;
 
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
         TimePageLink pageLink = new TimePageLink(100);

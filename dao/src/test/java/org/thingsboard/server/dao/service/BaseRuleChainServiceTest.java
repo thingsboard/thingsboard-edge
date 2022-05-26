@@ -21,6 +21,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -493,7 +494,8 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
     }
 
     // @voba - merge comment
-    // @Test
+    @Test
+    @Ignore
     public void testFindEdgeRuleChainsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
         Edge savedEdge = edgeService.saveEdge(edge);

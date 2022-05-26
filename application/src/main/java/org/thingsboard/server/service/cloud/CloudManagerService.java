@@ -34,9 +34,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -48,24 +46,11 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -82,6 +67,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcess
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.install.InstallScripts;
@@ -104,7 +90,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -134,40 +119,7 @@ public class CloudManagerService extends BaseCloudEventService {
     protected TelemetrySubscriptionService tsSubService;
 
     @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
     protected TbClusterService tbClusterService;
-
-    @Autowired
-    private DashboardService dashboardService;
-
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private DeviceProfileService deviceProfileService;
-
-    @Autowired
-    private AssetService assetService;
-
-    @Autowired
-    private EntityViewService entityViewService;
-
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private WidgetsBundleService widgetsBundleService;
-
-    @Autowired
-    private AdminSettingsService adminSettingsService;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -207,6 +159,9 @@ public class CloudManagerService extends BaseCloudEventService {
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
+
+    @Autowired
+    private TenantCloudProcessor tenantCloudProcessor;
 
     @Autowired
     private InstallScripts installScripts;
@@ -532,7 +487,7 @@ public class CloudManagerService extends BaseCloudEventService {
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-        this.tenantId = getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
+        this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
         UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
         CustomerId customerId = new CustomerId(customerUUID);
@@ -542,7 +497,7 @@ public class CloudManagerService extends BaseCloudEventService {
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
         EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
-            cleanUp();
+            tenantCloudProcessor.cleanUp();
             this.currentEdgeSettings = newEdgeSetting;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
@@ -580,59 +535,6 @@ public class CloudManagerService extends BaseCloudEventService {
         edgeService.saveEdge(edge, false);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null);
-    }
-
-    private void cleanUp() {
-        log.debug("Starting clean up procedure");
-        PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
-        for (Tenant tenant : tenants.getData()) {
-            cleanUpTenant(tenant);
-        }
-
-        Tenant systemTenant = new Tenant();
-        systemTenant.setId(TenantId.SYS_TENANT_ID);
-        systemTenant.setTitle("System");
-        cleanUpTenant(systemTenant);
-
-        log.debug("Clean up procedure successfully finished!");
-    }
-
-    private void cleanUpTenant(Tenant tenant) {
-        log.debug("Removing entities for the tenant [{}][{}]", tenant.getTitle(), tenant.getId());
-        userService.deleteTenantAdmins(tenant.getId());
-        PageData<Customer> customers = customerService.findCustomersByTenantId(tenant.getId(), new PageLink(Integer.MAX_VALUE));
-        if (customers != null && customers.getData() != null && !customers.getData().isEmpty()) {
-            for (Customer customer : customers.getData()) {
-                userService.deleteCustomerUsers(tenant.getId(), customer.getId());
-            }
-        }
-        ruleChainService.deleteRuleChainsByTenantId(tenant.getId());
-        entityViewService.deleteEntityViewsByTenantId(tenant.getId());
-        deviceService.deleteDevicesByTenantId(tenant.getId());
-        deviceProfileService.deleteDeviceProfilesByTenantId(tenant.getId());
-        assetService.deleteAssetsByTenantId(tenant.getId());
-        dashboardService.deleteDashboardsByTenantId(tenant.getId());
-        adminSettingsService.deleteAdminSettingsByKey(tenant.getId(), "mail");
-        widgetsBundleService.deleteWidgetsBundlesByTenantId(tenant.getId());
-        cloudEventService.deleteCloudEventsByTenantId(tenant.getId());
-        try {
-            List<AttributeKvEntry> attributeKvEntries = attributesService.findAll(tenant.getId(), tenant.getId(), DataConstants.SERVER_SCOPE).get();
-            List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
-            attributesService.removeAll(tenant.getId(), tenant.getId(), DataConstants.SERVER_SCOPE, attrKeys);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Unable to delete entity groups", e);
-        }
-    }
-
-    private Tenant getOrCreateTenant(TenantId tenantId) {
-        Tenant tenant = tenantService.findTenantById(tenantId);
-        if (tenant != null) {
-            return tenant;
-        }
-        tenant = new Tenant();
-        tenant.setTitle("Tenant");
-        tenant.setId(tenantId);
-        return tenantService.saveTenant(tenant, true);
     }
 
     private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {

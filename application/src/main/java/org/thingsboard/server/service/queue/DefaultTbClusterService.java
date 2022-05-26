@@ -415,13 +415,11 @@ public class DefaultTbClusterService implements TbClusterService {
         broadcastEntityStateChangeEvent(device.getTenantId(), device.getId(), created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
         sendDeviceStateServiceEvent(device.getTenantId(), device.getId(), created, !created, false);
         otaPackageStateService.update(device, old);
-        /* voba - merge comment
         if (!created && notifyEdge) {
             sendNotificationMsgToEdge(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED);
         }
-         */
 
-        sendNotificationMsgToCloudService(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+        sendNotificationMsgToCloud(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
     }
 
     @Override
@@ -479,8 +477,8 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void sendNotificationMsgToCloudService(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                   EdgeEventActionType cloudEventAction) {
+    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                            EdgeEventActionType cloudEventAction) {
         sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction);
     }
 

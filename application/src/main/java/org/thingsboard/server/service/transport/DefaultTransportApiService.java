@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.credentials.ProvisionDeviceCredentialsData;
@@ -309,7 +308,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     ObjectNode entityNode = mapper.valueToTree(device);
                     TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, customerId, metaData, TbMsgDataType.JSON, mapper.writeValueAsString(entityNode));
                     tbClusterService.pushMsgToRuleEngine(tenantId, deviceId, tbMsg, null);
-                    sendDeviceAddedMsgToCloudService(tenantId, deviceId);
+                    sendDeviceAddedMsgToCloud(tenantId, deviceId);
                 } else {
                     JsonNode deviceAdditionalInfo = device.getAdditionalInfo();
                     if (deviceAdditionalInfo == null) {
@@ -554,7 +553,7 @@ public class DefaultTransportApiService implements TransportApiService {
                 .setValidateCredResponseMsg(ValidateDeviceCredentialsResponseMsg.getDefaultInstance()).build();
     }
 
-    private void sendDeviceAddedMsgToCloudService(TenantId tenantId, EntityId entityId) {
+    private void sendDeviceAddedMsgToCloud(TenantId tenantId, EntityId entityId) {
         TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());

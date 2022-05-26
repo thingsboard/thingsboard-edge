@@ -123,28 +123,27 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Override
     public Tenant saveTenant(Tenant tenant) {
-        return doSaveTenant(tenant, false);
+        return doSaveTenant(tenant, true);
     }
 
     @Override
-    public Tenant saveTenant(Tenant tenant, boolean forceCreate) {
-        return doSaveTenant(tenant, forceCreate);
+    public Tenant saveTenant(Tenant tenant, boolean doValidate) {
+        return doSaveTenant(tenant, doValidate);
     }
 
-    private Tenant doSaveTenant(Tenant tenant, boolean forceCreate) {
+    private Tenant doSaveTenant(Tenant tenant, boolean doValidate) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         if (tenant.getTenantProfileId() == null) {
             TenantProfile tenantProfile = this.tenantProfileService.findOrCreateDefaultTenantProfile(TenantId.SYS_TENANT_ID);
             tenant.setTenantProfileId(tenantProfile.getId());
         }
-        tenantValidator.validate(tenant, Tenant::getId);
+        if (doValidate) {
+            tenantValidator.validate(tenant, Tenant::getId);
+        }
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
-        if (tenant.getId() == null || forceCreate) {
-            // TODO: voba - devices profiles are created by cloud manager service
-            if (!forceCreate) {
-                deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
-            }
+        if (tenant.getId() == null) {
+            deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
         }
         return savedTenant;
