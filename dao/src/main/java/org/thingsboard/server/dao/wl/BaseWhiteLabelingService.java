@@ -315,14 +315,14 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     @Override
     public ListenableFuture<WhiteLabelingParams> saveTenantWhiteLabelingParams(TenantId tenantId, WhiteLabelingParams whiteLabelingParams) {
         whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        ListenableFuture<List<Void>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, tenantId, whiteLabelingParams, WHITE_LABEL_PARAMS);
+        ListenableFuture<List<String>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, tenantId, whiteLabelingParams, WHITE_LABEL_PARAMS);
         return Futures.transformAsync(listListenableFuture, list -> getTenantWhiteLabelingParams(tenantId), MoreExecutors.directExecutor());
     }
 
     @Override
     public ListenableFuture<WhiteLabelingParams> saveCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams) {
         whiteLabelingParams = prepareChecksums(whiteLabelingParams);
-        ListenableFuture<List<Void>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, customerId, whiteLabelingParams, WHITE_LABEL_PARAMS);
+        ListenableFuture<List<String>> listListenableFuture = saveEntityWhiteLabelParams(tenantId, customerId, whiteLabelingParams, WHITE_LABEL_PARAMS);
         return Futures.transformAsync(listListenableFuture, list -> getCustomerWhiteLabelingParams(tenantId, customerId), MoreExecutors.directExecutor());
     }
 
@@ -507,7 +507,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         }, MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<List<Void>> saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
+    private ListenableFuture<List<String>> saveEntityWhiteLabelParams(TenantId tenantId, EntityId entityId, WhiteLabelingParams whiteLabelingParams, String attributeKey) {
         String json;
         try {
             json = objectMapper.writeValueAsString(whiteLabelingParams);
@@ -518,7 +518,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
         return saveEntityAttribute(tenantId, entityId, attributeKey, json);
     }
 
-    private ListenableFuture<List<Void>> saveEntityAttribute(TenantId tenantId, EntityId entityId, String key, String value) {
+    private ListenableFuture<List<String>> saveEntityAttribute(TenantId tenantId, EntityId entityId, String key, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));

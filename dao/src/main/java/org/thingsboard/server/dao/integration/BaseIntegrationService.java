@@ -34,13 +34,17 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -55,10 +59,9 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
-public class BaseIntegrationService extends AbstractEntityService implements IntegrationService {
+public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
     public static final String INCORRECT_CONVERTER_ID = "Incorrect converterId ";
 
@@ -66,20 +69,31 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     private IntegrationDao integrationDao;
 
     @Autowired
+    private IntegrationInfoDao integrationInfoDao;
+
+    @Autowired
     private DataValidator<Integration> integrationValidator;
+
+    @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
+    @Override
+    public void handleEvictEvent(IntegrationCacheEvictEvent event) {
+        cache.evict(event.getIntegrationId());
+    }
 
     @Override
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
-        return integrationDao.save(integration.getTenantId(), integration);
+        var result = integrationDao.save(integration.getTenantId(), integration);
+        publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+        return result;
     }
 
     @Override
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        return integrationDao.findById(tenantId, integrationId.getId());
+        return cache.getAndPutInTransaction(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()), true);
     }
 
     @Override
@@ -126,22 +140,31 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    @Transactional
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
         deleteEntityRelations(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
+        publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
     }
 
     @Override
+    @Transactional
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
+    @Override
+    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        log.trace("Executing findAllIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
+        return integrationInfoDao.findAllIntegrationInfos(integrationType, remote, enabled);
+    }
+
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =
-            new PaginatedRemover<TenantId, Integration>() {
+            new PaginatedRemover<>() {
 
                 @Override
                 protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {

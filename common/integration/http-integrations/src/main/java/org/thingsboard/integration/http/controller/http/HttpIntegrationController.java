@@ -56,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.IntegrationHttpMsgProcessor;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.BaseIntegrationController;
 import org.thingsboard.integration.api.controller.BinaryHttpIntegrationMsg;
@@ -158,19 +159,8 @@ public class HttpIntegrationController extends BaseIntegrationController {
                                                           Optional<String> suffix,
                                                           HttpIntegrationMsg msg) {
         DeferredResult<ResponseEntity> result = msg.getCallback();
-
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
-
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
-                return;
-            }
-            suffix.ifPresent(suffixStr -> msg.getRequestHeaders().put("suffix", suffixStr));
-            api.process(integration, msg);
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
+        suffix.ifPresent(suffixStr -> msg.getRequestHeaders().put("suffix", suffixStr));
+        api.process(IntegrationType.HTTP, routingKey, result, msg);
         return result;
     }
 
@@ -204,23 +194,20 @@ public class HttpIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received status check request", routingKey);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
+        ObjectNode json = mapper.createObjectNode();
+        if (requestParams.size() > 0) {
+            requestParams.forEach(json::put);
+        }
 
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.HTTP)) {
-                return;
-            }
+        JsonHttpIntegrationMsg msg = new JsonHttpIntegrationMsg(requestHeaders, json, result);
+
+        api.process(IntegrationType.HTTP, routingKey, result, msg, (integration, tmpResult, tmpMsg) -> {
             if (requestParams.size() > 0) {
-                ObjectNode msg = mapper.createObjectNode();
-                requestParams.forEach(msg::put);
-                api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
+                integration.process(tmpMsg);
             } else {
-                result.setResult(new ResponseEntity<>(HttpStatus.OK));
+                 tmpResult.setResult(new ResponseEntity<>(HttpStatus.OK));
             }
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
+        });
 
         return result;
     }

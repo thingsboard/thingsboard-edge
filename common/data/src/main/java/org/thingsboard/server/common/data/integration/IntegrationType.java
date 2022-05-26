@@ -35,9 +35,32 @@ import lombok.Getter;
 
 @AllArgsConstructor
 public enum IntegrationType {
-    OCEANCONNECT(false), SIGFOX(false), THINGPARK(false), TPE(false), CHIRPSTACK(false), TMOBILE_IOT_CDP(false), HTTP(false), MQTT(true),
-    PUB_SUB(true), AWS_IOT(true), AWS_SQS(true), AWS_KINESIS(false), IBM_WATSON_IOT(true), TTN(true), TTI(true), AZURE_EVENT_HUB(true), OPC_UA(true),
-    CUSTOM(false, true), UDP(false, true), TCP(false, true), KAFKA(true, false), AZURE_IOT_HUB(true), APACHE_PULSAR(false), RABBITMQ(false, false), LORIOT(false), COAP(false);
+    OCEANCONNECT(false),
+    SIGFOX(false),
+    THINGPARK(false),
+    TPE(false),
+    CHIRPSTACK(false),
+    TMOBILE_IOT_CDP(false),
+    HTTP(false),
+    MQTT(true),
+    PUB_SUB(true),
+    AWS_IOT(true),
+    AWS_SQS(true),
+    AWS_KINESIS(false),
+    IBM_WATSON_IOT(true),
+    TTN(true),
+    TTI(true),
+    AZURE_EVENT_HUB(true),
+    OPC_UA(true),
+    CUSTOM(false, true),
+    UDP(false, true),
+    TCP(false, true),
+    KAFKA(true),
+    AZURE_IOT_HUB(true),
+    APACHE_PULSAR(false),
+    RABBITMQ(false),
+    LORIOT(false),
+    COAP(false);
 
     IntegrationType(boolean singleton) {
         this.singleton = singleton;

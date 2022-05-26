@@ -54,13 +54,13 @@
         <javax-annotation.version>1.3.2</javax-annotation.version>
         <jakarta.xml.bind-api.version>2.3.2</jakarta.xml.bind-api.version>
         <jaxb-runtime.version>2.3.2</jaxb-runtime.version>
-        <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
-        <spring-data.version>2.3.9.RELEASE</spring-data.version>
-        <spring.version>5.2.16.RELEASE</spring.version>
-        <spring-redis.version>5.2.11.RELEASE</spring-redis.version>
-        <spring-security.version>5.4.7</spring-security.version>
-        <spring-data-redis.version>2.4.3</spring-data-redis.version>
-        <jedis.version>3.3.0</jedis.version>
+        <spring-boot.version>2.5.12</spring-boot.version>
+        <spring-data.version>2.5.10</spring-data.version>
+        <spring.version>5.3.18</spring.version>
+        <spring-redis.version>5.5.10</spring-redis.version>
+        <spring-security.version>5.6.2</spring-security.version>
+        <spring-data-redis.version>2.5.10</spring-data-redis.version>
+        <jedis.version>3.7.1</jedis.version>
         <jjwt.version>0.7.0</jjwt.version>
         <slf4j.version>1.7.32</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
@@ -81,7 +81,7 @@
         <apache-httpcore.version>4.4.14</apache-httpcore.version>
         <apache-pulsar.version>2.6.0</apache-pulsar.version>
         <joda-time.version>2.8.1</joda-time.version>
-        <jackson.version>2.12.1</jackson.version>
+        <jackson.version>2.13.2</jackson.version>
         <fasterxml-classmate.version>1.3.4</fasterxml-classmate.version>
         <json-schema-validator.version>2.2.6</json-schema-validator.version>
         <milo.version>0.6.3</milo.version>
@@ -96,11 +96,11 @@
         <grpc.version>1.42.1</grpc.version>
         <lombok.version>1.18.18</lombok.version>
         <paho.client.version>1.2.4</paho.client.version>
-        <netty.version>4.1.72.Final</netty.version>
-        <netty-tcnative.version>2.0.46.Final</netty-tcnative.version>
+        <netty.version>4.1.75.Final</netty.version>
+        <netty-tcnative.version>2.0.51.Final</netty-tcnative.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <rabbitmq.version>4.8.0</rabbitmq.version>
-        <surfire.version>2.19.1</surfire.version>
+        <surefire.version>3.0.0-M6</surefire.version>
         <jar-plugin.version>3.0.2</jar-plugin.version>
         <springfox-swagger.version>3.0.4</springfox-swagger.version>
         <swagger-annotations.version>1.6.3</swagger-annotations.version>
@@ -124,7 +124,7 @@
         <fst.version>2.57</fst.version>
         <antlr.version>2.7.7</antlr.version>
         <snakeyaml.version>1.27</snakeyaml.version>
-        <amazon-kinesis-producer>0.13.1</amazon-kinesis-producer>
+        <amazon-kinesis-producer>0.14.12</amazon-kinesis-producer>
         <amazon-kinesis-client>2.2.4-TB</amazon-kinesis-client>
         <aws.sdk.version>1.11.747</aws.sdk.version>
         <pubsub.client.version>1.105.0</pubsub.client.version>
@@ -134,7 +134,7 @@
         <ua-parser.version>1.4.3</ua-parser.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-collections.version>3.2.2</commons-collections.version>
-        <micrometer.version>1.5.2</micrometer.version>
+        <micrometer.version>1.8.3</micrometer.version>
         <protobuf-dynamic.version>1.0.3TB</protobuf-dynamic.version>
         <wire-schema.version>3.4.0</wire-schema.version>
         <twilio.version>8.17.0</twilio.version>
@@ -149,7 +149,7 @@
         <dbunit.version>2.7.2</dbunit.version>
         <hsqldb.version>2.6.1</hsqldb.version>
         <java-websocket.version>1.5.2</java-websocket.version>
-        <jupiter.version>5.6.3</jupiter.version> <!-- keep the same version as spring-boot-starter-test depend on jupiter-->
+        <jupiter.version>5.7.2</jupiter.version> <!-- keep the same version as spring-boot-starter-test depend on jupiter-->
         <json-path.version>2.6.0</json-path.version>
         <spring-test-dbunit.version>1.3.0</spring-test-dbunit.version> <!-- 2016 -->
         <takari-cpsuite.version>1.2.7</takari-cpsuite.version> <!-- 2015 -->
@@ -157,6 +157,7 @@
         <testcontainers.version>1.16.0</testcontainers.version>
         <zeroturnaround.version>1.12</zeroturnaround.version>
         <dotenv-java.version>2.2.0</dotenv-java.version>
+        <opensmpp.version>3.0.0</opensmpp.version>
         <aerogear-otp.version>1.0.0</aerogear-otp.version>
     </properties>
 
@@ -203,6 +204,7 @@
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-resources-plugin</artifactId>
+                            <version>3.2.0</version>
                             <executions>
                                 <execution>
                                     <id>copy-conf</id>
@@ -671,7 +673,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>${surefire.version}</version>
                     <configuration>
                         <argLine>
                             --illegal-access=permit
@@ -934,8 +936,18 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common.js</groupId>
+                <artifactId>remote-js-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>integration-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>cluster-integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2061,6 +2073,11 @@
                 <artifactId>zt-exec</artifactId>
                 <version>${zeroturnaround.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.opensmpp</groupId>
+                <artifactId>opensmpp-core</artifactId>
+                <version>${opensmpp.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.cdimascio</groupId>

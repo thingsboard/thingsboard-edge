@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
@@ -66,12 +66,13 @@ public class TenantDataValidator extends DataValidator<Tenant> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Tenant tenant) {
+    protected Tenant validateUpdate(TenantId tenantId, Tenant tenant) {
         Tenant old = tenantDao.findById(TenantId.SYS_TENANT_ID, tenantId.getId());
         if (old == null) {
             throw new DataValidationException("Can't update non existing tenant!");
         }
         validateTenantProfile(tenantId, tenant);
+        return old;
     }
 
     private void validateTenantProfile(TenantId tenantId, Tenant tenant) {

@@ -574,7 +574,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         }
                         EntityGroup entityGroup;
                         Optional<EntityGroup> customerGroupOptional =
-                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
                         if (!customerGroupOptional.isPresent()) {
                             entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
                         } else {
@@ -607,7 +607,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         for (EntityType groupType : entityGroupTypes) {
                             EntityGroup entityGroup;
                             Optional<EntityGroup> entityGroupOptional =
-                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
                             boolean fetchAllTenantEntities;
                             if (!entityGroupOptional.isPresent()) {
                                 entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), groupType);
@@ -621,7 +621,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     new CustomerUsersTenantGroupAllRemover(entityGroup).updateEntities(tenant.getId());
                                     entityGroupService.findOrCreateTenantUsersGroup(tenant.getId());
                                     Optional<EntityGroup> tenantAdminsOptional =
-                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
+                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
                                     if (!tenantAdminsOptional.isPresent()) {
                                         EntityGroup tenantAdmins = entityGroupService.findOrCreateTenantAdminsGroup(tenant.getId());
                                         new TenantAdminsGroupAllUpdater(entityGroup, tenantAdmins).updateEntities(tenant.getId());
@@ -644,7 +644,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     break;
                             }
                         }
-                    } catch (InterruptedException | ExecutionException e) {
+                    } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
                     }
                 }
@@ -781,14 +781,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                 for (EntityType groupType : entityGroupTypes) {
                     Optional<EntityGroup> entityGroupOptional =
-                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
                     if (!entityGroupOptional.isPresent()) {
                         EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
                         if (groupType == EntityType.USER) {
                             if (!customer.isPublic()) {
                                 entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
                                 Optional<EntityGroup> customerUsersOptional =
-                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME).get();
+                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
                                 if (!customerUsersOptional.isPresent()) {
                                     EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
                                     new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
@@ -894,7 +894,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             for (ListenableFuture<WhiteLabelingParams> future : futures) {
                 future.get();
             }
-            ListenableFuture<List<Void>> future = updateTenantMailTemplates(tenant.getId());
+            ListenableFuture<List<String>> future = updateTenantMailTemplates(tenant.getId());
             return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
                     MoreExecutors.directExecutor());
         }
@@ -1030,7 +1030,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return result;
     }
 
-    private ListenableFuture<List<Void>> updateTenantMailTemplates(TenantId tenantId) {
+    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
             Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
@@ -1241,7 +1241,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private ListenableFuture<List<Void>> saveEntityAttribute(EntityId entityId, String key, String value) {
+    private ListenableFuture<List<String>> saveEntityAttribute(EntityId entityId, String key, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));

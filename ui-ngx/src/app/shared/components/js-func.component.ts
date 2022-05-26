@@ -30,6 +30,7 @@
 ///
 
 import {
+  ChangeDetectorRef,
   Component,
   ElementRef,
   forwardRef,
@@ -84,6 +85,8 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
 
   toastTargetId = `jsFuncEditor-${guid()}`;
 
+  @Input() functionTitle: string;
+
   @Input() functionName: string;
 
   @Input() functionArgs: Array<string>;
@@ -95,6 +98,8 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() disabled: boolean;
 
   @Input() fillHeight: boolean;
+
+  @Input() minHeight = '200px';
 
   @Input() editorCompleter: TbEditorCompleter;
 
@@ -138,13 +143,14 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
   errorAnnotationId = -1;
 
   private propagateChange = null;
-  private hasErrors = false;
+  public hasErrors = false;
 
   constructor(public elementRef: ElementRef,
               private utils: UtilsService,
               private translate: TranslateService,
               protected store: Store<AppState>,
-              private raf: RafService) {
+              private raf: RafService,
+              private cd: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
@@ -198,6 +204,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
             if (this.hasErrors !== hasErrors) {
               this.hasErrors = hasErrors;
               this.propagateChange(this.modelValue);
+              this.cd.markForCheck();
             }
           });
         }
@@ -286,6 +293,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
       this.functionValid = this.validateJsFunc();
       if (!this.functionValid) {
         this.propagateChange(this.modelValue);
+        this.cd.markForCheck();
         this.store.dispatch(new ActionNotificationShow(
           {
             message: this.validationError,
@@ -413,6 +421,7 @@ export class JsFuncComponent implements OnInit, OnDestroy, ControlValueAccessor,
       this.modelValue = editorValue;
       this.functionValid = true;
       this.propagateChange(this.modelValue);
+      this.cd.markForCheck();
     }
   }
 }

@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -41,7 +42,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
 @AllArgsConstructor
 @Slf4j
@@ -56,7 +56,7 @@ public class SchedulerEventsEdgeEventFetcher extends BasePageableEdgeEventFetche
 
     @Override
     EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, SchedulerEvent schedulerEvent) {
-        return EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.SCHEDULER_EVENT,
+        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.SCHEDULER_EVENT,
                 EdgeEventActionType.ADDED, schedulerEvent.getId(), null);
     }
 }

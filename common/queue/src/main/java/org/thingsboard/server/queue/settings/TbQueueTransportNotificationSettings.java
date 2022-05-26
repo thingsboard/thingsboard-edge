@@ -38,10 +38,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class TbQueueTransportNotificationSettings {
 
-    @Value("${queue.transport.notifications_topic}")
+    @Value("${queue.transport.notifications_topic:tb_transport.notifications}")
     private String notificationsTopic;
 
-    @Value("${queue.transport.poll_interval}")
+    @Value("${queue.transport.poll_interval:25}")
     private long transportPollInterval;
 
 }

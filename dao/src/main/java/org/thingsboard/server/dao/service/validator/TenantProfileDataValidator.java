@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantProfileDao;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
@@ -71,7 +71,7 @@ public class TenantProfileDataValidator extends DataValidator<TenantProfile> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, TenantProfile tenantProfile) {
+    protected TenantProfile validateUpdate(TenantId tenantId, TenantProfile tenantProfile) {
         TenantProfile old = tenantProfileDao.findById(TenantId.SYS_TENANT_ID, tenantProfile.getId().getId());
         if (old == null) {
             throw new DataValidationException("Can't update non existing tenant profile!");
@@ -80,5 +80,6 @@ public class TenantProfileDataValidator extends DataValidator<TenantProfile> {
         } else if (old.isIsolatedTbCore() != tenantProfile.isIsolatedTbCore()) {
             throw new DataValidationException("Can't update isolatedTbCore property!");
         }
+        return old;
     }
 }

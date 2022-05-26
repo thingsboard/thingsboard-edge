@@ -1,0 +1,91 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-widget-settings" [formGroup]="timeseriesTableLatestKeySettingsForm" fxLayout="column">
+  <mat-slide-toggle class="mat-slide" formControlName="show">
+    {{ 'widgets.table.show-latest-data-column' | translate }}
+  </mat-slide-toggle>
+  <mat-form-field [fxShow]="timeseriesTableLatestKeySettingsForm.get('show').value" fxFlex class="mat-block">
+    <mat-label translate>widgets.table.latest-data-column-order</mat-label>
+    <input matInput type="number" step="1" formControlName="order">
+  </mat-form-field>
+  <fieldset [fxShow]="timeseriesTableLatestKeySettingsForm.get('show').value" class="fields-group fields-group-slider">
+    <legend class="group-title" translate>widgets.table.cell-style</legend>
+    <mat-expansion-panel class="tb-settings" [expanded]="timeseriesTableLatestKeySettingsForm.get('useCellStyleFunction').value">
+      <mat-expansion-panel-header fxLayout="row wrap">
+        <mat-panel-title>
+          <mat-slide-toggle formControlName="useCellStyleFunction" (click)="$event.stopPropagation()"
+                            fxLayoutAlign="center">
+            {{ 'widgets.table.use-cell-style-function' | translate }}
+          </mat-slide-toggle>
+        </mat-panel-title>
+        <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+          widget-config.advanced-settings
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <tb-js-func required
+                    formControlName="cellStyleFunction"
+                    [globalVariables]="functionScopeVariables"
+                    [functionArgs]="['value', 'rowData', 'ctx']"
+                    functionTitle="{{ 'widgets.table.cell-style-function' | translate }}"
+                    helpId="widget/lib/timeseries/cell_style_fn">
+        </tb-js-func>
+      </ng-template>
+    </mat-expansion-panel>
+  </fieldset>
+  <fieldset [fxShow]="timeseriesTableLatestKeySettingsForm.get('show').value" class="fields-group fields-group-slider">
+    <legend class="group-title" translate>widgets.table.cell-content</legend>
+    <mat-expansion-panel class="tb-settings" [expanded]="timeseriesTableLatestKeySettingsForm.get('useCellContentFunction').value">
+      <mat-expansion-panel-header fxLayout="row wrap">
+        <mat-panel-title>
+          <mat-slide-toggle formControlName="useCellContentFunction" (click)="$event.stopPropagation()"
+                            fxLayoutAlign="center">
+            {{ 'widgets.table.use-cell-content-function' | translate }}
+          </mat-slide-toggle>
+        </mat-panel-title>
+        <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+          widget-config.advanced-settings
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <tb-js-func required
+                    formControlName="cellContentFunction"
+                    [globalVariables]="functionScopeVariables"
+                    [functionArgs]="['value', 'rowData', 'ctx']"
+                    functionTitle="{{ 'widgets.table.cell-content-function' | translate }}"
+                    helpId="widget/lib/timeseries/cell_content_fn">
+        </tb-js-func>
+      </ng-template>
+    </mat-expansion-panel>
+  </fieldset>
+</section>

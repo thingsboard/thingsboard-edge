@@ -41,14 +41,13 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.relation.RelationService;
 
-import java.util.Optional;
-
 @Slf4j
 public abstract class AbstractEntityService {
 
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
     public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
 
+    @Lazy
     @Autowired
     protected RelationService relationService;
 
@@ -56,9 +55,11 @@ public abstract class AbstractEntityService {
     @Autowired
     protected AlarmService alarmService;
 
+    @Lazy
     @Autowired
     protected EntityGroupService entityGroupService;
 
+    @Lazy
     @Autowired(required = false)
     protected EdgeService edgeService;
 

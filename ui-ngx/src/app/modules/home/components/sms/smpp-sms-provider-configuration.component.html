@@ -1,0 +1,177 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<form [formGroup]="smppSmsProviderConfigurationFormGroup" style="padding-bottom: 16px;">
+  <div fxLayout="row wrap" fxLayoutGap="6px">
+    <mat-form-field fxFlex.lt-sm="100" fxFlex.gt-sm="15" class="mat-block">
+      <mat-label translate>admin.smpp-provider.smpp-version</mat-label>
+      <mat-select formControlName="protocolVersion">
+        <mat-option *ngFor="let smppVersion of smppVersions" [value]="smppVersion.value">
+          {{smppVersion.value}}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>admin.smpp-provider.smpp-host</mat-label>
+      <input required matInput formControlName="host">
+      <mat-error *ngIf="smppSmsProviderConfigurationFormGroup.get('host').hasError('required')">
+        {{'admin.smpp-provider.smpp-host-required' | translate}}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field fxFlex.lt-sm="100" fxFlex.gt-sm="30" class="mat-block">
+      <mat-label translate>admin.smpp-provider.smpp-port</mat-label>
+      <input required matInput type="number" formControlName="port">
+      <mat-error *ngIf="smppSmsProviderConfigurationFormGroup.get('port').hasError('required')">
+        {{'admin.smpp-provider.smpp-port-required' | translate}}
+      </mat-error>
+    </mat-form-field>
+  </div>
+  <div fxLayout="row wrap" fxLayoutGap="6px">
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>admin.smpp-provider.system-id</mat-label>
+      <input required matInput formControlName="systemId">
+      <mat-error *ngIf="smppSmsProviderConfigurationFormGroup.get('systemId').hasError('required')">
+        {{'admin.smpp-provider.system-id-required' | translate}}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>admin.smpp-provider.password</mat-label>
+      <input required matInput type="password" autocomplete="new-password" formControlName="password">
+      <tb-toggle-password matSuffix></tb-toggle-password>
+      <mat-error *ngIf="smppSmsProviderConfigurationFormGroup.get('password').hasError('required')">
+        {{'admin.smpp-provider.password-required' | translate}}
+      </mat-error>
+    </mat-form-field>
+  </div>
+  <mat-accordion multi>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>
+          admin.smpp-provider.type-settings
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.system-type</mat-label>
+          <input matInput formControlName="systemType">
+        </mat-form-field>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.bind-type</mat-label>
+          <mat-select formControlName="bindType">
+            <mat-option *ngFor="let bindType of bindTypes" [value]="bindType">
+              {{bindTypesTranslation.get(bindType) | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.service-type</mat-label>
+          <input matInput formControlName="serviceType">
+        </mat-form-field>
+      </ng-template>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>
+          admin.smpp-provider.source-settings
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.source-address</mat-label>
+          <input matInput formControlName="sourceAddress">
+        </mat-form-field>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.source-ton</mat-label>
+          <mat-select formControlName="sourceTon">
+            <mat-option *ngFor="let sourceTon of typeOfNumber" [value]="typeOfNumberMap.get(sourceTon).value">
+              {{typeOfNumberMap.get(sourceTon).name | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.source-npi</mat-label>
+          <mat-select formControlName="sourceNpi">
+            <mat-option *ngFor="let sourceNpi of numberingPlanIdentification" [value]="numberingPlanIdentificationMap.get(sourceNpi).value">
+              {{numberingPlanIdentificationMap.get(sourceNpi).name | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-template>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>
+          admin.smpp-provider.destination-settings
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.destination-ton</mat-label>
+          <mat-select formControlName="destinationTon">
+            <mat-option *ngFor="let destinationTon of typeOfNumber" [value]="typeOfNumberMap.get(destinationTon).value">
+              {{typeOfNumberMap.get(destinationTon).name | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.destination-npi</mat-label>
+          <mat-select formControlName="destinationNpi">
+            <mat-option *ngFor="let destinationNpi of numberingPlanIdentification" [value]="numberingPlanIdentificationMap.get(destinationNpi).value">
+              {{numberingPlanIdentificationMap.get(destinationNpi).name | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-template>
+    </mat-expansion-panel>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title translate>
+          admin.smpp-provider.additional-settings
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.address-range</mat-label>
+          <input matInput formControlName="addressRange">
+        </mat-form-field>
+        <mat-form-field class="mat-block">
+          <mat-label translate>admin.smpp-provider.coding-scheme</mat-label>
+          <mat-select formControlName="codingScheme">
+            <mat-option *ngFor="let codingScheme of codingSchemes" [value]="codingSchemesMap.get(codingScheme).value">
+              {{codingSchemesMap.get(codingScheme).name | translate}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-template>
+    </mat-expansion-panel>
+  </mat-accordion>
+</form>

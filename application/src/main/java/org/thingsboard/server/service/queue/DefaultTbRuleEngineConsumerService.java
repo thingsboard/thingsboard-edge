@@ -49,7 +49,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.StatsFactory;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
@@ -97,7 +97,6 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
 
     public static final String SUCCESSFUL_STATUS = "successful";
     public static final String FAILED_STATUS = "failed";
-    public static final String THREAD_TOPIC_SEPARATOR = " | ";
     @Value("${queue.rule-engine.poll-interval}")
     private long pollDuration;
     @Value("${queue.rule-engine.pack-processing-timeout}")
@@ -261,7 +260,7 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
     }
 
     void consumerLoop(TbQueueConsumer<TbProtoQueueMsg<ToRuleEngineMsg>> consumer, TbRuleEngineQueueConfiguration configuration, TbRuleEngineConsumerStats stats, String threadSuffix) {
-        updateCurrentThreadName(threadSuffix);
+        ThingsBoardThreadFactory.updateCurrentThreadName(threadSuffix);
         while (!stopped && !consumer.isStopped()) {
             try {
                 List<TbProtoQueueMsg<ToRuleEngineMsg>> msgs = consumer.poll(pollDuration);
@@ -313,16 +312,6 @@ public class DefaultTbRuleEngineConsumerService extends AbstractConsumerService<
             }
         }
         log.info("TB Rule Engine Consumer stopped.");
-    }
-
-    void updateCurrentThreadName(String threadSuffix) {
-        String name = Thread.currentThread().getName();
-        int spliteratorIndex = name.indexOf(THREAD_TOPIC_SEPARATOR);
-        if (spliteratorIndex > 0) {
-            name = name.substring(0, spliteratorIndex);
-        }
-        name = name + THREAD_TOPIC_SEPARATOR + threadSuffix;
-        Thread.currentThread().setName(name);
     }
 
     TbRuleEngineProcessingStrategy getAckStrategy(TbRuleEngineQueueConfiguration configuration) {

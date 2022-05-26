@@ -30,16 +30,16 @@
  */
 package org.thingsboard.integration.api;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.concurrent.Executor;
 
 public interface IntegrationControllerApi {
 
-    ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String routingKey);
+    <T> void process(IntegrationType type, String routingKey, DeferredResult<ResponseEntity> result, T msg);
 
-    <T> void process(ThingsboardPlatformIntegration<T> integration, T msg);
-
-    Executor getCallbackExecutor();
+    <T> void process(IntegrationType type, String routingKey, DeferredResult<ResponseEntity> result, T msg, IntegrationHttpMsgProcessor<T> processor);
 
 }
