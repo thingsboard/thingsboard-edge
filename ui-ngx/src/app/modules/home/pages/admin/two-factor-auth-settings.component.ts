@@ -46,6 +46,8 @@ import { deepClone, isNotEmptyStr } from '@core/utils';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { Authority } from '@shared/models/authority.enum';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Component({
   selector: 'tb-2fa-settings',
@@ -56,6 +58,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
 
   private readonly destroy$ = new Subject<void>();
   private readonly posIntValidation = [Validators.required, Validators.min(1), Validators.pattern(/^\d*$/)];
+
+  authState = getCurrentAuthState(this.store);
+  authUser = this.authState.authUser;
 
   twoFaFormGroup: FormGroup;
   twoFactorAuthProviderType = TwoFactorAuthProviderType;
@@ -84,6 +89,10 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
 
   confirmForm(): FormGroup {
     return this.twoFaFormGroup;
+  }
+
+  isTenantAdmin(): boolean {
+    return this.authUser.authority === Authority.TENANT_ADMIN;
   }
 
   save() {
