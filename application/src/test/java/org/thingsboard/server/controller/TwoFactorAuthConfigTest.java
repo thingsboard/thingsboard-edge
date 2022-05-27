@@ -79,9 +79,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -114,9 +114,15 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
 
     @Test
-    public void testSavePlatformTwoFaSettings() throws Exception {
+    public void testSavePlatformTwoFaSettingsForDifferentAuthorities() throws Exception {
         loginSysAdmin();
+        testSavePlatformTwoFaSettings();
 
+        loginTenantAdmin();
+        testSavePlatformTwoFaSettings();
+    }
+
+    private void testSavePlatformTwoFaSettings() throws Exception {
         TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
         totpTwoFaProviderConfig.setIssuerName("tb");
         SmsTwoFaProviderConfig smsTwoFaProviderConfig = new SmsTwoFaProviderConfig();
@@ -139,7 +145,7 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
     @Test
     public void testSavePlatformTwoFaSettings_validationError() throws Exception {
-        loginSysAdmin();
+        loginTenantAdmin();
 
         PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
         twoFaSettings.setProviders(Collections.emptyList());
@@ -155,6 +161,71 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
                 "maximum number of verification failure before user lockout must be positive",
                 "total amount of time allotted for verification must be greater than 0"
         );
+
+        twoFaSettings.setUseSystemTwoFactorAuthSettings(true);
+        doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isOk());
+
+        twoFaSettings.setMinVerificationCodeSendPeriod(0);
+        twoFaSettings.setVerificationCodeCheckRateLimit(null);
+        twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(0);
+        twoFaSettings.setTotalAllowedTimeForVerification(null);
+
+        doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetPlatformTwoFaSettings_useSysadminSettingsAsDefault() throws Exception {
+        loginSysAdmin();
+        PlatformTwoFaSettings sysadminTwoFaSettings = new PlatformTwoFaSettings();
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
+        totpTwoFaProviderConfig.setIssuerName("tb");
+        sysadminTwoFaSettings.setProviders(Collections.singletonList(totpTwoFaProviderConfig));
+        sysadminTwoFaSettings.setMaxVerificationFailuresBeforeUserLockout(25);
+        doPost("/api/2fa/settings", sysadminTwoFaSettings).andExpect(status().isOk());
+
+        loginTenantAdmin();
+        PlatformTwoFaSettings tenantTwoFaSettings = new PlatformTwoFaSettings();
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);
+        tenantTwoFaSettings.setProviders(Collections.emptyList());
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+        PlatformTwoFaSettings twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+        assertThat(twoFaSettings).isEqualTo(tenantTwoFaSettings);
+
+        doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk());
+
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(false);
+        tenantTwoFaSettings.setProviders(Collections.emptyList());
+        tenantTwoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+        twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+        assertThat(twoFaSettings).isEqualTo(tenantTwoFaSettings);
+
+        assertThat(getErrorMessage(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isBadRequest()))).containsIgnoringCase("provider is not configured");
+
+        loginSysAdmin();
+        sysadminTwoFaSettings.setProviders(Collections.emptyList());
+        doPost("/api/2fa/settings", sysadminTwoFaSettings).andExpect(status().isOk());
+        loginTenantAdmin();
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);
+        tenantTwoFaSettings.setProviders(Collections.singletonList(totpTwoFaProviderConfig));
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+
+        assertThat(getErrorMessage(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isBadRequest()))).containsIgnoringCase("provider is not configured");
+
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(false);
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+
+        doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk());
+
+        loginSysAdmin();
+        twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+        assertThat(twoFaSettings).isEqualTo(sysadminTwoFaSettings);
     }
 
     @Test
@@ -503,12 +574,12 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
         loginTenantAdmin();
 
-        doGet("/api/2fa/account/config")
+        doGet("/api/2fa/account/settings")
                 .andExpect(status().isOk());
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
                 Resource.DEVICE, Set.of(Operation.READ)
         ));
-        assertForbidden(doGet("/api/2fa/account/config"));
+        assertForbidden(doGet("/api/2fa/account/settings"));
         reset(userPermissionsService);
 
         TotpTwoFaAccountConfig twoFaAccountConfig = readResponse(doPost("/api/2fa/account/config/generate?providerType=TOTP")
@@ -523,7 +594,7 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         assertForbidden(doPost("/api/2fa/account/config/generate?providerType=TOTP"));
         assertForbidden(doPost("/api/2fa/account/config/submit", twoFaAccountConfig));
         assertForbidden(doPost("/api/2fa/account/config?verificationCode=123456", twoFaAccountConfig));
-        assertForbidden(doDelete("/api/2fa/account/config"));
+        assertForbidden(doDelete("/api/2fa/account/config?providerType=TOTP"));
         reset(userPermissionsService);
     }
 
@@ -545,12 +616,14 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
                 Resource.WHITE_LABELING, Set.of(Operation.READ, Operation.WRITE)
         ));
-        doPost("/api/2fa/settings", new PlatformTwoFaSettings())
+        PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
+        twoFaSettings.setProviders(Collections.emptyList());
+        doPost("/api/2fa/settings", twoFaSettings)
                 .andExpect(status().isOk());
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
                 Resource.WHITE_LABELING, Set.of(Operation.READ)
         ));
-        assertForbidden(doPost("/api/2fa/settings", new PlatformTwoFaSettings()));
+        assertForbidden(doPost("/api/2fa/settings", twoFaSettings));
         reset(userPermissionsService);
     }
 

@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProvi
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,9 @@ import java.util.Optional;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PlatformTwoFaSettings {
 
+    private boolean useSystemTwoFactorAuthSettings;
     @Valid
+    @NotNull
     private List<TwoFaProviderConfig> providers;
 
     @Min(value = 5, message = "minimum verification code sent period must be greater than or equal 5")

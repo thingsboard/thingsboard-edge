@@ -247,6 +247,8 @@ public class TwoFaConfigController extends BaseController {
 
     @ApiOperation(value = "Save platform 2FA settings (savePlatformTwoFaSettings)",
             notes = "Save 2FA settings for platform. The settings have following properties:\n" +
+                    "- `useSystemTwoFactorAuthSettings` - option for tenant admins to use 2FA settings configured by sysadmin. " +
+                    "If this param is set to true, then the settings will not be validated for constraints (if it is a tenant admin; for sysadmin this param is ignored).\n" +
                     "- `providers` - the list of 2FA providers' configs. Users will only be allowed to use 2FA providers from this list. \n\n" +
                     "- `minVerificationCodeSendPeriod` - minimal period in seconds to wait after verification code send request to send next request. \n" +
                     "- `verificationCodeCheckRateLimit` - rate limit configuration for verification code checking.\n" +
@@ -265,6 +267,7 @@ public class TwoFaConfigController extends BaseController {
                     "- `verificationCodeLifetime` - the same as for SMS." + NEW_LINE +
                     "Example of the settings:\n" +
                     "```\n{\n" +
+                    "  \"useSystemTwoFactorAuthSettings\": false,\n" +
                     "  \"providers\": [\n" +
                     "    {\n" +
                     "      \"providerType\": \"TOTP\",\n" +
@@ -289,7 +292,7 @@ public class TwoFaConfigController extends BaseController {
     @PostMapping("/settings")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     public PlatformTwoFaSettings savePlatformTwoFaSettings(@ApiParam(value = "Settings value", required = true)
-                                          @RequestBody PlatformTwoFaSettings twoFaSettings) throws ThingsboardException {
+                                                           @RequestBody PlatformTwoFaSettings twoFaSettings) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         if (user.getAuthority() == Authority.SYS_ADMIN) {
             accessControlService.checkPermission(user, Resource.ADMIN_SETTINGS, Operation.WRITE);
