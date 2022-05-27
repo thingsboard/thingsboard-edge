@@ -127,7 +127,8 @@
             "user-registered": "User registered message",
             "api-usage-state-enabled": "Api usage state enabled",
             "api-usage-state-warning": "Api usage state warning",
-            "api-usage-state-disabled": "Api usage state disabled"
+            "api-usage-state-disabled": "Api usage state disabled",
+            "two-fa-verification": "2FA verification message"
         },
         "mail-subject": "Mail Subject",
         "mail-body": "Mail body",

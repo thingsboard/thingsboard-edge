@@ -69,6 +69,6 @@ public interface MailService {
 
     void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException;
 
-    boolean isConfigured(TenantId tenantId);
+    void testConnection(TenantId tenantId) throws Exception;
 
 }

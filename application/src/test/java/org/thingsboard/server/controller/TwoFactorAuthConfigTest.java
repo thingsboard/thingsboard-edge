@@ -511,8 +511,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         assertForbidden(doGet("/api/2fa/account/config"));
         reset(userPermissionsService);
 
-        TotpTwoFactorAuthAccountConfig twoFaAccountConfig = readResponse(doPost("/api/2fa/account/config/generate?providerType=TOTP")
-                .andExpect(status().isOk()), TotpTwoFactorAuthAccountConfig.class);
+        TotpTwoFaAccountConfig twoFaAccountConfig = readResponse(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk()), TotpTwoFaAccountConfig.class);
         doPost("/api/2fa/account/config/submit", twoFaAccountConfig)
                 .andExpect(status().isOk());
         doPost("/api/2fa/account/config?verificationCode=123456", twoFaAccountConfig)
@@ -545,12 +545,12 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
                 Resource.WHITE_LABELING, Set.of(Operation.READ, Operation.WRITE)
         ));
-        doPost("/api/2fa/settings", new TwoFactorAuthSettings())
+        doPost("/api/2fa/settings", new PlatformTwoFaSettings())
                 .andExpect(status().isOk());
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
                 Resource.WHITE_LABELING, Set.of(Operation.READ)
         ));
-        assertForbidden(doPost("/api/2fa/settings", new TwoFactorAuthSettings()));
+        assertForbidden(doPost("/api/2fa/settings", new PlatformTwoFaSettings()));
         reset(userPermissionsService);
     }
 

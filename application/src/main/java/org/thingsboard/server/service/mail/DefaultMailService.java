@@ -324,24 +324,11 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendTwoFaVerificationEmail(TenantId tenantId, String email, String verificationCode, int expirationTimeSeconds) throws ThingsboardException {
-        String subject = messages.getMessage("2fa.verification.code.subject", null, Locale.US);
-        String message = mergeTemplateIntoString("2fa.verification.code.ftl", Map.of(
+        sendTemplateEmail(tenantId, email, MailTemplates.TWO_FA_VERIFICATION, Map.of(
                 TARGET_EMAIL, email,
                 "verificationCode", verificationCode,
                 "expirationTimeSeconds", expirationTimeSeconds
         ));
-
-        sendMail(tenantId, email, subject, message);
-    }
-
-    @Override
-    public boolean isConfigured(TenantId tenantId) {
-        try {
-            mailSender.testConnection();
-            return true;
-        } catch (MessagingException e) {
-            return false;
-        }
     }
 
     @Override
@@ -372,6 +359,20 @@ public class DefaultMailService implements MailService {
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED);
                 break;
         }
+        sendMail(tenantId, email, subject, message);
+    }
+
+    @Override
+    public void testConnection(TenantId tenantId) throws Exception {
+        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        mailSender.testConnection();
+    }
+
+    private void sendTemplateEmail(TenantId tenantId, String email, String template, Map<String, Object> templateModel) throws ThingsboardException {
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, template);
+        String message = body(mailTemplates, template, templateModel);
         sendMail(tenantId, email, subject, message);
     }
 

@@ -63,14 +63,16 @@ public class EmailTwoFaProvider extends OtpBasedTwoFaProvider<EmailTwoFaProvider
 
     @Override
     public void check(TenantId tenantId) throws ThingsboardException {
-        if (!mailService.isConfigured(tenantId)) {
+        try {
+            mailService.testConnection(tenantId);
+        } catch (Exception e) {
             throw new ThingsboardException("Mail service is not set up", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
     }
 
     @Override
     protected void sendVerificationCode(SecurityUser user, String verificationCode, EmailTwoFaProviderConfig providerConfig, EmailTwoFaAccountConfig accountConfig) throws ThingsboardException {
-        mailService.sendTwoFaVerificationEmail(, accountConfig.getEmail(), verificationCode, providerConfig.getVerificationCodeLifetime());
+        mailService.sendTwoFaVerificationEmail(user.getTenantId(), accountConfig.getEmail(), verificationCode, providerConfig.getVerificationCodeLifetime());
     }
 
     @Override

@@ -36,24 +36,25 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSender;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.sms.config.SmsProviderConfiguration;
-import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.sms.config.SmsProviderConfiguration;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import java.util.Arrays;
@@ -116,8 +117,13 @@ public class DefaultSmsService implements SmsService {
 
     @Override
     public boolean isConfigured(TenantId tenantId) {
-        // to testConnection
-        return smsSender != null;
+        try {
+            ConfigEntry configEntry = getConfig(tenantId, "sms", allowSystemSmsService);
+            JacksonUtil.convertValue(configEntry.jsonConfig, SmsProviderConfiguration.class);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private int sendSms(SmsSender smsSender, String numberTo, String message) throws ThingsboardException {
