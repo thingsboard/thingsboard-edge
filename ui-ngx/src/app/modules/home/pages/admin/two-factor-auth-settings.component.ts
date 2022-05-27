@@ -42,7 +42,7 @@ import {
   TwoFactorAuthSettings,
   TwoFactorAuthSettingsForm
 } from '@shared/models/two-factor-auth.models';
-import { deepClone, isNotEmptyStr } from '@core/utils';
+import { isNotEmptyStr, isUndefined } from '@core/utils';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -138,6 +138,7 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
 
   private build2faSettingsForm(): void {
     this.twoFaFormGroup = this.fb.group({
+      useSystemTwoFactorAuthSettings: [this.isTenantAdmin()],
       maxVerificationFailuresBeforeUserLockout: [30, [
         Validators.pattern(/^\d*$/),
         Validators.min(0),
@@ -171,9 +172,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
   }
 
   private setAuthConfigFormValue(settings: TwoFactorAuthSettings) {
-    const [checkRateLimitNumber, checkRateLimitTime] = this.splitRateLimit(settings.verificationCodeCheckRateLimit);
-    const allowProvidersConfig = settings.providers.map(provider => provider.providerType);
-    const processFormValue: TwoFactorAuthSettingsForm = Object.assign(deepClone(settings), {
+    const [checkRateLimitNumber, checkRateLimitTime] = this.splitRateLimit(settings?.verificationCodeCheckRateLimit);
+    const allowProvidersConfig = settings?.providers.map(provider => provider.providerType) || [];
+    const processFormValue: TwoFactorAuthSettingsForm = Object.assign({}, settings, {
       verificationCodeCheckRateLimitEnable: checkRateLimitNumber > 0,
       verificationCodeCheckRateLimitNumber: checkRateLimitNumber || 3,
       verificationCodeCheckRateLimitTime: checkRateLimitTime || 900,
@@ -191,6 +192,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
         processFormValue.providers.push({enable: false});
       }
     });
+    if (this.isTenantAdmin() && isUndefined(settings?.useSystemTwoFactorAuthSettings)) {
+      processFormValue.useSystemTwoFactorAuthSettings = true;
+    }
     this.twoFaFormGroup.patchValue(processFormValue);
   }
 

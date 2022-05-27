@@ -109,6 +109,11 @@ export class AuthGuard implements CanActivate, CanActivateChild {
             this.authService.redirectUrl = url;
             // this.authService.gotoDefaultPlace(false);
             return of(this.authService.defaultUrl(false));
+          } else if (path === 'login.mfa' && authState.authUser?.authority !== Authority.PRE_VERIFICATION_TOKEN) {
+            if (authState.isAuthenticated) {
+              this.authService.logout();
+            }
+            return of(this.authService.defaultUrl(false));
           } else {
             const tasks: Observable<any>[] = [];
             tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
@@ -117,12 +122,16 @@ export class AuthGuard implements CanActivate, CanActivateChild {
               if (path === 'login') {
                 tasks.push(this.authService.loadOAuth2Clients());
               }
-            } else if (path === 'login.mfa') {
-              return of(this.router.parseUrl('/login'));
+            }
+            if (path === 'login.mfa') {
+              tasks.push(this.authService.getAvailableTwoFaLoginProviders());
             }
             return forkJoin(tasks).pipe(
               map(() => {
                 if (path === 'signup' && !this.selfRegistrationService.signUpParams.activate) {
+                  return this.authService.defaultUrl(false);
+                } else if (path === 'login.mfa' && !this.authService.twoFactorAuthProviders) {
+                  this.authService.logout();
                   return this.authService.defaultUrl(false);
                 } else {
                   return true;
@@ -147,13 +156,6 @@ export class AuthGuard implements CanActivate, CanActivateChild {
             return of(false);
           }
           if (authState.authUser.authority === Authority.PRE_VERIFICATION_TOKEN) {
-            if (path === 'login.mfa') {
-              return this.authService.getAvailableTwoFaLoginProviders().pipe(
-                map(() => {
-                  return true;
-                })
-              );
-            }
             this.authService.logout();
             return of(false);
           }
