@@ -43,5 +43,5 @@ public interface TbOtaPackageService  {
     void  delete(OtaPackageInfo otaPackageInfo, SecurityUser user) throws ThingsboardException;
 
     OtaPackageInfo saveOtaPackageData(OtaPackageInfo otaPackageInfo, String checksum, ChecksumAlgorithm checksumAlgorithm,
-                                      byte[] data, String filename, String contentType, SecurityUser securityUser, Exception e) throws ThingsboardException;
+                                      byte[] data, String filename, String contentType, SecurityUser securityUser) throws ThingsboardException;
 }
