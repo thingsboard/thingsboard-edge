@@ -1,0 +1,109 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.service.entitiy.otaPackageController;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+@Service
+@TbCoreComponent
+@AllArgsConstructor
+@Slf4j
+public class DefaultTbOtaPackageService extends AbstractTbEntityService implements TbOtaPackageService {
+    @Override
+    public OtaPackageInfo save(SaveOtaPackageInfoRequest saveOtaPackageInfoRequest, SecurityUser user) throws ThingsboardException {
+        TenantId tenantId = saveOtaPackageInfoRequest.getTenantId();
+        ActionType actionType = saveOtaPackageInfoRequest.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        try {
+            OtaPackageInfo savedOtaPackageInfo = otaPackageService.saveOtaPackageInfo(new OtaPackageInfo(saveOtaPackageInfoRequest), saveOtaPackageInfoRequest.isUsesUrl());
+            notificationEntityService.notifyEntity(tenantId, savedOtaPackageInfo.getId(), savedOtaPackageInfo, null,
+                    actionType, user, null);
+            return savedOtaPackageInfo;
+        } catch (Exception e) {
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.OTA_PACKAGE), saveOtaPackageInfoRequest, null,
+                    actionType, user, e);
+            throw handleException(e);
+        }
+    }
+
+    @Override
+    public void delete(OtaPackageInfo otaPackageInfo, SecurityUser user) throws ThingsboardException {
+        TenantId tenantId = otaPackageInfo.getTenantId();
+        OtaPackageId otaPackageId = otaPackageInfo.getId();
+        try {
+            otaPackageService.deleteOtaPackage(tenantId, otaPackageId);
+            notificationEntityService.notifyEntity(tenantId, otaPackageId, otaPackageInfo, null,
+                    ActionType.DELETED, user, null, otaPackageInfo.getId().toString());
+        } catch (Exception e) {
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.OTA_PACKAGE), null, null,
+                    ActionType.DELETED, user, e, otaPackageInfo.getId().toString());
+            throw handleException(e);
+        }
+
+
+    }
+
+    @Override
+    public OtaPackageInfo saveOtaPackageData(EntityId otaPackageId, OtaPackage otaPackage, SecurityUser user, Exception e) throws ThingsboardException {
+        TenantId tenantId = otaPackage.getTenantId();
+        if (e == null) {
+            try {
+                OtaPackageInfo savedOtaPackage = otaPackageService.saveOtaPackage(otaPackage);
+                notificationEntityService.notifyEntity(tenantId, savedOtaPackage.getId(), savedOtaPackage, null,
+                        ActionType.UPDATED, user, null);
+                return savedOtaPackage;
+            } catch (Exception e1) {
+                notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.OTA_PACKAGE), null, null,
+                        ActionType.UPDATED, user, e1, otaPackageId.toString());
+                throw handleException(e1);
+            }
+        } else {
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.OTA_PACKAGE), null, null,
+                    ActionType.UPDATED, user, e, otaPackageId.toString());
+            throw handleException(e);
+        }
+    }
+
+
+}
