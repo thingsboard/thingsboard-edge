@@ -59,7 +59,6 @@ import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -315,7 +314,6 @@ public class RuleChainController extends BaseController {
                 getCurrentUser());
      }
 
-
     @ApiOperation(value = "Get Rule Chains (getRuleChains)",
             notes = "Returns a page of Rule Chains owned by tenant. " + RULE_CHAIN_DESCRIPTION + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
@@ -554,8 +552,7 @@ public class RuleChainController extends BaseController {
         RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
         RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.READ);
 
-        return tbRuleChainNotifyService.assignUnassignRuleChainToEdge(getTenantId(), ruleChain, edge,
-                ActionType.ASSIGNED_TO_EDGE, getCurrentUser());
+        return tbRuleChainNotifyService.assignRuleChainToEdge(getTenantId(), ruleChain, edge, getCurrentUser());
      }
 
     @ApiOperation(value = "Unassign rule chain from edge (unassignRuleChainFromEdge)",
@@ -577,8 +574,7 @@ public class RuleChainController extends BaseController {
         RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
         RuleChain ruleChain = checkRuleChain(ruleChainId, Operation.READ);
 
-        return tbRuleChainNotifyService.assignUnassignRuleChainToEdge(getTenantId(), ruleChain, edge,
-                ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser());
+        return tbRuleChainNotifyService.unassignRuleChainToEdge(getTenantId(), ruleChain, edge, getCurrentUser());
      }
 
     @ApiOperation(value = "Get Edge Rule Chains (getEdgeRuleChains)",
