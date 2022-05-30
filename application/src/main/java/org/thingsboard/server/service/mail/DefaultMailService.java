@@ -326,7 +326,7 @@ public class DefaultMailService implements MailService {
     public void sendTwoFaVerificationEmail(TenantId tenantId, String email, String verificationCode, int expirationTimeSeconds) throws ThingsboardException {
         sendTemplateEmail(tenantId, email, MailTemplates.TWO_FA_VERIFICATION, Map.of(
                 TARGET_EMAIL, email,
-                "verificationCode", verificationCode,
+                "code", verificationCode,
                 "expirationTimeSeconds", expirationTimeSeconds
         ));
     }
