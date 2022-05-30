@@ -100,7 +100,7 @@
         <netty-tcnative.version>2.0.51.Final</netty-tcnative.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
         <rabbitmq.version>4.8.0</rabbitmq.version>
-        <surfire.version>2.19.1</surfire.version>
+        <surefire.version>3.0.0-M6</surefire.version>
         <jar-plugin.version>3.0.2</jar-plugin.version>
         <springfox-swagger.version>3.0.4</springfox-swagger.version>
         <swagger-annotations.version>1.6.3</swagger-annotations.version>
@@ -157,6 +157,7 @@
         <testcontainers.version>1.16.0</testcontainers.version>
         <zeroturnaround.version>1.12</zeroturnaround.version>
         <dotenv-java.version>2.2.0</dotenv-java.version>
+        <opensmpp.version>3.0.0</opensmpp.version>
     </properties>
 
     <modules>
@@ -202,6 +203,7 @@
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-resources-plugin</artifactId>
+                            <version>3.2.0</version>
                             <executions>
                                 <execution>
                                     <id>copy-conf</id>
@@ -670,7 +672,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>${surefire.version}</version>
                     <configuration>
                         <argLine>
                             --illegal-access=permit
@@ -933,8 +935,18 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.thingsboard.common.js</groupId>
+                <artifactId>remote-js-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>integration-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.integration</groupId>
+                <artifactId>cluster-integration-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2060,6 +2072,11 @@
                 <artifactId>zt-exec</artifactId>
                 <version>${zeroturnaround.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.opensmpp</groupId>
+                <artifactId>opensmpp-core</artifactId>
+                <version>${opensmpp.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.cdimascio</groupId>

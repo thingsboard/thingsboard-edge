@@ -41,10 +41,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerServiceImpl;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
+
+import java.util.Optional;
 
 @Component
 public class CustomerDataValidator extends DataValidator<Customer> {
@@ -74,14 +76,16 @@ public class CustomerDataValidator extends DataValidator<Customer> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Customer customer) {
-        customerDao.findCustomersByTenantIdAndTitle(customer.getTenantId().getId(), customer.getTitle()).ifPresent(
+    protected Customer validateUpdate(TenantId tenantId, Customer customer) {
+        Optional<Customer> customerOpt = customerDao.findCustomersByTenantIdAndTitle(customer.getTenantId().getId(), customer.getTitle());
+        customerOpt.ifPresent(
                 c -> {
                     if (!c.getId().equals(customer.getId())) {
                         throw new DataValidationException("Customer with such title already exists!");
                     }
                 }
         );
+        return customerOpt.orElse(null);
     }
 
     @Override

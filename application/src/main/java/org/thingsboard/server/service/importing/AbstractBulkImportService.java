@@ -41,12 +41,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -84,6 +86,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -113,7 +116,7 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
         }
     }
 
-    public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, Consumer<ImportedEntityInfo<E>> onEntityImported, BiConsumer<E, UnaryOperator<E>> entityGroupAssigner) throws Exception {
+    public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, BiConsumer<E, TbBiFunction<E, EntityGroup, E>> entityGroupAssigner) throws Exception {
         List<EntityData> entitiesData = parseData(request);
 
         BulkImportResult<E> result = new BulkImportResult<>();
@@ -136,8 +139,8 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
                     setEntityFields(entity, entityData.getFields());
                     accessControlService.checkPermission(user, Resource.resourceFromEntityType(getEntityType()), Operation.WRITE, entity.getId(), entity);
 
-                    UnaryOperator<E> savingFunction = e -> {
-                        E savedEntity = saveEntity(entity, entityData.getFields());
+                    TbBiFunction<E, EntityGroup, E> savingFunction = (e, entityGroup) -> {
+                        E savedEntity = saveEntity(user, entity, entityGroup, entityData.getFields());
                         importedEntityInfo.setEntity(savedEntity);
                         return savedEntity;
                     };
@@ -145,10 +148,8 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
                     if (entityGroupAssigner != null) {
                         entityGroupAssigner.accept(entity, savingFunction);
                     } else {
-                        savingFunction.apply(entity);
+                        savingFunction.apply(entity, null);
                     }
-
-                    onEntityImported.accept(importedEntityInfo);
 
                     E savedEntity = importedEntityInfo.getEntity();
                     saveKvs(user, savedEntity, entityData.getKvs());
@@ -181,7 +182,7 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
 
     protected abstract void setEntityFields(E entity, Map<BulkImportColumnType, String> fields);
 
-    protected abstract E saveEntity(E entity, Map<BulkImportColumnType, String> fields);
+    protected abstract E saveEntity(SecurityUser user, E entity, EntityGroup entityGroup, Map<BulkImportColumnType, String> fields);
 
     protected abstract EntityType getEntityType();
 

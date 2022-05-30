@@ -90,7 +90,7 @@
               </mat-error>
             </mat-form-field>
             <tb-file-input [existingFileName]="form.get('credentials.caCertFileName')?.value" formControlName="caCert"
-                           dropLabel="{{ 'integration.drop-file' | translate }}"
+                           dropLabel="{{ 'integration.drop-file-or' | translate }}"
                            [label]="'integration.azure-ca-cert' | translate"
                            (fileNameChanged)="form?.get('credentials.caCertFileName').patchValue($event)"
                            inputId="ca-cert">

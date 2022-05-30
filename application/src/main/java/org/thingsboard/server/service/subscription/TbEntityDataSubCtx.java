@@ -66,7 +66,7 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
 
     @Getter
     @Setter
-    private boolean initialDataSent;
+    private volatile boolean initialDataSent;
     private TimeSeriesCmd curTsCmd;
     private LatestValueCmd latestValueCmd;
     @Getter
@@ -135,7 +135,7 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
             if (!latestUpdate.isEmpty()) {
                 Map<EntityKeyType, Map<String, TsValue>> latestMap = Collections.singletonMap(keyType, latestUpdate);
                 entityData = new EntityData(entityId, entityData.isReadAttrs(), entityData.isReadTs(), latestMap, null);
-                wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));
+                sendWsMsg(new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));
             }
         }
     }
@@ -177,7 +177,7 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
             Map<String, TsValue[]> tsMap = new HashMap<>();
             tsUpdate.forEach((key, tsValue) -> tsMap.put(key, tsValue.toArray(new TsValue[tsValue.size()])));
             EntityData entityData = new EntityData(entityId, false, false, null, tsMap);
-            wsService.sendWsMsg(sessionId, new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));
+            sendWsMsg(new EntityDataUpdate(cmdId, null, Collections.singletonList(entityData), maxEntitiesPerDataSubscription));
         }
     }
 
@@ -234,9 +234,9 @@ public class TbEntityDataSubCtx extends TbAbstractDataSubCtx<EntityDataQuery> {
                 }
             }
         }
-        wsService.sendWsMsg(sessionRef.getSessionId(), new EntityDataUpdate(cmdId, data, null, maxEntitiesPerDataSubscription));
         subIdsToCancel.forEach(subId -> localSubscriptionService.cancelSubscription(getSessionId(), subId));
         subsToAdd.forEach(localSubscriptionService::addSubscription);
+        sendWsMsg(new EntityDataUpdate(cmdId, data, null, maxEntitiesPerDataSubscription));
     }
 
     public void setCurrentCmd(EntityDataCmd cmd) {

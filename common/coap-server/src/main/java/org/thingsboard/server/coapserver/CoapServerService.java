@@ -44,8 +44,6 @@ public interface CoapServerService {
 
     ConcurrentMap<InetSocketAddress, TbCoapDtlsSessionInfo> getDtlsSessionsMap();
 
-    long getTimeout();
-
     Resource addResourceHierarchicallyAndReturnLast(List<String> resourceHierarchy) throws UnknownHostException;
 
     boolean isDtlsEnabled();

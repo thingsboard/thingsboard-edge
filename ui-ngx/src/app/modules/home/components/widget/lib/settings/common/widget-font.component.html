@@ -1,0 +1,101 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="widgetFontFormGroup" fxLayout="column">
+  <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>widgets.widget-font.font-family</mat-label>
+      <input matInput formControlName="family">
+    </mat-form-field>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>{{ sizeTitle }}</mat-label>
+      <input matInput type="number" min="1" step="1" formControlName="size">
+    </mat-form-field>
+  </section>
+  <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>widgets.widget-font.font-style</mat-label>
+      <mat-select formControlName="style">
+        <mat-option [value]="'normal'">
+          {{ 'widgets.widget-font.font-style-normal' | translate }}
+        </mat-option>
+        <mat-option [value]="'italic'">
+          {{ 'widgets.widget-font.font-style-italic' | translate }}
+        </mat-option>
+        <mat-option [value]="'oblique'">
+          {{ 'widgets.widget-font.font-style-oblique' | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field fxFlex class="mat-block">
+      <mat-label translate>widgets.widget-font.font-weight</mat-label>
+      <mat-select formControlName="weight">
+        <mat-option [value]="'normal'">
+          {{ 'widgets.widget-font.font-weight-normal' | translate }}
+        </mat-option>
+        <mat-option [value]="'bold'">
+          {{ 'widgets.widget-font.font-weight-bold' | translate }}
+        </mat-option>
+        <mat-option [value]="'bolder'">
+          {{ 'widgets.widget-font.font-weight-bolder' | translate }}
+        </mat-option>
+        <mat-option [value]="'lighter'">
+          {{ 'widgets.widget-font.font-weight-lighter' | translate }}
+        </mat-option>
+        <mat-option [value]="'100'">100</mat-option>
+        <mat-option [value]="'200'">200</mat-option>
+        <mat-option [value]="'300'">300</mat-option>
+        <mat-option [value]="'400'">400</mat-option>
+        <mat-option [value]="'500'">500</mat-option>
+        <mat-option [value]="'600'">600</mat-option>
+        <mat-option [value]="'700'">700</mat-option>
+        <mat-option [value]="'800'">800</mat-option>
+        <mat-option [value]="'900'">900</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </section>
+  <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <tb-color-input
+      fxFlex
+      formControlName="color"
+      icon="format_color_fill"
+      label="{{ 'widgets.widget-font.color' | translate }}" openOnInput colorClearButton>
+    </tb-color-input>
+    <tb-color-input
+      *ngIf="hasShadowColor"
+      fxFlex
+      formControlName="shadowColor"
+      icon="format_color_fill"
+      label="{{ 'widgets.widget-font.shadow-color' | translate }}" openOnInput colorClearButton>
+    </tb-color-input>
+  </section>
+</section>

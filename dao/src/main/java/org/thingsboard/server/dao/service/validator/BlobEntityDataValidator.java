@@ -38,7 +38,7 @@ import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
 
@@ -52,7 +52,7 @@ public class BlobEntityDataValidator extends DataValidator<BlobEntity> {
     private final CustomerDao customerDao;
 
     @Override
-    protected void validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
+    protected BlobEntity validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
         throw new DataValidationException("Update of BlobEntity is prohibited!");
     }
 

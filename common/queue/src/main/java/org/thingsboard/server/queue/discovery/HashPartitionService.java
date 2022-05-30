@@ -34,12 +34,14 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceQueueKey;
 import org.thingsboard.server.common.msg.queue.ServiceType;
@@ -54,6 +56,7 @@ import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -74,6 +77,8 @@ public class HashPartitionService implements PartitionService {
     private String coreTopic;
     @Value("${queue.core.partitions:100}")
     private Integer corePartitions;
+    @Value("${queue.integration.partitions:3}")
+    private Integer integrationPartitions;
     @Value("${queue.partitions.hash_function_name:murmur3_128}")
     private String hashFunctionName;
 
@@ -91,6 +96,7 @@ public class HashPartitionService implements PartitionService {
 
     private Map<String, TopicPartitionInfo> tbCoreNotificationTopics = new HashMap<>();
     private Map<String, TopicPartitionInfo> tbRuleEngineNotificationTopics = new HashMap<>();
+    private Map<String, TopicPartitionInfo> tbIntegrationExecutorNotificationTopics = new HashMap<>();
     private Map<String, List<ServiceInfo>> tbTransportServicesByType = new HashMap<>();
     private List<ServiceInfo> currentOtherServices;
 
@@ -117,6 +123,15 @@ public class HashPartitionService implements PartitionService {
             partitionTopics.put(new ServiceQueue(ServiceType.TB_RULE_ENGINE, queueConfiguration.getName()), queueConfiguration.getTopic());
             partitionSizes.put(new ServiceQueue(ServiceType.TB_RULE_ENGINE, queueConfiguration.getName()), queueConfiguration.getPartitions());
         });
+
+        Arrays.asList(IntegrationType.values()).forEach(it -> {
+            partitionTopics.put(new ServiceQueue(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), getIntegrationDownlinkTopic(it));
+            partitionSizes.put(new ServiceQueue(ServiceType.TB_INTEGRATION_EXECUTOR, it.name()), integrationPartitions);
+        });
+    }
+
+    public static String getIntegrationDownlinkTopic(IntegrationType it) {
+        return "tb_ie." + it.name().toLowerCase();
     }
 
     @Override
@@ -240,6 +255,9 @@ public class HashPartitionService implements PartitionService {
             case TB_RULE_ENGINE:
                 return tbRuleEngineNotificationTopics.computeIfAbsent(serviceId,
                         id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
+            case TB_INTEGRATION_EXECUTOR:
+                return tbIntegrationExecutorNotificationTopics.computeIfAbsent(serviceId,
+                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
             default:
                 return buildNotificationsTopicPartitionInfo(serviceType, serviceId);
         }
@@ -259,22 +277,14 @@ public class HashPartitionService implements PartitionService {
         return list == null ? 0 : list.size();
     }
 
+    @Override
+    public int getIntegrationExecutorPartitionsCount() {
+        return integrationPartitions;
+    }
+
     private Map<ServiceQueueKey, List<ServiceInfo>> getServiceKeyListMap(List<ServiceInfo> services) {
         final Map<ServiceQueueKey, List<ServiceInfo>> currentMap = new HashMap<>();
-        services.forEach(serviceInfo -> {
-            for (String serviceTypeStr : serviceInfo.getServiceTypesList()) {
-                ServiceType serviceType = ServiceType.valueOf(serviceTypeStr.toUpperCase());
-                if (ServiceType.TB_RULE_ENGINE.equals(serviceType)) {
-                    for (TransportProtos.QueueInfo queue : serviceInfo.getRuleEngineQueuesList()) {
-                        ServiceQueueKey serviceQueueKey = new ServiceQueueKey(new ServiceQueue(serviceType, queue.getName()), getSystemOrIsolatedTenantId(serviceInfo));
-                        currentMap.computeIfAbsent(serviceQueueKey, key -> new ArrayList<>()).add(serviceInfo);
-                    }
-                } else {
-                    ServiceQueueKey serviceQueueKey = new ServiceQueueKey(new ServiceQueue(serviceType), getSystemOrIsolatedTenantId(serviceInfo));
-                    currentMap.computeIfAbsent(serviceQueueKey, key -> new ArrayList<>()).add(serviceInfo);
-                }
-            }
-        });
+        services.forEach(serviceInfo -> buildQueueServiceList(currentMap, serviceInfo, getSystemOrIsolatedTenantId(serviceInfo)));
         return currentMap;
     }
 
@@ -333,10 +343,18 @@ public class HashPartitionService implements PartitionService {
         }
     }
 
+    private boolean hasServiceType(TransportProtos.ServiceInfo server, ServiceType type) {
+        return server.getServiceTypesList().stream().map(String::toUpperCase).map(ServiceType::valueOf).anyMatch(st -> st.equals(type));
+    }
+
     private void logServiceInfo(TransportProtos.ServiceInfo server) {
         TenantId tenantId = getSystemOrIsolatedTenantId(server);
         if (tenantId.isNullUid()) {
-            log.info("[{}] Found common server: [{}]", server.getServiceId(), server.getServiceTypesList());
+            if (hasServiceType(server, ServiceType.TB_INTEGRATION_EXECUTOR)) {
+                log.info("[{}] Found integration executor server: [{}][{}]", server.getServiceId(), server.getServiceTypesList(), server.getIntegrationTypesList());
+            } else {
+                log.info("[{}] Found common server: [{}]", server.getServiceId(), server.getServiceTypesList());
+            }
         } else {
             log.info("[{}][{}] Found specific server: [{}]", server.getServiceId(), tenantId, server.getServiceTypesList());
         }
@@ -348,6 +366,13 @@ public class HashPartitionService implements PartitionService {
 
     private void addNode(Map<ServiceQueueKey, List<ServiceInfo>> queueServiceList, ServiceInfo instance) {
         TenantId tenantId = getSystemOrIsolatedTenantId(instance);
+        buildQueueServiceList(queueServiceList, instance, tenantId);
+        for (String transportType : instance.getTransportsList()) {
+            tbTransportServicesByType.computeIfAbsent(transportType, t -> new ArrayList<>()).add(instance);
+        }
+    }
+
+    private void buildQueueServiceList(Map<ServiceQueueKey, List<ServiceInfo>> queueServiceList, ServiceInfo instance, TenantId tenantId) {
         for (String serviceTypeStr : instance.getServiceTypesList()) {
             ServiceType serviceType = ServiceType.valueOf(serviceTypeStr.toUpperCase());
             if (ServiceType.TB_RULE_ENGINE.equals(serviceType)) {
@@ -357,13 +382,15 @@ public class HashPartitionService implements PartitionService {
                     partitionTopics.put(new ServiceQueue(ServiceType.TB_RULE_ENGINE, queue.getName()), queue.getTopic());
                     queueServiceList.computeIfAbsent(serviceQueueKey, key -> new ArrayList<>()).add(instance);
                 }
+            } else if (ServiceType.TB_INTEGRATION_EXECUTOR.equals(serviceType)) {
+                for (String iType : instance.getIntegrationTypesList()) {
+                    ServiceQueueKey serviceQueueKey = new ServiceQueueKey(new ServiceQueue(serviceType, iType), tenantId);
+                    queueServiceList.computeIfAbsent(serviceQueueKey, key -> new ArrayList<>()).add(instance);
+                }
             } else {
                 ServiceQueueKey serviceQueueKey = new ServiceQueueKey(new ServiceQueue(serviceType), tenantId);
                 queueServiceList.computeIfAbsent(serviceQueueKey, key -> new ArrayList<>()).add(instance);
             }
-        }
-        for (String transportType : instance.getTransportsList()) {
-            tbTransportServicesByType.computeIfAbsent(transportType, t -> new ArrayList<>()).add(instance);
         }
     }
 
