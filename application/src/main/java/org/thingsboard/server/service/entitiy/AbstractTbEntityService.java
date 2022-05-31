@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.entitiy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Getter;
@@ -75,15 +74,15 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.service.action.EntityActionService;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
+import org.thingsboard.server.service.resource.TbResourceService;
 import org.thingsboard.server.service.rule.TbRuleChainService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -160,6 +159,8 @@ public abstract class AbstractTbEntityService {
     protected InstallScripts installScripts;
     @Autowired
     protected UserService userService;
+    @Autowired
+    protected TbResourceService resourceService;
 
     protected ListenableFuture<Void> removeAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
         ListenableFuture<PageData<AlarmInfo>> alarmsFuture =

@@ -57,7 +57,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.resource.TbResourceService;
+import org.thingsboard.server.service.entitiy.resource.TbResourceNotifyService;
 
 import java.util.Base64;
 import java.util.List;
@@ -86,7 +86,7 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @RequiredArgsConstructor
 public class TbResourceController extends BaseController {
 
-    private  final TbResourceService tbResourceService;
+    private  final TbResourceNotifyService tbResourceService;
 
     public static final String RESOURCE_ID = "resourceId";
 
