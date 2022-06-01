@@ -78,7 +78,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
 
             // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
             if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
+                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                 entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
                 notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
                         savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
@@ -90,15 +90,16 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
             }
 
             if (sendEmail) {
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
-                String baseUrl = systemSecurityService.getBaseUrl(authority, tenantId, customerId, request);
+                SecurityUser authUser = user;
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
+                String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
                         userCredentials.getActivateToken());
                 String email = savedUser.getEmail();
                 try {
                     mailService.sendActivationEmail(tenantId, activateUrl, email);
                 } catch (ThingsboardException e) {
-                    userService.deleteUser(tenantId, savedUser.getId());
+                    userService.deleteUser(authUser.getTenantId(), savedUser.getId());
                     throw e;
                 }
             }
