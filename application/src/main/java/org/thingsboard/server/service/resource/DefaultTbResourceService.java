@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.resource;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.leshan.core.model.DDFFileParser;
@@ -54,6 +55,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -73,6 +75,8 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @Slf4j
 @Service
+@TbCoreComponent
+@AllArgsConstructor
 public class DefaultTbResourceService extends AbstractTbEntityService implements TbResourceService {
 
     private final ResourceService resourceService;
