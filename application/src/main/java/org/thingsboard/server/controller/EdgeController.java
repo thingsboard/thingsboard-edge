@@ -52,7 +52,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -162,32 +161,22 @@ public class EdgeController extends BaseController {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             edge.setTenantId(tenantId);
-            boolean created = edge.getId() == null;
 
             RuleChain edgeTemplateRootRuleChain = null;
-            if (created) {
+            if (edge.getId() == null) {
                 edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);
                 if (edgeTemplateRootRuleChain == null) {
                     throw new DataValidationException("Root edge rule chain is not available!");
                 }
             }
-
-            EntityGroupId entityGroupId = null;
             EntityGroup entityGroup = null;
             if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+                EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
                 entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
             }
 
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
-                    edge.getId(), edge, entityGroupId);
-
             return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.EDGE), edge,
-                    null, edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }

@@ -41,6 +41,8 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
@@ -57,6 +59,10 @@ public class DefaultTbEdgeService extends AbstractTbEntityService implements TbE
         ActionType actionType = edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = edge.getTenantId();
         try {
+            Operation operation = edge.getId() == null ? Operation.CREATE : Operation.WRITE;
+            accessControlService.checkPermission(user, Resource.EDGE, operation,
+                    edge.getId(), edge, entityGroup == null ? null : entityGroup.getId());
+
             String oldEdgeName = null;
             if (actionType == ActionType.UPDATED) {
                 Edge edgeById = edgeService.findEdgeById(tenantId, edge.getId());

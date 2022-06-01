@@ -54,7 +54,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -278,10 +277,6 @@ public class UserController extends BaseController {
             return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
                     user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.USER), user,
-                    null, user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-
             throw handleException(e);
         }
     }
