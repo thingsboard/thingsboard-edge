@@ -36,10 +36,10 @@ import org.hibernate.validator.HibernateValidatorConfiguration;
 import org.hibernate.validator.cfg.ConstraintMapping;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.exception.DataValidationException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
-import javax.validation.ValidationException;
 import javax.validation.Validator;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +61,7 @@ public class ConstraintValidator {
                 .distinct()
                 .collect(Collectors.toList());
         if (!validationErrors.isEmpty()) {
-            throw new ValidationException("Validation error: " + String.join(", ", validationErrors));
+            throw new DataValidationException("Validation error: " + String.join(", ", validationErrors));
         }
     }
 

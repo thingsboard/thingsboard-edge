@@ -49,6 +49,7 @@ import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selecto
 import { ActionAuthUpdateLastPublicDashboardId } from '../auth/auth.actions';
 import { FaviconService } from '@core/services/favicon.service';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
+import { Authority } from '@shared/models/authority.enum';
 
 export const SETTINGS_KEY = 'SETTINGS';
 
@@ -86,10 +87,11 @@ export class SettingsEffects {
     distinctUntilChanged(),
     tap(userLang => {
       updateUserLang(this.translate, userLang).subscribe(() => {
-        if (getCurrentAuthState(this.store).isAuthenticated) {
+        const authState = getCurrentAuthState(this.store);
+        if (authState.isAuthenticated && authState.authUser.authority !== Authority.PRE_VERIFICATION_TOKEN) {
           this.customTranslationService.updateCustomTranslations();
         }
-      })
+      });
     })
   );
 
@@ -111,7 +113,7 @@ export class SettingsEffects {
     this.actions$.pipe(ofType(SettingsActionTypes.CHANGE_WHITE_LABELING)),
   ).pipe(
     tap(() => {
-      this.faviconService.setFavicon()
+      this.faviconService.setFavicon();
     })
   );
 
