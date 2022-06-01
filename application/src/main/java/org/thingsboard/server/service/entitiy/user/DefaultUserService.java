@@ -124,7 +124,6 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
 
             userService.deleteUser(tenantId, userId);
 
-            userPermissionsService.onUserUpdatedOrRemoved(user);
             notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
                     ActionType.DELETED,  relatedEdgeIds, user, userId.toString());
 

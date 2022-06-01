@@ -348,13 +348,19 @@ public class UserController extends BaseController {
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
-        UserId userId = new UserId(toUUID(strUserId));
-        User user = checkUserId(userId, Operation.DELETE);
-        if (user.getAuthority() == Authority.SYS_ADMIN && getCurrentUser().getId().equals(userId)) {
-            throw new ThingsboardException("Sysadmin is not allowed to delete himself", ThingsboardErrorCode.PERMISSION_DENIED);
-        }
+        try {
+            UserId userId = new UserId(toUUID(strUserId));
+            User user = checkUserId(userId, Operation.DELETE);
+            if (user.getAuthority() == Authority.SYS_ADMIN && getCurrentUser().getId().equals(userId)) {
+                throw new ThingsboardException("Sysadmin is not allowed to delete himself", ThingsboardErrorCode.PERMISSION_DENIED);
+            }
 
-        tbUserService.delete(getTenantId(), getCurrentUser().getCustomerId(), user, getCurrentUser());
+            userPermissionsService.onUserUpdatedOrRemoved(user);
+
+            tbUserService.delete(getTenantId(), getCurrentUser().getCustomerId(), user, getCurrentUser());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Tenant Users (getTenantAdmins)",
