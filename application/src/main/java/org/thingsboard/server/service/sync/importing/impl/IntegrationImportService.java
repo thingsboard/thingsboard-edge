@@ -39,12 +39,13 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
+import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -74,7 +75,7 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
 
     @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
     @Override
-    protected Integration prepareAndSave(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider) {
+    protected Integration prepareAndSave(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         integration.setDefaultConverterId(idProvider.getInternalId(integration.getDefaultConverterId()));
         integration.setDownlinkConverterId(idProvider.getInternalId(integration.getDownlinkConverterId()));
         integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);

@@ -122,6 +122,11 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
     }
 
     @Override
+    public PageData<Customer> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return findCustomersByTenantId(tenantId, pageLink);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.CUSTOMER;
     }

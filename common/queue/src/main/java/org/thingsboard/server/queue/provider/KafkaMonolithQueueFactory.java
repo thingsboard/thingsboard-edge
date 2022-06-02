@@ -43,6 +43,7 @@ import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
@@ -75,6 +76,7 @@ import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
+import org.thingsboard.server.queue.settings.TbQueueVersionControlSettings;
 
 import javax.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
@@ -82,7 +84,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='kafka' && '${service.type:null}'=='monolith'")
-public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory {
+public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory, TbVersionControlQueueFactory {
 
     private final NotificationsTopicService notificationsTopicService;
     private final TbKafkaSettings kafkaSettings;
@@ -93,6 +95,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
+    private final TbQueueVersionControlSettings vcSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
 
@@ -103,6 +106,8 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueAdmin integrationApiAdmin;
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin fwUpdatesAdmin;
+    private final TbQueueAdmin vcAdmin;
+
     private final AtomicLong consumerCount = new AtomicLong();
     private final AtomicLong integrationConsumerCount = new AtomicLong();
 
@@ -114,6 +119,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                                      TbQueueIntegrationApiSettings integrationApiSettings,
                                      TbQueueTransportNotificationSettings transportNotificationSettings,
                                      TbQueueRemoteJsInvokeSettings jsInvokeSettings,
+                                     TbQueueVersionControlSettings vcSettings,
                                      TbKafkaConsumerStatsService consumerStatsService,
                                      TbQueueIntegrationNotificationSettings integrationNotificationSettings,
                                      TbKafkaTopicConfigs kafkaTopicConfigs) {
@@ -126,6 +132,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.integrationApiSettings = integrationApiSettings;
         this.transportNotificationSettings = transportNotificationSettings;
         this.jsInvokeSettings = jsInvokeSettings;
+        this.vcSettings = vcSettings;
         this.consumerStatsService = consumerStatsService;
         this.integrationNotificationSettings = integrationNotificationSettings;
 
@@ -136,6 +143,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.integrationApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
         this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
+        this.vcAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getVcConfigs());
     }
 
     @Override
@@ -215,6 +223,19 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         requestBuilder.defaultTopic(coreSettings.getTopic());
         requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createToVersionControlMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(vcSettings.getTopic());
+        consumerBuilder.clientId("monolith-vc-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId("monolith-vc-node");
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), TransportProtos.ToVersionControlServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(vcAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
     }
 
     @Override
@@ -436,6 +457,16 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         return requestBuilder.build();
     }
 
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("monolith-vc-producer-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(vcSettings.getTopic());
+        requestBuilder.admin(vcAdmin);
+        return requestBuilder.build();
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -455,6 +486,9 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         }
         if (fwUpdatesAdmin != null) {
             fwUpdatesAdmin.destroy();
+        }
+        if (vcAdmin != null) {
+            vcAdmin.destroy();
         }
         if (integrationApiAdmin != null) {
             integrationApiAdmin.destroy();

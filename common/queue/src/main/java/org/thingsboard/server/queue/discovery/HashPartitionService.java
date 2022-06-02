@@ -73,6 +73,10 @@ public class HashPartitionService implements PartitionService {
     private Integer corePartitions;
     @Value("${queue.integration.partitions:3}")
     private Integer integrationPartitions;
+    @Value("${queue.vc.topic:tb_version_control}")
+    private String vcTopic;
+    @Value("${queue.vc.partitions:10}")
+    private Integer vcPartitions;
     @Value("${queue.partitions.hash_function_name:murmur3_128}")
     private String hashFunctionName;
 
@@ -115,6 +119,10 @@ public class HashPartitionService implements PartitionService {
         QueueKey coreKey = new QueueKey(ServiceType.TB_CORE);
         partitionSizesMap.put(coreKey, corePartitions);
         partitionTopicsMap.put(coreKey, coreTopic);
+
+        QueueKey vcKey = new QueueKey(ServiceType.TB_VC_EXECUTOR);
+        partitionSizesMap.put(vcKey, vcPartitions);
+        partitionTopicsMap.put(vcKey, vcTopic);
 
         List<QueueRoutingInfo> queueRoutingInfoList;
 
@@ -439,7 +447,7 @@ public class HashPartitionService implements PartitionService {
                         queueServiceList.computeIfAbsent(key, k -> new ArrayList<>()).add(instance);
                     }
                 });
-            } else if (ServiceType.TB_CORE.equals(serviceType)) {
+            } else if (ServiceType.TB_CORE.equals(serviceType) || ServiceType.TB_VC_EXECUTOR.equals(serviceType)) {
                 queueServiceList.computeIfAbsent(new QueueKey(serviceType), key -> new ArrayList<>()).add(instance);
             } else if (ServiceType.TB_INTEGRATION_EXECUTOR.equals(serviceType)) {
                 for (String iType : instance.getIntegrationTypesList()) {

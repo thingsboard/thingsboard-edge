@@ -40,5 +40,10 @@ import java.util.UUID;
  */
 public interface AdminSettingsRepository extends JpaRepository<AdminSettingsEntity, UUID> {
 
-    AdminSettingsEntity findByKey(String key);
+    AdminSettingsEntity findByTenantIdAndKey(UUID tenantId, String key);
+
+    void deleteByTenantIdAndKey(UUID tenantId, String key);
+
+    boolean existsByTenantIdAndKey(UUID tenantId, String key);
+
 }

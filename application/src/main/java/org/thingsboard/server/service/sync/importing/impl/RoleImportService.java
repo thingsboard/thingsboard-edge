@@ -38,12 +38,13 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
-import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
+import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
 @Service
 @TbCoreComponent
@@ -74,7 +75,7 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
     }
 
     @Override
-    protected Role prepareAndSave(TenantId tenantId, Role role, EntityExportData<Role> exportData, IdProvider idProvider) {
+    protected Role prepareAndSave(TenantId tenantId, Role role, EntityExportData<Role> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         return roleService.saveRole(tenantId, role);
     }
 

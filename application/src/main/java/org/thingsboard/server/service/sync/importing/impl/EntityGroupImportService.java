@@ -35,7 +35,6 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -45,15 +44,16 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.common.data.sync.ie.EntityGroupExportData;
+import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.sync.exporting.data.EntityGroupExportData;
-import org.thingsboard.server.service.sync.importing.data.EntityImportResult;
-import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
+import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +94,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroupExportData exportData, IdProvider idProvider) {
+    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroupExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         if (entityGroup.getId() == null && entityGroup.isGroupAll()) {
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");

@@ -38,10 +38,12 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
+import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
 @Service
 @TbCoreComponent
@@ -56,8 +58,8 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     }
 
     @Override
-    protected Converter prepareAndSave(TenantId tenantId, Converter converter, EntityExportData<Converter> exportData, IdProvider idProvider) {
-        return converterService.saveConverter(converter);
+    protected Converter prepareAndSave(TenantId tenantId, Converter entity, EntityExportData<Converter> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+        return converterService.saveConverter(entity);
     }
 
     @Override

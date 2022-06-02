@@ -41,11 +41,12 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.exporting.data.GroupEntityExportData;
-import org.thingsboard.server.service.sync.importing.data.EntityImportResult;
-import org.thingsboard.server.service.sync.importing.data.EntityImportSettings;
+import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
+import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;

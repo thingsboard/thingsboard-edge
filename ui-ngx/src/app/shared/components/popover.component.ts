@@ -70,7 +70,7 @@ import {
   POSITION_MAP,
   PropertyMapping
 } from '@shared/components/popover.models';
-import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, take, takeUntil } from 'rxjs/operators';
 import { isNotEmptyStr, onParentScrollOrWindowResize } from '@core/utils';
 
 export type TbPopoverTrigger = 'click' | 'focus' | 'hover' | null;
@@ -329,7 +329,7 @@ export class TbPopoverDirective implements OnChanges, OnDestroy, AfterViewInit {
               <span class="tb-popover-arrow-content"></span>
             </div>
             <div class="tb-popover-inner" [ngStyle]="tbPopoverInnerStyle" role="tooltip">
-              <div class="tb-popover-close-button" (click)="closeButtonClick($event)">×</div>
+              <div *ngIf="tbShowCloseButton" class="tb-popover-close-button" (click)="closeButtonClick($event)">×</div>
               <div style="width: 100%; height: 100%;">
                 <div class="tb-popover-inner-content">
                   <ng-container *ngIf="tbContent">
@@ -369,6 +369,7 @@ export class TbPopoverComponent implements OnDestroy, OnInit {
   tbMouseEnterDelay?: number;
   tbMouseLeaveDelay?: number;
   tbHideOnClickOutside = true;
+  tbShowCloseButton = true;
 
   tbAnimationState = 'active';
 
@@ -386,7 +387,7 @@ export class TbPopoverComponent implements OnDestroy, OnInit {
   }
 
   get tbVisible(): boolean {
-    return this.visible;
+    return this.visible && this.tbAnimationState === 'active';
   }
 
   visible = false;
@@ -528,10 +529,12 @@ export class TbPopoverComponent implements OnDestroy, OnInit {
       const el = this.origin.elementRef.nativeElement;
       this.intersectionObserver.unobserve(el);
     }
-
-    this.tbVisible = false;
-    this.tbVisibleChange.next(false);
+    this.tbAnimationState = 'void';
     this.cdr.detectChanges();
+    this.tbAnimationDone.pipe(take(1)).subscribe(() => {
+      this.tbVisible = false;
+      this.cdr.detectChanges();
+    });
   }
 
   updateByDirective(): void {

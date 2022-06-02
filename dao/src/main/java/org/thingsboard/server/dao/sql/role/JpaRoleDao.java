@@ -132,6 +132,12 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
+    public PageData<Role> findByTenantId(UUID tenantId, PageLink pageLink) {
+        //TODO: entities-version-merge
+        throw new RuntimeException("Not Implemented!");
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;
     }

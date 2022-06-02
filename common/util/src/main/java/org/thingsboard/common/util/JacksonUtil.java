@@ -34,7 +34,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
 
@@ -50,6 +53,11 @@ import java.util.Arrays;
 public class JacksonUtil {
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper PRETTY_SORTED_JSON_MAPPER = JsonMapper.builder()
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+            .build();
 
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
         try {
@@ -120,6 +128,14 @@ public class JacksonUtil {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("The given Json object value: "
                     + value + " cannot be transformed to a String", e);
+        }
+    }
+
+    public static String toPrettyString(Object o) {
+        try {
+            return PRETTY_SORTED_JSON_MAPPER.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 

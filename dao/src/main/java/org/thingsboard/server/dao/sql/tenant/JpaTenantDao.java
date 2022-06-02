@@ -101,7 +101,7 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
         return DaoUtil.pageToPageData(tenantRepository.findTenantsIds(DaoUtil.toPageable(pageLink))).mapData(TenantId::fromUUID);
     }
 
-    @Override
+
     public List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId) {
         return tenantRepository.findTenantIdsByTenantProfileId(tenantProfileId.getId()).stream()
                 .map(TenantId::fromUUID)
@@ -112,5 +112,4 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
     public EntityType getEntityType() {
         return EntityType.TENANT;
     }
-
 }

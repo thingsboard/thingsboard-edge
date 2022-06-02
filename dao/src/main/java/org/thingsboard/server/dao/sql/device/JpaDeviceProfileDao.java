@@ -137,6 +137,11 @@ public class JpaDeviceProfileDao extends JpaAbstractSearchTextDao<DeviceProfileE
     }
 
     @Override
+    public PageData<DeviceProfile> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return findDeviceProfiles(TenantId.fromUUID(tenantId), pageLink);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.DEVICE_PROFILE;
     }

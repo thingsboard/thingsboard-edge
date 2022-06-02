@@ -155,6 +155,12 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
+    public PageData<EntityGroup> findByTenantId(UUID tenantId, PageLink pageLink) {
+        //TODO: entities-version-merge
+        throw new RuntimeException("Not Implemented!");
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
     }
