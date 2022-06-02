@@ -38,12 +38,13 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableEntityDao;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface EntityGroupDao extends Dao<EntityGroup> {
+public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroup> {
     /**
      * Find entity groups by entity group Ids.
      *

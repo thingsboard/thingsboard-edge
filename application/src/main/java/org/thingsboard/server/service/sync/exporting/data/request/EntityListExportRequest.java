@@ -28,32 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.importing;
+package org.thingsboard.server.service.sync.exporting.data.request;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.id.CustomerId;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class BulkImportRequest {
-    private String file;
-    private Mapping mapping;
-    private CustomerId customerId;
-    private String entityGroupId;
+public class EntityListExportRequest extends ExportRequest {
 
-    @Data
-    public static class Mapping {
-        private List<ColumnMapping> columns;
-        private Character delimiter;
-        private Boolean update;
-        private Boolean header;
-    }
+    private List<EntityId> entitiesIds;
 
-    @Data
-    public static class ColumnMapping {
-        private BulkImportColumnType type;
-        private String key;
+    @Override
+    public ExportRequestType getType() {
+        return ExportRequestType.ENTITY_LIST;
     }
 
 }

@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
 
 import java.util.List;
@@ -44,7 +45,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
+public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, ExportableEntityRepository<DeviceEntity> {
 
     String COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
             "WHERE d.device_profile_id = :deviceProfileId " +

@@ -40,6 +40,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -50,7 +51,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ApiModel
 @Data
 @NoArgsConstructor
-public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId {
+public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId, ExportableEntity<EntityGroupId> {
 
     private static final long serialVersionUID = 2807349040519543363L;
 
@@ -96,6 +97,8 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode configuration;
 
+    private EntityGroupId externalId;
+
     public EntityGroup(EntityGroupId id) {
         super(id);
     }
@@ -107,6 +110,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         this.ownerId = entityGroup.getOwnerId();
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
+        this.externalId = entityGroup.getExternalId();
     }
 
     @Override

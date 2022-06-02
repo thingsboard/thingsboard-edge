@@ -59,7 +59,7 @@ import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalIn
 @ToString(exclude = {"image", "profileDataBytes"})
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage {
+public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, ExportableEntity<DeviceProfileId> {
 
     private static final long serialVersionUID = 6998485460273302018L;
 
@@ -106,6 +106,8 @@ public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements H
     @ApiModelProperty(position = 10, value = "Reference to the software OTA package. If present, the specified package will be used as default device software. ")
     private OtaPackageId softwareId;
 
+    private DeviceProfileId externalId;
+
     public DeviceProfile() {
         super();
     }
@@ -128,6 +130,7 @@ public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements H
         this.provisionDeviceKey = deviceProfile.getProvisionDeviceKey();
         this.firmwareId = deviceProfile.getFirmwareId();
         this.softwareId = deviceProfile.getSoftwareId();
+        this.externalId = deviceProfile.getExternalId();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the device profile Id. " +

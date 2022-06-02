@@ -179,4 +179,10 @@ public class JpaEntityViewDao extends JpaAbstractSearchTextDao<EntityViewEntity,
         }
         return list;
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ENTITY_VIEW;
+    }
+
 }

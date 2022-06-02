@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -106,4 +107,10 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
                 .map(TenantId::fromUUID)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.TENANT;
+    }
+
 }

@@ -50,3 +50,24 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     user_id uuid UNIQUE NOT NULL CONSTRAINT fk_user_auth_settings_user_id REFERENCES tb_user(id),
     two_fa_settings varchar
 );
+
+ALTER TABLE device
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE device_profile
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE asset
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE rule_chain
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE dashboard
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE customer
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE entity_group
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE role
+    ADD COLUMN IF NOT EXISTS external_id UUID;

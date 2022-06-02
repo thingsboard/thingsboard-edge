@@ -40,11 +40,13 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
+import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 
 import java.util.List;
@@ -58,7 +60,9 @@ import java.util.stream.Collectors;
 public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityGroup> implements EntityGroupDao {
 
     @Autowired
-    EntityGroupRepository entityGroupRepository;
+    private EntityGroupRepository entityGroupRepository;
+    @Autowired
+    private OwnerService ownerService;
 
     @Override
     protected Class<EntityGroupEntity> getEntityClass() {
@@ -140,4 +144,19 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
         return entityGroupRepository.isEntityInGroup(entityId.getId(), entityGroupId.getId());
     }
+
+    @Override
+    public EntityGroup findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return entityGroupRepository.findAllByExternalId(externalId).stream()
+                .map(DaoUtil::getData)
+                .filter(entityGroup -> ownerService.getOwners(TenantId.SYS_TENANT_ID, entityGroup.getId(), entityGroup) // FIXME [viacheslav]
+                        .contains(TenantId.fromUUID(tenantId)))
+                .findFirst().orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ENTITY_GROUP;
+    }
+
 }

@@ -271,4 +271,20 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                 () -> deviceRepository.countByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId),
                 type);
     }
+
+    @Override
+    public Device findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(deviceRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public Device findByTenantIdAndName(UUID tenantId, String name) {
+        return findDeviceByTenantIdAndName(tenantId, name).orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.DEVICE;
+    }
+
 }

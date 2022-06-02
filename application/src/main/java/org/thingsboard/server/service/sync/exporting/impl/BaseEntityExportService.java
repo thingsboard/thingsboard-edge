@@ -28,18 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.importing;
+package org.thingsboard.server.service.sync.exporting.impl;
 
-import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.sync.exporting.data.EntityExportData;
+import org.thingsboard.server.service.sync.exporting.data.request.EntityExportSettings;
 
-import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 
-@Data
-public class BulkImportResult<E> {
-    private AtomicInteger created = new AtomicInteger();
-    private AtomicInteger updated = new AtomicInteger();
-    private AtomicInteger errors = new AtomicInteger();
-    private Collection<String> errorsList = new ConcurrentLinkedDeque<>();
+public abstract class BaseEntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> extends DefaultEntityExportService<I, E, D> {
+
+    @Override
+    protected void setAdditionalExportData(SecurityUser user, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
+        setRelatedEntities(user.getTenantId(), entity, (D) exportData);
+        super.setAdditionalExportData(user, entity, exportData, exportSettings);
+    }
+
+    protected void setRelatedEntities(TenantId tenantId, E mainEntity, D exportData) {}
+
+    protected abstract D newExportData();
+
+    public abstract Set<EntityType> getSupportedEntityTypes();
+
 }

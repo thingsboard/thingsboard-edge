@@ -85,9 +85,9 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
 import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.sync.importing.csv.BulkImportRequest;
+import org.thingsboard.server.service.sync.importing.csv.BulkImportResult;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

@@ -709,6 +709,8 @@ public class ModelConstants {
 
     public static final String EDGE_EVENT_BY_ID_VIEW_NAME = "edge_event_by_id";
 
+    public static final String EXTERNAL_ID_PROPERTY = "external_id";
+
     /**
      * User auth settings constants.
      * */

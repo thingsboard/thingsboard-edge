@@ -28,13 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.importing;
+package org.thingsboard.server.service.sync.exporting.data.request;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class ImportedEntityInfo<E> {
-    private E entity;
-    private boolean isUpdated;
-    private E oldEntity;
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class EntityExportSettings {
+    private boolean exportRelations;
+    private boolean exportEntityGroupsInfo;
+    private boolean exportUserGroupPermissions;
 }

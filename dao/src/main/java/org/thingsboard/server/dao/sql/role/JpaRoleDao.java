@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -123,6 +124,16 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     @Override
     public ListenableFuture<List<Role>> findRolesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> roleIds) {
         return service.submit(() -> DaoUtil.convertDataList(roleRepository.findRolesByTenantIdAndIdIn(tenantId, roleIds)));
+    }
+
+    @Override
+    public Role findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(roleRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ROLE;
     }
 
 }
