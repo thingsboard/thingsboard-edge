@@ -632,37 +632,6 @@ public class DefaultTbClusterService implements TbClusterService {
         }
     }
 
-    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
-                                                   EdgeEventActionType cloudEventAction) {
-        sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
-    }
-
-    @Override
-    public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody,
-                                           CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
-                                           EntityGroupId entityGroupId) {
-        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
-        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
-        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
-        builder.setCloudEventType(cloudEventType.name());
-        builder.setCloudEventAction(cloudEventAction.name());
-        if (entityId != null) {
-            builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
-            builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
-            builder.setEntityType(entityId.getEntityType().name());
-        }
-        if (entityBody != null) {
-            builder.setEntityBody(entityBody);
-        }
-        if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
-            builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
-        }
-        TransportProtos.CloudNotificationMsgProto msg = builder.build();
-        pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
-                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
-    }
-
     private static FromDeviceRPCResponseProto.Builder prepareRPCResponseProto(FromDeviceRpcResponse response) {
         FromDeviceRPCResponseProto.Builder builder = FromDeviceRPCResponseProto.newBuilder()
                 .setRequestIdMSB(response.getId().getMostSignificantBits())
@@ -732,4 +701,36 @@ public class DefaultTbClusterService implements TbClusterService {
             }
         }
     }
+
+    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, CloudEventType cloudEventType,
+                                            EdgeEventActionType cloudEventAction) {
+        sendNotificationMsgToCloud(tenantId, entityId, null, cloudEventType, cloudEventAction, null);
+    }
+
+    @Override
+    public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody,
+                                           CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
+                                           EntityGroupId entityGroupId) {
+        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setCloudEventType(cloudEventType.name());
+        builder.setCloudEventAction(cloudEventAction.name());
+        if (entityId != null) {
+            builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
+            builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
+            builder.setEntityType(entityId.getEntityType().name());
+        }
+        if (entityBody != null) {
+            builder.setEntityBody(entityBody);
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        TransportProtos.CloudNotificationMsgProto msg = builder.build();
+        pushMsgToCore(tenantId, entityId != null ? entityId : tenantId,
+                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
+    }
+
 }

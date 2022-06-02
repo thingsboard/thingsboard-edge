@@ -280,6 +280,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 break;
             case "3.4.0":
+                // reset full sync required - to upload latest widgets from cloud
+                tenantsFullSyncRequiredUpdater.updateEntities(null);
+
                 log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities(null);
                 tenantEntitiesGroupAllUpdater.updateEntities(null);

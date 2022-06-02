@@ -2080,15 +2080,15 @@
                 <version>${opensmpp.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.jboss.aerogear</groupId>
+                <artifactId>aerogear-otp-java</artifactId>
+                <version>${aerogear-otp.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.github.cdimascio</groupId>
                 <artifactId>dotenv-java</artifactId>
                 <version>${dotenv-java.version}</version>
                 <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.aerogear</groupId>
-                <artifactId>aerogear-otp-java</artifactId>
-                <version>${aerogear-otp.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
