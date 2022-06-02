@@ -159,6 +159,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 break;
             case "3.3.4.1":
+                // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
                 break;
             default:
