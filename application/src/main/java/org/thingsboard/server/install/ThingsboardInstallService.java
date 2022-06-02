@@ -101,6 +101,7 @@ public class ThingsboardInstallService {
                     latestMigrateService.migrate();
                 } else {
                     switch (upgradeFromVersion) {
+                        /* merge comment
                         case "1.2.3": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
                             log.info("Upgrading ThingsBoard from version 1.2.3 to 1.3.0 ...");
 
@@ -217,6 +218,7 @@ public class ThingsboardInstallService {
                         case "3.3.3":
                             log.info("Upgrading ThingsBoard from version 3.3.3 to 3.3.4 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");
+                         */
                         case "3.3.4":
                             log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.3.4.1 ...");
                             dataUpdateService.updateData("3.3.4");
@@ -271,19 +273,19 @@ public class ThingsboardInstallService {
 
                 componentDiscoveryService.discoverComponents();
 
-//                systemDataLoaderService.createSysAdmin();
+                // systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
-//                systemDataLoaderService.loadSystemWidgets();
-//                systemDataLoaderService.createOAuth2Templates();
+                // systemDataLoaderService.loadSystemWidgets();
+                // systemDataLoaderService.createOAuth2Templates();
                 // TODO: @voba - queues must be uploaded from the cloud in next release
                 systemDataLoaderService.createQueues();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
 
                 if (loadDemo) {
-//                    log.info("Loading demo data...");
-//                    systemDataLoaderService.loadDemoData();
+                    // log.info("Loading demo data...");
+                    // systemDataLoaderService.loadDemoData();
                 }
                 log.info("Installation finished successfully!");
             }
