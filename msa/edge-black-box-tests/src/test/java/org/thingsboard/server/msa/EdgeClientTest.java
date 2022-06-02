@@ -515,6 +515,11 @@ public class EdgeClientTest extends AbstractContainerTest {
             Assert.assertEquals("Edge integration isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
             Assert.assertEquals("Cloud integration isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
             actual.setEdgeTemplate(false);
+
+            // configuration must be reset, because configuration on cloud contains placeholders
+            actual.setConfiguration(null);
+            expected.setConfiguration(null);
+
             Assert.assertEquals("Integrations on cloud and edge are different", expected, actual);
         }
     }
