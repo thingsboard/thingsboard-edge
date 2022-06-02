@@ -158,6 +158,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     tenantsFullSyncRequiredUpdater.updateEntities(null);
                 }
                 break;
+            case "3.3.4.1":
+                tenantsFullSyncRequiredUpdater.updateEntities(null);
+                break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }

@@ -38,8 +38,10 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -54,6 +56,9 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private QueueService queueService;
 
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
@@ -91,7 +96,10 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                             ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
                     String defaultQueueName = StringUtils.isBlank(deviceProfileUpdateMsg.getDefaultQueueName())
                             ? null : deviceProfileUpdateMsg.getDefaultQueueName();
-                    deviceProfile.setDefaultQueueName(defaultQueueName);
+                    if (defaultQueueName != null) {
+                        Queue queueByTenantIdAndName = queueService.findQueueByTenantIdAndName(tenantId, defaultQueueName);
+                        deviceProfile.setDefaultQueueId(queueByTenantIdAndName.getId());
+                    }
                     deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey() ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());

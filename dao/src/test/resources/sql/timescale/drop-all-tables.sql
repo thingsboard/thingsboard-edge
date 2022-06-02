@@ -34,4 +34,5 @@ DROP TABLE IF EXISTS oauth2_client_registration_template;
 DROP TABLE IF EXISTS api_usage_state;
 DROP TABLE IF EXISTS resource;
 DROP TABLE IF EXISTS firmware;
+DROP TABLE IF EXISTS queue;
 DROP TABLE IF EXISTS cloud_event;

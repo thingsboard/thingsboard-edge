@@ -84,15 +84,11 @@ import { alarmFields } from '@shared/models/alarm.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
 import { CloudEventType } from '@shared/models/edge.models';
 import { EdgeService } from '@core/http/edge.service';
-import {
-  Edge,
-  EdgeEvent,
-  EdgeEventType,
-  bodyContentEdgeEventActionTypes
-} from '@shared/models/edge.models';
+import { bodyContentEdgeEventActionTypes, Edge, EdgeEvent, EdgeEventType } from '@shared/models/edge.models';
 import { RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
+import { QueueService } from '@core/http/queue.service';
 
 @Injectable({
   providedIn: 'root'
@@ -116,7 +112,8 @@ export class EntityService {
     private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
-    private utils: UtilsService
+    private utils: UtilsService,
+    private queueService: QueueService
   ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
@@ -156,6 +153,9 @@ export class EntityService {
         break;
       case EntityType.OTA_PACKAGE:
         observable = this.otaPackageService.getOtaPackageInfo(entityId, config);
+        break;
+      case EntityType.QUEUE:
+        observable = this.queueService.getQueueById(entityId, config);
         break;
     }
     return observable;

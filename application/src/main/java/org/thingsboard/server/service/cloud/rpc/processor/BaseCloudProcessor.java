@@ -177,9 +177,6 @@ public abstract class BaseCloudProcessor {
     @Autowired
     protected DeviceMsgConstructor deviceMsgConstructor;
 
-    @Autowired
-    protected DataValidator<Tenant> tenantValidator;
-
     protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
         TimePageLink pageLink = new TimePageLink(100);
         PageData<AuditLog> pageData;
