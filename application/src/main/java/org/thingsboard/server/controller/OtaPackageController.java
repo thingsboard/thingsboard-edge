@@ -175,8 +175,6 @@ public class OtaPackageController extends BaseController {
         checkEntity(otaPackageInfo.getId(), otaPackageInfo, Resource.OTA_PACKAGE, null);
 
         return tbOtaPackageService.save(otaPackageInfo, getCurrentUser());
-
-
     }
 
     @ApiOperation(value = "Save OTA Package data (saveOtaPackageData)",

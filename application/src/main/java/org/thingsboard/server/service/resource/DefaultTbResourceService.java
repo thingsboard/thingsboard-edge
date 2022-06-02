@@ -238,7 +238,6 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
         ActionType actionType = tbResource.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = tbResource.getTenantId();
         try {
-
             TbResource savedResource = checkNotNull(saveResourceInternal(tbResource));
             tbClusterService.onResourceChange(savedResource, null);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedResource.getId(),
