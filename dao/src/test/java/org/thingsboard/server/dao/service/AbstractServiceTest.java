@@ -74,6 +74,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelMask;
+import org.thingsboard.server.dao.audit.AuditLogLevelProperties;
 import org.thingsboard.server.dao.component.ComponentDescriptorService;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -272,7 +273,9 @@ public abstract class AbstractServiceTest {
         for (EntityType entityType : EntityType.values()) {
             mask.put(entityType.name().toLowerCase(), AuditLogLevelMask.RW.name());
         }
-        return new AuditLogLevelFilter(mask);
+        var props = new AuditLogLevelProperties();
+        props.setMask(mask);
+        return new AuditLogLevelFilter(props);
     }
 
     protected DeviceProfile createDeviceProfile(TenantId tenantId, String name) {
