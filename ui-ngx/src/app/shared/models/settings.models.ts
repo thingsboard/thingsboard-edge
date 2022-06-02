@@ -76,6 +76,7 @@ export enum MailTemplate {
   apiUsageStateEnabled = 'apiUsageStateEnabled',
   apiUsageStateWarning = 'apiUsageStateWarning',
   apiUsageStateDisabled = 'apiUsageStateDisabled',
+  twoFaVerification = 'twoFaVerification'
 }
 
 export const mailTemplateTranslations = new Map<MailTemplate, string>(
@@ -90,7 +91,8 @@ export const mailTemplateTranslations = new Map<MailTemplate, string>(
     [MailTemplate.userRegistered, 'admin.mail-template.user-registered'],
     [MailTemplate.apiUsageStateEnabled, 'admin.mail-template.api-usage-state-enabled'],
     [MailTemplate.apiUsageStateWarning, 'admin.mail-template.api-usage-state-warning'],
-    [MailTemplate.apiUsageStateDisabled, 'admin.mail-template.api-usage-state-disabled']
+    [MailTemplate.apiUsageStateDisabled, 'admin.mail-template.api-usage-state-disabled'],
+    [MailTemplate.twoFaVerification, 'admin.mail-template.two-fa-verification']
   ]
 );
 
@@ -195,7 +197,7 @@ export enum TypeOfNumber {
   Abbreviated = 'Abbreviated'
 }
 
-interface TypeDescriptor {
+export interface TypeDescriptor {
   name: string;
   value: number;
 }

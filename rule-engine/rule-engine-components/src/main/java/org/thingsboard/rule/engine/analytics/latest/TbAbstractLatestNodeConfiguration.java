@@ -43,6 +43,6 @@ public abstract class TbAbstractLatestNodeConfiguration implements NodeConfigura
     private TimeUnit periodTimeUnit;
     private int periodValue;
 
-    private String queueName;
+    private String queueId;
 
 }

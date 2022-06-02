@@ -238,6 +238,7 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");
                         case "3.3.4":
                             log.info("Upgrading ThingsBoard from version 3.3.4 to 3.4.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.3.4");
                         case "3.4.0": // to 3.4.0PE
                             log.info("Upgrading ThingsBoard from version 3.4.0 to 3.4.0PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.0");
@@ -280,6 +281,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.loadSystemWidgets();
                 systemDataLoaderService.createOAuth2Templates();
+                systemDataLoaderService.createQueues();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
 

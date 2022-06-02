@@ -57,6 +57,7 @@ import org.springframework.web.filter.CorsFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.dao.oauth2.OAuth2Configuration;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.auth.jwt.JwtAuthenticationProvider;
 import org.thingsboard.server.service.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenAuthenticationProvider;
@@ -76,6 +77,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled=true)
 @Order(SecurityProperties.BASIC_AUTH_ORDER)
+@TbCoreComponent
 public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     public static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
@@ -256,8 +258,4 @@ public class ThingsboardSecurityConfiguration extends WebSecurityConfigurerAdapt
         }
     }
 
-    @Bean
-    public AuditLogLevelFilter auditLogLevelFilter(@Autowired AuditLogLevelProperties auditLogLevelProperties) {
-        return new AuditLogLevelFilter(auditLogLevelProperties.getMask());
-    }
 }

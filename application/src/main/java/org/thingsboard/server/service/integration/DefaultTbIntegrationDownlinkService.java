@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
@@ -77,7 +76,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
             callback.onSuccess();
         } else {
             var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
-            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), tenantId, integrationId)
+            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, tenantId, integrationId, integration.getType().name())
                     .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(integration.getType()));
             producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder().setDownlinkMsg(downlinkMsg).build()), new TbQueueCallback() {
                 @Override
@@ -103,7 +102,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
 
     private void onDownlinkToRemoteIntegrationMsg(TenantId tenantId, IntegrationId integrationId, IntegrationDownlinkMsgProto downlinkMsg) {
         IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId,
-                TbMsg.fromBytes(ServiceQueue.MAIN, downlinkMsg.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+                TbMsg.fromBytes(null, downlinkMsg.getData().toByteArray(), TbMsgCallback.EMPTY), null);
         remoteRpcService.handleRemoteDownlink(msg);
     }
 }

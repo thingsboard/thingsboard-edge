@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
@@ -76,7 +77,6 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -632,19 +632,18 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         try {
             DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
             RuleChainId ruleChainId;
-            String queueName;
+            QueueId queueId;
 
             if (deviceProfile == null) {
                 ruleChainId = null;
-                queueName = ServiceQueue.MAIN;
+                queueId = null;
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
-                String defaultQueueName = deviceProfile.getDefaultQueueName();
-                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+                queueId = deviceProfile.getDefaultQueueId();
             }
 
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
+            TbMsg tbMsg = TbMsg.newMsg(queueId, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
                     mapper.writeValueAsString(entityNode), ruleChainId, null);
 
             process(device.getTenantId(), tbMsg, null);
@@ -724,25 +723,24 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
         RuleChainId ruleChainId;
-        String queueName;
+        QueueId queueId;
 
         if (deviceProfile == null) {
             log.warn("[{}] Device profile is null!", deviceProfileId);
             ruleChainId = null;
-            queueName = ServiceQueue.MAIN;
+            queueId = null;
         } else {
             ruleChainId = deviceProfile.getDefaultRuleChainId();
-            String defaultQueueName = deviceProfile.getDefaultQueueName();
-            queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+            queueId = deviceProfile.getDefaultQueueId();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueId, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
     private void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, tbMsg.getOriginator());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueId(), tenantId, tbMsg.getOriginator());
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();

@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -151,8 +152,8 @@ public class TbAlarmsCountNodeTest {
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
-            return TbMsg.newMsg(queueName, type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+            return TbMsg.newMsg(type, originator, metaData.copy(), data);
+        }).when(ctx).newMsg(ArgumentMatchers.nullable(QueueId.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
                 ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;

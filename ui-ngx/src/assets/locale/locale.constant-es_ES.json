@@ -58,7 +58,8 @@
         "download": "Descargar",
         "next-with-label": "Siguiente: {{label}}",
         "read-more": "Leer más",
-        "hide": "Ocultar"
+        "hide": "Ocultar",
+        "done": "Hecho"
     },
     "aggregation": {
         "aggregation": "Agrupación",
@@ -2165,8 +2166,7 @@
             "select-file": "Seleccione un archivo",
             "configuration": "Importar configuración",
             "column-type": "Seleccionar tipo de columnas",
-            "creat-entities": "Creando nuevas entidades",
-            "done": "Hecho"
+            "creat-entities": "Creando nuevas entidades"
         },
         "message": {
             "create-entities": "Se crearon{{count}} nuevas entidades correctamente.",

@@ -1031,13 +1031,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return result;
     }
 
-    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) {
+    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
-            if (updated.isPresent()) {
-                return this.saveEntityAttribute(tenantId, MAIL_TEMPLATES, updated.get());
-            }
+            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(objectMapper.readTree(mailTemplatesJsonString));
+            return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
         }
         return Futures.immediateFuture(Collections.emptyList());
     }

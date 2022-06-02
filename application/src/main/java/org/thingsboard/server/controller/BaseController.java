@@ -38,10 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -94,6 +96,7 @@ import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -119,6 +122,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
@@ -155,6 +159,7 @@ import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
@@ -202,6 +207,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_PAGE_SIZE;
 import static org.thingsboard.server.controller.ControllerConstants.INCORRECT_TENANT_ID;
@@ -375,6 +381,9 @@ public abstract class BaseController {
     @Autowired
     protected EntityActionService entityActionService;
 
+    @Autowired
+    protected QueueService queueService;
+
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
     private boolean logControllerErrorStackTrace;
@@ -383,11 +392,37 @@ public abstract class BaseController {
     @Getter
     protected boolean edgesEnabled;
 
+    @ExceptionHandler(Exception.class)
+    public void handleControllerException(Exception e, HttpServletResponse response) {
+        ThingsboardException thingsboardException = handleException(e);
+        if (thingsboardException.getErrorCode() == ThingsboardErrorCode.GENERAL && thingsboardException.getCause() instanceof Exception
+                && StringUtils.equals(thingsboardException.getCause().getMessage(), thingsboardException.getMessage())) {
+            e = (Exception) thingsboardException.getCause();
+        } else {
+            e = thingsboardException;
+        }
+        errorResponseHandler.handle(e, response);
+    }
+
     @ExceptionHandler(ThingsboardException.class)
     public void handleThingsboardException(ThingsboardException ex, HttpServletResponse response) {
         errorResponseHandler.handle(ex, response);
     }
 
+    /**
+     * @deprecated Exceptions that are not of {@link ThingsboardException} type
+     * are now caught and mapped to {@link ThingsboardException} by
+     * {@link ExceptionHandler} {@link BaseController#handleControllerException(Exception, HttpServletResponse)}
+     * which basically acts like the following boilerplate:
+     * {@code
+     *  try {
+     *      someExceptionThrowingMethod();
+     *  } catch (Exception e) {
+     *      throw handleException(e);
+     *  }
+     * }
+     * */
+    @Deprecated
     ThingsboardException handleException(Exception exception) {
         return handleException(exception, true);
     }
@@ -412,6 +447,18 @@ public abstract class BaseController {
         } else {
             return new ThingsboardException(exception.getMessage(), exception, ThingsboardErrorCode.GENERAL);
         }
+    }
+
+    /**
+     * Handles validation error for controller method arguments annotated with @{@link javax.validation.Valid}
+     * */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public void handleValidationError(MethodArgumentNotValidException e, HttpServletResponse response) {
+        String errorMessage = "Validation error: " + e.getBindingResult().getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+        ThingsboardException thingsboardException = new ThingsboardException(errorMessage, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        handleThingsboardException(thingsboardException, response);
     }
 
     <T> T checkNotNull(T reference) throws ThingsboardException {
@@ -800,6 +847,9 @@ public abstract class BaseController {
                 case OTA_PACKAGE:
                     checkOtaPackageId(new OtaPackageId(entityId.getId()), operation);
                     return;
+                case QUEUE:
+                    checkQueueId(new QueueId(entityId.getId()), operation);
+                    return;
                 default:
                     throw new IllegalArgumentException("Unsupported entity type: " + entityId.getEntityType());
             }
@@ -1168,7 +1218,22 @@ public abstract class BaseController {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    protected Queue checkQueueId(QueueId queueId, Operation operation) throws ThingsboardException {
+        validateId(queueId, "Incorrect queueId " + queueId);
+        Queue queue = queueService.findQueueById(getCurrentUser().getTenantId(), queueId);
+        checkNotNull(queue);
+        accessControlService.checkPermission(getCurrentUser(), Resource.QUEUE, operation, queueId, queue);
+        TenantId tenantId = getTenantId();
+        if (queue.getTenantId().isNullUid() && !tenantId.isNullUid()) {
+            TenantProfile tenantProfile = tenantProfileCache.get(tenantId);
+            if (tenantProfile.isIsolatedTbRuleEngine()) {
+                throw new ThingsboardException(YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION,
+                        ThingsboardErrorCode.PERMISSION_DENIED);
+            }
+        }
+        return queue;
+    }
+
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
