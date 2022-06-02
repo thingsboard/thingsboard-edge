@@ -120,6 +120,7 @@ import { OtaPackageService } from '@core/http/ota-package.service';
 import { RuleChain, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
+import { QueueService } from '@core/http/queue.service';
 
 @Injectable({
   providedIn: 'root'
@@ -150,7 +151,8 @@ export class EntityService {
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
-    private utils: UtilsService
+    private utils: UtilsService,
+    private queueService: QueueService
   ) {
   }
 
@@ -213,6 +215,9 @@ export class EntityService {
         break;
       case EntityType.OTA_PACKAGE:
         observable = this.otaPackageService.getOtaPackageInfo(entityId, config);
+        break;
+      case EntityType.QUEUE:
+        observable = this.queueService.getQueueById(entityId, config);
         break;
     }
     return observable;

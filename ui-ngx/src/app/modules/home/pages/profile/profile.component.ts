@@ -98,7 +98,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
     this.userLoaded(this.route.snapshot.data.user);
   }
 
-  buildProfileForm() {
+  private buildProfileForm() {
     this.profile = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       firstName: [''],
@@ -143,7 +143,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
     });
   }
 
-  userLoaded(user: User) {
+  private userLoaded(user: User) {
     this.user = user;
     this.profile.reset(user);
     let lang;

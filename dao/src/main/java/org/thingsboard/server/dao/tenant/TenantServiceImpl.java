@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -53,6 +54,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
@@ -147,6 +149,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Autowired
     private DataValidator<Tenant> tenantValidator;
+
+    @Autowired
+    private QueueService queueService;
 
     @Override
     public Tenant findTenantById(TenantId tenantId) {
@@ -243,6 +248,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         resourceService.deleteResourcesByTenantId(tenantId);
         otaPackageService.deleteOtaPackagesByTenantId(tenantId);
         rpcService.deleteAllRpcByTenantId(tenantId);
+        queueService.deleteQueuesByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
     }
 
@@ -258,6 +264,12 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         log.trace("Executing findTenantInfos pageLink [{}]", pageLink);
         Validator.validatePageLink(pageLink);
         return tenantDao.findTenantInfos(TenantId.SYS_TENANT_ID, pageLink);
+    }
+
+    @Override
+    public List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId) {
+        log.trace("Executing findTenantsByTenantProfileId [{}]", tenantProfileId);
+        return tenantDao.findTenantIdsByTenantProfileId(tenantProfileId);
     }
 
     @Override

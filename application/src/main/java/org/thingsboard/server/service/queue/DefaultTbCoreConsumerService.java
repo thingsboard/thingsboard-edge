@@ -77,6 +77,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateSer
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -167,8 +168,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         EdgeNotificationService edgeNotificationService,
                                         CloudNotificationService cloudNotificationService,
                                         OtaPackageStateService firmwareStateService,
-                                        TbCoreIntegrationApiService tbCoreIntegrationApiService) {
-        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
+                                        TbCoreIntegrationApiService tbCoreIntegrationApiService,
+                                        PartitionService partitionService) {
+        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();
@@ -377,6 +379,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
                 actorContext.tellWithHighPriority(actorMsg.get());
             }
+            callback.onSuccess();
+        } else if (toCoreNotification.hasQueueUpdateMsg()) {
+            TransportProtos.QueueUpdateMsg queue = toCoreNotification.getQueueUpdateMsg();
+            partitionService.updateQueue(queue);
+            callback.onSuccess();
+        } else if (toCoreNotification.hasQueueDeleteMsg()) {
+            TransportProtos.QueueDeleteMsg queue = toCoreNotification.getQueueDeleteMsg();
+            partitionService.removeQueue(queue);
             callback.onSuccess();
         }
         if (statsEnabled) {

@@ -274,28 +274,32 @@ public class InstallScripts {
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
     }
 
-    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception {
+    public void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode oldTemplates) throws Exception {
         AdminSettings mailTemplateSettings = new AdminSettings();
         mailTemplateSettings.setId(adminSettingsId);
         mailTemplateSettings.setKey("mailTemplates");
-        JsonNode mailTemplatesJson = readMailTemplates();
+        mailTemplateSettings.setJsonValue(updateMailTemplates(oldTemplates));
+        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+    }
+
+    public ObjectNode updateMailTemplates(JsonNode oldTemplates) throws IOException {
+        JsonNode newTemplates = readMailTemplates();
 
         ObjectNode result = objectMapper.createObjectNode();
-        Iterator<String> fieldsIterator = mailTemplatesJson.fieldNames();
+        Iterator<String> fieldsIterator = newTemplates.fieldNames();
         while (fieldsIterator.hasNext()) {
             String field = fieldsIterator.next();
-            if (value.has(field)) {
-                result.set(field, value.get(field));
+            if (oldTemplates.has(field)) {
+                result.set(field, oldTemplates.get(field));
             } else {
-                result.set(field, mailTemplatesJson.get(field));
+                result.set(field, newTemplates.get(field));
             }
         }
         Optional<String> updated = updateMailTemplatesFromVelocityToFreeMarker(objectMapper.writeValueAsString(result));
         if (updated.isPresent()) {
             result = (ObjectNode) objectMapper.readTree(updated.get());
         }
-        mailTemplateSettings.setJsonValue(result);
-        adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, mailTemplateSettings);
+        return result;
     }
 
     public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {

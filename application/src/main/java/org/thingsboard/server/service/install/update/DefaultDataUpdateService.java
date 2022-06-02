@@ -77,6 +77,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
@@ -1147,13 +1148,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return result;
     }
 
-    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) {
+    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
-            if (updated.isPresent()) {
-                return this.saveEntityAttribute(tenantId, MAIL_TEMPLATES, updated.get());
-            }
+            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(objectMapper.readTree(mailTemplatesJsonString));
+            return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
         }
         return Futures.immediateFuture(Collections.emptyList());
     }
@@ -1165,7 +1164,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         while (hasNext) {
             for (Integration integration : pageData.getData()) {
                 try {
-                    Field enabledField = integration.getClass().getDeclaredField("enabled");
+                    Field enabledField = IntegrationInfo.class.getDeclaredField("enabled");
                     enabledField.setAccessible(true);
                     Boolean booleanVal = (Boolean) enabledField.get(integration);
                     if (booleanVal == null) {

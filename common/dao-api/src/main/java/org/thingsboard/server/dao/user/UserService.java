@@ -78,19 +78,19 @@ public interface UserService {
 
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
-	void deleteUser(TenantId tenantId, UserId userId);
+    void deleteUser(TenantId tenantId, UserId userId);
 
 	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 
-	PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
+    PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
 	void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 
     PageData<User> findCustomerUsers(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-	    
-	void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
+
+    void deleteCustomerUsers(TenantId tenantId, CustomerId customerId);
 
     PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink);
 
@@ -98,9 +98,11 @@ public interface UserService {
 
 	void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled);
 
-	void onUserLoginSuccessful(TenantId tenantId, UserId userId);
+    void resetFailedLoginAttempts(TenantId tenantId, UserId userId);
 
-	int onUserLoginIncorrectCredentials(TenantId tenantId, UserId userId);
+    int increaseFailedLoginAttempts(TenantId tenantId, UserId userId);
+
+    void setLastLoginTs(TenantId tenantId, UserId userId);
 
 	UserCredentials saveUserCredentialsAndPasswordHistory(TenantId tenantId, UserCredentials userCredentials);
 

@@ -70,6 +70,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -127,6 +128,8 @@ public abstract class AbstractTbEntityService {
     protected RuleChainService ruleChainService;
     @Autowired
     protected EdgeNotificationService edgeNotificationService;
+    @Autowired
+    protected QueueService queueService;
     @Autowired
     protected EntityGroupService entityGroupService;
     @Autowired
@@ -232,7 +235,7 @@ public abstract class AbstractTbEntityService {
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, EntityGroup entityGroup,
-                                                                                  ActionType actionType, SecurityUser user) throws ThingsboardException {
+                                                                                            ActionType actionType, SecurityUser user) throws ThingsboardException {
         EntityId entityId = entity.getId();
         CustomerId customerId = entity.getCustomerId();
         if (entityGroup != null && actionType == ActionType.ADDED) {

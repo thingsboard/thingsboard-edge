@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.stats.MessagesStats;
@@ -181,13 +180,13 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             } else if (msg.hasEntityViewDataProto()) {
                 platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
             } else if (!msg.getCustomTbMsg().isEmpty()) {
-                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(ServiceQueue.MAIN, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
             } else {
                 callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
             }
         } else if (msg.hasEventProto()) {
             platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
-        } else if (msg.hasTsDataProto()){
+        } else if (msg.hasTsDataProto()) {
             platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
         } else {
             callback.onFailure(new IllegalArgumentException("Unsupported integration msg!"));

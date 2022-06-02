@@ -161,6 +161,11 @@ export interface FileType {
   extension: string;
 }
 
+export const TEXT_TYPE: FileType = {
+  mimeType: 'text/plain',
+  extension: 'txt'
+};
+
 export const JSON_TYPE: FileType = {
   mimeType: 'text/json',
   extension: 'json'

@@ -53,7 +53,7 @@ public abstract class TbAbstractDuplicateMsgToOriginatorsNode extends TbAbstract
                 messages.add(ctx.transformMsg(msg, msg.getType(), entityIds.get(0), msg.getMetaData(), msg.getData()));
             } else {
                 for (EntityId entityId : entityIds) {
-                    messages.add(ctx.newMsg(msg.getQueueName(), msg.getType(), entityId, msg.getCustomerId(), msg.getMetaData(), msg.getData()));
+                    messages.add(ctx.newMsg(msg.getQueueId(), msg.getType(), entityId, msg.getCustomerId(), msg.getMetaData(), msg.getData()));
                 }
             }
             return messages;

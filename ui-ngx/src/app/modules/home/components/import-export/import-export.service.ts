@@ -50,7 +50,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { ImportDialogComponent, ImportDialogData } from '@home/components/import-export/import-dialog.component';
 import { forkJoin, Observable, of } from 'rxjs';
-import {catchError, map, mergeMap, switchMap, tap} from 'rxjs/operators';
+import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 import { EntityService } from '@core/http/entity.service';
 import { Widget, WidgetSize, WidgetType, WidgetTypeDetails } from '@shared/models/widget.models';
@@ -67,6 +67,7 @@ import {
   ImportWidgetResult,
   JSON_TYPE,
   TEMPLATE_XLS,
+  TEXT_TYPE,
   WidgetsBundleItem,
   XLS_TYPE,
   XLSX_TYPE,
@@ -760,6 +761,14 @@ export class ImportExportService {
       }
     }
     return true;
+  }
+
+  public exportText(data: string | Array<string>, filename: string) {
+    let content = data;
+    if (Array.isArray(data)) {
+      content = data.join('\n');
+    }
+    this.downloadFile(content, filename, TEXT_TYPE);
   }
 
   public exportJSZip(data: object, filename: string) {

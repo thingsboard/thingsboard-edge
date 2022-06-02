@@ -428,6 +428,10 @@
             <artifactId>sdk-server</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.aerogear</groupId>
+            <artifactId>aerogear-otp-java</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,0 +1,105 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="profile-container" fxLayout="column" fxLayoutGap="8px">
+  <mat-card class="profile-card" fxLayout="column">
+    <mat-card-title>
+      <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.xs="8px"
+           fxLayoutAlign="space-between start" fxLayoutAlign.xs="start start">
+        <div fxFlex class="mat-headline" translate>
+          security.security
+        </div>
+        <div fxLayout="column">
+          <span class="mat-subheader" translate>profile.last-login-time</span>
+          <span class="profile-last-login-ts" style='opacity: 0.7;'>{{ user?.additionalInfo?.lastLoginTs | date:'yyyy-MM-dd HH:mm:ss'  }}</span>
+        </div>
+      </div>
+    </mat-card-title>
+    <mat-card-content>
+      <div>
+        <button mat-stroked-button
+                color="primary"
+                type="button"
+                (click)="copyToken()">
+          <mat-icon class="material-icons">add_circle_outline</mat-icon>
+          <span>{{ 'profile.copy-jwt-token' | translate }}</span>
+        </button>
+        <div class="profile-btn-subtext">{{ expirationJwtData }}</div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card class="profile-card" *ngIf="allowTwoFactorProviders.length">
+    <mat-card-title style="margin-bottom: 20px;">
+      <span class="mat-headline" translate>admin.2fa.2fa</span>
+    </mat-card-title>
+    <mat-card-subtitle style="margin-bottom: 40px;">
+      <div class="mat-body-1 description" translate>security.2fa.2fa-description</div>
+    </mat-card-subtitle>
+    <mat-card-content>
+      <h3 class="mat-h3 auth-title" translate>security.2fa.authenticate-with</h3>
+      <form [formGroup]="twoFactorAuth">
+        <ng-container *ngFor="let provider of allowTwoFactorProviders; let $last = last; trackBy: trackByProvider">
+          <div class="provider">
+            <h4 class="provider-title">{{ providersData.get(provider).name | translate }}</h4>
+            <div fxLayout="row" fxLayoutAlign="space-between start">
+              <div class="mat-body-1 description" *ngIf="!twoFactorAuth.get(provider).value; else providerInfo">
+                {{ providersData.get(provider).description | translate }}
+              </div>
+              <ng-template #providerInfo>
+                <div class="mat-body-1 description">
+                  {{ providersData.get(provider).activatedHint | translate: providerDataInfo(provider) }}
+                </div>
+              </ng-template>
+              <mat-slide-toggle [formControlName]="provider"
+                                (click)="confirm2FAChange($event, provider)">
+              </mat-slide-toggle>
+            </div>
+            <mat-checkbox [value]="provider"
+                          [checked]="useByDefault === provider"
+                          (click)="changeDefaultProvider($event, provider)"
+                          [disabled]="(isLoading$ | async)"
+                           *ngIf="twoFactorAuth.get(provider).value && provider !== twoFactorAuthProviderType.BACKUP_CODE && !activeSingleProvider">
+              <span class="checkbox-label" translate>security.2fa.main-2fa-method</span>
+            </mat-checkbox>
+            <button type="button"
+             mat-stroked-button color="primary"
+             (click)="generateNewBackupCode()"
+             *ngIf="twoFactorAuth.get(provider).value && provider === twoFactorAuthProviderType.BACKUP_CODE">
+              {{ 'security.2fa.get-new-code' | translate }}
+            </button>
+          </div>
+          <mat-divider *ngIf="!$last"></mat-divider>
+        </ng-container>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
