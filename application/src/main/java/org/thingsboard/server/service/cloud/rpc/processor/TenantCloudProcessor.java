@@ -41,7 +41,8 @@ public class TenantCloudProcessor extends BaseCloudProcessor {
         }
         tenant = new Tenant();
         tenant.setTitle("Tenant");
-        tenantValidator.validate(tenant, Tenant::getId);
+        // TODO: voba - add validation once tenant profile are propagated to edge from cloud
+        // tenantValidator.validate(tenant, Tenant::getId);
         tenant.setId(tenantId);
         Tenant savedTenant = tenantService.saveTenant(tenant, false);
         apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
