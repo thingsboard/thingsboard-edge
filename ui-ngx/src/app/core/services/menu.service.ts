@@ -269,6 +269,15 @@ export class MenuService {
       },
       {
         id: guid(),
+        name: 'admin.2fa.2fa',
+        type: 'link',
+        path: '/settings/2fa',
+        icon: 'mdi:two-factor-authentication',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('2fa') > -1
+      },
+      {
+        id: guid(),
         name: 'resource.resources-library',
         type: 'link',
         path: '/settings/resources-library',
@@ -363,6 +372,13 @@ export class MenuService {
             icon: 'security',
             path: '/settings/oauth2',
             disabled: disabledItems.indexOf('oauth2') > -1
+          },
+          {
+            name: 'admin.2fa.2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true,
+            path: '/settings/2fa',
+            disabled: disabledItems.indexOf('2fa') > -1
           },
           {
             name: 'resource.resources-library',
@@ -720,6 +736,15 @@ export class MenuService {
             path: '/settings/selfRegistration',
             icon: 'group_add',
             disabled: disabledItems.indexOf('self_registration') > -1
+          },
+          {
+            id: guid(),
+            name: 'admin.2fa.2fa',
+            type: 'link',
+            path: '/settings/2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true,
+            disabled: disabledItems.indexOf('2fa') > -1
           }
         );
       }
@@ -1116,6 +1141,13 @@ export class MenuService {
             path: '/settings/selfRegistration',
             icon: 'group_add',
             disabled: disabledItems.indexOf('self_registration') > -1
+          },
+          {
+            name: 'admin.2fa.2fa',
+            path: '/settings/2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true,
+            disabled: disabledItems.indexOf('2fa') > -1
           }
         );
       }
