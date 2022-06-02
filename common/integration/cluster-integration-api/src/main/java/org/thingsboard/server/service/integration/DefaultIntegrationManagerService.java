@@ -63,7 +63,6 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
@@ -79,6 +78,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.HashPartitionService;
+import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -116,6 +116,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final ConcurrentMap<String, IntegrationState> integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
     private final TbServiceInfoProvider serviceInfoProvider;
     private final PartitionService partitionService;
+    private final NotificationsTopicService notificationsTopicService;
     private final IntegrationContextProvider integrationContextProvider;
     private final IntegrationConfigurationService configurationService;
     private final DataConverterService dataConverterService;
@@ -201,7 +202,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             try {
                 TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
                 IntegrationId integrationId = new IntegrationId(new UUID(proto.getIntegrationIdMSB(), proto.getIntegrationIdLSB()));
-                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, proto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
+                IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(null, proto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
                 var state = integrations.get(integrationId);
                 if (state == null) {
                     callback.onFailure(new RuntimeException("Integration is missing!"));
@@ -238,7 +239,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             log.trace("[{}][{}] Integration validation failed: {}", validationRequestMsg.getType(), requestId, e);
             response.setError(ByteString.copyFrom(encodingService.encode(e)));
         }
-        TopicPartitionInfo tpi = partitionService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
+        TopicPartitionInfo tpi = notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, validationRequestMsg.getServiceId());
         TransportProtos.ToCoreNotificationMsg msg = TransportProtos.ToCoreNotificationMsg.newBuilder().setIntegrationValidationResponseMsg(response).build();
         producerProvider.getTbCoreNotificationsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), new TbQueueCallback() {
             @Override
@@ -326,7 +327,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 pendingValidationTasks.put(task.getUuid(), task);
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getTenantId(), configuration.getId(), configuration.getType().name())
                         .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(configuration.getType()));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
@@ -607,7 +608,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         var type = integration.getType();
         if (supportedIntegrationTypes.contains(type)) {
             return !type.isSingleton()
-                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, type.name(), integration.getTenantId(), integration.getId()).isMyPartition();
+                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getTenantId(), integration.getId(), type.name()).isMyPartition();
         } else {
             return false;
         }

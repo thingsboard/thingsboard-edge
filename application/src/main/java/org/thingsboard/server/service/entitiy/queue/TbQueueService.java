@@ -28,42 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.queue;
+package org.thingsboard.server.service.entitiy.queue;
 
-import lombok.Getter;
-import lombok.ToString;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.queue.Queue;
 
-import java.util.Objects;
+import java.util.List;
 
-@ToString
-public class ServiceQueueKey {
-    @Getter
-    private final ServiceQueue serviceQueue;
+public interface TbQueueService {
 
-    @Getter
-    private final TenantId tenantId;
+    Queue saveQueue(Queue queue);
 
-    public ServiceQueueKey(ServiceQueue serviceQueue, TenantId tenantId) {
-        this.serviceQueue = serviceQueue;
-        this.tenantId = tenantId;
-    }
+    void deleteQueue(TenantId tenantId, QueueId queueId);
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ServiceQueueKey that = (ServiceQueueKey) o;
-        return serviceQueue.equals(that.serviceQueue) &&
-                Objects.equals(tenantId, that.tenantId);
-    }
+    void deleteQueueByQueueName(TenantId tenantId, String queueName);
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(serviceQueue, tenantId);
-    }
-
-    public ServiceType getServiceType() {
-        return serviceQueue.getType();
-    }
+    void updateQueuesByTenants(List<TenantId> tenantIds, TenantProfile newTenantProfile, TenantProfile oldTenantProfile);
 }

@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -69,7 +70,6 @@ import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
@@ -158,24 +158,23 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
         return metaData;
     }
 
-    private Pair<String, RuleChainId> getDefaultQueueNameAndRuleChainId(TenantId tenantId, EntityId entityId) {
+    private Pair<QueueId, RuleChainId> getDefaultQueueNameAndRuleChainId(TenantId tenantId, EntityId entityId) {
         if (EntityType.DEVICE.equals(entityId.getEntityType())) {
             DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, new DeviceId(entityId.getId()));
             RuleChainId ruleChainId;
-            String queueName;
+            QueueId queueId;
 
             if (deviceProfile == null) {
                 log.warn("[{}] Device profile is null!", entityId);
                 ruleChainId = null;
-                queueName = ServiceQueue.MAIN;
+                queueId = null;
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
-                String defaultQueueName = deviceProfile.getDefaultQueueName();
-                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+                queueId = deviceProfile.getDefaultQueueId();
             }
-            return new ImmutablePair<>(queueName, ruleChainId);
+            return new ImmutablePair<>(queueId, ruleChainId);
         } else {
-            return new ImmutablePair<>(ServiceQueue.MAIN, null);
+            return new ImmutablePair<>(null, null);
         }
     }
 
@@ -184,10 +183,10 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
         for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
             JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
             metaData.putValue("ts", tsKv.getTs() + "");
-            Pair<String, RuleChainId> defaultQueueAndRuleChain = getDefaultQueueNameAndRuleChainId(tenantId, entityId);
-            String queueName = defaultQueueAndRuleChain.getKey();
+            Pair<QueueId, RuleChainId> defaultQueueAndRuleChain = getDefaultQueueNameAndRuleChainId(tenantId, entityId);
+            QueueId queueId = defaultQueueAndRuleChain.getKey();
             RuleChainId ruleChainId = defaultQueueAndRuleChain.getValue();
-            TbMsg tbMsg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, customerId, metaData, gson.toJson(json), ruleChainId, null);
+            TbMsg tbMsg = TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, customerId, metaData, gson.toJson(json), ruleChainId, null);
             tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
@@ -207,10 +206,10 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
     private ListenableFuture<Void> processPostAttributes(TenantId tenantId, CustomerId customerId, EntityId entityId, TransportProtos.PostAttributeMsg msg, TbMsgMetaData metaData) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
-        Pair<String, RuleChainId> defaultQueueAndRuleChain = getDefaultQueueNameAndRuleChainId(tenantId, entityId);
-        String queueName = defaultQueueAndRuleChain.getKey();
+        Pair<QueueId, RuleChainId> defaultQueueAndRuleChain = getDefaultQueueNameAndRuleChainId(tenantId, entityId);
+        QueueId queueId = defaultQueueAndRuleChain.getKey();
         RuleChainId ruleChainId = defaultQueueAndRuleChain.getValue();
-        TbMsg tbMsg = TbMsg.newMsg(queueName, SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, customerId, metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueId, SessionMsgType.POST_ATTRIBUTES_REQUEST.name(), entityId, customerId, metaData, gson.toJson(json), ruleChainId, null);
         tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
             @Override
             public void onSuccess(TbQueueMsgMetadata metadata) {
@@ -234,10 +233,10 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<String> keys) {
-                Pair<String, RuleChainId> defaultQueueAndRuleChain = getDefaultQueueNameAndRuleChainId(tenantId, entityId);
-                String queueName = defaultQueueAndRuleChain.getKey();
+                Pair<QueueId, RuleChainId> defaultQueueAndRuleChain = getDefaultQueueNameAndRuleChainId(tenantId, entityId);
+                QueueId queueId = defaultQueueAndRuleChain.getKey();
                 RuleChainId ruleChainId = defaultQueueAndRuleChain.getValue();
-                TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ATTRIBUTES_UPDATED, entityId, customerId, metaData, gson.toJson(json), ruleChainId, null);
+                TbMsg tbMsg = TbMsg.newMsg(queueId, DataConstants.ATTRIBUTES_UPDATED, entityId, customerId, metaData, gson.toJson(json), ruleChainId, null);
                 tbClusterService.pushMsgToRuleEngine(tenantId, tbMsg.getOriginator(), tbMsg, new TbQueueCallback() {
                     @Override
                     public void onSuccess(TbQueueMsgMetadata metadata) {

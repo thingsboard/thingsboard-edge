@@ -30,35 +30,42 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="queueFormGroup" class="mat-block">
-  <mat-label>{{ 'queue.name' | translate }}</mat-label>
-  <input matInput type="text" placeholder="{{ 'queue.select_name' | translate }}"
+<mat-form-field [formGroup]="selectQueueFormGroup" class="mat-block autocomplete-queue">
+  <input matInput type="text" placeholder="{{ 'queue.queue-name' | translate }}"
          #queueInput
-         formControlName="queue"
+         formControlName="queueId"
          (focusin)="onFocus()"
          [required]="required"
          [matAutocomplete]="queueAutocomplete">
-  <button *ngIf="queueFormGroup.get('queue').value && !disabled"
+  <button *ngIf="selectQueueFormGroup.get('queueId').value && !disabled"
           type="button"
           matSuffix mat-button mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
-  <mat-autocomplete
-    class="tb-autocomplete"
-    #queueAutocomplete="matAutocomplete"
-    [displayWith]="displayQueueFn">
-    <mat-option *ngFor="let queue of filteredQueues | async" [value]="queue">
-      <span [innerHTML]="queue.queueName | highlight:searchText"></span>
+  <mat-autocomplete class="tb-autocomplete"
+                    #queueAutocomplete="matAutocomplete"
+                    [displayWith]="displayQueueFn"
+                    >
+    <mat-option *ngFor="let queue of filteredQueues | async" [value]="queue" class="queue-option">
+      <span [innerHTML]="queue.name | highlight:searchText"></span>
+      <small class="queue-option-description">{{getDescription(queue)}}</small>
     </mat-option>
-    <mat-option *ngIf="!(filteredQueues | async)?.length" [value]="null">
-      <span>
-        {{ translate.get('queue.no-queues-matching', {queue: searchText}) | async }}
-      </span>
+    <mat-option *ngIf="!(filteredQueues | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+          <span translate>device-profile.no-device-profiles-found</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+              {{ translate.get('queue.no-queues-matching',
+            {queue: truncate.transform(searchText, true, 6, &apos;...&apos;)}) | async }}
+          </span>
+        </ng-template>
+      </div>
     </mat-option>
   </mat-autocomplete>
-  <mat-error *ngIf="queueFormGroup.get('queue').hasError('required')">
-    {{ 'queue.name_required' | translate }}
+  <mat-error *ngIf="selectQueueFormGroup.get('queueId').hasError('required')">
+    {{ 'queue.queue-required' | translate }}
   </mat-error>
-  <mat-hint class="tb-hint" translate [fxShow]="!disabled">device-profile.select-queue-hint</mat-hint>
 </mat-form-field>
