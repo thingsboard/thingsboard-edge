@@ -126,7 +126,6 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
 
             notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
                     ActionType.DELETED,  relatedEdgeIds, user, userId.toString());
-
         } catch (Exception e) {
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.USER),
                     null, user, ActionType.DELETED, false, e, userId.toString());
