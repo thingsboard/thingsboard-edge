@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.resource;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.leshan.core.model.DDFFileParser;
@@ -76,7 +75,6 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @Slf4j
 @Service
 @TbCoreComponent
-@AllArgsConstructor
 public class DefaultTbResourceService extends AbstractTbEntityService implements TbResourceService {
 
     private final ResourceService resourceService;
