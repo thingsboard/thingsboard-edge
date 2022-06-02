@@ -59,9 +59,9 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.transport.util.JsonUtils;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
 import org.thingsboard.server.gen.integration.ConnectResponseMsg;
@@ -69,7 +69,6 @@ import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.ConverterUpdateMsg;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
-import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DownlinkMsg;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationConfigurationProto;
@@ -324,7 +323,7 @@ public final class IntegrationGrpcSession implements Closeable {
 
             if (msg.getTbMsgCount() > 0) {
                 for (ByteString tbMsgByteString : msg.getTbMsgList()) {
-                    TbMsg tbMsg = TbMsg.fromBytes(ServiceQueue.MAIN, tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
+                    TbMsg tbMsg = TbMsg.fromBytes(null, tbMsgByteString.toByteArray(), TbMsgCallback.EMPTY);
                     ctx.getPlatformIntegrationService().process(this.configuration.getTenantId(), tbMsg, null);
                 }
             }
@@ -354,6 +353,7 @@ public final class IntegrationGrpcSession implements Closeable {
                 @Override
                 public void onSuccess(@Nullable Void event) {
                 }
+
                 @Override
                 public void onFailure(Throwable th) {
                     log.error("[{}] Failed to save event!", proto.getData(), th);

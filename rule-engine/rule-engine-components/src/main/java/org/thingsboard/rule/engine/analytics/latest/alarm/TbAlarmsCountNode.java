@@ -34,27 +34,27 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNode;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNode;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RuleNode(
@@ -94,7 +94,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                TbMsg msg = TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                         parentEntityId, new TbMsgMetaData(), "");
                 ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }

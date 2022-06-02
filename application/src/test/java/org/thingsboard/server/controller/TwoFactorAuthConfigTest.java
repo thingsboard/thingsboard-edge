@@ -1,0 +1,640 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.controller;
+
+import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatcher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cache.CacheManager;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.thingsboard.rule.engine.api.SmsService;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.security.model.mfa.PlatformTwoFaSettings;
+import org.thingsboard.server.common.data.security.model.mfa.account.AccountTwoFaSettings;
+import org.thingsboard.server.common.data.security.model.mfa.account.SmsTwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.account.TotpTwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.account.TwoFaAccountConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.SmsTwoFaProviderConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TotpTwoFaProviderConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderConfig;
+import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
+import org.thingsboard.server.service.security.auth.mfa.TwoFactorAuthService;
+import org.thingsboard.server.service.security.auth.mfa.config.TwoFaConfigManager;
+import org.thingsboard.server.service.security.auth.mfa.provider.impl.OtpBasedTwoFaProvider;
+import org.thingsboard.server.service.security.auth.mfa.provider.impl.TotpTwoFaProvider;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
+
+    @SpyBean
+    private TotpTwoFaProvider totpTwoFactorAuthProvider;
+    @MockBean
+    private SmsService smsService;
+    @Autowired
+    private CacheManager cacheManager;
+    @Autowired
+    private TwoFaConfigManager twoFaConfigManager;
+    @SpyBean
+    private TwoFactorAuthService twoFactorAuthService;
+    @SpyBean
+    private UserPermissionsService userPermissionsService;
+
+    @Before
+    public void beforeEach() throws Exception {
+        doNothing().when(twoFactorAuthService).checkProvider(any(), any());
+        loginSysAdmin();
+    }
+
+    @After
+    public void afterEach() {
+        twoFaConfigManager.deletePlatformTwoFaSettings(TenantId.SYS_TENANT_ID);
+        twoFaConfigManager.deletePlatformTwoFaSettings(tenantId);
+    }
+
+
+    @Test
+    public void testSavePlatformTwoFaSettingsForDifferentAuthorities() throws Exception {
+        loginSysAdmin();
+        testSavePlatformTwoFaSettings();
+
+        loginTenantAdmin();
+        testSavePlatformTwoFaSettings();
+    }
+
+    private void testSavePlatformTwoFaSettings() throws Exception {
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
+        totpTwoFaProviderConfig.setIssuerName("tb");
+        SmsTwoFaProviderConfig smsTwoFaProviderConfig = new SmsTwoFaProviderConfig();
+        smsTwoFaProviderConfig.setSmsVerificationMessageTemplate("${code}");
+        smsTwoFaProviderConfig.setVerificationCodeLifetime(60);
+
+        PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
+        twoFaSettings.setProviders(List.of(totpTwoFaProviderConfig, smsTwoFaProviderConfig));
+        twoFaSettings.setVerificationCodeCheckRateLimit("3:900");
+        twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
+        twoFaSettings.setTotalAllowedTimeForVerification(3600);
+
+        doPost("/api/2fa/settings", twoFaSettings).andExpect(status().isOk());
+
+        PlatformTwoFaSettings savedTwoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+
+        assertThat(savedTwoFaSettings.getProviders()).hasSize(2);
+        assertThat(savedTwoFaSettings.getProviders()).contains(totpTwoFaProviderConfig, smsTwoFaProviderConfig);
+    }
+
+    @Test
+    public void testSavePlatformTwoFaSettings_validationError() throws Exception {
+        loginTenantAdmin();
+
+        PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
+        twoFaSettings.setProviders(Collections.emptyList());
+        twoFaSettings.setVerificationCodeCheckRateLimit("0:12");
+        twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(-1);
+        twoFaSettings.setTotalAllowedTimeForVerification(0);
+
+        String errorMessage = getErrorMessage(doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isBadRequest()));
+
+        assertThat(errorMessage).contains(
+                "verification code check rate limit configuration is invalid",
+                "maximum number of verification failure before user lockout must be positive",
+                "total amount of time allotted for verification must be greater than or equal 60"
+        );
+
+        twoFaSettings.setUseSystemTwoFactorAuthSettings(true);
+        doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isOk());
+
+        twoFaSettings.setMinVerificationCodeSendPeriod(0);
+        twoFaSettings.setVerificationCodeCheckRateLimit(null);
+        twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(0);
+        twoFaSettings.setTotalAllowedTimeForVerification(null);
+
+        doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetPlatformTwoFaSettings_useSysadminSettingsAsDefault() throws Exception {
+        loginSysAdmin();
+        PlatformTwoFaSettings sysadminTwoFaSettings = new PlatformTwoFaSettings();
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
+        totpTwoFaProviderConfig.setIssuerName("tb");
+        sysadminTwoFaSettings.setProviders(Collections.singletonList(totpTwoFaProviderConfig));
+        sysadminTwoFaSettings.setMaxVerificationFailuresBeforeUserLockout(25);
+        doPost("/api/2fa/settings", sysadminTwoFaSettings).andExpect(status().isOk());
+
+        loginTenantAdmin();
+        PlatformTwoFaSettings tenantTwoFaSettings = new PlatformTwoFaSettings();
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);
+        tenantTwoFaSettings.setProviders(Collections.emptyList());
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+        PlatformTwoFaSettings twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+        assertThat(twoFaSettings).isEqualTo(tenantTwoFaSettings);
+
+        doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk());
+
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(false);
+        tenantTwoFaSettings.setProviders(Collections.emptyList());
+        tenantTwoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+        twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+        assertThat(twoFaSettings).isEqualTo(tenantTwoFaSettings);
+
+        assertThat(getErrorMessage(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isBadRequest()))).containsIgnoringCase("provider is not configured");
+
+        loginSysAdmin();
+        sysadminTwoFaSettings.setProviders(Collections.emptyList());
+        doPost("/api/2fa/settings", sysadminTwoFaSettings).andExpect(status().isOk());
+        loginTenantAdmin();
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);
+        tenantTwoFaSettings.setProviders(Collections.singletonList(totpTwoFaProviderConfig));
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+
+        assertThat(getErrorMessage(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isBadRequest()))).containsIgnoringCase("provider is not configured");
+
+        tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(false);
+        doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
+
+        doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk());
+
+        loginSysAdmin();
+        twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
+        assertThat(twoFaSettings).isEqualTo(sysadminTwoFaSettings);
+    }
+
+    @Test
+    public void testSaveTotpTwoFaProviderConfig_validationError() throws Exception {
+        TotpTwoFaProviderConfig invalidTotpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
+        invalidTotpTwoFaProviderConfig.setIssuerName("   ");
+
+        String errorResponse = savePlatformTwoFaSettingsAndGetError(invalidTotpTwoFaProviderConfig);
+        assertThat(errorResponse).containsIgnoringCase("issuer name must not be blank");
+    }
+
+    @Test
+    public void testSaveSmsTwoFaProviderConfig_validationError() throws Exception {
+        SmsTwoFaProviderConfig invalidSmsTwoFaProviderConfig = new SmsTwoFaProviderConfig();
+        invalidSmsTwoFaProviderConfig.setSmsVerificationMessageTemplate("does not contain verification code");
+        invalidSmsTwoFaProviderConfig.setVerificationCodeLifetime(60);
+
+        String errorResponse = savePlatformTwoFaSettingsAndGetError(invalidSmsTwoFaProviderConfig);
+        assertThat(errorResponse).containsIgnoringCase("must contain verification code");
+
+        invalidSmsTwoFaProviderConfig.setSmsVerificationMessageTemplate(null);
+        invalidSmsTwoFaProviderConfig.setVerificationCodeLifetime(0);
+        errorResponse = savePlatformTwoFaSettingsAndGetError(invalidSmsTwoFaProviderConfig);
+        assertThat(errorResponse).containsIgnoringCase("verification message template is required");
+        assertThat(errorResponse).containsIgnoringCase("verification code lifetime is required");
+    }
+
+    private String savePlatformTwoFaSettingsAndGetError(TwoFaProviderConfig invalidTwoFaProviderConfig) throws Exception {
+        PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
+        twoFaSettings.setProviders(Collections.singletonList(invalidTwoFaProviderConfig));
+
+        return getErrorMessage(doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isBadRequest()));
+    }
+
+
+    @Test
+    public void testSaveTwoFaAccountConfig_providerNotConfigured() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+
+        loginTenantAdmin();
+
+        TwoFaProviderType notConfiguredProviderType = TwoFaProviderType.TOTP;
+        String errorMessage = getErrorMessage(doPost("/api/2fa/account/config/generate?providerType=" + notConfiguredProviderType)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("provider is not configured");
+
+        TotpTwoFaAccountConfig notConfiguredProviderAccountConfig = new TotpTwoFaAccountConfig();
+        notConfiguredProviderAccountConfig.setAuthUrl("otpauth://totp/aba:aba?issuer=aba&secret=ABA");
+        errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", notConfiguredProviderAccountConfig));
+        assertThat(errorMessage).containsIgnoringCase("provider is not configured");
+    }
+
+    @Test
+    public void testGenerateTotpTwoFaAccountConfig() throws Exception {
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        assertThat(readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), String.class)).isNullOrEmpty();
+        generateTotpTwoFaAccountConfig(totpTwoFaProviderConfig);
+    }
+
+    @Test
+    public void testSubmitTotpTwoFaAccountConfig() throws Exception {
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        TotpTwoFaAccountConfig generatedTotpTwoFaAccountConfig = generateTotpTwoFaAccountConfig(totpTwoFaProviderConfig);
+        doPost("/api/2fa/account/config/submit", generatedTotpTwoFaAccountConfig).andExpect(status().isOk());
+        verify(totpTwoFactorAuthProvider).prepareVerificationCode(argThat(user -> user.getEmail().equals(TENANT_ADMIN_EMAIL)),
+                eq(totpTwoFaProviderConfig), eq(generatedTotpTwoFaAccountConfig));
+    }
+
+    @Test
+    public void testSubmitTotpTwoFaAccountConfig_validationError() throws Exception {
+        configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        TotpTwoFaAccountConfig totpTwoFaAccountConfig = new TotpTwoFaAccountConfig();
+        totpTwoFaAccountConfig.setAuthUrl(null);
+
+        String errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", totpTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("otp auth url cannot be blank");
+
+        totpTwoFaAccountConfig.setAuthUrl("otpauth://totp/T B: aba");
+        errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", totpTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("otp auth url is invalid");
+
+        totpTwoFaAccountConfig.setAuthUrl("otpauth://totp/ThingsBoard%20(Tenant):tenant@thingsboard.org?issuer=ThingsBoard+%28Tenant%29&secret=FUNBIM3CXFNNGQR6ZIPVWHP65PPFWDII");
+        doPost("/api/2fa/account/config/submit", totpTwoFaAccountConfig)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testVerifyAndSaveTotpTwoFaAccountConfig() throws Exception {
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        TotpTwoFaAccountConfig generatedTotpTwoFaAccountConfig = generateTotpTwoFaAccountConfig(totpTwoFaProviderConfig);
+        generatedTotpTwoFaAccountConfig.setUseByDefault(true);
+
+        String secret = UriComponentsBuilder.fromUriString(generatedTotpTwoFaAccountConfig.getAuthUrl()).build()
+                .getQueryParams().getFirst("secret");
+        String correctVerificationCode = new Totp(secret).now();
+
+        doPost("/api/2fa/account/config?verificationCode=" + correctVerificationCode, generatedTotpTwoFaAccountConfig)
+                .andExpect(status().isOk());
+
+        AccountTwoFaSettings accountTwoFaSettings = readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), AccountTwoFaSettings.class);
+        assertThat(accountTwoFaSettings.getConfigs()).size().isOne();
+
+        TwoFaAccountConfig twoFaAccountConfig = accountTwoFaSettings.getConfigs().get(TwoFaProviderType.TOTP);
+        assertThat(twoFaAccountConfig).isEqualTo(generatedTotpTwoFaAccountConfig);
+    }
+
+    @Test
+    public void testVerifyAndSaveTotpTwoFaAccountConfig_incorrectVerificationCode() throws Exception {
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        TotpTwoFaAccountConfig generatedTotpTwoFaAccountConfig = generateTotpTwoFaAccountConfig(totpTwoFaProviderConfig);
+
+        String incorrectVerificationCode = "100000";
+        String errorMessage = getErrorMessage(doPost("/api/2fa/account/config?verificationCode=" + incorrectVerificationCode, generatedTotpTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+
+        assertThat(errorMessage).containsIgnoringCase("verification code is incorrect");
+    }
+
+    private TotpTwoFaAccountConfig generateTotpTwoFaAccountConfig(TotpTwoFaProviderConfig totpTwoFaProviderConfig) throws Exception {
+        TwoFaAccountConfig generatedTwoFaAccountConfig = readResponse(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk()), TwoFaAccountConfig.class);
+        assertThat(generatedTwoFaAccountConfig).isInstanceOf(TotpTwoFaAccountConfig.class);
+
+        assertThat(((TotpTwoFaAccountConfig) generatedTwoFaAccountConfig)).satisfies(accountConfig -> {
+            UriComponents otpAuthUrl = UriComponentsBuilder.fromUriString(accountConfig.getAuthUrl()).build();
+            assertThat(otpAuthUrl.getScheme()).isEqualTo("otpauth");
+            assertThat(otpAuthUrl.getHost()).isEqualTo("totp");
+            assertThat(otpAuthUrl.getQueryParams().getFirst("issuer")).isEqualTo(totpTwoFaProviderConfig.getIssuerName());
+            assertThat(otpAuthUrl.getPath()).isEqualTo("/%s:%s", totpTwoFaProviderConfig.getIssuerName(), TENANT_ADMIN_EMAIL);
+            assertThat(otpAuthUrl.getQueryParams().getFirst("secret")).satisfies(secretKey -> {
+                assertDoesNotThrow(() -> Base32.decode(secretKey));
+            });
+        });
+        return (TotpTwoFaAccountConfig) generatedTwoFaAccountConfig;
+    }
+
+    @Test
+    public void testGetTwoFaAccountConfig_whenProviderNotConfigured() throws Exception {
+        testVerifyAndSaveTotpTwoFaAccountConfig();
+        assertThat(readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()),
+                AccountTwoFaSettings.class).getConfigs()).isNotEmpty();
+
+        loginSysAdmin();
+        saveProvidersConfigs();
+
+        loginTenantAdmin();
+
+        assertThat(readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), AccountTwoFaSettings.class).getConfigs())
+                .isEmpty();
+    }
+
+    @Test
+    public void testGenerateSmsTwoFaAccountConfig() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+        doPost("/api/2fa/account/config/generate?providerType=SMS")
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testSubmitSmsTwoFaAccountConfig() throws Exception {
+        String verificationMessageTemplate = "Here is your verification code: ${code}";
+        configureSmsTwoFaProvider(verificationMessageTemplate);
+
+        loginTenantAdmin();
+
+        SmsTwoFaAccountConfig smsTwoFaAccountConfig = new SmsTwoFaAccountConfig();
+        smsTwoFaAccountConfig.setPhoneNumber("+38054159785");
+
+        doPost("/api/2fa/account/config/submit", smsTwoFaAccountConfig).andExpect(status().isOk());
+
+        String verificationCode = cacheManager.getCache(CacheConstants.TWO_FA_VERIFICATION_CODES_CACHE)
+                .get(tenantAdminUserId, OtpBasedTwoFaProvider.Otp.class).getValue();
+
+        verify(smsService).sendSms(eq(tenantId), any(), argThat(phoneNumbers -> {
+            return phoneNumbers[0].equals(smsTwoFaAccountConfig.getPhoneNumber());
+        }), eq("Here is your verification code: " + verificationCode));
+    }
+
+    @Test
+    public void testSubmitSmsTwoFaAccountConfig_validationError() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+
+        SmsTwoFaAccountConfig smsTwoFaAccountConfig = new SmsTwoFaAccountConfig();
+        String blankPhoneNumber = "";
+        smsTwoFaAccountConfig.setPhoneNumber(blankPhoneNumber);
+
+        String errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", smsTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("phone number cannot be blank");
+
+        String nonE164PhoneNumber = "8754868";
+        smsTwoFaAccountConfig.setPhoneNumber(nonE164PhoneNumber);
+
+        errorMessage = getErrorMessage(doPost("/api/2fa/account/config/submit", smsTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("phone number is not of E.164 format");
+    }
+
+    @Test
+    public void testVerifyAndSaveSmsTwoFaAccountConfig() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+
+        loginTenantAdmin();
+
+        SmsTwoFaAccountConfig smsTwoFaAccountConfig = new SmsTwoFaAccountConfig();
+        smsTwoFaAccountConfig.setPhoneNumber("+38051889445");
+        smsTwoFaAccountConfig.setUseByDefault(true);
+
+        ArgumentCaptor<String> verificationCodeCaptor = ArgumentCaptor.forClass(String.class);
+        doPost("/api/2fa/account/config/submit", smsTwoFaAccountConfig).andExpect(status().isOk());
+
+        verify(smsService).sendSms(eq(tenantId), any(), argThat(phoneNumbers -> {
+            return phoneNumbers[0].equals(smsTwoFaAccountConfig.getPhoneNumber());
+        }), verificationCodeCaptor.capture());
+
+        String correctVerificationCode = verificationCodeCaptor.getValue();
+        doPost("/api/2fa/account/config?verificationCode=" + correctVerificationCode, smsTwoFaAccountConfig)
+                .andExpect(status().isOk());
+
+        AccountTwoFaSettings accountTwoFaSettings = readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), AccountTwoFaSettings.class);
+        TwoFaAccountConfig accountConfig = accountTwoFaSettings.getConfigs().get(TwoFaProviderType.SMS);
+        assertThat(accountConfig).isEqualTo(smsTwoFaAccountConfig);
+    }
+
+    @Test
+    public void testVerifyAndSaveSmsTwoFaAccountConfig_incorrectVerificationCode() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+
+        loginTenantAdmin();
+
+        SmsTwoFaAccountConfig smsTwoFaAccountConfig = new SmsTwoFaAccountConfig();
+        smsTwoFaAccountConfig.setPhoneNumber("+38051889445");
+
+        String errorMessage = getErrorMessage(doPost("/api/2fa/account/config?verificationCode=100000", smsTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("verification code is incorrect");
+    }
+
+    @Test
+    public void testVerifyAndSaveSmsTwoFaAccountConfig_differentAccountConfigs() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+        loginTenantAdmin();
+
+        SmsTwoFaAccountConfig initialSmsTwoFaAccountConfig = new SmsTwoFaAccountConfig();
+        initialSmsTwoFaAccountConfig.setPhoneNumber("+38051889445");
+        initialSmsTwoFaAccountConfig.setUseByDefault(true);
+
+        ArgumentCaptor<String> verificationCodeCaptor = ArgumentCaptor.forClass(String.class);
+        doPost("/api/2fa/account/config/submit", initialSmsTwoFaAccountConfig).andExpect(status().isOk());
+
+        verify(smsService).sendSms(eq(tenantId), any(), argThat(phoneNumbers -> {
+            return phoneNumbers[0].equals(initialSmsTwoFaAccountConfig.getPhoneNumber());
+        }), verificationCodeCaptor.capture());
+
+        String correctVerificationCode = verificationCodeCaptor.getValue();
+
+        SmsTwoFaAccountConfig anotherSmsTwoFaAccountConfig = new SmsTwoFaAccountConfig();
+        anotherSmsTwoFaAccountConfig.setPhoneNumber("+38111111111");
+        String errorMessage = getErrorMessage(doPost("/api/2fa/account/config?verificationCode=" + correctVerificationCode, anotherSmsTwoFaAccountConfig)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).containsIgnoringCase("verification code is incorrect");
+
+        doPost("/api/2fa/account/config?verificationCode=" + correctVerificationCode, initialSmsTwoFaAccountConfig)
+                .andExpect(status().isOk());
+        AccountTwoFaSettings accountTwoFaSettings = readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), AccountTwoFaSettings.class);
+        TwoFaAccountConfig accountConfig = accountTwoFaSettings.getConfigs().get(TwoFaProviderType.SMS);
+        assertThat(accountConfig).isEqualTo(initialSmsTwoFaAccountConfig);
+    }
+
+    private TotpTwoFaProviderConfig configureTotpTwoFaProvider() throws Exception {
+        TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
+        totpTwoFaProviderConfig.setIssuerName("tb");
+
+        saveProvidersConfigs(totpTwoFaProviderConfig);
+        return totpTwoFaProviderConfig;
+    }
+
+    private SmsTwoFaProviderConfig configureSmsTwoFaProvider(String verificationMessageTemplate) throws Exception {
+        SmsTwoFaProviderConfig smsTwoFaProviderConfig = new SmsTwoFaProviderConfig();
+        smsTwoFaProviderConfig.setSmsVerificationMessageTemplate(verificationMessageTemplate);
+        smsTwoFaProviderConfig.setVerificationCodeLifetime(60);
+
+        saveProvidersConfigs(smsTwoFaProviderConfig);
+        return smsTwoFaProviderConfig;
+    }
+
+    private void saveProvidersConfigs(TwoFaProviderConfig... providerConfigs) throws Exception {
+        PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
+
+        twoFaSettings.setProviders(Arrays.stream(providerConfigs).collect(Collectors.toList()));
+        doPost("/api/2fa/settings", twoFaSettings).andExpect(status().isOk());
+    }
+
+    @Test
+    public void testIsTwoFaEnabled() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+        SmsTwoFaAccountConfig accountConfig = new SmsTwoFaAccountConfig();
+        accountConfig.setPhoneNumber("+38050505050");
+        twoFaConfigManager.saveTwoFaAccountConfig(tenantId, tenantAdminUserId, accountConfig);
+
+        assertThat(twoFactorAuthService.isTwoFaEnabled(tenantId, tenantAdminUserId)).isTrue();
+    }
+
+    @Test
+    public void testDeleteTwoFaAccountConfig() throws Exception {
+        configureSmsTwoFaProvider("${code}");
+        SmsTwoFaAccountConfig accountConfig = new SmsTwoFaAccountConfig();
+        accountConfig.setPhoneNumber("+38050505050");
+
+        loginTenantAdmin();
+
+        twoFaConfigManager.saveTwoFaAccountConfig(tenantId, tenantAdminUserId, accountConfig);
+
+        AccountTwoFaSettings accountTwoFaSettings = readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), AccountTwoFaSettings.class);
+        TwoFaAccountConfig savedAccountConfig = accountTwoFaSettings.getConfigs().get(TwoFaProviderType.SMS);
+        assertThat(savedAccountConfig).isEqualTo(accountConfig);
+
+        doDelete("/api/2fa/account/config?providerType=SMS").andExpect(status().isOk());
+
+        assertThat(readResponse(doGet("/api/2fa/account/settings").andExpect(status().isOk()), AccountTwoFaSettings.class).getConfigs())
+                .doesNotContainKey(TwoFaProviderType.SMS);
+    }
+
+    @Test
+    public void testTwoFaAccountConfigManagement_permissions() throws Exception {
+        loginTenantAdmin();
+        configureTotpTwoFaProvider();
+
+        loginTenantAdmin();
+
+        doGet("/api/2fa/account/settings")
+                .andExpect(status().isOk());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.DEVICE, Set.of(Operation.READ)
+        ));
+        assertForbidden(doGet("/api/2fa/account/settings"));
+        reset(userPermissionsService);
+
+        TotpTwoFaAccountConfig twoFaAccountConfig = readResponse(doPost("/api/2fa/account/config/generate?providerType=TOTP")
+                .andExpect(status().isOk()), TotpTwoFaAccountConfig.class);
+        doPost("/api/2fa/account/config/submit", twoFaAccountConfig)
+                .andExpect(status().isOk());
+        doPost("/api/2fa/account/config?verificationCode=123456", twoFaAccountConfig)
+                .andExpect(status().isBadRequest());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.PROFILE, Set.of(Operation.READ)
+        ));
+        assertForbidden(doPost("/api/2fa/account/config/generate?providerType=TOTP"));
+        assertForbidden(doPost("/api/2fa/account/config/submit", twoFaAccountConfig));
+        assertForbidden(doPost("/api/2fa/account/config?verificationCode=123456", twoFaAccountConfig));
+        assertForbidden(doDelete("/api/2fa/account/config?providerType=TOTP"));
+        reset(userPermissionsService);
+    }
+
+    @Test
+    public void testTwoFaSettingsManagement_permissions() throws Exception {
+        loginTenantAdmin();
+
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.WHITE_LABELING, Set.of(Operation.READ)
+        ));
+        doGet("/api/2fa/settings")
+                .andExpect(status().isOk());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.DEVICE, Set.of(Operation.READ)
+        ));
+        assertForbidden(doGet("/api/2fa/settings"));
+        reset(userPermissionsService);
+
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.WHITE_LABELING, Set.of(Operation.READ, Operation.WRITE)
+        ));
+        PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
+        twoFaSettings.setProviders(Collections.emptyList());
+        doPost("/api/2fa/settings", twoFaSettings)
+                .andExpect(status().isOk());
+        mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
+                Resource.WHITE_LABELING, Set.of(Operation.READ)
+        ));
+        assertForbidden(doPost("/api/2fa/settings", twoFaSettings));
+        reset(userPermissionsService);
+    }
+
+    private void assertForbidden(ResultActions apiCall) throws Exception {
+        String errorMessage = getErrorMessage(apiCall.andExpect(status().isForbidden()));
+        assertThat(errorMessage).containsIgnoringCase("don't have permission to perform");
+    }
+
+    private void mockPermissions(ArgumentMatcher<User> userMatcher, Map<Resource, Set<Operation>> permissions) throws ThingsboardException {
+        doReturn(new MergedUserPermissions(permissions, Collections.emptyMap()))
+                .when(userPermissionsService).getMergedPermissions(argThat(userMatcher), eq(false));
+    }
+
+}

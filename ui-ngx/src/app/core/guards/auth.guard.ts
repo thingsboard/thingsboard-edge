@@ -109,6 +109,11 @@ export class AuthGuard implements CanActivate, CanActivateChild {
             this.authService.redirectUrl = url;
             // this.authService.gotoDefaultPlace(false);
             return of(this.authService.defaultUrl(false));
+          } else if (path === 'login.mfa' && authState.authUser?.authority !== Authority.PRE_VERIFICATION_TOKEN) {
+            if (authState.isAuthenticated) {
+              this.authService.logout();
+            }
+            return of(this.authService.defaultUrl(false));
           } else {
             const tasks: Observable<any>[] = [];
             tasks.push(this.whiteLabelingService.loadLoginWhiteLabelingParams());
@@ -118,9 +123,15 @@ export class AuthGuard implements CanActivate, CanActivateChild {
                 tasks.push(this.authService.loadOAuth2Clients());
               }
             }
+            if (path === 'login.mfa') {
+              tasks.push(this.authService.getAvailableTwoFaLoginProviders());
+            }
             return forkJoin(tasks).pipe(
               map(() => {
                 if (path === 'signup' && !this.selfRegistrationService.signUpParams.activate) {
+                  return this.authService.defaultUrl(false);
+                } else if (path === 'login.mfa' && !this.authService.twoFactorAuthProviders) {
+                  this.authService.logout();
                   return this.authService.defaultUrl(false);
                 } else {
                   return true;
@@ -142,6 +153,10 @@ export class AuthGuard implements CanActivate, CanActivateChild {
           }
           if (this.mobileService.isMobileApp() && !path.startsWith('dashboard.')) {
             this.mobileService.handleMobileNavigation(path, params);
+            return of(false);
+          }
+          if (authState.authUser.authority === Authority.PRE_VERIFICATION_TOKEN) {
+            this.authService.logout();
             return of(false);
           }
           const defaultUrl = this.authService.defaultUrl(true, authState, path, params);

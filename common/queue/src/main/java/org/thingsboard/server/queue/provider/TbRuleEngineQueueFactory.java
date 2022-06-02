@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
@@ -43,7 +44,6 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 
 /**
  * Responsible for initialization of various Producers and Consumers used by TB Core Node.
@@ -114,7 +114,7 @@ public interface TbRuleEngineQueueFactory extends TbUsageStatsClientQueueFactory
      * @param configuration
      */
     //TODO 2.5 ybondarenko: make sure you use queueName to distinct consumers where necessary
-    TbQueueConsumer<TbProtoQueueMsg<ToRuleEngineMsg>> createToRuleEngineMsgConsumer(TbRuleEngineQueueConfiguration configuration);
+    TbQueueConsumer<TbProtoQueueMsg<ToRuleEngineMsg>> createToRuleEngineMsgConsumer(Queue configuration);
 
     /**
      * Used to consume high priority messages by TB Core Service

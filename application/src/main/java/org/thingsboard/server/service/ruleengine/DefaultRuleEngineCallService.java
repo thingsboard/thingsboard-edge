@@ -36,7 +36,6 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -93,7 +92,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         UUID requestId = new UUID(restApiCallResponseMsg.getRequestIdMSB(), restApiCallResponseMsg.getRequestIdLSB());
         Consumer<TbMsg> consumer = requests.remove(requestId);
         if (consumer != null) {
-            consumer.accept(TbMsg.fromBytes(ServiceQueue.MAIN, restApiCallResponseMsg.getResponse().toByteArray(), TbMsgCallback.EMPTY));
+            consumer.accept(TbMsg.fromBytes(null, restApiCallResponseMsg.getResponse().toByteArray(), TbMsgCallback.EMPTY));
         } else {
             log.trace("[{}] Unknown or stale rest api call response received", requestId);
         }
