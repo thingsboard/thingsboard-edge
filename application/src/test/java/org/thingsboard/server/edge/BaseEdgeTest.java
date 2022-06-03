@@ -1742,6 +1742,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testIntegrations() throws Exception {
         JsonNode baseUrlAttribute = JacksonUtil.toJsonNode("{\"baseUrl\": \"http://localhost:18080\"}");
         doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", baseUrlAttribute)
