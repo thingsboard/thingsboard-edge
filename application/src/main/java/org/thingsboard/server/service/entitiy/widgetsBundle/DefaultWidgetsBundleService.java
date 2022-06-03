@@ -28,56 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.dashboard;
+package org.thingsboard.server.service.entitiy.widgetsBundle;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.List;
-
 @Service
 @TbCoreComponent
 @AllArgsConstructor
-public class DefaultTbDashboardService extends AbstractTbEntityService implements TbDashboardService {
+public class DefaultWidgetsBundleService extends AbstractTbEntityService implements TbWidgetsBundleService{
+    @Override
+    public WidgetsBundle save(WidgetsBundle widgetsBundle, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
+        try {
+        WidgetsBundle savedWidgetsBundle = checkNotNull(widgetsBundleService.saveWidgetsBundle(widgetsBundle));
+            notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), savedWidgetsBundle.getId(),
+                    widgetsBundle.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+        return savedWidgetsBundle;
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
 
     @Override
-    public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        TenantId tenantId = dashboard.getTenantId();
+    public void delete(WidgetsBundle widgetsBundle, SecurityUser user) throws ThingsboardException {
         try {
-            Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
-            vcService.autoCommit(user, savedDashboard.getId());
-            createOrUpdateGroupEntity(tenantId, savedDashboard, entityGroup, actionType, user);
-            return savedDashboard;
+            widgetsBundleService.deleteWidgetsBundle(widgetsBundle.getTenantId(), widgetsBundle.getId());
+            notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), widgetsBundle.getId(),
+                    EdgeEventActionType.DELETED);
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), dashboard, null, actionType, user, e);
             throw handleException(e);
         }
     }
-    @Override
-    public void delete(Dashboard dashboard, SecurityUser user) throws ThingsboardException {
-        DashboardId dashboardId = dashboard.getId();
-        TenantId tenantId = dashboard.getTenantId();
-        try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, dashboardId);
-            dashboardService.deleteDashboard(tenantId, dashboardId);
-            notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
-                    ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
-        } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), null, null,
-                    ActionType.DELETED, user, e, dashboardId.toString());
-            throw handleException(e);
-        }
-    }
- }
+}

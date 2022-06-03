@@ -52,7 +52,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -186,8 +185,6 @@ public class EdgeController extends BaseController {
 
             return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.EDGE), edge,
-                    null, edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
             throw handleException(e);
         }
     }

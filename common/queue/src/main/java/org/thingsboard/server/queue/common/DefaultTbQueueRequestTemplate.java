@@ -171,9 +171,9 @@ public class DefaultTbQueueRequestTemplate<Request extends TbQueueMsg, Response 
 
     void setTimeoutException(UUID key, ResponseMetaData<Response> staleRequest, long currentNs) {
         if (currentNs >= staleRequest.getSubmitTime() + staleRequest.getTimeout()) {
-            log.warn("Request timeout detected, currentNs [{}], {}, key [{}]", currentNs, staleRequest, key);
+            log.debug("Request timeout detected, currentNs [{}], {}, key [{}]", currentNs, staleRequest, key);
         } else {
-            log.error("Request timeout detected, currentNs [{}], {}, key [{}]", currentNs, staleRequest, key);
+            log.info("Request timeout detected, currentNs [{}], {}, key [{}]", currentNs, staleRequest, key);
         }
         staleRequest.future.setException(new TimeoutException());
     }
@@ -188,7 +188,7 @@ public class DefaultTbQueueRequestTemplate<Request extends TbQueueMsg, Response 
             log.trace("[{}] Response received: {}", requestId, String.valueOf(response).replace("\n", " ")); //TODO remove overhead
             ResponseMetaData<Response> expectedResponse = pendingRequests.remove(requestId);
             if (expectedResponse == null) {
-                log.warn("[{}] Invalid or stale request, response: {}", requestId, String.valueOf(response).replace("\n", " "));
+                log.debug("[{}] Invalid or stale request, response: {}", requestId, String.valueOf(response).replace("\n", " "));
             } else {
                 expectedResponse.future.set(response);
             }

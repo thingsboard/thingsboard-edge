@@ -37,10 +37,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -176,13 +174,10 @@ public class DefaultTransportService implements TransportService {
     @Value("${transport.stats.enabled:false}")
     private boolean statsEnabled;
 
-    @Autowired
-    @Lazy
-    private PartitionService partitionService;
-
     private final Map<String, Number> statsMap = new LinkedHashMap<>();
 
     private final Gson gson = new Gson();
+    private final PartitionService partitionService;
     private final TbTransportQueueFactory queueProvider;
     private final TbQueueProducerProvider producerProvider;
 
@@ -216,7 +211,8 @@ public class DefaultTransportService implements TransportService {
 
     private volatile boolean stopped = false;
 
-    public DefaultTransportService(TbServiceInfoProvider serviceInfoProvider,
+    public DefaultTransportService(PartitionService partitionService,
+                                   TbServiceInfoProvider serviceInfoProvider,
                                    TbTransportQueueFactory queueProvider,
                                    TbQueueProducerProvider producerProvider,
                                    NotificationsTopicService notificationsTopicService,
@@ -229,6 +225,7 @@ public class DefaultTransportService implements TransportService {
                                    SchedulerComponent scheduler,
                                    TransportResourceCache transportResourceCache,
                                    ApplicationEventPublisher eventPublisher) {
+        this.partitionService = partitionService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.queueProvider = queueProvider;
         this.producerProvider = producerProvider;
@@ -263,7 +260,7 @@ public class DefaultTransportService implements TransportService {
         mainConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("transport-consumer"));
     }
 
-    @AfterStartUp
+    @AfterStartUp(order = AfterStartUp.TRANSPORT_SERVICE)
     private void start() {
         mainConsumerExecutor.execute(() -> {
             while (!stopped) {
