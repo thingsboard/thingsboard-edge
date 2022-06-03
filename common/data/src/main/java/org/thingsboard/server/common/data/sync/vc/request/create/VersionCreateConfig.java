@@ -41,4 +41,7 @@ public class VersionCreateConfig implements Serializable {
     private boolean saveRelations;
     private boolean saveAttributes;
     private boolean saveCredentials;
+    private boolean savePermissions;
+    private boolean saveGroupEntities;
+
 }
