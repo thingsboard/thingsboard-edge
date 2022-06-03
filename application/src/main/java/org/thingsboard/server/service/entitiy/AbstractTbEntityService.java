@@ -86,7 +86,6 @@ import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.resource.TbResourceService;
 import org.thingsboard.server.service.rule.TbRuleChainService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
