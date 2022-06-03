@@ -31,11 +31,11 @@
 
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { forkJoin, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { CustomTranslation } from '@shared/models/custom-translation.model';
 import { TranslateService } from '@ngx-translate/core';
-import { map, mergeMap } from 'rxjs/operators';
-import { mergeDeep } from '@core/utils';
+import { map, mergeMap, tap } from 'rxjs/operators';
+import { isEqual, isObject, mergeDeep, removeEmptyObjects } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 
@@ -49,6 +49,8 @@ export class CustomTranslationService {
   private translateLoadObservable: Observable<CustomTranslation> = null;
 
   private translationMap: {[key: string]: string} = null;
+  private prevTranslationMap: {[key: string]: string} = null;
+  private modifyLang = new Set<string>();
 
   constructor(
     @Inject(WINDOW) private window: Window,
@@ -68,21 +70,27 @@ export class CustomTranslationService {
       return updateCustomTranslationSubject.asObservable();
     }
     this.translateLoadObservable = this.translationMap && !forceUpdate
-      ? of({ translationMap: this.translationMap})
+      ? of(null)
       : this.loadCustomTranslation();
     this.translateLoadObservable.subscribe((customTranslation) => {
-      this.translationMap = customTranslation.translationMap;
+      let changeCustomTranslation = false;
+      if (customTranslation) {
+        changeCustomTranslation = !isEqual(this.translationMap, customTranslation.translationMap);
+        this.prevTranslationMap = changeCustomTranslation ? this.translationMap : null;
+        this.translationMap = customTranslation.translationMap;
+      }
       const langKey = this.translate.currentLang;
       let translationMap: {[key: string]: string};
-      if (customTranslation.translationMap[langKey]) {
+      if (this.translationMap[langKey]) {
         try {
-          translationMap = JSON.parse(customTranslation.translationMap[langKey]);
+          translationMap = JSON.parse(this.translationMap[langKey]);
         } catch (e) {}
       }
-      const reloadObservable = forceUpdate ? this.translate.reloadLang(langKey) : of(null);
+      const reloadObservable = forceUpdate && changeCustomTranslation ? this.resetTranslation() : of(null);
       reloadObservable.subscribe(() => {
         if (translationMap) {
           this.translate.setTranslation(langKey, translationMap, true);
+          this.modifyLang.add(langKey);
         } else {
           this.translate.onTranslationChange.emit({ lang: langKey, translations: this.translate.translations[langKey] });
         }
@@ -104,6 +112,35 @@ export class CustomTranslationService {
       this.updateTranslationSubjects = [];
     });
     return updateCustomTranslationSubject.asObservable();
+  }
+
+  private deletePropertyWithObject(source: object, removeObject: object) {
+    for (const key of Object.keys(removeObject)) {
+      if (isObject(removeObject[key]) && isObject(source[key])) {
+        this.deletePropertyWithObject(source[key], removeObject[key]);
+      }
+      delete source[key];
+    }
+  }
+
+  private resetTranslation(): Observable<any> {
+    if (!this.modifyLang.size) {
+      return of(null);
+    }
+    const tasks = [];
+    const originalLangTranslations = Array.from(this.modifyLang.values());
+    originalLangTranslations.forEach((lang) => {
+      tasks.push(this.http.get<any>(`./assets/locale/locale.constant-${lang}.json`));
+    });
+    return forkJoin(tasks).pipe(tap(translations => {
+      originalLangTranslations.forEach((lang, index) => {
+        this.deletePropertyWithObject(this.translate.translations[lang], JSON.parse(this.prevTranslationMap[lang]));
+        removeEmptyObjects(this.translate.translations[lang]);
+        this.translate.setTranslation(lang, translations[index], true);
+      });
+      this.modifyLang.clear();
+      this.prevTranslationMap = null;
+    }));
   }
 
   public getCurrentCustomTranslation(): Observable<CustomTranslation> {
