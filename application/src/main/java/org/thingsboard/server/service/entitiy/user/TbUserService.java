@@ -28,34 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.service.entitiy.user;
 
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.AliasFor;
-import org.springframework.core.annotation.Order;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import javax.servlet.http.HttpServletRequest;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@EventListener(ApplicationReadyEvent.class)
-@Order
-public @interface AfterStartUp {
+public interface TbUserService {
+    User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser,
+              boolean sendActivationMail, HttpServletRequest request, EntityGroupId entityGroupId,
+              EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
-    int QUEUE_INFO_INITIALIZATION = 1;
-    int DISCOVERY_SERVICE = 2;
-
-    int ACTOR_SYSTEM = 9;
-    int REGULAR_SERVICE = 10;
-
-    int BEFORE_TRANSPORT_SERVICE = Integer.MAX_VALUE - 1001;
-    int TRANSPORT_SERVICE = Integer.MAX_VALUE - 1000;
-    int AFTER_TRANSPORT_SERVICE = Integer.MAX_VALUE - 999;
-
-    @AliasFor(annotation = Order.class, attribute = "value")
-    int order();
+    void  delete (TenantId tenantId, CustomerId customerId, User tbUser, SecurityUser user) throws ThingsboardException;
 }

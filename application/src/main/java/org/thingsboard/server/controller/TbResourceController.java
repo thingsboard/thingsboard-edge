@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -45,10 +46,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
@@ -58,6 +57,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.resource.TbResourceService;
 
 import java.util.Base64;
 import java.util.List;
@@ -83,7 +83,10 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class TbResourceController extends BaseController {
+
+    private  final TbResourceService tbResourceService;
 
     public static final String RESOURCE_ID = "resourceId";
 
@@ -159,20 +162,9 @@ public class TbResourceController extends BaseController {
     @ResponseBody
     public TbResource saveResource(@ApiParam(value = "A JSON value representing the Resource.")
                                    @RequestBody TbResource resource) throws ThingsboardException {
-        boolean created = resource.getId() == null;
-        try {
-            resource.setTenantId(getTenantId());
-            checkEntity(resource.getId(), resource, Resource.TB_RESOURCE, null);
-            TbResource savedResource = checkNotNull(resourceService.saveResource(resource));
-            tbClusterService.onResourceChange(savedResource, null);
-            logEntityAction(savedResource.getId(), savedResource,
-                    null, created ? ActionType.ADDED : ActionType.UPDATED, null);
-            return savedResource;
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.TB_RESOURCE), resource,
-                    null, created ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
-        }
+        resource.setTenantId(getTenantId());
+        checkEntity(resource.getId(), resource, Resource.TB_RESOURCE, null);
+        return tbResourceService.save(resource, null, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Resource Infos (getResources)",
@@ -257,15 +249,8 @@ public class TbResourceController extends BaseController {
     public void deleteResource(@ApiParam(value = RESOURCE_ID_PARAM_DESCRIPTION)
                                @PathVariable("resourceId") String strResourceId) throws ThingsboardException {
         checkParameter(RESOURCE_ID, strResourceId);
-        try {
-            TbResourceId resourceId = new TbResourceId(toUUID(strResourceId));
-            TbResource tbResource = checkResourceId(resourceId, Operation.DELETE);
-            resourceService.deleteResource(getTenantId(), resourceId);
-            tbClusterService.onResourceDeleted(tbResource, null);
-            logEntityAction(resourceId, tbResource, null, ActionType.DELETED, null, strResourceId);
-        } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.TB_RESOURCE), null, null, ActionType.DELETED, e, strResourceId);
-            throw handleException(e);
-        }
+        TbResourceId resourceId = new TbResourceId(toUUID(strResourceId));
+        TbResource tbResource = checkResourceId(resourceId, Operation.DELETE);
+        tbResourceService.delete(tbResource, getCurrentUser());
     }
 }

@@ -77,7 +77,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
 
     @Override
     public EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;        
+        ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = entityView.getTenantId();
         try {
             List<ListenableFuture<?>> futures = new ArrayList<>();
@@ -127,7 +127,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
         try {
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, entityViewId);
             entityViewService.deleteEntityView(tenantId, entityViewId);
-            notificationEntityService.notifyDeleteEntity(tenantId, entityViewId, entityView, user != null ? user.getCustomerId() : null, ActionType.DELETED,
+            notificationEntityService.notifyDeleteEntity(tenantId, entityViewId, entityView, entityView.getCustomerId(), ActionType.DELETED,
                     relatedEdgeIds, user, entityViewId.toString());
         } catch (Exception e) {
             notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ENTITY_VIEW), null, null,

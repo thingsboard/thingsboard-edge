@@ -54,7 +54,7 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
     @Override
     public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
         ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        TenantId tenantId = user.getTenantId();
+        TenantId tenantId = dashboard.getTenantId();
         try {
             Dashboard saveDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
             createOrUpdateGroupEntity(tenantId, saveDashboard, entityGroup, actionType, user);

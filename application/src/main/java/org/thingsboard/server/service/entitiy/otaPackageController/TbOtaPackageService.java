@@ -28,34 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.service.entitiy.otaPackageController;
 
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.AliasFor;
-import org.springframework.core.annotation.Order;
+import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public interface TbOtaPackageService  {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@EventListener(ApplicationReadyEvent.class)
-@Order
-public @interface AfterStartUp {
+    OtaPackageInfo save(SaveOtaPackageInfoRequest saveOtaPackageInfoRequest, SecurityUser user) throws ThingsboardException;
 
-    int QUEUE_INFO_INITIALIZATION = 1;
-    int DISCOVERY_SERVICE = 2;
+    void  delete(OtaPackageInfo otaPackageInfo, SecurityUser user) throws ThingsboardException;
 
-    int ACTOR_SYSTEM = 9;
-    int REGULAR_SERVICE = 10;
-
-    int BEFORE_TRANSPORT_SERVICE = Integer.MAX_VALUE - 1001;
-    int TRANSPORT_SERVICE = Integer.MAX_VALUE - 1000;
-    int AFTER_TRANSPORT_SERVICE = Integer.MAX_VALUE - 999;
-
-    @AliasFor(annotation = Order.class, attribute = "value")
-    int order();
+    OtaPackageInfo saveOtaPackageData(OtaPackageInfo otaPackageInfo, String checksum, ChecksumAlgorithm checksumAlgorithm,
+                                      byte[] data, String filename, String contentType, SecurityUser securityUser) throws ThingsboardException;
 }
