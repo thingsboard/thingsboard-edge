@@ -50,3 +50,9 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     user_id uuid UNIQUE NOT NULL CONSTRAINT fk_user_auth_settings_user_id REFERENCES tb_user(id),
     two_fa_settings varchar
 );
+
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;
+
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;
