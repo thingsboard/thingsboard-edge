@@ -472,7 +472,7 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.dashboard-groups';
     case EntityType.EDGE:
       return 'entity-group.edge-groups';
-    // TODO: vb - refactor this? all is related to edge
+    // TODO: @voba - refactor this? all is related to edge
     case EntityType.SCHEDULER_EVENT:
       return 'scheduler.scheduler';
     case EntityType.RULE_CHAIN:

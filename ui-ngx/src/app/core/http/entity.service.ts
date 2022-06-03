@@ -535,7 +535,6 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        // TODO: @voba - fixme
         entitiesObservable = this.converterService.getConverters(pageLink, false, config);
         break;
       case EntityType.INTEGRATION:
