@@ -282,6 +282,10 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         }
     }
 
+    private void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action, null, null);
+    }
+
     private void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, EntityGroupId entityGroupId) {
         sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
