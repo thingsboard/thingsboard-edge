@@ -98,6 +98,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, tenantStandaloneEntityPermissionChecker);
         put(Resource.QUEUE, queuePermissionChecker);
+        put(Resource.VERSION_CONTROL, genericPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {

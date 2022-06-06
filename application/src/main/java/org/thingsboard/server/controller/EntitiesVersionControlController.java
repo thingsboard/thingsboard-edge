@@ -54,11 +54,12 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.sync.vc.EntityDataDiff;
 import org.thingsboard.server.common.data.sync.vc.EntityDataInfo;
 import org.thingsboard.server.common.data.sync.vc.EntityVersion;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
-import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
 import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
@@ -133,6 +134,7 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<VersionCreationResult> saveEntitiesVersion(@RequestBody VersionCreateRequest request) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
             return wrapFuture(versionControlService.saveEntitiesVersion(user, request));
         } catch (Exception e) {
             throw handleException(e);
@@ -161,6 +163,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                                       @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                                                       @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             EntityId externalEntityId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return wrapFuture(versionControlService.listEntityVersions(getTenantId(), branch, externalEntityId, pageLink));
@@ -190,6 +193,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                                           @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                                                           @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return wrapFuture(versionControlService.listEntityTypeVersions(getTenantId(), branch, entityType, pageLink));
         } catch (Exception e) {
@@ -225,6 +229,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                                 @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
                                                                 @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return wrapFuture(versionControlService.listVersions(getTenantId(), branch, pageLink));
         } catch (Exception e) {
@@ -238,6 +243,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                                            @PathVariable EntityType entityType,
                                                                            @PathVariable String versionId) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             return wrapFuture(versionControlService.listEntitiesAtVersion(getTenantId(), branch, versionId, entityType));
         } catch (Exception e) {
             throw handleException(e);
@@ -248,6 +254,7 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<List<VersionedEntityInfo>> listAllEntitiesAtVersion(@PathVariable String branch,
                                                                               @PathVariable String versionId) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             return wrapFuture(versionControlService.listAllEntitiesAtVersion(getTenantId(), branch, versionId));
         } catch (Exception e) {
             throw handleException(e);
@@ -259,6 +266,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                             @PathVariable EntityType entityType,
                                                             @PathVariable UUID externalEntityUuid) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
             return wrapFuture(versionControlService.getEntityDataInfo(getCurrentUser(), entityId, versionId));
         } catch (Exception e) {
@@ -272,6 +280,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                                      @PathVariable UUID internalEntityUuid,
                                                                      @RequestParam String versionId) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid);
             return wrapFuture(versionControlService.compareEntityDataToVersion(getCurrentUser(), branch, entityId, versionId));
         } catch (Exception e) {
@@ -315,6 +324,7 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<VersionLoadResult> loadEntitiesVersion(@RequestBody VersionLoadRequest request) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             return wrapFuture(versionControlService.loadEntitiesVersion(user, request));
         } catch (Exception e) {
             throw handleException(e);
@@ -340,6 +350,7 @@ public class EntitiesVersionControlController extends BaseController {
     @GetMapping("/branches")
     public DeferredResult<List<BranchInfo>> listBranches() throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             final TenantId tenantId = getTenantId();
             ListenableFuture<List<String>> branches = versionControlService.listBranches(tenantId);
             return wrapFuture(Futures.transform(branches, remoteBranches -> {

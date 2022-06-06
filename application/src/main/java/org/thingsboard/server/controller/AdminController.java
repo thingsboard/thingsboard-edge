@@ -280,7 +280,7 @@ public class AdminController extends BaseController {
     @ResponseBody
     public RepositorySettings getRepositorySettings() throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             RepositorySettings versionControlSettings = checkNotNull(versionControlService.getVersionControlSettings(getTenantId()));
             versionControlSettings.setPassword(null);
             versionControlSettings.setPrivateKey(null);
@@ -298,8 +298,11 @@ public class AdminController extends BaseController {
     @ResponseBody
     public Boolean repositorySettingsExists() throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
-            return versionControlService.getVersionControlSettings(getTenantId()) != null;
+            if (accessControlService.hasPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ)) {
+                return versionControlService.getVersionControlSettings(getTenantId()) != null;
+            } else {
+                return false;
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -310,7 +313,7 @@ public class AdminController extends BaseController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @PostMapping("/repositorySettings")
     public DeferredResult<RepositorySettings> saveRepositorySettings(@RequestBody RepositorySettings settings) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
         ListenableFuture<RepositorySettings> future = versionControlService.saveVersionControlSettings(getTenantId(), settings);
         return wrapFuture(Futures.transform(future, savedSettings -> {
             savedSettings.setPassword(null);
@@ -328,7 +331,7 @@ public class AdminController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<Void> deleteRepositorySettings() throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.DELETE);
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.DELETE);
             return wrapFuture(versionControlService.deleteVersionControlSettings(getTenantId()));
         } catch (Exception e) {
             throw handleException(e);
@@ -344,7 +347,7 @@ public class AdminController extends BaseController {
             @ApiParam(value = "A JSON value representing the Repository Settings.")
             @RequestBody RepositorySettings settings) throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             settings = checkNotNull(settings);
             return wrapFuture(versionControlService.checkVersionControlAccess(getTenantId(), settings));
         } catch (Exception e) {
@@ -359,7 +362,7 @@ public class AdminController extends BaseController {
     @ResponseBody
     public AutoCommitSettings getAutoCommitSettings() throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             return checkNotNull(autoCommitSettingsService.get(getTenantId()));
         } catch (Exception e) {
             throw handleException(e);
@@ -373,8 +376,11 @@ public class AdminController extends BaseController {
     @ResponseBody
     public Boolean autoCommitSettingsExists() throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
-            return autoCommitSettingsService.get(getTenantId()) != null;
+            if (accessControlService.hasPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ)) {
+                return autoCommitSettingsService.get(getTenantId()) != null;
+            } else {
+                return false;
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -385,7 +391,7 @@ public class AdminController extends BaseController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @PostMapping("/autoCommitSettings")
     public AutoCommitSettings saveAutoCommitSettings(@RequestBody AutoCommitSettings settings) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.WRITE);
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
         return autoCommitSettingsService.save(getTenantId(), settings);
     }
 
@@ -397,7 +403,7 @@ public class AdminController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteAutoCommitSettings() throws ThingsboardException {
         try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.DELETE);
+            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.DELETE);
             autoCommitSettingsService.delete(getTenantId());
         } catch (Exception e) {
             throw handleException(e);
