@@ -41,7 +41,6 @@ import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.sync.importing.impl.BaseGroupEntityImportService;
 
 @Service
 @TbCoreComponent

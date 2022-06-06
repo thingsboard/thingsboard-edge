@@ -42,7 +42,6 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.common.data.sync.ie.DeviceExportData;
-import org.thingsboard.server.service.sync.importing.impl.BaseGroupEntityImportService;
 
 @Service
 @TbCoreComponent

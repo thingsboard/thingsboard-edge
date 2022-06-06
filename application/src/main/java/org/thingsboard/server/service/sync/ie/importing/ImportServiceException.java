@@ -28,18 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.importing.impl;
+package org.thingsboard.server.service.sync.ie.importing;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
-
-public class MissingEntityException extends ImportServiceException {
-
-    private static final long serialVersionUID = 3669135386955906022L;
-    @Getter
-    private final EntityId entityId;
-
-    public MissingEntityException(EntityId entityId) {
-        this.entityId = entityId;
-    }
+public class ImportServiceException extends RuntimeException {
+    private static final long serialVersionUID = -4932715239522125041L;
 }

@@ -89,7 +89,7 @@ import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.ie.EntitiesExportImportService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
-import org.thingsboard.server.service.sync.ie.importing.impl.MissingEntityException;
+import org.thingsboard.server.service.sync.ie.importing.MissingEntityException;
 import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
 import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
 import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;

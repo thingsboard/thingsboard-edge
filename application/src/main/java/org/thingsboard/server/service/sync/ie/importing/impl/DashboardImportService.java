@@ -38,25 +38,16 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.sync.importing.impl.BaseGroupEntityImportService;
 import org.thingsboard.server.utils.RegexUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @TbCoreComponent
@@ -64,7 +55,6 @@ import java.util.stream.Collectors;
 public class DashboardImportService extends BaseGroupEntityImportService<DashboardId, Dashboard, GroupEntityExportData<Dashboard>> {
 
     private final DashboardService dashboardService;
-
 
     @Override
     protected void setOwner(TenantId tenantId, Dashboard dashboard, IdProvider idProvider) {
