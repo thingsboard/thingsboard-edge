@@ -143,9 +143,9 @@ export class ConvertersTableConfig extends EntityTableConfig<Converter> {
 
   private configureEntityFunctions(converterScope: string): (pageLink) => Observable<PageData<Converter>> {
     if (converterScope === 'tenant') {
-      return pageLink => this.converterService.getConverters(pageLink, false);
+      return pageLink => this.converterService.getConvertersByEdgeTemplate(pageLink, false);
     } else if (converterScope === 'edges') {
-      return pageLink => this.converterService.getConverters(pageLink, true);
+      return pageLink => this.converterService.getConvertersByEdgeTemplate(pageLink, true);
     }
   }
 

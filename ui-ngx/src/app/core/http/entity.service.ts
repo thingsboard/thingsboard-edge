@@ -535,18 +535,12 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.converterService.getConverters(pageLink, false, config);
+        entitiesObservable = this.converterService.getConvertersByEdgeTemplate(pageLink, false, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';
-        // TODO: @voba - review with FE team
-        if (IntegrationSubType[subType]) {
-          let isEdgeTemplate = subType as IntegrationSubType === IntegrationSubType.EDGE;
-          entitiesObservable = this.integrationService.getIntegrations(pageLink, isEdgeTemplate, config);
-        } else {
-          // safe fallback to default core type
-          entitiesObservable = this.integrationService.getIntegrations(pageLink, false, config);
-        }
+        const isEdgeTemplate = IntegrationSubType[subType] && subType as IntegrationSubType === IntegrationSubType.EDGE;
+        entitiesObservable = this.integrationService.getIntegrationsByEdgeTemplate(pageLink, isEdgeTemplate, config);
         break;
       case EntityType.SCHEDULER_EVENT:
         pageLink.sortOrder.property = 'name';

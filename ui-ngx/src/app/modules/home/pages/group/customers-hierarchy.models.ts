@@ -116,7 +116,7 @@ export function entityGroupsNodeText(translate: TranslateService, groupType: Ent
   return nodeIcon + nodeText;
 }
 
-export function entitiesNodeText(translate: TranslateService, entityType: EntityType, name: string) {
+export function entitiesNodeText(translate: TranslateService, entityType: EntityType, name: string): string {
   const nodeIcon = materialIconByEntityType(entityType);
   const nodeText = translate.instant(name);
   return nodeIcon + nodeText;

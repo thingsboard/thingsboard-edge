@@ -456,8 +456,8 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
   return settings;
 }
 
-export function entityGroupsTitle(groupType: EntityType) {
-  switch (groupType) {
+export function entityGroupsTitle(entityType: EntityType) {
+  switch (entityType) {
     case EntityType.ASSET:
       return 'entity-group.asset-groups';
     case EntityType.DEVICE:
@@ -472,7 +472,6 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.dashboard-groups';
     case EntityType.EDGE:
       return 'entity-group.edge-groups';
-    // TODO: @voba - refactor this? all is related to edge
     case EntityType.SCHEDULER_EVENT:
       return 'scheduler.scheduler';
     case EntityType.RULE_CHAIN:

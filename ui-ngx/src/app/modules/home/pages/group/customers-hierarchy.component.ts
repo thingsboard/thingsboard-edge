@@ -594,63 +594,55 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
     const nodesMap = {};
     this.edgeGroupsNodesMap[parentNodeId] = nodesMap;
     this.allowedEdgeGroupTypes.forEach((groupType) => {
-      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
-          text: entityGroupsNodeText(this.translate, groupType),
-          children: true
-        }
-      };
+      const text = entityGroupsNodeText(this.translate, groupType);
+      const node = this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType, text, true);
       nodes.push(node);
       nodesMap[groupType] = node.id;
       this.registerNode(node, parentNodeId);
     });
-    // TODO: @voba - review groupType - looks like this is not really group type, but more like entityType
     if (this.userPermissionsService.hasGenericPermission(Resource.SCHEDULER_EVENT, Operation.READ)) {
-      const groupType = EntityType.SCHEDULER_EVENT;
-      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
-          text: entitiesNodeText(this.translate, groupType, 'entity.type-scheduler-events')
-        }
-      };
+      const entityType = EntityType.SCHEDULER_EVENT;
+      const text = entitiesNodeText(this.translate, entityType, 'entity.type-scheduler-events');
+      const node = this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, entityType, text, false);
       nodes.push(node);
-      nodesMap[groupType] = node.id;
+      nodesMap[entityType] = node.id;
       this.registerNode(node, parentNodeId);
     }
     if (this.userPermissionsService.hasGenericPermission(Resource.RULE_CHAIN, Operation.READ) &&
         getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
-      const groupType = EntityType.RULE_CHAIN;
-      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
-          text: entitiesNodeText(this.translate, groupType, 'entity.type-rulechains')
-        }
-      };
+      const entityType = EntityType.RULE_CHAIN;
+      const text = entitiesNodeText(this.translate, entityType, 'entity.type-rulechains');
+      const node = this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, entityType, text, false);
       nodes.push(node);
-      nodesMap[groupType] = node.id;
+      nodesMap[entityType] = node.id;
       this.registerNode(node, parentNodeId);
     }
     if (this.userPermissionsService.hasGenericPermission(Resource.INTEGRATION, Operation.READ) &&
       getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN) {
-      const groupType = EntityType.INTEGRATION;
-      const node = {...this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, groupType), ...{
-          text: entitiesNodeText(this.translate, groupType, 'entity.type-integrations')
-        }
-      };
+      const entityType = EntityType.INTEGRATION;
+      const text = entitiesNodeText(this.translate, entityType, 'entity.type-integrations');
+      const node = this.createBaseEdgeNode(parentEntityGroupId, edge, customerData, entityType, text, false);
       nodes.push(node);
-      nodesMap[groupType] = node.id;
+      nodesMap[entityType] = node.id;
       this.registerNode(node, parentNodeId);
     }
     return nodes;
   }
 
-  private createBaseEdgeNode(parentEntityGroupId: string, edge: Edge, customerData: EdgeNodeCustomerData, groupType: EntityType) {
+  private createBaseEdgeNode(parentEntityGroupId: string, edge: Edge, customerData: EdgeNodeCustomerData, entityType: EntityType,
+                             text: string, children: boolean): CustomersHierarchyNode {
     return {
       id: (++this.nodeIdCounter) + '',
       icon: false,
-      children: false,
+      children: children,
+      text: text,
       data: {
         type: 'edgeGroups',
-        groupsType: groupType,
+        groupsType: entityType,
         edge,
         parentEntityGroupId,
         customerData,
-        internalId: edge.id.id + '_' + groupType
+        internalId: edge.id.id + '_' + entityType
       } as EdgeEntityGroupsNodeData
     };
   }
