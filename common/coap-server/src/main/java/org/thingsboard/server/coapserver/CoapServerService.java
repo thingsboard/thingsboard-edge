@@ -48,4 +48,6 @@ public interface CoapServerService {
 
     boolean isDtlsEnabled();
 
+    long getPiggybackTimeout();
+
 }
