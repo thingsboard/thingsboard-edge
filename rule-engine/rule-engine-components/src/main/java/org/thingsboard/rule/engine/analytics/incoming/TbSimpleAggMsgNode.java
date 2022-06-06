@@ -37,7 +37,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.analytics.incoming.state.StatePersistPolicy;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbIntervalState;
@@ -49,6 +48,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -107,7 +107,7 @@ public class TbSimpleAggMsgNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbSimpleAggMsgNodeConfiguration.class);
-        this.queueId = new QueueId(UUID.fromString(config.getQueueId()));
+        this.queueId = StringUtils.isNotEmpty(config.getQueueId()) ? new QueueId(UUID.fromString(config.getQueueId())) : null;
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
         this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
