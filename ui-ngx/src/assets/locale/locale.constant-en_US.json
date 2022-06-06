@@ -3824,7 +3824,8 @@
                 "API_USAGE_STATE": "API Usage State",
                 "TB_RESOURCE": "Resource",
                 "EDGE_GROUP": "Edge Group",
-                "OTA_PACKAGE": "Ota package"
+                "OTA_PACKAGE": "Ota package",
+                "VERSION_CONTROL": "Version control"
             }
         },
         "operation": {

@@ -38,6 +38,9 @@ import { PageLink } from '@shared/models/page/page-link';
 import { EntityGroupInfo, ShortEntityView } from '@shared/models/entity-group.models';
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { EntityType } from '@shared/models/entity-type.models';
+import { Operation, Resource, resourceByEntityType } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { exportableEntityTypes } from '@shared/models/vc.models';
 
 @Component({
   selector: 'tb-group-entity-tabs',
@@ -50,12 +53,22 @@ export class GroupEntityTabsComponent<T extends BaseData<HasId>>
   entityGroup: EntityGroupInfo;
   entityType: EntityType;
 
-  constructor(protected store: Store<AppState>) {
+  constructor(private userPermissionsService: UserPermissionsService,
+              protected store: Store<AppState>) {
     super(store);
   }
 
   ngOnInit() {
     super.ngOnInit();
+  }
+
+  hasVersionControl(): boolean {
+    if (this.entityType && exportableEntityTypes.includes(this.entityType)) {
+      const entityResource = resourceByEntityType.get(this.entityType);
+      return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.WRITE);
+    } else {
+      return false;
+    }
   }
 
   protected setEntitiesTableConfig(entitiesTableConfig: GroupEntityTableConfig<T>) {

@@ -108,7 +108,8 @@ export enum Resource {
   TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
   EDGE_GROUP = 'EDGE_GROUP',
-  OTA_PACKAGE = 'OTA_PACKAGE'
+  OTA_PACKAGE = 'OTA_PACKAGE',
+  VERSION_CONTROL = 'VERSION_CONTROL'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();

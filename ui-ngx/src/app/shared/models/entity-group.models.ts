@@ -31,7 +31,7 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
@@ -253,7 +253,7 @@ export interface EntityGroupConfiguration {
   actions: {[actionSourceId: string]: Array<WidgetActionDescriptor>};
 }
 
-export interface EntityGroup extends BaseData<EntityGroupId> {
+export interface EntityGroup extends BaseData<EntityGroupId>, ExportableEntity<EntityGroupId> {
   type: EntityType;
   name: string;
   ownerId: EntityId;

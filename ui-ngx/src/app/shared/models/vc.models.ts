@@ -42,7 +42,10 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.DASHBOARD,
   EntityType.CUSTOMER,
   EntityType.DEVICE_PROFILE,
-  EntityType.RULE_CHAIN
+  EntityType.RULE_CHAIN,
+  EntityType.CONVERTER,
+  EntityType.INTEGRATION,
+  EntityType.ROLE
 ];
 
 export interface VersionCreateConfig {
