@@ -61,6 +61,11 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     public AdminSettings findAdminSettingsByKey(TenantId tenantId, String key) {
         log.trace("Executing findAdminSettingsByKey [{}]", key);
         Validator.validateString(key, "Incorrect key " + key);
+        return findAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, key);
+    }
+
+    @Override
+    public AdminSettings findAdminSettingsByTenantIdAndKey(TenantId tenantId, String key) {
         return adminSettingsDao.findByTenantIdAndKey(tenantId.getId(), key);
     }
 
@@ -81,6 +86,9 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
             if (mailSettings != null) {
                 ((ObjectNode) adminSettings.getJsonValue()).put("password", mailSettings.getJsonValue().get("password").asText());
             }
+        }
+        if (adminSettings.getTenantId() == null) {
+            adminSettings.setTenantId(TenantId.SYS_TENANT_ID);
         }
         return adminSettingsDao.save(tenantId, adminSettings);
     }
