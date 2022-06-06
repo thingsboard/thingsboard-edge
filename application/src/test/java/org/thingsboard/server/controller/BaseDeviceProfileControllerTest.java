@@ -43,6 +43,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
@@ -55,13 +56,20 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportC
 import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -69,6 +77,9 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseDeviceProfileControllerTest extends AbstractControllerTest {
@@ -78,6 +89,9 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    @SpyBean
+    private UserPermissionsService userPermissionsService;
 
     @Before
     public void beforeTest() throws Exception {
@@ -142,10 +156,29 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
 
     @Test
     public void whenGetDeviceProfileById_thenPermissionsAreChecked() throws Exception {
+        loginTenantAdmin();
         DeviceProfile deviceProfile = createDeviceProfile("Device profile 1", null);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
 
         loginDifferentTenant();
+        doGet("/api/deviceProfile/" + deviceProfile.getId())
+                .andExpect(status().isForbidden());
+
+        loginTenantAdmin();
+        User otherTenantUser = new User();
+        otherTenantUser.setEmail("tenant-user@thingsboard.org");
+        otherTenantUser.setAuthority(Authority.TENANT_ADMIN);
+        otherTenantUser.setTenantId(tenantId);
+        otherTenantUser = createUser(otherTenantUser, "12345678");
+        Map<Resource, Set<Operation>> permissions = Map.of(Resource.DEVICE_PROFILE, Set.of(Operation.READ));
+        mockUserPermissions(otherTenantUser.getId(), permissions);
+
+        login(otherTenantUser.getEmail(), "12345678");
+        doGet("/api/deviceProfile/" + deviceProfile.getId())
+                .andExpect(status().isOk());
+
+        permissions = Map.of(Resource.ASSET, Set.of(Operation.READ));
+        mockUserPermissions(otherTenantUser.getId(), permissions);
         doGet("/api/deviceProfile/" + deviceProfile.getId())
                 .andExpect(status().isForbidden());
     }
@@ -324,6 +357,29 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
                 new TypeReference<PageData<DeviceProfile>>(){}, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(1, pageData.getTotalElements());
+    }
+
+    @Test
+    public void whenFindDeviceProfiles_thenPermissionsAreChecked() throws Exception {
+        loginTenantAdmin();
+        DeviceProfile deviceProfile = createDeviceProfile("Device profile 1", null);
+
+        User otherTenantUser = new User();
+        otherTenantUser.setEmail("tenant-user@thingsboard.org");
+        otherTenantUser.setAuthority(Authority.TENANT_ADMIN);
+        otherTenantUser.setTenantId(tenantId);
+        otherTenantUser = createUser(otherTenantUser, "12345678");
+        Map<Resource, Set<Operation>> permissions = Map.of(Resource.ALL, Set.of(Operation.READ));
+        mockUserPermissions(otherTenantUser.getId(), permissions);
+
+        login(otherTenantUser.getEmail(), "12345678");
+        doGet("/api/deviceProfiles?pageSize=10&page=0")
+                .andExpect(status().isOk());
+
+        permissions = Map.of(Resource.ASSET, Set.of(Operation.READ));
+        mockUserPermissions(otherTenantUser.getId(), permissions);
+        doGet("/api/deviceProfiles?pageSize=10&page=0")
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -911,6 +967,12 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
     private String dynamicMsgToJson(Descriptors.Descriptor descriptor, byte[] payload) throws InvalidProtocolBufferException {
         DynamicMessage dynamicMessage = DynamicMessage.parseFrom(descriptor, payload);
         return JsonFormat.printer().includingDefaultValueFields().print(dynamicMessage);
+    }
+
+    protected void mockUserPermissions(UserId userId, Map<Resource, Set<Operation>> permissions) throws ThingsboardException {
+        MergedUserPermissions mergedUserPermissions = new MergedUserPermissions(permissions, Collections.emptyMap());
+        doReturn(mergedUserPermissions).when(userPermissionsService)
+                .getMergedPermissions(argThat(user -> user.getId().equals(userId)), anyBoolean());
     }
 
 }
