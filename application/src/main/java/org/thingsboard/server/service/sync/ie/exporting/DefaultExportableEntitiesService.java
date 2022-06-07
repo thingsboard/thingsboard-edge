@@ -33,7 +33,6 @@ package org.thingsboard.server.service.sync.ie.exporting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
@@ -42,11 +41,20 @@ import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -55,7 +63,17 @@ import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
-import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.converter.ConverterService;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
@@ -63,10 +81,11 @@ import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import java.util.function.BiConsumer;
 
 @Service
 @TbCoreComponent
@@ -75,8 +94,8 @@ import java.util.stream.Collectors;
 public class DefaultExportableEntitiesService implements ExportableEntitiesService {
 
     private final Map<EntityType, Dao<?>> daos = new HashMap<>();
+    private final Map<EntityType, BiConsumer<TenantId, EntityId>> removers = new HashMap<>();
 
-    private final EntityService entityService;
     private final OwnersCacheService ownersCacheService;
     private final AccessControlService accessControlService;
 
@@ -160,26 +179,15 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
         return owners.contains(tenantId);
     }
 
-    private List<EntityId> findEntitiesByQuery(SecurityUser user, CustomerId customerId, EntityDataQuery query) {
-        try {
-            return entityService.findEntityDataByQuery(user.getTenantId(), customerId, user.getUserPermissions(), query).getData().stream()
-                    .map(EntityData::getEntityId)
-                    .collect(Collectors.toList());
-        } catch (DataAccessException e) {
-            log.error("Failed to find entity data by query: {}", e.getMessage());
-            throw new IllegalArgumentException("Entity filter cannot be processed");
-        }
-    }
 
     @Override
-    public <I extends EntityId> void deleteByTenantIdAndId(TenantId tenantId, I id) {
+    public <I extends EntityId> void removeById(TenantId tenantId, I id) {
         EntityType entityType = id.getEntityType();
-        Dao<Object> dao = getDao(entityType);
-        if (dao == null) {
+        BiConsumer<TenantId, EntityId> entityRemover = removers.get(entityType);
+        if (entityRemover == null) {
             throw new IllegalArgumentException("Unsupported entity type " + entityType);
         }
-
-        dao.removeById(tenantId, id.getId());
+        entityRemover.accept(tenantId, id);
     }
 
 
@@ -218,6 +226,47 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
             if (dao.getEntityType() != null) {
                 this.daos.put(dao.getEntityType(), dao);
             }
+        });
+    }
+
+    @Autowired
+    private void setRemovers(CustomerService customerService, AssetService assetService, RuleChainService ruleChainService,
+                             DashboardService dashboardService, DeviceProfileService deviceProfileService,
+                             DeviceService deviceService, WidgetsBundleService widgetsBundleService,
+                             EntityGroupService entityGroupService, ConverterService converterService,
+                             IntegrationService integrationService, RoleService roleService) {
+        removers.put(EntityType.CUSTOMER, (tenantId, entityId) -> {
+            customerService.deleteCustomer(tenantId, (CustomerId) entityId);
+        });
+        removers.put(EntityType.ASSET, (tenantId, entityId) -> {
+            assetService.deleteAsset(tenantId, (AssetId) entityId);
+        });
+        removers.put(EntityType.RULE_CHAIN, (tenantId, entityId) -> {
+            ruleChainService.deleteRuleChainById(tenantId, (RuleChainId) entityId);
+        });
+        removers.put(EntityType.DASHBOARD, (tenantId, entityId) -> {
+            dashboardService.deleteDashboard(tenantId, (DashboardId) entityId);
+        });
+        removers.put(EntityType.DEVICE_PROFILE, (tenantId, entityId) -> {
+            deviceProfileService.deleteDeviceProfile(tenantId, (DeviceProfileId) entityId);
+        });
+        removers.put(EntityType.DEVICE, (tenantId, entityId) -> {
+            deviceService.deleteDevice(tenantId, (DeviceId) entityId);
+        });
+        removers.put(EntityType.WIDGETS_BUNDLE, (tenantId, entityId) -> {
+            widgetsBundleService.deleteWidgetsBundle(tenantId, (WidgetsBundleId) entityId);
+        });
+        removers.put(EntityType.ENTITY_GROUP, (tenantId, entityId) -> {
+            entityGroupService.deleteEntityGroup(tenantId, (EntityGroupId) entityId);
+        });
+        removers.put(EntityType.CONVERTER, (tenantId, entityId) -> {
+            converterService.deleteConverter(tenantId, (ConverterId) entityId);
+        });
+        removers.put(EntityType.INTEGRATION, (tenantId, entityId) -> {
+            integrationService.deleteIntegration(tenantId, (IntegrationId) entityId);
+        });
+        removers.put(EntityType.ROLE, (tenantId, entityId) -> {
+            roleService.deleteRole(tenantId, (RoleId) entityId);
         });
     }
 

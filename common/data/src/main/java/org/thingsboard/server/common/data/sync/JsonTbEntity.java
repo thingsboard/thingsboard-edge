@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -62,6 +63,7 @@ import java.lang.annotation.Target;
         @Type(name = "ASSET", value = Asset.class),
         @Type(name = "DASHBOARD", value = Dashboard.class),
         @Type(name = "CUSTOMER", value = Customer.class),
+        @Type(name = "WIDGETS_BUNDLE", value = WidgetsBundle.class),
         @Type(name = "ENTITY_GROUP", value = EntityGroup.class),
         @Type(name = "CONVERTER", value = Converter.class),
         @Type(name = "INTEGRATION", value = Integration.class),

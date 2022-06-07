@@ -65,7 +65,6 @@ import java.util.Map;
 @TbCoreComponent
 @RequiredArgsConstructor
 @Slf4j
-@SuppressWarnings("rawtypes")
 public class DefaultEntitiesExportImportService implements EntitiesExportImportService {
 
     private final Map<EntityType, EntityExportService<?, ?, ?>> exportServices = new HashMap<>();
@@ -76,7 +75,7 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     protected static final List<EntityType> SUPPORTED_ENTITY_TYPES = List.of(
             EntityType.CUSTOMER, EntityType.ENTITY_GROUP, EntityType.ASSET, EntityType.RULE_CHAIN,
             EntityType.DASHBOARD, EntityType.DEVICE_PROFILE, EntityType.DEVICE, EntityType.CONVERTER,
-            EntityType.INTEGRATION, EntityType.ROLE
+            EntityType.INTEGRATION, EntityType.ROLE, EntityType.WIDGETS_BUNDLE
     );
 
 
@@ -143,7 +142,7 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
             return 1 + getNestingLevel((CustomerId) customerOwner, entitiesOwners);
         }
     }
-    
+
     @Override
     public Comparator<EntityType> getEntityTypeComparatorForImport() {
         return Comparator.comparing(SUPPORTED_ENTITY_TYPES::indexOf);
