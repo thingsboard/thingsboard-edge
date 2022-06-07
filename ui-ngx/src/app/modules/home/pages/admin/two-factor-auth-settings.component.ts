@@ -49,6 +49,8 @@ import { takeUntil } from 'rxjs/operators';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
+import {Operation, Resource} from "@shared/models/security.models";
+import {UserPermissionsService} from "@core/http/user-permissions.service";
 
 @Component({
   selector: 'tb-2fa-settings',
@@ -63,6 +65,8 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
   authState = getCurrentAuthState(this.store);
   authUser = this.authState.authUser;
 
+  readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
+
   twoFaFormGroup: FormGroup;
   twoFactorAuthProviderType = TwoFactorAuthProviderType;
   twoFactorAuthProvidersData = twoFactorAuthProvidersData;
@@ -71,6 +75,7 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
 
   constructor(protected store: Store<AppState>,
               private twoFaService: TwoFactorAuthenticationService,
+              private userPermissionsService: UserPermissionsService,
               private fb: FormBuilder) {
     super(store);
   }
@@ -184,6 +189,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
         this.providersForm.at(indexBackupCode).get('enable').enable( {emitEvent: false});
       }
     });
+    if (this.readonly) {
+      this.twoFaFormGroup.disable({emitEvent: false});
+    }
   }
 
   private setAuthConfigFormValue(settings: TwoFactorAuthSettings) {
@@ -211,6 +219,9 @@ export class TwoFactorAuthSettingsComponent extends PageComponent implements OnI
       processFormValue.useSystemTwoFactorAuthSettings = true;
     }
     this.twoFaFormGroup.patchValue(processFormValue);
+    if (this.readonly) {
+      this.twoFaFormGroup.disable({emitEvent: false});
+    }
   }
 
   private buildProvidersSettingsForm(provider: TwoFactorAuthProviderType) {

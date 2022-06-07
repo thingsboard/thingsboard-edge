@@ -56,6 +56,8 @@ import { authenticationDialogMap } from '@home/pages/security/authentication-dia
 import { takeUntil, tap } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { isDefinedAndNotNull } from '@core/utils';
+import {Operation, Resource} from "@shared/models/security.models";
+import {UserPermissionsService} from "@core/http/user-permissions.service";
 
 @Component({
   selector: 'tb-security',
@@ -66,6 +68,9 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
 
   private readonly destroy$ = new Subject<void>();
   private accountConfig: AccountTwoFaSettingProviders;
+
+  resource = Resource;
+  operation = Operation;
 
   twoFactorAuth: FormGroup;
   user: User;
@@ -96,6 +101,7 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
               public dialogService: DialogService,
               public fb: FormBuilder,
               private datePipe: DatePipe,
+              private userPermissionsService: UserPermissionsService,
               private clipboardService: ClipboardService) {
     super(store);
   }
@@ -133,7 +139,7 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
   }
 
   private twoFactorLoad(providers: TwoFactorAuthProviderType[]) {
-    if (providers.length) {
+    if (providers.length && this.userPermissionsService.hasGenericPermission(Resource.PROFILE, Operation.WRITE)) {
       this.twoFaService.getAccountTwoFaSettings().subscribe(data => this.processTwoFactorAuthConfig(data));
       Object.values(TwoFactorAuthProviderType).forEach(type => {
         if (providers.includes(type)) {

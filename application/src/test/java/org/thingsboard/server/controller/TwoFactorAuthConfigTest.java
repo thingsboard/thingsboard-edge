@@ -184,6 +184,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
         totpTwoFaProviderConfig.setIssuerName("tb");
         sysadminTwoFaSettings.setProviders(Collections.singletonList(totpTwoFaProviderConfig));
+        sysadminTwoFaSettings.setMinVerificationCodeSendPeriod(5);
+        sysadminTwoFaSettings.setTotalAllowedTimeForVerification(100);
         sysadminTwoFaSettings.setMaxVerificationFailuresBeforeUserLockout(25);
         doPost("/api/2fa/settings", sysadminTwoFaSettings).andExpect(status().isOk());
 
@@ -191,6 +193,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         PlatformTwoFaSettings tenantTwoFaSettings = new PlatformTwoFaSettings();
         tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);
         tenantTwoFaSettings.setProviders(Collections.emptyList());
+        tenantTwoFaSettings.setMinVerificationCodeSendPeriod(5);
+        tenantTwoFaSettings.setTotalAllowedTimeForVerification(100);
         doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
         PlatformTwoFaSettings twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
         assertThat(twoFaSettings).isEqualTo(tenantTwoFaSettings);
@@ -623,6 +627,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         ));
         PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
         twoFaSettings.setProviders(Collections.emptyList());
+        twoFaSettings.setMinVerificationCodeSendPeriod(5);
+        twoFaSettings.setTotalAllowedTimeForVerification(100);
         doPost("/api/2fa/settings", twoFaSettings)
                 .andExpect(status().isOk());
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
