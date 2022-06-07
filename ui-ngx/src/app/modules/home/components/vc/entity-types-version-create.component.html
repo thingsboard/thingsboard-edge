@@ -95,18 +95,28 @@
                     </div>
                   </div>
                 </div>
-                <div fxLayout="row" fxLayoutGap="16px" fxLayoutAlign="start center"
-                     formGroupName="config" style="min-height: 76px;">
+                <div [fxLayout]="isGroupEntityType(entityTypeFormGroup.get('entityType').value) ? 'column': 'row'"
+                     fxLayoutGap="16px" [fxLayoutAlign]="isGroupEntityType(entityTypeFormGroup.get('entityType').value) ? 'start' : 'start center'"
+                     formGroupName="config"
+                     [ngStyle]="isGroupEntityType(entityTypeFormGroup.get('entityType').value) ? {} : {minHeight: '76px'}">
                   <mat-slide-toggle formControlName="allEntities">
                     {{ 'version-control.all-entities' | translate }}
                   </mat-slide-toggle>
                   <tb-entity-list
                     fxFlex
+                    *ngIf="!isGroupEntityType(entityTypeFormGroup.get('entityType').value)"
                     [fxShow]="!entityTypeFormGroup.get('config').get('allEntities').value"
                     [entityType]="entityTypeFormGroup.get('entityType').value"
                     required
                     formControlName="entityIds">
                   </tb-entity-list>
+                  <tb-owner-entity-group-list
+                    *ngIf="isGroupEntityType(entityTypeFormGroup.get('entityType').value)"
+                    [fxShow]="!entityTypeFormGroup.get('config').get('allEntities').value"
+                    [entityType]="entityTypeFormGroup.get('entityType').value"
+                    required
+                    formControlName="entityIds">
+                  </tb-owner-entity-group-list>
                 </div>
               </div>
             </ng-template>

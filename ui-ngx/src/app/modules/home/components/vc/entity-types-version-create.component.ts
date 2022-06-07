@@ -166,6 +166,9 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
     entityTypeControl.get('config').get('allEntities').valueChanges.subscribe(() => {
       this.updateEntityTypeValidators(entityTypeControl);
     });
+    entityTypeControl.get('entityType').valueChanges.subscribe(() => {
+      entityTypeControl.get('config').get('entityIds').patchValue([], {emitEvent: false});
+    });
     return entityTypeControl;
   }
 
@@ -237,13 +240,9 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       count = 0;
     }
     if (entityType) {
-      if (entityGroupTypes.includes(entityType)) {
-        return this.translate.instant((config?.allEntities ? entityTypeTranslations.get(entityType).typePlural
-          : entityTypeTranslations.get(entityType).groupList), {count});
-      } else {
-        return this.translate.instant((config?.allEntities ? entityTypeTranslations.get(entityType).typePlural
-          : entityTypeTranslations.get(entityType).list), {count});
-      }
+      const translation = entityTypeTranslations.get(entityType);
+      return this.translate.instant((config?.allEntities ? translation.typePlural
+        : (entityGroupTypes.includes(entityType) ? translation.groupList : translation.list)), {count});
     } else {
       return 'Undefined';
     }
