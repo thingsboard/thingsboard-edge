@@ -147,7 +147,7 @@ public enum Resource {
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
         operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
         operationsByResource.put(Resource.AUDIT_LOG, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
-        operationsByResource.put(Resource.QUEUE, Operation.crudOperations);
+        operationsByResource.put(Resource.QUEUE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
         operationsByResource.put(Resource.VERSION_CONTROL, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE)));
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(

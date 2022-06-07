@@ -3825,6 +3825,7 @@
                 "TB_RESOURCE": "Resource",
                 "EDGE_GROUP": "Edge Group",
                 "OTA_PACKAGE": "Ota package",
+                "QUEUE": "Queue",
                 "VERSION_CONTROL": "Version control"
             }
         },
