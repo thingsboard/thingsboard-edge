@@ -249,8 +249,8 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
     if (this.config.componentsData.integrationScope === 'edge') {
       let url: UrlTree;
       if (params && params.hierarchyView) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'integrations', integration.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'integrations', integration.id.id]);
         window.open(window.location.origin + url, '_blank');
       } else {
         url = this.router.createUrlTree([integration.id.id], { relativeTo: this.config.getActivatedRoute() });
@@ -304,8 +304,8 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
       this.config.entitiesDeleteEnabled = false;
       this.config.deleteEnabled = () => false;
       this.config.detailsReadonly = () => true;
+      this.config.headerActionDescriptors = [];
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
-        this.config.headerActionDescriptors = [];
         this.config.headerActionDescriptors.push({
             name: this.translate.instant('edge.assign-to-edge'),
             icon: 'add',

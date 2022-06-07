@@ -278,7 +278,8 @@ export function resolveIntegrationParams(route: ActivatedRouteSnapshot): Integra
     integrationScope,
     hierarchyView: routeParams?.hierarchyView,
     entityGroupId: routeParams?.entityGroupId,
-    customerGroupId: routeParams?.customerGroupId,
+    // TODO: @voba - why this works here and not in rule chain
+    // childEntityGroupId: routeParams?.childEntityGroupId,
     customerId: routeParams?.customerId
   };
 }

@@ -45,9 +45,8 @@ import { EntityTableConfig } from '@home/models/entity/entities-table-config.mod
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormGroup } from '@angular/forms';
-import { AssetId } from '@shared/models/id/asset-id';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, isEqual, mergeDeep } from '@core/utils';
+import { deepClone, isDefined, isUndefined } from '@core/utils';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 import { DialogService } from '@core/services/dialog.service';
@@ -96,18 +95,8 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
               private dialogService: DialogService,
               protected store: Store<AppState>) {
     super(store, injector, cd, componentFactoryResolver);
-    // TODO: @voba - review with FE team
-    const edgeEntitiesType = this.route.snapshot.data.edgeEntitiesType;
-    const entityGroup = this.route.snapshot.data.entityGroup;
-    if (isDefined(edgeEntitiesType) && isDefined(entityGroup)) {
-      if (isEqual(edgeEntitiesType, entityGroup.type)) {
-        this.entityGroup = entityGroup;
-        this.entitiesTableConfig = entityGroup.entityGroupConfig;
-      } else {
-        this.entitiesTableConfig = this.route.snapshot.data.entitiesTableConfig;
-      }
-    } else if (isDefined(entityGroup)) {
-      this.entityGroup = entityGroup;
+    if (isDefined(this.route.snapshot.data.entityGroup) && isUndefined(this.route.snapshot.data.entitiesTableConfig)) {
+      this.entityGroup = this.route.snapshot.data.entityGroup;
       this.entitiesTableConfig = this.entityGroup.entityGroupConfig;
     } else {
       this.entitiesTableConfig = this.route.snapshot.data.entitiesTableConfig;

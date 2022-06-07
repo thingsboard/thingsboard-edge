@@ -290,11 +290,11 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           this.updateGroupView(entityGroupParams, entityGroup);
         }
       } else if (node.data.type === 'edgeGroups' || node.data.type === 'edgeGroup') {
-        entityGroupParams.customerGroupId = node.data.customerData.customerGroupId;
         entityGroupParams.customerId = node.data.customerData.customerId;
         entityGroupParams.nodeId = node.id;
         entityGroupParams.internalId = node.data.internalId;
-        entityGroupParams.entityGroupId = node.data.parentEntityGroupId;
+        entityGroupParams.entityGroupId = node.data.customerData.customerGroupId;
+        entityGroupParams.childEntityGroupId = node.data.parentEntityGroupId;
         entityGroupParams.edgeId = node.data.edge.id.id;
         entityGroupParams.groupType = EntityType.EDGE;
         if (node.data.type === 'edgeGroups') {
@@ -302,8 +302,9 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           this.updateViewByEntityType(node.data.groupsType, entityGroupParams, node.data.edge);
         } else {
           const entityGroup = node.data.entityGroup;
-          entityGroupParams.childEntityGroupId = entityGroup.id.id;
+          entityGroupParams.edgeEntitiesGroupId = entityGroup.id.id;
           entityGroupParams.edgeEntitiesType = entityGroup.type;
+          // TODO: @voba - verify this childGroupType
           entityGroupParams.childGroupType = entityGroup.type;
           this.updateGroupView(entityGroupParams, entityGroup);
         }
