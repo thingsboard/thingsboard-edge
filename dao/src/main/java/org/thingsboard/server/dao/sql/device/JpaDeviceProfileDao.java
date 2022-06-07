@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.device;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,6 +48,7 @@ import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -104,6 +106,11 @@ public class JpaDeviceProfileDao extends JpaAbstractSearchTextDao<DeviceProfileE
                             Objects.toString(pageLink.getTextSearch(), ""),
                             DaoUtil.toPageable(pageLink)));
         }
+    }
+
+    @Override
+    public ListenableFuture<List<DeviceProfileInfo>> findDeviceProfilesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> deviceProfileIds) {
+        return service.submit(() -> deviceProfileRepository.findDeviceProfileInfosByTenantIdAndIdIn(tenantId, deviceProfileIds));
     }
 
     @Override

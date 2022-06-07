@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.device;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -38,6 +39,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface DeviceProfileDao extends Dao<DeviceProfile>, ExportableEntityDao<DeviceProfile> {
@@ -51,6 +53,8 @@ public interface DeviceProfileDao extends Dao<DeviceProfile>, ExportableEntityDa
     PageData<DeviceProfile> findDeviceProfiles(TenantId tenantId, PageLink pageLink);
 
     PageData<DeviceProfileInfo> findDeviceProfileInfos(TenantId tenantId, PageLink pageLink, String transportType);
+
+    ListenableFuture<List<DeviceProfileInfo>> findDeviceProfilesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> deviceProfileIds);
 
     DeviceProfile findDefaultDeviceProfile(TenantId tenantId);
 
