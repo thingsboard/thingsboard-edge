@@ -54,6 +54,17 @@
   .tb-control-list {
     overflow-y: auto;
     overflow-x: hidden;
-    max-height: 600px;
+    max-height: 250px;
+
+    button.mat-icon-button {
+      mat-icon {
+        color: rgba(0, 0, 0, .54);
+      }
+      &[disabled][disabled] {
+        mat-icon {
+          color: rgba(0, 0, 0, .26);
+        }
+      }
+    }
   }
 }
