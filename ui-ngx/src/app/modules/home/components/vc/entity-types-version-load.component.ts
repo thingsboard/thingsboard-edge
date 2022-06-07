@@ -52,6 +52,7 @@ import { MatCheckbox } from '@angular/material/checkbox/checkbox';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { EntityVersionCreateComponent } from '@home/components/vc/entity-version-create.component';
 import { RemoveOtherEntitiesConfirmComponent } from '@home/components/vc/remove-other-entities-confirm.component';
+import { entityGroupTypes } from '@shared/models/entity-group.models';
 
 @Component({
   selector: 'tb-entity-types-version-load',
@@ -150,6 +151,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
           loadRelations: [config.loadRelations, []],
           loadAttributes: [config.loadAttributes, []],
           loadCredentials: [config.loadCredentials, []],
+          loadPermissions: [config.loadPermissions, []],
+          loadGroupEntities: [config.loadGroupEntities, []],
           removeOtherEntities: [config.removeOtherEntities, []],
           findExistingEntityByName: [config.findExistingEntityByName, []]
         })
@@ -185,6 +188,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
       loadAttributes: true,
       loadRelations: true,
       loadCredentials: true,
+      loadPermissions: true,
+      loadGroupEntities: true,
       removeOtherEntities: false,
       findExistingEntityByName: true
     };
@@ -245,6 +250,10 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
           }, {}, {}, {}, false);
       }
     }
+  }
+
+  isGroupEntityType(entityType: EntityType): boolean {
+    return entityGroupTypes.includes(entityType);
   }
 
   private updateModel() {

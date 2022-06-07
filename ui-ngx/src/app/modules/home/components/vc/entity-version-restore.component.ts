@@ -90,7 +90,9 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
     this.restoreFormGroup = this.fb.group({
       loadAttributes: [true, []],
       loadRelations: [true, []],
-      loadCredentials: [true, []]
+      loadCredentials: [true, []],
+      loadPermissions: [true, []],
+      loadGroupEntities: [true, []]
     });
     this.entitiesVersionControlService.getEntityDataInfo(this.externalEntityId, this.versionId).subscribe((data) => {
       this.entityDataInfo = data;
@@ -115,7 +117,9 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
       config: {
         loadRelations: this.entityDataInfo.hasRelations ? this.restoreFormGroup.get('loadRelations').value : false,
         loadAttributes: this.entityDataInfo.hasAttributes ? this.restoreFormGroup.get('loadAttributes').value : false,
-        loadCredentials: this.entityDataInfo.hasCredentials ? this.restoreFormGroup.get('loadCredentials').value : false
+        loadCredentials: this.entityDataInfo.hasCredentials ? this.restoreFormGroup.get('loadCredentials').value : false,
+        loadPermissions: this.entityDataInfo.hasPermissions ? this.restoreFormGroup.get('loadPermissions').value : false,
+        loadGroupEntities: this.entityDataInfo.hasGroupEntities ? this.restoreFormGroup.get('loadGroupEntities').value : false
       },
       type: VersionLoadRequestType.SINGLE_ENTITY
     };

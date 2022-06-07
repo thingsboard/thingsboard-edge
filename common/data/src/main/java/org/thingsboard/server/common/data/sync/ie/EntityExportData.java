@@ -114,4 +114,18 @@ public class EntityExportData<E extends ExportableEntity<? extends EntityId>> {
     public boolean hasRelations() {
         return relations != null;
     }
+
+    @JsonIgnore
+    public boolean hasPermissions() {
+        // TODO:
+        return false;
+    }
+
+    @JsonIgnore
+    public boolean hasGroupEntities() {
+        // TODO:
+        return false;
+    }
+
 }
+

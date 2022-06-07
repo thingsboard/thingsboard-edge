@@ -41,4 +41,6 @@ public class EntityDataInfo {
     boolean hasRelations;
     boolean hasAttributes;
     boolean hasCredentials;
+    boolean hasPermissions;
+    boolean hasGroupEntities;
 }

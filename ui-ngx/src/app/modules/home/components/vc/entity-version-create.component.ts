@@ -92,7 +92,9 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
         {entityName: this.entityName}), [Validators.required]],
       saveRelations: [false, []],
       saveAttributes: [true, []],
-      saveCredentials: [true, []]
+      saveCredentials: [true, []],
+      savePermissions: [true, []],
+      saveGroupEntities: [true, []]
     });
   }
 
@@ -112,7 +114,12 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
         config: {
           saveRelations: this.createVersionFormGroup.get('saveRelations').value,
           saveAttributes: this.createVersionFormGroup.get('saveAttributes').value,
-          saveCredentials: this.entityId.entityType === EntityType.DEVICE ? this.createVersionFormGroup.get('saveCredentials').value : false
+          saveCredentials: this.entityId.entityType === EntityType.DEVICE ?
+            this.createVersionFormGroup.get('saveCredentials').value : false,
+          savePermissions: this.entityId.entityType === EntityType.ENTITY_GROUP ?
+            this.createVersionFormGroup.get('savePermissions').value : false,
+          saveGroupEntities: this.entityId.entityType === EntityType.ENTITY_GROUP ?
+            this.createVersionFormGroup.get('saveGroupEntities').value : false,
         },
         type: VersionCreateRequestType.SINGLE_ENTITY
       };

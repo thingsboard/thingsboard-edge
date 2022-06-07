@@ -182,7 +182,7 @@
         </mat-drawer>
         <mat-drawer-content class="tb-rulechain-graph-content">
           <button #versionControlButton
-                  *ngIf="!isImport"
+                  *ngIf="!isImport && ([resource.VERSION_CONTROL, resource.RULE_CHAIN] | hasGenericPermission: operation.WRITE)"
                   mat-button
                   color="primary"
                   type="button"

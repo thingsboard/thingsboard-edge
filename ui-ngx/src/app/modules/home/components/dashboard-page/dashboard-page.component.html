@@ -96,7 +96,7 @@
                   (click)="isFullscreen = !isFullscreen">
             <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
           </button>
-          <button [fxShow]="currentDashboardId && isEdit && isTenantAdmin()" mat-icon-button
+          <button [fxShow]="currentDashboardId && isEdit && ([resource.VERSION_CONTROL, resource.DASHBOARD] | hasGenericPermission: operation.WRITE)" mat-icon-button
                   #versionControlButton
                   matTooltip="{{'version-control.version-control' | translate}}"
                   matTooltipPosition="below"

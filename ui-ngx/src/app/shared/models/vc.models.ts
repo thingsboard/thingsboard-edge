@@ -52,6 +52,8 @@ export interface VersionCreateConfig {
   saveRelations: boolean;
   saveAttributes: boolean;
   saveCredentials: boolean;
+  savePermissions: boolean;
+  saveGroupEntities: boolean;
 }
 
 export enum VersionCreateRequestType {
@@ -110,6 +112,8 @@ export function createDefaultEntityTypesVersionCreate(): {[entityType: string]: 
       saveAttributes: true,
       saveRelations: true,
       saveCredentials: true,
+      savePermissions: true,
+      saveGroupEntities: true,
       allEntities: true,
       entityIds: []
     };
@@ -121,6 +125,8 @@ export interface VersionLoadConfig {
   loadRelations: boolean;
   loadAttributes: boolean;
   loadCredentials: boolean;
+  loadPermissions: boolean;
+  loadGroupEntities: boolean;
 }
 
 export enum VersionLoadRequestType {
@@ -157,6 +163,8 @@ export function createDefaultEntityTypesVersionLoad(): {[entityType: string]: En
       loadAttributes: true,
       loadRelations: true,
       loadCredentials: true,
+      loadPermissions: true,
+      loadGroupEntities: true,
       removeOtherEntities: false,
       findExistingEntityByName: true
     };
@@ -241,4 +249,6 @@ export interface EntityDataInfo {
   hasRelations: boolean;
   hasAttributes: boolean;
   hasCredentials: boolean;
+  hasPermissions: boolean;
+  hasGroupEntities: boolean;
 }

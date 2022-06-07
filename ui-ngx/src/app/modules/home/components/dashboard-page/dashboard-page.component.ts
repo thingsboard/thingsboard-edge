@@ -1498,10 +1498,12 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         }, {}, {}, {}, true);
       versionControlPopover.tbComponentRef.instance.popoverComponent = versionControlPopover;
       versionControlPopover.tbComponentRef.instance.versionRestored.subscribe(() => {
+        const entityGroup = this.entityGroup;
         this.dashboardService.getDashboard(this.currentDashboardId).subscribe((dashboard) => {
           dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
           const data = {
             dashboard,
+            entityGroup,
             widgetEditMode: false,
             currentDashboardId: this.currentDashboardId
           } as any;

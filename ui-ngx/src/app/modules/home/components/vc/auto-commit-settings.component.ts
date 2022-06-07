@@ -116,7 +116,9 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
       branch: null,
       saveAttributes: true,
       saveRelations: false,
-      saveCredentials: true
+      saveCredentials: true,
+      savePermissions: true,
+      saveGroupEntities: true
     };
     const allowed = this.allowedEntityTypes();
     let entityType: EntityType = null;
@@ -218,7 +220,9 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
           branch: [config.branch, []],
           saveRelations: [config.saveRelations, []],
           saveAttributes: [config.saveAttributes, []],
-          saveCredentials: [config.saveCredentials, []]
+          saveCredentials: [config.saveCredentials, []],
+          savePermissions: [config.savePermissions, []],
+          saveGroupEntities: [config.saveGroupEntities, []]
         })
       }
     );

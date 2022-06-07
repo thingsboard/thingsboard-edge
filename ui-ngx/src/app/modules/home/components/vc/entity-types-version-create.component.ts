@@ -54,6 +54,7 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { entityGroupTypes } from '@shared/models/entity-group.models';
 
 @Component({
   selector: 'tb-entity-types-version-create',
@@ -154,6 +155,8 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
           saveRelations: [config.saveRelations, []],
           saveAttributes: [config.saveAttributes, []],
           saveCredentials: [config.saveCredentials, []],
+          saveGroupEntities: [config.saveGroupEntities, []],
+          savePermissions: [config.savePermissions, []],
           allEntities: [config.allEntities, []],
           entityIds: [config.entityIds, [Validators.required]]
         })
@@ -204,6 +207,8 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       saveAttributes: true,
       saveRelations: true,
       saveCredentials: true,
+      saveGroupEntities: true,
+      savePermissions: true,
       allEntities: true,
       entityIds: []
     };
@@ -232,8 +237,13 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
       count = 0;
     }
     if (entityType) {
-      return this.translate.instant((config?.allEntities ? entityTypeTranslations.get(entityType).typePlural
-        : entityTypeTranslations.get(entityType).list), { count });
+      if (entityGroupTypes.includes(entityType)) {
+        return this.translate.instant((config?.allEntities ? entityTypeTranslations.get(entityType).typePlural
+          : entityTypeTranslations.get(entityType).groupList), {count});
+      } else {
+        return this.translate.instant((config?.allEntities ? entityTypeTranslations.get(entityType).typePlural
+          : entityTypeTranslations.get(entityType).list), {count});
+      }
     } else {
       return 'Undefined';
     }
@@ -247,6 +257,10 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
     const usedEntityTypes = value.map(val => val.entityType).filter(val => val);
     res = res.filter(entityType => !usedEntityTypes.includes(entityType) || entityType === currentEntityType);
     return res;
+  }
+
+  isGroupEntityType(entityType: EntityType): boolean {
+    return entityGroupTypes.includes(entityType);
   }
 
   private updateModel() {

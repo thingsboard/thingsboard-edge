@@ -83,6 +83,9 @@
                       <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.DEVICE" formControlName="saveCredentials">
                         {{ 'version-control.export-credentials' | translate }}
                       </mat-checkbox>
+                      <mat-checkbox *ngIf="isGroupEntityType(entityTypeFormGroup.get('entityType').value)" formControlName="savePermissions">
+                        {{ 'version-control.export-group-permissions' | translate }}
+                      </mat-checkbox>
                       <mat-checkbox formControlName="saveAttributes">
                         {{ 'version-control.export-attributes' | translate }}
                       </mat-checkbox>

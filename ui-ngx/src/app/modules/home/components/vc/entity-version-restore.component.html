@@ -46,6 +46,12 @@
           <mat-checkbox *ngIf="entityDataInfo.hasCredentials" formControlName="loadCredentials" style="margin-bottom: 16px;">
             {{ 'version-control.load-credentials' | translate }}
           </mat-checkbox>
+          <mat-checkbox *ngIf="entityDataInfo.hasGroupEntities" formControlName="loadGroupEntities" style="margin-bottom: 16px;">
+            {{ 'version-control.load-group-entities' | translate }}
+          </mat-checkbox>
+          <mat-checkbox *ngIf="entityDataInfo.hasPermissions" formControlName="loadPermissions" style="margin-bottom: 16px;">
+            {{ 'version-control.load-group-permissions' | translate }}
+          </mat-checkbox>
           <mat-checkbox *ngIf="entityDataInfo.hasAttributes" formControlName="loadAttributes" style="margin-bottom: 16px;">
             {{ 'version-control.load-attributes' | translate }}
           </mat-checkbox>
