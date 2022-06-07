@@ -47,7 +47,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormGroup } from '@angular/forms';
 import { AssetId } from '@shared/models/id/asset-id';
 import { TranslateService } from '@ngx-translate/core';
-import { deepClone, isDefined, mergeDeep } from '@core/utils';
+import { deepClone, isDefined, isEqual, mergeDeep } from '@core/utils';
 import { BroadcastService } from '@core/services/broadcast.service';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 import { DialogService } from '@core/services/dialog.service';
@@ -96,16 +96,19 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
               private dialogService: DialogService,
               protected store: Store<AppState>) {
     super(store, injector, cd, componentFactoryResolver);
-    if (isDefined(this.route.snapshot.data.entityGroup)) {
-      this.entityGroup = this.route.snapshot.data.entityGroup;
-      // TODO: @voba - review with FE team
-      let grandChildGroupType = this.route.snapshot.data.grandChildGroupType;
-      if (!isDefined(grandChildGroupType) || grandChildGroupType === this.entityGroup.type) {
-        this.entitiesTableConfig = this.entityGroup.entityGroupConfig;
+    // TODO: @voba - review with FE team
+    const edgeEntitiesType = this.route.snapshot.data.edgeEntitiesType;
+    const entityGroup = this.route.snapshot.data.entityGroup;
+    if (isDefined(edgeEntitiesType) && isDefined(entityGroup)) {
+      if (isEqual(edgeEntitiesType, entityGroup.type)) {
+        this.entityGroup = entityGroup;
+        this.entitiesTableConfig = entityGroup.entityGroupConfig;
       } else {
-        // fallback in case of edge integration template - to be able to show it in group and customers hierarchy
         this.entitiesTableConfig = this.route.snapshot.data.entitiesTableConfig;
       }
+    } else if (isDefined(entityGroup)) {
+      this.entityGroup = entityGroup;
+      this.entitiesTableConfig = this.entityGroup.entityGroupConfig;
     } else {
       this.entitiesTableConfig = this.route.snapshot.data.entitiesTableConfig;
     }

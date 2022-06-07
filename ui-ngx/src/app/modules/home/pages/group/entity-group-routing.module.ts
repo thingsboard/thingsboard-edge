@@ -636,7 +636,7 @@ const EDGE_RULE_CHAINS_ROUTE: Route = {
 const EDGE_INTEGRATIONS_ROUTE: Route = {
   path: ':edgeId/integrations',
   data: {
-    grandChildGroupType: EntityType.INTEGRATION,
+    edgeEntitiesType: EntityType.INTEGRATION,
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
         return data.entityGroup.edgeEntitiesTitle;
@@ -940,7 +940,7 @@ const routes: Routes = [
                   {...USER_GROUPS_ROUTE, ...{
                       path: ':edgeId/userGroups',
                       data: {
-                        grandChildGroupType: EntityType.USER,
+                        edgeEntitiesType: EntityType.USER,
                         groupType: EntityType.USER,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
@@ -954,7 +954,7 @@ const routes: Routes = [
                   {...ASSET_GROUPS_ROUTE, ...{
                       path: ':edgeId/assetGroups',
                       data: {
-                        grandChildGroupType: EntityType.ASSET,
+                        edgeEntitiesType: EntityType.ASSET,
                         groupType: EntityType.ASSET,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
@@ -968,7 +968,7 @@ const routes: Routes = [
                   {...DEVICE_GROUPS_ROUTE, ...{
                       path: ':edgeId/deviceGroups',
                       data: {
-                        grandChildGroupType: EntityType.DEVICE,
+                        edgeEntitiesType: EntityType.DEVICE,
                         groupType: EntityType.DEVICE,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
@@ -982,7 +982,7 @@ const routes: Routes = [
                   {...ENTITY_VIEW_GROUPS_ROUTE, ...{
                       path: ':edgeId/entityViewGroups',
                       data: {
-                        grandChildGroupType: EntityType.ENTITY_VIEW,
+                        edgeEntitiesType: EntityType.ENTITY_VIEW,
                         groupType: EntityType.ENTITY_VIEW,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
@@ -996,7 +996,7 @@ const routes: Routes = [
                   {...DASHBOARD_GROUPS_ROUTE, ...{
                       path: ':edgeId/dashboardGroups',
                       data: {
-                        grandChildGroupType: EntityType.DASHBOARD,
+                        edgeEntitiesType: EntityType.DASHBOARD,
                         groupType: EntityType.DASHBOARD,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
@@ -1009,7 +1009,7 @@ const routes: Routes = [
                   },
                   {...EDGE_SCHEDULER_ROUTE, ...{
                         data: {
-                          grandChildGroupType: EntityType.SCHEDULER_EVENT,
+                          edgeEntitiesType: EntityType.SCHEDULER_EVENT,
                           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
                           breadcrumb: {
                             labelFunction: (route, translate, component, data) => {
@@ -1022,7 +1022,7 @@ const routes: Routes = [
                     },
                   {...EDGE_RULE_CHAINS_ROUTE, ...{
                       data: {
-                        grandChildGroupType: EntityType.RULE_CHAIN,
+                        edgeEntitiesType: EntityType.RULE_CHAIN,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
                             return data.entityGroup.edgeEntitiesTitle;
@@ -1034,7 +1034,7 @@ const routes: Routes = [
                   },
                   {...EDGE_INTEGRATIONS_ROUTE, ...{
                       data: {
-                        grandChildGroupType: EntityType.INTEGRATION,
+                        edgeEntitiesType: EntityType.INTEGRATION,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
                             return data.entityGroup.edgeEntitiesTitle;

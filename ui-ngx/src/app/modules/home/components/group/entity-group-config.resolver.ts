@@ -60,7 +60,7 @@ export class EntityGroupConfigResolver {
   }
 
   public constructGroupConfigByStateParams<T>(params: EntityGroupParams): Observable<EntityGroupStateInfo<T>> {
-    const entityGroupId: string = params.grandChildGroupId || params.childEntityGroupId || params.entityGroupId;
+    const entityGroupId: string = params.edgeEntitiesGroupId || params.childEntityGroupId || params.entityGroupId;
     if (entityGroupId) {
       return this.entityGroupService.getEntityGroup(entityGroupId).pipe(
         mergeMap((entityGroup) => {
@@ -110,7 +110,7 @@ export class EntityGroupConfigResolver {
             if (params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER && params.edgeId) {
               tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
                 map(edge =>
-                  entityGroup.edgeEntitiesTitle = edge.name + ': ' + this.translate.instant(edgeEntitiesTitle(params.grandChildGroupType)))
+                  entityGroup.edgeEntitiesTitle = edge.name + ': ' + this.translate.instant(edgeEntitiesTitle(params.edgeEntitiesType)))
               ));
               tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId).pipe(
                 map(edgeGroup => entityGroup.edgeGroupName = edgeGroup.name)
@@ -122,7 +122,7 @@ export class EntityGroupConfigResolver {
           }
         ));
     } else if (params.edgeId) {
-      const groupType: EntityType = params.grandChildGroupType || params.childGroupType || params.groupType;
+      const groupType: EntityType = params.edgeEntitiesType || params.childGroupType || params.groupType;
       const tasks = [];
       tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
           map(

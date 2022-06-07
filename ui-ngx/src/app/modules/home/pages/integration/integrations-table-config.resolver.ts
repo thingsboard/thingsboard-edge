@@ -287,7 +287,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
 
   private configureIntegrationScope(): void {
     if (this.config.componentsData.integrationScope === 'tenant' || this.config.componentsData.integrationScope === 'edges') {
-      // TODO: @voba
+      // TODO: @voba - review with FE team
       this.config.addEnabled = true;
       this.config.entitiesDeleteEnabled = true;
       this.config.deleteEnabled = () => true;

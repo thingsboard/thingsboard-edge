@@ -525,8 +525,8 @@ export interface EntityGroupParams {
   hierarchyCallbacks?: HierarchyCallbacks;
   edge?: Edge;
   edgeId?: string;
-  grandChildGroupType?: EntityType;
-  grandChildGroupId?: string;
+  edgeEntitiesType?: EntityType;
+  edgeEntitiesGroupId?: string;
 }
 
 export interface ShareGroupRequest {
@@ -546,8 +546,8 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
         !isEqual(routeParams.entityGroupId, route.params.entityGroupId)) {
       routeParams.childEntityGroupId = routeParams.entityGroupId;
     }
-    if (routeData.grandChildGroupType === routeData.groupType) {
-      routeData.grandChildGroupId = routeParams.childEntityGroupId;
+    if (routeData.edgeEntitiesType === routeData.groupType) {
+      routeData.edgeEntitiesGroupId = routeParams.childEntityGroupId;
     }
     if (routeData.groupType && route.data.groupType && !isEqual(routeData.groupType, route.data.groupType)) {
       routeData.childGroupType = routeData.groupType;
@@ -562,7 +562,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
     edgeId: routeParams.edgeId,
-    grandChildGroupType: routeData.grandChildGroupType,
-    grandChildGroupId: routeData.grandChildGroupId
+    edgeEntitiesType: routeData.edgeEntitiesType,
+    edgeEntitiesGroupId: routeData.edgeEntitiesGroupId
   };
 }

@@ -303,7 +303,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         } else {
           const entityGroup = node.data.entityGroup;
           entityGroupParams.childEntityGroupId = entityGroup.id.id;
-          entityGroupParams.grandChildGroupType = entityGroup.type;
+          entityGroupParams.edgeEntitiesType = entityGroup.type;
           entityGroupParams.childGroupType = entityGroup.type;
           this.updateGroupView(entityGroupParams, entityGroup);
         }
