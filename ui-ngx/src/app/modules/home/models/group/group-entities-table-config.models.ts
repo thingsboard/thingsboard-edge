@@ -82,7 +82,7 @@ export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityG
   customerGroupsTitle?: string;
   parentEntityGroup?: EntityGroupInfo;
   entityGroupConfig?: GroupEntityTableConfig<T>;
-  edgeGroupsTitle?: string;
+  edgeEntitiesTitle?: string;
   edgeGroupName?: string;
 }
 

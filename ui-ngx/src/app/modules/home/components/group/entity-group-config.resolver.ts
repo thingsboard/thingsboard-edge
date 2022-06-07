@@ -32,7 +32,12 @@
 import { Injectable, Injector } from '@angular/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { CustomerService } from '@core/http/customer.service';
-import { EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
+import {
+  edgeEntitiesTitle,
+  EntityGroupInfo,
+  EntityGroupParams,
+  entityGroupsTitle
+} from '@shared/models/entity-group.models';
 import { forkJoin, Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -105,7 +110,7 @@ export class EntityGroupConfigResolver {
             if (params.childGroupType === EntityType.EDGE && params.groupType === EntityType.CUSTOMER && params.edgeId) {
               tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
                 map(edge =>
-                  entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(params.grandChildGroupType)))
+                  entityGroup.edgeEntitiesTitle = edge.name + ': ' + this.translate.instant(edgeEntitiesTitle(params.grandChildGroupType)))
               ));
               tasks.push(this.entityGroupService.getEntityGroup(params.childEntityGroupId).pipe(
                 map(edgeGroup => entityGroup.edgeGroupName = edgeGroup.name)
@@ -121,7 +126,7 @@ export class EntityGroupConfigResolver {
       const tasks = [];
       tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
           map(
-          edge => entityGroup.edgeGroupsTitle = edge.name + ': ' + this.translate.instant(entityGroupsTitle(groupType))
+          edge => entityGroup.edgeEntitiesTitle = edge.name + ': ' + this.translate.instant(edgeEntitiesTitle(groupType))
           )
         )
       );

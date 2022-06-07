@@ -456,8 +456,8 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
   return settings;
 }
 
-export function entityGroupsTitle(entityType: EntityType) {
-  switch (entityType) {
+export function entityGroupsTitle(groupType: EntityType) {
+  switch (groupType) {
     case EntityType.ASSET:
       return 'entity-group.asset-groups';
     case EntityType.DEVICE:
@@ -472,6 +472,19 @@ export function entityGroupsTitle(entityType: EntityType) {
       return 'entity-group.dashboard-groups';
     case EntityType.EDGE:
       return 'entity-group.edge-groups';
+  }
+}
+
+export function edgeEntitiesTitle(entityType: EntityType) {
+  switch (entityType) {
+    case EntityType.ASSET:
+    case EntityType.DEVICE:
+    case EntityType.CUSTOMER:
+    case EntityType.USER:
+    case EntityType.ENTITY_VIEW:
+    case EntityType.DASHBOARD:
+    case EntityType.EDGE:
+      return entityGroupsTitle(entityType);
     case EntityType.SCHEDULER_EVENT:
       return 'scheduler.scheduler';
     case EntityType.RULE_CHAIN:
