@@ -110,8 +110,9 @@ export class EntitiesVersionControlService {
 
   public listEntityVersions(pageLink: PageLink, branch: string,
                             externalEntityId: EntityId,
+                            internalEntityId: EntityId,
                             config?: RequestConfig): Observable<PageData<EntityVersion>> {
-    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}/${externalEntityId.entityType}/${externalEntityId.id}${pageLink.toQuery()}`,
+    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}/${externalEntityId.entityType}/${externalEntityId.id}${pageLink.toQuery()}&internalEntityId=${internalEntityId.id}`,
       defaultHttpOptionsFromConfig(config));
   }
 

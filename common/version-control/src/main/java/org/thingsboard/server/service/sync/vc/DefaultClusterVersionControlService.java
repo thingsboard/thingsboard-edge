@@ -319,6 +319,9 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             }
             sortOrder = new SortOrder(request.getSortProperty(), direction);
         }
+        if(StringUtils.isNotEmpty(request.getHierarchyPath())){
+            path = request.getHierarchyPath() + path;
+        }
         var data = vcService.listVersions(ctx.getTenantId(), request.getBranchName(), path,
                 new PageLink(request.getPageSize(), request.getPage(), request.getTextSearch(), sortOrder));
         reply(ctx, Optional.empty(), builder ->

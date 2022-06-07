@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -121,15 +122,21 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     public ListenableFuture<Void> addToCommit(CommitGitRequest commit, EntityExportData<ExportableEntity<EntityId>> entityData) {
+        return addToCommit(commit, Collections.emptyList(), entityData);
+    }
+
+    @Override
+    public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<ExportableEntity<EntityId>> entityData) {
         SettableFuture<Void> future = SettableFuture.create();
 
+        String parentsPath = getHierarchyPath(parents);
         String path = getRelativePath(entityData.getEntityType(), entityData.getExternalId());
         String entityDataJson = JacksonUtil.toPrettyString(entityData.sort());
 
         registerAndSend(commit, builder -> builder.setCommitRequest(
                 buildCommitRequest(commit).setAddMsg(
                         TransportProtos.AddMsg.newBuilder()
-                                .setRelativePath(path).setEntityDataJson(entityDataJson).build()
+                                .setRelativePath(parentsPath + path).setEntityDataJson(entityDataJson).build()
                 ).build()
         ).build(), wrap(future, null));
         return future;
@@ -184,11 +191,12 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     }
 
     @Override
-    public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, EntityId entityId, PageLink pageLink) {
+    public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityId entityId, PageLink pageLink) {
         return listVersions(tenantId,
                 applyPageLinkParameters(
                         ListVersionsRequestMsg.newBuilder()
                                 .setBranchName(branch)
+                                .setHierarchyPath(getHierarchyPath(hierarchy))
                                 .setEntityType(entityId.getEntityType().name())
                                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits()),
@@ -458,6 +466,14 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
                 future.setException(t);
             }
         };
+    }
+
+    private String getHierarchyPath(List<CustomerId> parents) {
+        StringBuilder path = new StringBuilder();
+        for(EntityId entityId: parents){
+            path.append("hierarchy/").append(entityId.getId()).append("/");
+        }
+        return path.toString();
     }
 
     private static String getRelativePath(EntityType entityType, EntityId entityId) {

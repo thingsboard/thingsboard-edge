@@ -45,14 +45,12 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -61,29 +59,12 @@ import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
-import org.thingsboard.server.common.data.sync.vc.EntityDataDiff;
-import org.thingsboard.server.common.data.sync.vc.EntityDataInfo;
-import org.thingsboard.server.common.data.sync.vc.EntityLoadError;
-import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
-import org.thingsboard.server.common.data.sync.vc.EntityVersion;
-import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
-import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
-import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
-import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
-import org.thingsboard.server.common.data.sync.vc.request.create.AutoVersionCreateConfig;
-import org.thingsboard.server.common.data.sync.vc.request.create.ComplexVersionCreateRequest;
-import org.thingsboard.server.common.data.sync.vc.request.create.EntityTypeVersionCreateConfig;
-import org.thingsboard.server.common.data.sync.vc.request.create.SingleEntityVersionCreateRequest;
-import org.thingsboard.server.common.data.sync.vc.request.create.SyncStrategy;
-import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateConfig;
-import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
-import org.thingsboard.server.common.data.sync.vc.request.load.EntityTypeVersionLoadConfig;
-import org.thingsboard.server.common.data.sync.vc.request.load.EntityTypeVersionLoadRequest;
-import org.thingsboard.server.common.data.sync.vc.request.load.SingleEntityVersionLoadRequest;
-import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadConfig;
-import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
+import org.thingsboard.server.common.data.sync.vc.*;
+import org.thingsboard.server.common.data.sync.vc.request.create.*;
+import org.thingsboard.server.common.data.sync.vc.request.load.*;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
+import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -97,15 +78,7 @@ import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsSer
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -126,6 +99,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final ExportableEntitiesService exportableEntitiesService;
     private final TbNotificationEntityService entityNotificationService;
     private final TransactionTemplate transactionTemplate;
+    private final OwnerService ownersService;
 
     private ListeningExecutorService executor;
 
@@ -165,8 +139,33 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }, executor);
     }
 
-    private void handleSingleEntityRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, SingleEntityVersionCreateRequest versionCreateRequest) throws Exception {
-        gitFutures.add(saveEntityData(user, commit, versionCreateRequest.getEntityId(), versionCreateRequest.getConfig()));
+    private void handleSingleEntityRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, SingleEntityVersionCreateRequest vcr) throws Exception {
+        EntityId entityId = vcr.getEntityId();
+        var config = vcr.getConfig();
+        EntityExportSettings exportSettings = EntityExportSettings.builder()
+                .exportRelations(config.isSaveRelations())
+                .exportAttributes(config.isSaveAttributes())
+                .exportCredentials(config.isSaveCredentials())
+                .build();
+        if (EntityType.ENTITY_GROUP.equals(entityId.getEntityType())) {
+
+        } else {
+            EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(user, entityId, exportSettings);
+            ExportableEntity<EntityId> entity = entityData.getEntity();
+            if (entity instanceof HasOwnerId) {
+                //ownersService.getOwners returns LinkedHashSet;
+                List<CustomerId> customerIds = getCustomerIds(user.getTenantId(), entityId, (HasOwnerId) entity);
+                List<CustomerId> hierarchy = new ArrayList<>(customerIds.size());
+                for (CustomerId ownerId : customerIds) {
+                    EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(user, ownerId, exportSettings);
+                    gitFutures.add(gitServiceQueue.addToCommit(commit, new ArrayList<>(hierarchy), ownerData));
+                    hierarchy.add(ownerId);
+                }
+                gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, entityData));
+            } else {
+                gitFutures.add(gitServiceQueue.addToCommit(commit, entityData));
+            }
+        }
     }
 
     private void handleComplexRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, ComplexVersionCreateRequest versionCreateRequest) {
@@ -206,8 +205,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @Override
-    public ListenableFuture<PageData<EntityVersion>> listEntityVersions(TenantId tenantId, String branch, EntityId externalId, PageLink pageLink) throws Exception {
-        return gitServiceQueue.listVersions(tenantId, branch, externalId, pageLink);
+    public ListenableFuture<PageData<EntityVersion>> listEntityVersions(TenantId tenantId, String branch, EntityId externalId, EntityId internalId, PageLink pageLink) throws Exception {
+        return gitServiceQueue.listVersions(tenantId, branch, getCustomerIds(tenantId, internalId != null ? internalId : externalId), externalId, pageLink);
     }
 
     @Override
@@ -246,6 +245,33 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
             default:
                 throw new IllegalArgumentException("Unsupported version load request");
+        }
+    }
+
+    private List<CustomerId> getCustomerIds(TenantId tenantId, EntityId entityId) {
+        return getCustomerIds(tenantId, entityId, null);
+    }
+
+    private List<CustomerId> getCustomerIds(TenantId tenantId, EntityId entityId, HasOwnerId entity) {
+        Set<EntityId> ownersSet;
+        if(entity != null){
+            ownersSet = ownersService.getOwners(tenantId, entityId, entity);
+        } else {
+            ownersSet = ownersService.getOwners(tenantId, entityId);
+        }
+        List<EntityId> owners = new ArrayList<>(ownersSet);
+        if(owners.size() == 1){
+            return Collections.emptyList();
+        } else {
+            Collections.reverse(owners);
+            List<CustomerId> result = new ArrayList<>(Math.max(1, owners.size() - 1));
+            for(EntityId ownerId: owners){
+                if(EntityType.TENANT.equals(ownerId.getEntityType())){
+                    continue;
+                }
+                result.add(new CustomerId(ownerId.getId()));
+            }
+            return result;
         }
     }
 

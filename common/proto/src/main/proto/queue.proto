@@ -799,14 +799,15 @@ message AbortMsg {
 
 message ListVersionsRequestMsg {
   string branchName = 1;
-  string entityType = 2;
-  int64 entityIdMSB = 3;
-  int64 entityIdLSB = 4;
-  int32 pageSize = 5;
-  int32 page = 6;
-  string textSearch = 7;
-  string sortProperty = 8;
-  string sortDirection = 9;
+  string hierarchyPath = 2;
+  string entityType = 3;
+  int64 entityIdMSB = 4;
+  int64 entityIdLSB = 5;
+  int32 pageSize = 6;
+  int32 page = 7;
+  string textSearch = 8;
+  string sortProperty = 9;
+  string sortDirection = 10;
 }
 
 message EntityVersionProto {

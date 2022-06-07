@@ -38,13 +38,7 @@ import io.swagger.annotations.ApiParam;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -56,12 +50,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.sync.vc.EntityDataDiff;
-import org.thingsboard.server.common.data.sync.vc.EntityDataInfo;
-import org.thingsboard.server.common.data.sync.vc.EntityVersion;
-import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
-import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
-import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
+import org.thingsboard.server.common.data.sync.vc.*;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -72,13 +61,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
-import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VERSION_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.*;
 
 @RestController
 @TbCoreComponent
@@ -152,6 +135,8 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<PageData<EntityVersion>> listEntityVersions(@PathVariable String branch,
                                                                       @PathVariable EntityType entityType,
                                                                       @PathVariable UUID externalEntityUuid,
+                                                                      @ApiParam(value = PAGE_SIZE_DESCRIPTION)
+                                                                      @RequestParam(required = false) UUID internalEntityUuid,
                                                                       @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
                                                                       @RequestParam int pageSize,
                                                                       @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
@@ -165,8 +150,9 @@ public class EntitiesVersionControlController extends BaseController {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             EntityId externalEntityId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
+            EntityId internalEntityId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid) : null;
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return wrapFuture(versionControlService.listEntityVersions(getTenantId(), branch, externalEntityId, pageLink));
+            return wrapFuture(versionControlService.listEntityVersions(getTenantId(), branch, externalEntityId, internalEntityId, pageLink));
         } catch (Exception e) {
             throw handleException(e);
         }
