@@ -64,6 +64,9 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
   versionId: string;
 
   @Input()
+  internalEntityId: EntityId;
+
+  @Input()
   externalEntityId: EntityId;
 
   @Input()
@@ -94,7 +97,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
       loadPermissions: [true, []],
       loadGroupEntities: [true, []]
     });
-    this.entitiesVersionControlService.getEntityDataInfo(this.externalEntityId, this.versionId).subscribe((data) => {
+    this.entitiesVersionControlService.getEntityDataInfo(this.externalEntityId, this.internalEntityId, this.versionId).subscribe((data) => {
       this.entityDataInfo = data;
       this.cd.detectChanges();
       if (this.popoverComponent) {
@@ -113,6 +116,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
     const request: SingleEntityVersionLoadRequest = {
       branch: this.branch,
       versionId: this.versionId,
+      internalEntityId: this.internalEntityId,
       externalEntityId: this.externalEntityId,
       config: {
         loadRelations: this.entityDataInfo.hasRelations ? this.restoreFormGroup.get('loadRelations').value : false,

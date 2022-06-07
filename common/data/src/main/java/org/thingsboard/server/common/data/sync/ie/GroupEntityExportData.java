@@ -43,6 +43,6 @@ import java.util.List;
 @ToString(callSuper = true)
 public class GroupEntityExportData<E extends ExportableEntity<? extends EntityId> & GroupEntity<? extends EntityId>> extends EntityExportData<E> {
 
-    private List<EntityGroupId> entityGroupsIds;
+
 
 }

@@ -141,6 +141,7 @@ export interface VersionLoadRequest {
 }
 
 export interface SingleEntityVersionLoadRequest extends VersionLoadRequest {
+  internalEntityId: EntityId;
   externalEntityId: EntityId;
   config: VersionLoadConfig;
   type: VersionLoadRequestType.SINGLE_ENTITY;

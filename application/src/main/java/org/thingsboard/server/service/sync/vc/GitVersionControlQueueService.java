@@ -75,7 +75,7 @@ public interface GitVersionControlQueueService {
 
     ListenableFuture<List<String>> listBranches(TenantId tenantId);
 
-    ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, EntityId entityId);
+    ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityId entityId);
 
     ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, EntityType entityType, int offset, int limit);
 

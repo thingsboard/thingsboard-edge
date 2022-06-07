@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 @EqualsAndHashCode(callSuper = true)
 public class SingleEntityVersionLoadRequest extends VersionLoadRequest {
 
+    private EntityId internalEntityId;
     private EntityId externalEntityId;
 
     private VersionLoadConfig config;

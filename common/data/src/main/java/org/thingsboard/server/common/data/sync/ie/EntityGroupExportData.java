@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.sync.ie;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -44,5 +45,16 @@ import java.util.List;
 public class EntityGroupExportData extends EntityExportData<EntityGroup> {
 
     private List<GroupPermission> permissions;
+    private boolean groupEntities;
+
+    @JsonIgnore
+    public boolean hasPermissions() {
+        return permissions != null;
+    }
+
+    @JsonIgnore
+    public boolean hasGroupEntities() {
+        return groupEntities;
+    }
 
 }

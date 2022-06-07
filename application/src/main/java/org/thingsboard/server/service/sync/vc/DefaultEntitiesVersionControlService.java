@@ -43,10 +43,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -63,6 +60,7 @@ import org.thingsboard.server.common.data.sync.vc.*;
 import org.thingsboard.server.common.data.sync.vc.request.create.*;
 import org.thingsboard.server.common.data.sync.vc.request.load.*;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.dao.owner.OwnerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -99,6 +97,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final ExportableEntitiesService exportableEntitiesService;
     private final TbNotificationEntityService entityNotificationService;
     private final TransactionTemplate transactionTemplate;
+    private final CustomerService customerService;
     private final OwnerService ownersService;
 
     private ListeningExecutorService executor;
@@ -154,7 +153,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             ExportableEntity<EntityId> entity = entityData.getEntity();
             if (entity instanceof HasOwnerId) {
                 //ownersService.getOwners returns LinkedHashSet;
-                List<CustomerId> customerIds = getCustomerIds(user.getTenantId(), entityId, (HasOwnerId) entity);
+                List<CustomerId> customerIds = getCustomerExternalIds(user.getTenantId(), entityId, (HasOwnerId) entity);
                 List<CustomerId> hierarchy = new ArrayList<>(customerIds.size());
                 for (CustomerId ownerId : customerIds) {
                     EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(user, ownerId, exportSettings);
@@ -206,7 +205,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @Override
     public ListenableFuture<PageData<EntityVersion>> listEntityVersions(TenantId tenantId, String branch, EntityId externalId, EntityId internalId, PageLink pageLink) throws Exception {
-        return gitServiceQueue.listVersions(tenantId, branch, getCustomerIds(tenantId, internalId != null ? internalId : externalId), externalId, pageLink);
+        return gitServiceQueue.listVersions(tenantId, branch, getCustomerExternalIds(tenantId, internalId != null ? internalId : externalId), externalId, pageLink);
     }
 
     @Override
@@ -235,8 +234,10 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         switch (request.getType()) {
             case SINGLE_ENTITY: {
                 SingleEntityVersionLoadRequest versionLoadRequest = (SingleEntityVersionLoadRequest) request;
+                EntityId internalId = versionLoadRequest.getInternalEntityId();
+                List<CustomerId> ownerIds = internalId != null ? getCustomerExternalIds(user.getTenantId(), internalId) : Collections.emptyList();
                 VersionLoadConfig config = versionLoadRequest.getConfig();
-                ListenableFuture<EntityExportData> future = gitServiceQueue.getEntity(user.getTenantId(), request.getVersionId(), versionLoadRequest.getExternalEntityId());
+                ListenableFuture<EntityExportData> future = gitServiceQueue.getEntity(user.getTenantId(), request.getVersionId(), ownerIds, versionLoadRequest.getExternalEntityId());
                 return Futures.transform(future, entityData -> doInTemplate(status -> loadSingleEntity(user, config, entityData)), executor);
             }
             case ENTITY_TYPE: {
@@ -248,11 +249,11 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }
     }
 
-    private List<CustomerId> getCustomerIds(TenantId tenantId, EntityId entityId) {
-        return getCustomerIds(tenantId, entityId, null);
+    private List<CustomerId> getCustomerExternalIds(TenantId tenantId, EntityId entityId) {
+        return getCustomerExternalIds(tenantId, entityId, null);
     }
 
-    private List<CustomerId> getCustomerIds(TenantId tenantId, EntityId entityId, HasOwnerId entity) {
+    private List<CustomerId> getCustomerExternalIds(TenantId tenantId, EntityId entityId, HasOwnerId entity) {
         Set<EntityId> ownersSet;
         if(entity != null){
             ownersSet = ownersService.getOwners(tenantId, entityId, entity);
@@ -269,7 +270,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 if(EntityType.TENANT.equals(ownerId.getEntityType())){
                     continue;
                 }
-                result.add(new CustomerId(ownerId.getId()));
+                CustomerId internalId = new CustomerId(ownerId.getId());
+                Customer customer = customerService.findCustomerById(tenantId, internalId);
+                if(customer == null) {
+                    throw new RuntimeException("Failed to fetch customer with id: " + internalId);
+                }
+                result.add(customer.getExternalId() != null ? customer.getExternalId() : internalId);
             }
             return result;
         }
@@ -363,7 +369,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
         toReimport.forEach((externalId, importSettings) -> {
             try {
-                EntityExportData entityData = gitServiceQueue.getEntity(user.getTenantId(), request.getVersionId(), externalId).get();
+                EntityExportData entityData = gitServiceQueue.getEntity(user.getTenantId(), request.getVersionId(), Collections.emptyList(), externalId).get();
                 importSettings.setResetExternalIdsOfAnotherTenant(true);
                 EntityImportResult<?> importResult = exportImportService.importEntity(user, entityData,
                         importSettings, false, false);
@@ -448,7 +454,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         EntityId externalId = ((ExportableEntity<EntityId>) entity).getExternalId();
         if (externalId == null) externalId = entityId;
 
-        return transformAsync(gitServiceQueue.getEntity(user.getTenantId(), versionId, externalId),
+        return transformAsync(gitServiceQueue.getEntity(user.getTenantId(), versionId, getCustomerExternalIds(user.getTenantId(), entityId), externalId),
                 otherVersion -> {
                     EntityExportData<?> currentVersion = exportImportService.exportEntity(user, entityId, EntityExportSettings.builder()
                             .exportRelations(otherVersion.hasRelations())
@@ -463,8 +469,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @Override
-    public ListenableFuture<EntityDataInfo> getEntityDataInfo(SecurityUser user, EntityId entityId, String versionId) {
-        return Futures.transform(gitServiceQueue.getEntity(user.getTenantId(), versionId, entityId),
+    public ListenableFuture<EntityDataInfo> getEntityDataInfo(SecurityUser user, EntityId externalId, EntityId internalId, String versionId) {
+        List<CustomerId> customerIds = internalId != null ? getCustomerExternalIds(user.getTenantId(), internalId) : Collections.emptyList();
+        return Futures.transform(gitServiceQueue.getEntity(user.getTenantId(), versionId, customerIds, externalId),
                 entity -> new EntityDataInfo(entity.hasRelations(), entity.hasAttributes(), entity.hasCredentials(), entity.hasPermissions(), entity.hasGroupEntities()), MoreExecutors.directExecutor());
     }
 

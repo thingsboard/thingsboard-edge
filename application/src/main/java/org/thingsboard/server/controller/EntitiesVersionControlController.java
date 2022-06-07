@@ -135,7 +135,6 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<PageData<EntityVersion>> listEntityVersions(@PathVariable String branch,
                                                                       @PathVariable EntityType entityType,
                                                                       @PathVariable UUID externalEntityUuid,
-                                                                      @ApiParam(value = PAGE_SIZE_DESCRIPTION)
                                                                       @RequestParam(required = false) UUID internalEntityUuid,
                                                                       @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
                                                                       @RequestParam int pageSize,
@@ -250,11 +249,13 @@ public class EntitiesVersionControlController extends BaseController {
     @GetMapping("/info/{versionId}/{entityType}/{externalEntityUuid}")
     public DeferredResult<EntityDataInfo> getEntityDataInfo(@PathVariable String versionId,
                                                             @PathVariable EntityType entityType,
-                                                            @PathVariable UUID externalEntityUuid) throws ThingsboardException {
+                                                            @PathVariable UUID externalEntityUuid,
+                                                            @RequestParam(required = false) UUID internalEntityUuid) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
-            return wrapFuture(versionControlService.getEntityDataInfo(getCurrentUser(), entityId, versionId));
+            EntityId externalId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
+            EntityId internalId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid) : null;
+            return wrapFuture(versionControlService.getEntityDataInfo(getCurrentUser(), externalId, internalId, versionId));
         } catch (Exception e) {
             throw handleException(e);
         }

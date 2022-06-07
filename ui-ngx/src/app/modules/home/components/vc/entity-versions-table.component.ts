@@ -298,6 +298,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
           branch: this.branch,
           versionName: entityVersion.name,
           versionId: entityVersion.id,
+          internalEntityId: this.entityId,
           externalEntityId: this.externalEntityIdValue,
           onClose: (result: VersionLoadResult | null) => {
             restoreVersionPopover.hide();

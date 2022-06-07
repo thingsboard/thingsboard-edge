@@ -275,10 +275,11 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, EntityId entityId) {
+    public ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityId entityId) {
         EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, entityId);
         registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
+                        .setHierarchyPath(getHierarchyPath(hierarchy))
                         .setEntityType(entityId.getEntityType().name())
                         .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                         .setEntityIdLSB(entityId.getId().getLeastSignificantBits())).build()

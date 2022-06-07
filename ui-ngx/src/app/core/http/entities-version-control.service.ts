@@ -91,9 +91,10 @@ export class EntitiesVersionControlService {
   }
 
   public getEntityDataInfo(externalEntityId: EntityId,
+                           internalEntityId: EntityId,
                            versionId: string,
                            config?: RequestConfig): Observable<EntityDataInfo> {
-    return this.http.get<EntityDataInfo>(`/api/entities/vc/info/${versionId}/${externalEntityId.entityType}/${externalEntityId.id}`,
+    return this.http.get<EntityDataInfo>(`/api/entities/vc/info/${versionId}/${externalEntityId.entityType}/${externalEntityId.id}?internalEntityId=${internalEntityId.id}`,
       defaultHttpOptionsFromConfig(config));
   }
 
