@@ -568,7 +568,7 @@ const EDGE_SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
-    groupType: EntityType.SCHEDULER_EVENT,
+    edgeEntitiesType: EntityType.SCHEDULER_EVENT,
     auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
     breadcrumb: {
     labelFunction: (route, translate, component, data) => {
@@ -585,7 +585,7 @@ const EDGE_SCHEDULER_ROUTE: Route = {
 const EDGE_RULE_CHAINS_ROUTE: Route = {
   path: ':edgeId/ruleChains',
   data: {
-    groupType: EntityType.RULE_CHAIN,
+    edgeEntitiesType: EntityType.RULE_CHAIN,
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
         return data.entityGroup.edgeEntitiesTitle;
@@ -1007,46 +1007,9 @@ const routes: Routes = [
                       }
                     }
                   },
-                  {...EDGE_SCHEDULER_ROUTE, ...{
-                        data: {
-                          // TODO: @voba - why this is not required in EDGE_SCHEDULER_ROUTE
-                          edgeEntitiesType: EntityType.SCHEDULER_EVENT,
-                          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-                          breadcrumb: {
-                            labelFunction: (route, translate, component, data) => {
-                              return data.entityGroup.edgeEntitiesTitle;
-                            },
-                            icon: 'schedule'
-                          }
-                        },
-                      }
-                    },
-                  {...EDGE_RULE_CHAINS_ROUTE, ...{
-                      data: {
-                        // TODO: @voba - why this is not required in EDGE_RULE_CHAINS_ROUTE
-                        edgeEntitiesType: EntityType.RULE_CHAIN,
-                        breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeEntitiesTitle;
-                          },
-                          icon: 'settings_ethernet'
-                        }
-                      }
-                    }
-                  },
-                  {...EDGE_INTEGRATIONS_ROUTE, ...{
-                      data: {
-                        // TODO: @voba - why this is required here
-                        edgeEntitiesType: EntityType.INTEGRATION,
-                        breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeEntitiesTitle;
-                          },
-                          icon: 'input'
-                        }
-                      }
-                    }
-                  }
+                  {...EDGE_SCHEDULER_ROUTE},
+                  {...EDGE_RULE_CHAINS_ROUTE},
+                  {...EDGE_INTEGRATIONS_ROUTE}
                 ]
               }
             ]

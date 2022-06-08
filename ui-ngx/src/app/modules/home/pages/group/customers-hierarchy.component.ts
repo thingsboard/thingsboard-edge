@@ -211,14 +211,14 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           owner.id.id, node.data.groupsType, {ignoreLoading: true}).subscribe((entityGroups) => {
           cb(this.entityGroupsToNodes(node.id, parentEntityGroupId, entityGroups));
         });
-      } else if (node.data.type === 'edge' || node.data.type === 'edgeGroups') {
+      } else if (node.data.type === 'edge' || node.data.type === 'edgeEntities') {
         const customerData = node.data.customerData;
         const edge = node.data.edge;
         const parentEntityGroupId = node.data.parentEntityGroupId;
         if (node.data.type === 'edge') {
           cb(this.loadNodesForEdge(node.id, parentEntityGroupId, edge, customerData));
         } else {
-          this.entityGroupService.getEdgeEntityGroups(node.data.edge.id.id, node.data.groupsType, {ignoreLoading: true})
+          this.entityGroupService.getEdgeEntityGroups(node.data.edge.id.id, node.data.entityType, {ignoreLoading: true})
             .subscribe((entityGroups) => {
               cb(this.edgeEntityGroupsToNodes(node.id, parentEntityGroupId, customerData, edge, entityGroups));
             });
@@ -286,7 +286,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           }
           this.updateGroupView(entityGroupParams, entityGroup);
         }
-      } else if (node.data.type === 'edgeGroups' || node.data.type === 'edgeGroup') {
+      } else if (node.data.type === 'edgeEntities' || node.data.type === 'edgeGroup') {
         entityGroupParams.customerId = node.data.customerData.customerId;
         entityGroupParams.nodeId = node.id;
         entityGroupParams.internalId = node.data.internalId;
@@ -294,15 +294,13 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         entityGroupParams.childEntityGroupId = node.data.parentEntityGroupId;
         entityGroupParams.edgeId = node.data.edge.id.id;
         entityGroupParams.groupType = EntityType.EDGE;
-        if (node.data.type === 'edgeGroups') {
-          entityGroupParams.childGroupType = node.data.groupsType;
-          this.updateViewByEntityType(node.data.groupsType, entityGroupParams, node.data.edge);
+        if (node.data.type === 'edgeEntities') {
+          entityGroupParams.childGroupType = node.data.entityType;
+          this.updateViewByEntityType(node.data.entityType, entityGroupParams, node.data.edge);
         } else {
           const entityGroup = node.data.entityGroup;
           entityGroupParams.edgeEntitiesGroupId = entityGroup.id.id;
           entityGroupParams.edgeEntitiesType = entityGroup.type;
-          // TODO: @voba - verify this childGroupType
-          entityGroupParams.childGroupType = entityGroup.type;
           this.updateGroupView(entityGroupParams, entityGroup);
         }
       }
@@ -340,8 +338,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
         false, customerTitle) as EntityGroupsTableConfig;
   }
 
-  private updateViewByEntityType(groupsType: EntityType, entityGroupParams: EntityGroupParams, edge: Edge) {
-    switch (groupsType) {
+  private updateViewByEntityType(entityType: EntityType, entityGroupParams: EntityGroupParams, edge: Edge) {
+    switch (entityType) {
       case EntityType.USER:
       case EntityType.ASSET:
       case EntityType.DEVICE:
@@ -635,8 +633,8 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
       children: children,
       text: text,
       data: {
-        type: 'edgeGroups',
-        groupsType: entityType,
+        type: 'edgeEntities',
+        entityType: entityType,
         edge,
         parentEntityGroupId,
         customerData,

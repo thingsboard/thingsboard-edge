@@ -40,7 +40,6 @@ import { UtilsService } from '@core/services/utils.service';
 import { LoadNodesCallback } from '@shared/components/nav-tree.component';
 import { EntityType } from '@shared/models/entity-type.models';
 import {
-  EdgeGroupsNodeData,
   edgeGroupsNodeText,
   EdgeOverviewNode,
   EntityGroupNodeData,
@@ -119,20 +118,22 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
           this.edgeIsDatasource = false;
           cb([]);
         }
-      } else if (node.data && node.data.type === 'edgeGroups' && datasource.type === DatasourceType.entity) {
-        const edgeId = node.data.group.id.id;
-        this.entityService.getAssignedToEdgeEntitiesByType(edgeId, groupType, pageLink).subscribe((entityGroups) => {
-          if (entityGroups) {
-            cb(this.entityGroupsToNodes(entityGroups, groupType));
-          }
-        });
       } else if (node.data && node.data.type === 'groups') {
-        const entityId = node.data.group.id.id;
-        this.entityGroupService.getEntityGroupEntities(entityId, pageLink, groupType).subscribe(
-          (entities) => {
-            cb(this.entitiesToNodes(entities.data, groupType));
-          }
-        );
+        if (isDefined(node.data.edge)) {
+          const edgeId = node.data.edge.id.id;
+          this.entityService.getAssignedToEdgeEntitiesByType(edgeId, groupType, pageLink).subscribe((entityGroups) => {
+            if (entityGroups) {
+              cb(this.entityGroupsToNodes(entityGroups, groupType));
+            }
+          });
+        } else {
+          const entityId = node.data.group.id.id;
+          this.entityGroupService.getEntityGroupEntities(entityId, pageLink, groupType).subscribe(
+            (entities) => {
+              cb(this.entitiesToNodes(entities.data, groupType));
+            }
+          );
+        }
       } else {
         cb([]);
       }
@@ -157,11 +158,11 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     this.ctx.widgetTitle = displayDefaultTitle ? defaultTitle : this.widgetConfig.title;
   }
 
-  private loadNodesForEdge(group: BaseData<HasId>): EdgeOverviewNode[] {
+  private loadNodesForEdge(edge: BaseData<HasId>): EdgeOverviewNode[] {
     const nodes: EdgeOverviewNode[] = [];
     const allowedEntityGroupTypes: Array<EntityType> = this.getAllowedEntityGroupTypes();
     allowedEntityGroupTypes.forEach((groupType) => {
-      const node: EdgeOverviewNode = this.createEdgeGroupsNode(group, groupType);
+      const node: EdgeOverviewNode = this.createEdgeGroupsNode(edge, groupType);
       nodes.push(node);
     });
     return nodes;
@@ -183,17 +184,18 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
     return allowedEntityTypes;
   }
 
-  private createEdgeGroupsNode(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode {
+  private createEdgeGroupsNode(edge: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode {
     return {
       id: (++this.nodeIdCounter)+'',
       icon: false,
       text: edgeGroupsNodeText(this.translate, groupType),
       children: true,
       data: {
-        type: 'edgeGroups',
-        group,
-        groupType
-      } as EdgeGroupsNodeData
+        type: 'groups',
+        group: edge,
+        groupType,
+        edge
+      } as EntityGroupsNodeData
     };
   }
 

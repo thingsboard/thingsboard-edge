@@ -49,7 +49,7 @@ export interface BaseEdgeNodeData {
   groupType: EntityType;
 }
 
-export type EdgeNodeType = 'group' | 'groups' | 'edgeGroups';
+export type EdgeNodeType = 'group' | 'groups';
 
 export interface EntityGroupNodeData extends BaseEdgeNodeData {
   type: 'group';
@@ -57,10 +57,7 @@ export interface EntityGroupNodeData extends BaseEdgeNodeData {
 
 export interface EntityGroupsNodeData extends BaseEdgeNodeData {
   type: 'groups';
-}
-
-export interface EdgeGroupsNodeData extends BaseEdgeNodeData {
-  type: 'edgeGroups';
+  edge?: BaseData<HasId>;
 }
 
 export function edgeGroupsNodeText(translate: TranslateService, entityType: EntityType): string {
