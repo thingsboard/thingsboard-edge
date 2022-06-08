@@ -53,7 +53,6 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +108,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
         super.processAfterSaved(user, importResult, exportData, idProvider, importSettings);
 
         importResult.addSaveReferencesCallback(() -> {
-            if (!importSettings.isUpdateUserGroupPermissions() || exportData.getPermissions() == null
+            if (!importSettings.isSaveUserGroupPermissions() || exportData.getPermissions() == null
                     || importResult.getSavedEntity().getType() != EntityType.USER) {
                 return;
             }

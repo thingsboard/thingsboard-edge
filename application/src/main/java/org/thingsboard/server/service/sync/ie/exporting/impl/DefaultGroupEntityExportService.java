@@ -58,20 +58,9 @@ public class DefaultGroupEntityExportService<I extends EntityId, E extends Expor
     @Autowired
     private EntityGroupService entityGroupService;
 
-    @SneakyThrows({InterruptedException.class, ExecutionException.class})
     @Override
     protected final void setAdditionalExportData(SecurityUser user, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
         super.setAdditionalExportData(user, entity, exportData, exportSettings);
-
-        if (exportSettings.isExportEntityGroupsInfo()) {
-            List<EntityGroupId> entityGroupsIds = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), entity.getId()).get().stream()
-                    .filter(entityGroupId -> !entityGroupService.findEntityGroupById(user.getTenantId(), entityGroupId).isGroupAll())
-                    .collect(Collectors.toList());
-            for (EntityGroupId entityGroupId : entityGroupsIds) {
-                exportableEntitiesService.checkPermission(user, entityGroupId, Operation.READ);
-            }
-            exportData.setEntityGroupsIds(entityGroupsIds);
-        }
     }
 
     @Override

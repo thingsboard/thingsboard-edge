@@ -295,6 +295,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
 
     private void handleEntityContentRequest(VersionControlRequestCtx ctx, EntityContentRequestMsg request) throws IOException {
         String path = getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());
+        path = StringUtils.isNotEmpty(request.getPath()) ? request.getPath() + path : path;
         String data = vcService.getFileContentAtCommit(ctx.getTenantId(), path, request.getVersionId());
         reply(ctx, Optional.empty(), builder -> builder.setEntityContentResponse(EntityContentResponseMsg.newBuilder().setData(data)));
     }
@@ -319,8 +320,8 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             }
             sortOrder = new SortOrder(request.getSortProperty(), direction);
         }
-        if(StringUtils.isNotEmpty(request.getHierarchyPath())){
-            path = request.getHierarchyPath() + path;
+        if(StringUtils.isNotEmpty(request.getPath())){
+            path = request.getPath() + path;
         }
         var data = vcService.listVersions(ctx.getTenantId(), request.getBranchName(), path,
                 new PageLink(request.getPageSize(), request.getPage(), request.getTextSearch(), sortOrder));

@@ -62,8 +62,8 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
     @Override
     protected void setAdditionalExportData(SecurityUser user, EntityGroup entityGroup, EntityGroupExportData exportData, EntityExportSettings exportSettings) throws ThingsboardException {
         super.setAdditionalExportData(user, entityGroup, exportData, exportSettings);
-
-        if (exportSettings.isExportUserGroupPermissions() && entityGroup.getType() == EntityType.USER) {
+        exportData.setGroupEntities(exportSettings.isExportGroupEntities());
+        if (exportSettings.isExportPermissions() && entityGroup.getType() == EntityType.USER) {
             exportableEntitiesService.checkPermission(user, null, EntityType.GROUP_PERMISSION, Operation.READ);
             List<GroupPermission> permissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(user.getTenantId(), entityGroup.getId()).stream()
                     .filter(permission -> {
