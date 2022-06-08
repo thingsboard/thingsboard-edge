@@ -28,19 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.vc.request.load;
+package org.thingsboard.server.service.sync.vc.data;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 
-@Data
-public class VersionLoadConfig {
+@Getter
+public class FileContentGitRequest extends PendingGitRequest<String> {
 
-    private boolean loadRelations;
-    private boolean loadAttributes;
-    private boolean loadCredentials;
-    private boolean loadPermissions;
-    private boolean loadGroupEntities;
+    private final String versionId;
+    private final String path;
 
+    public FileContentGitRequest(TenantId tenantId, String versionId, String path) {
+        super(tenantId);
+        this.versionId = versionId;
+        this.path = path;
+    }
 }

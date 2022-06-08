@@ -56,11 +56,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -219,15 +215,21 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String path) throws Exception {
+    public List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, String path) throws Exception {
         GitRepository repository = checkRepository(tenantId);
+        if(StringUtils.isNotEmpty(folder)){
+            path = folder + path;
+        }
         return repository.listFilesAtCommit(versionId, path).stream()
                 .map(filePath -> {
+                    if(StringUtils.isNotEmpty(folder)){
+                        filePath = filePath.substring(folder.length());
+                    }
                     EntityId entityId = fromRelativePath(filePath);
                     VersionedEntityInfo info = new VersionedEntityInfo();
                     info.setExternalId(entityId);
                     return info;
-                })
+                }).filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

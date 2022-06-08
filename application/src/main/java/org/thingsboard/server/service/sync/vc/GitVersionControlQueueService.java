@@ -51,6 +51,7 @@ import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
 import org.thingsboard.server.common.data.sync.vc.EntityVersionsDiff;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface GitVersionControlQueueService {
 
@@ -84,7 +85,9 @@ public interface GitVersionControlQueueService {
 
     ListenableFuture<EntityExportData> getEntityGroup(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType groupType, EntityId groupId);
 
-    ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, EntityType entityType, int offset, int limit);
+    ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType entityType, int offset, int limit);
+
+    ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType entityType, List<UUID> ids);
 
     ListenableFuture<List<EntityVersionsDiff>> getVersionsDiff(TenantId tenantId, EntityType entityType, EntityId externalId, String versionId1, String versionId2);
 
@@ -97,4 +100,6 @@ public interface GitVersionControlQueueService {
     ListenableFuture<Void> clearRepository(TenantId tenantId);
 
     void processResponse(VersionControlResponseMsg vcResponseMsg);
+
+    ListenableFuture<List<EntityId>> getGroupEntityIds(TenantId tenantId, String versionId, List<CustomerId> ownerIds, EntityType type, EntityId externalId);
 }

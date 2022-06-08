@@ -30,7 +30,10 @@
  */
 package org.thingsboard.server.service.sync.vc;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
 import lombok.SneakyThrows;
@@ -69,17 +72,7 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.sync.vc.data.ClearRepositoryGitRequest;
-import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ContentsDiffGitRequest;
-import org.thingsboard.server.service.sync.vc.data.EntitiesContentGitRequest;
-import org.thingsboard.server.service.sync.vc.data.EntityContentGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ListBranchesGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ListEntitiesGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ListVersionsGitRequest;
-import org.thingsboard.server.service.sync.vc.data.PendingGitRequest;
-import org.thingsboard.server.service.sync.vc.data.VersionsDiffGitRequest;
-import org.thingsboard.server.service.sync.vc.data.VoidGitRequest;
+import org.thingsboard.server.service.sync.vc.data.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -320,6 +313,15 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     }
 
     @Override
+    public ListenableFuture<List<EntityId>> getGroupEntityIds(TenantId tenantId, String versionId, List<CustomerId> ownerIds, EntityType type, EntityId externalId) {
+        String path = getHierarchyPath(ownerIds) + "groups/" + type.name().toLowerCase() + "/" + externalId.getId() + "_entities.json";
+        FileContentGitRequest request = new FileContentGitRequest(tenantId, versionId, path);
+        registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder().setVersionId(versionId).setPath(path)).build()
+                , wrap(request.getFuture()));
+        return Futures.transform(request.getFuture(), data -> JacksonUtil.fromString(data, new TypeReference<>() {}), MoreExecutors.directExecutor());
+    }
+
+    @Override
     @SuppressWarnings("rawtypes")
     public ListenableFuture<EntityExportData> getEntityGroup(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType groupType, EntityId groupId) {
         EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, groupId);
@@ -360,14 +362,34 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, EntityType entityType, int offset, int limit) {
+    public ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType entityType, int offset, int limit) {
         EntitiesContentGitRequest request = new EntitiesContentGitRequest(tenantId, versionId, entityType);
 
         registerAndSend(request, builder -> builder.setEntitiesContentRequest(EntitiesContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy))
                         .setEntityType(entityType.name())
                         .setOffset(offset)
                         .setLimit(limit)
+                ).build()
+                , wrap(request.getFuture()));
+
+        return request.getFuture();
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType entityType, List<UUID> ids) {
+        EntitiesContentGitRequest request = new EntitiesContentGitRequest(tenantId, versionId, entityType);
+
+        var idProtos = ids.stream().map(id -> TransportProtos.EntityIdProto.newBuilder()
+                .setEntityIdMSB(id.getMostSignificantBits()).setEntityIdLSB(id.getLeastSignificantBits()).build()).collect(Collectors.toList());
+
+        registerAndSend(request, builder -> builder.setEntitiesContentRequest(EntitiesContentRequestMsg.newBuilder()
+                        .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy))
+                        .setEntityType(entityType.name())
+                        .addAllIds(idProtos)
                 ).build()
                 , wrap(request.getFuture()));
 
@@ -443,7 +465,13 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
                 ((ListVersionsGitRequest) request).getFuture().set(toPageData(listVersionsResponse));
             } else if (vcResponseMsg.hasEntityContentResponse()) {
                 var data = vcResponseMsg.getEntityContentResponse().getData();
-                ((EntityContentGitRequest) request).getFuture().set(toData(data));
+                if(request instanceof EntityContentGitRequest){
+                    ((EntityContentGitRequest) request).getFuture().set(toData(data));
+                } else if (request instanceof FileContentGitRequest){
+                    ((FileContentGitRequest) request).getFuture().set(data);
+                } else {
+                    throw new RuntimeException("Unsupported request: " + request.getClass());
+                }
             } else if (vcResponseMsg.hasEntitiesContentResponse()) {
                 var dataList = vcResponseMsg.getEntitiesContentResponse().getDataList();
                 ((EntitiesContentGitRequest) request).getFuture()

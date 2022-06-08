@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.sync.vc.data;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -38,15 +40,22 @@ import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+@RequiredArgsConstructor
 @Data
+@Slf4j
 public class EntitiesImportCtx {
-    Map<EntityType, EntityTypeLoadResult> results = new HashMap<>();
-    private Map<EntityType, Set<EntityId>> importedEntities = new HashMap<>();
-    private Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
-    private List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
-    private List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
+    private final String versionId;
+    private final Map<EntityType, EntityTypeLoadResult> results = new HashMap<>();
+    private final Map<EntityType, Set<EntityId>> importedEntities = new HashMap<>();
+    private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
+    private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
+    private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
 
     public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
         results.put(entityType, importEntities);
@@ -57,14 +66,14 @@ public class EntitiesImportCtx {
     }
 
     public void executeCallbacks() {
-        for (ThrowingRunnable saveReferencesCallback : ctx.getSaveReferencesCallbacks()) {
+        for (ThrowingRunnable saveReferencesCallback : saveReferencesCallbacks) {
             try {
                 saveReferencesCallback.run();
             } catch (ThingsboardException e) {
                 throw new RuntimeException(e);
             }
         }
-        for (ThrowingRunnable sendEventsCallback : ctx.getSendEventsCallbacks()) {
+        for (ThrowingRunnable sendEventsCallback : sendEventsCallbacks) {
             try {
                 sendEventsCallback.run();
             } catch (Exception e) {
