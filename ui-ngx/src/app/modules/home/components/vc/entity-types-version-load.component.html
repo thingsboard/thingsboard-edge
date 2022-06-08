@@ -82,7 +82,7 @@
                       <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.DEVICE" formControlName="loadCredentials">
                         {{ 'version-control.load-credentials' | translate }}
                       </mat-checkbox>
-                      <mat-checkbox *ngIf="isGroupEntityType(entityTypeFormGroup.get('entityType').value)" formControlName="loadPermissions">
+                      <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.USER" formControlName="loadPermissions">
                         {{ 'version-control.load-group-permissions' | translate }}
                       </mat-checkbox>
                       <mat-checkbox formControlName="loadAttributes">

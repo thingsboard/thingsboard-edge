@@ -35,12 +35,15 @@ import { ExportableEntity } from '@shared/models/base-data';
 import { EntityRelation } from '@shared/models/relation.models';
 import { Device, DeviceCredentials } from '@shared/models/device.models';
 import { RuleChain, RuleChainMetaData } from '@shared/models/rule-chain.models';
+import { EntityGroup } from '@shared/models/entity-group.models';
+import { GroupPermission } from '@shared/models/group-permission.models';
 
 export const exportableEntityTypes: Array<EntityType> = [
   EntityType.ASSET,
   EntityType.DEVICE,
   EntityType.DASHBOARD,
   EntityType.CUSTOMER,
+  EntityType.USER,
   EntityType.DEVICE_PROFILE,
   EntityType.RULE_CHAIN,
   EntityType.CONVERTER,
@@ -245,6 +248,11 @@ export interface DeviceExportData extends EntityExportData<Device> {
 
 export interface RuleChainExportData extends EntityExportData<RuleChain> {
   metaData: RuleChainMetaData;
+}
+
+export interface EntityGroupExportData extends EntityExportData<EntityGroup> {
+  permissions: Array<GroupPermission>;
+  groupEntities: boolean;
 }
 
 export interface EntityDataDiff {

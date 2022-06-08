@@ -65,6 +65,7 @@ import { EntityVersionDiffComponent } from '@home/components/vc/entity-version-d
 import { ComplexVersionCreateComponent } from '@home/components/vc/complex-version-create.component';
 import { ComplexVersionLoadComponent } from '@home/components/vc/complex-version-load.component';
 import { TbPopoverComponent } from '@shared/components/popover.component';
+import { EntityType } from '@app/shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-entity-versions-table',
@@ -126,6 +127,9 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
 
   @Input()
   entityId: EntityId;
+
+  @Input()
+  groupType: EntityType;
 
   @Input()
   entityName: string;
@@ -216,6 +220,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
         {
           branch: this.branch,
           entityId: this.entityId,
+          groupType: this.groupType,
           entityName: this.entityName,
           onBeforeCreateVersion: this.onBeforeCreateVersion,
           onClose: (result: VersionCreationResult | null, branch: string | null) => {
