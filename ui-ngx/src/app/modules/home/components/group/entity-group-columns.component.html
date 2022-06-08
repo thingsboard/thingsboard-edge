@@ -51,22 +51,17 @@
     <mat-divider></mat-divider>
     <div class="tb-columns" [ngClass]="{'tb-readonly': disabled}"
          style="max-height: 500px; overflow: auto; padding-bottom: 15px;" [formGroup]="columnsFormGroup">
-      <mat-list dndDropzone dndEffectAllowed="move"
-                (dndDrop)="onDrop($event)"
-                [dndDisableIf]="disabled" formArrayName="columns">
-        <mat-list-item dndPlaceholderRef
-                       class="dndPlaceholder">
-        </mat-list-item>
-        <mat-list-item *ngFor="let columnControl of columnsFormArray().controls; let $index = index"
-                       [dndDraggable]="columnControl.value"
-                       (dndMoved)="dndMoved($index)"
-                       [dndDisableIf]="disabled"
-                       dndEffectAllowed="move">
+      <mat-list class="tb-drop-list" cdkDropList cdkDropListOrientation="vertical"
+                (cdkDropListDropped)="onDrop($event)"
+                [cdkDropListDisabled]="disabled" formArrayName="columns">
+        <mat-list-item *ngFor="let columnControl of columnsFormArray().controls; trackBy: trackByColumnControl; let $index = index"
+                       cdkDrag class="tb-entity-group-column tb-draggable"
+                       [cdkDragDisabled]="disabled">
           <div fxFlex fxLayout="row" fxLayoutAlign="start center">
             <button *ngIf="!disabled" mat-icon-button color="primary"
-                    class="handle"
+                    cdkDragHandle
+                    class="tb-drag-handle handle"
                     style="min-width: 40px; margin: 0"
-                    dndHandle
                     matTooltip="{{ 'action.drag' | translate }}"
                     matTooltipPosition="above">
               <mat-icon>drag_handle</mat-icon>
