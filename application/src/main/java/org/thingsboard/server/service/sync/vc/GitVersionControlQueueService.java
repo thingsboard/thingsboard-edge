@@ -55,7 +55,7 @@ public interface GitVersionControlQueueService {
 
     ListenableFuture<CommitGitRequest> prepareCommit(User user, VersionCreateRequest request);
 
-    ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<ExportableEntity<EntityId>> entityData);
+    ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<? extends ExportableEntity<? extends EntityId>> entityData);
 
     ListenableFuture<Void> addToCommit(CommitGitRequest commit, EntityExportData<ExportableEntity<EntityId>> entityData);
 
@@ -67,6 +67,8 @@ public interface GitVersionControlQueueService {
 
     ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, EntityType entityType, PageLink pageLink);
 
+    ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityType entityType, EntityId groupId, PageLink pageLink);
+
     ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityId entityId, PageLink pageLink);
 
     ListenableFuture<List<VersionedEntityInfo>> listEntitiesAtVersion(TenantId tenantId, String branch, String versionId, EntityType entityType);
@@ -76,6 +78,8 @@ public interface GitVersionControlQueueService {
     ListenableFuture<List<String>> listBranches(TenantId tenantId);
 
     ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityId entityId);
+
+    ListenableFuture<EntityExportData> getEntityGroup(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType groupType, EntityId groupId);
 
     ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, EntityType entityType, int offset, int limit);
 

@@ -135,7 +135,7 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<PageData<EntityVersion>> listEntityVersions(@PathVariable String branch,
                                                                       @PathVariable EntityType entityType,
                                                                       @PathVariable UUID externalEntityUuid,
-                                                                      @RequestParam(required = false) UUID internalEntityUuid,
+                                                                      @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid,
                                                                       @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
                                                                       @RequestParam int pageSize,
                                                                       @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
@@ -250,7 +250,7 @@ public class EntitiesVersionControlController extends BaseController {
     public DeferredResult<EntityDataInfo> getEntityDataInfo(@PathVariable String versionId,
                                                             @PathVariable EntityType entityType,
                                                             @PathVariable UUID externalEntityUuid,
-                                                            @RequestParam(required = false) UUID internalEntityUuid) throws ThingsboardException {
+                                                            @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid) throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
             EntityId externalId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);

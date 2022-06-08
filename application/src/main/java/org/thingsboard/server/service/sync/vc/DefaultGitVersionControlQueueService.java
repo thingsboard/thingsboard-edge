@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -126,17 +127,24 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     }
 
     @Override
-    public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<ExportableEntity<EntityId>> entityData) {
+    public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<? extends ExportableEntity<? extends EntityId>> entityData) {
         SettableFuture<Void> future = SettableFuture.create();
 
-        String parentsPath = getHierarchyPath(parents);
-        String path = getRelativePath(entityData.getEntityType(), entityData.getExternalId());
+        String path;
+        if(EntityType.ENTITY_GROUP.equals(entityData.getEntityType())){
+            EntityGroup group = (EntityGroup) entityData.getEntity();
+            path = getHierarchyPath(parents) + getGroupPath(group);
+        } else {
+            path = getHierarchyPath(parents) + getRelativePath(entityData.getEntityType(), entityData.getExternalId());
+        }
+
         String entityDataJson = JacksonUtil.toPrettyString(entityData.sort());
 
         registerAndSend(commit, builder -> builder.setCommitRequest(
                 buildCommitRequest(commit).setAddMsg(
                         TransportProtos.AddMsg.newBuilder()
-                                .setRelativePath(parentsPath + path).setEntityDataJson(entityDataJson).build()
+                                .setRelativePath(path)
+                                .setEntityDataJson(entityDataJson).build()
                 ).build()
         ).build(), wrap(future, null));
         return future;
@@ -191,15 +199,24 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     }
 
     @Override
+    public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityType entityType, EntityId groupId, PageLink pageLink) {
+        return listVersions(tenantId, branch, getHierarchyPath(hierarchy) + "groups/", entityType, groupId.getId(), pageLink);
+    }
+
+    @Override
     public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityId entityId, PageLink pageLink) {
+        return listVersions(tenantId, branch, getHierarchyPath(hierarchy), entityId.getEntityType(), entityId.getId(), pageLink);
+    }
+
+    private ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, String path, EntityType entityType, UUID entityUuid, PageLink pageLink) {
         return listVersions(tenantId,
                 applyPageLinkParameters(
                         ListVersionsRequestMsg.newBuilder()
                                 .setBranchName(branch)
-                                .setHierarchyPath(getHierarchyPath(hierarchy))
-                                .setEntityType(entityId.getEntityType().name())
-                                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                                .setEntityIdLSB(entityId.getId().getLeastSignificantBits()),
+                                .setPath(path)
+                                .setEntityType(entityType.name())
+                                .setEntityIdMSB(entityUuid.getMostSignificantBits())
+                                .setEntityIdLSB(entityUuid.getLeastSignificantBits()),
                         pageLink
                 ).build());
     }
@@ -279,10 +296,24 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
         EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, entityId);
         registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
-                        .setHierarchyPath(getHierarchyPath(hierarchy))
+                        .setPath(getHierarchyPath(hierarchy))
                         .setEntityType(entityId.getEntityType().name())
                         .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                         .setEntityIdLSB(entityId.getId().getLeastSignificantBits())).build()
+                , wrap(request.getFuture()));
+        return request.getFuture();
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public ListenableFuture<EntityExportData> getEntityGroup(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType groupType, EntityId groupId) {
+        EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, groupId);
+        registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder()
+                        .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy) + "groups/")
+                        .setEntityType(groupType.name())
+                        .setEntityIdMSB(groupId.getId().getMostSignificantBits())
+                        .setEntityIdLSB(groupId.getId().getLeastSignificantBits())).build()
                 , wrap(request.getFuture()));
         return request.getFuture();
     }
@@ -475,6 +506,10 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
             path.append("hierarchy/").append(entityId.getId()).append("/");
         }
         return path.toString();
+    }
+
+    private static String getGroupPath(EntityGroup group) {
+        return "groups/" + group.getType().name().toLowerCase() + "/" + group.getExternalId() + ".json";
     }
 
     private static String getRelativePath(EntityType entityType, EntityId entityId) {
