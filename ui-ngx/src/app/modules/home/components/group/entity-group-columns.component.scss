@@ -28,58 +28,52 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .tb-entity-group-columns {
-    .tb-header {
-      font-size: 12px;
-      font-weight: 700;
-      color: rgba(0, 0, 0, .57);
+.tb-entity-group-columns {
+  .tb-header {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, .57);
+  }
+
+  .tb-columns {
+    font-size: 13px;
+
+    &.tb-readonly {
+      span {
+        color: rgba(0, 0, 0, .38);
+      }
     }
 
-    .tb-columns {
-      font-size: 13px;
+    .handle {
+      cursor: move;
+    }
 
-      .mat-list-base .mat-list-item {
-        font-size: 13px;
-      }
-
-      &.tb-readonly {
-        span {
-          color: rgba(0, 0, 0, .38);
-        }
-      }
-
-      .handle {
-        cursor: move;
-      }
-
-      .mat-list {
-        min-height: 42px;
-        padding-left: 0;
-      }
-
-      .mat-list-item {
-        min-height: 42px;
-        display: block;
-        &.dndDraggingSource {
-          display: none;
-        }
-        &.dndPlaceholder {
-          display: block;
-          background-color: #ddd;
-        }
-      }
+    .mat-list {
+      min-height: 42px;
+      padding-left: 0;
     }
   }
 }
 
-:host ::ng-deep {
-  .tb-entity-group-columns {
-    .tb-columns {
-      .mat-list-base .mat-list-item {
-        .mat-list-item-content {
-          padding: 0;
-        }
+.mat-list-base .mat-list-item, .mat-list-item {
+  &.tb-entity-group-column {
+    min-height: 42px;
+    display: block;
+    font-size: 13px;
+    background: #fff;
+    .mat-list-item-content {
+      padding: 0;
+    }
+    &.tb-draggable {
+      &.cdk-drag-placeholder {
+        opacity: 0;
+      }
+      &.cdk-drag-preview {
+        box-sizing: border-box;
+        border-radius: 4px;
+        box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+        0 8px 10px 1px rgba(0, 0, 0, 0.14),
+        0 3px 14px 2px rgba(0, 0, 0, 0.12);
       }
     }
   }
