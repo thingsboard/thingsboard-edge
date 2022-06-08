@@ -55,12 +55,10 @@ import { PageLink } from '@shared/models/page/page-link';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { edgeEntityGroupTypes } from "@shared/models/edge.models";
-import { groupResourceByGroupType, Operation, Resource, resourceByEntityType } from "@shared/models/security.models";
+import { groupResourceByGroupType, Operation, Resource } from "@shared/models/security.models";
 import { UserPermissionsService } from "@core/http/user-permissions.service";
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
 import { isDefined } from '@core/utils';
 
 interface EdgesOverviewWidgetSettings {
@@ -90,7 +88,7 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   constructor(protected store: Store<AppState>,
               private entityService: EntityService,
               private entityGroupService: EntityGroupService,
-              private translateService: TranslateService,
+              private translate: TranslateService,
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService) {
     super(store);
@@ -144,7 +142,9 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   }
 
   private initializeConfig(): void {
-    const edgeIsDatasource: boolean = this.datasources[0] && this.datasources[0].type === DatasourceType.entity && this.datasources[0].entity.id.entityType === EntityType.EDGE;
+    const edgeIsDatasource: boolean = this.datasources[0]
+      && this.datasources[0].type === DatasourceType.entity
+      && this.datasources[0].entity.id.entityType === EntityType.EDGE;
     if (edgeIsDatasource) {
       const edge = this.datasources[0].entity;
       this.updateTitle(edge);
@@ -153,7 +153,8 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
 
   private updateTitle(edge: BaseData<EntityId>): void {
     const displayDefaultTitle: boolean = isDefined(this.settings.enableDefaultTitle) ? this.settings.enableDefaultTitle : false;
-    this.ctx.widgetTitle = displayDefaultTitle ? `${edge.name} Quick Overview` : this.widgetConfig.title;
+    const defaultTitle = this.translate.instant('edge.quick-overview-widget-header', {edgeName: edge.name});
+    this.ctx.widgetTitle = displayDefaultTitle ? defaultTitle : this.widgetConfig.title;
   }
 
   private loadNodesForEdge(group: BaseData<HasId>): EdgeOverviewNode[] {
@@ -167,26 +168,26 @@ export class EdgesOverviewWidgetComponent extends PageComponent implements OnIni
   }
 
   private getAllowedEntityGroupTypes() {
-    const currentUser = getCurrentAuthState(this.store).authUser;
-    const isSysAdmin: boolean = currentUser.authority === Authority.SYS_ADMIN;
-    const isTenantAdmin: boolean = currentUser.authority === Authority.TENANT_ADMIN;
-    const allEntityGroupTypes: Array<EntityType> = edgeEntityGroupTypes.concat(EntityType.SCHEDULER_EVENT, EntityType.RULE_CHAIN);
-    var allowedGroupTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
+    var allowedEntityTypes: Array<EntityType> = edgeEntityGroupTypes.filter((groupType) =>
       this.userPermissionsService.hasGenericPermission(groupResourceByGroupType.get(groupType), Operation.READ));
+
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
-      allowedGroupTypes.push(EntityType.SCHEDULER_EVENT);
+      allowedEntityTypes.push(EntityType.SCHEDULER_EVENT);
     }
-    if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE) && isTenantAdmin) {
-      allowedGroupTypes.push(EntityType.RULE_CHAIN);
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)) {
+      allowedEntityTypes.push(EntityType.RULE_CHAIN);
     }
-    return isSysAdmin ? allEntityGroupTypes : allowedGroupTypes;
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)) {
+      allowedEntityTypes.push(EntityType.INTEGRATION);
+    }
+    return allowedEntityTypes;
   }
 
   private createEdgeGroupsNode(group: BaseData<HasId>, groupType: EntityType): EdgeOverviewNode {
     return {
       id: (++this.nodeIdCounter)+'',
       icon: false,
-      text: edgeGroupsNodeText(this.translateService, groupType),
+      text: edgeGroupsNodeText(this.translate, groupType),
       children: true,
       data: {
         type: 'edgeGroups',

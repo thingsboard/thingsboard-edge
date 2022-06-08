@@ -121,7 +121,6 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       ruleChainScope,
       hierarchyView: params?.hierarchyView,
       entityGroupId: params?.entityGroupId,
-      // TODO: @voba - why this childEntityGroupId needed here and not in integration
       childEntityGroupId: params?.childEntityGroupId,
       customerId: params?.customerId
     };

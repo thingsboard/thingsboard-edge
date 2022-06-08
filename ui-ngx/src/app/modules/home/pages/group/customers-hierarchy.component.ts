@@ -212,10 +212,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
           cb(this.entityGroupsToNodes(node.id, parentEntityGroupId, entityGroups));
         });
       } else if (node.data.type === 'edge' || node.data.type === 'edgeGroups') {
-        const customerData: EdgeNodeCustomerData = {
-          customerId: node.data.customerData.customerId,
-          customerGroupId: node.data.customerData.customerGroupId
-        };
+        const customerData = node.data.customerData;
         const edge = node.data.edge;
         const parentEntityGroupId = node.data.parentEntityGroupId;
         if (node.data.type === 'edge') {

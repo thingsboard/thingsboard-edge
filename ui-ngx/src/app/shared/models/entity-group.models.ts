@@ -546,11 +546,12 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
         !isEqual(routeParams.entityGroupId, route.params.entityGroupId)) {
       routeParams.childEntityGroupId = routeParams.entityGroupId;
     }
-    if (routeData.edgeEntitiesType === routeData.groupType) {
-      routeData.edgeEntitiesGroupId = routeParams.childEntityGroupId;
-    }
-    if (routeData.groupType && route.data.groupType && !isEqual(routeData.groupType, route.data.groupType)) {
+    if (routeData.groupType && route.data.groupType &&
+      !isEqual(routeData.groupType, route.data.groupType)) {
       routeData.childGroupType = routeData.groupType;
+    }
+    if (isUndefinedOrNull(routeData.edgeEntitiesGroupId)) {
+      routeData.edgeEntitiesGroupId = routeParams.childEntityGroupId;
     }
     routeParams = {...routeParams, ...route.params};
     routeData = { ...routeData, ...route.data };

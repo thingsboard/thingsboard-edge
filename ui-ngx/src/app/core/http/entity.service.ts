@@ -1787,6 +1787,9 @@ export class EntityService {
       case EntityType.RULE_CHAIN:
         entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
+      case EntityType.INTEGRATION :
+        entitiesObservable = this.integrationService.getEdgeIntegrations(edgeId, pageLink).pipe(map(entities => entities.data));
+        break;
       default:
         entitiesObservable = of(null);
         console.error(`Edge does not support EntityType ${entityType}`);
@@ -1808,6 +1811,8 @@ export class EntityService {
       case EdgeEventType.CUSTOMER:
       case EdgeEventType.ENTITY_GROUP:
       case EdgeEventType.SCHEDULER_EVENT:
+      case EdgeEventType.INTEGRATION:
+      case EdgeEventType.CONVERTER:
       case EdgeEventType.TENANT:
       case EdgeEventType.ASSET:
       case EdgeEventType.DEVICE:

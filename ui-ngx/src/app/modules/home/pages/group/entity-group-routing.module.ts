@@ -1009,6 +1009,7 @@ const routes: Routes = [
                   },
                   {...EDGE_SCHEDULER_ROUTE, ...{
                         data: {
+                          // TODO: @voba - why this is not required in EDGE_SCHEDULER_ROUTE
                           edgeEntitiesType: EntityType.SCHEDULER_EVENT,
                           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
                           breadcrumb: {
@@ -1022,6 +1023,7 @@ const routes: Routes = [
                     },
                   {...EDGE_RULE_CHAINS_ROUTE, ...{
                       data: {
+                        // TODO: @voba - why this is not required in EDGE_RULE_CHAINS_ROUTE
                         edgeEntitiesType: EntityType.RULE_CHAIN,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
@@ -1034,6 +1036,7 @@ const routes: Routes = [
                   },
                   {...EDGE_INTEGRATIONS_ROUTE, ...{
                       data: {
+                        // TODO: @voba - why this is required here
                         edgeEntitiesType: EntityType.INTEGRATION,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {

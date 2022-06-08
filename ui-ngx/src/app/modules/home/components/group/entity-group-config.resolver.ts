@@ -122,9 +122,7 @@ export class EntityGroupConfigResolver {
           }
         ));
     } else if (params.edgeId) {
-      // TODO: @voba - test these changes
-      // const groupType: EntityType = params.edgeEntitiesType || params.childGroupType || params.groupType;
-      const groupType: EntityType = params.childGroupType || params.groupType;
+      const groupType: EntityType = params.edgeEntitiesType || params.childGroupType || params.groupType;
       const tasks = [];
       tasks.push(this.edgeService.getEdge(params.edgeId).pipe(
           map(

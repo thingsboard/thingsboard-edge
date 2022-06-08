@@ -1891,7 +1891,8 @@
         "missing-attributes-title": "Edge has missing attribute(s)",
         "missing-attributes-text": "Integration(s), assigned to edge, have attribute placeholders that are not available on this edge. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
         "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
-        "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}"
+        "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
+        "quick-overview-widget-header": "{{edgeName}} Quick Overview"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
@@ -1916,6 +1917,8 @@
         "type-custom-translation": "Custom Translation",
         "type-role": "Role",
         "type-group-permission": "Group Permission",
+        "type-integration": "Integration",
+        "type-converter": "Converter",
         "action-type-added": "Added",
         "action-type-deleted": "Deleted",
         "action-type-updated": "Updated",
