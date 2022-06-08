@@ -163,6 +163,11 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         return integrationInfoDao.findAllIntegrationInfos(integrationType, remote, enabled);
     }
 
+    @Override
+    public boolean existsByConverterId(TenantId tenantId, ConverterId converterId) {
+        return integrationDao.existsByUplinkOrDownlinkConverterId(tenantId.getId(), converterId.getId());
+    }
+
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =
             new PaginatedRemover<>() {
 

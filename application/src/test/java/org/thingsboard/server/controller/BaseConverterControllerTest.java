@@ -33,15 +33,19 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -50,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -270,6 +275,38 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Test
+    public void whenDeletingConverter_thenReferencingIntegrationsAreChecked() throws Exception {
+        Converter uplinkConverter = new Converter();
+        uplinkConverter.setName("UP");
+        uplinkConverter.setType(ConverterType.UPLINK);
+        uplinkConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        uplinkConverter = doPost("/api/converter", uplinkConverter, Converter.class);
+
+        Converter downlinkConverter = new Converter();
+        downlinkConverter.setName("DOWN");
+        downlinkConverter.setType(ConverterType.DOWNLINK);
+        downlinkConverter.setConfiguration(JacksonUtil.newObjectNode().set("encoder", new TextNode("ab")));
+        downlinkConverter = doPost("/api/converter", downlinkConverter, Converter.class);
+
+        Integration integration = new Integration();
+        integration.setName("III");
+        integration.setType(IntegrationType.HTTP);
+        integration.setRoutingKey("rrr");
+        integration.setDefaultConverterId(uplinkConverter.getId());
+        integration.setDownlinkConverterId(downlinkConverter.getId());
+        integration.setEnabled(false);
+        doPost("/api/integration", integration, Integration.class);
+
+        String error = readResponse(doDelete("/api/converter/" + uplinkConverter.getId())
+                .andExpect(status().isBadRequest()), String.class);
+        assertThat(error).containsIgnoringCase("deletion will affect existing integrations");
+
+        error = readResponse(doDelete("/api/converter/" + downlinkConverter.getId())
+                .andExpect(status().isBadRequest()), String.class);
+        assertThat(error).containsIgnoringCase("deletion will affect existing integrations");
     }
 
 }

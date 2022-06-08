@@ -76,6 +76,11 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
+    public boolean existsByUplinkOrDownlinkConverterId(UUID tenantId, UUID converterId) {
+        return integrationRepository.existsByConverterIdOrDownlinkConverterId(converterId, converterId);
+    }
+
+    @Override
     public ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds) {
         return service.submit(() -> DaoUtil.convertDataList(integrationRepository.findIntegrationsByTenantIdAndIdIn(tenantId, integrationIds)));
     }

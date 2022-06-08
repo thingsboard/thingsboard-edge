@@ -50,6 +50,8 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
 
     IntegrationEntity findByRoutingKey(String routingKey);
 
+    boolean existsByConverterIdOrDownlinkConverterId(UUID converterId, UUID downlinkConverterId);
+
     List<IntegrationEntity> findByConverterId(UUID converterId);
 
     List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(UUID tenantId, List<UUID> integrationIds);

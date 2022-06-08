@@ -115,8 +115,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     private void checkIntegrationsAndDelete(TenantId tenantId, ConverterId converterId) {
-        List<Integration> affectedIntegrations = integrationService.findIntegrationsByConverterId(tenantId, converterId);
-        if (affectedIntegrations.isEmpty()) {
+        if (!integrationService.existsByConverterId(tenantId, converterId)) {
             deleteEntityRelations(tenantId, converterId);
             converterDao.removeById(tenantId, converterId.getId());
         } else {

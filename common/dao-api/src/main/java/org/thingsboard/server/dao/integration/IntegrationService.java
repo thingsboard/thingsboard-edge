@@ -66,4 +66,7 @@ public interface IntegrationService {
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
     List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+
+    boolean existsByConverterId(TenantId tenantId, ConverterId converterId);
+
 }
