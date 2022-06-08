@@ -241,7 +241,8 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
     }
     if (entityType) {
       const translation = entityTypeTranslations.get(entityType);
-      return this.translate.instant((config?.allEntities ? translation.typePlural
+      return this.translate.instant((config?.allEntities ?
+        (entityType === EntityType.USER ? 'version-control.user-groups' : translation.typePlural)
         : (entityGroupTypes.includes(entityType) ? translation.groupList : translation.list)), {count});
     } else {
       return 'Undefined';

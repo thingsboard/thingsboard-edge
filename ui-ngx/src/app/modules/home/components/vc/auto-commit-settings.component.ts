@@ -142,7 +142,8 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
   entityTypeText(entityTypeControl: AbstractControl): SafeHtml {
     const entityType: EntityType = entityTypeControl.get('entityType').value;
     const config: AutoVersionCreateConfig = entityTypeControl.get('config').value;
-    let message = entityType ? this.translate.instant(entityTypeTranslations.get(entityType).typePlural) : 'Undefined';
+    let message = entityType ? this.translate.instant(entityType === EntityType.USER ? 'version-control.user-groups'
+      : entityTypeTranslations.get(entityType).typePlural) : 'Undefined';
     let branchName;
     if (config.branch) {
       branchName = config.branch;

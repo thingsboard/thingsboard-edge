@@ -4460,7 +4460,8 @@
         "device-credentials-conflict": "Failed to load the device with external id <b>{{entityId}}</b><br/>due to the same credentials are already present in the database for another device.<br/>Please consider disabling the <b>load credentials</b> setting in the restore form.",
         "missing-referenced-entity": "Failed to load the <b>{{sourceEntityTypeName}}</b> with external id <b>{{sourceEntityId}}</b><br/>because it references missing <b>{{targetEntityTypeName}}</b> with id <b>{{targetEntityId}}</b>.",
         "add-entity-groups": "Add entity groups",
-        "entity-groups": "Entity groups"
+        "entity-groups": "Entity groups",
+        "user-groups": "User groups"
     },
     "widget": {
         "widget-library": "Widgets Library",
