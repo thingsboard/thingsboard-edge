@@ -44,10 +44,7 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
@@ -139,6 +136,24 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
         }
 
         String entityDataJson = JacksonUtil.toPrettyString(entityData.sort());
+
+        registerAndSend(commit, builder -> builder.setCommitRequest(
+                buildCommitRequest(commit).setAddMsg(
+                        TransportProtos.AddMsg.newBuilder()
+                                .setRelativePath(path)
+                                .setEntityDataJson(entityDataJson).build()
+                ).build()
+        ).build(), wrap(future, null));
+        return future;
+    }
+
+    @Override
+    public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityType type, EntityId groupExternalId, List<EntityId> groupEntityIds) {
+        SettableFuture<Void> future = SettableFuture.create();
+
+        String path = getHierarchyPath(parents) + getGroupEntitiesListPath(type, groupExternalId);
+
+        String entityDataJson = JacksonUtil.toPrettyString(groupEntityIds);
 
         registerAndSend(commit, builder -> builder.setCommitRequest(
                 buildCommitRequest(commit).setAddMsg(
@@ -508,8 +523,12 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
         return path.toString();
     }
 
+    private static String getGroupEntitiesListPath(EntityType groupType, EntityId groupExternalId) {
+        return "groups/" + groupType.name().toLowerCase() + "/" + groupExternalId + "_entities.json";
+    }
+
     private static String getGroupPath(EntityGroup group) {
-        return "groups/" + group.getType().name().toLowerCase() + "/" + group.getExternalId() + ".json";
+        return "groups/" + group.getType().name().toLowerCase() + "/" + (group.getExternalId() != null ? group.getExternalId() : group.getId()) + ".json";
     }
 
     private static String getRelativePath(EntityType entityType, EntityId entityId) {

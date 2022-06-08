@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.sync.ThrowingRunnable;
@@ -158,7 +159,20 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             List<CustomerId> hierarchy = addCustomerHierarchyToCommit(user, commit, gitFutures, entityId, exportSettings, group);
             gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, entityData));
             if (exportSettings.isExportGroupEntities()) {
-//                groupService.findAllEntityIds()
+                exportSettings.setExportCredentials(true);
+                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
+                        link -> groupService.findEntityIds(user.getTenantId(), group.getType(), group.getId(), link), 1024);
+                List<EntityId> groupEntityIds = new ArrayList<>();
+                for (EntityId groupEntityId : entityIdsIterator) {
+                    if (!group.isGroupAll()) {
+                        groupEntityIds.add(groupEntityId);
+                    }
+                    EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(user, groupEntityId, exportSettings);
+                    gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, groupEntityData));
+                }
+                if (!group.isGroupAll()) {
+                    gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, group.getType(), entityId, groupEntityIds));
+                }
             }
         } else {
             EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(user, entityId, exportSettings);
