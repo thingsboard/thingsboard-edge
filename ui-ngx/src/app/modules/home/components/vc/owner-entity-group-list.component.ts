@@ -47,6 +47,8 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { EntityId, entityIdEquals } from '@app/shared/models/id/entity-id';
+import { entityGroupsTitle } from '@shared/models/entity-group.models';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'tb-owner-entity-group-list',
@@ -82,6 +84,7 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
   private propagateChange = (v: any) => { };
 
   constructor(protected store: Store<AppState>,
+              private translate: TranslateService,
               private fb: FormBuilder) {
     super(store);
   }
@@ -148,6 +151,10 @@ export class OwnerEntityGroupListComponent extends PageComponent implements OnIn
 
   ownerEntityGroupsArray(): FormGroup[] {
     return (this.ownerEntityGroupListFormGroup.get('ownerEntityGroups') as FormArray).controls as FormGroup[];
+  }
+
+  entityGroupsTitle(): string {
+    return this.entityType ? this.translate.instant(entityGroupsTitle(this.entityType)) : '';
   }
 
   public trackByOwnerEntityGroups(index: number, ownerEntityGroupsControl: AbstractControl): any {

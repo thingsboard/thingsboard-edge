@@ -45,7 +45,7 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import {
   EntityTypeVersionCreateConfig,
-  exportableEntityTypes,
+  exportableEntityTypes, overrideEntityTypeTranslations,
   SyncStrategy,
   syncStrategyTranslationMap
 } from '@shared/models/vc.models';
@@ -89,6 +89,8 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   syncStrategyTranslations = syncStrategyTranslationMap;
 
   entityTypes = EntityType;
+
+  overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
@@ -242,7 +244,7 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
     if (entityType) {
       const translation = entityTypeTranslations.get(entityType);
       return this.translate.instant((config?.allEntities ?
-        (entityType === EntityType.USER ? 'version-control.user-groups' : translation.typePlural)
+        (entityType === EntityType.USER ? 'entity-group.user-groups' : translation.typePlural)
         : (entityGroupTypes.includes(entityType) ? translation.groupList : translation.list)), {count});
     } else {
       return 'Undefined';

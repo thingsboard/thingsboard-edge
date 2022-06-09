@@ -43,7 +43,11 @@ import {
   Validators
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
-import { EntityTypeVersionLoadConfig, exportableEntityTypes } from '@shared/models/vc.models';
+import {
+  EntityTypeVersionLoadConfig,
+  exportableEntityTypes,
+  overrideEntityTypeTranslations
+} from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -82,6 +86,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   public entityTypesVersionLoadFormGroup: FormGroup;
 
   entityTypes = EntityType;
+
+  overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
@@ -212,7 +218,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   entityTypeText(entityTypeControl: AbstractControl): string {
     const entityType: EntityType = entityTypeControl.get('entityType').value;
     if (entityType) {
-      return this.translate.instant(entityType === EntityType.USER ? 'version-control.user-groups'
+      return this.translate.instant(entityType === EntityType.USER ? 'entity-group.user-groups'
         : entityTypeTranslations.get(entityType).typePlural);
     } else {
       return 'Undefined';

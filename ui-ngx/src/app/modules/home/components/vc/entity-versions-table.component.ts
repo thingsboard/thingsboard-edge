@@ -279,6 +279,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
           branch: this.branch,
           versionName: entityVersion.name,
           versionId: entityVersion.id,
+          groupType: this.groupType,
           entityId: this.entityId,
           externalEntityId: this.externalEntityIdValue
         }, {}, {}, {}, false);
@@ -303,6 +304,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
           branch: this.branch,
           versionName: entityVersion.name,
           versionId: entityVersion.id,
+          groupType: this.groupType,
           internalEntityId: this.entityId,
           externalEntityId: this.externalEntityIdValue,
           onClose: (result: VersionLoadResult | null) => {

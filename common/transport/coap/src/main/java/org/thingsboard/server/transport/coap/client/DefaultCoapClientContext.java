@@ -36,10 +36,8 @@ import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.observe.ObserveRelation;
 import org.eclipse.californium.core.server.resources.CoapExchange;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.coapserver.CoapServerContext;
 import org.thingsboard.server.coapserver.TbCoapTransportComponent;
 import org.thingsboard.server.common.adaptor.AdaptorException;
 import org.thingsboard.server.common.data.DataConstants;
@@ -95,7 +93,6 @@ import static org.eclipse.californium.core.coap.Message.NONE;
 @TbCoapTransportComponent
 public class DefaultCoapClientContext implements CoapClientContext {
 
-    private final CoapServerContext config;
     private final CoapTransportContext transportContext;
     private final TransportService transportService;
     private final TransportDeviceProfileCache profileCache;
@@ -103,10 +100,8 @@ public class DefaultCoapClientContext implements CoapClientContext {
     private final ConcurrentMap<DeviceId, TbCoapClientState> clients = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TbCoapClientState> clientsByToken = new ConcurrentHashMap<>();
 
-    public DefaultCoapClientContext(CoapServerContext config, @Lazy CoapTransportContext transportContext,
-                                    TransportService transportService, TransportDeviceProfileCache profileCache,
-                                    PartitionService partitionService) {
-        this.config = config;
+    public DefaultCoapClientContext(@Lazy CoapTransportContext transportContext, TransportService transportService,
+                                    TransportDeviceProfileCache profileCache, PartitionService partitionService) {
         this.transportContext = transportContext;
         this.transportService = transportService;
         this.profileCache = profileCache;

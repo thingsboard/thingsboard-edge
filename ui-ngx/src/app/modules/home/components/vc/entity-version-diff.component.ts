@@ -55,6 +55,7 @@ import { Ace } from 'ace-builds';
 import { MatButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { EntityVersionRestoreComponent } from '@home/components/vc/entity-version-restore.component';
+import { EntityType } from '@shared/models/entity-type.models';
 
 interface DiffInfo {
   leftStartLine: number;
@@ -82,6 +83,9 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
 
   @Input()
   versionId: string;
+
+  @Input()
+  groupType: EntityType;
 
   @Input()
   entityId: EntityId;
@@ -328,6 +332,7 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
           branch: this.branch,
           versionName: this.versionName,
           versionId: this.versionId,
+          groupType: this.groupType,
           internalEntityId: this.entityId,
           externalEntityId: this.externalEntityId,
           onClose: (result: VersionLoadResult | null) => {
