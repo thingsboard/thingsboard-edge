@@ -131,6 +131,12 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
 
     this.configureIntegrationScope();
 
+    // TODO: @voba - maybe this line is not required, if fix correctly applied on detect changes issue
+    // customers-hierarchy.component.ts
+    // private updateIntegrations(integrationParams: IntegrationParams) {
+    // 385 line
+    this.config.updateData(true);
+
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
@@ -287,13 +293,11 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
 
   private configureIntegrationScope(): void {
     if (this.config.componentsData.integrationScope === 'tenant' || this.config.componentsData.integrationScope === 'edges') {
-      // TODO: @voba - review with FE team
       this.config.addEnabled = true;
       this.config.entitiesDeleteEnabled = true;
       this.config.deleteEnabled = () => true;
       this.config.detailsReadonly = () => false;
       this.config.headerActionDescriptors = [];
-
       this.config.tableTitle = this.configureTableTitle(this.config.componentsData.integrationScope, null);
     } else if (this.config.componentsData.integrationScope === 'edge') {
       this.edgeService.getEdge(this.config.componentsData.edgeId).subscribe(edge => {
