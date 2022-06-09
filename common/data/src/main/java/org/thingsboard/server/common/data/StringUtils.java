@@ -107,4 +107,8 @@ public class StringUtils {
         return input.substring(0, startIndexInclusive) + obfuscatedPart + input.substring(endIndexExclusive);
     }
 
+    public static String emptyIfNull(String src){
+        return src != null ? src : "";
+    }
+
 }

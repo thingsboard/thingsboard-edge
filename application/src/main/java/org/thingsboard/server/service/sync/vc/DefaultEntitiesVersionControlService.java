@@ -372,7 +372,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 EntitiesImportCtx ctx = new EntitiesImportCtx(request.getVersionId());
 
                 if (savedGroup.isGroupAll()) {
-                    importEntities(user, ownerIds, savedGroup.getType(), settings, ctx);
+                    importEntities(user, ownerIds, savedGroup.getType(), settings, ctx, false);
                 } else {
                     importEntities(user, ownerIds, savedGroup.getType(), groupData.getExternalId(), settings, ctx);
                 }
@@ -459,7 +459,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     .saveAttributes(config.isLoadAttributes())
                     .findExistingByName(config.isFindExistingEntityByName())
                     .build();
-            importEntities(user, Collections.emptyList(), entityType, settings, ctx);
+            importEntities(user, Collections.emptyList(), entityType, settings, ctx, true);
         }
 
         reimport(user, Collections.emptyList(), ctx);
@@ -489,7 +489,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private void importEntities(SecurityUser user, List<CustomerId> ownerIds, EntityType entityType,
-                                EntityImportSettings importSettings, EntitiesImportCtx ctx) throws InterruptedException, ExecutionException {
+                                EntityImportSettings importSettings, EntitiesImportCtx ctx, boolean recursive) throws InterruptedException, ExecutionException {
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
 
@@ -497,7 +497,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
-            entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, offset, limit).get();
+            entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
             importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
             offset += limit;
         } while (entityDataList.size() == limit);

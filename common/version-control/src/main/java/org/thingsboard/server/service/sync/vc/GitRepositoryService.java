@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.sync.vc;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -43,6 +44,7 @@ import org.thingsboard.server.service.sync.vc.GitRepository.Diff;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public interface GitRepositoryService {
 
@@ -52,7 +54,7 @@ public interface GitRepositoryService {
 
     PageData<EntityVersion> listVersions(TenantId tenantId, String branch, String path, PageLink pageLink) throws Exception;
 
-    List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, String path) throws Exception;
+    Stream<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, EntityType entityType, boolean groups, boolean recursive) throws Exception;
 
     void testRepository(TenantId tenantId, RepositorySettings settings) throws Exception;
 

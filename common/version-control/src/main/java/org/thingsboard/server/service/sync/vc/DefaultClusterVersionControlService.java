@@ -248,11 +248,10 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
 
     private void handleEntitiesContentRequest(VersionControlRequestCtx ctx, EntitiesContentRequestMsg request) throws Exception {
         var entityType = EntityType.valueOf(request.getEntityType());
-        String path = getRelativePath(entityType, null);
         var response = EntitiesContentResponseMsg.newBuilder();
         if (request.getIdsList().isEmpty()) {
-            var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), request.getPath(), path)
-                    .stream().skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
+            var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), request.getPath(), entityType, request.getGroups(), request.getRecursive())
+                    .skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
             for (VersionedEntityInfo info : ids) {
                 var entityPath = getRelativePath(info.getExternalId().getEntityType(), info.getExternalId().getId().toString());
                 addData(entityPath, request, ctx, response);
@@ -320,11 +319,10 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
 
     private void handleListEntities(VersionControlRequestCtx ctx, ListEntitiesRequestMsg request) throws Exception {
         EntityType entityType = StringUtils.isNotEmpty(request.getEntityType()) ? EntityType.valueOf(request.getEntityType()) : null;
-        var path = entityType != null ? getRelativePath(entityType, null) : null;
-        var data = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), "", path);
+        var data = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), "", entityType, false, false);
         reply(ctx, Optional.empty(), builder ->
                 builder.setListEntitiesResponse(ListEntitiesResponseMsg.newBuilder()
-                        .addAllEntities(data.stream().map(VersionedEntityInfo::getExternalId).map(
+                        .addAllEntities(data.map(VersionedEntityInfo::getExternalId).map(
                                 id -> VersionedEntityInfoProto.newBuilder()
                                         .setEntityType(id.getEntityType().name())
                                         .setEntityIdMSB(id.getId().getMostSignificantBits())
@@ -513,7 +511,11 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private String getRelativePath(EntityType entityType, String entityId) {
-        String path = entityType.name().toLowerCase();
+        return getRelativePath(null, entityType, entityId);
+    }
+
+    private String getRelativePath(String folder, EntityType entityType, String entityId) {
+        String path = StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
         if (entityId != null) {
             path += "/" + entityId + ".json";
         }
