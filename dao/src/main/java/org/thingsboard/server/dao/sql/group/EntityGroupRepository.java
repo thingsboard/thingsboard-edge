@@ -35,12 +35,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID> {
+public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID>, ExportableEntityRepository<EntityGroupEntity> {
 
     List<EntityGroupEntity> findEntityGroupsByIdIn(List<UUID> entityGroupIds);
 
@@ -118,6 +119,10 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     boolean isEntityInGroup(@Param("entityId") UUID entityId,
                             @Param("entityGroupId") UUID entityGroupId);
 
-    List<EntityGroupEntity> findAllByExternalId(UUID externalId);
+    @Query("SELECT e FROM EntityGroupEntity e " +
+            "WHERE (( e.ownerId IN (SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId) " +
+            "AND e.ownerType = 'CUSTOMER') OR (e.ownerId = :tenantId AND e.ownerType = 'TENANT')) " +
+            "AND e.externalId = :externalId")
+    EntityGroupEntity findByTenantIdAndExternalId(UUID tenantId, UUID externalId);
 
 }
