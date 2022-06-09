@@ -524,7 +524,6 @@ export interface EntityGroupParams {
   hierarchyCallbacks?: HierarchyCallbacks;
   edge?: Edge;
   edgeId?: string;
-  // TODO: @voba - verify usage of this edgeEntitiesType and cleanup
   edgeEntitiesType?: EntityType;
   edgeEntitiesGroupId?: string;
 }

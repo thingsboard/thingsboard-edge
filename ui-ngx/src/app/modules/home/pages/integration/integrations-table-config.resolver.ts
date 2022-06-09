@@ -283,7 +283,7 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
 
   private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<Integration>> {
     if (integrationScope === 'tenant') {
-      return pageLink => this.integrationService.getIntegrationsByEdgeTemplate(pageLink, false);
+      return pageLink => this.integrationService.getIntegrations(pageLink);
     } else if (integrationScope === 'edges') {
       return pageLink => this.integrationService.getIntegrationsByEdgeTemplate(pageLink, true);
     } else if (integrationScope === 'edge') {

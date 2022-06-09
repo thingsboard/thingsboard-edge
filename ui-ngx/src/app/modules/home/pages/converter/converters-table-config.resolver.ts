@@ -142,7 +142,7 @@ export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<
 
   private configureEntityFunctions(converterScope: string): (pageLink) => Observable<PageData<Converter>> {
     if (converterScope === 'tenant') {
-      return pageLink => this.converterService.getConvertersByEdgeTemplate(pageLink, false);
+      return pageLink => this.converterService.getConverters(pageLink);
     } else if (converterScope === 'edges') {
       return pageLink => this.converterService.getConvertersByEdgeTemplate(pageLink, true);
     }
