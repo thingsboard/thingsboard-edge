@@ -577,7 +577,11 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         if (!CollectionUtils.isEmpty(queueConfig.getQueues())) {
                             queueConfig.getQueues().forEach(queueSettings -> {
-                                queueService.saveQueue(queueConfigToQueue(queueSettings));
+                                Queue queue = queueConfigToQueue(queueSettings);
+                                Queue existing = queueService.findQueueByTenantIdAndName(queue.getTenantId(), queue.getName());
+                                if (existing == null) {
+                                    queueService.saveQueue(queue);
+                                }
                             });
                         } else {
                             systemDataLoaderService.createQueues();
@@ -589,57 +593,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", "schema_update_device_profile.sql");
                     loadSql(schemaUpdateFile, conn);
 
-                    log.info("Updating checkpoint rule nodes...");
-                    PageLink pageLink = new PageLink(100);
-                    PageData<Tenant> pageData;
-                    do {
-                        pageData = tenantService.findTenants(pageLink);
-                        for (Tenant tenant : pageData.getData()) {
-                            TenantId tenantId = tenant.getId();
-                            Map<String, QueueId> queues =
-                                    queueService.findQueuesByTenantId(tenantId).stream().collect(Collectors.toMap(Queue::getName, Queue::getId));
-                            try {
-                                List<RuleNode> checkpointNodes =
-                                        ruleChainService.findRuleNodesByTenantIdAndType(tenantId, "org.thingsboard.rule.engine.flow.TbCheckpointNode");
-                                checkpointNodes.forEach(node -> {
-                                    ObjectNode configuration = (ObjectNode) node.getConfiguration();
-                                    JsonNode queueNameNode = configuration.remove("queueName");
-                                    if (queueNameNode != null) {
-                                        String queueName = queueNameNode.asText();
-                                        configuration.put("queueId", queues.get(queueName).toString());
-                                        ruleChainService.saveRuleNode(tenantId, node);
-                                    }
-                                });
-                            } catch (Exception e) {
-                            }
-                        }
-                        pageLink = pageLink.nextPageLink();
-                    } while (pageData.hasNext());
-
-                    log.info("Updating tenant profiles...");
-                    PageLink profilePageLink = new PageLink(100);
-                    PageData<TenantProfile> profilePageData;
-                    do {
-                        profilePageData = tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, profilePageLink);
-
-                        profilePageData.getData().forEach(profile -> {
-                            try {
-                                List<TenantProfileQueueConfiguration> queueConfiguration = profile.getProfileData().getQueueConfiguration();
-                                if (profile.isIsolatedTbRuleEngine() && (queueConfiguration == null || queueConfiguration.isEmpty())) {
-                                    TenantProfileQueueConfiguration mainQueueConfig = getMainQueueConfiguration();
-                                    profile.getProfileData().setQueueConfiguration(Collections.singletonList((mainQueueConfig)));
-                                    tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, profile);
-                                    List<TenantId> isolatedTenants = tenantService.findTenantIdsByTenantProfileId(profile.getId());
-                                    isolatedTenants.forEach(tenantId -> {
-                                        queueService.saveQueue(new Queue(tenantId, mainQueueConfig));
-                                    });
-                                }
-                            } catch (Exception e) {
-                            }
-
-                        });
-                        profilePageLink = profilePageLink.nextPageLink();
-                    } while (profilePageData.hasNext());
                     log.info("Updating schema settings...");
                     conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3004000;");
                     log.info("Schema updated.");
@@ -716,25 +669,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         return queue;
     }
 
-    private TenantProfileQueueConfiguration getMainQueueConfiguration() {
-        TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
-        mainQueueConfiguration.setName("Main");
-        mainQueueConfiguration.setTopic("tb_rule_engine.main");
-        mainQueueConfiguration.setPollInterval(25);
-        mainQueueConfiguration.setPartitions(10);
-        mainQueueConfiguration.setConsumerPerPartition(true);
-        mainQueueConfiguration.setPackProcessingTimeout(2000);
-        SubmitStrategy mainQueueSubmitStrategy = new SubmitStrategy();
-        mainQueueSubmitStrategy.setType(SubmitStrategyType.BURST);
-        mainQueueSubmitStrategy.setBatchSize(1000);
-        mainQueueConfiguration.setSubmitStrategy(mainQueueSubmitStrategy);
-        ProcessingStrategy mainQueueProcessingStrategy = new ProcessingStrategy();
-        mainQueueProcessingStrategy.setType(ProcessingStrategyType.SKIP_ALL_FAILURES);
-        mainQueueProcessingStrategy.setRetries(3);
-        mainQueueProcessingStrategy.setFailurePercentage(0);
-        mainQueueProcessingStrategy.setPauseBetweenRetries(3);
-        mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
-        mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
-        return mainQueueConfiguration;
-    }
+
+
 }

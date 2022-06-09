@@ -59,6 +59,8 @@ import org.thingsboard.server.common.data.device.profile.AlarmRule;
 import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.JsonTransportPayloadConfiguration;
+import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -200,7 +202,11 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void installation() throws Exception {
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
 
-        DeviceProfile deviceProfile = this.createDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
+        MqttDeviceProfileTransportConfiguration transportConfiguration = new MqttDeviceProfileTransportConfiguration();
+        transportConfiguration.setTransportPayloadTypeConfiguration(new JsonTransportPayloadConfiguration());
+
+        DeviceProfile deviceProfile = this.createDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, transportConfiguration);
+
         extendDeviceProfileData(deviceProfile);
         doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
 

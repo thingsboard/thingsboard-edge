@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host ::ng-deep {
-  .queue-strategy {
-    padding-bottom: 16px;
+package org.thingsboard.server.service.entitiy.widgetsBundle;
 
-    .mat-expansion-panel-header {
-      height: 50px;
-    }
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
-    .mat-expansion-panel-body {
-      padding-bottom: 0 !important;
-    }
-  }
+public interface TbWidgetsBundleService  extends SimpleTbEntityService<WidgetsBundle> {
 }
