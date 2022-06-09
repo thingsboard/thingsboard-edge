@@ -35,13 +35,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID>, ExportableEntityRepository<EntityGroupEntity> {
+public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID> {
+
+    String TENANT_ID_FILTER = "((g.ownerType = 'TENANT' AND g.ownerId = :tenantId) OR " +
+            "(g.ownerType = 'CUSTOMER' AND exists(SELECT c FROM CustomerEntity c WHERE c.id = g.ownerId AND c.tenantId = :tenantId)))";
 
     List<EntityGroupEntity> findEntityGroupsByIdIn(List<UUID> entityGroupIds);
 
@@ -119,10 +121,11 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     boolean isEntityInGroup(@Param("entityId") UUID entityId,
                             @Param("entityGroupId") UUID entityGroupId);
 
-    @Query("SELECT e FROM EntityGroupEntity e " +
-            "WHERE (( e.ownerId IN (SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId) " +
-            "AND e.ownerType = 'CUSTOMER') OR (e.ownerId = :tenantId AND e.ownerType = 'TENANT')) " +
-            "AND e.externalId = :externalId")
-    EntityGroupEntity findByTenantIdAndExternalId(UUID tenantId, UUID externalId);
+    @Query("SELECT g FROM EntityGroupEntity g WHERE " +
+            "g.externalId = :externalId AND " + TENANT_ID_FILTER)
+    EntityGroupEntity findByTenantIdAndExternalId(@Param("tenantId") UUID tenantId, @Param("externalId") UUID externalId);
+
+    @Query("SELECT g FROM EntityGroupEntity g WHERE " + TENANT_ID_FILTER)
+    Page<EntityGroupEntity> findByTenantId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
 }
