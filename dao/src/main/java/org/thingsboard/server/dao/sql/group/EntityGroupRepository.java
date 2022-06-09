@@ -42,6 +42,9 @@ import java.util.UUID;
 
 public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, UUID> {
 
+    String TENANT_ID_FILTER = "((g.ownerType = 'TENANT' AND g.ownerId = :tenantId) OR " +
+            "(g.ownerType = 'CUSTOMER' AND exists(SELECT c FROM CustomerEntity c WHERE c.id = g.ownerId AND c.tenantId = :tenantId)))";
+
     List<EntityGroupEntity> findEntityGroupsByIdIn(List<UUID> entityGroupIds);
 
     @Query("SELECT e FROM EntityGroupEntity e, " +
@@ -118,6 +121,11 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     boolean isEntityInGroup(@Param("entityId") UUID entityId,
                             @Param("entityGroupId") UUID entityGroupId);
 
-    List<EntityGroupEntity> findAllByExternalId(UUID externalId);
+    @Query("SELECT g FROM EntityGroupEntity g WHERE " +
+            "g.externalId = :externalId AND " + TENANT_ID_FILTER)
+    EntityGroupEntity findByTenantIdAndExternalId(@Param("tenantId") UUID tenantId, @Param("externalId") UUID externalId);
+
+    @Query("SELECT g FROM EntityGroupEntity g WHERE " + TENANT_ID_FILTER)
+    Page<EntityGroupEntity> findByTenantId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
 }
