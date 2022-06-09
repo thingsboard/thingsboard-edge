@@ -64,6 +64,7 @@
                     showLabel
                     formControlName="entityType"
                     required
+                    [overrideEntityTypeTranslations]="overrideEntityTypeTranslationsMap"
                     [filterAllowedEntityTypes]="false"
                     [allowedEntityTypes]="allowedEntityTypes(entityTypeFormGroup)">
                   </tb-entity-type-select>
@@ -79,11 +80,11 @@
                       </mat-checkbox>
                     </div>
                     <div fxFlex fxLayout="column" fxLayoutGap="8px">
+                      <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.USER" formControlName="loadPermissions">
+                        {{ 'version-control.load-roles' | translate }}
+                      </mat-checkbox>
                       <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.DEVICE" formControlName="loadCredentials">
                         {{ 'version-control.load-credentials' | translate }}
-                      </mat-checkbox>
-                      <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.USER" formControlName="loadPermissions">
-                        {{ 'version-control.load-group-permissions' | translate }}
                       </mat-checkbox>
                       <mat-checkbox formControlName="loadAttributes">
                         {{ 'version-control.load-attributes' | translate }}

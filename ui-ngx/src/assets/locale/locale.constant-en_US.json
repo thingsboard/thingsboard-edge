@@ -4409,7 +4409,7 @@
         "export-attributes": "Export attributes",
         "export-credentials": "Export credentials",
         "export-group-entities": "Export group entities",
-        "export-group-permissions": "Export group permissions",
+        "export-roles": "Export roles",
         "entity-versions": "Entity versions",
         "versions": "Versions",
         "created-time": "Created time",
@@ -4425,7 +4425,7 @@
         "load-attributes": "Load attributes",
         "load-credentials": "Load credentials",
         "load-group-entities": "Load group entities",
-        "load-group-permissions": "Load group permissions",
+        "load-roles": "Load roles",
         "show-version-diff": "Show version diff",
         "diff-entity-with-version": "Diff with entity version '{{versionName}}'",
         "previous-difference": "Previous Difference",
@@ -4460,8 +4460,7 @@
         "device-credentials-conflict": "Failed to load the device with external id <b>{{entityId}}</b><br/>due to the same credentials are already present in the database for another device.<br/>Please consider disabling the <b>load credentials</b> setting in the restore form.",
         "missing-referenced-entity": "Failed to load the <b>{{sourceEntityTypeName}}</b> with external id <b>{{sourceEntityId}}</b><br/>because it references missing <b>{{targetEntityTypeName}}</b> with id <b>{{targetEntityId}}</b>.",
         "add-entity-groups": "Add entity groups",
-        "entity-groups": "Entity groups",
-        "user-groups": "User groups"
+        "entity-groups": "Entity groups"
     },
     "widget": {
         "widget-library": "Widgets Library",

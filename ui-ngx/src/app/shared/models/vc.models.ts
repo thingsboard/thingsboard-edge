@@ -30,7 +30,7 @@
 ///
 
 import { EntityId } from '@shared/models/id/entity-id';
-import { EntityType } from '@shared/models/entity-type.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { ExportableEntity } from '@shared/models/base-data';
 import { EntityRelation } from '@shared/models/relation.models';
 import { Device, DeviceCredentials } from '@shared/models/device.models';
@@ -272,3 +272,12 @@ export interface EntityDataInfo {
   hasPermissions: boolean;
   hasGroupEntities: boolean;
 }
+
+export const overrideEntityTypeTranslations = new Map<EntityType | AliasEntityType, string>(
+  [
+    [
+      EntityType.USER,
+      'entity-group.user-group'
+    ]
+  ]
+);
