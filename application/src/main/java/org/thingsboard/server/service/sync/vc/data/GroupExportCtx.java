@@ -28,36 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.dashboard;
+package org.thingsboard.server.service.sync.vc.data;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.dao.ExportableEntityRepository;
-import org.thingsboard.server.dao.model.sql.DashboardEntity;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
+import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
-import java.util.UUID;
 
-/**
- * Created by Valerii Sosliuk on 5/6/2017.
- */
-public interface DashboardRepository extends JpaRepository<DashboardEntity, UUID>, ExportableEntityRepository<DashboardEntity> {
+@Data
+public class GroupExportCtx extends BasicExportCtx {
 
-    Long countByTenantId(UUID tenantId);
+    private final boolean exportRelatedCustomers;
+    private final boolean exportRelatedEntities;
 
-    List<DashboardEntity> findByTenantIdAndTitle(UUID tenantId, String title);
-
-    Page<DashboardEntity> findByTenantId(UUID tenantId, Pageable pageable);
-
-    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')")
-    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
-
-    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")
-    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
-                                              @Param("customerId") UUID customerId,
-                                              Pageable pageable);
-
+    public GroupExportCtx(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> futures, EntityExportSettings settings, boolean exportRelatedCustomers, boolean exportRelatedEntities) {
+        super(user, commit, futures, settings);
+        this.exportRelatedCustomers = exportRelatedCustomers;
+        this.exportRelatedEntities = exportRelatedEntities;
+    }
 }

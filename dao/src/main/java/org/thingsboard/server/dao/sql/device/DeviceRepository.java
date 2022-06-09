@@ -135,6 +135,14 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
                                                           @Param("textSearch") String textSearch,
                                                           Pageable pageable);
 
+    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
+    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                          @Param("customerId") UUID customerId,
+                                                          Pageable pageable);
+
     @Query("SELECT DISTINCT d.type FROM DeviceEntity d WHERE d.tenantId = :tenantId")
     List<String> findTenantDeviceTypes(@Param("tenantId") UUID tenantId);
 

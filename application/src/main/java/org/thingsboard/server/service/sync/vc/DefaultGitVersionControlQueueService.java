@@ -162,11 +162,9 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     public ListenableFuture<Void> deleteAll(CommitGitRequest commit, EntityType entityType) {
         SettableFuture<Void> future = SettableFuture.create();
 
-        String path = getRelativePath(entityType, null);
-
         registerAndSend(commit, builder -> builder.setCommitRequest(
                 buildCommitRequest(commit).setDeleteMsg(
-                        TransportProtos.DeleteMsg.newBuilder().setRelativePath(path).build()
+                        TransportProtos.DeleteMsg.newBuilder().setFolder(entityType.name().toLowerCase()).setRecursively(true).build()
                 ).build()
         ).build(), wrap(future, null));
 

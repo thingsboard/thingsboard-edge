@@ -409,7 +409,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private void deleteFromCommit(VersionControlRequestCtx ctx, PendingCommit commit, DeleteMsg deleteMsg) throws IOException {
-        vcService.deleteFolderContent(commit, deleteMsg.getRelativePath());
+        vcService.deleteFolderContent(commit, deleteMsg.getFolder(), deleteMsg.getRecursively());
     }
 
     private void addToCommit(VersionControlRequestCtx ctx, PendingCommit commit, AddMsg addMsg) throws IOException {

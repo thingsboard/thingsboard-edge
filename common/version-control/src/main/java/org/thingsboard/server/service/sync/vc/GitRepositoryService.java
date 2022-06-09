@@ -64,7 +64,7 @@ public interface GitRepositoryService {
 
     void add(PendingCommit commit, String relativePath, String entityDataJson) throws IOException;
 
-    void deleteFolderContent(PendingCommit commit, String relativePath) throws IOException;
+    void deleteFolderContent(PendingCommit commit, String folder, boolean recursively) throws IOException;
 
     VersionCreationResult push(PendingCommit commit);
 

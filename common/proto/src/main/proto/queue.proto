@@ -788,7 +788,8 @@ message AddMsg {
 }
 
 message DeleteMsg {
-  string relativePath = 1;
+  string folder = 1;
+  bool recursively = 2;
 }
 
 message PushMsg {

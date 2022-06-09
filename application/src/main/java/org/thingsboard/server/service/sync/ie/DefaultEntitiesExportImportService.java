@@ -79,7 +79,6 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
             EntityType.INTEGRATION, EntityType.ROLE
     );
 
-
     @Override
     public <E extends ExportableEntity<I>, I extends EntityId> EntityExportData<E> exportEntity(SecurityUser user, I entityId, EntityExportSettings exportSettings) throws ThingsboardException {
         if (!rateLimitService.checkEntityExportLimit(user.getTenantId())) {

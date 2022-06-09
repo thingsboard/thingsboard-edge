@@ -33,6 +33,10 @@ package org.thingsboard.server.service.sync.vc;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,8 +48,8 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.EntityVersion;
+import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.service.sync.vc.GitRepository.Diff;
@@ -105,9 +109,20 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public void deleteFolderContent(PendingCommit commit, String relativePath) throws IOException {
+    public void deleteFolderContent(PendingCommit commit, String folder, boolean recursively) throws IOException {
         GitRepository repository = checkRepository(commit.getTenantId());
-        FileUtils.deleteDirectory(Path.of(repository.getDirectory(), relativePath).toFile());
+        Path workDir = Path.of(repository.getDirectory());
+
+        if (recursively) {
+            Collection<File> dirs = FileUtils.listFilesAndDirs(workDir.toFile(), FalseFileFilter.FALSE, new NameFileFilter(".git").negate());
+            for (File dir : dirs) {
+                if(dir.getName().equals(folder)) {
+                    FileUtils.deleteDirectory(dir);
+                }
+            }
+        } else {
+            FileUtils.deleteDirectory(Path.of(repository.getDirectory(), folder).toFile());
+        }
     }
 
     @Override
@@ -217,12 +232,12 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     @Override
     public List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, String path) throws Exception {
         GitRepository repository = checkRepository(tenantId);
-        if(StringUtils.isNotEmpty(folder)){
+        if (StringUtils.isNotEmpty(folder)) {
             path = folder + path;
         }
         return repository.listFilesAtCommit(versionId, path).stream()
                 .map(filePath -> {
-                    if(StringUtils.isNotEmpty(folder)){
+                    if (StringUtils.isNotEmpty(folder)) {
                         filePath = filePath.substring(folder.length());
                     }
                     EntityId entityId = fromRelativePath(filePath);

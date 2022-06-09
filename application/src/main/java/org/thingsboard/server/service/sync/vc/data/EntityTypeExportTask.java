@@ -28,36 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.dashboard;
+package org.thingsboard.server.service.sync.vc.data;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.dao.ExportableEntityRepository;
-import org.thingsboard.server.dao.model.sql.DashboardEntity;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.List;
-import java.util.UUID;
 
-/**
- * Created by Valerii Sosliuk on 5/6/2017.
- */
-public interface DashboardRepository extends JpaRepository<DashboardEntity, UUID>, ExportableEntityRepository<DashboardEntity> {
+@Data
+public class EntityTypeExportTask {
 
-    Long countByTenantId(UUID tenantId);
-
-    List<DashboardEntity> findByTenantIdAndTitle(UUID tenantId, String title);
-
-    Page<DashboardEntity> findByTenantId(UUID tenantId, Pageable pageable);
-
-    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')")
-    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
-
-    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")
-    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
-                                              @Param("customerId") UUID customerId,
-                                              Pageable pageable);
+    private final List<CustomerId> parents;
+    private final EntityId ownerId;
 
 }
