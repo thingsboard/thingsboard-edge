@@ -116,13 +116,11 @@ public class EntityExportData<E extends ExportableEntity<? extends EntityId>> {
 
     @JsonIgnore
     public boolean hasPermissions() {
-        // TODO:
         return false;
     }
 
     @JsonIgnore
     public boolean hasGroupEntities() {
-        // TODO:
         return false;
     }
 

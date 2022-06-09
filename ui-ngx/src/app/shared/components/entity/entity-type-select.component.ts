@@ -67,6 +67,9 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
   @Input()
   filterAllowedEntityTypes = true;
 
+  @Input()
+  overrideEntityTypeTranslations: Map<EntityType | AliasEntityType, string>;
+
   private showLabelValue: boolean;
   get showLabel(): boolean {
     return this.showLabelValue;
@@ -171,7 +174,11 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
 
   displayEntityTypeFn(entityType?: EntityType | AliasEntityType | null): string | undefined {
     if (entityType) {
-      return this.translate.instant(entityTypeTranslations.get(entityType as EntityType).type);
+      if (this.overrideEntityTypeTranslations && this.overrideEntityTypeTranslations.has(entityType)) {
+        return this.translate.instant(this.overrideEntityTypeTranslations.get(entityType));
+      } else {
+        return this.translate.instant(entityTypeTranslations.get(entityType as EntityType).type);
+      }
     } else {
       return '';
     }

@@ -124,12 +124,15 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
 
     @Override
     public ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink) {
-        return service.submit(() -> {
-            Page<UUID> page = entityGroupRepository.findGroupEntityIds(groupId, entityType.name(), DaoUtil.toPageable(pageLink));
-            List<EntityId> entityIds = page.getContent().stream().map(id ->
-                    EntityIdFactory.getByTypeAndUuid(entityType, id)).collect(Collectors.toList());
-            return new PageData<>(entityIds, page.getTotalPages(), page.getTotalElements(), page.hasNext());
-        });
+        return service.submit(() -> findGroupEntityIdsSync(entityType, groupId, pageLink));
+    }
+
+    @Override
+    public PageData<EntityId> findGroupEntityIdsSync(EntityType entityType, UUID groupId, PageLink pageLink) {
+        Page<UUID> page = entityGroupRepository.findGroupEntityIds(groupId, entityType.name(), DaoUtil.toPageable(pageLink));
+        List<EntityId> entityIds = page.getContent().stream().map(id ->
+                EntityIdFactory.getByTypeAndUuid(entityType, id)).collect(Collectors.toList());
+        return new PageData<>(entityIds, page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
     @Override

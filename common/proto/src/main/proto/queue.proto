@@ -807,6 +807,7 @@ message ListVersionsRequestMsg {
   string textSearch = 7;
   string sortProperty = 8;
   string sortDirection = 9;
+  string path = 10;
 }
 
 message EntityVersionProto {
@@ -851,6 +852,7 @@ message EntityContentRequestMsg {
   string entityType = 2;
   int64 entityIdMSB = 3;
   int64 entityIdLSB = 4;
+  string path = 5;
 }
 
 message EntityContentResponseMsg {
@@ -859,9 +861,11 @@ message EntityContentResponseMsg {
 
 message EntitiesContentRequestMsg {
   string versionId = 1;
-  string entityType = 2;
-  int32 offset = 3;
-  int32 limit = 4;
+  string path = 2;
+  string entityType = 3;
+  int32 offset = 4;
+  int32 limit = 5;
+  repeated EntityIdProto ids = 6;
 }
 
 message EntitiesContentResponseMsg {

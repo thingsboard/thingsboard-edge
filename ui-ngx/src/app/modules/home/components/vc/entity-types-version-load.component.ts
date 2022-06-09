@@ -43,14 +43,17 @@ import {
   Validators
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
-import { EntityTypeVersionLoadConfig, exportableEntityTypes, VersionCreationResult } from '@shared/models/vc.models';
+import {
+  EntityTypeVersionLoadConfig,
+  exportableEntityTypes,
+  overrideEntityTypeTranslations
+} from '@shared/models/vc.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { MatCheckbox } from '@angular/material/checkbox/checkbox';
 import { TbPopoverService } from '@shared/components/popover.service';
-import { EntityVersionCreateComponent } from '@home/components/vc/entity-version-create.component';
 import { RemoveOtherEntitiesConfirmComponent } from '@home/components/vc/remove-other-entities-confirm.component';
 import { entityGroupTypes } from '@shared/models/entity-group.models';
 
@@ -83,6 +86,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   public entityTypesVersionLoadFormGroup: FormGroup;
 
   entityTypes = EntityType;
+
+  overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
   constructor(protected store: Store<AppState>,
               private translate: TranslateService,
@@ -213,7 +218,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
   entityTypeText(entityTypeControl: AbstractControl): string {
     const entityType: EntityType = entityTypeControl.get('entityType').value;
     if (entityType) {
-      return this.translate.instant(entityTypeTranslations.get(entityType).typePlural);
+      return this.translate.instant(entityType === EntityType.USER ? 'entity-group.user-groups'
+        : entityTypeTranslations.get(entityType).typePlural);
     } else {
       return 'Undefined';
     }

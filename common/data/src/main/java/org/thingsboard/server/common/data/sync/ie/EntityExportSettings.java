@@ -43,6 +43,6 @@ public class EntityExportSettings {
     private boolean exportRelations;
     private boolean exportAttributes;
     private boolean exportCredentials;
-    private boolean exportEntityGroupsInfo;
-    private boolean exportUserGroupPermissions;
+    private boolean exportPermissions;
+    private boolean exportGroupEntities;
 }

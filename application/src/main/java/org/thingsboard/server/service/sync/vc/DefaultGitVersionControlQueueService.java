@@ -30,7 +30,10 @@
  */
 package org.thingsboard.server.service.sync.vc;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.protobuf.ByteString;
 import lombok.SneakyThrows;
@@ -43,9 +46,8 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
@@ -70,17 +72,7 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.sync.vc.data.ClearRepositoryGitRequest;
-import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ContentsDiffGitRequest;
-import org.thingsboard.server.service.sync.vc.data.EntitiesContentGitRequest;
-import org.thingsboard.server.service.sync.vc.data.EntityContentGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ListBranchesGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ListEntitiesGitRequest;
-import org.thingsboard.server.service.sync.vc.data.ListVersionsGitRequest;
-import org.thingsboard.server.service.sync.vc.data.PendingGitRequest;
-import org.thingsboard.server.service.sync.vc.data.VersionsDiffGitRequest;
-import org.thingsboard.server.service.sync.vc.data.VoidGitRequest;
+import org.thingsboard.server.service.sync.vc.data.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -121,15 +113,46 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     public ListenableFuture<Void> addToCommit(CommitGitRequest commit, EntityExportData<ExportableEntity<EntityId>> entityData) {
+        return addToCommit(commit, Collections.emptyList(), entityData);
+    }
+
+    @Override
+    public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<? extends ExportableEntity<? extends EntityId>> entityData) {
         SettableFuture<Void> future = SettableFuture.create();
 
-        String path = getRelativePath(entityData.getEntityType(), entityData.getExternalId());
+        String path;
+        if(EntityType.ENTITY_GROUP.equals(entityData.getEntityType())){
+            EntityGroup group = (EntityGroup) entityData.getEntity();
+            path = getHierarchyPath(parents) + getGroupPath(group);
+        } else {
+            path = getHierarchyPath(parents) + getRelativePath(entityData.getEntityType(), entityData.getExternalId());
+        }
+
         String entityDataJson = JacksonUtil.toPrettyString(entityData.sort());
 
         registerAndSend(commit, builder -> builder.setCommitRequest(
                 buildCommitRequest(commit).setAddMsg(
                         TransportProtos.AddMsg.newBuilder()
-                                .setRelativePath(path).setEntityDataJson(entityDataJson).build()
+                                .setRelativePath(path)
+                                .setEntityDataJson(entityDataJson).build()
+                ).build()
+        ).build(), wrap(future, null));
+        return future;
+    }
+
+    @Override
+    public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityType type, EntityId groupExternalId, List<EntityId> groupEntityIds) {
+        SettableFuture<Void> future = SettableFuture.create();
+
+        String path = getHierarchyPath(parents) + getGroupEntitiesListPath(type, groupExternalId);
+
+        String entityDataJson = JacksonUtil.toPrettyString(groupEntityIds);
+
+        registerAndSend(commit, builder -> builder.setCommitRequest(
+                buildCommitRequest(commit).setAddMsg(
+                        TransportProtos.AddMsg.newBuilder()
+                                .setRelativePath(path)
+                                .setEntityDataJson(entityDataJson).build()
                 ).build()
         ).build(), wrap(future, null));
         return future;
@@ -184,14 +207,24 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     }
 
     @Override
-    public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, EntityId entityId, PageLink pageLink) {
+    public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityType entityType, EntityId groupId, PageLink pageLink) {
+        return listVersions(tenantId, branch, getHierarchyPath(hierarchy) + "groups/", entityType, groupId.getId(), pageLink);
+    }
+
+    @Override
+    public ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, List<CustomerId> hierarchy, EntityId entityId, PageLink pageLink) {
+        return listVersions(tenantId, branch, getHierarchyPath(hierarchy), entityId.getEntityType(), entityId.getId(), pageLink);
+    }
+
+    private ListenableFuture<PageData<EntityVersion>> listVersions(TenantId tenantId, String branch, String path, EntityType entityType, UUID entityUuid, PageLink pageLink) {
         return listVersions(tenantId,
                 applyPageLinkParameters(
                         ListVersionsRequestMsg.newBuilder()
                                 .setBranchName(branch)
-                                .setEntityType(entityId.getEntityType().name())
-                                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                                .setEntityIdLSB(entityId.getId().getLeastSignificantBits()),
+                                .setPath(path)
+                                .setEntityType(entityType.name())
+                                .setEntityIdMSB(entityUuid.getMostSignificantBits())
+                                .setEntityIdLSB(entityUuid.getLeastSignificantBits()),
                         pageLink
                 ).build());
     }
@@ -267,13 +300,37 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, EntityId entityId) {
+    public ListenableFuture<EntityExportData> getEntity(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityId entityId) {
         EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, entityId);
         registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy))
                         .setEntityType(entityId.getEntityType().name())
                         .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                         .setEntityIdLSB(entityId.getId().getLeastSignificantBits())).build()
+                , wrap(request.getFuture()));
+        return request.getFuture();
+    }
+
+    @Override
+    public ListenableFuture<List<EntityId>> getGroupEntityIds(TenantId tenantId, String versionId, List<CustomerId> ownerIds, EntityType type, EntityId externalId) {
+        String path = getHierarchyPath(ownerIds) + "groups/" + type.name().toLowerCase() + "/" + externalId.getId() + "_entities.json";
+        FileContentGitRequest request = new FileContentGitRequest(tenantId, versionId, path);
+        registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder().setVersionId(versionId).setPath(path)).build()
+                , wrap(request.getFuture()));
+        return Futures.transform(request.getFuture(), data -> JacksonUtil.fromString(data, new TypeReference<>() {}), MoreExecutors.directExecutor());
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public ListenableFuture<EntityExportData> getEntityGroup(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType groupType, EntityId groupId) {
+        EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, groupId);
+        registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder()
+                        .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy) + "groups/")
+                        .setEntityType(groupType.name())
+                        .setEntityIdMSB(groupId.getId().getMostSignificantBits())
+                        .setEntityIdLSB(groupId.getId().getLeastSignificantBits())).build()
                 , wrap(request.getFuture()));
         return request.getFuture();
     }
@@ -305,14 +362,34 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     @SuppressWarnings("rawtypes")
-    public ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, EntityType entityType, int offset, int limit) {
+    public ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType entityType, int offset, int limit) {
         EntitiesContentGitRequest request = new EntitiesContentGitRequest(tenantId, versionId, entityType);
 
         registerAndSend(request, builder -> builder.setEntitiesContentRequest(EntitiesContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy))
                         .setEntityType(entityType.name())
                         .setOffset(offset)
                         .setLimit(limit)
+                ).build()
+                , wrap(request.getFuture()));
+
+        return request.getFuture();
+    }
+
+    @Override
+    @SuppressWarnings("rawtypes")
+    public ListenableFuture<List<EntityExportData>> getEntities(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType entityType, List<UUID> ids) {
+        EntitiesContentGitRequest request = new EntitiesContentGitRequest(tenantId, versionId, entityType);
+
+        var idProtos = ids.stream().map(id -> TransportProtos.EntityIdProto.newBuilder()
+                .setEntityIdMSB(id.getMostSignificantBits()).setEntityIdLSB(id.getLeastSignificantBits()).build()).collect(Collectors.toList());
+
+        registerAndSend(request, builder -> builder.setEntitiesContentRequest(EntitiesContentRequestMsg.newBuilder()
+                        .setVersionId(versionId)
+                        .setPath(getHierarchyPath(hierarchy))
+                        .setEntityType(entityType.name())
+                        .addAllIds(idProtos)
                 ).build()
                 , wrap(request.getFuture()));
 
@@ -388,7 +465,13 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
                 ((ListVersionsGitRequest) request).getFuture().set(toPageData(listVersionsResponse));
             } else if (vcResponseMsg.hasEntityContentResponse()) {
                 var data = vcResponseMsg.getEntityContentResponse().getData();
-                ((EntityContentGitRequest) request).getFuture().set(toData(data));
+                if(request instanceof EntityContentGitRequest){
+                    ((EntityContentGitRequest) request).getFuture().set(toData(data));
+                } else if (request instanceof FileContentGitRequest){
+                    ((FileContentGitRequest) request).getFuture().set(data);
+                } else {
+                    throw new RuntimeException("Unsupported request: " + request.getClass());
+                }
             } else if (vcResponseMsg.hasEntitiesContentResponse()) {
                 var dataList = vcResponseMsg.getEntitiesContentResponse().getDataList();
                 ((EntitiesContentGitRequest) request).getFuture()
@@ -458,6 +541,22 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
                 future.setException(t);
             }
         };
+    }
+
+    private String getHierarchyPath(List<CustomerId> parents) {
+        StringBuilder path = new StringBuilder();
+        for(EntityId entityId: parents){
+            path.append("hierarchy/").append(entityId.getId()).append("/");
+        }
+        return path.toString();
+    }
+
+    private static String getGroupEntitiesListPath(EntityType groupType, EntityId groupExternalId) {
+        return "groups/" + groupType.name().toLowerCase() + "/" + groupExternalId + "_entities.json";
+    }
+
+    private static String getGroupPath(EntityGroup group) {
+        return "groups/" + group.getType().name().toLowerCase() + "/" + (group.getExternalId() != null ? group.getExternalId() : group.getId()) + ".json";
     }
 
     private static String getRelativePath(EntityType entityType, EntityId entityId) {

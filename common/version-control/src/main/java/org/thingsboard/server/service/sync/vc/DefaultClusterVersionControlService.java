@@ -30,11 +30,7 @@
  */
 package org.thingsboard.server.service.sync.vc;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -56,26 +52,7 @@ import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.AddMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.CommitRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.CommitResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.DeleteMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityContentRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityContentResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.EntityVersionProto;
-import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ListEntitiesRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ListEntitiesResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ListVersionsRequestMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ListVersionsResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.PrepareMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.VersionControlResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.VersionedEntityInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.*;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -91,18 +68,8 @@ import org.thingsboard.server.queue.util.TbVersionControlComponent;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -282,19 +249,35 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     private void handleEntitiesContentRequest(VersionControlRequestCtx ctx, EntitiesContentRequestMsg request) throws Exception {
         var entityType = EntityType.valueOf(request.getEntityType());
         String path = getRelativePath(entityType, null);
-        var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), path)
-                .stream().skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
         var response = EntitiesContentResponseMsg.newBuilder();
-        for (VersionedEntityInfo info : ids) {
-            var data = vcService.getFileContentAtCommit(ctx.getTenantId(),
-                    getRelativePath(info.getExternalId().getEntityType(), info.getExternalId().getId().toString()), request.getVersionId());
-            response.addData(data);
+        if (request.getIdsList().isEmpty()) {
+            var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), request.getPath(), path)
+                    .stream().skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
+            for (VersionedEntityInfo info : ids) {
+                var entityPath = getRelativePath(info.getExternalId().getEntityType(), info.getExternalId().getId().toString());
+                addData(entityPath, request, ctx, response);
+            }
+        } else {
+            for (EntityIdProto idProto : request.getIdsList()) {
+                UUID uuid = new UUID(idProto.getEntityIdMSB(), idProto.getEntityIdLSB());
+                var entityPath = getRelativePath(EntityType.valueOf(request.getEntityType()), uuid.toString());
+                addData(entityPath, request, ctx, response);
+            }
         }
         reply(ctx, Optional.empty(), builder -> builder.setEntitiesContentResponse(response));
     }
 
+    private void addData(String entityPath, EntitiesContentRequestMsg request, VersionControlRequestCtx ctx, EntitiesContentResponseMsg.Builder response) throws IOException {
+        entityPath = StringUtils.isNotEmpty(request.getPath()) ? request.getPath() + entityPath : entityPath;
+        var data = vcService.getFileContentAtCommit(ctx.getTenantId(), entityPath, request.getVersionId());
+        response.addData(data);
+    }
+
     private void handleEntityContentRequest(VersionControlRequestCtx ctx, EntityContentRequestMsg request) throws IOException {
-        String path = getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());
+        String path = StringUtils.isNotEmpty(request.getPath()) ? request.getPath() : "";
+        if(StringUtils.isNotEmpty(request.getEntityType())) {
+            path = path + getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());
+        }
         String data = vcService.getFileContentAtCommit(ctx.getTenantId(), path, request.getVersionId());
         reply(ctx, Optional.empty(), builder -> builder.setEntityContentResponse(EntityContentResponseMsg.newBuilder().setData(data)));
     }
@@ -319,6 +302,9 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             }
             sortOrder = new SortOrder(request.getSortProperty(), direction);
         }
+        if (StringUtils.isNotEmpty(request.getPath())) {
+            path = request.getPath() + path;
+        }
         var data = vcService.listVersions(ctx.getTenantId(), request.getBranchName(), path,
                 new PageLink(request.getPageSize(), request.getPage(), request.getTextSearch(), sortOrder));
         reply(ctx, Optional.empty(), builder ->
@@ -335,7 +321,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     private void handleListEntities(VersionControlRequestCtx ctx, ListEntitiesRequestMsg request) throws Exception {
         EntityType entityType = StringUtils.isNotEmpty(request.getEntityType()) ? EntityType.valueOf(request.getEntityType()) : null;
         var path = entityType != null ? getRelativePath(entityType, null) : null;
-        var data = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), path);
+        var data = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), "", path);
         reply(ctx, Optional.empty(), builder ->
                 builder.setListEntitiesResponse(ListEntitiesResponseMsg.newBuilder()
                         .addAllEntities(data.stream().map(VersionedEntityInfo::getExternalId).map(

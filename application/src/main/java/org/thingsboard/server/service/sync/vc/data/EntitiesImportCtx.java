@@ -28,49 +28,57 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.exporting.impl;
+package org.thingsboard.server.service.sync.vc.data;
 
-import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
-import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
-import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.common.data.sync.ThrowingRunnable;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
+import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
-@Service
-@TbCoreComponent
-public class DefaultGroupEntityExportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityExportService<I, E, D> {
+@RequiredArgsConstructor
+@Data
+@Slf4j
+public class EntitiesImportCtx {
+    private final String versionId;
+    private final Map<EntityType, EntityTypeLoadResult> results = new HashMap<>();
+    private final Map<EntityType, Set<EntityId>> importedEntities = new HashMap<>();
+    private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
+    private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
+    private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
 
-    @Autowired
-    private EntityGroupService entityGroupService;
-
-    @Override
-    protected final void setAdditionalExportData(SecurityUser user, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
-        super.setAdditionalExportData(user, entity, exportData, exportSettings);
+    public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
+        results.put(entityType, importEntities);
     }
 
-    @Override
-    protected D newExportData() {
-        return (D) new GroupEntityExportData<E>();
+    public EntityTypeLoadResult get(EntityType entityType) {
+        return results.get(entityType);
     }
 
-    @Override
-    public Set<EntityType> getSupportedEntityTypes() {
-        return Set.of(EntityType.DEVICE, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DASHBOARD);
+    public void executeCallbacks() {
+        for (ThrowingRunnable saveReferencesCallback : saveReferencesCallbacks) {
+            try {
+                saveReferencesCallback.run();
+            } catch (ThingsboardException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        for (ThrowingRunnable sendEventsCallback : sendEventsCallbacks) {
+            try {
+                sendEventsCallback.run();
+            } catch (Exception e) {
+                log.error("Failed to send events for entity", e);
+            }
+        }
     }
-
 }

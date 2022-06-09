@@ -91,9 +91,10 @@ export class EntitiesVersionControlService {
   }
 
   public getEntityDataInfo(externalEntityId: EntityId,
+                           internalEntityId: EntityId,
                            versionId: string,
                            config?: RequestConfig): Observable<EntityDataInfo> {
-    return this.http.get<EntityDataInfo>(`/api/entities/vc/info/${versionId}/${externalEntityId.entityType}/${externalEntityId.id}`,
+    return this.http.get<EntityDataInfo>(`/api/entities/vc/info/${versionId}/${externalEntityId.entityType}/${externalEntityId.id}?internalEntityId=${internalEntityId.id}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -110,8 +111,9 @@ export class EntitiesVersionControlService {
 
   public listEntityVersions(pageLink: PageLink, branch: string,
                             externalEntityId: EntityId,
+                            internalEntityId: EntityId,
                             config?: RequestConfig): Observable<PageData<EntityVersion>> {
-    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}/${externalEntityId.entityType}/${externalEntityId.id}${pageLink.toQuery()}`,
+    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}/${externalEntityId.entityType}/${externalEntityId.id}${pageLink.toQuery()}&internalEntityId=${internalEntityId.id}`,
       defaultHttpOptionsFromConfig(config));
   }
 

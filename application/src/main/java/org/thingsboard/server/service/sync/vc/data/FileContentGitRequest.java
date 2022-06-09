@@ -28,33 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.ie;
+package org.thingsboard.server.service.sync.vc.data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.permission.GroupPermission;
+import lombok.Getter;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 
-import java.util.List;
+@Getter
+public class FileContentGitRequest extends PendingGitRequest<String> {
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class EntityGroupExportData extends EntityExportData<EntityGroup> {
+    private final String versionId;
+    private final String path;
 
-    private List<GroupPermission> permissions;
-    private boolean groupEntities;
-
-    @JsonIgnore
-    public boolean hasPermissions() {
-        return permissions != null;
+    public FileContentGitRequest(TenantId tenantId, String versionId, String path) {
+        super(tenantId);
+        this.versionId = versionId;
+        this.path = path;
     }
-
-    @JsonIgnore
-    public boolean hasGroupEntities() {
-        return groupEntities;
-    }
-
 }

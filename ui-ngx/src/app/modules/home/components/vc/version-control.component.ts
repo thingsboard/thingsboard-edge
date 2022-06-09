@@ -39,6 +39,7 @@ import { FormGroup } from '@angular/forms';
 import { EntityId } from '@shared/models/id/entity-id';
 import { Observable } from 'rxjs';
 import { TbPopoverComponent } from '@shared/components/popover.component';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-version-control',
@@ -66,6 +67,9 @@ export class VersionControlComponent implements OnInit, HasConfirmForm {
 
   @Input()
   entityId: EntityId;
+
+  @Input()
+  groupType: EntityType;
 
   @Input()
   entityName: string;

@@ -46,6 +46,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { delay } from 'rxjs/operators';
 import { SafeHtml } from '@angular/platform-browser';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-entity-version-restore',
@@ -64,13 +65,21 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
   versionId: string;
 
   @Input()
+  internalEntityId: EntityId;
+
+  @Input()
   externalEntityId: EntityId;
+
+  @Input()
+  groupType: EntityType;
 
   @Input()
   onClose: (result: VersionLoadResult | null) => void;
 
   @Input()
   popoverComponent: TbPopoverComponent;
+
+  entityTypes = EntityType;
 
   entityDataInfo: EntityDataInfo = null;
 
@@ -94,7 +103,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
       loadPermissions: [true, []],
       loadGroupEntities: [true, []]
     });
-    this.entitiesVersionControlService.getEntityDataInfo(this.externalEntityId, this.versionId).subscribe((data) => {
+    this.entitiesVersionControlService.getEntityDataInfo(this.externalEntityId, this.internalEntityId, this.versionId).subscribe((data) => {
       this.entityDataInfo = data;
       this.cd.detectChanges();
       if (this.popoverComponent) {
@@ -113,11 +122,12 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
     const request: SingleEntityVersionLoadRequest = {
       branch: this.branch,
       versionId: this.versionId,
+      internalEntityId: this.internalEntityId,
       externalEntityId: this.externalEntityId,
       config: {
         loadRelations: this.entityDataInfo.hasRelations ? this.restoreFormGroup.get('loadRelations').value : false,
         loadAttributes: this.entityDataInfo.hasAttributes ? this.restoreFormGroup.get('loadAttributes').value : false,
-        loadCredentials: this.entityDataInfo.hasCredentials ? this.restoreFormGroup.get('loadCredentials').value : false,
+        loadCredentials: (this.entityDataInfo.hasCredentials || EntityType.DEVICE === this.groupType) ? this.restoreFormGroup.get('loadCredentials').value : false,
         loadPermissions: this.entityDataInfo.hasPermissions ? this.restoreFormGroup.get('loadPermissions').value : false,
         loadGroupEntities: this.entityDataInfo.hasGroupEntities ? this.restoreFormGroup.get('loadGroupEntities').value : false
       },

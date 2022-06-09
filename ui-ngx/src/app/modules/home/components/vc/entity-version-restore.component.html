@@ -43,14 +43,14 @@
     <form *ngIf="entityDataInfo" [formGroup]="restoreFormGroup" style="padding-top: 16px;">
       <fieldset [disabled]="isLoading$ | async">
         <div fxFlex fxLayout="column">
-          <mat-checkbox *ngIf="entityDataInfo.hasCredentials" formControlName="loadCredentials" style="margin-bottom: 16px;">
-            {{ 'version-control.load-credentials' | translate }}
-          </mat-checkbox>
           <mat-checkbox *ngIf="entityDataInfo.hasGroupEntities" formControlName="loadGroupEntities" style="margin-bottom: 16px;">
             {{ 'version-control.load-group-entities' | translate }}
           </mat-checkbox>
           <mat-checkbox *ngIf="entityDataInfo.hasPermissions" formControlName="loadPermissions" style="margin-bottom: 16px;">
-            {{ 'version-control.load-group-permissions' | translate }}
+            {{ 'version-control.load-roles' | translate }}
+          </mat-checkbox>
+          <mat-checkbox *ngIf="entityDataInfo.hasCredentials || entityTypes.DEVICE === this.groupType" formControlName="loadCredentials" style="margin-bottom: 16px;">
+            {{ 'version-control.load-credentials' | translate }}
           </mat-checkbox>
           <mat-checkbox *ngIf="entityDataInfo.hasAttributes" formControlName="loadAttributes" style="margin-bottom: 16px;">
             {{ 'version-control.load-attributes' | translate }}

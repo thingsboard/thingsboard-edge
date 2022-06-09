@@ -98,6 +98,7 @@
 <mat-tab *ngIf="entity && !isEdit && hasVersionControl()"
          label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
   <tb-version-control detailsMode="true" singleEntityMode="true"
-                      (versionRestored)="entitiesTableConfig.updateData()"
-                      [active]="versionControlTab.isActive" [entityId]="entity.id" [entityName]="entity.name" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
+                      (versionRestored)="entitiesTableConfig.onGroupUpdated()"
+                      [active]="versionControlTab.isActive" [entityId]="entity.id" [groupType]="entity.type"
+                      [entityName]="entity.name" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
 </mat-tab>

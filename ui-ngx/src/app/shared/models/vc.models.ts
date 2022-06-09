@@ -30,17 +30,20 @@
 ///
 
 import { EntityId } from '@shared/models/id/entity-id';
-import { EntityType } from '@shared/models/entity-type.models';
+import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { ExportableEntity } from '@shared/models/base-data';
 import { EntityRelation } from '@shared/models/relation.models';
 import { Device, DeviceCredentials } from '@shared/models/device.models';
 import { RuleChain, RuleChainMetaData } from '@shared/models/rule-chain.models';
+import { EntityGroup } from '@shared/models/entity-group.models';
+import { GroupPermission } from '@shared/models/group-permission.models';
 
 export const exportableEntityTypes: Array<EntityType> = [
   EntityType.ASSET,
   EntityType.DEVICE,
   EntityType.DASHBOARD,
   EntityType.CUSTOMER,
+  EntityType.USER,
   EntityType.DEVICE_PROFILE,
   EntityType.RULE_CHAIN,
   EntityType.CONVERTER,
@@ -141,6 +144,7 @@ export interface VersionLoadRequest {
 }
 
 export interface SingleEntityVersionLoadRequest extends VersionLoadRequest {
+  internalEntityId: EntityId;
   externalEntityId: EntityId;
   config: VersionLoadConfig;
   type: VersionLoadRequestType.SINGLE_ENTITY;
@@ -221,10 +225,21 @@ export interface VersionLoadResult {
   error: EntityLoadError;
 }
 
+export interface AttributeExportData {
+  key: string;
+  lastUpdateTs: number;
+  booleanValue: boolean;
+  strValue: string;
+  longValue: number;
+  doubleValue: number;
+  jsonValue: string;
+}
+
 export interface EntityExportData<E extends ExportableEntity<EntityId>> {
   entity: E;
   entityType: EntityType;
   relations: Array<EntityRelation>;
+  attributes: {[key: string]: Array<AttributeExportData>};
 }
 
 export interface DeviceExportData extends EntityExportData<Device> {
@@ -233,6 +248,11 @@ export interface DeviceExportData extends EntityExportData<Device> {
 
 export interface RuleChainExportData extends EntityExportData<RuleChain> {
   metaData: RuleChainMetaData;
+}
+
+export interface EntityGroupExportData extends EntityExportData<EntityGroup> {
+  permissions: Array<GroupPermission>;
+  groupEntities: boolean;
 }
 
 export interface EntityDataDiff {
@@ -252,3 +272,12 @@ export interface EntityDataInfo {
   hasPermissions: boolean;
   hasGroupEntities: boolean;
 }
+
+export const overrideEntityTypeTranslations = new Map<EntityType | AliasEntityType, string>(
+  [
+    [
+      EntityType.USER,
+      'entity-group.user-group'
+    ]
+  ]
+);

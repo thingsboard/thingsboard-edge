@@ -69,6 +69,8 @@ public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<En
 
     ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
 
+    PageData<EntityId> findGroupEntityIdsSync(EntityType entityType, UUID groupId, PageLink pageLink);
+
     boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 
     PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);

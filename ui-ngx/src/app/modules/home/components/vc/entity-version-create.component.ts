@@ -60,6 +60,9 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
   entityId: EntityId;
 
   @Input()
+  groupType: EntityType;
+
+  @Input()
   entityName: string;
 
   @Input()
@@ -114,11 +117,11 @@ export class EntityVersionCreateComponent extends PageComponent implements OnIni
         config: {
           saveRelations: this.createVersionFormGroup.get('saveRelations').value,
           saveAttributes: this.createVersionFormGroup.get('saveAttributes').value,
-          saveCredentials: this.entityId.entityType === EntityType.DEVICE ?
+          saveCredentials: (this.entityId.entityType === EntityType.DEVICE || EntityType.DEVICE === this.groupType) ?
             this.createVersionFormGroup.get('saveCredentials').value : false,
-          savePermissions: this.entityId.entityType === EntityType.ENTITY_GROUP ?
+          savePermissions: this.entityId.entityType === EntityType.ENTITY_GROUP && EntityType.USER === this.groupType ?
             this.createVersionFormGroup.get('savePermissions').value : false,
-          saveGroupEntities: this.entityId.entityType === EntityType.ENTITY_GROUP ?
+          saveGroupEntities: this.entityId.entityType === EntityType.ENTITY_GROUP && EntityType.USER !== this.groupType ?
             this.createVersionFormGroup.get('saveGroupEntities').value : false,
         },
         type: VersionCreateRequestType.SINGLE_ENTITY

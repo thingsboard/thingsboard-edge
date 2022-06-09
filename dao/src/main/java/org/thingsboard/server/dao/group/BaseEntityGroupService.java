@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -788,6 +789,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityId> findEntityIds(TenantId tenantId, EntityType entityType, EntityGroupId entityGroupId, PageLink pageLink) {
+        log.trace("Executing findEntitiesSync, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        return entityGroupDao.findGroupEntityIdsSync(entityType, entityGroupId.getId(), pageLink);
+    }
+
+    @Override
     public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId) {
         return executorService.submit(() -> {
             var relations = relationDao.findAllByToAndType(tenantId, entityId,
@@ -902,7 +909,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId,
                                                            EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
         ListenableFuture<PageData<EntityId>> pageData = entityGroupDao.findGroupEntityIds(groupType, entityGroupId.getId(), pageLink);
-        return Futures.transform(pageData, input -> input.getData(), MoreExecutors.directExecutor());
+        return Futures.transform(pageData, PageData::getData, MoreExecutors.directExecutor());
     }
 
     private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {

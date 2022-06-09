@@ -65,6 +65,7 @@ import { EntityVersionDiffComponent } from '@home/components/vc/entity-version-d
 import { ComplexVersionCreateComponent } from '@home/components/vc/complex-version-create.component';
 import { ComplexVersionLoadComponent } from '@home/components/vc/complex-version-load.component';
 import { TbPopoverComponent } from '@shared/components/popover.component';
+import { EntityType } from '@app/shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-entity-versions-table',
@@ -126,6 +127,9 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
 
   @Input()
   entityId: EntityId;
+
+  @Input()
+  groupType: EntityType;
 
   @Input()
   entityName: string;
@@ -216,6 +220,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
         {
           branch: this.branch,
           entityId: this.entityId,
+          groupType: this.groupType,
           entityName: this.entityName,
           onBeforeCreateVersion: this.onBeforeCreateVersion,
           onClose: (result: VersionCreationResult | null, branch: string | null) => {
@@ -274,6 +279,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
           branch: this.branch,
           versionName: entityVersion.name,
           versionId: entityVersion.id,
+          groupType: this.groupType,
           entityId: this.entityId,
           externalEntityId: this.externalEntityIdValue
         }, {}, {}, {}, false);
@@ -298,6 +304,8 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
           branch: this.branch,
           versionName: entityVersion.name,
           versionId: entityVersion.id,
+          groupType: this.groupType,
+          internalEntityId: this.entityId,
           externalEntityId: this.externalEntityIdValue,
           onClose: (result: VersionLoadResult | null) => {
             restoreVersionPopover.hide();
@@ -372,7 +380,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
     this.pageLink.pageSize = this.paginator.pageSize;
     this.pageLink.sortOrder.property = this.sort.active;
     this.pageLink.sortOrder.direction = Direction[this.sort.direction.toUpperCase()];
-    this.dataSource.loadEntityVersions(this.singleEntityMode, this.branch, this.externalEntityIdValue, this.pageLink);
+    this.dataSource.loadEntityVersions(this.singleEntityMode, this.branch, this.externalEntityIdValue, this.entityId, this.pageLink);
   }
 
   private resetSortAndFilter(update: boolean) {
@@ -411,11 +419,11 @@ class EntityVersionsDatasource implements DataSource<EntityVersion> {
   }
 
   loadEntityVersions(singleEntityMode: boolean,
-                     branch: string, externalEntityId: EntityId,
+                     branch: string, externalEntityId: EntityId, internalEntityId: EntityId,
                      pageLink: PageLink): Observable<PageData<EntityVersion>> {
     this.dataLoading = true;
     const result = new ReplaySubject<PageData<EntityVersion>>();
-    this.fetchEntityVersions(singleEntityMode, branch, externalEntityId, pageLink).pipe(
+    this.fetchEntityVersions(singleEntityMode, branch, externalEntityId, internalEntityId, pageLink).pipe(
       catchError(() => of(emptyPageData<EntityVersion>())),
     ).subscribe(
       (pageData) => {
@@ -429,14 +437,14 @@ class EntityVersionsDatasource implements DataSource<EntityVersion> {
   }
 
   fetchEntityVersions(singleEntityMode: boolean,
-                      branch: string, externalEntityId: EntityId,
+                      branch: string, externalEntityId: EntityId, internalEntityId: EntityId,
                       pageLink: PageLink): Observable<PageData<EntityVersion>> {
     if (!branch) {
       return of(emptyPageData<EntityVersion>());
     } else {
       if (singleEntityMode) {
         if (externalEntityId) {
-          return this.entitiesVersionControlService.listEntityVersions(pageLink, branch, externalEntityId, {ignoreErrors: true});
+          return this.entitiesVersionControlService.listEntityVersions(pageLink, branch, externalEntityId, internalEntityId,{ignoreErrors: true});
         } else {
           return of(emptyPageData<EntityVersion>());
         }

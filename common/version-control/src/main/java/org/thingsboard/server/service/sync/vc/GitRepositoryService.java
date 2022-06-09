@@ -52,7 +52,7 @@ public interface GitRepositoryService {
 
     PageData<EntityVersion> listVersions(TenantId tenantId, String branch, String path, PageLink pageLink) throws Exception;
 
-    List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String path) throws Exception;
+    List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, String path) throws Exception;
 
     void testRepository(TenantId tenantId, RepositorySettings settings) throws Exception;
 

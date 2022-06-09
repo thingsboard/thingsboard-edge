@@ -78,6 +78,7 @@
                             showLabel
                             formControlName="entityType"
                             required
+                            [overrideEntityTypeTranslations]="overrideEntityTypeTranslationsMap"
                             [filterAllowedEntityTypes]="false"
                             [allowedEntityTypes]="allowedEntityTypes(entityTypeFormGroup)">
                           </tb-entity-type-select>
@@ -90,6 +91,9 @@
                           </div>
                         </div>
                         <div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px" formGroupName="config">
+                          <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.USER" formControlName="savePermissions">
+                            {{ 'version-control.export-roles' | translate }}
+                          </mat-checkbox>
                           <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.DEVICE" formControlName="saveCredentials">
                             {{ 'version-control.export-credentials' | translate }}
                           </mat-checkbox>

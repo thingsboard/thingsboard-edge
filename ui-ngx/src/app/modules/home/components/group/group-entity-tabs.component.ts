@@ -63,7 +63,7 @@ export class GroupEntityTabsComponent<T extends BaseData<HasId>>
   }
 
   hasVersionControl(): boolean {
-    if (this.entityType && exportableEntityTypes.includes(this.entityType)) {
+    if (this.entityType && exportableEntityTypes.includes(this.entityType) && EntityType.USER !== this.entityType) {
       const entityResource = resourceByEntityType.get(this.entityType);
       return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.WRITE);
     } else {

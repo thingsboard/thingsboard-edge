@@ -40,7 +40,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@core/services/dialog.service';
 import { catchError, mergeMap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { EntityTypeVersionCreateConfig, exportableEntityTypes } from '@shared/models/vc.models';
+import {
+  EntityTypeVersionCreateConfig,
+  exportableEntityTypes,
+  overrideEntityTypeTranslations
+} from '@shared/models/vc.models';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
@@ -55,6 +59,8 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
   settings: AutoCommitSettings = null;
 
   entityTypes = EntityType;
+
+  overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
   constructor(protected store: Store<AppState>,
               private adminService: AdminService,
@@ -142,7 +148,8 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
   entityTypeText(entityTypeControl: AbstractControl): SafeHtml {
     const entityType: EntityType = entityTypeControl.get('entityType').value;
     const config: AutoVersionCreateConfig = entityTypeControl.get('config').value;
-    let message = entityType ? this.translate.instant(entityTypeTranslations.get(entityType).typePlural) : 'Undefined';
+    let message = entityType ? this.translate.instant(entityType === EntityType.USER ? 'entity-group.user-groups'
+      : entityTypeTranslations.get(entityType).typePlural) : 'Undefined';
     let branchName;
     if (config.branch) {
       branchName = config.branch;
