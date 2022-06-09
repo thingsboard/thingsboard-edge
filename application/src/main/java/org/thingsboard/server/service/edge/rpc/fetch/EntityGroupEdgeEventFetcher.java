@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.fetch;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -42,7 +43,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.group.EntityGroupService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +68,7 @@ public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
         if (!pageData.getData().isEmpty()) {
             for (EntityGroup entityGroup : pageData.getData()) {
                 if (!entityGroup.isEdgeGroupAll()) {
-                    result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_GROUP,
+                    result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_GROUP,
                             EdgeEventActionType.ADDED, entityGroup.getId(), null, null));
                 }
             }

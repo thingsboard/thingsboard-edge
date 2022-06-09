@@ -33,6 +33,9 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
@@ -83,9 +86,16 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.queue.ProcessingStrategy;
+import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
+import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.queue.SubmitStrategy;
+import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
@@ -114,6 +124,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 
 @Slf4j
 public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
+    public static final int TIMEOUT = 30;
 
     protected ObjectMapper mapper = new ObjectMapper();
 
@@ -123,7 +134,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private static final String SYS_ADMIN_PASSWORD = "sysadmin";
 
     protected static final String TENANT_ADMIN_EMAIL = "testtenant@thingsboard.org";
-    private static final String TENANT_ADMIN_PASSWORD = "tenant";
+    protected static final String TENANT_ADMIN_PASSWORD = "tenant";
 
     protected static final String DIFFERENT_TENANT_ADMIN_EMAIL = "testdifftenant@thingsboard.org";
     private static final String DIFFERENT_TENANT_ADMIN_PASSWORD = "difftenant";
@@ -148,6 +159,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected String username;
 
     protected TenantId tenantId;
+    protected UserId tenantAdminUserId;
     protected CustomerId customerId;
     protected TenantId differentTenantId;
     protected CustomerId differentCustomerId;
@@ -213,7 +225,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         tenantAdmin.setTenantId(tenantId);
         tenantAdmin.setEmail(TENANT_ADMIN_EMAIL);
 
-        createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
+        tenantAdmin = createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
+        tenantAdminUserId = tenantAdmin.getId();
 
         Customer customer = new Customer();
         customer.setTitle("Customer");
@@ -418,18 +431,23 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
     }
 
+    protected DeviceProfile createDeviceProfile(String name) {
+        return createDeviceProfile(name, null);
+    }
+
     protected DeviceProfile createDeviceProfile(String name, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(name);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
-        deviceProfile.setTransportType(DeviceTransportType.DEFAULT);
         deviceProfile.setDescription(name + " Test");
         DeviceProfileData deviceProfileData = new DeviceProfileData();
         DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
         deviceProfileData.setConfiguration(configuration);
         if (deviceProfileTransportConfiguration != null) {
+            deviceProfile.setTransportType(deviceProfileTransportConfiguration.getType());
             deviceProfileData.setTransportConfiguration(deviceProfileTransportConfiguration);
         } else {
+            deviceProfile.setTransportType(DeviceTransportType.DEFAULT);
             deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
         }
         deviceProfile.setProfileData(deviceProfileData);
@@ -438,10 +456,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return deviceProfile;
     }
 
-    protected MqttDeviceProfileTransportConfiguration createMqttDeviceProfileTransportConfiguration(TransportPayloadTypeConfiguration transportPayloadTypeConfiguration) {
+    protected MqttDeviceProfileTransportConfiguration createMqttDeviceProfileTransportConfiguration(TransportPayloadTypeConfiguration transportPayloadTypeConfiguration, boolean sendAckOnValidationException) {
         MqttDeviceProfileTransportConfiguration mqttDeviceProfileTransportConfiguration = new MqttDeviceProfileTransportConfiguration();
         mqttDeviceProfileTransportConfiguration.setDeviceTelemetryTopic(MqttTopics.DEVICE_TELEMETRY_TOPIC);
         mqttDeviceProfileTransportConfiguration.setDeviceTelemetryTopic(MqttTopics.DEVICE_ATTRIBUTES_TOPIC);
+        mqttDeviceProfileTransportConfiguration.setSendAckOnValidationException(sendAckOnValidationException);
         mqttDeviceProfileTransportConfiguration.setTransportPayloadTypeConfiguration(transportPayloadTypeConfiguration);
         return mqttDeviceProfileTransportConfiguration;
     }
@@ -544,16 +563,24 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return readResponse(doGet(urlTemplate, vars).andExpect(status().isOk()), responseType);
     }
 
-    protected <T> T doPost(String urlTemplate, Class<T> responseClass, String... params) throws Exception {
-        return readResponse(doPost(urlTemplate, params).andExpect(status().isOk()), responseClass);
+    protected <T> T doPost(String urlTemplate, Class<T> responseClass, String... params) {
+        try {
+            return readResponse(doPost(urlTemplate, params).andExpect(status().isOk()), responseClass);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected <T> T doPost(String urlTemplate, T content, Class<T> responseClass, ResultMatcher resultMatcher, String... params) throws Exception {
         return readResponse(doPost(urlTemplate, content, params).andExpect(resultMatcher), responseClass);
     }
 
-    protected <T> T doPost(String urlTemplate, T content, Class<T> responseClass, String... params) throws Exception {
-        return readResponse(doPost(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
+    protected <T> T doPost(String urlTemplate, T content, Class<T> responseClass, String... params) {
+        try {
+            return readResponse(doPost(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected <T, R> R doPostWithResponse(String urlTemplate, T content, Class<R> responseClass, String... params) throws Exception {
@@ -650,6 +677,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         return mapper.readerFor(type).readValue(content);
     }
 
+    protected String getErrorMessage(ResultActions result) throws Exception {
+        return readResponse(result, JsonNode.class).get("message").asText();
+    }
+
     public class IdComparator<D extends HasId> implements Comparator<D> {
         @Override
         public int compare(D o1, D o2) {
@@ -675,6 +706,16 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;
+    }
+
+    protected <T extends HasId<? extends UUIDBased>> ListenableFuture<List<ResultActions>> deleteEntitiesAsync(String urlTemplate, List<T> entities, ListeningExecutorService executor) {
+        List<ListenableFuture<ResultActions>> futures = new ArrayList<>(entities.size());
+        for (T entity : entities) {
+            futures.add(executor.submit(() ->
+                    doDelete(urlTemplate + entity.getId().getId())
+                            .andExpect(status().isOk())));
+        }
+        return Futures.allAsList(futures);
     }
 
     protected static void setFieldReflectively(Object target, String fieldName, Object value) throws Exception {

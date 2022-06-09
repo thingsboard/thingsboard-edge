@@ -79,6 +79,7 @@ export const HelpLinks = {
     smsProviderSettings: helpBaseUrl + '/docs/pe/user-guide/ui/sms-provider-settings',
     securitySettings: helpBaseUrl + '/docs/pe/user-guide/ui/security-settings',
     oauth2Settings: helpBaseUrl + '/docs/pe/user-guide/oauth-2-support/',
+    twoFactorAuthSettings: helpBaseUrl + '/docs/',
     ruleEngine: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/overview/',
     ruleNodeCheckRelation: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#check-relation-filter-node',
     ruleNodeCheckExistenceFields: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#check-existence-fields-node',
@@ -198,7 +199,8 @@ export const HelpLinks = {
     customTranslation: helpBaseUrl +  '/docs/pe/user-guide/custom-translation',
     customMenu: helpBaseUrl +  '/docs/pe/user-guide/custom-menu',
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
-    selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration'
+    selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
+    queue: helpBaseUrl + '/docs/user-guide/queue'
   }
 };
 
@@ -265,7 +267,7 @@ export const valueTypesMap = new Map<ValueType, ValueTypeData>(
       ValueType.JSON,
       {
         name: 'value.json',
-        icon: 'mdi:json'
+        icon: 'mdi:code-json'
       }
     ]
   ]

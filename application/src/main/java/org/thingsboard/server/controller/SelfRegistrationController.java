@@ -174,14 +174,14 @@ public class SelfRegistrationController extends BaseController {
             Authority authority = securityUser.getAuthority();
             accessControlService.checkPermission(securityUser, Resource.TENANT, Operation.WRITE_ATTRIBUTES);
             if (Authority.TENANT_ADMIN.equals(authority)) {
-                ListenableFuture<List<Void>> future = attributesService.removeAll(
+                ListenableFuture<List<String>> future = attributesService.removeAll(
                         securityUser.getTenantId(),
                         securityUser.getTenantId(),
                         DataConstants.SERVER_SCOPE,
                         Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
                 Futures.addCallback(future, new FutureCallback<>() {
                     @Override
-                    public void onSuccess(@Nullable List<Void> voids) {
+                    public void onSuccess(@Nullable List<String> keys) {
                         adminSettingsService.deleteAdminSettingsByKey(
                                 securityUser.getTenantId(),
                                 DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);

@@ -131,7 +131,7 @@
                             integration.opc-ua-keystore-type-required </mat-error>
                     </mat-form-field>
                     <tb-file-input [existingFileName]="form.get('keystore').get('location').value"
-                        formControlName="fileContent" dropLabel="{{ 'integration.drop-file' | translate }}"
+                        formControlName="fileContent" dropLabel="{{ 'integration.drop-file-or' | translate }}"
                         label="{{ 'integration.opc-ua-keystore-location' | translate }}"
                         (fileNameChanged)="form.get('keystore').get('location').patchValue($event)"
                         inputId="location">

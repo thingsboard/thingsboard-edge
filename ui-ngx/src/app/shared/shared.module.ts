@@ -166,7 +166,7 @@ import { OriginatorSelectComponent } from '@shared/components/originator-select.
 import { ProgressDialogComponent } from '@shared/components/dialog/progress-dialog.component';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { DndModule } from 'ngx-drag-drop';
-import { QueueTypeListComponent } from '@shared/components/queue/queue-type-list.component';
+import { QueueAutocompleteComponent } from '@shared/components/queue/queue-autocomplete.component';
 import { ContactComponent } from '@shared/components/contact.component';
 import { FileSizePipe } from '@shared/pipe/file-size.pipe';
 import { WidgetsBundleSearchComponent } from '@shared/components/widgets-bundle-search.component';
@@ -191,7 +191,10 @@ import { HELP_MARKDOWN_COMPONENT_TOKEN, SHARED_MODULE_TOKEN } from '@shared/comp
 import { TbMarkdownComponent } from '@shared/components/markdown.component';
 import { ProtobufContentComponent } from '@shared/components/protobuf-content.component';
 import { CssComponent } from '@shared/components/css.component';
+import { HtmlComponent } from '@shared/components/html.component';
 import { SafePipe } from '@shared/pipe/safe.pipe';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { MultipleImageInputComponent } from '@shared/components/multiple-image-input.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -277,7 +280,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
-    QueueTypeListComponent,
+    QueueAutocompleteComponent,
     RelationTypeAutocompleteComponent,
     SocialSharePanelComponent,
     JsonObjectEditComponent,
@@ -285,6 +288,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsonContentComponent,
     JsFuncComponent,
     CssComponent,
+    HtmlComponent,
     FabTriggerDirective,
     FabActionsDirective,
     FabToolbarComponent,
@@ -300,6 +304,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NodeScriptTestDialogComponent,
     JsonFormComponent,
     ImageInputComponent,
+    MultipleImageInputComponent,
     FileInputComponent,
     MessageTypeAutocompleteComponent,
     KeyValMapComponent,
@@ -370,6 +375,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MatAutocompleteModule,
     MatChipsModule,
     MatListModule,
+    DragDropModule,
     GridsterModule,
     ClipboardModule,
     FlexLayoutModule.withConfig({addFlexToParent: false}),
@@ -441,7 +447,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EntityKeysListComponent,
     EntityListSelectComponent,
     EntityTypeListComponent,
-    QueueTypeListComponent,
+    QueueAutocompleteComponent,
     RelationTypeAutocompleteComponent,
     SocialSharePanelComponent,
     JsonObjectEditComponent,
@@ -449,6 +455,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsonContentComponent,
     JsFuncComponent,
     CssComponent,
+    HtmlComponent,
     FabTriggerDirective,
     FabActionsDirective,
     FabToolbarComponent,
@@ -486,6 +493,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MatAutocompleteModule,
     MatChipsModule,
     MatListModule,
+    DragDropModule,
     GridsterModule,
     ClipboardModule,
     FlexLayoutModule,
@@ -512,6 +520,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NodeScriptTestDialogComponent,
     JsonFormComponent,
     ImageInputComponent,
+    MultipleImageInputComponent,
     FileInputComponent,
     MessageTypeAutocompleteComponent,
     KeyValMapComponent,

@@ -45,19 +45,15 @@ import org.thingsboard.server.actors.ruleChain.RuleChainManagerActor;
 import org.thingsboard.server.actors.service.ContextBasedCreator;
 import org.thingsboard.server.actors.service.DefaultActorService;
 import org.thingsboard.server.common.data.ApiUsageState;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -72,13 +68,10 @@ import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.QueueToRuleEngineMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
-import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 public class TenantActor extends RuleChainManagerActor {
@@ -103,24 +96,17 @@ public class TenantActor extends RuleChainManagerActor {
                 cantFindTenant = true;
                 log.info("[{}] Started tenant actor for missing tenant.", tenantId);
             } else {
-                // This Service may be started for specific tenant only.
-                Optional<TenantId> isolatedTenantId = systemContext.getServiceInfoProvider().getIsolatedTenant();
-
                 TenantProfile tenantProfile = systemContext.getTenantProfileCache().get(tenant.getTenantProfileId());
 
                 isCore = systemContext.getServiceInfoProvider().isService(ServiceType.TB_CORE);
                 isRuleEngine = systemContext.getServiceInfoProvider().isService(ServiceType.TB_RULE_ENGINE);
                 if (isRuleEngine) {
                     try {
-                        if (isolatedTenantId.map(id -> id.equals(tenantId)).orElseGet(() -> !tenantProfile.isIsolatedTbRuleEngine())) {
-                            if (getApiUsageState().isReExecEnabled()) {
-                                log.debug("[{}] Going to init rule chains", tenantId);
-                                initRuleChains();
-                            } else {
-                                log.info("[{}] Skip init of the rule chains due to API limits", tenantId);
-                            }
+                        if (getApiUsageState().isReExecEnabled()) {
+                            log.debug("[{}] Going to init rule chains", tenantId);
+                            initRuleChains();
                         } else {
-                            isRuleEngine = false;
+                            log.info("[{}] Skip init of the rule chains due to API limits", tenantId);
                         }
                     } catch (Exception e) {
                         cantFindTenant = true;
@@ -156,7 +142,7 @@ public class TenantActor extends RuleChainManagerActor {
         switch (msg.getMsgType()) {
             case PARTITION_CHANGE_MSG:
                 PartitionChangeMsg partitionChangeMsg = (PartitionChangeMsg) msg;
-                ServiceType serviceType = partitionChangeMsg.getServiceQueueKey().getServiceType();
+                ServiceType serviceType = partitionChangeMsg.getServiceType();
                 if (ServiceType.TB_RULE_ENGINE.equals(serviceType)) {
                     //To Rule Chain Actors
                     broadcast(msg);
@@ -258,33 +244,8 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onComponentLifecycleMsg(ComponentLifecycleMsg msg) {
-       if (msg.getEntityId().getEntityType() == EntityType.INTEGRATION) {
-            IntegrationId integrationId = new IntegrationId(msg.getEntityId().getId());
-            PlatformIntegrationService platformIntegrationService = systemContext.getPlatformIntegrationService();
-            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
-                platformIntegrationService.deleteIntegration(integrationId);
-            } else {
-                Integration integration = systemContext.getIntegrationService().findIntegrationById(msg.getTenantId(), integrationId);
-                if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
-                    platformIntegrationService.createIntegration(integration);
-                } else {
-                    platformIntegrationService.updateIntegration(integration);
-                }
-            }
-        } else if (msg.getEntityId().getEntityType() == EntityType.CONVERTER) {
-            ConverterId converterById = new ConverterId(msg.getEntityId().getId());
-            DataConverterService dataConverterService = systemContext.getDataConverterService();
-            if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
-                dataConverterService.deleteConverter(converterById);
-            } else {
-                Converter converter = systemContext.getConverterService().findConverterById(tenantId, converterById);
-                if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
-                    dataConverterService.createConverter(converter);
-                } else {
-                    dataConverterService.updateConverter(converter);
-                }
-            }
-        } else if (msg.getEntityId().getEntityType().equals(EntityType.API_USAGE_STATE)) {
+        EntityType entityType = msg.getEntityId().getEntityType();
+        if (entityType.equals(EntityType.API_USAGE_STATE)) {
             ApiUsageState old = getApiUsageState();
             apiUsageState = new ApiUsageState(systemContext.getApiUsageStateService().getApiUsageState(tenantId));
             if (old.isReExecEnabled() && !apiUsageState.isReExecEnabled()) {
@@ -294,7 +255,7 @@ public class TenantActor extends RuleChainManagerActor {
                 log.info("[{}] Received API state update. Going to ENABLE Rule Engine execution.", tenantId);
                 initRuleChains();
             }
-        } else if (msg.getEntityId().getEntityType() == EntityType.EDGE) {
+        } else if (entityType == EntityType.EDGE) {
             EdgeId edgeId = new EdgeId(msg.getEntityId().getId());
             EdgeRpcService edgeRpcService = systemContext.getEdgeRpcService();
             if (msg.getEvent() == ComponentLifecycleEvent.DELETED) {
@@ -305,10 +266,10 @@ public class TenantActor extends RuleChainManagerActor {
                     edgeRpcService.updateEdge(tenantId, edge);
                 }
             }
-        } else if (isRuleEngine) {
+        } else if (isRuleEngine && !(entityType.equals(EntityType.INTEGRATION) || entityType.equals(EntityType.CONVERTER))) {
             TbActorRef target = getEntityActorRef(msg.getEntityId());
             if (target != null) {
-                if (msg.getEntityId().getEntityType() == EntityType.RULE_CHAIN) {
+                if (entityType == EntityType.RULE_CHAIN) {
                     RuleChain ruleChain = systemContext.getRuleChainService().
                             findRuleChainById(tenantId, new RuleChainId(msg.getEntityId().getId()));
                     if (ruleChain != null && RuleChainType.CORE.equals(ruleChain.getType())) {

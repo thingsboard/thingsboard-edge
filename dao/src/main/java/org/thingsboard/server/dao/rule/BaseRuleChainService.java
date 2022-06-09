@@ -66,7 +66,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeUpdateResult;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -84,8 +84,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validateString;
+import static org.thingsboard.server.dao.service.Validator.*;
 
 /**
  * Created by igor on 3/12/18.
@@ -682,6 +681,22 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         validateString(type, "Incorrect type of the rule node");
         validateString(search, "Incorrect search text");
         return ruleNodeDao.findRuleNodesByTenantIdAndType(tenantId, type, search);
+    }
+
+    @Override
+    public List<RuleNode> findRuleNodesByTenantIdAndType(TenantId tenantId, String type) {
+        log.trace("Executing findRuleNodes, tenantId [{}], type {}", tenantId, type);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(type, "Incorrect type of the rule node");
+        return ruleNodeDao.findRuleNodesByTenantIdAndType(tenantId, type, "");
+    }
+
+    @Override
+    public PageData<RuleNode> findAllRuleNodesByType(String type, PageLink pageLink) {
+        log.trace("Executing findAllRuleNodesByType, type {}, pageLink {}", type, pageLink);
+        validateString(type, "Incorrect type of the rule node");
+        validatePageLink(pageLink);
+        return ruleNodeDao.findAllRuleNodesByType(type, pageLink);
     }
 
     @Override

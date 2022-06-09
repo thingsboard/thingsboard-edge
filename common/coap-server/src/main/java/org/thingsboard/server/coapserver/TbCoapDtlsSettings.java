@@ -56,18 +56,18 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 
 @Slf4j
-@ConditionalOnProperty(prefix = "transport.coap.dtls", value = "enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(prefix = "coap.dtls", value = "enabled", havingValue = "true")
 @Component
 public class TbCoapDtlsSettings {
 
-    @Value("${transport.coap.dtls.bind_address}")
+    @Value("${coap.dtls.bind_address}")
     private String host;
 
-    @Value("${transport.coap.dtls.bind_port}")
+    @Value("${coap.dtls.bind_port}")
     private Integer port;
 
     @Bean
-    @ConfigurationProperties(prefix = "transport.coap.dtls.credentials")
+    @ConfigurationProperties(prefix = "coap.dtls.credentials")
     public SslCredentialsConfig coapDtlsCredentials() {
         return new SslCredentialsConfig("COAP DTLS Credentials", false);
     }
@@ -76,13 +76,13 @@ public class TbCoapDtlsSettings {
     @Qualifier("coapDtlsCredentials")
     private SslCredentialsConfig coapDtlsCredentialsConfig;
 
-    @Value("${transport.coap.dtls.x509.skip_validity_check_for_client_cert:false}")
+    @Value("${coap.dtls.x509.skip_validity_check_for_client_cert:false}")
     private boolean skipValidityCheckForClientCert;
 
-    @Value("${transport.coap.dtls.x509.dtls_session_inactivity_timeout:86400000}")
+    @Value("${coap.dtls.x509.dtls_session_inactivity_timeout:86400000}")
     private long dtlsSessionInactivityTimeout;
 
-    @Value("${transport.coap.dtls.x509.dtls_session_report_timeout:1800000}")
+    @Value("${coap.dtls.x509.dtls_session_report_timeout:1800000}")
     private long dtlsSessionReportTimeout;
 
     @Autowired(required = false)

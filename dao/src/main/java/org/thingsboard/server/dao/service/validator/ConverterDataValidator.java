@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -74,14 +74,16 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Converter converter) {
-        converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
+    protected Converter validateUpdate(TenantId tenantId, Converter converter) {
+        var oldConverter = converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName());
+        oldConverter.ifPresent(
                 d -> {
                     if (!d.getId().equals(converter.getId())) {
                         throw new DataValidationException("Converter with such name already exists!");
                     }
                 }
         );
+        return oldConverter.orElse(null);
     }
 
     @Override

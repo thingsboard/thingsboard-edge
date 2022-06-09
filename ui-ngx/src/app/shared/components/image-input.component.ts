@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, forwardRef, Input, Output, EventEmitter, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, Output, EventEmitter, OnDestroy, ViewChild } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -73,7 +73,7 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   inputId = this.utils.guid();
 
   @Input()
-  dropLabel = this.translate.instant('dashboard.drop-image');
+  dropLabel = this.translate.instant('image-input.drop-image-or');
 
   @Input()
   maxImageSize = 0;
@@ -135,7 +135,8 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
               private utils: UtilsService,
               private sanitizer: DomSanitizer,
               private dialog: DialogService,
-              private fileSize: FileSizePipe) {
+              private fileSize: FileSizePipe,
+              private cd: ChangeDetectorRef) {
     super(store);
   }
 
@@ -227,6 +228,7 @@ export class ImageInputComponent extends PageComponent implements AfterViewInit,
   }
 
   private updateModel() {
+    this.cd.markForCheck();
     this.propagateChange(this.imageUrl);
     this.imageTypeChanged.emit(this.imageType);
   }

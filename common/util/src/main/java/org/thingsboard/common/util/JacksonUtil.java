@@ -197,4 +197,5 @@ public class JacksonUtil {
                     + value + " cannot be transformed to a String", e);
         }
     }
+
 }

@@ -48,14 +48,11 @@ import org.apache.zookeeper.KeeperException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
+import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -130,8 +127,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
                 .collect(Collectors.toList());
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(value = 1)
+    @AfterStartUp(order = AfterStartUp.DISCOVERY_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (stopped) {
             log.debug("Ignoring application ready event. Service is stopped.");
@@ -174,8 +170,7 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
         }
         try {
             TransportProtos.ServiceInfo self = serviceInfoProvider.getServiceInfo();
-            TransportProtos.ServiceInfo registeredServerInfo = null;
-            registeredServerInfo = TransportProtos.ServiceInfo.parseFrom(client.getData().forPath(nodePath));
+            TransportProtos.ServiceInfo registeredServerInfo = TransportProtos.ServiceInfo.parseFrom(client.getData().forPath(nodePath));
             if (self.equals(registeredServerInfo)) {
                 return true;
             }
@@ -311,9 +306,13 @@ public class ZkDiscoveryService implements DiscoveryService, PathChildrenCacheLi
     /**
      * A single entry point to recalculate partitions
      * Synchronized to ensure that other servers info is up to date
-     * */
+     */
     synchronized void recalculatePartitions() {
-        partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
+        try {
+            partitionService.recalculatePartitions(serviceInfoProvider.getServiceInfo(), getOtherServers());
+        } catch (Exception e) {
+            log.warn("Failed to recalculate partitions", e);
+        }
     }
 
 }
