@@ -988,7 +988,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       const entityField = entityFields[key.name];
       if (entityField) {
         if (entityField.time) {
-          return this.datePipe.transform(value, 'yyyy-MM-dd HH:m  m:ss');
+          return this.datePipe.transform(value, 'yyyy-MM-dd HH:mm:ss');
         }
       }
       const decimals = (contentInfo.decimals || contentInfo.decimals === 0) ? contentInfo.decimals : this.ctx.widgetConfig.decimals;
