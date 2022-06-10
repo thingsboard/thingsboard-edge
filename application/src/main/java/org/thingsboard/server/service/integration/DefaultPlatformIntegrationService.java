@@ -88,6 +88,7 @@ import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -215,6 +216,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private DefaultTbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
 
     @Value("${integrations.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -531,7 +535,12 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
             device.setName(deviceName);
-            device.setType(deviceType);
+
+            // device profiles are not created on edge at the moment
+            String deviceTypeOrDefault = checkDeviceTypeExistsOrDefault(integration.getTenantId(), deviceType);
+            device.setType(deviceTypeOrDefault);
+            // device.setType(deviceType);
+
             device.setTenantId(integration.getTenantId());
             if (!StringUtils.isEmpty(deviceLabel)) {
                 device.setLabel(deviceLabel);
@@ -554,6 +563,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         return device;
+    }
+
+    private String checkDeviceTypeExistsOrDefault(TenantId tenantId, String deviceType) {
+        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceType);
+        if (deviceProfileByName != null) {
+            return deviceType;
+        }
+        return deviceProfileService.findDefaultDeviceProfile(tenantId).getName();
     }
 
     private Asset processGetOrCreateAsset(IntegrationInfo integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
@@ -591,10 +608,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             customer = customerOptional.get();
         } else {
             customer = new Customer();
-            customer.setTitle(customerName);
-            customer.setTenantId(integration.getTenantId());
-            customer = customerService.saveCustomer(customer);
-            pushCustomerCreatedEventToRuleEngine(integration, customer);
+            // TODO: customers are not created on the edge at the moment
+            // customer.setTitle(customerName);
+            // customer.setTenantId(integration.getTenantId());
+            // customer = customerService.saveCustomer(customer);
+            // pushCustomerCreatedEventToRuleEngine(integration, customer);
         }
         return customer;
     }
