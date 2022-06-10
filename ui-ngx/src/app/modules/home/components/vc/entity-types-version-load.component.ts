@@ -158,6 +158,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
           loadCredentials: [config.loadCredentials, []],
           loadPermissions: [config.loadPermissions, []],
           loadGroupEntities: [config.loadGroupEntities, []],
+          autoGenerateIntegrationKey: [config.autoGenerateIntegrationKey, []],
           removeOtherEntities: [config.removeOtherEntities, []],
           findExistingEntityByName: [config.findExistingEntityByName, []]
         })
@@ -195,6 +196,7 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
       loadCredentials: true,
       loadPermissions: true,
       loadGroupEntities: true,
+      autoGenerateIntegrationKey: false,
       removeOtherEntities: false,
       findExistingEntityByName: true
     };

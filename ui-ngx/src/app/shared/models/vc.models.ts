@@ -131,6 +131,7 @@ export interface VersionLoadConfig {
   loadCredentials: boolean;
   loadPermissions: boolean;
   loadGroupEntities: boolean;
+  autoGenerateIntegrationKey: boolean;
 }
 
 export enum VersionLoadRequestType {
@@ -170,6 +171,7 @@ export function createDefaultEntityTypesVersionLoad(): {[entityType: string]: En
       loadCredentials: true,
       loadPermissions: true,
       loadGroupEntities: true,
+      autoGenerateIntegrationKey: false,
       removeOtherEntities: false,
       findExistingEntityByName: true
     };
@@ -205,13 +207,15 @@ export interface EntityTypeLoadResult {
 
 export enum EntityLoadErrorType {
   DEVICE_CREDENTIALS_CONFLICT = 'DEVICE_CREDENTIALS_CONFLICT',
-  MISSING_REFERENCED_ENTITY = 'MISSING_REFERENCED_ENTITY'
+  MISSING_REFERENCED_ENTITY = 'MISSING_REFERENCED_ENTITY',
+  INTEGRATION_ROUTING_KEY_CONFLICT = 'INTEGRATION_ROUTING_KEY_CONFLICT'
 }
 
 export const entityLoadErrorTranslationMap = new Map<EntityLoadErrorType, string>(
   [
     [EntityLoadErrorType.DEVICE_CREDENTIALS_CONFLICT, 'version-control.device-credentials-conflict'],
-    [EntityLoadErrorType.MISSING_REFERENCED_ENTITY, 'version-control.missing-referenced-entity']
+    [EntityLoadErrorType.MISSING_REFERENCED_ENTITY, 'version-control.missing-referenced-entity'],
+    [EntityLoadErrorType.INTEGRATION_ROUTING_KEY_CONFLICT, 'version-control.integration-routing-key-conflict']
   ]
 );
 

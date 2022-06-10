@@ -44,7 +44,6 @@ import { EntitiesVersionControlService } from '@core/http/entities-version-contr
 import { EntityId } from '@shared/models/id/entity-id';
 import { TranslateService } from '@ngx-translate/core';
 import { TbPopoverComponent } from '@shared/components/popover.component';
-import { delay } from 'rxjs/operators';
 import { SafeHtml } from '@angular/platform-browser';
 import { EntityType } from '@shared/models/entity-type.models';
 
@@ -101,7 +100,8 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
       loadRelations: [true, []],
       loadCredentials: [true, []],
       loadPermissions: [true, []],
-      loadGroupEntities: [true, []]
+      loadGroupEntities: [true, []],
+      autoGenerateIntegrationKey: [false, []]
     });
     this.entitiesVersionControlService.getEntityDataInfo(this.externalEntityId, this.internalEntityId, this.versionId).subscribe((data) => {
       this.entityDataInfo = data;
@@ -129,6 +129,7 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
         loadAttributes: this.entityDataInfo.hasAttributes ? this.restoreFormGroup.get('loadAttributes').value : false,
         loadCredentials: (this.entityDataInfo.hasCredentials || EntityType.DEVICE === this.groupType) ? this.restoreFormGroup.get('loadCredentials').value : false,
         loadPermissions: this.entityDataInfo.hasPermissions ? this.restoreFormGroup.get('loadPermissions').value : false,
+        autoGenerateIntegrationKey: this.internalEntityId.entityType === EntityType.INTEGRATION ? this.restoreFormGroup.get('loadPermissions').value : false,
         loadGroupEntities: this.entityDataInfo.hasGroupEntities ? this.restoreFormGroup.get('loadGroupEntities').value : false
       },
       type: VersionLoadRequestType.SINGLE_ENTITY
