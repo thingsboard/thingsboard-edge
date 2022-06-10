@@ -92,14 +92,6 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     }
   }
 
-  hideAssignmentActions() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
   buildForm(entity: Dashboard): FormGroup {
     this.updateFields(entity);
     return this.fb.group(

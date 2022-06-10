@@ -98,7 +98,6 @@ export interface EntityGroupSettings {
   detailsMode: EntityGroupDetailsMode;
   displayPagination: boolean;
   defaultPageSize: number;
-  enableAssignment: boolean;
   enableCredentialsManagement: boolean;
   enableLoginAsUser: boolean;
   enableUsersManagement: boolean;
@@ -412,12 +411,6 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
       displayPagination: true,
       defaultPageSize: 10
   }, ...settings};
-
-  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW) {
-    settings = {...{
-        enableAssignment: true
-      }, ...settings};
-  }
 
   if (entityType === EntityType.DEVICE) {
     settings = {...{
