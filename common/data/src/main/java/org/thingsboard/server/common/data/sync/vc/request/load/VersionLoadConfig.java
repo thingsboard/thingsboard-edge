@@ -42,5 +42,6 @@ public class VersionLoadConfig {
     private boolean loadCredentials;
     private boolean loadPermissions;
     private boolean loadGroupEntities;
+    private boolean autoGenerateIntegrationKey;
 
 }

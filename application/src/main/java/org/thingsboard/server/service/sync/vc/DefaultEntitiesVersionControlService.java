@@ -342,7 +342,13 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
             case ENTITY_TYPE: {
                 EntityTypeVersionLoadRequest versionLoadRequest = (EntityTypeVersionLoadRequest) request;
-                return executor.submit(() -> doInTemplate(status -> loadMultipleEntities(user, versionLoadRequest)));
+                return executor.submit(() -> doInTemplate(status -> {
+                    try {
+                        return loadMultipleEntities(user, versionLoadRequest);
+                    } catch (Exception e) {
+                        throw e;
+                    }
+                }));
             }
             default:
                 throw new IllegalArgumentException("Unsupported version load request");
@@ -361,6 +367,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .saveAttributes(config.isLoadAttributes())
                 .saveCredentials(config.isLoadCredentials())
                 .saveUserGroupPermissions(config.isLoadPermissions())
+                .autoGenerateIntegrationKey(config.isAutoGenerateIntegrationKey())
                 .findExistingByName(false)
                 .build();
 
@@ -375,7 +382,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 if (savedGroup.isGroupAll()) {
                     importEntities(user, ownerIds, savedGroup.getType(), settings, ctx, false);
                 } else {
-                    importGroupEntities(user, ownerIds, savedGroup.getType(), groupData.getExternalId(), settings, ctx);
+                    importGroupEntities(user, ownerIds, savedGroup.getType(), savedGroup.getId(), groupData.getExternalId(), settings, ctx);
                 }
                 reimport(user, ownerIds, ctx);
                 ctx.executeCallbacks();
@@ -454,22 +461,17 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         List<EntityType> entityTypes = request.getEntityTypes().keySet().stream()
                 .sorted(exportImportService.getEntityTypeComparatorForImport()).collect(Collectors.toList());
         for (EntityType entityType : entityTypes) {
-            var config = request.getEntityTypes().get(entityType);
-            var settings = EntityImportSettings.builder()
-                    .updateRelations(config.isLoadRelations())
-                    .saveAttributes(config.isLoadAttributes())
-                    .findExistingByName(config.isFindExistingEntityByName())
-                    .build();
-            importEntityGroups(user, entityType, settings, ctx, true);
+            EntityImportSettings settings = getEntityImportSettings(request, entityType);
             importEntities(user, Collections.emptyList(), entityType, settings, ctx, true);
+        }
+
+        for (EntityType entityType : entityTypes) {
+            EntityImportSettings settings = getEntityImportSettings(request, entityType);
+            importEntityGroups(user, entityType, settings, ctx, true);
         }
 
         reimport(user, Collections.emptyList(), ctx);
 
-        ctx.getExternalEntityIdGroups().forEach((id, groupIds) -> {
-            EntityGroupId groupId = groupIds.stream().findFirst().orElseThrow();
-            throw new LoadEntityException(groupId, new MissingEntityException(id));
-        });
         request.getEntityTypes().keySet().stream()
                 .filter(entityType -> request.getEntityTypes().get(entityType).isRemoveOtherEntities())
                 .sorted(exportImportService.getEntityTypeComparatorForImport().reversed())
@@ -479,7 +481,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         return VersionLoadResult.success(new ArrayList<>(ctx.getResults().values()));
     }
 
-    private void importGroupEntities(SecurityUser user, List<CustomerId> ownerIds, EntityType entityType, EntityId externalGroupId,
+    private EntityImportSettings getEntityImportSettings(EntityTypeVersionLoadRequest request, EntityType entityType) {
+        var config = request.getEntityTypes().get(entityType);
+        var settings = EntityImportSettings.builder()
+                .updateRelations(config.isLoadRelations())
+                .saveAttributes(config.isLoadAttributes())
+                .findExistingByName(config.isFindExistingEntityByName())
+                .autoGenerateIntegrationKey(config.isAutoGenerateIntegrationKey())
+                .build();
+        return settings;
+    }
+
+    private void importGroupEntities(SecurityUser user, List<CustomerId> ownerIds, EntityType entityType, EntityGroupId internalGroupId, EntityId externalGroupId,
                                      EntityImportSettings importSettings, EntitiesImportCtx ctx) throws InterruptedException, ExecutionException {
 
         List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, externalGroupId).get();
@@ -489,7 +502,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
         for (List<UUID> entityIds : Lists.partition(allGroupEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()), 100)) {
             List<EntityExportData> entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
-            importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
+            var result = importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
+            var internalIds = result.stream().map(EntityImportResult::getSavedEntity).map(HasId::getId).collect(Collectors.toCollection(ArrayList<EntityId>::new));
+            groupService.addEntitiesToEntityGroup(user.getTenantId(), internalGroupId, internalIds);
         }
         ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
@@ -531,7 +546,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         ownersCache.put(savedGroup.getOwnerId(), ownerIds);
                     }
                     List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
-                    ctx.registerGroupEntities(savedGroup.getId(), allGroupEntityIds);
+                    createGroupRelations(user, ctx, savedGroup.getId(), allGroupEntityIds);
                 }
             }
             offset += limit;
@@ -564,14 +579,21 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             EntityId savedEntityId = importResult.getSavedEntity().getId();
             ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>())
                     .add(savedEntityId);
-            createGroupRelations(user, ctx, entityData.getExternalId(), savedEntityId);
+            ctx.putInternalId(entityData.getExternalId(), savedEntityId);
         }
         return importResults;
     }
 
-    private void createGroupRelations(SecurityUser user, EntitiesImportCtx ctx, EntityId externalId, EntityId savedEntityId) {
-        Set<EntityGroupId> groupIds = ctx.unregisterEntityGroups(externalId);
-        groupIds.forEach(groupId -> groupService.addEntityToEntityGroup(user.getTenantId(), groupId, savedEntityId));
+    private void createGroupRelations(SecurityUser user, EntitiesImportCtx ctx, EntityGroupId groupId, List<EntityId> externalIds) {
+        List<EntityId> internalIds = new ArrayList<>(externalIds.size());
+        for (EntityId externalId : externalIds) {
+            var internalId = ctx.getInternalId(externalId);
+            if (internalId == null) {
+                throw new LoadEntityException(groupId, new MissingEntityException(externalId));
+            }
+            internalIds.add(internalId);
+        }
+        groupService.addEntitiesToEntityGroup(user.getTenantId(), groupId, internalIds);
     }
 
     private void reimport(SecurityUser user, List<CustomerId> parents, EntitiesImportCtx ctx) {
@@ -591,7 +613,6 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 EntityId savedEntityId = importResult.getSavedEntity().getId();
                 ctx.getImportedEntities().computeIfAbsent(externalId.getEntityType(), t -> new HashSet<>())
                         .add(savedEntityId);
-                createGroupRelations(user, ctx, entityData.getExternalId(), savedEntityId);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

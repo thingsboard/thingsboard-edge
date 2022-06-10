@@ -37,11 +37,11 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.sync.ie.DeviceExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.common.data.sync.ie.DeviceExportData;
 
 @Service
 @TbCoreComponent
@@ -57,7 +57,7 @@ public class DeviceImportService extends BaseGroupEntityImportService<DeviceId, 
     }
 
     @Override
-    protected Device prepareAndSave(TenantId tenantId, Device device, DeviceExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected Device prepareAndSave(TenantId tenantId, Device device, Device old, DeviceExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         device.setDeviceProfileId(idProvider.getInternalId(device.getDeviceProfileId()));
         device.setFirmwareId(idProvider.getInternalId(device.getFirmwareId()));
         device.setSoftwareId(idProvider.getInternalId(device.getSoftwareId()));

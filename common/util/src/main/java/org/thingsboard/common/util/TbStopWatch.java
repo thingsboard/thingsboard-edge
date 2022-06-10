@@ -69,4 +69,9 @@ public class TbStopWatch extends StopWatch {
         return getLastTaskTimeNanos();
     }
 
+    public void stopAndStart(String task){
+        stop();
+        start(task);
+    }
+
 }

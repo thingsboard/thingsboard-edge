@@ -45,8 +45,8 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.sync.ie.importing.impl.BaseEntityImportService;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -75,7 +75,15 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
 
     @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
     @Override
-    protected Integration prepareAndSave(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected Integration prepareAndSave(TenantId tenantId, Integration integration, Integration old, EntityExportData<Integration> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+        if (importSettings.isAutoGenerateIntegrationKey()) {
+            if (integration.getId() == null) {
+                integration.setRoutingKey(UUID.randomUUID().toString());
+            } else {
+                integration.setRoutingKey(old.getRoutingKey());
+            }
+        }
+
         integration.setDefaultConverterId(idProvider.getInternalId(integration.getDefaultConverterId()));
         integration.setDownlinkConverterId(idProvider.getInternalId(integration.getDownlinkConverterId()));
         integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);

@@ -65,7 +65,7 @@ public class WidgetsBundleImportService extends BaseEntityImportService<WidgetsB
     }
 
     @Override
-    protected WidgetsBundle prepareAndSave(TenantId tenantId, WidgetsBundle widgetsBundle, WidgetsBundleExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected WidgetsBundle prepareAndSave(TenantId tenantId, WidgetsBundle widgetsBundle, WidgetsBundle old, WidgetsBundleExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
         if (widgetsBundle.getId() == null) {
             for (WidgetTypeDetails widget : exportData.getWidgets()) {

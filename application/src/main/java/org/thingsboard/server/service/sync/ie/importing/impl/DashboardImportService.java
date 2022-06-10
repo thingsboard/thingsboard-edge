@@ -72,7 +72,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     }
 
     @Override
-    protected Dashboard prepareAndSave(TenantId tenantId, Dashboard dashboard, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected Dashboard prepareAndSave(TenantId tenantId, Dashboard dashboard, Dashboard old, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         JsonNode configuration = dashboard.getConfiguration();
         JsonNode entityAliases = configuration.get("entityAliases");
         if (entityAliases != null && entityAliases.isObject()) {

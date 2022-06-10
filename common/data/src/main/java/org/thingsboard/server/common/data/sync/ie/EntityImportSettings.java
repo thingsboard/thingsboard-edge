@@ -45,6 +45,7 @@ public class EntityImportSettings {
     private boolean saveAttributes;
     private boolean saveCredentials;
     private boolean saveUserGroupPermissions;
+    private boolean autoGenerateIntegrationKey;
 
     // internal
     private boolean resetExternalIdsOfAnotherTenant;

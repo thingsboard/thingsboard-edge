@@ -107,14 +107,12 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         setOwner(user.getTenantId(), entity, idProvider);
         if (existingEntity == null) {
             entity.setId(null);
-            exportableEntitiesService.checkPermission(user, entity, getEntityType(), Operation.CREATE);
         } else {
             entity.setId(existingEntity.getId());
             entity.setCreatedTime(existingEntity.getCreatedTime());
-            exportableEntitiesService.checkPermission(user, existingEntity, getEntityType(), Operation.WRITE);
         }
 
-        E savedEntity = prepareAndSave(user.getTenantId(), entity, exportData, idProvider, importSettings);
+        E savedEntity = prepareAndSave(user.getTenantId(), entity, existingEntity, exportData, idProvider, importSettings);
 
         importResult.setSavedEntity(savedEntity);
         importResult.setOldEntity(existingEntity);
@@ -127,8 +125,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
     protected abstract void setOwner(TenantId tenantId, E entity, IdProvider idProvider);
 
-    protected abstract E prepareAndSave(TenantId tenantId, E entity, D exportData, IdProvider idProvider, EntityImportSettings importSettings);
-
+    protected abstract E prepareAndSave(TenantId tenantId, E entity, E oldEntity, D exportData, IdProvider idProvider, EntityImportSettings importSettings);
 
     protected void processAfterSaved(SecurityUser user, EntityImportResult<E> importResult, D exportData,
                                      IdProvider idProvider, EntityImportSettings importSettings) throws ThingsboardException {

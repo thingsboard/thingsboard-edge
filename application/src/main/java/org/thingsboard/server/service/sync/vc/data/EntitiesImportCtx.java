@@ -53,7 +53,7 @@ public class EntitiesImportCtx {
     private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
     private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
-    private final Map<EntityId, Set<EntityGroupId>> externalEntityIdGroups = new HashMap<>();
+    private final Map<EntityId, EntityId> externalEntityIds = new HashMap<>();
 
     public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
         results.put(entityType, importEntities);
@@ -80,16 +80,11 @@ public class EntitiesImportCtx {
         }
     }
 
-    public void registerGroupEntities(EntityGroupId id, Collection<EntityId> entityIds) {
-        if (!entityIds.isEmpty()) {
-            for(EntityId entityId : entityIds){
-                externalEntityIdGroups.computeIfAbsent(entityId, i -> new HashSet<>()).add(id);
-            }
-        }
+    public EntityId getInternalId(EntityId externalId){
+        return externalEntityIds.get(externalId);
     }
 
-    public Set<EntityGroupId> unregisterEntityGroups(EntityId externalEntityId){
-        var result = externalEntityIdGroups.remove(externalEntityId);
-        return result != null ? result : Collections.emptySet();
+    public void putInternalId(EntityId externalId, EntityId internalId) {
+        externalEntityIds.put(externalId, internalId);
     }
 }

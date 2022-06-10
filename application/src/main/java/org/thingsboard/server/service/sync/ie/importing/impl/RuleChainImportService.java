@@ -76,7 +76,7 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
     }
 
     @Override
-    protected RuleChain prepareAndSave(TenantId tenantId, RuleChain ruleChain, RuleChainExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected RuleChain prepareAndSave(TenantId tenantId, RuleChain ruleChain, RuleChain old, RuleChainExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         RuleChainMetaData metaData = exportData.getMetaData();
         Optional.ofNullable(metaData.getNodes()).orElse(Collections.emptyList())
                 .forEach(ruleNode -> {

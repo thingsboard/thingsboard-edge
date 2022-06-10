@@ -57,7 +57,7 @@ public class CustomerImportService extends BaseGroupEntityImportService<Customer
     }
 
     @Override
-    protected Customer prepareAndSave(TenantId tenantId, Customer customer, GroupEntityExportData<Customer> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected Customer prepareAndSave(TenantId tenantId, Customer customer, Customer old, GroupEntityExportData<Customer> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         if (!customer.isPublic()) {
             return customerService.saveCustomer(customer);
         } else {

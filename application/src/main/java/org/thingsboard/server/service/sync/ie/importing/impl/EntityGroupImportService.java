@@ -93,7 +93,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroupExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroup old, EntityGroupExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         if (entityGroup.getId() == null && entityGroup.isGroupAll()) {
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");

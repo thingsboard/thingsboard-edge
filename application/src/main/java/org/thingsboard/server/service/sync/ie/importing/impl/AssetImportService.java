@@ -55,7 +55,7 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
     }
 
     @Override
-    protected Asset prepareAndSave(TenantId tenantId, Asset asset, GroupEntityExportData<Asset> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected Asset prepareAndSave(TenantId tenantId, Asset asset, Asset old, GroupEntityExportData<Asset> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
         return assetService.saveAsset(asset);
     }
 
