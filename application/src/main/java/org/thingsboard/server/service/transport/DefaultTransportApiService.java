@@ -294,7 +294,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     device.setTenantId(tenantId);
                     device.setName(requestMsg.getDeviceName());
 
-                    // device profiles are not created on edge at the moment
+                    // TODO: @voba device profiles are not created on edge at the moment
                     String deviceType = checkDeviceTypeExistsOrDefault(tenantId, requestMsg.getDeviceType());
                     device.setType(deviceType);
                     // device.setType(requestMsg.getDeviceType());
