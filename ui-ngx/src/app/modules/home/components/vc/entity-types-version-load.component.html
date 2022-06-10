@@ -86,6 +86,9 @@
                       <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.DEVICE" formControlName="loadCredentials">
                         {{ 'version-control.load-credentials' | translate }}
                       </mat-checkbox>
+                      <mat-checkbox *ngIf="entityTypeFormGroup.get('entityType').value === entityTypes.INTEGRATION" formControlName="autoGenerateIntegrationKey">
+                        {{ 'version-control.auto-generate-integration-key' | translate }}
+                      </mat-checkbox>
                       <mat-checkbox formControlName="loadAttributes">
                         {{ 'version-control.load-attributes' | translate }}
                       </mat-checkbox>

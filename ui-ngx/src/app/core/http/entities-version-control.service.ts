@@ -34,11 +34,17 @@ import { HttpClient } from '@angular/common/http';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { Observable, of } from 'rxjs';
 import {
-  BranchInfo, EntityDataDiff, EntityDataInfo, EntityLoadError, entityLoadErrorTranslationMap, EntityLoadErrorType,
+  BranchInfo,
+  EntityDataDiff,
+  EntityDataInfo,
+  EntityLoadError,
+  entityLoadErrorTranslationMap,
+  EntityLoadErrorType,
   EntityVersion,
   VersionCreateRequest,
   VersionCreationResult,
-  VersionLoadRequest, VersionLoadResult
+  VersionLoadRequest,
+  VersionLoadResult
 } from '@shared/models/vc.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
@@ -148,6 +154,7 @@ export class EntitiesVersionControlService {
     const messageArgs = {} as any;
     switch (type) {
       case EntityLoadErrorType.DEVICE_CREDENTIALS_CONFLICT:
+      case EntityLoadErrorType.INTEGRATION_ROUTING_KEY_CONFLICT:
         messageArgs.entityId = entityLoadError.source.id;
         break;
       case EntityLoadErrorType.MISSING_REFERENCED_ENTITY:
