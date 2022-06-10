@@ -577,7 +577,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 try {
                     return jdbcTemplate.queryForObject(countQuery, ctx, Long.class);
                 } finally {
-                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
+                    queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);
                 }
             });
         }
@@ -722,7 +722,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             try {
                 rows = jdbcTemplate.queryForList(dataQuery, ctx);
             } finally {
-                queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);
+                queryLog.logQuery(ctx, dataQuery, System.currentTimeMillis() - startTs);
             }
             return EntityDataAdapter.createEntityData(pageLink, selectionMapping, rows, totalElements);
         });
