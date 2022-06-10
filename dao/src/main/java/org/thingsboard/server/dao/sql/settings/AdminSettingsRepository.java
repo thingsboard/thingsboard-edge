@@ -44,6 +44,8 @@ public interface AdminSettingsRepository extends JpaRepository<AdminSettingsEnti
 
     void deleteByTenantIdAndKey(UUID tenantId, String key);
 
+    void deleteByTenantId(UUID tenantId);
+
     boolean existsByTenantIdAndKey(UUID tenantId, String key);
 
 }

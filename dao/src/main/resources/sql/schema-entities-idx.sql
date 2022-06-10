@@ -70,3 +70,17 @@ CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_
 CREATE INDEX IF NOT EXISTS idx_rpc_tenant_id_device_id ON rpc(tenant_id, device_id);
 
 CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);
+
+CREATE INDEX IF NOT EXISTS idx_device_external_id ON device(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_device_profile_external_id ON device_profile(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_asset_external_id ON asset(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_rule_chain_external_id ON rule_chain(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_dashboard_external_id ON dashboard(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_customer_external_id ON customer(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_widgets_bundle_external_id ON widgets_bundle(tenant_id, external_id);
