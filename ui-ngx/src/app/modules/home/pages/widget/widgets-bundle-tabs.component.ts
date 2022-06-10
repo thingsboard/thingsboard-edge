@@ -29,14 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData, ExportableEntity } from '@shared/models/base-data';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { WidgetsBundleId } from '@shared/models/id/widgets-bundle-id';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
+import { WidgetsBundle } from '@shared/models/widgets-bundle.model';
+import { NULL_UUID } from '@shared/models/id/has-uuid';
 
-export interface WidgetsBundle extends BaseData<WidgetsBundleId>, ExportableEntity<WidgetsBundleId> {
-  tenantId: TenantId;
-  alias: string;
-  title: string;
-  image: string;
-  description: string;
+@Component({
+  selector: 'tb-widgets-bundle-tabs',
+  templateUrl: './widgets-bundle-tabs.component.html',
+  styleUrls: []
+})
+export class WidgetsBundleTabsComponent extends EntityTabsComponent<WidgetsBundle> {
+
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
+
+  isTenantWidgetsBundle() {
+    return this.entity && this.entity.tenantId.id !== NULL_UUID;
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+  }
+
 }
