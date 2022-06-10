@@ -38,7 +38,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionCallback;
@@ -77,8 +76,7 @@ import org.thingsboard.server.service.sync.ie.EntitiesExportImportService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.ie.importing.MissingEntityException;
 import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
-import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
-import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
+import org.thingsboard.server.service.sync.vc.data.*;
 import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;
 
 import javax.annotation.PostConstruct;
@@ -110,6 +108,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final EntityGroupService groupService;
 
     private ListeningExecutorService executor;
+
+    private static final Set<EntityType> GROUP_ENTITIES = new HashSet<>(Arrays.asList(EntityType.CUSTOMER, EntityType.DEVICE, EntityType.ASSET, EntityType.DASHBOARD));
 
     @Value("${vc.thread_pool_size:4}")
     private int threadPoolSize;
@@ -157,34 +157,14 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .exportGroupEntities(config.isSaveGroupEntities())
                 .exportPermissions(config.isSavePermissions())
                 .build();
-
+        GroupExportCtx ctx = new GroupExportCtx(user, commit, gitFutures, exportSettings, true, true);
         if (EntityType.ENTITY_GROUP.equals(entityId.getEntityType())) {
-            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(user, new EntityGroupId(entityId.getId()), exportSettings);
-            EntityGroup group = (EntityGroup) (entityData.getEntity());
-            List<CustomerId> hierarchy = addCustomerHierarchyToCommit(user, commit, gitFutures, entityId, exportSettings, group);
-            gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, entityData));
-            if (exportSettings.isExportGroupEntities()) {
-                exportSettings.setExportCredentials(true);
-                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
-                        link -> groupService.findEntityIds(user.getTenantId(), group.getType(), group.getId(), link), 1024);
-                List<EntityId> groupEntityIds = new ArrayList<>();
-                for (EntityId groupEntityId : entityIdsIterator) {
-                    if (!group.isGroupAll()) {
-                        groupEntityIds.add(groupEntityId);
-                    }
-                    EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(user, groupEntityId, exportSettings);
-                    gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, groupEntityData));
-                }
-                if (!group.isGroupAll()) {
-                    gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, group.getType(), entityData.getExternalId(), groupEntityIds));
-                }
-            }
+            exportGroup(ctx, new EntityGroupId(entityId.getId()));
         } else {
             EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(user, entityId, exportSettings);
             ExportableEntity<EntityId> entity = entityData.getEntity();
             if (entity instanceof HasOwnerId) {
-                //ownersService.getOwners returns LinkedHashSet;
-                List<CustomerId> hierarchy = addCustomerHierarchyToCommit(user, commit, gitFutures, entityId, exportSettings, (HasOwnerId) entity);
+                List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, (HasOwnerId) entity);
                 gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, entityData));
             } else {
                 gitFutures.add(gitServiceQueue.addToCommit(commit, entityData));
@@ -192,45 +172,121 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }
     }
 
-    private List<CustomerId> addCustomerHierarchyToCommit(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, EntityId entityId, EntityExportSettings exportSettings, HasOwnerId entity) throws ThingsboardException {
-        List<CustomerId> customerIds = getCustomerExternalIds(user.getTenantId(), entityId, entity);
-        List<CustomerId> hierarchy = new ArrayList<>(customerIds.size());
-        for (CustomerId ownerId : customerIds) {
-            EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(user, ownerId, exportSettings);
-            gitFutures.add(gitServiceQueue.addToCommit(commit, new ArrayList<>(hierarchy), ownerData));
-            hierarchy.add(ownerId);
-        }
-        return hierarchy;
-    }
-
-    private void handleComplexRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, ComplexVersionCreateRequest versionCreateRequest) {
+    private void handleComplexRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, ComplexVersionCreateRequest versionCreateRequest) throws Exception {
         versionCreateRequest.getEntityTypes().forEach((entityType, config) -> {
-            if (ObjectUtils.defaultIfNull(config.getSyncStrategy(), versionCreateRequest.getSyncStrategy()) == SyncStrategy.OVERWRITE) {
-                gitFutures.add(gitServiceQueue.deleteAll(commit, entityType));
+            EntityTypeExportCtx ctx = new EntityTypeExportCtx(user, commit, gitFutures, versionCreateRequest.getEntityTypes().get(entityType), versionCreateRequest.getSyncStrategy(), entityType);
+            if (ctx.isOverwrite()) {
+                ctx.add(gitServiceQueue.deleteAll(commit, entityType));
             }
 
-            if (config.isAllEntities()) {
-                DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesByTenantId(user.getTenantId(), entityType, pageLink)
-                        , 100, entity -> {
-                            try {
-                                gitFutures.add(saveEntityData(user, commit, entity.getId(), config));
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
+            if (GROUP_ENTITIES.contains(entityType)) {
+                if (config.isAllEntities()) {
+                    ctx.addTask(new EntityTypeExportTask(Collections.emptyList(), ctx.getUser().getTenantId()));
+                    while (true) {
+                        EntityTypeExportTask task = ctx.pollTask();
+                        if (task == null) {
+                            break;
+                        }
+                        exportGroupEntities(ctx, task);
+                    }
+                } else {
+                    GroupExportCtx groupCtx = new GroupExportCtx(user, commit, ctx.getFutures(), ctx.getSettings(), false, false);
+                    for (UUID groupId : config.getEntityIds()) {
+                        exportGroup(groupCtx, new EntityGroupId(groupId));
+                    }
+                }
             } else {
-                for (UUID entityId : config.getEntityIds()) {
-                    try {
-                        gitFutures.add(saveEntityData(user, commit, EntityIdFactory.getByTypeAndUuid(entityType, entityId), config));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                if (config.isAllEntities()) {
+                    //For Entity Types that belong to Tenant Level Only.
+                    DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesByTenantId(user.getTenantId(), entityType, pageLink)
+                            , 100, entity -> {
+                                ctx.add(saveEntityData(user, commit, entity.getId(), config));
+                            });
+                } else {
+                    for (UUID entityId : config.getEntityIds()) {
+                        ctx.add(saveEntityData(user, commit, EntityIdFactory.getByTypeAndUuid(entityType, entityId), config));
                     }
                 }
             }
         });
     }
 
-    private ListenableFuture<Void> saveEntityData(SecurityUser user, CommitGitRequest commit, EntityId entityId, VersionCreateConfig config) throws Exception {
+    @SneakyThrows
+    private void exportGroup(GroupExportCtx ctx, EntityGroupId entityId) {
+        EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx.getUser(), entityId, ctx.getSettings());
+        EntityGroup group = (EntityGroup) (entityData.getEntity());
+        List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, group);
+        ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, entityData));
+        if (ctx.getSettings().isExportGroupEntities()) {
+            PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
+                    link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
+            List<EntityId> groupEntityIds = new ArrayList<>();
+            for (EntityId groupEntityId : entityIdsIterator) {
+                if (!group.isGroupAll()) {
+                    groupEntityIds.add(groupEntityId);
+                }
+                if (ctx.isExportRelatedEntities()) {
+                    EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(ctx.getUser(), groupEntityId, ctx.getSettings());
+                    ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, groupEntityData));
+                }
+            }
+            if (!group.isGroupAll()) {
+                ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, group.getType(), entityData.getExternalId(), groupEntityIds));
+            }
+        }
+    }
+
+    private List<CustomerId> addCustomerHierarchyToCommit(GroupExportCtx ctx, EntityId entityId, HasOwnerId entity) throws ThingsboardException {
+        List<CustomerId> customerIds = getCustomerExternalIds(ctx.getTenantId(), entityId, entity);
+        List<CustomerId> hierarchy = new ArrayList<>(customerIds.size());
+        for (CustomerId ownerId : customerIds) {
+            if (ctx.isExportRelatedCustomers()) {
+                EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(ctx.getUser(), ownerId, ctx.getSettings());
+                ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), new ArrayList<>(hierarchy), ownerData));
+            }
+            hierarchy.add(ownerId);
+        }
+        return hierarchy;
+    }
+
+    @SneakyThrows
+    private void exportGroupEntities(EntityTypeExportCtx ctx, EntityTypeExportTask task) {
+        List<CustomerId> parents = new ArrayList<>(task.getParents());
+        CustomerId customerId = EntityType.CUSTOMER.equals(task.getOwnerId().getEntityType()) ? new CustomerId(task.getOwnerId().getId()) : null;
+        if (customerId != null) {
+            parents.add(customerId);
+        }
+        for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
+            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx.getUser(), group.getId(), ctx.getSettings());
+            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
+            if (!group.isGroupAll()) {
+                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
+                        link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
+                List<EntityId> groupEntityIds = new ArrayList<>();
+                for (EntityId groupEntityId : entityIdsIterator) {
+                    if (!group.isGroupAll()) {
+                        groupEntityIds.add(groupEntityId);
+                    }
+                }
+                ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
+            }
+        }
+        DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, ctx.getEntityType(), pageLink)
+                , 1024, entityId -> {
+                    try {
+                        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx.getUser(), entityId, ctx.getSettings());
+                        ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
+        DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, EntityType.CUSTOMER, pageLink)
+                , 1024, cId -> ctx.addTask(new EntityTypeExportTask(parents, cId)));
+    }
+
+    @SneakyThrows
+    private ListenableFuture<Void> saveEntityData(SecurityUser user, CommitGitRequest commit, EntityId entityId, VersionCreateConfig config) {
         EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(user, entityId, EntityExportSettings.builder()
                 .exportRelations(config.isSaveRelations())
                 .exportAttributes(config.isSaveAttributes())
@@ -316,7 +372,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 EntitiesImportCtx ctx = new EntitiesImportCtx(request.getVersionId());
 
                 if (savedGroup.isGroupAll()) {
-                    importEntities(user, ownerIds, savedGroup.getType(), settings, ctx);
+                    importEntities(user, ownerIds, savedGroup.getType(), settings, ctx, false);
                 } else {
                     importEntities(user, ownerIds, savedGroup.getType(), groupData.getExternalId(), settings, ctx);
                 }
@@ -403,7 +459,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     .saveAttributes(config.isLoadAttributes())
                     .findExistingByName(config.isFindExistingEntityByName())
                     .build();
-            importEntities(user, Collections.emptyList(), entityType, settings, ctx);
+            importEntities(user, Collections.emptyList(), entityType, settings, ctx, true);
         }
 
         reimport(user, Collections.emptyList(), ctx);
@@ -425,7 +481,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
 
-        for(List<UUID> entityIds : Lists.partition(allGroupEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()), 100)){
+        for (List<UUID> entityIds : Lists.partition(allGroupEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()), 100)) {
             List<EntityExportData> entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
             importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
         }
@@ -433,7 +489,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private void importEntities(SecurityUser user, List<CustomerId> ownerIds, EntityType entityType,
-                                EntityImportSettings importSettings, EntitiesImportCtx ctx) throws InterruptedException, ExecutionException {
+                                EntityImportSettings importSettings, EntitiesImportCtx ctx, boolean recursive) throws InterruptedException, ExecutionException {
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
 
@@ -441,7 +497,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
-            entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, offset, limit).get();
+            entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
             importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
             offset += limit;
         } while (entityDataList.size() == limit);

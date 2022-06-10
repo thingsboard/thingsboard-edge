@@ -55,9 +55,11 @@ public interface ExportableEntitiesService {
 
     <E extends ExportableEntity<I>, I extends EntityId> PageData<E> findEntitiesByTenantId(TenantId tenantId, EntityType entityType, PageLink pageLink);
 
+    <E extends ExportableEntity<I>, I extends EntityId> PageData<I> findEntityIdsByTenantIdAndCustomerId(TenantId tenantId, EntityId ownerId, EntityType entityType, PageLink pageLink);
+
     <I extends EntityId> void removeById(TenantId tenantId, I id);
-
-
+  
+  
     void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException;
 
     <E extends TenantEntity & HasId<? extends EntityId>> void checkPermission(SecurityUser user, E entity, EntityGroupId entityGroupId, Operation operation) throws ThingsboardException;

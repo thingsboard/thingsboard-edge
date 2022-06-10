@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .queue-strategy {
-    padding-bottom: 16px;
+package org.thingsboard.server.dao;
 
-    .mat-expansion-panel-header {
-      height: 50px;
-    }
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
-    .mat-expansion-panel-body {
-      padding-bottom: 0 !important;
-    }
-  }
+import java.util.UUID;
+
+public interface ExportableCustomerEntityDao<T extends ExportableEntity<I>, I extends EntityId> extends ExportableEntityDao<T> {
+
+    PageData<I> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
+
 }

@@ -124,4 +124,12 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
     List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
 
     Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
+
+    @Query("SELECT a.id FROM AssetEntity a WHERE a.tenantId = :tenantId AND (a.customerId is null OR a.customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
+    @Query("SELECT a.id FROM AssetEntity a WHERE a.tenantId = :tenantId AND a.customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                              @Param("customerId") UUID customerId,
+                                              Pageable pageable);
 }

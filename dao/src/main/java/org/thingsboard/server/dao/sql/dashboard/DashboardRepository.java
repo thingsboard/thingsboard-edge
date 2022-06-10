@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.sql.dashboard;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DashboardEntity;
 
@@ -49,5 +51,13 @@ public interface DashboardRepository extends JpaRepository<DashboardEntity, UUID
     List<DashboardEntity> findByTenantIdAndTitle(UUID tenantId, String title);
 
     Page<DashboardEntity> findByTenantId(UUID tenantId, Pageable pageable);
+
+    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
+    @Query("SELECT d.id FROM DashboardEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                              @Param("customerId") UUID customerId,
+                                              Pageable pageable);
 
 }

@@ -88,6 +88,7 @@ import { EntityRelationService } from '@core/http/entity-relation.service';
 import { EntityService } from '@core/http/entity.service';
 import { DialogService } from '@core/services/dialog.service';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
+import { ResourceService } from '@core/http/resource.service';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
@@ -187,6 +188,7 @@ export class WidgetContext {
   entityGroupService: EntityGroupService;
   dialogs: DialogService;
   customDialog: CustomDialogService;
+  resourceService: ResourceService;
   date: DatePipe;
   translate: TranslateService;
   http: HttpClient;

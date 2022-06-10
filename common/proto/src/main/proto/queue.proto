@@ -788,7 +788,8 @@ message AddMsg {
 }
 
 message DeleteMsg {
-  string relativePath = 1;
+  string folder = 1;
+  bool recursively = 2;
 }
 
 message PushMsg {
@@ -863,9 +864,12 @@ message EntitiesContentRequestMsg {
   string versionId = 1;
   string path = 2;
   string entityType = 3;
-  int32 offset = 4;
-  int32 limit = 5;
-  repeated EntityIdProto ids = 6;
+  // Use either params 4,5,6 or 7.
+  bool groups = 4;
+  bool recursive = 5;
+  int32 offset = 6;
+  int32 limit = 7;
+  repeated EntityIdProto ids = 8;
 }
 
 message EntitiesContentResponseMsg {

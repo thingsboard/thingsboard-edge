@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -165,6 +166,16 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
         if (dao instanceof ExportableEntityDao) {
             ExportableEntityDao<E> exportableEntityDao = (ExportableEntityDao<E>) dao;
             return exportableEntityDao.findByTenantId(tenantId.getId(), pageLink);
+        }
+        return new PageData<>();
+    }
+
+    @Override
+    public <E extends ExportableEntity<I>, I extends EntityId> PageData<I> findEntityIdsByTenantIdAndCustomerId(TenantId tenantId, EntityId ownerId, EntityType entityType, PageLink pageLink) {
+        Dao<E> dao = getDao(entityType);
+        if (dao instanceof ExportableCustomerEntityDao) {
+            ExportableCustomerEntityDao<E, I> exportableEntityDao = (ExportableCustomerEntityDao<E, I>) dao;
+            return exportableEntityDao.findIdsByTenantIdAndCustomerId(tenantId.getId(), ownerId != null ? ownerId.getId() : null, pageLink);
         }
         return new PageData<>();
     }
