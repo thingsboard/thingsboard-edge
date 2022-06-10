@@ -31,8 +31,10 @@
 package org.thingsboard.server.dao.dashboard;
 
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
@@ -42,7 +44,7 @@ import java.util.UUID;
 /**
  * The Interface DashboardDao.
  */
-public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, ExportableEntityDao<Dashboard> {
+public interface DashboardDao extends Dao<Dashboard>, TenantEntityDao, ExportableCustomerEntityDao<Dashboard, DashboardId> {
 
     /**
      * Save or update dashboard object

@@ -31,10 +31,14 @@
 package org.thingsboard.server.dao.sql.dashboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -83,6 +87,17 @@ public class JpaDashboardDao extends JpaAbstractSearchTextDao<DashboardEntity, D
     @Override
     public List<Dashboard> findByTenantIdAndTitle(UUID tenantId, String title) {
         return DaoUtil.convertDataList(dashboardRepository.findByTenantIdAndTitle(tenantId, title));
+    }
+
+    @Override
+    public PageData<DashboardId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        Page<UUID> page;
+        if(customerId == null){
+            page = dashboardRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
+        } else {
+            page = dashboardRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));
+        }
+        return DaoUtil.pageToPageData(page, DashboardId::new);
     }
 
     @Override

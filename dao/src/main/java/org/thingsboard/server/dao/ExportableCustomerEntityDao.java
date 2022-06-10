@@ -28,41 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.exporting;
+package org.thingsboard.server.dao;
 
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.common.data.permission.Operation;
 
-public interface ExportableEntitiesService {
+import java.util.UUID;
 
-    <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndExternalId(TenantId tenantId, I externalId);
+public interface ExportableCustomerEntityDao<T extends ExportableEntity<I>, I extends EntityId> extends ExportableEntityDao<T> {
 
-    <E extends HasId<I>, I extends EntityId> E findEntityByTenantIdAndId(TenantId tenantId, I id);
-
-    <E extends HasId<I>, I extends EntityId> E findEntityById(I id);
-
-    <E extends ExportableEntity<I>, I extends EntityId> E findEntityByTenantIdAndName(TenantId tenantId, EntityType entityType, String name);
-
-    <E extends ExportableEntity<I>, I extends EntityId> PageData<E> findEntitiesByTenantId(TenantId tenantId, EntityType entityType, PageLink pageLink);
-
-    <I extends EntityId> void removeById(TenantId tenantId, I id);
-
-    <E extends ExportableEntity<I>, I extends EntityId> PageData<I> findEntityIdsByTenantIdAndCustomerId(TenantId tenantId, EntityId ownerId, EntityType entityType, PageLink pageLink);
-
-    void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException;
-
-    <E extends TenantEntity & HasId<? extends EntityId>> void checkPermission(SecurityUser user, E entity, EntityGroupId entityGroupId, Operation operation) throws ThingsboardException;
-
-    void checkPermission(SecurityUser user, EntityId entityId, Operation operation) throws ThingsboardException;
+    PageData<I> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
 
 }

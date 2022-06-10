@@ -30,17 +30,20 @@
  */
 package org.thingsboard.server.common.data.sync.vc;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
-@NoArgsConstructor
+@RequiredArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VersionedEntityInfo {
-    private EntityId externalId;
-    // etc..
 
-    public VersionedEntityInfo(EntityId externalId) {
-        this.externalId = externalId;
-    }
+    private final EntityId externalId;
+    private String path;
+
 }

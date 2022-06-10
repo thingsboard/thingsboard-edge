@@ -66,6 +66,10 @@ public abstract class DaoUtil {
         return new PageData<>(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
+    public static <T,V> PageData<V> pageToPageData(Page<T> page, Function<T, V> transform) {
+        return new PageData<>(page.getContent().stream().map(transform).collect(Collectors.toList()), page.getTotalPages(), page.getTotalElements(), page.hasNext());
+    }
+
     public static <T> PageData<T> pageToPageData(Page<T> page) {
         return new PageData<>(page.getContent(), page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }

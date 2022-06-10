@@ -28,16 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .queue-strategy {
-    padding-bottom: 16px;
+package org.thingsboard.server.service.sync.vc.data;
 
-    .mat-expansion-panel-header {
-      height: 50px;
-    }
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
+import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-    .mat-expansion-panel-body {
-      padding-bottom: 0 !important;
+import java.util.List;
+
+@Data
+public class GroupExportCtx extends BasicExportCtx {
+
+    private final boolean exportRelatedCustomers;
+    private final boolean exportRelatedEntities;
+
+    public GroupExportCtx(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> futures, EntityExportSettings settings, boolean exportRelatedCustomers, boolean exportRelatedEntities) {
+        super(user, commit, futures, settings);
+        this.exportRelatedCustomers = exportRelatedCustomers;
+        this.exportRelatedEntities = exportRelatedEntities;
     }
-  }
 }

@@ -33,19 +33,21 @@ package org.thingsboard.server.service.sync.vc;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.filefilter.FalseFileFilter;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.EntityVersion;
+import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.service.sync.vc.GitRepository.Diff;
@@ -58,7 +60,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @Slf4j
 @ConditionalOnProperty(prefix = "vc", value = "git.service", havingValue = "local", matchIfMissing = true)
@@ -105,9 +108,20 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public void deleteFolderContent(PendingCommit commit, String relativePath) throws IOException {
+    public void deleteFolderContent(PendingCommit commit, String folder, boolean recursively) throws IOException {
         GitRepository repository = checkRepository(commit.getTenantId());
-        FileUtils.deleteDirectory(Path.of(repository.getDirectory(), relativePath).toFile());
+        Path workDir = Path.of(repository.getDirectory());
+
+        if (recursively) {
+            Collection<File> dirs = FileUtils.listFilesAndDirs(workDir.toFile(), FalseFileFilter.FALSE, new NameFileFilter(".git").negate());
+            for (File dir : dirs) {
+                if (dir.getName().equals(folder)) {
+                    FileUtils.deleteDirectory(dir);
+                }
+            }
+        } else {
+            FileUtils.deleteDirectory(Path.of(repository.getDirectory(), folder).toFile());
+        }
     }
 
     @Override
@@ -204,8 +218,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     private GitRepository checkRepository(TenantId tenantId) {
-        return Optional.ofNullable(repositories.get(tenantId))
-                .orElseThrow(() -> new IllegalStateException("Repository is not initialized"));
+        return Optional.ofNullable(repositories.get(tenantId)).orElseThrow(() -> new IllegalStateException("Repository is not initialized"));
     }
 
     @Override
@@ -214,23 +227,30 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
         return repository.listCommits(branch, path, pageLink).mapData(this::toVersion);
     }
 
-    @Override
-    public List<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, String path) throws Exception {
-        GitRepository repository = checkRepository(tenantId);
-        if(StringUtils.isNotEmpty(folder)){
-            path = folder + path;
+    public Pattern buildPattern(EntityType entityType, boolean group) {
+        String prefix = ".*";
+        if (group) {
+            prefix += "groups\\/";
         }
+        prefix += entityType.name().toLowerCase() + "\\/";
+        return Pattern.compile(prefix + "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}.json");
+    }
+
+    @Override
+    public Stream<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, EntityType entityType, boolean isGroup, boolean recursive) throws Exception {
+        GitRepository repository = checkRepository(tenantId);
+        String path = recursive ? folder : StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
+        Pattern typePattern = buildPattern(entityType, false);
+        Pattern groupPattern = buildPattern(entityType, true);
         return repository.listFilesAtCommit(versionId, path).stream()
+                .filter(filePath -> typePattern.matcher(filePath).matches())
+                .filter(filePath -> groupPattern.matcher(filePath).matches() == isGroup)
                 .map(filePath -> {
-                    if(StringUtils.isNotEmpty(folder)){
-                        filePath = filePath.substring(folder.length());
-                    }
-                    EntityId entityId = fromRelativePath(filePath);
-                    VersionedEntityInfo info = new VersionedEntityInfo();
-                    info.setExternalId(entityId);
-                    return info;
-                }).filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                    var parts = filePath.split("/");
+                    var uuidStr = parts[parts.length - 1];
+                    EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, uuidStr.substring(0, 36));
+                    return new VersionedEntityInfo(entityId, filePath);
+                });
     }
 
     @Override
@@ -285,8 +305,8 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     public static EntityId fromRelativePath(String path) {
-        EntityType entityType = EntityType.valueOf(StringUtils.substringBefore(path, "/").toUpperCase());
-        String entityId = StringUtils.substringBetween(path, "/", ".json");
+        EntityType entityType = EntityType.valueOf(org.apache.commons.lang3.StringUtils.substringBefore(path, "/").toUpperCase());
+        String entityId = org.apache.commons.lang3.StringUtils.substringBetween(path, "/", ".json");
         return EntityIdFactory.getByTypeAndUuid(entityType, entityId);
     }
 }

@@ -32,10 +32,12 @@ package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
@@ -46,7 +48,7 @@ import java.util.UUID;
 /**
  * The Interface CustomerDao.
  */
-public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableEntityDao<Customer> {
+public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableCustomerEntityDao<Customer, CustomerId> {
 
     /**
      * Save or update customer object

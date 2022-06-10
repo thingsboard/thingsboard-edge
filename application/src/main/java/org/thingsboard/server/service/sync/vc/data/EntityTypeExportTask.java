@@ -28,16 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .queue-strategy {
-    padding-bottom: 16px;
+package org.thingsboard.server.service.sync.vc.data;
 
-    .mat-expansion-panel-header {
-      height: 50px;
-    }
+import lombok.Data;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 
-    .mat-expansion-panel-body {
-      padding-bottom: 0 !important;
-    }
-  }
+import java.util.List;
+
+@Data
+public class EntityTypeExportTask {
+
+    private final List<CustomerId> parents;
+    private final EntityId ownerId;
+
 }
