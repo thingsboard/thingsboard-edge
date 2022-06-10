@@ -217,7 +217,14 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             DeviceProfile deviceProfile;
             if (device.getDeviceProfileId() == null) {
                 if (!StringUtils.isEmpty(device.getType())) {
-                    deviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
+
+                    // device profiles are not created on edge at the moment
+                    deviceProfile = this.deviceProfileService.findDeviceProfileByName(device.getTenantId(), device.getType());
+                    if (deviceProfile == null) {
+                        deviceProfile = this.deviceProfileService.findDefaultDeviceProfile(device.getTenantId());
+                    }
+                    // deviceProfile = this.deviceProfileService.findOrCreateDeviceProfile(device.getTenantId(), device.getType());
+
                 } else {
                     deviceProfile = this.deviceProfileService.findDefaultDeviceProfile(device.getTenantId());
                 }
