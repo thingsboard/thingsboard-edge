@@ -199,7 +199,7 @@ export class UtilsService {
         } else if (alarmField === alarmFields.severity) {
           return this.translate.instant(alarmSeverityTranslations.get(value));
         } else if (alarmField === alarmFields.status) {
-          return this.translate.instant(alarmStatusTranslations.get(value));
+          return alarmStatusTranslations.get(value) ? this.translate.instant(alarmStatusTranslations.get(value)) : value;
         } else if (alarmField === alarmFields.originatorType) {
           return this.translate.instant(entityTypeTranslations.get(value).type);
         }
