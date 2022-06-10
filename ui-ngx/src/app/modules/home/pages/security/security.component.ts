@@ -56,8 +56,8 @@ import { authenticationDialogMap } from '@home/pages/security/authentication-dia
 import { takeUntil, tap } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { isDefinedAndNotNull } from '@core/utils';
-import {Operation, Resource} from "@shared/models/security.models";
-import {UserPermissionsService} from "@core/http/user-permissions.service";
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-security',
@@ -68,9 +68,6 @@ export class SecurityComponent extends PageComponent implements OnInit, OnDestro
 
   private readonly destroy$ = new Subject<void>();
   private accountConfig: AccountTwoFaSettingProviders;
-
-  resource = Resource;
-  operation = Operation;
 
   twoFactorAuth: FormGroup;
   user: User;

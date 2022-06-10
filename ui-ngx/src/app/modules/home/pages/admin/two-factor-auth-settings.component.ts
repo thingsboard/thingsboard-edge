@@ -49,8 +49,8 @@ import { takeUntil } from 'rxjs/operators';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { Authority } from '@shared/models/authority.enum';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import {Operation, Resource} from "@shared/models/security.models";
-import {UserPermissionsService} from "@core/http/user-permissions.service";
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-2fa-settings',
