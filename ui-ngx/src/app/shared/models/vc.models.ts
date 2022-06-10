@@ -46,6 +46,7 @@ export const exportableEntityTypes: Array<EntityType> = [
   EntityType.USER,
   EntityType.DEVICE_PROFILE,
   EntityType.RULE_CHAIN,
+  EntityType.WIDGETS_BUNDLE,
   EntityType.CONVERTER,
   EntityType.INTEGRATION,
   EntityType.ROLE

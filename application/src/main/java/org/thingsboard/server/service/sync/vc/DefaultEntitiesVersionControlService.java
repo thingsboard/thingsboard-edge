@@ -608,7 +608,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 } catch (ThingsboardException e) {
                     throw new RuntimeException(e);
                 }
-                exportableEntitiesService.deleteByTenantIdAndId(user.getTenantId(), entity.getId());
+                exportableEntitiesService.removeById(user.getTenantId(), entity.getId());
 
                 ctx.getSendEventsCallbacks().add(() -> {
                     entityNotificationService.notifyDeleteEntity(user.getTenantId(), entity.getId(),
