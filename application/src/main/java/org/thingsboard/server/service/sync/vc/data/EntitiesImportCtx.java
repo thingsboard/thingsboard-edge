@@ -35,16 +35,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Data
@@ -56,6 +53,7 @@ public class EntitiesImportCtx {
     private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
     private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
+    private final Map<EntityId, Set<EntityGroupId>> externalEntityIdGroups = new HashMap<>();
 
     public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
         results.put(entityType, importEntities);
@@ -80,5 +78,18 @@ public class EntitiesImportCtx {
                 log.error("Failed to send events for entity", e);
             }
         }
+    }
+
+    public void registerGroupEntities(EntityGroupId id, Collection<EntityId> entityIds) {
+        if (!entityIds.isEmpty()) {
+            for(EntityId entityId : entityIds){
+                externalEntityIdGroups.computeIfAbsent(entityId, i -> new HashSet<>()).add(id);
+            }
+        }
+    }
+
+    public Set<EntityGroupId> unregisterEntityGroups(EntityId externalEntityId){
+        var result = externalEntityIdGroups.remove(externalEntityId);
+        return result != null ? result : Collections.emptySet();
     }
 }

@@ -50,6 +50,10 @@ public class EntityLoadError {
         return EntityLoadError.builder().type("DEVICE_CREDENTIALS_CONFLICT").source(sourceId).build();
     }
 
+    public static EntityLoadError routingKeyError(EntityId sourceId) {
+        return EntityLoadError.builder().type("INTEGRATION_ROUTING_KEY_CONFLICT").source(sourceId).build();
+    }
+
     public static EntityLoadError referenceEntityError(EntityId sourceId, EntityId targetId) {
         return EntityLoadError.builder().type("MISSING_REFERENCED_ENTITY").source(sourceId).target(targetId).build();
     }

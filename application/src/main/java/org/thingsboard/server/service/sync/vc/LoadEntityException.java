@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.sync.vc;
 
 import lombok.Getter;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 
 @SuppressWarnings("rawtypes")
@@ -38,10 +39,10 @@ public class LoadEntityException extends RuntimeException {
 
     private static final long serialVersionUID = -1749719992370409504L;
     @Getter
-    private final EntityExportData data;
+    private final EntityId externalId;
 
-    public LoadEntityException(EntityExportData data, Throwable cause) {
+    public LoadEntityException(EntityId externalId, Throwable cause) {
         super(cause);
-        this.data = data;
+        this.externalId = externalId;
     }
 }

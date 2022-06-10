@@ -250,7 +250,10 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
                     var uuidStr = parts[parts.length - 1];
                     EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, uuidStr.substring(0, 36));
                     return new VersionedEntityInfo(entityId, filePath);
-                });
+                })
+                .sorted(Comparator.comparing(VersionedEntityInfo::getPath, Comparator.comparingInt(String::length))
+                        .thenComparing(VersionedEntityInfo::getPath, String::compareTo));
+
     }
 
     @Override

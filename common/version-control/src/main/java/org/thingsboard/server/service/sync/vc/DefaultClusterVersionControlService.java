@@ -253,13 +253,12 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), request.getPath(), entityType, request.getGroups(), request.getRecursive())
                     .skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
             for (VersionedEntityInfo info : ids) {
-                var entityPath = getRelativePath(info.getExternalId().getEntityType(), info.getExternalId().getId().toString());
-                addData(entityPath, request, ctx, response);
+                addData(info.getPath(), request, ctx, response);
             }
         } else {
             for (EntityIdProto idProto : request.getIdsList()) {
                 UUID uuid = new UUID(idProto.getEntityIdMSB(), idProto.getEntityIdLSB());
-                var entityPath = getRelativePath(EntityType.valueOf(request.getEntityType()), uuid.toString());
+                var entityPath = getRelativePath(request.getPath(), EntityType.valueOf(request.getEntityType()), uuid.toString());
                 addData(entityPath, request, ctx, response);
             }
         }
