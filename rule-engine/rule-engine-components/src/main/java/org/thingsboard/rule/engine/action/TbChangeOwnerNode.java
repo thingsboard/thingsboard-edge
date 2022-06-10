@@ -162,12 +162,13 @@ public class TbChangeOwnerNode implements TbNode {
                 if (customerOptional.isPresent()) {
                     customer = customerOptional.get();
                     return customer.getId();
-                } else if (createOwnerIfNotExists) {
-                    Customer newCustomer = new Customer();
-                    newCustomer.setTitle(ownerKey.getOwnerName());
-                    newCustomer.setTenantId(ctx.getTenantId());
-                    customer = customerService.saveCustomer(newCustomer);
-                    return customer.getId();
+                // TODO: @voba customers are not created on the edge at the moment
+                // } else if (createOwnerIfNotExists) {
+                //    Customer newCustomer = new Customer();
+                //    newCustomer.setTitle(ownerKey.getOwnerName());
+                //    newCustomer.setTenantId(ctx.getTenantId());
+                //    customer = customerService.saveCustomer(newCustomer);
+                //    return customer.getId();
                 } else {
                     return null;
                 }

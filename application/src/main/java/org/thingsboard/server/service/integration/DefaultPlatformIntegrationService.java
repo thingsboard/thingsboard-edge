@@ -536,7 +536,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             device = new Device();
             device.setName(deviceName);
 
-            // device profiles are not created on edge at the moment
+            // TODO: @voba device profiles are not created on edge at the moment
             String deviceTypeOrDefault = checkDeviceTypeExistsOrDefault(integration.getTenantId(), deviceType);
             device.setType(deviceTypeOrDefault);
             // device.setType(deviceType);
@@ -608,7 +608,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             customer = customerOptional.get();
         } else {
             customer = new Customer();
-            // TODO: customers are not created on the edge at the moment
+            // TODO: @voba customers are not created on the edge at the moment
             // customer.setTitle(customerName);
             // customer.setTenantId(integration.getTenantId());
             // customer = customerService.saveCustomer(customer);
