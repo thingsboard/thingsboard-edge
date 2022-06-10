@@ -57,7 +57,7 @@
       </div>
     </mat-card-content>
   </mat-card>
-  <mat-card class="profile-card" *ngIf="allowTwoFactorProviders.length">
+  <mat-card class="profile-card" *ngIf="allowTwoFactorProviders.length && (resource.PROFILE | hasGenericPermission: operation.WRITE)">
     <mat-card-title style="margin-bottom: 20px;">
       <span class="mat-headline" translate>admin.2fa.2fa</span>
     </mat-card-title>

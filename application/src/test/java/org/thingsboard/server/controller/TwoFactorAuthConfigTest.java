@@ -131,6 +131,7 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
         PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
         twoFaSettings.setProviders(List.of(totpTwoFaProviderConfig, smsTwoFaProviderConfig));
+        twoFaSettings.setMinVerificationCodeSendPeriod(5);
         twoFaSettings.setVerificationCodeCheckRateLimit("3:900");
         twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(10);
         twoFaSettings.setTotalAllowedTimeForVerification(3600);
@@ -152,6 +153,7 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         twoFaSettings.setVerificationCodeCheckRateLimit("0:12");
         twoFaSettings.setMaxVerificationFailuresBeforeUserLockout(-1);
         twoFaSettings.setTotalAllowedTimeForVerification(0);
+        twoFaSettings.setMinVerificationCodeSendPeriod(5);
 
         String errorMessage = getErrorMessage(doPost("/api/2fa/settings", twoFaSettings)
                 .andExpect(status().isBadRequest()));
@@ -182,6 +184,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         TotpTwoFaProviderConfig totpTwoFaProviderConfig = new TotpTwoFaProviderConfig();
         totpTwoFaProviderConfig.setIssuerName("tb");
         sysadminTwoFaSettings.setProviders(Collections.singletonList(totpTwoFaProviderConfig));
+        sysadminTwoFaSettings.setMinVerificationCodeSendPeriod(5);
+        sysadminTwoFaSettings.setTotalAllowedTimeForVerification(100);
         sysadminTwoFaSettings.setMaxVerificationFailuresBeforeUserLockout(25);
         doPost("/api/2fa/settings", sysadminTwoFaSettings).andExpect(status().isOk());
 
@@ -189,6 +193,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         PlatformTwoFaSettings tenantTwoFaSettings = new PlatformTwoFaSettings();
         tenantTwoFaSettings.setUseSystemTwoFactorAuthSettings(true);
         tenantTwoFaSettings.setProviders(Collections.emptyList());
+        tenantTwoFaSettings.setMinVerificationCodeSendPeriod(5);
+        tenantTwoFaSettings.setTotalAllowedTimeForVerification(100);
         doPost("/api/2fa/settings", tenantTwoFaSettings).andExpect(status().isOk());
         PlatformTwoFaSettings twoFaSettings = readResponse(doGet("/api/2fa/settings").andExpect(status().isOk()), PlatformTwoFaSettings.class);
         assertThat(twoFaSettings).isEqualTo(tenantTwoFaSettings);
@@ -256,6 +262,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
     private String savePlatformTwoFaSettingsAndGetError(TwoFaProviderConfig invalidTwoFaProviderConfig) throws Exception {
         PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
         twoFaSettings.setProviders(Collections.singletonList(invalidTwoFaProviderConfig));
+        twoFaSettings.setMinVerificationCodeSendPeriod(5);
+        twoFaSettings.setTotalAllowedTimeForVerification(100);
 
         return getErrorMessage(doPost("/api/2fa/settings", twoFaSettings)
                 .andExpect(status().isBadRequest()));
@@ -532,8 +540,9 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
     private void saveProvidersConfigs(TwoFaProviderConfig... providerConfigs) throws Exception {
         PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
-
         twoFaSettings.setProviders(Arrays.stream(providerConfigs).collect(Collectors.toList()));
+        twoFaSettings.setMinVerificationCodeSendPeriod(5);
+        twoFaSettings.setTotalAllowedTimeForVerification(100);
         doPost("/api/2fa/settings", twoFaSettings).andExpect(status().isOk());
     }
 
@@ -618,6 +627,8 @@ public abstract class TwoFactorAuthConfigTest extends AbstractControllerTest {
         ));
         PlatformTwoFaSettings twoFaSettings = new PlatformTwoFaSettings();
         twoFaSettings.setProviders(Collections.emptyList());
+        twoFaSettings.setMinVerificationCodeSendPeriod(5);
+        twoFaSettings.setTotalAllowedTimeForVerification(100);
         doPost("/api/2fa/settings", twoFaSettings)
                 .andExpect(status().isOk());
         mockPermissions(user -> user.getId().equals(tenantAdminUserId), Map.of(
