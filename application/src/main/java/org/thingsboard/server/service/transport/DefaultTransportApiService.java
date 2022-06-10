@@ -70,6 +70,7 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceProvisionService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.device.provision.ProvisionFailedException;
@@ -141,6 +142,8 @@ public class DefaultTransportApiService implements TransportApiService {
     private final OtaPackageService otaPackageService;
     private final OtaPackageDataCache otaPackageDataCache;
     private final QueueService queueService;
+
+    private final DeviceProfileService deviceProfileService;
 
     private final ConcurrentMap<String, ReentrantLock> deviceCreationLocks = new ConcurrentHashMap<>();
 
@@ -290,9 +293,17 @@ public class DefaultTransportApiService implements TransportApiService {
                     device = new Device();
                     device.setTenantId(tenantId);
                     device.setName(requestMsg.getDeviceName());
-                    device.setType(requestMsg.getDeviceType());
+
+                    // device profiles are not created on edge at the moment
+                    String deviceType = checkDeviceTypeExistsOrDefault(tenantId, requestMsg.getDeviceType());
+                    device.setType(deviceType);
+                    // device.setType(requestMsg.getDeviceType());
+
                     device.setCustomerId(gateway.getCustomerId());
-                    DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), requestMsg.getDeviceType());
+
+                    DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), deviceType);
+                    //DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), requestMsg.getDeviceType());
+
                     device.setDeviceProfileId(deviceProfile.getId());
                     ObjectNode additionalInfo = JacksonUtil.newObjectNode();
                     additionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
@@ -347,6 +358,14 @@ public class DefaultTransportApiService implements TransportApiService {
                 deviceCreationLock.unlock();
             }
         }, dbCallbackExecutorService);
+    }
+
+    private String checkDeviceTypeExistsOrDefault(TenantId tenantId, String deviceType) {
+        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceType);
+        if (deviceProfileByName != null) {
+            return deviceType;
+        }
+        return deviceProfileService.findDefaultDeviceProfile(tenantId).getName();
     }
 
     private ListenableFuture<TransportApiResponseMsg> handle(ProvisionDeviceRequestMsg requestMsg) {
