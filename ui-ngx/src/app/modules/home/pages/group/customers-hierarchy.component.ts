@@ -384,11 +384,7 @@ export class CustomersHierarchyComponent extends PageComponent implements OnInit
 
   private updateIntegrations(integrationParams: IntegrationParams) {
     const integrationsTableConfig = this.resolveIntegrationsTableConfig(integrationParams);
-    // TODO: @voba - this dummy approach works fine - what is the reason for this???
-    this.updateView('groups', integrationParams, null, null);
-    setTimeout(() => {
-      this.updateView('groups', integrationParams, integrationsTableConfig, null);
-    }, 100);
+    this.updateView('groups', integrationParams, integrationsTableConfig, null);
   }
 
   private resolveIntegrationsTableConfig(integrationParams: IntegrationParams): EntityTableConfig<BaseData<HasId>> {
