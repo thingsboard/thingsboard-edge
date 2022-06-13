@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -63,6 +64,7 @@ import java.lang.annotation.Target;
         @Type(name = "ASSET", value = Asset.class),
         @Type(name = "DASHBOARD", value = Dashboard.class),
         @Type(name = "CUSTOMER", value = Customer.class),
+        @Type(name = "ENTITY_VIEW", value = EntityView.class),
         @Type(name = "WIDGETS_BUNDLE", value = WidgetsBundle.class),
         @Type(name = "ENTITY_GROUP", value = EntityGroup.class),
         @Type(name = "CONVERTER", value = Converter.class),

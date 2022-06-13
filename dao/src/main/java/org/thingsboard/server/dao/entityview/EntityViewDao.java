@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableEntityDao;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,7 @@ import java.util.UUID;
 /**
  * Created by Victor Basanets on 8/28/2017.
  */
-public interface EntityViewDao extends Dao<EntityView> {
+public interface EntityViewDao extends Dao<EntityView>, ExportableEntityDao<EntityView> {
 
     /**
      * Save or update device object
