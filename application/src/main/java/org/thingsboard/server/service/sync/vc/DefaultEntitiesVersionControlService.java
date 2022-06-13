@@ -62,7 +62,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
@@ -146,7 +145,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     private ListeningExecutorService executor;
 
-    private static final Set<EntityType> GROUP_ENTITIES = new HashSet<>(Arrays.asList(EntityType.CUSTOMER, EntityType.DEVICE, EntityType.ASSET, EntityType.DASHBOARD));
+    private static final Set<EntityType> GROUP_ENTITIES = new HashSet<>(Arrays.asList(
+            EntityType.CUSTOMER, EntityType.DEVICE, EntityType.ASSET, EntityType.DASHBOARD, EntityType.ENTITY_VIEW
+    ));
 
     @Value("${vc.thread_pool_size:4}")
     private int threadPoolSize;
@@ -621,8 +622,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         for (EntityId externalId : externalIds) {
             var internalId = ctx.getInternalId(externalId);
             if (internalId == null) {
-                throw new LoadEntityException(groupId, new MissingEntityException(externalId));
+                internalId = Optional.<HasId<EntityId>>ofNullable(exportableEntitiesService.findEntityByTenantIdAndExternalId(ctx.getTenantId(), externalId))
+                        .or(() -> Optional.ofNullable(exportableEntitiesService.findEntityByTenantIdAndId(ctx.getTenantId(), externalId)))
+                        .map(HasId::getId)
+                        .orElseThrow(() -> new LoadEntityException(groupId, new MissingEntityException(externalId)));
             }
+            ctx.putInternalId(externalId, internalId);
             internalIds.add(internalId);
         }
         groupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupId, internalIds);

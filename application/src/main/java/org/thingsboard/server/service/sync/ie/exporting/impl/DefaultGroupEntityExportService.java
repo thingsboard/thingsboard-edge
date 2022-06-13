@@ -30,33 +30,22 @@
  */
 package org.thingsboard.server.service.sync.ie.exporting.impl;
 
-import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @Service
 @TbCoreComponent
 public class DefaultGroupEntityExportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityExportService<I, E, D> {
-
-    @Autowired
-    private EntityGroupService entityGroupService;
 
     @Override
     protected final void setAdditionalExportData(SecurityUser user, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
@@ -70,7 +59,7 @@ public class DefaultGroupEntityExportService<I extends EntityId, E extends Expor
 
     @Override
     public Set<EntityType> getSupportedEntityTypes() {
-        return Set.of(EntityType.DEVICE, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DASHBOARD);
+        return Set.of(EntityType.DEVICE, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DASHBOARD, EntityType.ENTITY_VIEW);
     }
 
 }

@@ -33,11 +33,13 @@ package org.thingsboard.server.dao.sql.entityview;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -193,6 +195,17 @@ public class JpaEntityViewDao extends JpaAbstractSearchTextDao<EntityViewEntity,
     @Override
     public EntityView findByTenantIdAndName(UUID tenantId, String name) {
         return findEntityViewByTenantIdAndName(tenantId, name).orElse(null);
+    }
+
+    @Override
+    public PageData<EntityViewId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        Page<UUID> ids;
+        if (customerId != null) {
+            ids = entityViewRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));
+        } else {
+            ids = entityViewRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
+        }
+        return DaoUtil.pageToPageData(ids, EntityViewId::new);
     }
 
     @Override

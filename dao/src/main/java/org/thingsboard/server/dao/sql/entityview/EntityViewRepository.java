@@ -141,4 +141,16 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
                                                    @Param("type") String type,
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
+
+    @Query("SELECT id FROM EntityViewEntity WHERE tenantId = :tenantId " +
+            "AND (customerId IS NULL OR customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId,
+                                                  Pageable pageable);
+
+    @Query("SELECT id FROM EntityViewEntity WHERE tenantId = :tenantId " +
+            "AND customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                              @Param("customerId") UUID customerId,
+                                              Pageable pageable);
+
 }
