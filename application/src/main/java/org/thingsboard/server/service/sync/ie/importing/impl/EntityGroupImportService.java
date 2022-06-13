@@ -41,12 +41,9 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.sync.ie.EntityGroupExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -78,14 +75,14 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup findExistingEntity(EntitiesImportCtx ctx, EntityGroup entityGroup) {
-        EntityGroup existingEntityGroup = super.findExistingEntity(ctx, entityGroup);
+    protected EntityGroup findExistingEntity(EntitiesImportCtx ctx, EntityGroup entityGroup, IdProvider idProvider) {
+        EntityGroup existingEntityGroup = super.findExistingEntity(ctx, entityGroup, idProvider);
         if (existingEntityGroup == null && ctx.getSettings().isFindExistingByName()) {
             EntityId ownerId;
             if (entityGroup.getOwnerId().getEntityType() == EntityType.TENANT) {
                 ownerId = ctx.getTenantId();
             } else {
-                ownerId = findInternalEntity(ctx.getTenantId(), entityGroup.getOwnerId()).getId();
+                ownerId = idProvider.getInternalId(entityGroup.getOwnerId());
             }
             existingEntityGroup = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId,
                     entityGroup.getType(), entityGroup.getName()).orElse(null);

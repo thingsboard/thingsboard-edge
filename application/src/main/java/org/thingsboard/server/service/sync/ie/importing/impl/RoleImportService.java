@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -61,15 +60,15 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
     }
 
     @Override
-    protected Role findExistingEntity(EntitiesImportCtx ctx, Role role) {
-        Role existingRole = super.findExistingEntity(ctx, role);
+    protected Role findExistingEntity(EntitiesImportCtx ctx, Role role, IdProvider idProvider) {
+        Role existingRole = super.findExistingEntity(ctx, role, idProvider);
         if (existingRole == null && ctx.isFindExistingByName()) {
             var tenantId = ctx.getTenantId();
             if (role.getOwnerId().getEntityType() == EntityType.TENANT) {
                 existingRole = roleService.findRoleByTenantIdAndName(tenantId, role.getName()).orElse(null);
             } else {
                 existingRole = roleService.findRoleByByTenantIdAndCustomerIdAndName(tenantId,
-                        findInternalEntity(tenantId, role.getCustomerId()).getId(), role.getName()).orElse(null);
+                        idProvider.getInternalId(role.getCustomerId()), role.getName()).orElse(null);
             }
         }
         return existingRole;

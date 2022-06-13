@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
@@ -492,28 +493,41 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private VersionLoadResult loadMultipleEntities(SecurityUser user, EntityTypeVersionLoadRequest request) {
         EntitiesImportCtx ctx = new EntitiesImportCtx(user, request.getVersionId());
 
+        var sw = TbStopWatch.create("before");
         List<EntityType> entityTypes = request.getEntityTypes().keySet().stream()
                 .sorted(exportImportService.getEntityTypeComparatorForImport()).collect(Collectors.toList());
         for (EntityType entityType : entityTypes) {
+            log.debug("[{}] Loading {} entities", ctx.getTenantId(), entityType);
+            sw.startNew("Entities " + entityType.name());
             EntityImportSettings settings = getEntityImportSettings(request, entityType);
             ctx.setSettings(settings);
             importEntities(ctx, Collections.emptyList(), entityType, true);
         }
 
         for (EntityType entityType : entityTypes) {
+            log.debug("[{}] Loading {} groups", ctx.getTenantId(), entityType);
+            sw.startNew("Groups " + entityType.name());
             EntityImportSettings settings = getEntityImportSettings(request, entityType);
             ctx.setSettings(settings);
             importEntityGroups(ctx, entityType, true);
         }
 
+        sw.startNew("Reimport");
         reimport(user, Collections.emptyList(), ctx);
 
+        sw.startNew("Remove Others");
         request.getEntityTypes().keySet().stream()
                 .filter(entityType -> request.getEntityTypes().get(entityType).isRemoveOtherEntities())
                 .sorted(exportImportService.getEntityTypeComparatorForImport().reversed())
                 .forEach(entityType -> removeOtherEntities(user, entityType, ctx));
 
+        sw.startNew("Callbacks");
         ctx.executeCallbacks();
+        sw.stop();
+        for (var task : sw.getTaskInfo()) {
+            log.debug("[{}] Executed: {} in {}ms", ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());
+        }
+        log.info("[{}] Total time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
         return VersionLoadResult.success(new ArrayList<>(ctx.getResults().values()));
     }
 
@@ -609,9 +623,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             ctx.getSaveReferencesCallbacks().add(importResult.getSaveReferencesCallback());
             ctx.getSendEventsCallbacks().add(importResult.getSendEventsCallback());
             EntityId savedEntityId = importResult.getSavedEntity().getId();
-            ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>())
-                    .add(savedEntityId);
-            ctx.putInternalId(entityData.getExternalId(), savedEntityId);
+            ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>()).add(savedEntityId);
         }
         return importResults;
     }

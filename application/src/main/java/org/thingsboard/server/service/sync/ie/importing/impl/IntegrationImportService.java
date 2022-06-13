@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
@@ -66,8 +65,8 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
     }
 
     @Override
-    protected Integration findExistingEntity(EntitiesImportCtx ctx, Integration integration) {
-        Integration existingIntegration = super.findExistingEntity(ctx, integration);
+    protected Integration findExistingEntity(EntitiesImportCtx ctx, Integration integration, IdProvider idProvider) {
+        Integration existingIntegration = super.findExistingEntity(ctx, integration, idProvider);
         if (existingIntegration == null && ctx.isFindExistingByName()) {
             existingIntegration = integrationService.findTenantIntegrationsByName(ctx.getTenantId(), integration.getName()).stream().findFirst().orElse(null);
         }
