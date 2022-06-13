@@ -1144,7 +1144,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         const state = objToBase64URI([ stateObject ]);
         const isSinglePage = this.route.snapshot.data.singlePageMode;
         let url;
-        if (isSinglePage) {
+        if (isSinglePage && !this.route.snapshot.routeConfig.path.startsWith('dashboards')) {
           url = `/dashboard/${targetDashboardId}?state=${state}`;
         } else {
           url = `/dashboards/${targetDashboardId}?state=${state}`;
