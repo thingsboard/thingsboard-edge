@@ -103,6 +103,15 @@ export class ComplexVersionLoadComponent extends PageComponent implements OnInit
     if (result.deleted) {
       resultMessages.push(this.translate.instant('version-control.deleted', {deleted: result.deleted}));
     }
+    if (result.groupsCreated) {
+      resultMessages.push(this.translate.instant('version-control.groups-created', {created: result.groupsCreated}));
+    }
+    if (result.groupsUpdated) {
+      resultMessages.push(this.translate.instant('version-control.groups-updated', {updated: result.groupsUpdated}));
+    }
+    if (result.groupsDeleted) {
+      resultMessages.push(this.translate.instant('version-control.groups-deleted', {deleted: result.groupsDeleted}));
+    }
     message += resultMessages.join(', ') + '.';
     return message;
   }

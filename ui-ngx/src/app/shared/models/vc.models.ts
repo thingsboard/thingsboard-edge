@@ -203,6 +203,9 @@ export interface EntityTypeLoadResult {
   created: number;
   updated: number;
   deleted: number;
+  groupsCreated: number;
+  groupsUpdated: number;
+  groupsDeleted: number;
 }
 
 export enum EntityLoadErrorType {
