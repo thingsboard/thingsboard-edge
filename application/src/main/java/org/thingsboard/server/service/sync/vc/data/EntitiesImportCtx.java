@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
@@ -53,7 +52,7 @@ public class EntitiesImportCtx {
     private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
     private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
-    private final Map<EntityId, EntityId> externalEntityIds = new HashMap<>();
+    private final Map<EntityId, EntityId> externalToInternalIdMap = new HashMap<>();
 
     public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
         results.put(entityType, importEntities);
@@ -81,10 +80,10 @@ public class EntitiesImportCtx {
     }
 
     public EntityId getInternalId(EntityId externalId){
-        return externalEntityIds.get(externalId);
+        return externalToInternalIdMap.get(externalId);
     }
 
     public void putInternalId(EntityId externalId, EntityId internalId) {
-        externalEntityIds.put(externalId, internalId);
+        externalToInternalIdMap.put(externalId, internalId);
     }
 }
