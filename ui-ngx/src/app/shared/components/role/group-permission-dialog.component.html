@@ -70,7 +70,7 @@
           </tb-entity-autocomplete>
         </section>
       </section>
-      <section fxLayout="column" [fxShow]="isUserGroup && groupPermissionFormGroup.get('role.type').value === roleType.GROUP">
+      <section fxLayout="column" *ngIf="isUserGroup && groupPermissionFormGroup.get('role.type').value === roleType.GROUP">
         <label translate class="tb-title no-padding">group-permission.entity-group</label>
         <section fxLayout="row" fxLayoutGap="8px">
           <tb-owner-autocomplete
@@ -94,7 +94,7 @@
           </tb-entity-group-select>
         </section>
       </section>
-      <section fxLayout="column" [fxShow]="!isUserGroup">
+      <section fxLayout="column" *ngIf="!isUserGroup">
         <label translate class="tb-title no-padding">group-permission.user-group</label>
         <section fxLayout="row" fxLayoutGap="8px">
           <tb-owner-autocomplete

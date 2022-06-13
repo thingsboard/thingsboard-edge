@@ -94,14 +94,6 @@ export class DeviceComponent extends GroupEntityComponent<Device> {
     }
   }
 
-  hideAssignmentActions() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
   hideManageCredentials() {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.manageCredentialsEnabled(this.entity);
