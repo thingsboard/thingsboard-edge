@@ -29,6 +29,8 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
+spring.main.allow-circular-references: "true"
+
 server:
   # Server bind address
   address: "${HTTP_BIND_ADDRESS:0.0.0.0}"
