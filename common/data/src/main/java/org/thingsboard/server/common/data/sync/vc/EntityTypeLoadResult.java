@@ -45,4 +45,11 @@ public class EntityTypeLoadResult {
     private int created;
     private int updated;
     private int deleted;
+    private int groupsCreated;
+    private int groupsUpdated;
+    private int groupsDeleted;
+
+    public EntityTypeLoadResult(EntityType entityType) {
+        this.entityType = entityType;
+    }
 }

@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.sync.vc.data;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -105,14 +104,6 @@ public class EntitiesImportCtx {
         return getSettings().isAutoGenerateIntegrationKey();
     }
 
-    public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
-        results.put(entityType, importEntities);
-    }
-
-    public EntityTypeLoadResult get(EntityType entityType) {
-        return results.get(entityType);
-    }
-
     public void executeCallbacks() {
         for (ThrowingRunnable saveReferencesCallback : saveReferencesCallbacks) {
             try {
@@ -130,11 +121,37 @@ public class EntitiesImportCtx {
         }
     }
 
-    public EntityId getInternalId(EntityId externalId){
+    public EntityId getInternalId(EntityId externalId) {
         return externalToInternalIdMap.get(externalId);
     }
 
     public void putInternalId(EntityId externalId, EntityId internalId) {
         externalToInternalIdMap.put(externalId, internalId);
+    }
+
+    public void registerResult(EntityType entityType, boolean isGroup, boolean created) {
+        EntityTypeLoadResult result = results.computeIfAbsent(entityType, EntityTypeLoadResult::new);
+        if (isGroup) {
+            if (created) {
+                result.setGroupsCreated(result.getGroupsCreated() + 1);
+            } else {
+                result.setGroupsUpdated(result.getGroupsUpdated() + 1);
+            }
+        } else {
+            if (created) {
+                result.setCreated(result.getCreated() + 1);
+            } else {
+                result.setUpdated(result.getUpdated() + 1);
+            }
+        }
+    }
+
+    public void registerDeleted(EntityType entityType, boolean isGroup) {
+        EntityTypeLoadResult result = results.computeIfAbsent(entityType, EntityTypeLoadResult::new);
+        if (isGroup) {
+            result.setGroupsDeleted(result.getDeleted() + 1);
+        } else {
+            result.setDeleted(result.getDeleted() + 1);
+        }
     }
 }

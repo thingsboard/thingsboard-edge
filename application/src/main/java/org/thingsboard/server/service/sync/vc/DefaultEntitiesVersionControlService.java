@@ -63,7 +63,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
@@ -547,44 +546,36 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
         List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, externalGroupId).get();
 
-        AtomicInteger created = new AtomicInteger();
-        AtomicInteger updated = new AtomicInteger();
-
         for (List<UUID> entityIds : Lists.partition(allGroupEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()), 100)) {
             List<EntityExportData> entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
-            var result = importEntityDataList(ctx, entityType, created, updated, entityDataList);
+            var result = importEntityDataList(ctx, entityType, entityDataList);
             var internalIds = result.stream().map(EntityImportResult::getSavedEntity).map(HasId::getId).collect(Collectors.toCollection(ArrayList<EntityId>::new));
             groupService.addEntitiesToEntityGroup(ctx.getTenantId(), internalGroupId, internalIds);
         }
-        ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
 
     private void importEntities(EntitiesImportCtx ctx, List<CustomerId> ownerIds, EntityType entityType, boolean recursive) throws InterruptedException, ExecutionException {
-        AtomicInteger created = new AtomicInteger();
-        AtomicInteger updated = new AtomicInteger();
-
         int limit = 100;
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
             entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
-            importEntityDataList(ctx, entityType, created, updated, entityDataList);
+            importEntityDataList(ctx, entityType, entityDataList);
             offset += limit;
         } while (entityDataList.size() == limit);
-        ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
 
     private void importEntityGroups(EntitiesImportCtx ctx, EntityType entityType, boolean recursive) throws InterruptedException, ExecutionException {
+
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
-
         int limit = 100;
         int offset = 0;
         List<EntityExportData> entityDataList;
         Map<EntityId, List<CustomerId>> ownersCache = new HashMap<>();
         do {
             entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, recursive, offset, limit).get();
-            List<EntityImportResult<?>> entityGroupResults = importEntityDataList(ctx, entityType, created, updated, entityDataList);
+            List<EntityImportResult<?>> entityGroupResults = importEntityDataList(ctx, entityType, entityDataList);
             for (EntityImportResult<?> entityImportResult : entityGroupResults) {
                 EntityGroup savedGroup = (EntityGroup) entityImportResult.getSavedEntity();
                 if (!savedGroup.isGroupAll()) {
@@ -599,11 +590,10 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
             offset += limit;
         } while (entityDataList.size() == limit);
-        ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
 
     private List<EntityImportResult<?>> importEntityDataList(EntitiesImportCtx ctx, EntityType entityType,
-                                                             AtomicInteger created, AtomicInteger updated, List<EntityExportData> entityDataList) {
+                                                             List<EntityExportData> entityDataList) {
         List<EntityImportResult<?>> importResults = new ArrayList<>();
         for (EntityExportData entityData : entityDataList) {
             EntityImportResult<?> importResult;
@@ -618,8 +608,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 continue;
             }
 
-            if (importResult.getOldEntity() == null) created.incrementAndGet();
-            else updated.incrementAndGet();
+            ctx.registerResult(entityType, entityData.getEntity() instanceof EntityGroup, importResult.getOldEntity() == null);
             ctx.getSaveReferencesCallbacks().add(importResult.getSaveReferencesCallback());
             ctx.getSendEventsCallbacks().add(importResult.getSendEventsCallback());
             EntityId savedEntityId = importResult.getSavedEntity().getId();
@@ -649,9 +638,11 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 ctx.setSettings(importSettings);
                 EntityImportResult<?> importResult = exportImportService.importEntity(ctx, entityData, false, false);
 
-                EntityTypeLoadResult stats = ctx.get(externalId.getEntityType());
-                if (importResult.getOldEntity() == null) stats.setCreated(stats.getCreated() + 1);
-                else stats.setUpdated(stats.getUpdated() + 1);
+                if (EntityType.ENTITY_GROUP.equals(externalId.getEntityType())) {
+                    ctx.registerResult(((EntityGroup) entityData.getEntity()).getType(), true, importResult.getOldEntity() == null);
+                } else {
+                    ctx.registerResult(externalId.getEntityType(), false, importResult.getOldEntity() == null);
+                }
                 ctx.getSaveReferencesCallbacks().add(importResult.getSaveReferencesCallback());
                 ctx.getSendEventsCallbacks().add(importResult.getSendEventsCallback());
                 EntityId savedEntityId = importResult.getSavedEntity().getId();
@@ -674,8 +665,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     entityNotificationService.notifyDeleteEntity(user.getTenantId(), entity.getId(),
                             entity, null, ActionType.DELETED, null, user);
                 });
-                EntityTypeLoadResult result = ctx.getResults().get(entityType);
-                result.setDeleted(result.getDeleted() + 1);
+                ctx.registerDeleted(entityType, false);
             }
         });
     }
