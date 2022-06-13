@@ -64,7 +64,6 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
         super.setAdditionalExportData(user, entityGroup, exportData, exportSettings);
         exportData.setGroupEntities(exportSettings.isExportGroupEntities());
         if (exportSettings.isExportPermissions() && entityGroup.getType() == EntityType.USER) {
-            exportableEntitiesService.checkPermission(user, null, EntityType.GROUP_PERMISSION, Operation.READ);
             List<GroupPermission> permissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(user.getTenantId(), entityGroup.getId()).stream()
                     .filter(permission -> {
                         Role role = roleService.findRoleById(user.getTenantId(), permission.getRoleId());

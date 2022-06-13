@@ -36,16 +36,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-@RequiredArgsConstructor
 @Data
 @Slf4j
 public class EntitiesImportCtx {
+
+    private final SecurityUser user;
     private final String versionId;
     private final Map<EntityType, EntityTypeLoadResult> results = new HashMap<>();
     private final Map<EntityType, Set<EntityId>> importedEntities = new HashMap<>();
@@ -53,6 +60,50 @@ public class EntitiesImportCtx {
     private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
     private final Map<EntityId, EntityId> externalToInternalIdMap = new HashMap<>();
+
+    private EntityImportSettings settings;
+
+    public EntitiesImportCtx(SecurityUser user, String versionId) {
+        this(user, versionId, null);
+    }
+
+    public EntitiesImportCtx(SecurityUser user, String versionId, EntityImportSettings settings) {
+        this.user = user;
+        this.versionId = versionId;
+        this.settings = settings;
+    }
+
+    public TenantId getTenantId() {
+        return user.getTenantId();
+    }
+
+    public boolean isFindExistingByName() {
+        return getSettings().isFindExistingByName();
+    }
+
+    public boolean isUpdateRelations() {
+        return getSettings().isUpdateRelations();
+    }
+
+    public boolean isSaveAttributes() {
+        return getSettings().isSaveAttributes();
+    }
+
+    public boolean isSaveCredentials() {
+        return getSettings().isSaveCredentials();
+    }
+
+    public boolean isResetExternalIdsOfAnotherTenant() {
+        return getSettings().isResetExternalIdsOfAnotherTenant();
+    }
+
+    public boolean isSaveUserGroupPermissions() {
+        return getSettings().isSaveUserGroupPermissions();
+    }
+
+    public boolean isAutoGenerateIntegrationKey() {
+        return getSettings().isAutoGenerateIntegrationKey();
+    }
 
     public void put(EntityType entityType, EntityTypeLoadResult importEntities) {
         results.put(entityType, importEntities);

@@ -36,11 +36,11 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 @Service
 @TbCoreComponent
@@ -57,13 +57,13 @@ public class CustomerImportService extends BaseGroupEntityImportService<Customer
     }
 
     @Override
-    protected Customer prepareAndSave(TenantId tenantId, Customer customer, Customer old, GroupEntityExportData<Customer> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected Customer prepareAndSave(EntitiesImportCtx ctx, Customer customer, Customer old, GroupEntityExportData<Customer> exportData, IdProvider idProvider) {
         if (!customer.isPublic()) {
             return customerService.saveCustomer(customer);
         } else {
-            Customer publicCustomer = customerService.findOrCreatePublicCustomer(tenantId, customer.getOwnerId());
+            Customer publicCustomer = customerService.findOrCreatePublicCustomer(ctx.getTenantId(), customer.getOwnerId());
             publicCustomer.setExternalId(customer.getExternalId());
-            return customerDao.save(tenantId, publicCustomer);
+            return customerDao.save(ctx.getTenantId(), publicCustomer);
         }
     }
 

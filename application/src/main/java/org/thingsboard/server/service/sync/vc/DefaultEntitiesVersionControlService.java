@@ -44,12 +44,21 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -58,8 +67,22 @@ import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
-import org.thingsboard.server.common.data.sync.vc.*;
-import org.thingsboard.server.common.data.sync.vc.request.create.*;
+import org.thingsboard.server.common.data.sync.vc.EntityDataDiff;
+import org.thingsboard.server.common.data.sync.vc.EntityDataInfo;
+import org.thingsboard.server.common.data.sync.vc.EntityLoadError;
+import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
+import org.thingsboard.server.common.data.sync.vc.EntityVersion;
+import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
+import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
+import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
+import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
+import org.thingsboard.server.common.data.sync.vc.request.create.AutoVersionCreateConfig;
+import org.thingsboard.server.common.data.sync.vc.request.create.ComplexVersionCreateRequest;
+import org.thingsboard.server.common.data.sync.vc.request.create.EntityTypeVersionCreateConfig;
+import org.thingsboard.server.common.data.sync.vc.request.create.SingleEntityVersionCreateRequest;
+import org.thingsboard.server.common.data.sync.vc.request.create.SyncStrategy;
+import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateConfig;
+import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.EntityTypeVersionLoadRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.SingleEntityVersionLoadRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadConfig;
@@ -77,13 +100,26 @@ import org.thingsboard.server.service.sync.ie.EntitiesExportImportService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.ie.importing.MissingEntityException;
 import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
-import org.thingsboard.server.service.sync.vc.data.*;
+import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
+import org.thingsboard.server.service.sync.vc.data.EntityTypeExportCtx;
+import org.thingsboard.server.service.sync.vc.data.EntityTypeExportTask;
+import org.thingsboard.server.service.sync.vc.data.GroupExportCtx;
 import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -371,18 +407,20 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .findExistingByName(false)
                 .build();
 
+        var ctx = new EntitiesImportCtx(user, request.getVersionId());
+        ctx.setSettings(settings);
+
         if (EntityType.ENTITY_GROUP.equals(request.getExternalEntityId().getEntityType())) {
             var entity = findExportableEntityInDb(user.getTenantId(), internalId != null ? internalId : request.getExternalEntityId());
             EntityExportData groupData = gitServiceQueue.getEntityGroup(user.getTenantId(), request.getVersionId(), ownerIds, ((EntityGroup) entity).getType(), request.getExternalEntityId()).get();
-            EntityImportResult<?> importResult = exportImportService.importEntity(user, groupData, settings, true, true);
+            EntityImportResult<?> importResult = exportImportService.importEntity(ctx, groupData, true, true);
             if (config.isLoadGroupEntities()) {
                 EntityGroup savedGroup = (EntityGroup) importResult.getSavedEntity();
-                EntitiesImportCtx ctx = new EntitiesImportCtx(request.getVersionId());
 
                 if (savedGroup.isGroupAll()) {
-                    importEntities(user, ownerIds, savedGroup.getType(), settings, ctx, false);
+                    importEntities(ctx, ownerIds, savedGroup.getType(), false);
                 } else {
-                    importGroupEntities(user, ownerIds, savedGroup.getType(), savedGroup.getId(), groupData.getExternalId(), settings, ctx);
+                    importGroupEntities(ctx, ownerIds, savedGroup.getType(), savedGroup.getId(), groupData.getExternalId());
                 }
                 reimport(user, ownerIds, ctx);
                 ctx.executeCallbacks();
@@ -395,8 +433,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     .deleted(0)
                     .build());
         } else {
-            EntityExportData entityData = gitServiceQueue.getEntity(user.getTenantId(), request.getVersionId(), ownerIds, request.getExternalEntityId()).get();
-            return loadSingleEntity(user, settings, entityData);
+            EntityExportData entityData = gitServiceQueue.getEntity(ctx.getTenantId(), ctx.getVersionId(), ownerIds, request.getExternalEntityId()).get();
+            try {
+                EntityImportResult<?> importResult = exportImportService.importEntity(ctx, entityData, true, true);
+                return VersionLoadResult.success(EntityTypeLoadResult.builder()
+                        .entityType(importResult.getEntityType())
+                        .created(importResult.getOldEntity() == null ? 1 : 0)
+                        .updated(importResult.getOldEntity() != null ? 1 : 0)
+                        .deleted(0)
+                        .build());
+            } catch (Exception e) {
+                throw new LoadEntityException(entityData.getExternalId(), e);
+            }
         }
     }
 
@@ -440,34 +488,22 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }
     }
 
-    private VersionLoadResult loadSingleEntity(SecurityUser user, EntityImportSettings settings, EntityExportData entityData) {
-        try {
-            EntityImportResult<?> importResult = exportImportService.importEntity(user, entityData, settings, true, true);
-            return VersionLoadResult.success(EntityTypeLoadResult.builder()
-                    .entityType(importResult.getEntityType())
-                    .created(importResult.getOldEntity() == null ? 1 : 0)
-                    .updated(importResult.getOldEntity() != null ? 1 : 0)
-                    .deleted(0)
-                    .build());
-        } catch (Exception e) {
-            throw new LoadEntityException(entityData.getExternalId(), e);
-        }
-    }
-
     @SneakyThrows
     private VersionLoadResult loadMultipleEntities(SecurityUser user, EntityTypeVersionLoadRequest request) {
-        EntitiesImportCtx ctx = new EntitiesImportCtx(request.getVersionId());
+        EntitiesImportCtx ctx = new EntitiesImportCtx(user, request.getVersionId());
 
         List<EntityType> entityTypes = request.getEntityTypes().keySet().stream()
                 .sorted(exportImportService.getEntityTypeComparatorForImport()).collect(Collectors.toList());
         for (EntityType entityType : entityTypes) {
             EntityImportSettings settings = getEntityImportSettings(request, entityType);
-            importEntities(user, Collections.emptyList(), entityType, settings, ctx, true);
+            ctx.setSettings(settings);
+            importEntities(ctx, Collections.emptyList(), entityType, true);
         }
 
         for (EntityType entityType : entityTypes) {
             EntityImportSettings settings = getEntityImportSettings(request, entityType);
-            importEntityGroups(user, entityType, settings, ctx, true);
+            ctx.setSettings(settings);
+            importEntityGroups(ctx, entityType, true);
         }
 
         reimport(user, Collections.emptyList(), ctx);
@@ -492,25 +528,24 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         return settings;
     }
 
-    private void importGroupEntities(SecurityUser user, List<CustomerId> ownerIds, EntityType entityType, EntityGroupId internalGroupId, EntityId externalGroupId,
-                                     EntityImportSettings importSettings, EntitiesImportCtx ctx) throws InterruptedException, ExecutionException {
+    private void importGroupEntities(EntitiesImportCtx ctx, List<CustomerId> ownerIds, EntityType entityType, EntityGroupId internalGroupId,
+                                     EntityId externalGroupId) throws InterruptedException, ExecutionException {
 
-        List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, externalGroupId).get();
+        List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, externalGroupId).get();
 
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
 
         for (List<UUID> entityIds : Lists.partition(allGroupEntityIds.stream().map(EntityId::getId).collect(Collectors.toList()), 100)) {
-            List<EntityExportData> entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
-            var result = importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
+            List<EntityExportData> entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, entityIds).get();
+            var result = importEntityDataList(ctx, entityType, created, updated, entityDataList);
             var internalIds = result.stream().map(EntityImportResult::getSavedEntity).map(HasId::getId).collect(Collectors.toCollection(ArrayList<EntityId>::new));
-            groupService.addEntitiesToEntityGroup(user.getTenantId(), internalGroupId, internalIds);
+            groupService.addEntitiesToEntityGroup(ctx.getTenantId(), internalGroupId, internalIds);
         }
         ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
 
-    private void importEntities(SecurityUser user, List<CustomerId> ownerIds, EntityType entityType,
-                                EntityImportSettings importSettings, EntitiesImportCtx ctx, boolean recursive) throws InterruptedException, ExecutionException {
+    private void importEntities(EntitiesImportCtx ctx, List<CustomerId> ownerIds, EntityType entityType, boolean recursive) throws InterruptedException, ExecutionException {
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
 
@@ -518,15 +553,14 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
-            entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
-            importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
+            entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
+            importEntityDataList(ctx, entityType, created, updated, entityDataList);
             offset += limit;
         } while (entityDataList.size() == limit);
         ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
 
-    private void importEntityGroups(SecurityUser user, EntityType entityType,
-                                    EntityImportSettings importSettings, EntitiesImportCtx ctx, boolean recursive) throws InterruptedException, ExecutionException {
+    private void importEntityGroups(EntitiesImportCtx ctx, EntityType entityType, boolean recursive) throws InterruptedException, ExecutionException {
         AtomicInteger created = new AtomicInteger();
         AtomicInteger updated = new AtomicInteger();
 
@@ -535,18 +569,18 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         List<EntityExportData> entityDataList;
         Map<EntityId, List<CustomerId>> ownersCache = new HashMap<>();
         do {
-            entityDataList = gitServiceQueue.getEntities(user.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, recursive, offset, limit).get();
-            List<EntityImportResult<?>> entityGroupResults = importEntityDataList(user, entityType, importSettings, ctx, created, updated, entityDataList);
+            entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), Collections.emptyList(), entityType, true, recursive, offset, limit).get();
+            List<EntityImportResult<?>> entityGroupResults = importEntityDataList(ctx, entityType, created, updated, entityDataList);
             for (EntityImportResult<?> entityImportResult : entityGroupResults) {
                 EntityGroup savedGroup = (EntityGroup) entityImportResult.getSavedEntity();
                 if (!savedGroup.isGroupAll()) {
                     var ownerIds = ownersCache.get(savedGroup.getOwnerId());
                     if (ownerIds == null) {
-                        ownerIds = getCustomerExternalIds(user.getTenantId(), savedGroup.getId(), savedGroup);
+                        ownerIds = getCustomerExternalIds(ctx.getTenantId(), savedGroup.getId(), savedGroup);
                         ownersCache.put(savedGroup.getOwnerId(), ownerIds);
                     }
-                    List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(user.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
-                    createGroupRelations(user, ctx, savedGroup.getId(), allGroupEntityIds);
+                    List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
+                    createGroupRelations(ctx, savedGroup.getId(), allGroupEntityIds);
                 }
             }
             offset += limit;
@@ -554,21 +588,19 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         ctx.put(entityType, EntityTypeLoadResult.builder().entityType(entityType).created(created.get()).updated(updated.get()).build());
     }
 
-    private List<EntityImportResult<?>> importEntityDataList(SecurityUser user, EntityType entityType,
-                                                             EntityImportSettings importSettings, EntitiesImportCtx ctx,
+    private List<EntityImportResult<?>> importEntityDataList(EntitiesImportCtx ctx, EntityType entityType,
                                                              AtomicInteger created, AtomicInteger updated, List<EntityExportData> entityDataList) {
         List<EntityImportResult<?>> importResults = new ArrayList<>();
         for (EntityExportData entityData : entityDataList) {
             EntityImportResult<?> importResult;
             try {
-                importResult = exportImportService.importEntity(user, entityData,
-                        importSettings, false, false);
+                importResult = exportImportService.importEntity(ctx, entityData, false, false);
                 importResults.add(importResult);
             } catch (Exception e) {
                 throw new LoadEntityException(entityData.getExternalId(), e);
             }
             if (importResult.getUpdatedAllExternalIds() != null && !importResult.getUpdatedAllExternalIds()) {
-                ctx.getToReimport().put(entityData.getEntity().getExternalId(), importSettings);
+                ctx.getToReimport().put(entityData.getEntity().getExternalId(), ctx.getSettings());
                 continue;
             }
 
@@ -584,7 +616,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         return importResults;
     }
 
-    private void createGroupRelations(SecurityUser user, EntitiesImportCtx ctx, EntityGroupId groupId, List<EntityId> externalIds) {
+    private void createGroupRelations(EntitiesImportCtx ctx, EntityGroupId groupId, List<EntityId> externalIds) {
         List<EntityId> internalIds = new ArrayList<>(externalIds.size());
         for (EntityId externalId : externalIds) {
             var internalId = ctx.getInternalId(externalId);
@@ -593,7 +625,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
             internalIds.add(internalId);
         }
-        groupService.addEntitiesToEntityGroup(user.getTenantId(), groupId, internalIds);
+        groupService.addEntitiesToEntityGroup(ctx.getTenantId(), groupId, internalIds);
     }
 
     private void reimport(SecurityUser user, List<CustomerId> parents, EntitiesImportCtx ctx) {
@@ -602,8 +634,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             try {
                 EntityExportData entityData = gitServiceQueue.getEntity(user.getTenantId(), ctx.getVersionId(), parents, externalId).get();
                 importSettings.setResetExternalIdsOfAnotherTenant(true);
-                EntityImportResult<?> importResult = exportImportService.importEntity(user, entityData,
-                        importSettings, false, false);
+                ctx.setSettings(importSettings);
+                EntityImportResult<?> importResult = exportImportService.importEntity(ctx, entityData, false, false);
 
                 EntityTypeLoadResult stats = ctx.get(externalId.getEntityType());
                 if (importResult.getOldEntity() == null) stats.setCreated(stats.getCreated() + 1);
@@ -624,11 +656,6 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             return exportableEntitiesService.findEntitiesByTenantId(user.getTenantId(), entityType, pageLink);
         }, 100, entity -> {
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
-                try {
-                    exportableEntitiesService.checkPermission(user, entity, entityType, Operation.DELETE);
-                } catch (ThingsboardException e) {
-                    throw new RuntimeException(e);
-                }
                 exportableEntitiesService.removeById(user.getTenantId(), entity.getId());
 
                 ctx.getSendEventsCallbacks().add(() -> {
@@ -688,8 +715,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                             .exportGroupEntities(otherVersion.hasGroupEntities())
                             .build());
                     return transform(gitServiceQueue.getContentsDiff(user.getTenantId(),
-                                    JacksonUtil.toPrettyString(currentVersion.sort()),
-                                    JacksonUtil.toPrettyString(otherVersion.sort())),
+                            JacksonUtil.toPrettyString(currentVersion.sort()),
+                            JacksonUtil.toPrettyString(otherVersion.sort())),
                             rawDiff -> new EntityDataDiff(currentVersion, otherVersion, rawDiff), MoreExecutors.directExecutor());
                 }, MoreExecutors.directExecutor());
     }

@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 @Service
 @TbCoreComponent
@@ -60,9 +61,10 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
     }
 
     @Override
-    protected Role findExistingEntity(TenantId tenantId, Role role, EntityImportSettings importSettings) {
-        Role existingRole = super.findExistingEntity(tenantId, role, importSettings);
-        if (existingRole == null && importSettings.isFindExistingByName()) {
+    protected Role findExistingEntity(EntitiesImportCtx ctx, Role role) {
+        Role existingRole = super.findExistingEntity(ctx, role);
+        if (existingRole == null && ctx.isFindExistingByName()) {
+            var tenantId = ctx.getTenantId();
             if (role.getOwnerId().getEntityType() == EntityType.TENANT) {
                 existingRole = roleService.findRoleByTenantIdAndName(tenantId, role.getName()).orElse(null);
             } else {
@@ -74,8 +76,8 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
     }
 
     @Override
-    protected Role prepareAndSave(TenantId tenantId, Role role, Role old, EntityExportData<Role> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
-        return roleService.saveRole(tenantId, role);
+    protected Role prepareAndSave(EntitiesImportCtx ctx, Role role, Role old, EntityExportData<Role> exportData, IdProvider idProvider) {
+        return roleService.saveRole(ctx.getTenantId(), role);
     }
 
     @Override

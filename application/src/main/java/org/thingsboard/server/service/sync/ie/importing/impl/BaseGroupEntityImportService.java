@@ -30,94 +30,15 @@
  */
 package org.thingsboard.server.service.sync.ie.importing.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 public abstract class BaseGroupEntityImportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityImportService<I, E, D> {
-
-    @Autowired
-    private EntityGroupService entityGroupService;
-
-    @Override
-    protected void processAfterSaved(SecurityUser user, EntityImportResult<E> importResult, D exportData,
-                                     IdProvider idProvider, EntityImportSettings importSettings) throws ThingsboardException {
-        super.processAfterSaved(user, importResult, exportData, idProvider, importSettings);
-
-        importResult.addSaveReferencesCallback(() -> {
-//            if (!importSettings.isUpdateEntityGroups() || exportData.getEntityGroupsIds() == null) {
-//                return;
-//            }
-//
-//            E savedEntity = importResult.getSavedEntity();
-//            E oldEntity = importResult.getOldEntity();
-//
-//            List<EntityGroupId> entityGroupsIds = exportData.getEntityGroupsIds().stream()
-//                    .map(idProvider::getInternalId)
-//                    .collect(Collectors.toList());
-//
-//            if (oldEntity != null) {
-//                List<EntityGroupId> existingEntityGroupsIds;
-//                try {
-//                    existingEntityGroupsIds = entityGroupService.findEntityGroupsForEntity(user.getTenantId(), savedEntity.getId()).get();
-//                } catch (InterruptedException | ExecutionException e) {
-//                    throw new RuntimeException(e);
-//                }
-//
-//                for (EntityGroupId existingEntityGroupId : existingEntityGroupsIds) {
-//                    if (!entityGroupsIds.contains(existingEntityGroupId)) {
-//                        EntityGroup existingEntityGroup = exportableEntitiesService.findEntityByTenantIdAndId(user.getTenantId(), existingEntityGroupId);
-//                        if (existingEntityGroup.isGroupAll()) continue;
-//
-//                        exportableEntitiesService.checkPermission(user, savedEntity, existingEntityGroupId, Operation.WRITE);
-//                        exportableEntitiesService.checkPermission(user, existingEntityGroup, EntityType.ENTITY_GROUP, Operation.REMOVE_FROM_GROUP);
-//
-//                        entityGroupService.removeEntityFromEntityGroup(user.getTenantId(), existingEntityGroupId, savedEntity.getId());
-//
-//                        importResult.addSendEventsCallback(() -> {
-//                            entityActionService.logEntityAction(user, savedEntity.getId(), savedEntity,
-//                                    savedEntity.getCustomerId(), ActionType.REMOVED_FROM_ENTITY_GROUP, null,
-//                                    savedEntity.getId().toString(), existingEntityGroupId.toString(), existingEntityGroup.getName());
-//                            entityActionService.sendGroupEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(),
-//                                    existingEntityGroupId, EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP);
-//                        });
-//                    }
-//                }
-//
-//                entityGroupsIds.removeAll(existingEntityGroupsIds);
-//            }
-//
-//            for (EntityGroupId entityGroupId : entityGroupsIds) {
-//                EntityGroup entityGroup = exportableEntitiesService.findEntityByTenantIdAndId(user.getTenantId(), entityGroupId);
-//                if (entityGroup.isGroupAll()) continue;
-//                if (entityGroup.getType() != savedEntity.getEntityType()) {
-//                    throw new IllegalArgumentException("Cannot add entity to group of different entity type");
-//                }
-//
-//                exportableEntitiesService.checkPermission(user, entityGroup, EntityType.ENTITY_GROUP, Operation.READ);
-//                exportableEntitiesService.checkPermission(user, savedEntity, entityGroup.getId(), Operation.WRITE);
-//                exportableEntitiesService.checkPermission(user, entityGroup, EntityType.ENTITY_GROUP, Operation.ADD_TO_GROUP);
-//
-//                entityGroupService.addEntityToEntityGroup(user.getTenantId(), entityGroup.getId(), savedEntity.getId());
-//
-//                importResult.addSendEventsCallback(() -> {
-//                    entityActionService.logEntityAction(user, savedEntity.getId(), savedEntity,
-//                            savedEntity.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-//                            savedEntity.getId().toString(), entityGroup.getId().toString(), entityGroup.getName());
-//                    entityActionService.sendGroupEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(),
-//                            entityGroup.getId(), EdgeEventActionType.ADDED_TO_ENTITY_GROUP);
-//                });
-//            }
-        });
-    }
 
     @Override
     protected void onEntitySaved(SecurityUser user, E savedEntity, E oldEntity) throws ThingsboardException {

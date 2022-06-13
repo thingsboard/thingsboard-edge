@@ -53,6 +53,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,38 +78,38 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup findExistingEntity(TenantId tenantId, EntityGroup entityGroup, EntityImportSettings importSettings) {
-        EntityGroup existingEntityGroup = super.findExistingEntity(tenantId, entityGroup, importSettings);
-        if (existingEntityGroup == null && importSettings.isFindExistingByName()) {
+    protected EntityGroup findExistingEntity(EntitiesImportCtx ctx, EntityGroup entityGroup) {
+        EntityGroup existingEntityGroup = super.findExistingEntity(ctx, entityGroup);
+        if (existingEntityGroup == null && ctx.getSettings().isFindExistingByName()) {
             EntityId ownerId;
             if (entityGroup.getOwnerId().getEntityType() == EntityType.TENANT) {
-                ownerId = tenantId;
+                ownerId = ctx.getTenantId();
             } else {
-                ownerId = findInternalEntity(tenantId, entityGroup.getOwnerId()).getId();
+                ownerId = findInternalEntity(ctx.getTenantId(), entityGroup.getOwnerId()).getId();
             }
-            existingEntityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
+            existingEntityGroup = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId,
                     entityGroup.getType(), entityGroup.getName()).orElse(null);
         }
         return existingEntityGroup;
     }
 
     @Override
-    protected EntityGroup prepareAndSave(TenantId tenantId, EntityGroup entityGroup, EntityGroup old, EntityGroupExportData exportData, IdProvider idProvider, EntityImportSettings importSettings) {
+    protected EntityGroup prepareAndSave(EntitiesImportCtx ctx, EntityGroup entityGroup, EntityGroup old, EntityGroupExportData exportData, IdProvider idProvider) {
         if (entityGroup.getId() == null && entityGroup.isGroupAll()) {
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");
         }
         // TODO [viacheslav]: update actions config
-        return entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup);
+        return entityGroupService.saveEntityGroup(ctx.getTenantId(), entityGroup.getOwnerId(), entityGroup);
     }
 
     @Override
-    protected void processAfterSaved(SecurityUser user, EntityImportResult<EntityGroup> importResult, EntityGroupExportData exportData,
-                                     IdProvider idProvider, EntityImportSettings importSettings) throws ThingsboardException {
-        super.processAfterSaved(user, importResult, exportData, idProvider, importSettings);
+    protected void processAfterSaved(EntitiesImportCtx ctx, EntityImportResult<EntityGroup> importResult, EntityGroupExportData exportData,
+                                     IdProvider idProvider) throws ThingsboardException {
+        super.processAfterSaved(ctx, importResult, exportData, idProvider);
 
         importResult.addSaveReferencesCallback(() -> {
-            if (!importSettings.isSaveUserGroupPermissions() || exportData.getPermissions() == null
+            if (!ctx.isSaveUserGroupPermissions() || exportData.getPermissions() == null
                     || importResult.getSavedEntity().getType() != EntityType.USER) {
                 return;
             }
@@ -116,37 +117,31 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
             EntityGroup userGroup = importResult.getSavedEntity();
             List<GroupPermission> permissions = new ArrayList<>(exportData.getPermissions());
 
+            TenantId tenantId = ctx.getTenantId();
             for (GroupPermission permission : permissions) {
                 permission.setId(null);
-                permission.setTenantId(user.getTenantId());
+                permission.setTenantId(tenantId);
                 permission.setRoleId(idProvider.getInternalId(permission.getRoleId()));
                 permission.setUserGroupId(idProvider.getInternalId(permission.getUserGroupId()));
                 permission.setEntityGroupId(idProvider.getInternalId(permission.getEntityGroupId()));
             }
 
             if (importResult.getOldEntity() != null) {
-                List<GroupPermission> existingPermissions = new ArrayList<>(groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(user.getTenantId(), userGroup.getId()));
+                List<GroupPermission> existingPermissions = new ArrayList<>(groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(tenantId, userGroup.getId()));
 
                 for (GroupPermission existingPermission : existingPermissions) {
                     if (permissions.stream().noneMatch(permission -> permissionsEqual(permission, existingPermission))) {
                         if (existingPermission.isPublic()) continue;
-                        Role role = roleService.findRoleById(user.getTenantId(), existingPermission.getRoleId());
+                        Role role = roleService.findRoleById(tenantId, existingPermission.getRoleId());
                         if (role.getOwnerId().equals(TenantId.SYS_TENANT_ID)) continue;
 
-                        exportableEntitiesService.checkPermission(user, existingPermission, EntityType.GROUP_PERMISSION, Operation.DELETE);
-                        exportableEntitiesService.checkPermission(user, role, EntityType.ROLE, Operation.READ);
-                        exportableEntitiesService.checkPermission(user, existingPermission.getUserGroupId(), Operation.WRITE);
-                        if (existingPermission.getEntityGroupId() != null && !existingPermission.getEntityGroupId().isNullUid()) {
-                            exportableEntitiesService.checkPermission(user, existingPermission.getEntityGroupId(), Operation.WRITE);
-                        }
-
-                        groupPermissionService.deleteGroupPermission(user.getTenantId(), existingPermission.getId());
+                        groupPermissionService.deleteGroupPermission(tenantId, existingPermission.getId());
 
                         importResult.addSendEventsCallback(() -> {
                             userPermissionsService.onGroupPermissionDeleted(existingPermission);
-                            entityActionService.logEntityAction(user, existingPermission.getId(), existingPermission,
+                            entityActionService.logEntityAction(ctx.getUser(), existingPermission.getId(), existingPermission,
                                     null, ActionType.DELETED, null, existingPermission.getId().toString());
-                            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(),
+                            entityActionService.sendEntityNotificationMsgToEdgeService(tenantId,
                                     existingPermission.getId(), EdgeEventActionType.DELETED);
                         });
                     } else {
@@ -159,26 +154,16 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                 if (permission.isPublic()) {
                     throw new IllegalArgumentException("Import of public permissions is not supported");
                 }
-                Role role = roleService.findRoleById(user.getTenantId(), permission.getRoleId());
+                Role role = roleService.findRoleById(tenantId, permission.getRoleId());
                 if (role.getOwnerId().equals(TenantId.SYS_TENANT_ID)) continue;
 
-                exportableEntitiesService.checkPermission(user, permission, EntityType.GROUP_PERMISSION, Operation.CREATE);
-                exportableEntitiesService.checkPermission(user, role, EntityType.ROLE, Operation.READ);
-                exportableEntitiesService.checkPermission(user, permission.getUserGroupId(), Operation.WRITE);
-                if (permission.getEntityGroupId() != null && !permission.getEntityGroupId().isNullUid()) {
-                    if (role.getType() == RoleType.GENERIC) {
-                        throw new IllegalArgumentException("Cannot assign generic role to entity group");
-                    }
-                    exportableEntitiesService.checkPermission(user, permission.getEntityGroupId(), Operation.WRITE);
-                }
-
-                GroupPermission savedPermission = groupPermissionService.saveGroupPermission(user.getTenantId(), permission);
+                GroupPermission savedPermission = groupPermissionService.saveGroupPermission(tenantId, permission);
 
                 importResult.addSendEventsCallback(() -> {
                     userPermissionsService.onGroupPermissionUpdated(savedPermission);
-                    entityActionService.logEntityAction(user, savedPermission.getId(), savedPermission,
+                    entityActionService.logEntityAction(ctx.getUser(), savedPermission.getId(), savedPermission,
                             null, ActionType.ADDED, null);
-                    entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(),
+                    entityActionService.sendEntityNotificationMsgToEdgeService(tenantId,
                             savedPermission.getId(), EdgeEventActionType.ADDED);
                 });
             }

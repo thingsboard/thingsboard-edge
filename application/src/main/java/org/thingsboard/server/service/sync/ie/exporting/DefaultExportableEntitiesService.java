@@ -201,31 +201,6 @@ public class DefaultExportableEntitiesService implements ExportableEntitiesServi
         entityRemover.accept(tenantId, id);
     }
 
-
-    @Override
-    public void checkPermission(SecurityUser user, HasId<? extends EntityId> entity, EntityType entityType, Operation operation) throws ThingsboardException {
-        Resource resource = Resource.resourceFromEntityType(entityType);
-        if (entity instanceof TenantEntity) {
-            accessControlService.checkPermission(user, resource, operation, entity.getId(), (TenantEntity) entity);
-        } else if (entity instanceof EntityGroup) {
-            accessControlService.checkEntityGroupPermission(user, operation, (EntityGroup) entity);
-        } else {
-            accessControlService.checkPermission(user, resource, operation);
-        }
-    }
-
-    @Override
-    public <E extends TenantEntity & HasId<? extends EntityId>> void checkPermission(SecurityUser user, E entity, EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
-        accessControlService.checkPermission(user, Resource.resourceFromEntityType(entity.getEntityType()), operation, entity.getId(), entity, entityGroupId);
-    }
-
-    @Override
-    public void checkPermission(SecurityUser user, EntityId entityId, Operation operation) throws ThingsboardException {
-        HasId<EntityId> entity = findEntityByTenantIdAndId(user.getTenantId(), entityId);
-        checkPermission(user, entity, entityId.getEntityType(), operation);
-    }
-
-
     @SuppressWarnings("unchecked")
     private <E> Dao<E> getDao(EntityType entityType) {
         return (Dao<E>) daos.get(entityType);

@@ -45,6 +45,7 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -65,18 +66,18 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
     }
 
     @Override
-    protected Integration findExistingEntity(TenantId tenantId, Integration integration, EntityImportSettings importSettings) {
-        Integration existingIntegration = super.findExistingEntity(tenantId, integration, importSettings);
-        if (existingIntegration == null && importSettings.isFindExistingByName()) {
-            existingIntegration = integrationService.findTenantIntegrationsByName(tenantId, integration.getName()).stream().findFirst().orElse(null);
+    protected Integration findExistingEntity(EntitiesImportCtx ctx, Integration integration) {
+        Integration existingIntegration = super.findExistingEntity(ctx, integration);
+        if (existingIntegration == null && ctx.isFindExistingByName()) {
+            existingIntegration = integrationService.findTenantIntegrationsByName(ctx.getTenantId(), integration.getName()).stream().findFirst().orElse(null);
         }
         return existingIntegration;
     }
 
     @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
     @Override
-    protected Integration prepareAndSave(TenantId tenantId, Integration integration, Integration old, EntityExportData<Integration> exportData, IdProvider idProvider, EntityImportSettings importSettings) {
-        if (importSettings.isAutoGenerateIntegrationKey()) {
+    protected Integration prepareAndSave(EntitiesImportCtx ctx, Integration integration, Integration old, EntityExportData<Integration> exportData, IdProvider idProvider) {
+        if (ctx.isAutoGenerateIntegrationKey()) {
             if (integration.getId() == null) {
                 integration.setRoutingKey(UUID.randomUUID().toString());
             } else {
