@@ -53,7 +53,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { isDefinedAndNotNull, isEqual, isString } from '@core/utils';
+import { isEqual, isString } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -69,7 +69,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   selectEntityGroupFormGroup: FormGroup;
 
-  modelValue: string | null;
+  modelValue: string | null = null;
 
   @Input()
   groupType: EntityType;
@@ -81,15 +81,12 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   @Input()
   set ownerId(value: EntityId) {
-    if (isDefinedAndNotNull(value)) {
-      if (this.ownerIdValue && !isEqual(this.ownerIdValue, value)) {
-        const currentEntityGroup = this.getCurrentEntityGroup();
-        const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
-        this.reset(keepEntityGroup);
-        this.dirty = true;
-      }
-      this.ownerIdValue = value;
+    if (!isEqual(this.ownerIdValue, value)) {
+      const currentEntityGroup = this.getCurrentEntityGroup();
+      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
+      this.reset(keepEntityGroup);
     }
+    this.ownerIdValue = value;
   }
 
   @Input()
@@ -130,7 +127,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   searchText = '';
 
-  private dirty = false;
+  private pristine = true;
   private cleanFilteredEntityGroups: Subject<Array<EntityGroupInfo>> = new Subject();
 
   private propagateChange = (v: any) => { };
@@ -186,7 +183,6 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           const currentEntityGroup = this.getCurrentEntityGroup();
           if (!currentEntityGroup || currentEntityGroup.type !== this.groupType) {
             this.reset();
-            this.dirty = true;
           }
         }
       }
@@ -236,19 +232,20 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
       this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
       this.entityGroupLoaded.next(null);
     }
-    this.dirty = true;
+    this.pristine = true;
   }
 
   onFocus() {
-    if (this.dirty) {
+    if (this.pristine) {
       this.selectEntityGroupFormGroup.get('entityGroup').updateValueAndValidity({onlySelf: true, emitEvent: true});
-      this.dirty = false;
+      this.pristine = false;
     }
   }
 
   reset(keepEntityGroup = false) {
     this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
+    this.pristine = true;
     if (!keepEntityGroup) {
       this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
       setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
