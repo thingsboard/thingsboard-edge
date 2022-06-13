@@ -50,7 +50,7 @@
     [required]="required && originatorFormGroup.get('originator').value === 'entity'"
     formControlName="entityOriginatorId">
   </tb-entity-select>
-  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('originator').value !== 'entity'">
+  <section fxLayout="row" fxLayoutGap="8px" *ngIf="originatorFormGroup.get('originator').value !== 'entity'">
     <tb-owner-autocomplete
       formControlName="groupOwnerId"
       [excludeOwnerIds]="[currentUser.tenantId]"

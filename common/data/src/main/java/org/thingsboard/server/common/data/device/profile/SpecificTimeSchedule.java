@@ -31,8 +31,8 @@
 package org.thingsboard.server.common.data.device.profile;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.query.DynamicValue;
 
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -42,6 +42,8 @@ public class SpecificTimeSchedule implements AlarmSchedule {
     private Set<Integer> daysOfWeek;
     private long startsOn;
     private long endsOn;
+
+    private DynamicValue<String> dynamicValue;
 
     @Override
     public AlarmScheduleType getType() {

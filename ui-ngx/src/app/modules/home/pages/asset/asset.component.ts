@@ -74,14 +74,6 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
     }
   }
 
-  hideAssignmentActions() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
   /* isAssignedToCustomer(entity: Asset): boolean {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */

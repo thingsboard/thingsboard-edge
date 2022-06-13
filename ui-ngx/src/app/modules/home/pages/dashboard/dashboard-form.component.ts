@@ -92,14 +92,6 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     }
   }
 
-  hideAssignmentActions() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
   buildForm(entity: Dashboard): FormGroup {
     this.updateFields(entity);
     return this.fb.group(
@@ -136,6 +128,17 @@ export class DashboardFormComponent extends GroupEntityComponent<Dashboard> {
     this.store.dispatch(new ActionNotificationShow(
      {
         message: this.translate.instant('dashboard.public-link-copied-message'),
+        type: 'success',
+        duration: 750,
+        verticalPosition: 'bottom',
+        horizontalPosition: 'right'
+      }));
+  }
+
+  onDashboardIdCopied($event) {
+    this.store.dispatch(new ActionNotificationShow(
+      {
+        message: this.translate.instant('dashboard.idCopiedMessage'),
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
