@@ -28,38 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.exporting.impl;
+package org.thingsboard.server.service.sync.ie.importing.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.GroupEntity;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.Set;
+import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 @Service
 @TbCoreComponent
-public class DefaultGroupEntityExportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityExportService<I, E, D> {
+@RequiredArgsConstructor
+public class EntityViewImportService extends BaseGroupEntityImportService<EntityViewId, EntityView, GroupEntityExportData<EntityView>> {
+
+    private final EntityViewService entityViewService;
 
     @Override
-    protected final void setAdditionalExportData(SecurityUser user, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
-        super.setAdditionalExportData(user, entity, exportData, exportSettings);
+    protected void setOwner(TenantId tenantId, EntityView entityView, IdProvider idProvider) {
+        entityView.setTenantId(tenantId);
+        entityView.setCustomerId(idProvider.getInternalId(entityView.getCustomerId()));
     }
 
     @Override
-    protected D newExportData() {
-        return (D) new GroupEntityExportData<E>();
+    protected EntityView prepareAndSave(EntitiesImportCtx ctx, EntityView entityView, EntityView oldEntityView, GroupEntityExportData<EntityView> exportData, IdProvider idProvider) {
+        entityView.setEntityId(idProvider.getInternalId(entityView.getEntityId()));
+        return entityViewService.saveEntityView(entityView);
     }
 
     @Override
-    public Set<EntityType> getSupportedEntityTypes() {
-        return Set.of(EntityType.DEVICE, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DASHBOARD, EntityType.ENTITY_VIEW);
+    protected void onEntitySaved(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException {
+        entityNotificationService.notifyCreateOrUpdateEntity(user.getTenantId(), savedEntityView.getId(), savedEntityView,
+                null, oldEntityView == null ? ActionType.ADDED : ActionType.UPDATED, user);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ENTITY_VIEW;
     }
 
 }

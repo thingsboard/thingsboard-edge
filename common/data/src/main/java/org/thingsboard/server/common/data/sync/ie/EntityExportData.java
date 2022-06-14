@@ -58,7 +58,8 @@ import java.util.Map;
         @Type(name = "ENTITY_GROUP", value = EntityGroupExportData.class),
         @Type(name = "ASSET", value = GroupEntityExportData.class),
         @Type(name = "DASHBOARD", value = GroupEntityExportData.class),
-        @Type(name = "CUSTOMER", value = GroupEntityExportData.class)
+        @Type(name = "CUSTOMER", value = GroupEntityExportData.class),
+        @Type(name = "ENTITY_VIEW", value = GroupEntityExportData.class)
 })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data

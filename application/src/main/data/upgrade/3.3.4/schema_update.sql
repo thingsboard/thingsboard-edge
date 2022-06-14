@@ -43,6 +43,8 @@ ALTER TABLE customer
     ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE widgets_bundle
     ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE entity_view
+    ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE entity_group
     ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE converter
