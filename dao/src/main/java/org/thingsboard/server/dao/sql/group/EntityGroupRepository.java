@@ -72,6 +72,20 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
 
     @Query("SELECT e FROM EntityGroupEntity e, " +
             "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
+            "AND re.relationType = :relationType " +
+            "AND ((re.fromId = :tenantId AND re.fromType = 'TENANT') OR " +
+            "(re.fromType = 'CUSTOMER' and re.fromId in (SELECT c.id FROM CustomerEntity c where c.tenantId = :tenantId))) " +
+            "AND LOWER(e.name) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
+    Page<EntityGroupEntity> findEntityGroupsByTypeAndPageLink(
+            @Param("tenantId") UUID tenantId,
+            @Param("relationType") String relationType,
+            @Param("textSearch") String textSearch,
+            Pageable toPageable);
+
+    @Query("SELECT e FROM EntityGroupEntity e, " +
+            "RelationEntity re " +
             "WHERE e.name = :name " +
             "AND e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
@@ -91,11 +105,11 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
                                                 @Param("parentEntityType") String parentEntityType);
 
     @Query("SELECT re.toId " +
-           "FROM RelationEntity re " +
-           "WHERE re.toType = :groupType " +
-           "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
-           "AND re.relationType = 'Contains' " +
-           "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP'")
+            "FROM RelationEntity re " +
+            "WHERE re.toType = :groupType " +
+            "AND re.relationTypeGroup = 'FROM_ENTITY_GROUP' " +
+            "AND re.relationType = 'Contains' " +
+            "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP'")
     Page<UUID> findGroupEntityIds(@Param("groupId") UUID groupId,
                                   @Param("groupType") String groupType,
                                   Pageable pageable);

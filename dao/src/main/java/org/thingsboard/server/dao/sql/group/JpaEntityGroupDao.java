@@ -96,6 +96,16 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
+    public PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID tenantId, String relationType, PageLink pageLink) {
+        return DaoUtil.toPageData(entityGroupRepository
+                .findEntityGroupsByTypeAndPageLink(
+                        tenantId,
+                        relationType,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType) {
         return service.submit(() -> DaoUtil.convertDataList(entityGroupRepository.findAllEntityGroups(
                 parentEntityId,

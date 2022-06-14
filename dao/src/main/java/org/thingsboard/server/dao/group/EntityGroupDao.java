@@ -59,6 +59,8 @@ public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<En
     ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
             (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType, PageLink pageLink);
 
+    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID id, String relationType, PageLink pageLink);
+
     ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
 
     Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
@@ -74,4 +76,5 @@ public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<En
     boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 
     PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);
+
 }

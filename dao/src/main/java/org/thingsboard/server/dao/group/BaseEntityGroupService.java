@@ -548,6 +548,18 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupsByTypeAndPageLink, tenantId [{}], groupType [{}], pageLink [{}]", tenantId, groupType, pageLink);
+        validateEntityId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), relationType, pageLink);
+    }
+
+    @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);

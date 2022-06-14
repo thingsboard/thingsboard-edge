@@ -658,7 +658,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private void removeOtherEntities(EntitiesImportCtx ctx, EntityType entityType) {
         DaoUtil.processInBatches(pageLink -> {
             return exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink);
-        }, 100, entity -> {
+        }, 1024, entity -> {
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
@@ -669,6 +669,20 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 ctx.registerDeleted(entityType, false);
             }
         });
+        DaoUtil.processInBatches(pageLink -> {
+            return groupService.findEntityGroupsByTypeAndPageLink(ctx.getTenantId(), entityType, pageLink);
+        }, 1024, entity -> {
+            if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
+                exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
+
+                ctx.addEventCallback(() -> {
+                    entityNotificationService.notifyDeleteEntity(ctx.getTenantId(), entity.getId(),
+                            entity, null, ActionType.DELETED, null, ctx.getUser());
+                });
+                ctx.registerDeleted(entityType, true);
+            }
+        });
+
     }
 
     private VersionLoadResult onError(EntityId externalId, Throwable e) {
