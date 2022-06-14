@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
@@ -98,8 +99,7 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     }
 
     @Override
-    public <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(EntitiesImportCtx ctx, EntityExportData<E> exportData,
-                                                                                                  boolean saveReferencesAndSendEvents) throws ThingsboardException {
+    public <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(EntitiesImportCtx ctx, EntityExportData<E> exportData) throws ThingsboardException {
         if (!rateLimitService.checkEntityImportLimit(ctx.getTenantId())) {
             throw new ThingsboardException("Rate limit for entities import is exceeded", ThingsboardErrorCode.TOO_MANY_REQUESTS);
         }
@@ -111,15 +111,10 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
         EntityImportService<I, E, EntityExportData<E>> importService = getImportService(entityType);
 
         EntityImportResult<E> importResult = importService.importEntity(ctx, exportData);
-
-        if (saveReferencesAndSendEvents) {
-            importResult.getSaveReferencesCallback().run();
-            importResult.getSendEventsCallback().run();
-            saveRelations(ctx);
-        }
-
         ctx.putInternalId(exportData.getExternalId(), importResult.getSavedEntity().getId());
 
+        ctx.addReferenceCallback(importResult.getSaveReferencesCallback());
+        ctx.addEventCallback(importResult.getSendEventsCallback());
         return importResult;
     }
 
@@ -151,7 +146,11 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     }
 
     @Override
-    public void saveRelations(EntitiesImportCtx ctx) throws ThingsboardException {
+    public void saveReferencesAndRelations(EntitiesImportCtx ctx) throws ThingsboardException {
+        for (ThrowingRunnable saveReferencesCallback : ctx.getReferenceCallbacks()) {
+            saveReferencesCallback.run();
+        }
+
         relationService.saveRelations(ctx.getTenantId(), new ArrayList<>(ctx.getRelations()));
 
         for (EntityRelation relation : ctx.getRelations()) {

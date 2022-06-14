@@ -33,7 +33,6 @@ package org.thingsboard.server.service.sync.vc.data;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -59,9 +58,10 @@ public class EntitiesImportCtx {
     private final Map<EntityType, EntityTypeLoadResult> results = new HashMap<>();
     private final Map<EntityType, Set<EntityId>> importedEntities = new HashMap<>();
     private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
-    private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
-    private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
+    private final List<ThrowingRunnable> referenceCallbacks = new ArrayList<>();
+    private final List<ThrowingRunnable> eventCallbacks = new ArrayList<>();
     private final Map<EntityId, EntityId> externalToInternalIdMap = new HashMap<>();
+
     private final Set<EntityRelation> relations = new LinkedHashSet<>();
 
     private EntityImportSettings settings;
@@ -108,28 +108,14 @@ public class EntitiesImportCtx {
         return getSettings().isAutoGenerateIntegrationKey();
     }
 
-    public void executeCallbacks() {
-        for (ThrowingRunnable saveReferencesCallback : saveReferencesCallbacks) {
-            try {
-                saveReferencesCallback.run();
-            } catch (ThingsboardException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        for (ThrowingRunnable sendEventsCallback : sendEventsCallbacks) {
-            try {
-                sendEventsCallback.run();
-            } catch (Exception e) {
-                log.error("Failed to send events for entity", e);
-            }
-        }
-    }
-
     public EntityId getInternalId(EntityId externalId) {
-        return externalToInternalIdMap.get(externalId);
+        var result = externalToInternalIdMap.get(externalId);
+        log.debug("[{}][{}] Local cache {} for id", externalId.getEntityType(), externalId.getId(), result != null ? "hit" : "miss");
+        return result;
     }
 
     public void putInternalId(EntityId externalId, EntityId internalId) {
+        log.debug("[{}][{}] Local cache put: {}", externalId.getEntityType(), externalId.getId(), internalId);
         externalToInternalIdMap.put(externalId, internalId);
     }
 
@@ -162,5 +148,18 @@ public class EntitiesImportCtx {
     public void addRelations(Collection<EntityRelation> values) {
         relations.addAll(values);
     }
+
+    public void addReferenceCallback(ThrowingRunnable tr) {
+        if (tr != null) {
+            referenceCallbacks.add(tr);
+        }
+    }
+
+    public void addEventCallback(ThrowingRunnable tr) {
+        if (tr != null) {
+            eventCallbacks.add(tr);
+        }
+    }
+
 
 }
