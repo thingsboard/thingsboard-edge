@@ -129,6 +129,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected ObjectMapper mapper = new ObjectMapper();
 
     protected static final String TEST_TENANT_NAME = "TEST TENANT";
+    protected static final String TEST_DIFFERENT_TENANT_NAME = "TEST DIFFERENT TENANT";
 
     protected static final String SYS_ADMIN_EMAIL = "sysadmin@thingsboard.org";
     private static final String SYS_ADMIN_PASSWORD = "sysadmin";
@@ -304,7 +305,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             loginSysAdmin();
 
             Tenant tenant = new Tenant();
-            tenant.setTitle("Different tenant");
+            tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
             savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
             differentTenantId = savedDifferentTenant.getId();
             Assert.assertNotNull(savedDifferentTenant);
@@ -321,13 +322,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         if (savedDifferentCustomer != null) {
             login(savedDifferentCustomer.getEmail(), CUSTOMER_USER_PASSWORD);
         } else {
-            loginTenantAdmin();
+            createDifferentCustomer();
 
-            Customer customer = new Customer();
-            customer.setTitle("Different customer");
-            savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
-            differentCustomerId = savedDifferentCustomer.getId();
-            Assert.assertNotNull(savedDifferentCustomer);
+            loginTenantAdmin();
             User differentCustomerUser = new User();
             differentCustomerUser.setAuthority(Authority.CUSTOMER_USER);
             differentCustomerUser.setTenantId(tenantId);
@@ -336,6 +333,18 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
             createUserAndLogin(differentCustomerUser, DIFFERENT_CUSTOMER_USER_PASSWORD);
         }
+    }
+
+    protected void createDifferentCustomer() throws Exception {
+        loginTenantAdmin();
+
+        Customer customer = new Customer();
+        customer.setTitle("Different customer");
+        savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
+        Assert.assertNotNull(savedDifferentCustomer);
+        differentCustomerId = savedDifferentCustomer.getId();
+
+        logout();
     }
 
     protected void deleteDifferentTenant() throws Exception {
