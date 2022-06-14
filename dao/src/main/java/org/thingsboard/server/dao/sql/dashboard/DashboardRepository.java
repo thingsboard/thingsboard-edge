@@ -60,4 +60,7 @@ public interface DashboardRepository extends JpaRepository<DashboardEntity, UUID
                                               @Param("customerId") UUID customerId,
                                               Pageable pageable);
 
+    @Query("SELECT externalId FROM DashboardEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

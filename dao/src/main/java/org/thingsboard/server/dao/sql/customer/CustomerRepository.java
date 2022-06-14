@@ -89,4 +89,8 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
                                               Pageable pageable);
 
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT externalId FROM CustomerEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

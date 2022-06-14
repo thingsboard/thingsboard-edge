@@ -132,4 +132,8 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
     Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                               @Param("customerId") UUID customerId,
                                               Pageable pageable);
+
+    @Query("SELECT externalId FROM AssetEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }
