@@ -202,6 +202,10 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     return this.entityForm ? this.entityForm.value.remote : false;
   }
 
+  get isEdgeTemplate(): boolean {
+    return this.integrationScope === 'edge' || this.integrationScope === 'edges';
+  }
+
   updateForm(entity: Integration) {
     this.entityForm.patchValue({ name: entity.name });
     this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });

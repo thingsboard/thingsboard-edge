@@ -3238,7 +3238,8 @@
         "unassign-integration-from-edge-text": "After the confirmation the integration will be unassigned and won't be accessible by the edge.",
         "unassign-integrations-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 integration} other {# integrations} }?",
         "unassign-integrations-from-edge-text": "After the confirmation all selected integrations will be unassigned and won't be accessible by the edge.",
-        "unassign-integrations": "Unassign integrations"
+        "unassign-integrations": "Unassign integrations",
+        "edge-placeholder-hint": "You can use placeholder ${{ATTRIBUTE_KEY}} to substitute integration field with attribute value from specific Edge entity. For example, 'Edge A' has attribute 'baseUrl' that equals to 'http://localhost:9999'. You can set ${{baseUrl}} as one of the integration fields, and it is going to be replaced to 'http://localhost:9999' during the assignment of this integration to 'Edge A'. Additionally, if 'Edge A' attribute 'baseUrl' is going to be updated - integration with new updated value is going to be automatically provisioned to 'Edge A'."
     },
     "item": {
         "selected": "Selected"
