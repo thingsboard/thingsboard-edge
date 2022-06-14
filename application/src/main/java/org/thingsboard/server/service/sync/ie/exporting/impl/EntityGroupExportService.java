@@ -75,6 +75,13 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
     }
 
     @Override
+    protected void setRelatedEntities(TenantId tenantId, EntityGroup entityGroup, EntityGroupExportData exportData, EntityExportSettings settings) {
+        if (entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+            entityGroup.setOwnerId(getExternalIdOrElseInternal(entityGroup.getOwnerId()));
+        }
+    }
+
+    @Override
     protected EntityGroupExportData newExportData() {
         return new EntityGroupExportData();
     }

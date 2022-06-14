@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -134,6 +135,12 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     @Override
     public PageData<Role> findByTenantId(UUID tenantId, PageLink pageLink) {
         return findRolesByTenantId(tenantId, pageLink);
+    }
+
+    @Override
+    public RoleId getExternalIdByInternal(RoleId internalId) {
+        return Optional.ofNullable(roleRepository.getExternalIdById(internalId.getId()))
+                .map(RoleId::new).orElse(null);
     }
 
     @Override

@@ -155,6 +155,12 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
+    public EntityGroupId getExternalIdByInternal(EntityGroupId internalId) {
+        return Optional.ofNullable(entityGroupRepository.getExternalIdById(internalId.getId()))
+                .map(EntityGroupId::new).orElse(null);
+    }
+
+    @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
     }

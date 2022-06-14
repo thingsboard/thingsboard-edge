@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
@@ -46,7 +47,7 @@ import java.util.UUID;
  * The Interface ConverterDao.
  *
  */
-public interface ConverterDao extends Dao<Converter>, TenantEntityDao, ExportableEntityDao<Converter> {
+public interface ConverterDao extends Dao<Converter>, TenantEntityDao, ExportableEntityDao<ConverterId, Converter> {
 
     /**
      * Find converters by tenantId and page link.

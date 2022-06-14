@@ -30,12 +30,11 @@
  */
 package org.thingsboard.server.service.sync.ie.exporting.impl;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -44,16 +43,16 @@ import java.util.Set;
 
 @Service
 @TbCoreComponent
-public class DashboardExportService extends BaseEntityExportService<DashboardId, Dashboard, EntityExportData<Dashboard>> {
+public class RoleExportService extends BaseEntityExportService<RoleId, Role, EntityExportData<Role>> {
 
     @Override
-    protected void setRelatedEntities(TenantId tenantId, Dashboard dashboard, EntityExportData<Dashboard> exportData, EntityExportSettings settings) {
-        dashboard.setCustomerId(getExternalIdOrElseInternal(dashboard.getCustomerId()));
+    protected void setRelatedEntities(TenantId tenantId, Role role, EntityExportData<Role> exportData, EntityExportSettings settings) {
+        role.setCustomerId(getExternalIdOrElseInternal(role.getCustomerId()));
     }
 
     @Override
     public Set<EntityType> getSupportedEntityTypes() {
-        return Set.of(EntityType.DASHBOARD);
+        return Set.of(EntityType.ROLE);
     }
 
 }

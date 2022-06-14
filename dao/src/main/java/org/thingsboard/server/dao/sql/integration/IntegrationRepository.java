@@ -59,4 +59,7 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
 
     List<IntegrationEntity> findByTenantIdAndName(UUID tenantId, String name);
 
+    @Query("SELECT externalId FROM IntegrationEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

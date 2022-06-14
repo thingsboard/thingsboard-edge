@@ -28,61 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.service.sync.ie.exporting.impl;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
-import org.thingsboard.server.dao.TenantEntityDao;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Set;
 
-/**
- * The Interface IntegrationDao.
- *
- */
-public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, ExportableEntityDao<IntegrationId, Integration> {
+@Service
+@TbCoreComponent
+public class IntegrationExportService extends BaseEntityExportService<IntegrationId, Integration, EntityExportData<Integration>> {
 
-    /**
-     * Find integrations by tenantId and page link.
-     *
-     * @param tenantId the tenantId
-     * @param pageLink the page link
-     * @return the list of integration objects
-     */
-    PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink);
+    @Override
+    protected void setRelatedEntities(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, EntityExportSettings settings) {
+        integration.setDefaultConverterId(getExternalIdOrElseInternal(integration.getDefaultConverterId()));
+        integration.setDownlinkConverterId(getExternalIdOrElseInternal(integration.getDownlinkConverterId()));
+    }
 
-    /**
-     * Find integrations by routing Key.
-     *
-     * @param routingKey the integration routingKey
-     * @return the optional integration object
-     */
-    Optional<Integration> findByRoutingKey(UUID tenantId, String routingKey);
-
-    /**
-     * Find integrations by converterId.
-     *
-     * @param converterId the converterId
-     * @return the list of integration objects
-     */
-    List<Integration> findByConverterId(UUID tenantId, UUID converterId);
-
-    /**
-     * Find integrations by tenantId and integration Ids.
-     *
-     * @param tenantId the tenantId
-     * @param integrationIds the integration Ids
-     * @return the list of integration objects
-     */
-    ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
-
-    List<Integration> findTenantIntegrationsByName(UUID tenantId, String name);
+    @Override
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.INTEGRATION);
+    }
 
 }
