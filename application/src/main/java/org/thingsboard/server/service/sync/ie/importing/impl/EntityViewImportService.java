@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -65,8 +65,7 @@ public class EntityViewImportService extends BaseGroupEntityImportService<Entity
 
     @Override
     protected void onEntitySaved(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException {
-        entityNotificationService.notifyCreateOrUpdateEntity(user.getTenantId(), savedEntityView.getId(), savedEntityView,
-                null, oldEntityView == null ? ActionType.ADDED : ActionType.UPDATED, user);
+        super.onEntitySaved(user, savedEntityView, oldEntityView);
     }
 
     @Override
