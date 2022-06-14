@@ -138,10 +138,10 @@ async function generateDashboardReport(browser, url, type, timezone) {
         await page.emulateMediaType('screen');
 
         const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
-        if (dashboardLoadResponse._status < 400) {
+        if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
             await page.waitForTimeout(dashboardLoadWaitTime);
         } else {
-            throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse._status);
+            throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse.status());
         }
 
         const toEval = "var height = 0;\n" +
