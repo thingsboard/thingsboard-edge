@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -54,6 +55,8 @@ public interface RelationService {
     EntityRelation getRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup);
 
     boolean saveRelation(TenantId tenantId, EntityRelation relation);
+
+    void saveRelations(TenantId tenantId, List<EntityRelation> relations);
 
     ListenableFuture<Boolean> saveRelationAsync(TenantId tenantId, EntityRelation relation);
 

@@ -48,7 +48,9 @@ import org.thingsboard.server.dao.model.sql.RelationEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Valerii Sosliuk on 5/29/2017.
@@ -125,6 +127,12 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     @Override
     public boolean saveRelation(TenantId tenantId, EntityRelation relation) {
         return relationInsertRepository.saveOrUpdate(new RelationEntity(relation)) != null;
+    }
+
+    @Override
+    public void saveRelations(TenantId tenantId, Collection<EntityRelation> relations) {
+        List<RelationEntity> entities = relations.stream().map(RelationEntity::new).collect(Collectors.toList());
+        relationInsertRepository.saveOrUpdate(entities);
     }
 
     @Override

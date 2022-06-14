@@ -36,13 +36,16 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.common.data.sync.vc.EntityTypeLoadResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +62,7 @@ public class EntitiesImportCtx {
     private final List<ThrowingRunnable> saveReferencesCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> sendEventsCallbacks = new ArrayList<>();
     private final Map<EntityId, EntityId> externalToInternalIdMap = new HashMap<>();
+    private final Set<EntityRelation> relations = new LinkedHashSet<>();
 
     private EntityImportSettings settings;
 
@@ -154,4 +158,9 @@ public class EntitiesImportCtx {
             result.setDeleted(result.getDeleted() + 1);
         }
     }
+
+    public void addRelations(Collection<EntityRelation> values) {
+        relations.addAll(values);
+    }
+
 }
