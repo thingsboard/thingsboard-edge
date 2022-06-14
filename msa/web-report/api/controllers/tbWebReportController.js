@@ -141,7 +141,8 @@ async function generateDashboardReport(browser, url, type, timezone) {
         if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
             await page.waitForTimeout(dashboardLoadWaitTime);
         } else {
-            throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse.status());
+            const status = dashboardLoadResponse && dashboardLoadResponse.status() || 'null';
+            throw new Error(`Dashboard page load returned error status: ${status}`);
         }
 
         const toEval = "var height = 0;\n" +
