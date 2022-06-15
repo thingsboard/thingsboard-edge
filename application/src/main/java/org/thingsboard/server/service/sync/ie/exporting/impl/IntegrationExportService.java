@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.Set;
 
@@ -48,7 +49,7 @@ import java.util.Set;
 public class IntegrationExportService extends BaseEntityExportService<IntegrationId, Integration, EntityExportData<Integration>> {
 
     @Override
-    protected void setRelatedEntities(TenantId tenantId, Integration integration, EntityExportData<Integration> exportData, EntityExportSettings settings) {
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Integration integration, EntityExportData<Integration> exportData) {
         integration.setDefaultConverterId(getExternalIdOrElseInternal(integration.getDefaultConverterId()));
         integration.setDownlinkConverterId(getExternalIdOrElseInternal(integration.getDownlinkConverterId()));
     }

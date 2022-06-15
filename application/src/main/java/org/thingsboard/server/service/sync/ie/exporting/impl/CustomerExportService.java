@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.Set;
 
@@ -46,7 +47,7 @@ import java.util.Set;
 public class CustomerExportService extends BaseEntityExportService<CustomerId, Customer, EntityExportData<Customer>> {
 
     @Override
-    protected void setRelatedEntities(TenantId tenantId, Customer customer, EntityExportData<Customer> exportData, EntityExportSettings settings) {
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Customer customer, EntityExportData<Customer> exportData) {
         customer.setParentCustomerId(getExternalIdOrElseInternal(customer.getParentCustomerId()));
     }
 

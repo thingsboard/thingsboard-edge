@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.Set;
 
@@ -47,8 +48,13 @@ import java.util.Set;
 public class DashboardExportService extends BaseEntityExportService<DashboardId, Dashboard, EntityExportData<Dashboard>> {
 
     @Override
-    protected void setRelatedEntities(TenantId tenantId, Dashboard dashboard, EntityExportData<Dashboard> exportData, EntityExportSettings settings) {
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Dashboard dashboard, EntityExportData<Dashboard> exportData) {
         dashboard.setCustomerId(getExternalIdOrElseInternal(dashboard.getCustomerId()));
+        if (CollectionUtils.isNotEmpty(dashboard.getAssignedCustomers())) {
+            dashboard.getAssignedCustomers().forEach(customerInfo -> {
+                customerInfo.setCustomerId(getExternalIdOrElseInternal(customerInfo.getCustomerId()));
+            });
+        }
     }
 
     @Override

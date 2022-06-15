@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.Set;
 
@@ -46,7 +47,7 @@ import java.util.Set;
 public class RoleExportService extends BaseEntityExportService<RoleId, Role, EntityExportData<Role>> {
 
     @Override
-    protected void setRelatedEntities(TenantId tenantId, Role role, EntityExportData<Role> exportData, EntityExportSettings settings) {
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Role role, EntityExportData<Role> exportData) {
         role.setCustomerId(getExternalIdOrElseInternal(role.getCustomerId()));
     }
 

@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.Set;
 
@@ -46,7 +47,7 @@ import java.util.Set;
 public class DeviceProfileExportService extends BaseEntityExportService<DeviceProfileId, DeviceProfile, EntityExportData<DeviceProfile>> {
 
     @Override
-    protected void setRelatedEntities(TenantId tenantId, DeviceProfile deviceProfile, EntityExportData<DeviceProfile> exportData, EntityExportSettings settings) {
+    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, DeviceProfile deviceProfile, EntityExportData<DeviceProfile> exportData) {
         deviceProfile.setDefaultDashboardId(getExternalIdOrElseInternal(deviceProfile.getDefaultDashboardId()));
         deviceProfile.setDefaultRuleChainId(getExternalIdOrElseInternal(deviceProfile.getDefaultRuleChainId()));
     }
