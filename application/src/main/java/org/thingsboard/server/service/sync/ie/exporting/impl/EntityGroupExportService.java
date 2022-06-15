@@ -61,8 +61,9 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
     private final RoleService roleService;
 
     @Override
-    protected void setAdditionalExportData(EntitiesExportCtx ctx, EntityGroup entityGroup, EntityGroupExportData exportData, EntityExportSettings exportSettings) throws ThingsboardException {
-        super.setAdditionalExportData(ctx, entityGroup, exportData, exportSettings);
+    protected void setAdditionalExportData(EntitiesExportCtx<?> ctx, EntityGroup entityGroup, EntityGroupExportData exportData) throws ThingsboardException {
+        super.setAdditionalExportData(ctx, entityGroup, exportData);
+        var exportSettings = ctx.getSettings();
         exportData.setGroupEntities(exportSettings.isExportGroupEntities());
         if (exportSettings.isExportPermissions() && entityGroup.getType() == EntityType.USER) {
             List<GroupPermission> permissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(ctx.getTenantId(), entityGroup.getId()).stream()

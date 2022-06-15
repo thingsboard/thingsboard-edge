@@ -61,7 +61,7 @@ public abstract class EntitiesExportCtx<R extends VersionCreateRequest> {
         this.exportRelatedEntities = exportRelatedEntities;
     }
 
-    public <T extends R> EntitiesExportCtx(EntitiesExportCtx<T> other) {
+    protected <T extends R> EntitiesExportCtx(EntitiesExportCtx<T> other) {
         this.user = other.getUser();
         this.commit = other.getCommit();
         this.request = other.getRequest();

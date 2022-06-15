@@ -41,8 +41,11 @@ public class SimpleEntitiesExportCtx extends EntitiesExportCtx<SingleEntityVersi
     private final EntityExportSettings settings;
 
     public SimpleEntitiesExportCtx(SecurityUser user, CommitGitRequest commit, SingleEntityVersionCreateRequest request) {
-        super(user, commit, request, true, true);
-        this.settings = request != null ? buildExportSettings(request.getConfig()) : null;
+        this(user, commit, request, request != null ? buildExportSettings(request.getConfig()) : null);
     }
 
+    public SimpleEntitiesExportCtx(SecurityUser user, CommitGitRequest commit, SingleEntityVersionCreateRequest request, EntityExportSettings settings) {
+        super(user, commit, request, true, true);
+        this.settings = settings;
+    }
 }

@@ -49,8 +49,8 @@ import java.util.Set;
 public class DefaultGroupEntityExportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityExportService<I, E, D> {
 
     @Override
-    protected final void setAdditionalExportData(EntitiesExportCtx ctx, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
-        super.setAdditionalExportData(ctx, entity, exportData, exportSettings);
+    protected final void setAdditionalExportData(EntitiesExportCtx<?> ctx, E entity, D exportData) throws ThingsboardException {
+        super.setAdditionalExportData(ctx, entity, exportData);
     }
 
     @Override

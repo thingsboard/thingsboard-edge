@@ -74,7 +74,7 @@ public class DefaultEntityExportService<I extends EntityId, E extends Exportable
     protected AttributesService attributesService;
 
     @Override
-    public final D getExportData(EntitiesExportCtx<?> ctx, I entityId, EntityExportSettings exportSettings) throws ThingsboardException {
+    public final D getExportData(EntitiesExportCtx<?> ctx, I entityId) throws ThingsboardException {
         D exportData = newExportData();
 
         E entity = exportableEntitiesService.findEntityByTenantIdAndId(ctx.getTenantId(), entityId);
@@ -84,12 +84,13 @@ public class DefaultEntityExportService<I extends EntityId, E extends Exportable
 
         exportData.setEntity(entity);
         exportData.setEntityType(entityId.getEntityType());
-        setAdditionalExportData(ctx, entity, exportData, exportSettings);
+        setAdditionalExportData(ctx, entity, exportData);
 
         return exportData;
     }
 
-    protected void setAdditionalExportData(EntitiesExportCtx<?> ctx, E entity, D exportData, EntityExportSettings exportSettings) throws ThingsboardException {
+    protected void setAdditionalExportData(EntitiesExportCtx<?> ctx, E entity, D exportData) throws ThingsboardException {
+        var exportSettings = ctx.getSettings();
         if (exportSettings.isExportRelations()) {
             List<EntityRelation> relations = exportRelations(ctx, entity);
             exportData.setRelations(relations);

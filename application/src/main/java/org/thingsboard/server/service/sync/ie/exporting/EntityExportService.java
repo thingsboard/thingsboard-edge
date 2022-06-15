@@ -40,6 +40,6 @@ import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 public interface EntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> {
 
-    D getExportData(EntitiesExportCtx<?> ctx, I entityId, EntityExportSettings exportSettings) throws ThingsboardException;
+    D getExportData(EntitiesExportCtx<?> ctx, I entityId) throws ThingsboardException;
 
 }
