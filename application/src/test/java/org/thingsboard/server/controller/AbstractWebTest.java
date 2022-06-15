@@ -91,11 +91,6 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.queue.ProcessingStrategy;
-import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
-import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.queue.SubmitStrategy;
-import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
@@ -161,9 +156,12 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected TenantId tenantId;
     protected UserId tenantAdminUserId;
+    protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected TenantId differentTenantId;
     protected CustomerId differentCustomerId;
+    protected UserId customerUserId;
+    protected UserId customerAdminUserId;
 
     @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
@@ -228,6 +226,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
         tenantAdmin = createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
         tenantAdminUserId = tenantAdmin.getId();
+        tenantAdminCustomerId = tenantAdmin.getCustomerId();
 
         Customer customer = new Customer();
         customer.setTitle("Customer");
@@ -241,7 +240,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         customerUser.setCustomerId(savedCustomer.getId());
         customerUser.setEmail(CUSTOMER_USER_EMAIL);
 
-        createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUser = createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUserId = customerUser.getId();
 
         logout();
 

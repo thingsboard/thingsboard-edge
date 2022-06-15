@@ -362,7 +362,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         return null;
     }
 
-    private EdgeEventActionType edgeTypeByActionType(ActionType actionType) {
+    public static EdgeEventActionType edgeTypeByActionType(ActionType actionType) {
         switch (actionType) {
             case ADDED:
                 return EdgeEventActionType.ADDED;
