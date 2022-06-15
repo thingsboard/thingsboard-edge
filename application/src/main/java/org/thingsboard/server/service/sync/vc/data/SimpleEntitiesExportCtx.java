@@ -44,4 +44,5 @@ public class SimpleEntitiesExportCtx extends EntitiesExportCtx<SingleEntityVersi
         super(user, commit, request, true, true);
         this.settings = request != null ? buildExportSettings(request.getConfig()) : null;
     }
+
 }

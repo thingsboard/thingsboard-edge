@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class EntitiesExportCtx<R extends VersionCreateRequest> {
+public abstract class EntitiesExportCtx<R extends VersionCreateRequest> {
 
     protected final SecurityUser user;
     protected final CommitGitRequest commit;
@@ -87,4 +87,6 @@ public class EntitiesExportCtx<R extends VersionCreateRequest> {
                 .exportPermissions(config.isSavePermissions())
                 .build();
     }
+
+    public abstract EntityExportSettings getSettings();
 }

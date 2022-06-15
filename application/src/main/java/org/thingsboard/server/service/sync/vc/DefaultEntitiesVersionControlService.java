@@ -81,7 +81,6 @@ import org.thingsboard.server.common.data.sync.vc.request.create.ComplexVersionC
 import org.thingsboard.server.common.data.sync.vc.request.create.EntityTypeVersionCreateConfig;
 import org.thingsboard.server.common.data.sync.vc.request.create.SingleEntityVersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.create.SyncStrategy;
-import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateConfig;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.EntityTypeVersionLoadRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.SingleEntityVersionLoadRequest;
@@ -231,11 +230,11 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     //For Entity Types that belong to Tenant Level Only.
                     DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink)
                             , 100, entity -> {
-                                saveEntityData(ctx, entity.getId(), config);
+                                saveEntityData(ctx, entity.getId());
                             });
                 } else {
                     for (UUID entityId : config.getEntityIds()) {
-                        saveEntityData(ctx, EntityIdFactory.getByTypeAndUuid(entityType, entityId), config);
+                        saveEntityData(ctx, EntityIdFactory.getByTypeAndUuid(entityType, entityId));
                     }
                 }
             }
@@ -317,12 +316,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @SneakyThrows
-    private void saveEntityData(EntitiesExportCtx<?> ctx, EntityId entityId, VersionCreateConfig config) {
-        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx, entityId, EntityExportSettings.builder()
-                .exportRelations(config.isSaveRelations())
-                .exportAttributes(config.isSaveAttributes())
-                .exportCredentials(config.isSaveCredentials())
-                .build());
+    private void saveEntityData(EntitiesExportCtx<?> ctx, EntityId entityId) {
+        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx, entityId, ctx.getSettings());
         ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), entityData));
     }
 

@@ -50,4 +50,9 @@ public class ComplexEntitiesExportCtx extends EntitiesExportCtx<ComplexVersionCr
     public EntityExportSettings getSettings(EntityType entityType) {
         return settings.get(entityType);
     }
+
+    @Override
+    public EntityExportSettings getSettings() {
+        throw new RuntimeException("Not implemented. Use EntityTypeExportCtx instead!");
+    }
 }
