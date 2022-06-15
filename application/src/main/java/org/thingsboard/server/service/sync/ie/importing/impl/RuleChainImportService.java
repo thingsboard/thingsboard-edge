@@ -50,7 +50,9 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 import org.thingsboard.server.utils.RegexUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,6 +60,8 @@ import java.util.UUID;
 @TbCoreComponent
 @RequiredArgsConstructor
 public class RuleChainImportService extends BaseEntityImportService<RuleChainId, RuleChain, RuleChainExportData> {
+
+    private static final LinkedHashSet<EntityType> HINTS = new LinkedHashSet<>(Arrays.asList(EntityType.RULE_CHAIN, EntityType.DEVICE, EntityType.ASSET));
 
     private final RuleChainService ruleChainService;
 
@@ -82,10 +86,9 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
                 .forEach(ruleNode -> {
                     ruleNode.setId(null);
                     ruleNode.setRuleChainId(null);
-
                     JsonNode ruleNodeConfig = ruleNode.getConfiguration();
                     String newRuleNodeConfigJson = RegexUtils.replace(ruleNodeConfig.toString(), RegexUtils.UUID_PATTERN, uuid -> {
-                        return idProvider.getInternalIdByUuid(UUID.fromString(uuid))
+                        return idProvider.getInternalIdByUuid(UUID.fromString(uuid), ctx.isFetchAllUUIDs(), HINTS)
                                 .map(entityId -> entityId.getId().toString())
                                 .orElse(uuid);
                     });

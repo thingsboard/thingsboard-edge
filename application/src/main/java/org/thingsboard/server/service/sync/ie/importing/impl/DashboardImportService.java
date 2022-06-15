@@ -47,12 +47,16 @@ import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 import org.thingsboard.server.utils.RegexUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
 public class DashboardImportService extends BaseGroupEntityImportService<DashboardId, Dashboard, GroupEntityExportData<Dashboard>> {
+
+    private static final LinkedHashSet<EntityType> HINTS = new LinkedHashSet<>(Arrays.asList(EntityType.DASHBOARD, EntityType.DEVICE, EntityType.ASSET));
 
     private final DashboardService dashboardService;
 
@@ -82,7 +86,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
                     if (field.equals("id")) continue;
                     JsonNode oldFieldValue = entityAlias.get(field);
                     JsonNode newFieldValue = JacksonUtil.toJsonNode(RegexUtils.replace(oldFieldValue.toString(), RegexUtils.UUID_PATTERN, uuid -> {
-                        return idProvider.getInternalIdByUuid(UUID.fromString(uuid))
+                        return idProvider.getInternalIdByUuid(UUID.fromString(uuid), ctx.isFetchAllUUIDs(), HINTS)
                                 .map(entityId -> entityId.getId().toString()).orElse(uuid);
                     }));
                     ((ObjectNode) entityAlias).set(field, newFieldValue);

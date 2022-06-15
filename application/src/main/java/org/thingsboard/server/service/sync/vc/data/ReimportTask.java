@@ -28,23 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.ie;
+package org.thingsboard.server.service.sync.vc.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.sync.ie.EntityExportData;
+import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class EntityImportSettings {
-    private boolean findExistingByName;
-    private boolean updateRelations;
-    private boolean saveAttributes;
-    private boolean saveCredentials;
-    private boolean saveUserGroupPermissions;
-    private boolean autoGenerateIntegrationKey;
+public class ReimportTask {
+
+    private final EntityExportData data;
+    private final EntityImportSettings settings;
 
 }
