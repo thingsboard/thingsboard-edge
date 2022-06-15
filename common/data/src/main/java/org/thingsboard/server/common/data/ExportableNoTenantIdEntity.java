@@ -34,16 +34,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-public interface ExportableEntity<I extends EntityId> extends HasId<I>, HasName {
+public interface ExportableNoTenantIdEntity<I extends EntityId> extends ExportableEntity<I> {
 
-    void setId(I id);
-
-    I getExternalId();
-    void setExternalId(I externalId);
-
-    long getCreatedTime();
-    void setCreatedTime(long createdTime);
-
-    void setTenantId(TenantId tenantId);
+    default void setTenantId(TenantId tenantId){};
 
 }

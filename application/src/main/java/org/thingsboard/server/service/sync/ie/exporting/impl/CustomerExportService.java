@@ -48,7 +48,7 @@ public class CustomerExportService extends BaseEntityExportService<CustomerId, C
 
     @Override
     protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Customer customer, EntityExportData<Customer> exportData) {
-        customer.setParentCustomerId(getExternalIdOrElseInternal(customer.getParentCustomerId()));
+        customer.setParentCustomerId(getExternalIdOrElseInternal(ctx, customer.getParentCustomerId()));
     }
 
     @Override

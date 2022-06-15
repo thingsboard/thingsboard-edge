@@ -48,7 +48,7 @@ public class RoleExportService extends BaseEntityExportService<RoleId, Role, Ent
 
     @Override
     protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Role role, EntityExportData<Role> exportData) {
-        role.setCustomerId(getExternalIdOrElseInternal(role.getCustomerId()));
+        role.setCustomerId(getExternalIdOrElseInternal(ctx, role.getCustomerId()));
     }
 
     @Override

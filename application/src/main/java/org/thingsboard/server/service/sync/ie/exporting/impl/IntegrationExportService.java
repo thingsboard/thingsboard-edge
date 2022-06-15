@@ -50,8 +50,8 @@ public class IntegrationExportService extends BaseEntityExportService<Integratio
 
     @Override
     protected void setRelatedEntities(EntitiesExportCtx<?> ctx, Integration integration, EntityExportData<Integration> exportData) {
-        integration.setDefaultConverterId(getExternalIdOrElseInternal(integration.getDefaultConverterId()));
-        integration.setDownlinkConverterId(getExternalIdOrElseInternal(integration.getDownlinkConverterId()));
+        integration.setDefaultConverterId(getExternalIdOrElseInternal(ctx, integration.getDefaultConverterId()));
+        integration.setDownlinkConverterId(getExternalIdOrElseInternal(ctx, integration.getDownlinkConverterId()));
     }
 
     @Override

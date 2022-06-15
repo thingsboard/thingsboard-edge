@@ -284,7 +284,13 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         List<CustomerId> parents = new ArrayList<>(task.getParents());
         CustomerId customerId = EntityType.CUSTOMER.equals(task.getOwnerId().getEntityType()) ? new CustomerId(task.getOwnerId().getId()) : null;
         if (customerId != null) {
-            parents.add(customerId);
+            CustomerId externalCustomerId = ctx.getExternalId(customerId);
+            if (externalCustomerId == null) {
+                Customer customer = customerService.findCustomerById(ctx.getTenantId(), customerId);
+                externalCustomerId = customer.getExternalId() != null ? customer.getExternalId() : customerId;
+                ctx.putExternalId(customerId, externalCustomerId);
+            }
+            parents.add(externalCustomerId);
         }
         for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
             EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
@@ -387,6 +393,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             return result;
         } catch (LoadEntityException e) {
             return onError(e.getExternalId(), e.getCause());
+        } catch (Exception e) {
+            log.info("[{}] Failed to process request [{}] due to: ", user.getTenantId(), vlr, e);
+            throw e;
         }
     }
 
@@ -569,8 +578,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         ownerIds = getCustomerExternalIds(ctx.getTenantId(), savedGroup.getId(), savedGroup);
                         ownersCache.put(savedGroup.getOwnerId(), ownerIds);
                     }
-                    List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
-                    createGroupRelations(ctx, savedGroup.getId(), allGroupEntityIds);
+                    try {
+                        List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
+                        createGroupRelations(ctx, savedGroup.getId(), allGroupEntityIds);
+                    } catch (Exception e) {
+                        throw e;
+                    }
                 }
             }
             offset += limit;
