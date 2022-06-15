@@ -551,7 +551,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
         return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, name);
+                parentEntityId.getEntityType(), relationType, groupType, name);
     }
 
     @Override
@@ -559,7 +559,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.warn("Executing findEntityGroupByTypeAndNameAsync, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
         return this.entityGroupDao.findEntityGroupByTypeAndNameAsync(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, name);
+                parentEntityId.getEntityType(), relationType, groupType, name);
     }
 
     private String validateAndComposeRelationType(EntityId parentEntityId, EntityType groupType, String name) {
@@ -934,32 +934,24 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
         @Override
         protected void validateCreate(TenantId tenantId, EntityGroup entityGroup) {
-            try {
-                findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
-                        d -> {
-                            throw new DataValidationException("Entity group with such name already present in " +
-                                    this.parentEntityId.getEntityType().toString() + "!");
-                        }
-                );
-            } catch (Exception e) {
-                log.error("Unable to validate creation of entity group.", e);
-            }
+            findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
+                    d -> {
+                        throw new DataValidationException("Entity group with such name already present in " +
+                                this.parentEntityId.getEntityType().toString() + "!");
+                    }
+            );
         }
 
         @Override
         protected EntityGroup validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
-            try {
-                findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
-                        d -> {
-                            if (!d.getId().equals(entityGroup.getId())) {
-                                throw new DataValidationException("Entity group with such name already present in " +
-                                        this.parentEntityId.getEntityType().toString() + "!");
-                            }
+            findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
+                    d -> {
+                        if (!d.getId().equals(entityGroup.getId())) {
+                            throw new DataValidationException("Entity group with such name already present in " +
+                                    this.parentEntityId.getEntityType().toString() + "!");
                         }
-                );
-            } catch (Exception e) {
-                log.error("Unable to validate update of entity group.", e);
-            }
+                    }
+            );
             return entityGroupDao.findById(tenantId, entityGroup.getId().getId());
         }
 
