@@ -61,7 +61,6 @@ public class EntitiesImportCtx {
     private final List<ThrowingRunnable> referenceCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> eventCallbacks = new ArrayList<>();
     private final Map<EntityId, EntityId> externalToInternalIdMap = new HashMap<>();
-    private final Map<EntityId, EntityId> internalToExternalIdMap = new HashMap<>();
 
     private final Set<EntityRelation> relations = new LinkedHashSet<>();
 
@@ -115,16 +114,9 @@ public class EntitiesImportCtx {
         return result;
     }
 
-    public EntityId getExternalId(EntityId internalId) {
-        var result = internalToExternalIdMap.get(internalId);
-        log.debug("[{}][{}] Local external id cache {} for id", internalId.getEntityType(), internalId.getId(), result != null ? "hit" : "miss");
-        return result;
-    }
-
     public void putInternalId(EntityId externalId, EntityId internalId) {
         log.debug("[{}][{}] Local cache put: {}", externalId.getEntityType(), externalId.getId(), internalId);
         externalToInternalIdMap.put(externalId, internalId);
-        internalToExternalIdMap.put(internalId, externalId);
     }
 
     public void registerResult(EntityType entityType, boolean isGroup, boolean created) {

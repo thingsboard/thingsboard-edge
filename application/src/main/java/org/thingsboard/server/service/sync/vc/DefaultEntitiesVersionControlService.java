@@ -253,7 +253,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             List<EntityId> groupEntityIds = new ArrayList<>();
             for (EntityId groupEntityId : entityIdsIterator) {
                 if (!group.isGroupAll()) {
-                    groupEntityIds.add(groupEntityId);
+                    groupEntityIds.add(exportableEntitiesService.getExternalIdByInternal(groupEntityId));
                 }
                 if (ctx.isExportRelatedEntities()) {
                     EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(ctx, groupEntityId);
@@ -292,21 +292,6 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
             parents.add(externalCustomerId);
         }
-        for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
-            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
-            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
-            if (!group.isGroupAll()) {
-                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
-                        link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
-                List<EntityId> groupEntityIds = new ArrayList<>();
-                for (EntityId groupEntityId : entityIdsIterator) {
-                    if (!group.isGroupAll()) {
-                        groupEntityIds.add(groupEntityId);
-                    }
-                }
-                ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
-            }
-        }
         DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, ctx.getEntityType(), pageLink)
                 , 1024, entityId -> {
                     try {
@@ -316,6 +301,22 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         throw new RuntimeException(e);
                     }
                 });
+        for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
+            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
+            ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
+            if (!group.isGroupAll()) {
+                PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
+                        link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
+                List<EntityId> groupEntityIds = new ArrayList<>();
+                for (EntityId groupEntityId : entityIdsIterator) {
+                    var entityExternalId = ctx.getExternalId(groupEntityId);
+                    if (entityExternalId != null) {
+                        groupEntityIds.add(entityExternalId);
+                    }
+                }
+                ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, group.getType(), entityData.getExternalId(), groupEntityIds));
+            }
+        }
 
         DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, EntityType.CUSTOMER, pageLink)
                 , 1024, cId -> ctx.addTask(new EntityTypeExportTask(parents, cId)));
@@ -555,8 +556,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
+//            long ts = System.currentTimeMillis();
             entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
+//            long getEntities = System.currentTimeMillis() - ts;
             importEntityDataList(ctx, entityType, entityDataList);
+//            long importEntities = System.currentTimeMillis() - ts;
+//            log.info("[{}][{}] Import: get -> {}, import -> {}", entityType, entityDataList.size(), getEntities, importEntities);
             offset += limit;
         } while (entityDataList.size() == limit);
     }
@@ -578,12 +583,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         ownerIds = getCustomerExternalIds(ctx.getTenantId(), savedGroup.getId(), savedGroup);
                         ownersCache.put(savedGroup.getOwnerId(), ownerIds);
                     }
-                    try {
-                        List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
-                        createGroupRelations(ctx, savedGroup.getId(), allGroupEntityIds);
-                    } catch (Exception e) {
-                        throw e;
-                    }
+                    List<EntityId> allGroupEntityIds = gitServiceQueue.getGroupEntityIds(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, savedGroup.getExternalId()).get();
+                    createGroupRelations(ctx, savedGroup.getId(), allGroupEntityIds);
                 }
             }
             offset += limit;

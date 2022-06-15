@@ -598,6 +598,24 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
+        log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        for (EntityId entityId : entityIds) {
+            validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+        }
+        var relations = entityIds.stream().map(entityId -> {
+            EntityRelation entityRelation = new EntityRelation();
+            entityRelation.setFrom(entityGroupId);
+            entityRelation.setTo(entityId);
+            entityRelation.setTypeGroup(RelationTypeGroup.FROM_ENTITY_GROUP);
+            entityRelation.setType(EntityRelation.CONTAINS_TYPE);
+            return entityRelation;
+        }).collect(Collectors.toList());
+        relationService.saveRelations(tenantId, relations);
+    }
+
+    @Override
     public void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
@@ -612,13 +630,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         } catch (Exception e) {
             log.error("Unable to add entity to group All", e);
         }
-    }
-
-    @Override
-    public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
-        log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        entityIds.forEach(entityId -> addEntityToEntityGroup(tenantId, entityGroupId, entityId));
     }
 
     @Override

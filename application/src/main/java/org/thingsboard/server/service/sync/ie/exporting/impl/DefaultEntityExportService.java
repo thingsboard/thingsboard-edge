@@ -153,7 +153,8 @@ public class DefaultEntityExportService<I extends EntityId, E extends Exportable
         return attributes;
     }
 
-    protected <ID extends EntityId> ID getExternalIdOrElseInternal(EntitiesExportCtx<?> ctx, ID internalId) {
+    @Override
+    public <ID extends EntityId> ID getExternalIdOrElseInternal(EntitiesExportCtx<?> ctx, ID internalId) {
         if (internalId == null || internalId.isNullUid()) return internalId;
         var result = ctx.getExternalId(internalId);
         if (result == null) {

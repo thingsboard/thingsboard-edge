@@ -42,4 +42,5 @@ public interface EntityExportService<I extends EntityId, E extends ExportableEnt
 
     D getExportData(EntitiesExportCtx<?> ctx, I entityId) throws ThingsboardException;
 
+    <ID extends EntityId> ID getExternalIdOrElseInternal(EntitiesExportCtx<?> ctx, ID internalId);
 }
