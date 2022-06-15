@@ -37,7 +37,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.UUID;
 
-public interface ExportableCustomerEntityDao<T extends ExportableEntity<I>, I extends EntityId> extends ExportableEntityDao<T> {
+public interface ExportableCustomerEntityDao<T extends ExportableEntity<I>, I extends EntityId> extends ExportableEntityDao<I, T> {
 
     PageData<I> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink);
 

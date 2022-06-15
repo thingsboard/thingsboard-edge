@@ -54,4 +54,8 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
     List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT externalId FROM ConverterEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

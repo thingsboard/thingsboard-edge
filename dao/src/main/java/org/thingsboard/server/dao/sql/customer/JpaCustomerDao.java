@@ -38,7 +38,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -138,6 +137,12 @@ public class JpaCustomerDao extends JpaAbstractSearchTextDao<CustomerEntity, Cus
             page = customerRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));
         }
         return DaoUtil.pageToPageData(page, CustomerId::new);
+    }
+
+    @Override
+    public CustomerId getExternalIdByInternal(CustomerId internalId) {
+        return Optional.ofNullable(customerRepository.getExternalIdById(internalId.getId()))
+                .map(CustomerId::new).orElse(null);
     }
 
     @Override

@@ -327,4 +327,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
             nativeQuery = true)
     Long countByDeviceProfileIdAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
                                                    @Param("deviceProfileId") UUID deviceProfileId);
+
+    @Query("SELECT externalId FROM DeviceEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -43,7 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface RoleDao extends Dao<Role>, ExportableEntityDao<Role> {
+public interface RoleDao extends Dao<Role>, ExportableEntityDao<RoleId, Role> {
 
     Role save(TenantId tenantId, Role role);
 

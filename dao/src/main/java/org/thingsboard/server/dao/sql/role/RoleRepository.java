@@ -65,4 +65,7 @@ public interface RoleRepository extends JpaRepository<RoleEntity, UUID>, Exporta
 
     List<RoleEntity> findRolesByTenantIdAndIdIn(UUID tenantId, List<UUID> roleIds);
 
+    @Query("SELECT externalId FROM RoleEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

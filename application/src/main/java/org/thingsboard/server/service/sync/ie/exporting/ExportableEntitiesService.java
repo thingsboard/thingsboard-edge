@@ -55,6 +55,8 @@ public interface ExportableEntitiesService {
 
     <E extends ExportableEntity<I>, I extends EntityId> PageData<E> findEntitiesByTenantId(TenantId tenantId, EntityType entityType, PageLink pageLink);
 
+    <I extends EntityId> I getExternalIdByInternal(I internalId);
+
     <I extends EntityId> void removeById(TenantId tenantId, I id);
 
     <E extends ExportableEntity<I>, I extends EntityId> PageData<I> findEntityIdsByTenantIdAndCustomerId(TenantId tenantId, EntityId ownerId, EntityType entityType, PageLink pageLink);

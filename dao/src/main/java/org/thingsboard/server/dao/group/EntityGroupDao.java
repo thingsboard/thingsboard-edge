@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroup> {
+public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
     /**
      * Find entity groups by entity group Ids.
      *

@@ -153,4 +153,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
                                               @Param("customerId") UUID customerId,
                                               Pageable pageable);
 
+    @Query("SELECT externalId FROM EntityViewEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

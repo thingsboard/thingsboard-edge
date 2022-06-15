@@ -142,4 +142,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     @Query("SELECT g FROM EntityGroupEntity g WHERE " + TENANT_ID_FILTER)
     Page<EntityGroupEntity> findByTenantId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
+    @Query("SELECT externalId FROM EntityGroupEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

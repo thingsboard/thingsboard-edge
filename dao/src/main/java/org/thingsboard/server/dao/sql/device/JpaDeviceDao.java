@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -298,6 +297,12 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
     @Override
     public PageData<Device> findByTenantId(UUID tenantId, PageLink pageLink) {
         return findDevicesByTenantId(tenantId, pageLink);
+    }
+
+    @Override
+    public DeviceId getExternalIdByInternal(DeviceId internalId) {
+        return Optional.ofNullable(deviceRepository.getExternalIdById(internalId.getId()))
+                .map(DeviceId::new).orElse(null);
     }
 
     @Override

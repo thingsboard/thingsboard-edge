@@ -30,33 +30,30 @@
  */
 package org.thingsboard.server.service.sync.ie.exporting.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
+import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.Optional;
 import java.util.Set;
 
-public abstract class BaseEntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> extends DefaultEntityExportService<I, E, D> {
+@Service
+@TbCoreComponent
+public class DashboardExportService extends BaseEntityExportService<DashboardId, Dashboard, EntityExportData<Dashboard>> {
 
     @Override
-    protected void setAdditionalExportData(EntitiesExportCtx<?> ctx, E entity, D exportData) throws ThingsboardException {
-        setRelatedEntities(ctx, entity, (D) exportData);
-        super.setAdditionalExportData(ctx, entity, exportData);
+    protected void setRelatedEntities(TenantId tenantId, Dashboard dashboard, EntityExportData<Dashboard> exportData, EntityExportSettings settings) {
+        dashboard.setCustomerId(getExternalIdOrElseInternal(dashboard.getCustomerId()));
     }
 
-    protected void setRelatedEntities(EntitiesExportCtx<?> ctx, E mainEntity, D exportData) {}
-
-    protected D newExportData() {
-        return (D) new EntityExportData<E>();
-    };
-
-    public abstract Set<EntityType> getSupportedEntityTypes();
+    @Override
+    public Set<EntityType> getSupportedEntityTypes() {
+        return Set.of(EntityType.DASHBOARD);
+    }
 
 }
