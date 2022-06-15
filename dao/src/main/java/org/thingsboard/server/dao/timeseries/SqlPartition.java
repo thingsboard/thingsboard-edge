@@ -28,25 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.dao.timeseries;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.thingsboard.server.dao.util.PsqlDao;
-import org.thingsboard.server.dao.util.SqlTsDao;
-import org.thingsboard.server.dao.util.TbAutoConfiguration;
+import lombok.Data;
 
-@Configuration
-@TbAutoConfiguration
-@ComponentScan({"org.thingsboard.server.dao.sqlts.psql", "org.thingsboard.server.dao.sqlts.insert.psql"})
-@EnableJpaRepositories({"org.thingsboard.server.dao.sqlts.ts", "org.thingsboard.server.dao.sqlts.insert.psql"})
-@EntityScan({"org.thingsboard.server.dao.model.sqlts.ts"})
-@EnableTransactionManagement
-@PsqlDao
-@SqlTsDao
-public class PsqlTsDaoConfig {
+@Data
+public class SqlPartition {
 
+    private static final String TABLE_REGEX = "ts_kv_";
+
+    private long start;
+    private long end;
+    private String partitionDate;
+    private String query;
+
+    public SqlPartition(long start, long end, String partitionDate) {
+        this.start = start;
+        this.end = end;
+        this.partitionDate = partitionDate;
+        this.query = createStatement(start, end, partitionDate);
+    }
+
+    private String createStatement(long start, long end, String partitionDate) {
+        return "CREATE TABLE IF NOT EXISTS " + TABLE_REGEX + partitionDate + " PARTITION OF ts_kv FOR VALUES FROM (" + start + ") TO (" + end + ")";
+    }
 }

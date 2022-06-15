@@ -28,67 +28,69 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.insert.latest.hsql;
+package org.thingsboard.server.dao.sqlts.insert.sql;
 
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.model.sqlts.latest.TsKvLatestEntity;
+import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sqlts.insert.AbstractInsertRepository;
-import org.thingsboard.server.dao.sqlts.insert.latest.InsertLatestTsRepository;
-import org.thingsboard.server.dao.util.HsqlDao;
-import org.thingsboard.server.dao.util.SqlTsLatestDao;
+import org.thingsboard.server.dao.sqlts.insert.InsertTsRepository;
+import org.thingsboard.server.dao.util.SqlTsDao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
-@SqlTsLatestDao
-@HsqlDao
+@SqlTsDao
 @Repository
 @Transactional
-public class HsqlLatestInsertTsRepository extends AbstractInsertRepository implements InsertLatestTsRepository {
+public class SqlInsertTsRepository extends AbstractInsertRepository implements InsertTsRepository<TsKvEntity> {
 
-    private static final String INSERT_OR_UPDATE =
-            "MERGE INTO ts_kv_latest USING(VALUES ?, ?, ?, ?, ?, ?, ?, ?) " +
-                    "T (entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v) " +
-                    "ON (ts_kv_latest.entity_id=T.entity_id " +
-                    "AND ts_kv_latest.key=T.key) " +
-                    "WHEN MATCHED THEN UPDATE SET ts_kv_latest.ts = T.ts, ts_kv_latest.bool_v = T.bool_v, ts_kv_latest.str_v = T.str_v, ts_kv_latest.long_v = T.long_v, ts_kv_latest.dbl_v = T.dbl_v, ts_kv_latest.json_v = T.json_v " +
-                    "WHEN NOT MATCHED THEN INSERT (entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v) " +
-                    "VALUES (T.entity_id, T.key, T.ts, T.bool_v, T.str_v, T.long_v, T.dbl_v, T.json_v);";
+    private static final String INSERT_ON_CONFLICT_DO_UPDATE = "INSERT INTO ts_kv (entity_id, key, ts, bool_v, str_v, long_v, dbl_v, json_v) VALUES (?, ?, ?, ?, ?, ?, ?, cast(? AS json)) " +
+            "ON CONFLICT (entity_id, key, ts) DO UPDATE SET bool_v = ?, str_v = ?, long_v = ?, dbl_v = ?, json_v = cast(? AS json);";
 
     @Override
-    public void saveOrUpdate(List<TsKvLatestEntity> entities) {
-        jdbcTemplate.batchUpdate(INSERT_OR_UPDATE, new BatchPreparedStatementSetter() {
+    public void saveOrUpdate(List<TsKvEntity> entities) {
+        jdbcTemplate.batchUpdate(INSERT_ON_CONFLICT_DO_UPDATE, new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setObject(1, entities.get(i).getEntityId());
-                ps.setInt(2, entities.get(i).getKey());
-                ps.setLong(3, entities.get(i).getTs());
+                TsKvEntity tsKvEntity = entities.get(i);
+                ps.setObject(1, tsKvEntity.getEntityId());
+                ps.setInt(2, tsKvEntity.getKey());
+                ps.setLong(3, tsKvEntity.getTs());
 
-                if (entities.get(i).getBooleanValue() != null) {
-                    ps.setBoolean(4, entities.get(i).getBooleanValue());
+                if (tsKvEntity.getBooleanValue() != null) {
+                    ps.setBoolean(4, tsKvEntity.getBooleanValue());
+                    ps.setBoolean(9, tsKvEntity.getBooleanValue());
                 } else {
                     ps.setNull(4, Types.BOOLEAN);
+                    ps.setNull(9, Types.BOOLEAN);
                 }
 
-                ps.setString(5, entities.get(i).getStrValue());
+                ps.setString(5, replaceNullChars(tsKvEntity.getStrValue()));
+                ps.setString(10, replaceNullChars(tsKvEntity.getStrValue()));
 
-                if (entities.get(i).getLongValue() != null) {
-                    ps.setLong(6, entities.get(i).getLongValue());
+
+                if (tsKvEntity.getLongValue() != null) {
+                    ps.setLong(6, tsKvEntity.getLongValue());
+                    ps.setLong(11, tsKvEntity.getLongValue());
                 } else {
                     ps.setNull(6, Types.BIGINT);
+                    ps.setNull(11, Types.BIGINT);
                 }
 
-                if (entities.get(i).getDoubleValue() != null) {
-                    ps.setDouble(7, entities.get(i).getDoubleValue());
+                if (tsKvEntity.getDoubleValue() != null) {
+                    ps.setDouble(7, tsKvEntity.getDoubleValue());
+                    ps.setDouble(12, tsKvEntity.getDoubleValue());
                 } else {
                     ps.setNull(7, Types.DOUBLE);
+                    ps.setNull(12, Types.DOUBLE);
                 }
 
-                ps.setString(8, entities.get(i).getJsonValue());
+                ps.setString(8, replaceNullChars(tsKvEntity.getJsonValue()));
+                ps.setString(13, replaceNullChars(tsKvEntity.getJsonValue()));
             }
 
             @Override
@@ -97,4 +99,5 @@ public class HsqlLatestInsertTsRepository extends AbstractInsertRepository imple
             }
         });
     }
+
 }
