@@ -30,49 +30,61 @@
  */
 package org.thingsboard.server.service.sync.vc.data;
 
-import lombok.AccessLevel;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
 import lombok.Getter;
-import org.apache.commons.lang3.ObjectUtils;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
-import org.thingsboard.server.common.data.sync.vc.request.create.EntityTypeVersionCreateConfig;
-import org.thingsboard.server.common.data.sync.vc.request.create.SyncStrategy;
+import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateConfig;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 
-public class EntityTypeExportCtx extends EntitiesExportCtx<VersionCreateRequest> {
+@Data
+public class EntitiesExportCtx<R extends VersionCreateRequest> {
 
-    @Getter
-    private final EntityType entityType;
-    @Getter
-    private final boolean overwrite;
-    @Getter
-    private final EntityExportSettings settings;
-    @Getter(value = AccessLevel.PRIVATE)
-    private final Queue<EntityTypeExportTask> tasks;
+    protected final SecurityUser user;
+    protected final CommitGitRequest commit;
+    protected final R request;
+    private final List<ListenableFuture<Void>> futures;
+    private final boolean exportRelatedCustomers;
+    private final boolean exportRelatedEntities;
 
-    public EntityTypeExportCtx(EntitiesExportCtx<?> parent, EntityTypeVersionCreateConfig config, SyncStrategy defaultSyncStrategy, EntityType entityType) {
-        super(parent);
-        this.entityType = entityType;
-        this.settings = EntityExportSettings.builder()
+    public EntitiesExportCtx(SecurityUser user, CommitGitRequest commit, R request, boolean exportRelatedCustomers, boolean exportRelatedEntities) {
+        this.user = user;
+        this.commit = commit;
+        this.request = request;
+        this.futures = new ArrayList<>();
+        this.exportRelatedCustomers = exportRelatedCustomers;
+        this.exportRelatedEntities = exportRelatedEntities;
+    }
+
+    public <T extends R> EntitiesExportCtx(EntitiesExportCtx<T> other) {
+        this.user = other.getUser();
+        this.commit = other.getCommit();
+        this.request = other.getRequest();
+        this.futures = other.getFutures();
+        this.exportRelatedCustomers = other.isExportRelatedCustomers();
+        this.exportRelatedEntities = other.isExportRelatedEntities();
+    }
+
+    public void add(ListenableFuture<Void> future) {
+        futures.add(future);
+    }
+
+    public TenantId getTenantId() {
+        return user.getTenantId();
+    }
+
+    protected static EntityExportSettings buildExportSettings(VersionCreateConfig config) {
+        return EntityExportSettings.builder()
                 .exportRelations(config.isSaveRelations())
                 .exportAttributes(config.isSaveAttributes())
                 .exportCredentials(config.isSaveCredentials())
                 .exportGroupEntities(config.isSaveGroupEntities())
                 .exportPermissions(config.isSavePermissions())
                 .build();
-        this.overwrite = ObjectUtils.defaultIfNull(config.getSyncStrategy(), defaultSyncStrategy) == SyncStrategy.OVERWRITE;
-        this.tasks = new LinkedList<>();
     }
-
-    public void addTask(EntityTypeExportTask task){
-        tasks.add(task);
-    }
-
-    public EntityTypeExportTask pollTask(){
-        return tasks.poll();
-    }
-
 }

@@ -40,7 +40,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbStopWatch;
@@ -101,11 +100,12 @@ import org.thingsboard.server.service.sync.ie.EntitiesExportImportService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.ie.importing.MissingEntityException;
 import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
-import org.thingsboard.server.service.sync.vc.data.CommitGitRequest;
+import org.thingsboard.server.service.sync.vc.data.ComplexEntitiesExportCtx;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntityTypeExportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntityTypeExportTask;
-import org.thingsboard.server.service.sync.vc.data.GroupExportCtx;
+import org.thingsboard.server.service.sync.vc.data.SimpleEntitiesExportCtx;
 import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;
 
 import javax.annotation.PostConstruct;
@@ -175,11 +175,11 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             List<ListenableFuture<Void>> gitFutures = new ArrayList<>();
             switch (request.getType()) {
                 case SINGLE_ENTITY: {
-                    handleSingleEntityRequest(user, commit, gitFutures, (SingleEntityVersionCreateRequest) request);
+                    handleSingleEntityRequest(new SimpleEntitiesExportCtx(user, commit, (SingleEntityVersionCreateRequest) request));
                     break;
                 }
                 case COMPLEX: {
-                    handleComplexRequest(user, commit, gitFutures, (ComplexVersionCreateRequest) request);
+                    handleComplexRequest(new ComplexEntitiesExportCtx(user, commit, (ComplexVersionCreateRequest) request));
                     break;
                 }
             }
@@ -187,36 +187,28 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }, executor);
     }
 
-    private void handleSingleEntityRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, SingleEntityVersionCreateRequest vcr) throws Exception {
-        EntityId entityId = vcr.getEntityId();
-        var config = vcr.getConfig();
-        EntityExportSettings exportSettings = EntityExportSettings.builder()
-                .exportRelations(config.isSaveRelations())
-                .exportAttributes(config.isSaveAttributes())
-                .exportCredentials(config.isSaveCredentials())
-                .exportGroupEntities(config.isSaveGroupEntities())
-                .exportPermissions(config.isSavePermissions())
-                .build();
-        GroupExportCtx ctx = new GroupExportCtx(user, commit, gitFutures, exportSettings, true, true);
+    private void handleSingleEntityRequest(SimpleEntitiesExportCtx ctx) throws Exception {
+        EntityId entityId = ctx.getRequest().getEntityId();
         if (EntityType.ENTITY_GROUP.equals(entityId.getEntityType())) {
-            exportGroup(ctx, new EntityGroupId(entityId.getId()));
+            exportGroup(ctx, new EntityGroupId(entityId.getId()), ctx.getSettings());
         } else {
-            EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(user, entityId, exportSettings);
+            EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx, entityId, ctx.getSettings());
             ExportableEntity<EntityId> entity = entityData.getEntity();
             if (entity instanceof HasOwnerId) {
-                List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, (HasOwnerId) entity);
-                gitFutures.add(gitServiceQueue.addToCommit(commit, hierarchy, entityData));
+                List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, (HasOwnerId) entity, ctx.getSettings());
+                ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, entityData));
             } else {
-                gitFutures.add(gitServiceQueue.addToCommit(commit, entityData));
+                ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), entityData));
             }
         }
     }
 
-    private void handleComplexRequest(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> gitFutures, ComplexVersionCreateRequest versionCreateRequest) throws Exception {
-        versionCreateRequest.getEntityTypes().forEach((entityType, config) -> {
-            EntityTypeExportCtx ctx = new EntityTypeExportCtx(user, commit, gitFutures, versionCreateRequest.getEntityTypes().get(entityType), versionCreateRequest.getSyncStrategy(), entityType);
+    private void handleComplexRequest(ComplexEntitiesExportCtx parentCtx) throws Exception {
+        ComplexVersionCreateRequest request = parentCtx.getRequest();
+        request.getEntityTypes().forEach((entityType, config) -> {
+            EntityTypeExportCtx ctx = new EntityTypeExportCtx(parentCtx, config, request.getSyncStrategy(), entityType);
             if (ctx.isOverwrite()) {
-                ctx.add(gitServiceQueue.deleteAll(commit, entityType));
+                ctx.add(gitServiceQueue.deleteAll(ctx.getCommit(), entityType));
             }
 
             if (GROUP_ENTITIES.contains(entityType)) {
@@ -230,21 +222,20 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                         exportGroupEntities(ctx, task);
                     }
                 } else {
-                    GroupExportCtx groupCtx = new GroupExportCtx(user, commit, ctx.getFutures(), ctx.getSettings(), false, false);
                     for (UUID groupId : config.getEntityIds()) {
-                        exportGroup(groupCtx, new EntityGroupId(groupId));
+                        exportGroup(ctx, new EntityGroupId(groupId), ctx.getSettings());
                     }
                 }
             } else {
                 if (config.isAllEntities()) {
                     //For Entity Types that belong to Tenant Level Only.
-                    DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesByTenantId(user.getTenantId(), entityType, pageLink)
+                    DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink)
                             , 100, entity -> {
-                                ctx.add(saveEntityData(user, commit, entity.getId(), config));
+                                saveEntityData(ctx, entity.getId(), config);
                             });
                 } else {
                     for (UUID entityId : config.getEntityIds()) {
-                        ctx.add(saveEntityData(user, commit, EntityIdFactory.getByTypeAndUuid(entityType, entityId), config));
+                        saveEntityData(ctx, EntityIdFactory.getByTypeAndUuid(entityType, entityId), config);
                     }
                 }
             }
@@ -252,12 +243,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @SneakyThrows
-    private void exportGroup(GroupExportCtx ctx, EntityGroupId entityId) {
-        EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx.getUser(), entityId, ctx.getSettings());
+    private void exportGroup(EntitiesExportCtx<?> ctx, EntityGroupId entityId, EntityExportSettings settings) {
+        EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, entityId, settings);
         EntityGroup group = (EntityGroup) (entityData.getEntity());
-        List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, group);
+        List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, group, settings);
         ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, entityData));
-        if (ctx.getSettings().isExportGroupEntities()) {
+        if (settings.isExportGroupEntities()) {
             PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
                     link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
             List<EntityId> groupEntityIds = new ArrayList<>();
@@ -266,7 +257,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                     groupEntityIds.add(groupEntityId);
                 }
                 if (ctx.isExportRelatedEntities()) {
-                    EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(ctx.getUser(), groupEntityId, ctx.getSettings());
+                    EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(ctx, groupEntityId, settings);
                     ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, groupEntityData));
                 }
             }
@@ -276,12 +267,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }
     }
 
-    private List<CustomerId> addCustomerHierarchyToCommit(GroupExportCtx ctx, EntityId entityId, HasOwnerId entity) throws ThingsboardException {
+    private List<CustomerId> addCustomerHierarchyToCommit(EntitiesExportCtx<?> ctx, EntityId entityId, HasOwnerId entity, EntityExportSettings settings) throws ThingsboardException {
         List<CustomerId> customerIds = getCustomerExternalIds(ctx.getTenantId(), entityId, entity);
         List<CustomerId> hierarchy = new ArrayList<>(customerIds.size());
         for (CustomerId ownerId : customerIds) {
             if (ctx.isExportRelatedCustomers()) {
-                EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(ctx.getUser(), ownerId, ctx.getSettings());
+                EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(ctx, ownerId, settings);
                 ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), new ArrayList<>(hierarchy), ownerData));
             }
             hierarchy.add(ownerId);
@@ -297,7 +288,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             parents.add(customerId);
         }
         for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
-            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx.getUser(), group.getId(), ctx.getSettings());
+            EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId(), ctx.getSettings());
             ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
             if (!group.isGroupAll()) {
                 PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
@@ -314,7 +305,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, ctx.getEntityType(), pageLink)
                 , 1024, entityId -> {
                     try {
-                        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx.getUser(), entityId, ctx.getSettings());
+                        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx, entityId, ctx.getSettings());
                         ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -326,13 +317,13 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @SneakyThrows
-    private ListenableFuture<Void> saveEntityData(SecurityUser user, CommitGitRequest commit, EntityId entityId, VersionCreateConfig config) {
-        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(user, entityId, EntityExportSettings.builder()
+    private void saveEntityData(EntitiesExportCtx<?> ctx, EntityId entityId, VersionCreateConfig config) {
+        EntityExportData<ExportableEntity<EntityId>> entityData = exportImportService.exportEntity(ctx, entityId, EntityExportSettings.builder()
                 .exportRelations(config.isSaveRelations())
                 .exportAttributes(config.isSaveAttributes())
                 .exportCredentials(config.isSaveCredentials())
                 .build());
-        return gitServiceQueue.addToCommit(commit, entityData);
+        ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), entityData));
     }
 
     @Override
@@ -725,7 +716,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
         return transformAsync(future,
                 otherVersion -> {
-                    EntityExportData<?> currentVersion = exportImportService.exportEntity(user, entityId, EntityExportSettings.builder()
+                    SimpleEntitiesExportCtx ctx = new SimpleEntitiesExportCtx(user, null, null);
+                    EntityExportData<?> currentVersion = exportImportService.exportEntity(ctx, entityId, EntityExportSettings.builder()
                             .exportRelations(otherVersion.hasRelations())
                             .exportAttributes(otherVersion.hasAttributes())
                             .exportCredentials(otherVersion.hasCredentials())

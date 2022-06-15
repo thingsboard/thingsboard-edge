@@ -58,7 +58,6 @@ public class EntitiesImportCtx {
     private final Map<EntityType, EntityTypeLoadResult> results = new HashMap<>();
     private final Map<EntityType, Set<EntityId>> importedEntities = new HashMap<>();
     private final Map<EntityId, EntityImportSettings> toReimport = new HashMap<>();
-
     private final List<ThrowingRunnable> referenceCallbacks = new ArrayList<>();
     private final List<ThrowingRunnable> eventCallbacks = new ArrayList<>();
     private final Map<EntityId, EntityId> externalToInternalIdMap = new HashMap<>();

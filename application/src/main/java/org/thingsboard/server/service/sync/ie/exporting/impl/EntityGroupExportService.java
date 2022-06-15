@@ -46,6 +46,7 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
 import java.util.List;
 import java.util.Set;
@@ -60,13 +61,13 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
     private final RoleService roleService;
 
     @Override
-    protected void setAdditionalExportData(SecurityUser user, EntityGroup entityGroup, EntityGroupExportData exportData, EntityExportSettings exportSettings) throws ThingsboardException {
-        super.setAdditionalExportData(user, entityGroup, exportData, exportSettings);
+    protected void setAdditionalExportData(EntitiesExportCtx ctx, EntityGroup entityGroup, EntityGroupExportData exportData, EntityExportSettings exportSettings) throws ThingsboardException {
+        super.setAdditionalExportData(ctx, entityGroup, exportData, exportSettings);
         exportData.setGroupEntities(exportSettings.isExportGroupEntities());
         if (exportSettings.isExportPermissions() && entityGroup.getType() == EntityType.USER) {
-            List<GroupPermission> permissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(user.getTenantId(), entityGroup.getId()).stream()
+            List<GroupPermission> permissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(ctx.getTenantId(), entityGroup.getId()).stream()
                     .filter(permission -> {
-                        Role role = roleService.findRoleById(user.getTenantId(), permission.getRoleId());
+                        Role role = roleService.findRoleById(ctx.getTenantId(), permission.getRoleId());
                         return !role.getOwnerId().equals(TenantId.SYS_TENANT_ID);
                     })
                     .collect(Collectors.toList());

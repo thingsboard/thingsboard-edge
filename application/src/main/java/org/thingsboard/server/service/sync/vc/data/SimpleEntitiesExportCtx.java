@@ -28,18 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.sync.ie.exporting;
+package org.thingsboard.server.service.sync.vc.data;
 
-import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import lombok.Getter;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
-import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
+import org.thingsboard.server.common.data.sync.vc.request.create.SingleEntityVersionCreateRequest;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
-public interface EntityExportService<I extends EntityId, E extends ExportableEntity<I>, D extends EntityExportData<E>> {
+public class SimpleEntitiesExportCtx extends EntitiesExportCtx<SingleEntityVersionCreateRequest> {
 
-    D getExportData(EntitiesExportCtx ctx, I entityId, EntityExportSettings exportSettings) throws ThingsboardException;
+    @Getter
+    private final EntityExportSettings settings;
 
+    public SimpleEntitiesExportCtx(SecurityUser user, CommitGitRequest commit, SingleEntityVersionCreateRequest request) {
+        super(user, commit, request, true, true);
+        this.settings = request != null ? buildExportSettings(request.getConfig()) : null;
+    }
 }

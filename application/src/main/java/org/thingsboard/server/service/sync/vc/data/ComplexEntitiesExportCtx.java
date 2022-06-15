@@ -30,22 +30,24 @@
  */
 package org.thingsboard.server.service.sync.vc.data;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.Data;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
+import org.thingsboard.server.common.data.sync.vc.request.create.ComplexVersionCreateRequest;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-@Data
-public class GroupExportCtx extends BasicExportCtx {
+public class ComplexEntitiesExportCtx extends EntitiesExportCtx<ComplexVersionCreateRequest> {
 
-    private final boolean exportRelatedCustomers;
-    private final boolean exportRelatedEntities;
+    private final Map<EntityType, EntityExportSettings> settings = new HashMap<>();
 
-    public GroupExportCtx(SecurityUser user, CommitGitRequest commit, List<ListenableFuture<Void>> futures, EntityExportSettings settings, boolean exportRelatedCustomers, boolean exportRelatedEntities) {
-        super(user, commit, futures, settings);
-        this.exportRelatedCustomers = exportRelatedCustomers;
-        this.exportRelatedEntities = exportRelatedEntities;
+    public ComplexEntitiesExportCtx(SecurityUser user, CommitGitRequest commit, ComplexVersionCreateRequest request) {
+        super(user, commit, request, false, false);
+        request.getEntityTypes().forEach((type, config) -> settings.put(type, buildExportSettings(config)));
+    }
+
+    public EntityExportSettings getSettings(EntityType entityType) {
+        return settings.get(entityType);
     }
 }
