@@ -54,4 +54,6 @@ public interface RuleNodeRepository extends JpaRepository<RuleNodeEntity, UUID> 
                                                 @Param("searchText") String searchText,
                                                 Pageable pageable);
 
+	void deleteByIdIn(List<UUID> ids);
+
 }
