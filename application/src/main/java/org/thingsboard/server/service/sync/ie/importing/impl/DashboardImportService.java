@@ -58,6 +58,8 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
 
     private static final LinkedHashSet<EntityType> HINTS = new LinkedHashSet<>(Arrays.asList(EntityType.DASHBOARD, EntityType.DEVICE, EntityType.ASSET));
 
+    private static final LinkedHashSet<EntityType> HINTS = new LinkedHashSet<>(Arrays.asList(EntityType.DASHBOARD, EntityType.DEVICE, EntityType.ASSET));
+
     private final DashboardService dashboardService;
 
     @Override

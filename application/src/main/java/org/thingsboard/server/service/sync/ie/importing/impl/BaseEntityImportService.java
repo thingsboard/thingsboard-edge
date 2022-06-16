@@ -38,6 +38,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
+import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
@@ -100,6 +102,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     @Transactional(rollbackFor = Exception.class)
     @Override
     public EntityImportResult<E> importEntity(EntitiesImportCtx ctx, D exportData) throws ThingsboardException {
+//        TbStopWatch sw = TbStopWatch.create("find");
         EntityImportResult<E> importResult = new EntityImportResult<>();
         IdProvider idProvider = new IdProvider(ctx, importResult);
 
@@ -116,16 +119,22 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
             entity.setCreatedTime(existingEntity.getCreatedTime());
         }
 
+//        sw.startNew("prepareAndSave");
         E savedEntity = prepareAndSave(ctx, entity, existingEntity, exportData, idProvider);
 
         importResult.setSavedEntity(savedEntity);
         importResult.setOldEntity(existingEntity);
         importResult.setEntityType(getEntityType());
 
+//        sw.startNew("afterSaved");
         processAfterSaved(ctx, importResult, exportData, idProvider);
 
         ctx.putInternalId(exportData.getExternalId(), savedEntity.getId());
-
+//        sw.stop();
+//        for (var task : sw.getTaskInfo()) {
+//            log.info("[{}][{}] Executed: {} in {}ms", exportData.getEntityType(), exportData.getEntity().getId(), task.getTaskName(), task.getTimeMillis());
+//        }
+//        log.info("[{}][{}] Total time: {}ms", exportData.getEntityType(), exportData.getEntity().getId(), sw.getTotalTimeMillis());
         return importResult;
     }
 
