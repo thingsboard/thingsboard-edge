@@ -33,7 +33,6 @@ package org.thingsboard.server.common.data.relation;
 public enum RelationTypeGroup {
     COMMON,
     DASHBOARD,
-    TO_ENTITY_GROUP,
     FROM_ENTITY_GROUP,
     RULE_CHAIN,
     RULE_NODE,

@@ -192,37 +192,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 throw t;
             }
         }
-        if (entityGroup.getId() == null) {
-            EntityRelation entityRelation = new EntityRelation();
-            entityRelation.setFrom(parentEntityId);
-            entityRelation.setTo(savedEntityGroup.getId());
-            entityRelation.setTypeGroup(RelationTypeGroup.TO_ENTITY_GROUP);
-            entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
-            relationService.saveRelation(tenantId, entityRelation);
-        }
         return savedEntityGroup;
-    }
-
-    @Override
-    public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
-        log.trace("Executing checkEntityGroup [{}]", entityGroup);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        return relationService.checkRelationAsync(tenantId, parentEntityId, entityGroup.getId(),
-                ENTITY_GROUP_RELATION_PREFIX + entityGroup.getType().name()
-                , RelationTypeGroup.TO_ENTITY_GROUP);
-    }
-
-    @Override
-    public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroupId entityGroupId, EntityType groupType) {
-        log.trace("Executing checkEntityGroup, entityGroupId [{}], groupType [{}]", entityGroupId, groupType);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        validateEntityId(parentEntityId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        if (groupType == null) {
-            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
-        }
-        return relationService.checkRelationAsync(tenantId, parentEntityId, entityGroupId,
-                ENTITY_GROUP_RELATION_PREFIX + groupType.name()
-                , RelationTypeGroup.TO_ENTITY_GROUP);
     }
 
     @Override

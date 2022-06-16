@@ -64,6 +64,7 @@ CREATE INDEX IF NOT EXISTS idx_widgets_bundle_external_id ON widgets_bundle(tena
 CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
 
 ALTER TABLE admin_settings
     ADD COLUMN IF NOT EXISTS tenant_id uuid NOT NULL DEFAULT '13814000-1dd2-11b2-8080-808080808080';
@@ -89,3 +90,5 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     user_id uuid UNIQUE NOT NULL CONSTRAINT fk_user_auth_settings_user_id REFERENCES tb_user(id),
     two_fa_settings varchar
 );
+
+DELETE FROM relation WHERE relation_type_group = 'TO_ENTITY_GROUP';
