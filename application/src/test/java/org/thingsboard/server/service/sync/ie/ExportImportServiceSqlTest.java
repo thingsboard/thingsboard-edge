@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.service.sync.ie;
 
@@ -19,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Streams;
+import org.assertj.core.data.Index;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -31,13 +47,22 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -50,6 +75,8 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
+import org.thingsboard.server.service.security.permission.AccessControlService;
+import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.List;
 import java.util.Map;
@@ -60,8 +87,10 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.verify;
 
 @DaoSqlTest
@@ -73,10 +102,14 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
     private EntityActionService entityActionService;
     @SpyBean
     private OtaPackageStateService otaPackageStateService;
+    @SpyBean
+    private UserPermissionsService userPermissionsService;
+    @SpyBean
+    private AccessControlService accessControlService;
 
     @Test
     public void testExportImportAsset_betweenTenants() throws Exception {
-        Asset asset = createAsset(tenantId1, null, "AB", "Asset of tenant 1");
+        Asset asset = createAsset(tenantId1, null, null, "AB", "Asset of tenant 1");
         EntityExportData<Asset> exportData = exportEntity(tenantAdmin1, asset.getId());
 
         EntityImportResult<Asset> importResult = importEntity(tenantAdmin2, exportData);
@@ -86,7 +119,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportAsset_sameTenant() throws Exception {
-        Asset asset = createAsset(tenantId1, null, "AB", "Asset v1.0");
+        Asset asset = createAsset(tenantId1, null, null, "AB", "Asset v1.0");
         EntityExportData<Asset> exportData = exportEntity(tenantAdmin1, asset.getId());
 
         EntityImportResult<Asset> importResult = importEntity(tenantAdmin1, exportData);
@@ -96,8 +129,8 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportAsset_sameTenant_withCustomer() throws Exception {
-        Customer customer = createCustomer(tenantId1, "My customer");
-        Asset asset = createAsset(tenantId1, customer.getId(), "AB", "My asset");
+        Customer customer = createCustomer(tenantId1, null, "My customer");
+        Asset asset = createAsset(tenantId1, customer.getId(), null, "AB", "My asset");
 
         Asset importedAsset = importEntity(tenantAdmin1, this.<Asset, AssetId>exportEntity(tenantAdmin1, asset.getId())).getSavedEntity();
         assertThat(importedAsset.getCustomerId()).isEqualTo(asset.getCustomerId());
@@ -106,7 +139,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportCustomer_betweenTenants() throws Exception {
-        Customer customer = createCustomer(tenantAdmin1.getTenantId(), "Customer of tenant 1");
+        Customer customer = createCustomer(tenantAdmin1.getTenantId(), null, "Customer of tenant 1");
         EntityExportData<Customer> exportData = exportEntity(tenantAdmin1, customer.getId());
 
         EntityImportResult<Customer> importResult = importEntity(tenantAdmin2, exportData);
@@ -116,7 +149,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportCustomer_sameTenant() throws Exception {
-        Customer customer = createCustomer(tenantAdmin1.getTenantId(), "Customer v1.0");
+        Customer customer = createCustomer(tenantAdmin1.getTenantId(), null, "Customer v1.0");
         EntityExportData<Customer> exportData = exportEntity(tenantAdmin1, customer.getId());
 
         EntityImportResult<Customer> importResult = importEntity(tenantAdmin1, exportData);
@@ -128,7 +161,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
     @Test
     public void testExportImportDeviceWithProfile_betweenTenants() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, null, null, "Device profile of tenant 1");
-        Device device = createDevice(tenantId1, null, deviceProfile.getId(), "Device of tenant 1");
+        Device device = createDevice(tenantId1, null, deviceProfile.getId(), null, "Device of tenant 1");
         DeviceCredentials credentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId1, device.getId());
 
         EntityExportData<DeviceProfile> profileExportData = exportEntity(tenantAdmin1, deviceProfile.getId());
@@ -160,7 +193,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, null, null, "Device profile v1.0");
         OtaPackage firmware = createOtaPackage(tenantId1, deviceProfile.getId(), OtaPackageType.FIRMWARE);
         OtaPackage software = createOtaPackage(tenantId1, deviceProfile.getId(), OtaPackageType.SOFTWARE);
-        Device device = createDevice(tenantId1, null, deviceProfile.getId(), "Device v1.0");
+        Device device = createDevice(tenantId1, null, deviceProfile.getId(), null, "Device v1.0");
         device.setFirmwareId(firmware.getId());
         device.setSoftwareId(software.getId());
         device = deviceService.saveDevice(device);
@@ -182,7 +215,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportDashboard_betweenTenants() throws Exception {
-        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, "Dashboard of tenant 1");
+        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, null, "Dashboard of tenant 1");
         EntityExportData<Dashboard> exportData = exportEntity(tenantAdmin1, dashboard.getId());
 
         EntityImportResult<Dashboard> importResult = importEntity(tenantAdmin2, exportData);
@@ -192,7 +225,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportDashboard_sameTenant() throws Exception {
-        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, "Dashboard v1.0");
+        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, null, "Dashboard v1.0");
         EntityExportData<Dashboard> exportData = exportEntity(tenantAdmin1, dashboard.getId());
 
         EntityImportResult<Dashboard> importResult = importEntity(tenantAdmin1, exportData);
@@ -201,30 +234,10 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
     }
 
     @Test
-    public void testExportImportDashboard_betweenTenants_withCustomer_updated() throws Exception {
-        Dashboard dashboard = createDashboard(tenantAdmin1.getTenantId(), null, "Dashboard of tenant 1");
-        EntityExportData<Dashboard> exportData = exportEntity(tenantAdmin1, dashboard.getId());
-
-        Dashboard importedDashboard = importEntity(tenantAdmin2, exportData).getSavedEntity();
-        checkImportedEntity(tenantId1, dashboard, tenantId2, importedDashboard);
-
-        Customer customer = createCustomer(tenantId1, "Customer 1");
-        EntityExportData<Customer> customerExportData = exportEntity(tenantAdmin1, customer.getId());
-        dashboardService.assignDashboardToCustomer(tenantId1, dashboard.getId(), customer.getId());
-        exportData = exportEntity(tenantAdmin1, dashboard.getId());
-
-        Customer importedCustomer = importEntity(tenantAdmin2, customerExportData).getSavedEntity();
-        importedDashboard = importEntity(tenantAdmin2, exportData).getSavedEntity();
-        assertThat(importedDashboard.getAssignedCustomers()).hasOnlyOneElementSatisfying(customerInfo -> {
-            assertThat(customerInfo.getCustomerId()).isEqualTo(importedCustomer.getId());
-        });
-    }
-
-    @Test
     public void testExportImportDashboard_betweenTenants_withEntityAliases() throws Exception {
-        Asset asset1 = createAsset(tenantId1, null, "A", "Asset 1");
-        Asset asset2 = createAsset(tenantId1, null, "A", "Asset 2");
-        Dashboard dashboard = createDashboard(tenantId1, null, "Dashboard 1");
+        Asset asset1 = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Asset asset2 = createAsset(tenantId1, null, null, "A", "Asset 2");
+        Dashboard dashboard = createDashboard(tenantId1, null, null, "Dashboard 1");
 
         String entityAliases = "{\n" +
                 "\t\"23c4185d-1497-9457-30b2-6d91e69a5b2c\": {\n" +
@@ -294,8 +307,8 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportWithInboundRelations_betweenTenants() throws Exception {
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation = createRelation(asset.getId(), device.getId());
 
         EntityExportData<Asset> assetExportData = exportEntity(tenantAdmin1, asset.getId());
@@ -328,8 +341,8 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportWithRelations_betweenTenants() throws Exception {
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation = createRelation(asset.getId(), device.getId());
 
         EntityExportData<Asset> assetExportData = exportEntity(tenantAdmin1, asset.getId());
@@ -355,8 +368,8 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExportImportWithRelations_sameTenant() throws Exception {
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device1 = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device1 = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation1 = createRelation(asset.getId(), device1.getId());
 
         EntityExportData<Asset> assetExportData = exportEntity(tenantAdmin1, asset.getId(), EntityExportSettings.builder()
@@ -364,7 +377,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
                 .build());
         assertThat(assetExportData.getRelations()).size().isOne();
 
-        Device device2 = createDevice(tenantId1, null, null, "Device 2");
+        Device device2 = createDevice(tenantId1, null, null, null, "Device 2");
         EntityRelation relation2 = createRelation(asset.getId(), device2.getId());
 
         importEntity(tenantAdmin1, assetExportData, EntityImportSettings.builder()
@@ -378,8 +391,8 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void textExportImportWithRelations_sameTenant_removeExisting() throws Exception {
-        Asset asset1 = createAsset(tenantId1, null, "A", "Asset 1");
-        Device device = createDevice(tenantId1, null, null, "Device 1");
+        Asset asset1 = createAsset(tenantId1, null, null, "A", "Asset 1");
+        Device device = createDevice(tenantId1, null, null, null, "Device 1");
         EntityRelation relation1 = createRelation(asset1.getId(), device.getId());
 
         EntityExportData<Device> deviceExportData = exportEntity(tenantAdmin1, device.getId(), EntityExportSettings.builder()
@@ -387,7 +400,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
                 .build());
         assertThat(deviceExportData.getRelations()).size().isOne();
 
-        Asset asset2 = createAsset(tenantId1, null, "A", "Asset 2");
+        Asset asset2 = createAsset(tenantId1, null, null, "A", "Asset 2");
         EntityRelation relation2 = createRelation(asset2.getId(), device.getId());
 
         importEntity(tenantAdmin1, deviceExportData, EntityImportSettings.builder()
@@ -420,19 +433,26 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testEntityEventsOnImport() throws Exception {
-        Customer customer = createCustomer(tenantId1, "Customer 1");
-        Asset asset = createAsset(tenantId1, null, "A", "Asset 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
+        Asset asset = createAsset(tenantId1, null, null, "A", "Asset 1");
         RuleChain ruleChain = createRuleChain(tenantId1, "Rule chain 1");
-        Dashboard dashboard = createDashboard(tenantId1, null, "Dashboard 1");
+        Dashboard dashboard = createDashboard(tenantId1, null, null, "Dashboard 1");
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, ruleChain.getId(), dashboard.getId(), "Device profile 1");
-        Device device = createDevice(tenantId1, null, deviceProfile.getId(), "Device 1");
+        Device device = createDevice(tenantId1, null, deviceProfile.getId(), null, "Device 1");
+        Converter converter = createConverter(tenantId1, ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
+        Role role = createGenericRole(tenantId1, null, "Role 1", Map.of(Resource.DEVICE, List.of(Operation.READ)));
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        createGroupPermission(tenantId1, userGroup.getId(), role.getId());
 
         Map<EntityType, EntityExportData> entitiesExportData = Stream.of(customer.getId(), asset.getId(), device.getId(),
-                        ruleChain.getId(), dashboard.getId(), deviceProfile.getId())
+                        ruleChain.getId(), dashboard.getId(), deviceProfile.getId(), converter.getId(),
+                        integration.getId(), role.getId(), userGroup.getId())
                 .map(entityId -> {
                     try {
                         return exportEntity(tenantAdmin1, entityId, EntityExportSettings.builder()
                                 .exportCredentials(false)
+                                .exportPermissions(true)
                                 .build());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
@@ -446,7 +466,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         importEntity(tenantAdmin2, entitiesExportData.get(EntityType.CUSTOMER));
         verify(entityActionService).logEntityAction(any(), eq(importedCustomer.getId()), eq(importedCustomer),
                 any(), eq(ActionType.UPDATED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedCustomer.getId()), any(), any(), eq(EdgeEventActionType.UPDATED));
+        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedCustomer.getId()), any(), any(), eq(EdgeEventActionType.UPDATED), any(), any());
 
         Asset importedAsset = (Asset) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ASSET)).getSavedEntity();
         verify(entityActionService).logEntityAction(any(), eq(importedAsset.getId()), eq(importedAsset),
@@ -454,7 +474,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ASSET));
         verify(entityActionService).logEntityAction(any(), eq(importedAsset.getId()), eq(importedAsset),
                 any(), eq(ActionType.UPDATED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedAsset.getId()), any(), any(), eq(EdgeEventActionType.UPDATED));
+        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedAsset.getId()), any(), any(), eq(EdgeEventActionType.UPDATED), any(), any());
 
         RuleChain importedRuleChain = (RuleChain) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.RULE_CHAIN)).getSavedEntity();
         verify(entityActionService).logEntityAction(any(), eq(importedRuleChain.getId()), eq(importedRuleChain),
@@ -470,7 +490,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
                 any(), eq(ActionType.ADDED), isNull());
         verify(tbClusterService).onDeviceProfileChange(eq(importedDeviceProfile), any());
         verify(tbClusterService).broadcastEntityStateChangeEvent(any(), eq(importedDeviceProfile.getId()), eq(ComponentLifecycleEvent.CREATED));
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedDeviceProfile.getId()), any(), any(), eq(EdgeEventActionType.ADDED));
+        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedDeviceProfile.getId()), any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
         verify(otaPackageStateService).update(eq(importedDeviceProfile), eq(false), eq(false));
 
         Device importedDevice = (Device) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.DEVICE)).getSavedEntity();
@@ -479,6 +499,186 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         verify(tbClusterService).onDeviceUpdated(eq(importedDevice), isNull());
         importEntity(tenantAdmin2, entitiesExportData.get(EntityType.DEVICE));
         verify(tbClusterService).onDeviceUpdated(eq(importedDevice), eq(importedDevice));
+
+        Converter importedConverter = (Converter) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.CONVERTER)).getSavedEntity();
+        verify(tbClusterService).broadcastEntityStateChangeEvent(any(), eq(importedConverter.getId()), eq(ComponentLifecycleEvent.CREATED));
+        verify(entityActionService).logEntityAction(any(), eq(importedConverter.getId()), eq(importedConverter), any(), eq(ActionType.ADDED), isNull());
+
+        Integration importedIntegration = (Integration) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.INTEGRATION), EntityImportSettings.builder()
+                .autoGenerateIntegrationKey(true)
+                .build()).getSavedEntity();
+        verify(tbClusterService).broadcastEntityStateChangeEvent(any(), eq(importedIntegration.getId()), eq(ComponentLifecycleEvent.CREATED));
+        verify(entityActionService).logEntityAction(any(), eq(importedIntegration.getId()), eq(importedIntegration), any(), eq(ActionType.ADDED), isNull());
+
+        Role importedRole = (Role) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ROLE)).getSavedEntity();
+        verify(userPermissionsService).onRoleUpdated(argThat(r -> r.getId().equals(importedRole.getId())));
+        verify(entityActionService).logEntityAction(any(), eq(importedRole.getId()), notNull(), any(), eq(ActionType.ADDED), isNull());
+        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedRole.getId()),
+                any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
+    }
+
+    @Test
+    public void testExportImportConverterWithIntegration_betweenTenants() throws Exception {
+        Converter converter = createConverter(tenantId1, ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
+        EntityExportData<Converter> converterExportData = exportEntity(tenantAdmin1, converter.getId());
+        EntityExportData<Integration> integrationExportData = exportEntity(tenantAdmin1, integration.getId());
+
+        Converter importedConverter = importEntity(tenantAdmin2, converterExportData).getSavedEntity();
+        checkImportedEntity(tenantId1, converter, tenantId2, importedConverter);
+        checkImportedConverterData(converter, importedConverter);
+
+        Integration importedIntegration = importEntity(tenantAdmin2, integrationExportData).getSavedEntity();
+        checkImportedEntity(tenantId1, integration, tenantId2, importedIntegration);
+        checkImportedIntegrationData(integration, importedIntegration);
+    }
+
+    @Test
+    public void testExportImportConverterWithIntegration_sameTenant() throws Exception {
+        Converter converter = createConverter(tenantId1, ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
+        EntityExportData<Converter> converterExportData = exportEntity(tenantAdmin1, converter.getId());
+        EntityExportData<Integration> integrationExportData = exportEntity(tenantAdmin1, integration.getId());
+
+        Converter importedConverter = importEntity(tenantAdmin1, converterExportData).getSavedEntity();
+        checkImportedEntity(tenantId1, converter, tenantId1, importedConverter);
+        checkImportedConverterData(converter, importedConverter);
+
+        Integration importedIntegration = importEntity(tenantAdmin1, integrationExportData).getSavedEntity();
+        checkImportedEntity(tenantId1, integration, tenantId1, importedIntegration);
+        checkImportedIntegrationData(integration, importedIntegration);
+    }
+
+    @Test
+    public void testExportImportEntityGroup_betweenTenants() throws Exception {
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            EntityGroup entityGroup = createEntityGroup(tenantId1, groupType, groupType + " group");
+            EntityExportData<EntityGroup> exportData = exportEntity(tenantAdmin1, entityGroup.getId());
+
+            EntityGroup importedEntityGroup = importEntity(tenantAdmin2, exportData).getSavedEntity();
+            checkImportedEntity(tenantId1, tenantId1, entityGroup, tenantId2, tenantId2, importedEntityGroup);
+            checkImportedEntityGroupData(entityGroup, importedEntityGroup);
+        }
+    }
+
+    @Test
+    public void testExportImportEntityGroup_sameTenant() throws Exception {
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            EntityGroup entityGroup = createEntityGroup(tenantId1, groupType, groupType + " group");
+            EntityExportData<EntityGroup> exportData = exportEntity(tenantAdmin1, entityGroup.getId());
+
+            EntityGroup importedEntityGroup = importEntity(tenantAdmin1, exportData).getSavedEntity();
+            checkImportedEntity(tenantId1, tenantId1, entityGroup, tenantId1, tenantId1, importedEntityGroup);
+            checkImportedEntityGroupData(entityGroup, importedEntityGroup);
+        }
+    }
+
+    @Test
+    public void testExportImportGroupWithPermissions_betweenTenants() throws Exception {
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Role role = createGroupRole(tenantId1, null, "Role for User group 1", List.of(Operation.READ));
+        createGroupPermission(tenantId1, userGroup.getId(), role.getId(), deviceGroup.getId(), EntityType.DEVICE);
+
+        EntityExportData<Role> roleExportData = exportEntity(tenantAdmin1, role.getId());
+        EntityExportData<EntityGroup> deviceGroupExportData = exportEntity(tenantAdmin1, deviceGroup.getId());
+        EntityExportData<EntityGroup> userGroupExportData = exportEntity(tenantAdmin1, userGroup.getId(), EntityExportSettings.builder()
+                .exportPermissions(true)
+                .build());
+
+        Role importedRole = importEntity(tenantAdmin2, roleExportData).getSavedEntity();
+        checkImportedEntity(tenantId1, role, tenantId2, importedRole);
+        assertThat(importedRole.getName()).isEqualTo(role.getName());
+        assertThat(importedRole.getPermissions()).isEqualTo(role.getPermissions());
+
+        EntityGroup importedDeviceGroup = importEntity(tenantAdmin2, deviceGroupExportData).getSavedEntity();
+        checkImportedEntity(tenantId1, tenantId1, deviceGroup, tenantId2, tenantId2, importedDeviceGroup);
+
+        EntityGroup importedUserGroup = importEntity(tenantAdmin2, userGroupExportData, EntityImportSettings.builder()
+                .saveUserGroupPermissions(true)
+                .build()).getSavedEntity();
+        checkImportedEntity(tenantId1, tenantId1, userGroup, tenantId2, tenantId2, importedUserGroup);
+
+        List<GroupPermission> importedGroupPermissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(tenantId2, importedUserGroup.getId());
+        assertThat(importedGroupPermissions).size().isOne();
+        assertThat(importedGroupPermissions).satisfies(importedGroupPermission -> {
+            assertThat(importedGroupPermission.getRoleId()).isEqualTo(importedRole.getId());
+            assertThat(importedGroupPermission.getEntityGroupId()).isEqualTo(importedDeviceGroup.getId());
+            assertThat(importedGroupPermission.getEntityGroupType()).isEqualTo(EntityType.DEVICE);
+        }, Index.atIndex(0));
+    }
+
+    @Test
+    public void testExportImportGroupWithPermissions_sameTenant() throws Exception {
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Role role = createGroupRole(tenantId1, null, "Role for User group 1", List.of(Operation.READ));
+        GroupPermission groupPermission = createGroupPermission(tenantId1, userGroup.getId(), role.getId(), deviceGroup.getId(), EntityType.DEVICE);
+
+        EntityExportData<EntityGroup> userGroupExportData = exportEntity(tenantAdmin1, userGroup.getId(), EntityExportSettings.builder()
+                .exportPermissions(true)
+                .build());
+
+        EntityGroup importedUserGroup = importEntity(tenantAdmin1, userGroupExportData, EntityImportSettings.builder()
+                .saveUserGroupPermissions(true)
+                .build()).getSavedEntity();
+        checkImportedEntity(tenantId1, tenantId1, userGroup, tenantId1, tenantId1, importedUserGroup);
+
+        List<GroupPermission> groupPermissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(tenantId1, userGroup.getId());
+        assertThat(groupPermissions).hasOnlyOneElementSatisfying(permission -> {
+            assertThat(permission).isEqualTo(groupPermission);
+        });
+    }
+
+    @Test
+    public void testExportImportGroupWithPermissions_betweenTenants_permissionsUpdated() throws Exception {
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Role role = createGroupRole(tenantId1, null, "Role for User group 1", List.of(Operation.READ));
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        GroupPermission groupPermission = createGroupPermission(tenantId1, userGroup.getId(), role.getId(), deviceGroup.getId(), EntityType.DEVICE);
+
+        EntityExportData<Role> roleExportData = exportEntity(tenantAdmin1, role.getId());
+        EntityExportData<EntityGroup> deviceGroupExportData = exportEntity(tenantAdmin1, deviceGroup.getId());
+        EntityExportData<EntityGroup> userGroupExportData = exportEntity(tenantAdmin1, userGroup.getId(), EntityExportSettings.builder()
+                .exportPermissions(true)
+                .build());
+
+        Role importedRole = importEntity(tenantAdmin2, roleExportData).getSavedEntity();
+        EntityGroup importedDeviceGroup = importEntity(tenantAdmin2, deviceGroupExportData).getSavedEntity();
+        EntityGroup importedUserGroup = importEntity(tenantAdmin2, userGroupExportData, EntityImportSettings.builder()
+                .saveUserGroupPermissions(true)
+                .build()).getSavedEntity();
+
+        List<GroupPermission> importedGroupPermissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(tenantId2, importedUserGroup.getId());
+        assertThat(importedGroupPermissions).size().isOne();
+        assertThat(importedGroupPermissions).satisfies(importedGroupPermission -> {
+            assertThat(importedGroupPermission.getRoleId()).isEqualTo(importedRole.getId());
+            assertThat(importedGroupPermission.getEntityGroupId()).isEqualTo(importedDeviceGroup.getId());
+            assertThat(importedGroupPermission.getEntityGroupType()).isEqualTo(EntityType.DEVICE);
+        }, Index.atIndex(0));
+
+        groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId1, userGroup.getId());
+        role = createGenericRole(tenantId1, null, "Read devices", Map.of(
+                Resource.DEVICE, List.of(Operation.READ),
+                Resource.DEVICE_GROUP, List.of(Operation.READ)
+        ));
+        groupPermission = createGroupPermission(tenantId1, userGroup.getId(), role.getId());
+
+        roleExportData = exportEntity(tenantAdmin1, role.getId());
+        userGroupExportData = exportEntity(tenantAdmin1, userGroup.getId(), EntityExportSettings.builder()
+                .exportPermissions(true)
+                .build());
+
+        Role newImportedRole = importEntity(tenantAdmin2, roleExportData).getSavedEntity();
+        importEntity(tenantAdmin2, userGroupExportData, EntityImportSettings.builder()
+                .saveUserGroupPermissions(true).build());
+        List<GroupPermission> updatedGroupPermissions = groupPermissionService.findGroupPermissionListByTenantIdAndUserGroupId(tenantId2, importedUserGroup.getId());
+
+        assertThat(updatedGroupPermissions).size().isOne();
+        assertThat(updatedGroupPermissions).hasOnlyOneElementSatisfying(newGroupPermission -> {
+            assertThat(newGroupPermission.getEntityGroupId()).matches(entityGroupId -> entityGroupId == null || entityGroupId.isNullUid());
+            assertThat(newGroupPermission.getRoleId()).isEqualTo(newImportedRole.getId());
+        });
     }
 
 }

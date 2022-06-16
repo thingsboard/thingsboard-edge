@@ -168,12 +168,4 @@ public class EntitiesImportCtx {
     public boolean isNotFound(EntityId externalId) {
         return notFoundIds.contains(externalId);
     }
-
-    public void registerNotFound(EntityId externalId) {
-        notFoundIds.add(externalId);
-    }
-
-    public boolean isNotFound(EntityId externalId) {
-        return notFoundIds.contains(externalId);
-    }
 }
