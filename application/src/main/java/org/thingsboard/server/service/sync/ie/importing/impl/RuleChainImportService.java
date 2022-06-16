@@ -32,9 +32,12 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -56,6 +59,7 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
@@ -81,6 +85,7 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
 
     @Override
     protected RuleChain prepareAndSave(EntitiesImportCtx ctx, RuleChain ruleChain, RuleChain old, RuleChainExportData exportData, IdProvider idProvider) {
+        TbStopWatch sw = TbStopWatch.create("prepare");
         RuleChainMetaData metaData = exportData.getMetaData();
         Optional.ofNullable(metaData.getNodes()).orElse(Collections.emptyList())
                 .forEach(ruleNode -> {
@@ -101,10 +106,19 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
                 });
         ruleChain.setFirstRuleNodeId(null);
 
+        sw.startNew("save");
         ruleChain = ruleChainService.saveRuleChain(ruleChain);
         exportData.getMetaData().setRuleChainId(ruleChain.getId());
+        sw.startNew("save metadata");
         ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), exportData.getMetaData());
-        return ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChain.getId());
+        sw.startNew("find");
+        var result = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChain.getId());
+        sw.stop();
+        for (var task : sw.getTaskInfo()) {
+            log.info("[{}] Executed: {} in {}ms", ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());
+        }
+        log.info("[{}] Total time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
+        return result;
     }
 
     @Override

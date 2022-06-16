@@ -80,6 +80,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -359,6 +360,10 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
             }
         }
 
+    }
+
+    protected <T extends EntityId, O> T getOldEntityField(O oldEntity, Function<O,T> getter){
+        return oldEntity == null ? null : getter.apply(oldEntity);
     }
 
 }
