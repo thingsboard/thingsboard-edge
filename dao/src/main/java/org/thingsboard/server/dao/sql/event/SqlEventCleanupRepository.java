@@ -28,32 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.dao.sql.event;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.PsqlDao;
+import org.springframework.stereotype.Repository;
+import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 
-@Service
-@PsqlDao
-@Profile("install")
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
-public class PsqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaService
-        implements EntityDatabaseSchemaService {
-    public static final String SCHEMA_ENTITIES_SQL = "schema-entities.sql";
-    public static final String SCHEMA_ENTITIES_IDX_SQL = "schema-entities-idx.sql";
-    public static final String SCHEMA_ENTITIES_IDX_PSQL_ADDON_SQL = "schema-entities-idx-psql-addon.sql";
-
-    public PsqlEntityDatabaseSchemaService() {
-        super(SCHEMA_ENTITIES_SQL, SCHEMA_ENTITIES_IDX_SQL);
-    }
+@Repository
+public class SqlEventCleanupRepository extends JpaAbstractDaoListeningExecutorService implements EventCleanupRepository {
 
     @Override
-    public void createDatabaseIndexes() throws Exception {
-        super.createDatabaseIndexes();
-        log.info("Installing SQL DataBase schema PostgreSQL specific indexes part: " + SCHEMA_ENTITIES_IDX_PSQL_ADDON_SQL);
-        executeQueryFromFile(SCHEMA_ENTITIES_IDX_PSQL_ADDON_SQL);
+    public void cleanupEvents(long regularEventStartTs, long regularEventEndTs, long debugEventStartTs, long debugEventEndTs) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement("call cleanup_events_by_ttl(?,?,?,?,?)")) {
+            stmt.setLong(1, regularEventStartTs);
+            stmt.setLong(2, regularEventEndTs);
+            stmt.setLong(3, debugEventStartTs);
+            stmt.setLong(4, debugEventEndTs);
+            stmt.setLong(5, 0);
+            stmt.setQueryTimeout((int) TimeUnit.HOURS.toSeconds(1));
+            stmt.execute();
+            printWarnings(stmt);
+            try (ResultSet resultSet = stmt.getResultSet()){
+                resultSet.next();
+                log.info("Total events removed by TTL: [{}]", resultSet.getLong(1));
+            }
+        } catch (SQLException e) {
+            log.error("SQLException occurred during events TTL task execution ", e);
+        }
     }
 
 }

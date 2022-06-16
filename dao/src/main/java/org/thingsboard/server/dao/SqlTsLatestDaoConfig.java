@@ -28,43 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.event;
+package org.thingsboard.server.dao;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
-import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
-import org.thingsboard.server.dao.util.PsqlDao;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.thingsboard.server.dao.util.SqlTsLatestDao;
+import org.thingsboard.server.dao.util.TbAutoConfiguration;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
-
-@Slf4j
-@PsqlDao
-@Repository
-public class PsqlEventCleanupRepository extends JpaAbstractDaoListeningExecutorService implements EventCleanupRepository {
-
-    @Override
-    public void cleanupEvents(long regularEventStartTs, long regularEventEndTs, long debugEventStartTs, long debugEventEndTs) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement stmt = connection.prepareStatement("call cleanup_events_by_ttl(?,?,?,?,?)")) {
-            stmt.setLong(1, regularEventStartTs);
-            stmt.setLong(2, regularEventEndTs);
-            stmt.setLong(3, debugEventStartTs);
-            stmt.setLong(4, debugEventEndTs);
-            stmt.setLong(5, 0);
-            stmt.setQueryTimeout((int) TimeUnit.HOURS.toSeconds(1));
-            stmt.execute();
-            printWarnings(stmt);
-            try (ResultSet resultSet = stmt.getResultSet()){
-                resultSet.next();
-                log.info("Total events removed by TTL: [{}]", resultSet.getLong(1));
-            }
-        } catch (SQLException e) {
-            log.error("SQLException occurred during events TTL task execution ", e);
-        }
-    }
+@Configuration
+@TbAutoConfiguration
+@ComponentScan({"org.thingsboard.server.dao.sqlts.sql"})
+@EnableJpaRepositories({"org.thingsboard.server.dao.sqlts.insert.latest.sql", "org.thingsboard.server.dao.sqlts.latest"})
+@EntityScan({"org.thingsboard.server.dao.model.sqlts.latest"})
+@EnableTransactionManagement
+@SqlTsLatestDao
+public class SqlTsLatestDaoConfig {
 
 }

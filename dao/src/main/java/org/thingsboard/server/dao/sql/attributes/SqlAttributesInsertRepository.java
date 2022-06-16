@@ -28,28 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.timeseries;
+package org.thingsboard.server.dao.sql.attributes;
 
-import lombok.Data;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-@Data
-public class PsqlPartition {
+@Repository
+@Transactional
+public class SqlAttributesInsertRepository extends AttributeKvInsertRepository {
 
-    private static final String TABLE_REGEX = "ts_kv_";
-
-    private long start;
-    private long end;
-    private String partitionDate;
-    private String query;
-
-    public PsqlPartition(long start, long end, String partitionDate) {
-        this.start = start;
-        this.end = end;
-        this.partitionDate = partitionDate;
-        this.query = createStatement(start, end, partitionDate);
-    }
-
-    private String createStatement(long start, long end, String partitionDate) {
-        return "CREATE TABLE IF NOT EXISTS " + TABLE_REGEX + partitionDate + " PARTITION OF ts_kv FOR VALUES FROM (" + start + ") TO (" + end + ")";
-    }
 }
