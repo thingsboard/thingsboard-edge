@@ -121,7 +121,7 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
 
-    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
+    boolean isEntityInGroup(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId);
 
     EntityGroup assignEntityGroupToEdge(TenantId tenantId, EntityGroupId entityGroupId, EdgeId edgeId, EntityType groupType);
 

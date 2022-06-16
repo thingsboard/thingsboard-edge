@@ -558,12 +558,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         int offset = 0;
         List<EntityExportData> entityDataList;
         do {
-//            long ts = System.currentTimeMillis();
+            long ts = System.currentTimeMillis();
             entityDataList = gitServiceQueue.getEntities(ctx.getTenantId(), ctx.getVersionId(), ownerIds, entityType, false, recursive, offset, limit).get();
-//            long getEntities = System.currentTimeMillis() - ts;
+            long getEntities = System.currentTimeMillis() - ts;
             importEntityDataList(ctx, entityType, entityDataList);
-//            long importEntities = System.currentTimeMillis() - ts;
-//            log.info("[{}][{}] Import: get -> {}, import -> {}", entityType, entityDataList.size(), getEntities, importEntities);
+            long importEntities = System.currentTimeMillis() - ts;
+            log.info("[{}][{}] Import: get -> {}, import -> {}", entityType, entityDataList.size(), getEntities, importEntities);
             offset += limit;
         } while (entityDataList.size() == limit);
     }

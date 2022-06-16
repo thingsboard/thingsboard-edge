@@ -54,26 +54,24 @@ public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<En
      */
     ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType);
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType);
 
     ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
-            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType, PageLink pageLink);
+            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
 
-    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID id, String relationType, PageLink pageLink);
+    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID tenantId, EntityType groupType, PageLink pageLink);
 
     ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
 
     Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
-                                                       EntityType parentEntityType, String relationType, EntityType groupType, String name);
+                                                       EntityType parentEntityType, EntityType groupType, String name);
 
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId,
-                                                                              EntityType parentEntityType, String relationType, EntityType groupType, String name);
+                                                                              EntityType parentEntityType, EntityType groupType, String name);
 
     ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
 
     PageData<EntityId> findGroupEntityIdsSync(EntityType entityType, UUID groupId, PageLink pageLink);
-
-    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
 
     PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);
 

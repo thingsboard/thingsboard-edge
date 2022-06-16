@@ -38,7 +38,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -173,7 +172,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
-        new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
+        new EntityGroupValidator().validate(entityGroup, data -> tenantId);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
@@ -208,7 +207,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing checkEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        return relationService.checkRelation(tenantId, parentEntityId, entityGroup.getId(),
+        return relationService.checkRelationAsync(tenantId, parentEntityId, entityGroup.getId(),
                 ENTITY_GROUP_RELATION_PREFIX + entityGroup.getType().name()
                 , RelationTypeGroup.TO_ENTITY_GROUP);
     }
@@ -221,7 +220,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        return relationService.checkRelation(tenantId, parentEntityId, entityGroupId,
+        return relationService.checkRelationAsync(tenantId, parentEntityId, entityGroupId,
                 ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.TO_ENTITY_GROUP);
     }
@@ -529,8 +528,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), relationType);
+        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(),  groupType);
     }
 
     @Override
@@ -542,9 +540,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validatePageLink(pageLink);
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
         return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, pageLink);
+                parentEntityId.getEntityType(), groupType, pageLink);
     }
 
     @Override
@@ -555,16 +552,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validatePageLink(pageLink);
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), relationType, pageLink);
+        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), groupType, pageLink);
     }
 
     @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
-        String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
         return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, groupType, name);
+                parentEntityId.getEntityType(), groupType, name);
     }
 
     @Override
@@ -572,7 +567,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.warn("Executing findEntityGroupByTypeAndNameAsync, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
         return this.entityGroupDao.findEntityGroupByTypeAndNameAsync(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, groupType, name);
+                parentEntityId.getEntityType(), groupType, name);
     }
 
     private String validateAndComposeRelationType(EntityId parentEntityId, EntityType groupType, String name) {
@@ -653,7 +648,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
 
-        if (!isEntityInGroup(entityId, entityGroupId)) {
+        if (!isEntityInGroup(tenantId, entityId, entityGroupId)) {
             throw new IncorrectParameterException(String.format("Entity %s not present in entity group %s.", entityId, entityGroupId));
         }
 
@@ -881,7 +876,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
         log.trace("Executing checkEdgeEntityGroupById, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        return relationService.checkRelation(tenantId, edgeId, entityGroupId,
+        return relationService.checkRelationAsync(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.EDGE);
     }
@@ -925,8 +920,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
-        return entityGroupDao.isEntityInGroup(entityId, entityGroupId);
+    public boolean isEntityInGroup(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId) {
+        return relationService.checkRelation(tenantId, entityGroupId, entityId,
+                EntityRelation.CONTAINS_TYPE
+                , RelationTypeGroup.FROM_ENTITY_GROUP);
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId,
@@ -956,32 +953,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {
 
-        private final EntityId parentEntityId;
-
-        EntityGroupValidator(EntityId parentEntityId) {
-            this.parentEntityId = parentEntityId;
-        }
-
         @Override
         protected void validateCreate(TenantId tenantId, EntityGroup entityGroup) {
-            findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
-                    d -> {
-                        throw new DataValidationException("Entity group with such name already present in " +
-                                this.parentEntityId.getEntityType().toString() + "!");
-                    }
-            );
         }
 
         @Override
         protected EntityGroup validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
-            findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).ifPresent(
-                    d -> {
-                        if (!d.getId().equals(entityGroup.getId())) {
-                            throw new DataValidationException("Entity group with such name already present in " +
-                                    this.parentEntityId.getEntityType().toString() + "!");
-                        }
-                    }
-            );
             return entityGroupDao.findById(tenantId, entityGroup.getId().getId());
         }
 

@@ -90,3 +90,5 @@ CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, ext
 CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
 
 CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
