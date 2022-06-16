@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 
 import java.util.List;
@@ -87,6 +88,8 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     @Query("SELECT e FROM EntityGroupEntity e, " +
             "RelationEntity re " +
             "WHERE e.name = :name " +
+            "AND e.ownerId = :parentEntityId " +
+            "AND e.type = :groupType " +
             "AND e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
             "AND re.relationTypeGroup = 'TO_ENTITY_GROUP' " +
             "AND re.relationType = :relationType " +
@@ -94,6 +97,7 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
     EntityGroupEntity findEntityGroupByTypeAndName(@Param("parentEntityId") UUID parentEntityId,
                                                    @Param("parentEntityType") String parentEntityType,
                                                    @Param("relationType") String relationType,
+                                                   @Param("groupType") EntityType groupType,
                                                    @Param("name") String name);
 
     @Query("SELECT e FROM EntityGroupEntity e, " +

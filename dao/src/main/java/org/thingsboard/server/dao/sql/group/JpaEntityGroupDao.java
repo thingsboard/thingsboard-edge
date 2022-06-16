@@ -114,18 +114,19 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
 
     @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
-                                                              String relationType, String name) {
+                                                              String relationType, EntityType groupType, String name) {
         return Optional.ofNullable(DaoUtil.getData(entityGroupRepository.findEntityGroupByTypeAndName(
                 parentEntityId,
                 parentEntityType.name(),
                 relationType,
+                groupType,
                 name)));
     }
 
     @Override
     public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId, EntityType parentEntityType,
-                                                                                     String relationType, String name) {
-        return service.submit(() -> findEntityGroupByTypeAndName(tenantId, parentEntityId, parentEntityType, relationType, name));
+                                                                                     String relationType, EntityType groupType, String name) {
+        return service.submit(() -> findEntityGroupByTypeAndName(tenantId, parentEntityId, parentEntityType, relationType, groupType, name));
     }
 
     @Override

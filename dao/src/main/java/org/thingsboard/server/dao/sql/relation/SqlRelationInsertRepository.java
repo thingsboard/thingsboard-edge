@@ -40,7 +40,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.model.sql.RelationEntity;
-import org.thingsboard.server.dao.util.PsqlDao;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -50,7 +49,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 
-@PsqlDao
 @Repository
 @Transactional
 public class SqlRelationInsertRepository implements RelationInsertRepository {

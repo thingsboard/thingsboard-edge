@@ -291,7 +291,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         TenantId tenantId = savedTenant.getId();
 
         List<ListenableFuture<Customer>> futures = new ArrayList<>(135);
-        for (int i = 0; i < 35; i++) {
+        for (int i = 0; i < 135; i++) {
             Customer customer = new Customer();
             customer.setTenantId(tenantId);
             customer.setTitle("Customer" + i);
@@ -300,7 +300,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         }
         List<Customer> customers = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
-        List<Customer> loadedCustomers = new ArrayList<>(35);
+        List<Customer> loadedCustomers = new ArrayList<>(135);
         PageLink pageLink = new PageLink(23);
         PageData<Customer> pageData = null;
         do {
@@ -321,8 +321,8 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         TenantId tenantId = savedTenant.getId();
 
         String title1 = "Customer title 1";
-        List<ListenableFuture<Customer>> futures = new ArrayList<>(43);
-        for (int i = 0; i < 43; i++) {
+        List<ListenableFuture<Customer>> futures = new ArrayList<>(143);
+        for (int i = 0; i < 143; i++) {
             Customer customer = new Customer();
             customer.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
@@ -335,8 +335,8 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         List<Customer> customersTitle1 = Futures.allAsList(futures).get(TIMEOUT, TimeUnit.SECONDS);
 
         String title2 = "Customer title 2";
-        futures = new ArrayList<>(45);
-        for (int i = 0; i < 45; i++) {
+        futures = new ArrayList<>(175);
+        for (int i = 0; i < 175; i++) {
             Customer customer = new Customer();
             customer.setTenantId(tenantId);
             String suffix = RandomStringUtils.randomAlphanumeric((int) (5 + Math.random() * 10));
