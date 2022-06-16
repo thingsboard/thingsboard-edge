@@ -72,7 +72,7 @@ public class CoapTestClient {
     public void disconnect() {
         if (client != null) {
             client.shutdown();
-        };
+        }
     }
 
     public CoapResponse postMethod(String requestBody) throws ConnectorException, IOException {
