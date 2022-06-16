@@ -1,5 +1,4 @@
 /**
-<<<<<<< HEAD
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
@@ -28,21 +27,6 @@
  * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
-=======
- * Copyright © 2016-2022 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
->>>>>>> opensource/feature/entities-version-control
  */
 package org.thingsboard.server.dao.sql.relation;
 
@@ -50,10 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.dao.model.sql.RelationEntity;
 
@@ -83,9 +64,6 @@ public class SqlRelationInsertRepository implements RelationInsertRepository {
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
     protected Query getQuery(RelationEntity entity, String query) {
         Query nativeQuery = entityManager.createNativeQuery(query, RelationEntity.class);
         if (entity.getAdditionalInfo() == null) {
@@ -109,36 +87,31 @@ public class SqlRelationInsertRepository implements RelationInsertRepository {
 
     @Override
     public void saveOrUpdate(List<RelationEntity> entities) {
-        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+        jdbcTemplate.batchUpdate(INSERT_ON_CONFLICT_DO_UPDATE_JDBC, new BatchPreparedStatementSetter() {
             @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                jdbcTemplate.batchUpdate(INSERT_ON_CONFLICT_DO_UPDATE_JDBC, new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        RelationEntity relation = entities.get(i);
-                        ps.setObject(1, relation.getFromId());
-                        ps.setString(2, relation.getFromType());
-                        ps.setObject(3, relation.getToId());
-                        ps.setString(4, relation.getToType());
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                RelationEntity relation = entities.get(i);
+                ps.setObject(1, relation.getFromId());
+                ps.setString(2, relation.getFromType());
+                ps.setObject(3, relation.getToId());
+                ps.setString(4, relation.getToType());
 
-                        ps.setString(5, relation.getRelationTypeGroup());
-                        ps.setString(6, relation.getRelationType());
+                ps.setString(5, relation.getRelationTypeGroup());
+                ps.setString(6, relation.getRelationType());
 
-                        if (relation.getAdditionalInfo() == null) {
-                            ps.setString(7, null);
-                            ps.setString(8, null);
-                        } else {
-                            String json = JacksonUtil.toString(relation.getAdditionalInfo());
-                            ps.setString(7, json);
-                            ps.setString(8, json);
-                        }
-                    }
+                if (relation.getAdditionalInfo() == null) {
+                    ps.setString(7, null);
+                    ps.setString(8, null);
+                } else {
+                    String json = JacksonUtil.toString(relation.getAdditionalInfo());
+                    ps.setString(7, json);
+                    ps.setString(8, json);
+                }
+            }
 
-                    @Override
-                    public int getBatchSize() {
-                        return entities.size();
-                    }
-                });
+            @Override
+            public int getBatchSize() {
+                return entities.size();
             }
         });
     }
