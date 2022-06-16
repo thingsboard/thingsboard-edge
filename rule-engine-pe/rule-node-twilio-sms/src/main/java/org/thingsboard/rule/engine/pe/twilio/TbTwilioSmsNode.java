@@ -117,10 +117,10 @@ public class TbTwilioSmsNode implements TbNode {
                 ).create(this.twilioRestClient);
                 log.trace("[{}][{}][{}] Sms for number: {} sent successfully!", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg.getId(), numbersTo);
             } catch (ApiException e) {
-                String warnMsg = String.format("[%s][%s] Failed to send sms from number %s to number %s",
+                String apiMsg = String.format("[%s][%s] Failed to send sms from number %s to number %s",
                         ctx.getTenantId().getId(), ctx.getSelfId().getId(), numberFrom, numberTo);
-                log.warn(warnMsg, e);
-                ctx.tellFailure(msg, new RuntimeException(warnMsg, e));
+                log.debug(apiMsg, e);
+                ctx.tellFailure(msg, new RuntimeException(apiMsg, e));
             }
         }
     }
