@@ -928,11 +928,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
 
         @Override
-        protected EntityGroup validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
-            return entityGroupDao.findById(tenantId, entityGroup.getId().getId());
-        }
-
-        @Override
         protected void validateDataImpl(TenantId tenantId, EntityGroup entityGroup) {
             if (entityGroup.getType() == null) {
                 throw new DataValidationException("Entity group type should be specified!");
