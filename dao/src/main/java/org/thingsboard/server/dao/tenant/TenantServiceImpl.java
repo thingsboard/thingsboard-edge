@@ -218,9 +218,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
+        entityViewService.deleteEntityViewsByTenantId(tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
