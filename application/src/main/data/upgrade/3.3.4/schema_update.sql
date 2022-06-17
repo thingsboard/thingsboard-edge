@@ -37,6 +37,8 @@ ALTER TABLE asset
     ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE rule_chain
     ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE rule_node
+    ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE dashboard
     ADD COLUMN IF NOT EXISTS external_id UUID;
 ALTER TABLE customer
@@ -58,6 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_device_external_id ON device(tenant_id, external_
 CREATE INDEX IF NOT EXISTS idx_device_profile_external_id ON device_profile(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_asset_external_id ON asset(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_rule_chain_external_id ON rule_chain(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_rule_node_external_id ON rule_node(rule_chain_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_dashboard_external_id ON dashboard(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_customer_external_id ON customer(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_widgets_bundle_external_id ON widgets_bundle(tenant_id, external_id);
@@ -65,6 +68,9 @@ CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, ext
 CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
+CREATE INDEX IF NOT EXISTS idx_entity_view_external_id ON entity_view(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_rule_node_type ON rule_node(type);
 
 ALTER TABLE admin_settings
     ADD COLUMN IF NOT EXISTS tenant_id uuid NOT NULL DEFAULT '13814000-1dd2-11b2-8080-808080808080';

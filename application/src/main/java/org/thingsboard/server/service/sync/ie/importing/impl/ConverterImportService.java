@@ -39,7 +39,6 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -58,7 +57,17 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     }
 
     @Override
-    protected Converter prepareAndSave(EntitiesImportCtx ctx, Converter entity, Converter old, EntityExportData<Converter> exportData, IdProvider idProvider) {
+    protected Converter prepare(EntitiesImportCtx ctx, Converter entity, Converter oldEntity, EntityExportData<Converter> exportData, IdProvider idProvider) {
+        return entity;
+    }
+
+    @Override
+    protected Converter deepCopy(Converter converter) {
+        return new Converter(converter);
+    }
+
+    @Override
+    protected Converter saveOrUpdate(EntitiesImportCtx ctx, Converter entity, EntityExportData<Converter> exportData, IdProvider idProvider) {
         return converterService.saveConverter(entity);
     }
 

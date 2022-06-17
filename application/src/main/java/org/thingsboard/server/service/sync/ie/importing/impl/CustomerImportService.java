@@ -34,12 +34,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 @Service
@@ -57,13 +60,34 @@ public class CustomerImportService extends BaseGroupEntityImportService<Customer
     }
 
     @Override
-    protected Customer prepareAndSave(EntitiesImportCtx ctx, Customer customer, Customer old, GroupEntityExportData<Customer> exportData, IdProvider idProvider) {
+    protected Customer prepare(EntitiesImportCtx ctx, Customer customer, Customer old, GroupEntityExportData<Customer> exportData, IdProvider idProvider) {
+        if (customer.isPublic()) {
+            Customer publicCustomer = customerService.findOrCreatePublicCustomer(ctx.getTenantId(), customer.getOwnerId());
+            publicCustomer.setExternalId(customer.getExternalId());
+            return publicCustomer;
+        } else {
+            return customer;
+        }
+    }
+
+    @Override
+    protected Customer saveOrUpdate(EntitiesImportCtx ctx, Customer customer, GroupEntityExportData<Customer> exportData, IdProvider idProvider) {
         if (!customer.isPublic()) {
             return customerService.saveCustomer(customer);
         } else {
-            Customer publicCustomer = customerService.findOrCreatePublicCustomer(ctx.getTenantId(), customer.getOwnerId());
-            publicCustomer.setExternalId(customer.getExternalId());
-            return customerDao.save(ctx.getTenantId(), publicCustomer);
+            return customerDao.save(ctx.getTenantId(), customer);
+        }
+    }
+
+    protected Customer deepCopy(Customer customer) {
+        return new Customer(customer);
+    }
+
+    @Override
+    protected void onEntitySaved(SecurityUser user, Customer savedCustomer, Customer oldCustomer) throws ThingsboardException {
+        super.onEntitySaved(user, savedCustomer, oldCustomer);
+        if (oldCustomer != null) {
+            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedCustomer.getId(), EdgeEventActionType.UPDATED);
         }
     }
 

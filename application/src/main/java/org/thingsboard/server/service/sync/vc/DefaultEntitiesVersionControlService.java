@@ -495,7 +495,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         List<EntityType> entityTypes = request.getEntityTypes().keySet().stream()
                 .sorted(exportImportService.getEntityTypeComparatorForImport()).collect(Collectors.toList());
         for (EntityType entityType : entityTypes) {
-            log.info("[{}] LOADING {} entities", ctx.getTenantId(), entityType);
+            log.debug("[{}] LOADING {} entities", ctx.getTenantId(), entityType);
             sw.startNew("Entities " + entityType.name());
             ctx.setSettings(getEntityImportSettings(request, entityType));
             importEntities(ctx, Collections.emptyList(), entityType, true);
@@ -508,10 +508,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             importEntityGroups(ctx, entityType);
         }
 
-        log.info("REIMPORT");
         sw.startNew("Reimport");
         reimport(ctx);
-        log.info("REMOVE OTHERS");
         sw.startNew("Remove Others");
         request.getEntityTypes().keySet().stream()
                 .filter(entityType -> request.getEntityTypes().get(entityType).isRemoveOtherEntities())
@@ -519,14 +517,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .forEach(entityType -> removeOtherEntities(ctx, entityType));
 
         sw.startNew("References and Relations");
-        log.info("REFERENCE AND RELATIONS");
         exportImportService.saveReferencesAndRelations(ctx);
         sw.stop();
-        log.info("STOP");
         for (var task : sw.getTaskInfo()) {
-            log.info("[{}] Executed: {} in {}ms", ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());
+            log.debug("[{}] Executed: {} in {}ms", ctx.getTenantId(), task.getTaskName(), task.getTimeMillis());
         }
-        log.info("[{}] Total time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
+        log.info("[{}] Total import time: {}ms", ctx.getTenantId(), sw.getTotalTimeMillis());
         return VersionLoadResult.success(new ArrayList<>(ctx.getResults().values()));
     }
 
@@ -612,7 +608,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 continue;
             }
 
-            ctx.registerResult(entityType, entityData.getEntity() instanceof EntityGroup, importResult.getOldEntity() == null);
+            registerResult(ctx, entityType, importResult, entityData);
             EntityId savedEntityId = importResult.getSavedEntity().getId();
             ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>()).add(savedEntityId);
         }
@@ -652,6 +648,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 }
                 EntityId savedEntityId = importResult.getSavedEntity().getId();
                 ctx.getImportedEntities().computeIfAbsent(externalId.getEntityType(), t -> new HashSet<>()).add(savedEntityId);
+                registerResult(ctx, externalId.getEntityType(), importResult, entityData);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -873,4 +870,14 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         if (!(entity instanceof ExportableEntity)) throw new IllegalArgumentException("Unsupported entity type");
         return entity;
     }
+
+    private void registerResult(EntitiesImportCtx ctx, EntityType entityType, EntityImportResult<?> importResult, EntityExportData exportData) {
+        boolean isGroup = exportData.getEntity() instanceof EntityGroup;
+        if (importResult.isCreated()) {
+            ctx.registerResult(entityType, isGroup, true);
+        } else if (importResult.isUpdated() || importResult.isUpdatedRelatedEntities()) {
+            ctx.registerResult(entityType, isGroup, false);
+        }
+    }
+
 }

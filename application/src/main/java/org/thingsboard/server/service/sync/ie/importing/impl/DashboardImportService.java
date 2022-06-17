@@ -76,7 +76,7 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
     }
 
     @Override
-    protected Dashboard prepareAndSave(EntitiesImportCtx ctx, Dashboard dashboard, Dashboard old, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
+    protected Dashboard prepare(EntitiesImportCtx ctx, Dashboard dashboard, Dashboard old, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
         JsonNode configuration = dashboard.getConfiguration();
         JsonNode entityAliases = configuration.get("entityAliases");
         if (entityAliases != null && entityAliases.isObject()) {
@@ -93,8 +93,17 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
                 }
             }
         }
+        return dashboard;
+    }
 
+    @Override
+    protected Dashboard saveOrUpdate(EntitiesImportCtx ctx, Dashboard dashboard, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
         return dashboardService.saveDashboard(dashboard);
+    }
+
+    @Override
+    protected Dashboard deepCopy(Dashboard dashboard) {
+        return new Dashboard(dashboard);
     }
 
     @Override

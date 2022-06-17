@@ -64,8 +64,13 @@ public class EntityViewImportService extends BaseGroupEntityImportService<Entity
     }
 
     @Override
-    protected EntityView prepareAndSave(EntitiesImportCtx ctx, EntityView entityView, EntityView oldEntityView, GroupEntityExportData<EntityView> exportData, IdProvider idProvider) {
+    protected EntityView prepare(EntitiesImportCtx ctx, EntityView entityView, EntityView old, GroupEntityExportData<EntityView> exportData, IdProvider idProvider) {
         entityView.setEntityId(idProvider.getInternalId(entityView.getEntityId()));
+        return entityView;
+    }
+
+    @Override
+    protected EntityView saveOrUpdate(EntitiesImportCtx ctx, EntityView entityView, GroupEntityExportData<EntityView> exportData, IdProvider idProvider) {
         return entityViewService.saveEntityView(entityView);
     }
 
@@ -73,6 +78,19 @@ public class EntityViewImportService extends BaseGroupEntityImportService<Entity
     protected void onEntitySaved(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException {
         tbEntityViewService.updateEntityViewAttributes(user, savedEntityView, oldEntityView);
         super.onEntitySaved(user, savedEntityView, oldEntityView);
+    }
+
+    @Override
+    protected EntityView deepCopy(EntityView entityView) {
+        return new EntityView(entityView);
+    }
+
+    @Override
+    protected void cleanupForComparison(EntityView e) {
+        super.cleanupForComparison(e);
+        if (e.getCustomerId() != null && e.getCustomerId().isNullUid()) {
+            e.setCustomerId(null);
+        }
     }
 
     @Override

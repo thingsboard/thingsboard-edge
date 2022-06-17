@@ -91,13 +91,23 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected EntityGroup prepareAndSave(EntitiesImportCtx ctx, EntityGroup entityGroup, EntityGroup old, EntityGroupExportData exportData, IdProvider idProvider) {
-        if (entityGroup.getId() == null && entityGroup.isGroupAll()) {
+    protected EntityGroup prepare(EntitiesImportCtx ctx, EntityGroup entity, EntityGroup oldEntity, EntityGroupExportData exportData, IdProvider idProvider) {
+        if (entity.getId() == null && entity.isGroupAll()) {
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");
         }
+        return entity;
+    }
+
+    @Override
+    protected EntityGroup deepCopy(EntityGroup entityGroup) {
+        return new EntityGroup(entityGroup);
+    }
+
+    @Override
+    protected EntityGroup saveOrUpdate(EntitiesImportCtx ctx, EntityGroup entity, EntityGroupExportData exportData, IdProvider idProvider) {
         // TODO [viacheslav]: update actions config
-        return entityGroupService.saveEntityGroup(ctx.getTenantId(), entityGroup.getOwnerId(), entityGroup);
+        return entityGroupService.saveEntityGroup(ctx.getTenantId(), entity.getOwnerId(), entity);
     }
 
     @Override

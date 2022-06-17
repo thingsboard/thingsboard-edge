@@ -31,12 +31,14 @@
 package org.thingsboard.server.common.data.group;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,6 +53,8 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ApiModel
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId, ExportableNoTenantIdEntity<EntityGroupId> {
 
     private static final long serialVersionUID = 2807349040519543363L;

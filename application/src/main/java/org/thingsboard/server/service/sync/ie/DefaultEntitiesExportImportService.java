@@ -36,24 +36,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.sync.ThrowingRunnable;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.apiusage.RateLimitService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.ie.exporting.EntityExportService;
 import org.thingsboard.server.service.sync.ie.exporting.impl.BaseEntityExportService;
 import org.thingsboard.server.service.sync.ie.exporting.impl.DefaultEntityExportService;
@@ -117,33 +112,6 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
         ctx.addReferenceCallback(importResult.getSaveReferencesCallback());
         ctx.addEventCallback(importResult.getSendEventsCallback());
         return importResult;
-    }
-
-    private void fixOrder(List<EntityExportData<?>> exportDataList) {
-        Map<EntityId, EntityId> entitiesOwners = new HashMap<>();
-        exportDataList.stream().map(EntityExportData::getEntity).forEach(entity -> {
-            EntityId entityId = entity.getId();
-            EntityId ownerId = entity instanceof HasOwnerId ? ((HasOwnerId) entity).getOwnerId() : ((HasTenantId) entity).getTenantId();
-            entitiesOwners.put(entityId, ownerId);
-        });
-
-        exportDataList.sort(Comparator.<EntityExportData<?>, Integer>comparing(exportData -> SUPPORTED_ENTITY_TYPES.indexOf(exportData.getEntityType()))
-                .thenComparing((exportData) -> {
-                    if (exportData.getEntityType() == EntityType.CUSTOMER) {
-                        return getNestingLevel((CustomerId) exportData.getEntity().getId(), entitiesOwners);
-                    } else {
-                        return 0;
-                    }
-                }));
-    }
-
-    private int getNestingLevel(CustomerId customerId, Map<EntityId, EntityId> entitiesOwners) {
-        EntityId customerOwner = entitiesOwners.get(customerId);
-        if (customerOwner == null || customerOwner.getEntityType() == EntityType.TENANT) {
-            return 0;
-        } else {
-            return 1 + getNestingLevel((CustomerId) customerOwner, entitiesOwners);
-        }
     }
 
     @Override

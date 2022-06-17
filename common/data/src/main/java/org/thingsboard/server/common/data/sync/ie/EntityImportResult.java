@@ -48,6 +48,10 @@ public class EntityImportResult<E extends ExportableEntity<? extends EntityId>> 
 
     private Boolean updatedAllExternalIds;
 
+    private boolean created;
+    private boolean updated;
+    private boolean updatedRelatedEntities;
+
     public void addSaveReferencesCallback(ThrowingRunnable callback) {
         this.saveReferencesCallback = this.saveReferencesCallback.andThen(callback);
     }

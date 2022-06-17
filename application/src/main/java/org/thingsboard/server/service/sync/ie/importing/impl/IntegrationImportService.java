@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.sync.ie.importing.impl;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -47,9 +46,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Service
 @TbCoreComponent
@@ -73,20 +69,30 @@ public class IntegrationImportService extends BaseEntityImportService<Integratio
         return existingIntegration;
     }
 
-    @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
     @Override
-    protected Integration prepareAndSave(EntitiesImportCtx ctx, Integration integration, Integration old, EntityExportData<Integration> exportData, IdProvider idProvider) {
+    protected Integration prepare(EntitiesImportCtx ctx, Integration integration, Integration oldEntity, EntityExportData<Integration> exportData, IdProvider idProvider) {
         if (ctx.isAutoGenerateIntegrationKey()) {
             if (integration.getId() == null) {
                 integration.setRoutingKey(UUID.randomUUID().toString());
             } else {
-                integration.setRoutingKey(old.getRoutingKey());
+                integration.setRoutingKey(oldEntity.getRoutingKey());
             }
         }
-
         integration.setDefaultConverterId(idProvider.getInternalId(integration.getDefaultConverterId()));
         integration.setDownlinkConverterId(idProvider.getInternalId(integration.getDownlinkConverterId()));
-        integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
+        return integration;
+    }
+
+    @Override
+    protected Integration deepCopy(Integration integration) {
+        return new Integration(integration);
+    }
+
+//    @SneakyThrows({InterruptedException.class, ExecutionException.class, TimeoutException.class})
+    @Override
+    protected Integration saveOrUpdate(EntitiesImportCtx ctx, Integration integration, EntityExportData<Integration> exportData, IdProvider idProvider) {
+        // Too aggressive operation
+        // integrationManagerService.validateIntegrationConfiguration(integration).get(20, TimeUnit.SECONDS);
         return integrationService.saveIntegration(integration);
     }
 
