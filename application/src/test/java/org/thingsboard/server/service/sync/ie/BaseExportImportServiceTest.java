@@ -339,7 +339,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
     }
 
     protected Dashboard createDashboard(TenantId tenantId, CustomerId customerId, String name, AssetId assetForEntityAlias) {
-        Dashboard dashboard = createDashboard(tenantId, customerId, name);
+        Dashboard dashboard = createDashboard(tenantId, customerId, null, name);
         String entityAliases = "{\n" +
                 "\t\"23c4185d-1497-9457-30b2-6d91e69a5b2c\": {\n" +
                 "\t\t\"alias\": \"assets\",\n" +
@@ -367,6 +367,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
         assertThat(importedDashboard.getImage()).isEqualTo(initialDashboard.getImage());
         assertThat(importedDashboard.isMobileHide()).isEqualTo(initialDashboard.isMobileHide());
     }
+
     protected RuleChain createRuleChain(TenantId tenantId, String name, EntityId originatorId) {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setTenantId(tenantId);
@@ -386,6 +387,13 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
         TbMsgGeneratorNodeConfiguration configuration1 = new TbMsgGeneratorNodeConfiguration();
         configuration1.setOriginatorType(originatorId.getEntityType());
         configuration1.setOriginatorId(originatorId.getId().toString());
+        configuration1.setJsScript("var msg = { temp: 42, humidity: 77 };\n" +
+                "var metadata = { data: 40 };\n" +
+                "var msgType = \"POST_TELEMETRY_REQUEST\";\n" +
+                "\n" +
+                "return { msg: msg, metadata: metadata, msgType: msgType };");
+        configuration1.setMsgCount(1);
+        configuration1.setPeriodInSeconds(1);
         ruleNode1.setConfiguration(mapper.valueToTree(configuration1));
 
         RuleNode ruleNode2 = new RuleNode();
@@ -479,6 +487,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
         relationService.saveRelation(TenantId.SYS_TENANT_ID, relation);
         return relation;
     }
+
     protected EntityGroup createEntityGroup(EntityId ownerId, EntityType groupType, String name) {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setOwnerId(ownerId);

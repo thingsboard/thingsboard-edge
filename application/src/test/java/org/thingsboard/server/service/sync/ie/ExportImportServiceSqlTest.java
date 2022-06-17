@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -698,20 +699,24 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
     @Test
     public void testExternalIdsInExportData() throws Exception {
-        Customer customer = createCustomer(tenantId1, "Customer 1");
-        Asset asset = createAsset(tenantId1, customer.getId(), "A", "Asset 1");
+        Customer customer = createCustomer(tenantId1, null, "Customer 1");
+        Asset asset = createAsset(tenantId1, customer.getId(), null, "A", "Asset 1");
         RuleChain ruleChain = createRuleChain(tenantId1, "Rule chain 1", asset.getId());
         Dashboard dashboard = createDashboard(tenantId1, customer.getId(), "Dashboard 1", asset.getId());
         DeviceProfile deviceProfile = createDeviceProfile(tenantId1, ruleChain.getId(), dashboard.getId(), "Device profile 1");
-        Device device = createDevice(tenantId1, customer.getId(), deviceProfile.getId(), "Device 1");
+        Device device = createDevice(tenantId1, customer.getId(), deviceProfile.getId(), null, "Device 1");
         EntityView entityView = createEntityView(tenantId1, customer.getId(), device.getId(), "Entity view 1");
+        Converter converter = createConverter(tenantId1, ConverterType.UPLINK, "Converter 1");
+        Integration integration = createIntegration(tenantId1, converter.getId(), IntegrationType.HTTP, "Integration 1");
 
         Map<EntityId, EntityId> ids = new HashMap<>();
         for (EntityId entityId : List.of(customer.getId(), asset.getId(), ruleChain.getId(), dashboard.getId(),
-                deviceProfile.getId(), device.getId(), entityView.getId(), ruleChain.getId(), dashboard.getId())) {
+                deviceProfile.getId(), device.getId(), entityView.getId(), converter.getId(), integration.getId(),
+                ruleChain.getId(), dashboard.getId())) {
             EntityExportData exportData = exportEntity(getSecurityUser(tenantAdmin1), entityId);
             EntityImportResult importResult = importEntity(getSecurityUser(tenantAdmin2), exportData, EntityImportSettings.builder()
                     .saveCredentials(false)
+                    .autoGenerateIntegrationKey(true)
                     .build());
             ids.put(entityId, (EntityId) importResult.getSavedEntity().getId());
         }
@@ -726,9 +731,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         assertThat(exportedRuleNodeConfig.getOriginatorId()).isEqualTo(asset.getId().toString());
 
         Dashboard exportedDashboard = (Dashboard) exportEntity(tenantAdmin2, (DashboardId) ids.get(dashboard.getId())).getEntity();
-        assertThat(exportedDashboard.getAssignedCustomers()).hasOnlyOneElementSatisfying(shortCustomerInfo -> {
-            assertThat(shortCustomerInfo.getCustomerId()).isEqualTo(customer.getId());
-        });
+        assertThat(exportedDashboard.getCustomerId()).isEqualTo(customer.getId());
         String exportedEntityAliasAssetId = exportedDashboard.getConfiguration().get("entityAliases").elements().next()
                 .get("filter").get("entityList").elements().next().asText();
         assertThat(exportedEntityAliasAssetId).isEqualTo(asset.getId().toString());
@@ -744,6 +747,9 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         EntityView exportedEntityView = (EntityView) exportEntity(tenantAdmin2, (EntityViewId) ids.get(entityView.getId())).getEntity();
         assertThat(exportedEntityView.getCustomerId()).isEqualTo(customer.getId());
         assertThat(exportedEntityView.getEntityId()).isEqualTo(device.getId());
+
+        Integration exportedIntegration = (Integration) exportEntity(tenantAdmin2, (IntegrationId) ids.get(integration.getId())).getEntity();
+        assertThat(exportedIntegration.getDefaultConverterId()).isEqualTo(converter.getId());
 
         deviceProfile.setDefaultDashboardId(null);
         deviceProfileService.saveDeviceProfile(deviceProfile);
