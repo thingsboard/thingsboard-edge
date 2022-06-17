@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
@@ -157,6 +158,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
 
     @Autowired
     protected TbTransactionalCache<TenantCacheKey, Boolean> existsTenantCache;
+
+    @Autowired
+    private EntityViewService entityViewService;
 
     @TransactionalEventListener(classes = TenantEvictEvent.class)
     @Override

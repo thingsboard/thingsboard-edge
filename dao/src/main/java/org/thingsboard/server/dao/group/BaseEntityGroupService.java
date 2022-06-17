@@ -207,7 +207,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing checkEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        return relationService.checkRelation(tenantId, parentEntityId, entityGroup.getId(),
+        return relationService.checkRelationAsync(tenantId, parentEntityId, entityGroup.getId(),
                 ENTITY_GROUP_RELATION_PREFIX + entityGroup.getType().name()
                 , RelationTypeGroup.TO_ENTITY_GROUP);
     }
@@ -220,7 +220,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        return relationService.checkRelation(tenantId, parentEntityId, entityGroupId,
+        return relationService.checkRelationAsync(tenantId, parentEntityId, entityGroupId,
                 ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.TO_ENTITY_GROUP);
     }
@@ -851,7 +851,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
         log.trace("Executing checkEdgeEntityGroupById, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        return relationService.checkRelation(tenantId, edgeId, entityGroupId,
+        return relationService.checkRelationAsync(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.EDGE);
     }
