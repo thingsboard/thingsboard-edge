@@ -105,6 +105,7 @@ import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntityTypeExportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntityTypeExportTask;
 import org.thingsboard.server.service.sync.vc.data.ReimportTask;
+import org.thingsboard.server.service.sync.vc.data.ReimportTask;
 import org.thingsboard.server.service.sync.vc.data.SimpleEntitiesExportCtx;
 import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;
 
@@ -598,6 +599,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                                                              List<EntityExportData> entityDataList) {
         List<EntityImportResult<?>> importResults = new ArrayList<>();
         for (EntityExportData entityData : entityDataList) {
+            log.debug("[{}] Loading {} entities", ctx.getTenantId(), entityType);
             EntityImportResult<?> importResult;
             try {
                 importResult = exportImportService.importEntity(ctx, entityData);
