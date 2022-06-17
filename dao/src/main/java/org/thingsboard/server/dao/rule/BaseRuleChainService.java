@@ -84,7 +84,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 /**
  * Created by igor on 3/12/18.
@@ -245,7 +247,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     sourceRuleNodeToTargetRuleNode.setType(nodeToRuleChainConnection.getType());
                     sourceRuleNodeToTargetRuleNode.setTypeGroup(RelationTypeGroup.RULE_NODE);
                     relationService.saveRelation(tenantId, sourceRuleNodeToTargetRuleNode);
-                 }
+                }
             }
         }
 
