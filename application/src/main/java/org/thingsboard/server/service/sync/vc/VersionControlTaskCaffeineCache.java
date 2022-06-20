@@ -28,23 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.vc;
+package org.thingsboard.server.service.sync.vc;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.io.Serializable;
+import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class EntityVersion implements Serializable {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("VersionControlTaskCache")
+public class VersionControlTaskCaffeineCache extends CaffeineTbTransactionalCache<UUID, VersionControlTaskCacheEntry> {
 
-    private static final long serialVersionUID = -3705022663019175258L;
-    
-    private long timestamp;
-    private String id;
-    private String name;
-    private String author;
+    public VersionControlTaskCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.VERSION_CONTROL_TASK_CACHE);
+    }
+
 }
