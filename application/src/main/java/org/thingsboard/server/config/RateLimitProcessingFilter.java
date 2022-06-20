@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -56,6 +58,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+@Slf4j
 @Component
 public class RateLimitProcessingFilter extends GenericFilterBean {
 
@@ -73,7 +76,13 @@ public class RateLimitProcessingFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         SecurityUser user = getCurrentUser();
         if (user != null && !user.isSystemAdmin()) {
-            var profileConfiguration = tenantProfileCache.get(user.getTenantId()).getDefaultProfileConfiguration();
+            var profile = tenantProfileCache.get(user.getTenantId());
+            if (profile == null) {
+                log.debug("[{}] Failed to lookup tenant profile", user.getTenantId());
+                errorResponseHandler.handle(new BadCredentialsException("Failed to lookup tenant profile"), (HttpServletResponse) response);
+                return;
+            }
+            var profileConfiguration = profile.getDefaultProfileConfiguration();
             if (!checkRateLimits(user.getTenantId(), profileConfiguration.getTenantServerRestLimitsConfiguration(), perTenantLimits, response)) {
                 return;
             }
