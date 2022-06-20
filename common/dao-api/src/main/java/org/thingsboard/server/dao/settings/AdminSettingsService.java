@@ -27,6 +27,12 @@ public interface AdminSettingsService {
 
     void deleteAdminSettingsByKey(TenantId tenantId, String key);
 
+    AdminSettings findAdminSettingsByTenantIdAndKey(TenantId tenantId, String key);
+
     AdminSettings saveAdminSettings(TenantId tenantId, AdminSettings adminSettings);
+
+    boolean deleteAdminSettingsByTenantIdAndKey(TenantId tenantId, String key);
+
+    void deleteAdminSettingsByTenantId(TenantId tenantId);
 
 }

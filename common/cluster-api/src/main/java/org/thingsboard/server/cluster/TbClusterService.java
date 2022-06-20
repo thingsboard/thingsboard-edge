@@ -32,8 +32,9 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueClusterService;
@@ -48,9 +49,11 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void pushMsgToCore(ToDeviceActorNotificationMsg msg, TbQueueCallback callback);
 
+    void pushMsgToVersionControl(TenantId tenantId, ToVersionControlServiceMsg msg, TbQueueCallback callback);
+
     void pushNotificationToCore(String targetServiceId, FromDeviceRpcResponse response, TbQueueCallback callback);
 
-    void pushMsgToRuleEngine(TopicPartitionInfo tpi, UUID msgId, TransportProtos.ToRuleEngineMsg msg, TbQueueCallback callback);
+    void pushMsgToRuleEngine(TopicPartitionInfo tpi, UUID msgId, ToRuleEngineMsg msg, TbQueueCallback callback);
 
     void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg msg, TbQueueCallback callback);
 
