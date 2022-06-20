@@ -417,7 +417,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .autoGenerateIntegrationKey(config.isAutoGenerateIntegrationKey())
                 .findExistingByName(false)
                 .build();
-
+        ctx.setFinalImportAttempt(true);
         ctx.setSettings(settings);
 
         if (EntityType.ENTITY_GROUP.equals(request.getExternalEntityId().getEntityType())) {
@@ -595,6 +595,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                                                              List<EntityExportData> entityDataList) {
         List<EntityImportResult<?>> importResults = new ArrayList<>();
         for (EntityExportData entityData : entityDataList) {
+            EntityExportData reimportBackup = JacksonUtil.clone(entityData);
             log.debug("[{}] Loading {} entities", ctx.getTenantId(), entityType);
             EntityImportResult<?> importResult;
             try {
@@ -603,8 +604,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             } catch (Exception e) {
                 throw new LoadEntityException(entityData.getExternalId(), e);
             }
-            if (importResult.getUpdatedAllExternalIds() != null && !importResult.getUpdatedAllExternalIds()) {
-                ctx.getToReimport().put(entityData.getEntity().getExternalId(), new ReimportTask(entityData, ctx.getSettings()));
+            if (!importResult.isUpdatedAllExternalIds()) {
+                ctx.getToReimport().put(entityData.getEntity().getExternalId(), new ReimportTask(reimportBackup, ctx.getSettings()));
                 continue;
             }
 
@@ -633,7 +634,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void reimport(EntitiesImportCtx ctx) {
-        ctx.setFetchAllUUIDs(true);
+        ctx.setFinalImportAttempt(true);
         ctx.getToReimport().forEach((externalId, task) -> {
             try {
                 EntityExportData entityData = task.getData();
@@ -641,11 +642,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 ctx.setSettings(settings);
                 EntityImportResult<?> importResult = exportImportService.importEntity(ctx, entityData);
 
-                if (EntityType.ENTITY_GROUP.equals(externalId.getEntityType())) {
-                    ctx.registerResult(((EntityGroup) entityData.getEntity()).getType(), true, importResult.getOldEntity() == null);
-                } else {
-                    ctx.registerResult(externalId.getEntityType(), false, importResult.getOldEntity() == null);
-                }
+                registerResult(ctx, entityData.getEntityType(), importResult, entityData);
                 EntityId savedEntityId = importResult.getSavedEntity().getId();
                 ctx.getImportedEntities().computeIfAbsent(externalId.getEntityType(), t -> new HashSet<>()).add(savedEntityId);
                 registerResult(ctx, externalId.getEntityType(), importResult, entityData);
@@ -873,6 +870,9 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     private void registerResult(EntitiesImportCtx ctx, EntityType entityType, EntityImportResult<?> importResult, EntityExportData exportData) {
         boolean isGroup = exportData.getEntity() instanceof EntityGroup;
+        if(isGroup){
+            entityType = ((EntityGroup) exportData.getEntity()).getType();
+        }
         if (importResult.isCreated()) {
             ctx.registerResult(entityType, isGroup, true);
         } else if (importResult.isUpdated() || importResult.isUpdatedRelatedEntities()) {

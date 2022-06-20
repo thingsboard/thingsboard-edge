@@ -32,6 +32,7 @@ package org.thingsboard.server.service.sync.ie.exporting.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -48,6 +49,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -74,6 +76,7 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
                     .collect(Collectors.toList());
             exportData.setPermissions(permissions);
         }
+        replaceUuidsRecursively(ctx, JacksonUtil.getSafely(exportData.getEntity().getConfiguration(), "actions"), Collections.singleton("id"));
     }
 
     @Override

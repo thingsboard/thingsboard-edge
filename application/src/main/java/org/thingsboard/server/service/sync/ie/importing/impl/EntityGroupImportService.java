@@ -32,6 +32,7 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -53,12 +54,17 @@ import org.thingsboard.server.service.security.permission.UserPermissionsService
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
 public class EntityGroupImportService extends BaseEntityImportService<EntityGroupId, EntityGroup, EntityGroupExportData> {
+
+    private static final LinkedHashSet<EntityType> HINTS = new LinkedHashSet<>(Arrays.asList(EntityType.DASHBOARD, EntityType.DEVICE, EntityType.ASSET));
 
     private final EntityGroupService entityGroupService;
     private final GroupPermissionService groupPermissionService;
@@ -96,6 +102,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
             throw new IllegalArgumentException("Import of new groups with type All is not allowed. " +
                     "Consider enabling import option to find existing entities by name");
         }
+        replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(entity.getConfiguration(), "actions"), Collections.singleton("id"), HINTS);
         return entity;
     }
 

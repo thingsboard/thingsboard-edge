@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.sync.ie.importing.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.api.client.util.Objects;
 import com.google.common.util.concurrent.FutureCallback;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
@@ -74,6 +75,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -103,6 +105,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     @Override
     public EntityImportResult<E> importEntity(EntitiesImportCtx ctx, D exportData) throws ThingsboardException {
         EntityImportResult<E> importResult = new EntityImportResult<>();
+        ctx.setCurrentImportResult(importResult);
         importResult.setEntityType(getEntityType());
         IdProvider idProvider = new IdProvider(ctx, importResult);
 
@@ -398,6 +401,11 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
     protected <T extends EntityId, O> T getOldEntityField(O oldEntity, Function<O, T> getter) {
         return oldEntity == null ? null : getter.apply(oldEntity);
+    }
+
+    protected void replaceIdsRecursively(EntitiesImportCtx ctx, IdProvider idProvider, JsonNode entityAlias, Set<String> skipFieldsSet, LinkedHashSet<EntityType> hints) {
+        JacksonUtil.replaceUuidsRecursively(entityAlias, skipFieldsSet,
+                uuid -> idProvider.getInternalIdByUuid(uuid, ctx.isFinalImportAttempt(), hints).map(EntityId::getId).orElse(uuid));
     }
 
 }

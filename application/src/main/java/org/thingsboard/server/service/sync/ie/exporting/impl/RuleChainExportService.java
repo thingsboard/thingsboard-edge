@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.sync.ie.RuleChainExportData;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
-import org.thingsboard.server.utils.RegexUtils;
+import org.thingsboard.common.util.RegexUtils;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -66,12 +66,7 @@ public class RuleChainExportService extends BaseEntityExportService<RuleChainId,
                     ruleNode.setId(ctx.getExternalId(ruleNode.getId()));
                     ruleNode.setCreatedTime(0);
                     ruleNode.setExternalId(null);
-                    JsonNode ruleNodeConfig = ruleNode.getConfiguration();
-                    String newRuleNodeConfigJson = RegexUtils.replace(ruleNodeConfig.toString(), RegexUtils.UUID_PATTERN, uuid -> {
-                        return getExternalIdOrElseInternalByUuid(ctx, UUID.fromString(uuid)).toString();
-                    });
-                    ruleNodeConfig = JacksonUtil.toJsonNode(newRuleNodeConfigJson);
-                    ruleNode.setConfiguration(ruleNodeConfig);
+                    replaceUuidsRecursively(ctx, ruleNode.getConfiguration(), Collections.emptySet());
                 });
         Optional.ofNullable(metaData.getRuleChainConnections()).orElse(Collections.emptyList())
                 .forEach(ruleChainConnectionInfo -> {

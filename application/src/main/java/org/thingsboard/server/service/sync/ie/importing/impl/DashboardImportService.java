@@ -31,8 +31,6 @@
 package org.thingsboard.server.service.sync.ie.importing.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -44,12 +42,10 @@ import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
-import org.thingsboard.server.utils.RegexUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.UUID;
 
 @Service
 @TbCoreComponent
@@ -77,21 +73,11 @@ public class DashboardImportService extends BaseGroupEntityImportService<Dashboa
 
     @Override
     protected Dashboard prepare(EntitiesImportCtx ctx, Dashboard dashboard, Dashboard old, GroupEntityExportData<Dashboard> exportData, IdProvider idProvider) {
-        JsonNode configuration = dashboard.getConfiguration();
-        JsonNode entityAliases = configuration.get("entityAliases");
-        if (entityAliases != null && entityAliases.isObject()) {
-            for (JsonNode entityAlias : entityAliases) {
-                ArrayList<String> fields = Lists.newArrayList(entityAlias.fieldNames());
-                for (String field : fields) {
-                    if (field.equals("id")) continue;
-                    JsonNode oldFieldValue = entityAlias.get(field);
-                    JsonNode newFieldValue = JacksonUtil.toJsonNode(RegexUtils.replace(oldFieldValue.toString(), RegexUtils.UUID_PATTERN, uuid -> {
-                        return idProvider.getInternalIdByUuid(UUID.fromString(uuid), ctx.isFetchAllUUIDs(), HINTS)
-                                .map(entityId -> entityId.getId().toString()).orElse(uuid);
-                    }));
-                    ((ObjectNode) entityAlias).set(field, newFieldValue);
-                }
-            }
+        for (JsonNode entityAlias : dashboard.getEntityAliasesConfig()) {
+            replaceIdsRecursively(ctx, idProvider, entityAlias, Collections.emptySet(), HINTS);
+        }
+        for (JsonNode widgetConfig : dashboard.getWidgetsConfig()) {
+            replaceIdsRecursively(ctx, idProvider, JacksonUtil.getSafely(widgetConfig, "config", "actions"), Collections.singleton("id"), HINTS);
         }
         return dashboard;
     }

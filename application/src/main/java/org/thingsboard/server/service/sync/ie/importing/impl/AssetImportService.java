@@ -68,14 +68,6 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
     }
 
     @Override
-    protected void onEntitySaved(SecurityUser user, Asset savedAsset, Asset oldAsset) throws ThingsboardException {
-        super.onEntitySaved(user, savedAsset, oldAsset);
-        if (oldAsset != null) {
-            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedAsset.getId(), EdgeEventActionType.UPDATED);
-        }
-    }
-
-    @Override
     protected Asset deepCopy(Asset asset) {
         return new Asset(asset);
     }

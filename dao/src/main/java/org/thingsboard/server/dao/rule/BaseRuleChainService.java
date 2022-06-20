@@ -317,8 +317,10 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                 }
             }
         }
-        Collections.sort(ruleChainMetaData.getConnections(), Comparator.comparingInt(NodeConnectionInfo::getFromIndex)
-                .thenComparing(NodeConnectionInfo::getToIndex).thenComparing(NodeConnectionInfo::getType));
+        if (ruleChainMetaData.getConnections() != null) {
+            Collections.sort(ruleChainMetaData.getConnections(), Comparator.comparingInt(NodeConnectionInfo::getFromIndex)
+                    .thenComparing(NodeConnectionInfo::getToIndex).thenComparing(NodeConnectionInfo::getType));
+        }
         return ruleChainMetaData;
     }
 

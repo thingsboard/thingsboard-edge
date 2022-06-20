@@ -52,7 +52,7 @@ import org.thingsboard.server.dao.rule.RuleNodeDao;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
-import org.thingsboard.server.utils.RegexUtils;
+import org.thingsboard.common.util.RegexUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -92,15 +92,12 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
         RuleChainMetaData metaData = exportData.getMetaData();
         List<RuleNode> ruleNodes = Optional.ofNullable(metaData.getNodes()).orElse(Collections.emptyList());
         if (old != null) {
-//            boolean original = old.getId().equals(old.getExternalId());
             List<RuleNodeId> nodeIds = ruleNodes.stream().map(RuleNode::getId).collect(Collectors.toList());
             List<RuleNode> existing = ruleNodeDao.findByExternalIds(old.getId(), nodeIds);
             existing.forEach(node -> ctx.putInternalId(node.getExternalId(), node.getId()));
             ruleNodes.forEach(node -> {
                 node.setRuleChainId(old.getId());
-//                if (!original) {
                 node.setExternalId(node.getId());
-//                }
                 node.setId((RuleNodeId) ctx.getInternalId(node.getId()));
             });
         } else {
@@ -111,16 +108,7 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
             });
         }
 
-        ruleNodes.forEach(ruleNode -> {
-            JsonNode ruleNodeConfig = ruleNode.getConfiguration();
-            String newRuleNodeConfigJson = RegexUtils.replace(ruleNodeConfig.toString(), RegexUtils.UUID_PATTERN, uuid -> {
-                return idProvider.getInternalIdByUuid(UUID.fromString(uuid), ctx.isFetchAllUUIDs(), HINTS)
-                        .map(entityId -> entityId.getId().toString())
-                        .orElse(uuid);
-            });
-            ruleNodeConfig = JacksonUtil.toJsonNode(newRuleNodeConfigJson);
-            ruleNode.setConfiguration(ruleNodeConfig);
-        });
+        ruleNodes.forEach(ruleNode -> replaceIdsRecursively(ctx, idProvider, ruleNode.getConfiguration(), Collections.emptySet(), HINTS));
         Optional.ofNullable(metaData.getRuleChainConnections()).orElse(Collections.emptyList())
                 .forEach(ruleChainConnectionInfo -> {
                     ruleChainConnectionInfo.setTargetRuleChainId(idProvider.getInternalId(ruleChainConnectionInfo.getTargetRuleChainId(), false));
@@ -134,9 +122,13 @@ public class RuleChainImportService extends BaseEntityImportService<RuleChainId,
     @Override
     protected RuleChain saveOrUpdate(EntitiesImportCtx ctx, RuleChain ruleChain, RuleChainExportData exportData, IdProvider idProvider) {
         ruleChain = ruleChainService.saveRuleChain(ruleChain);
-        exportData.getMetaData().setRuleChainId(ruleChain.getId());
-        ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), exportData.getMetaData());
-        return ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChain.getId());
+        if (ctx.isFinalImportAttempt() || ctx.getCurrentImportResult().isUpdatedAllExternalIds()) {
+            exportData.getMetaData().setRuleChainId(ruleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), exportData.getMetaData());
+            return ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChain.getId());
+        } else {
+            return ruleChain;
+        }
     }
 
     @Override
