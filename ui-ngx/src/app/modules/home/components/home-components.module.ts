@@ -150,6 +150,7 @@ import {
   HOME_COMPONENTS_MODULE_TOKEN
 } from '@home/components/tokens';
 import { DashboardStateComponent } from '@home/components/dashboard-page/dashboard-state.component';
+import { AlarmDynamicValue } from '@home/components/profile/alarm/alarm-dynamic-value.component';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { TenantProfileQueuesComponent } from '@home/components/profile/queue/tenant-profile-queues.component';
 import { QueueFormComponent } from '@home/components/queue/queue-form.component';
@@ -255,6 +256,7 @@ import { WidgetSettingsComponent } from '@home/components/widget/widget-settings
       AlarmScheduleInfoComponent,
       DeviceProfileProvisionConfigurationComponent,
       AlarmScheduleComponent,
+      AlarmDynamicValue,
       AlarmDurationPredicateValueComponent,
       DeviceWizardDialogComponent,
       AlarmScheduleDialogComponent,
@@ -374,11 +376,11 @@ import { WidgetSettingsComponent } from '@home/components/widget/widget-settings
     DeviceWizardDialogComponent,
     AlarmScheduleInfoComponent,
     AlarmScheduleComponent,
+    AlarmDynamicValue,
     AlarmScheduleDialogComponent,
     AlarmDurationPredicateValueComponent,
     EditAlarmDetailsDialogComponent,
     DeviceProfileProvisionConfigurationComponent,
-    AlarmScheduleComponent,
     SmsProviderConfigurationComponent,
     AwsSnsProviderConfigurationComponent,
     SmppSmsProviderConfigurationComponent,

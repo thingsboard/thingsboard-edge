@@ -72,6 +72,9 @@ import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -118,9 +121,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private TimeseriesService tsService;
 
     @Autowired
-    private AlarmService alarmService;
-
-    @Autowired
     private EntityService entityService;
 
     @Autowired
@@ -130,7 +130,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private DeviceProfileRepository deviceProfileRepository;
 
     @Autowired
-    private OAuth2Service oAuth2Service;
+    private RateLimitsUpdater rateLimitsUpdater;
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
@@ -185,8 +185,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.3.4.1":
                 log.info("Updating data from version 3.3.4.1 to 3.4.0 ...");
-                tenantsProfileQueueConfigurationUpdater.updateEntities(null);
-                checkPointRuleNodesUpdater.updateEntities(null);
+                rateLimitsUpdater.updateEntities();
+                tenantsProfileQueueConfigurationUpdater.updateEntities();
+                checkPointRuleNodesUpdater.updateEntities();
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
