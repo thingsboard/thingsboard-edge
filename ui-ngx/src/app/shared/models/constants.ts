@@ -200,7 +200,9 @@ export const HelpLinks = {
     customMenu: helpBaseUrl +  '/docs/pe/user-guide/custom-menu',
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
     selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
-    queue: helpBaseUrl + '/docs/user-guide/queue'
+    queue: helpBaseUrl + '/docs/pe/user-guide/queue',
+    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/ui/repository-settings',
+    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/ui/auto-commit-settings',
   }
 };
 
@@ -267,7 +269,7 @@ export const valueTypesMap = new Map<ValueType, ValueTypeData>(
       ValueType.JSON,
       {
         name: 'value.json',
-        icon: 'mdi:json'
+        icon: 'mdi:code-json'
       }
     ]
   ]

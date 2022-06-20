@@ -46,6 +46,8 @@ import { SortOrder } from '@shared/models/page/sort-order';
 import { OtaPackageService } from '@core/http/ota-package.service';
 import { map, mergeMap, tap } from 'rxjs/operators';
 import { Lwm2mSecurityType } from '@shared/models/lwm2m-security-config.models';
+import { Integration } from '@shared/models/integration.models';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -162,6 +164,13 @@ export class DeviceProfileService {
       url += `&transportType=${transportType}`;
     }
     return this.http.get<PageData<DeviceProfileInfo>>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getDeviceProfilesByIds(deviceProfileIds: Array<string>, config?: RequestConfig): Observable<Array<DeviceProfileInfo>> {
+    return this.http.get<Array<DeviceProfileInfo>>(`/api/deviceProfileInfos?deviceProfileIds=${deviceProfileIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((integrations) => sortEntitiesByIds(integrations, deviceProfileIds))
+    );
   }
 
   public getDeviceProfileDevicesAttributesKeys(deviceProfileId?: string, config?: RequestConfig): Observable<Array<string>> {

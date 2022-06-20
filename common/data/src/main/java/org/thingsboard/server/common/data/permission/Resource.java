@@ -78,7 +78,8 @@ public enum Resource {
     API_USAGE_STATE(EntityType.API_USAGE_STATE),
     TB_RESOURCE(EntityType.TB_RESOURCE),
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
-    QUEUE(EntityType.QUEUE);
+    QUEUE(EntityType.QUEUE),
+    VERSION_CONTROL;
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();
@@ -146,6 +147,8 @@ public enum Resource {
         operationsByResource.put(Resource.GROUP_PERMISSION, Operation.crudOperations);
         operationsByResource.put(Resource.WHITE_LABELING, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE)));
         operationsByResource.put(Resource.AUDIT_LOG, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
+        operationsByResource.put(Resource.QUEUE, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ)));
+        operationsByResource.put(Resource.VERSION_CONTROL, new HashSet<>(Arrays.asList(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE)));
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, new HashSet<>(Arrays.asList(
                 Resource.ALL,
@@ -199,7 +202,8 @@ public enum Resource {
                 Resource.AUDIT_LOG,
                 Resource.TB_RESOURCE,
                 Resource.OTA_PACKAGE,
-                Resource.QUEUE)));
+                Resource.QUEUE,
+                Resource.VERSION_CONTROL)));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, new HashSet<>(Arrays.asList(
                 Resource.ALL,

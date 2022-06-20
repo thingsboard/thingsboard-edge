@@ -105,6 +105,7 @@ transport:
     # Enable/disable coap transport protocol.
     enabled: "${COAP_ENABLED:true}"
     timeout: "${COAP_TIMEOUT:10000}"
+    piggyback_timeout: "${COAP_PIGGYBACK_TIMEOUT:500}"
     psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
     paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
   sessions:

@@ -65,6 +65,10 @@ public class CoapTransportContext extends TransportContext {
     private Long timeout;
 
     @Getter
+    @Value("${transport.coap.piggyback_timeout}")
+    private Long piggybackTimeout;
+
+    @Getter
     @Value("${transport.coap.psm_activity_timer:10000}")
     private long psmActivityTimer;
 

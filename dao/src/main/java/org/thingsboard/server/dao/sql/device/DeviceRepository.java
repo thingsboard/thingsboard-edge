@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DeviceEntity;
 
 import java.util.List;
@@ -44,7 +45,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
+public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, ExportableEntityRepository<DeviceEntity> {
 
     String COUNT_QUERY_BY_DEVICE_PROFILE_AND_FIRMWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
             "WHERE d.device_profile_id = :deviceProfileId " +
@@ -132,6 +133,14 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
                                                           @Param("customerId") UUID customerId,
                                                           @Param("type") String type,
                                                           @Param("textSearch") String textSearch,
+                                                          Pageable pageable);
+
+    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
+    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                          @Param("customerId") UUID customerId,
                                                           Pageable pageable);
 
     @Query("SELECT DISTINCT d.type FROM DeviceEntity d WHERE d.tenantId = :tenantId")
@@ -318,4 +327,8 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID> {
             nativeQuery = true)
     Long countByDeviceProfileIdAndSoftwareIdIsNull(@Param("tenantId") UUID tenantId,
                                                    @Param("deviceProfileId") UUID deviceProfileId);
+
+    @Query("SELECT externalId FROM DeviceEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

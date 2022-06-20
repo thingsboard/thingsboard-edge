@@ -57,6 +57,9 @@ public class TbKafkaTopicConfigs {
     private String jsExecutorProperties;
     @Value("${queue.kafka.topic-properties.ota-updates:}")
     private String fwUpdatesProperties;
+    @Value("${queue.kafka.topic-properties.version-control:}")
+    private String vcProperties;
+
 
     @Getter
     private Map<String, String> coreConfigs;
@@ -72,6 +75,8 @@ public class TbKafkaTopicConfigs {
     private Map<String, String> jsExecutorConfigs;
     @Getter
     private Map<String, String> fwUpdatesConfigs;
+    @Getter
+    private Map<String, String> vcConfigs;
 
     @PostConstruct
     private void init() {
@@ -82,6 +87,7 @@ public class TbKafkaTopicConfigs {
         notificationsConfigs = getConfigs(notificationsProperties);
         jsExecutorConfigs = getConfigs(jsExecutorProperties);
         fwUpdatesConfigs = getConfigs(fwUpdatesProperties);
+        vcConfigs = getConfigs(vcProperties);
     }
 
     private Map<String, String> getConfigs(String properties) {

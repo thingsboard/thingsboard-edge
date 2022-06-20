@@ -36,7 +36,13 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -45,7 +51,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ToString(callSuper = true)
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Integration extends IntegrationInfo {
+public class Integration extends IntegrationInfo implements ExportableEntity<IntegrationId> {
 
     private static final long serialVersionUID = 4934987577236873728L;
 
@@ -62,6 +68,9 @@ public class Integration extends IntegrationInfo {
     private String secret;
     private JsonNode configuration;
     private JsonNode additionalInfo;
+
+    @Getter @Setter
+    private IntegrationId externalId;
 
     public Integration() {
         super();
@@ -81,6 +90,7 @@ public class Integration extends IntegrationInfo {
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
+        this.externalId = integration.getExternalId();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +

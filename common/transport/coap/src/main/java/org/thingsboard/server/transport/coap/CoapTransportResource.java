@@ -90,6 +90,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
 
     private final ConcurrentMap<InetSocketAddress, TbCoapDtlsSessionInfo> dtlsSessionsMap;
     private final long timeout;
+    private final long piggybackTimeout;
     private final CoapClientContext clients;
 
     public CoapTransportResource(CoapTransportContext ctx, CoapServerService coapServerService, String name) {
@@ -98,6 +99,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         this.addObserver(new CoapResourceObserver());
         this.dtlsSessionsMap = coapServerService.getDtlsSessionsMap();
         this.timeout = ctx.getTimeout();
+        this.piggybackTimeout = ctx.getPiggybackTimeout();
         this.clients = ctx.getClientContext();
         long sessionReportTimeout = ctx.getSessionReportTimeout();
         ctx.getScheduler().scheduleAtFixedRate(clients::reportActivity, new Random().nextInt((int) sessionReportTimeout), sessionReportTimeout, TimeUnit.MILLISECONDS);
@@ -190,7 +192,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
     }
 
     private void processProvision(CoapExchange exchange) {
-        exchange.accept();
+        deferAccept(exchange);
         try {
             UUID sessionId = UUID.randomUUID();
             log.trace("[{}] Processing provision publish msg [{}]!", sessionId, exchange.advanced().getRequest());
@@ -216,7 +218,7 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
 
     private void processRequest(CoapExchange exchange, SessionMsgType type) {
         log.trace("Processing {}", exchange.advanced().getRequest());
-        exchange.accept();
+        deferAccept(exchange);
         Exchange advanced = exchange.advanced();
         Request request = advanced.getRequest();
 
@@ -365,6 +367,20 @@ public class CoapTransportResource extends AbstractCoapTransportResource {
         transportService.process(sessionInfo,
                 clientState.getAdaptor().convertToServerRpcRequest(sessionId, request),
                 new CoapNoOpCallback(exchange));
+    }
+
+    /**
+     * Send an empty ACK if we are unable to send the full response within the timeout.
+     * If the full response is transmitted before the timeout this will not do anything.
+     * If this is triggered the full response will be sent in a separate CON/NON message.
+     * Essentially this allows the use of piggybacked responses.
+     */
+    private void deferAccept(CoapExchange exchange) {
+        if (piggybackTimeout > 0) {
+            transportContext.getScheduler().schedule(exchange::accept, piggybackTimeout, TimeUnit.MILLISECONDS);
+        } else {
+            exchange.accept();
+        }
     }
 
     private UUID toSessionId(TransportProtos.SessionInfoProto sessionInfoProto) {

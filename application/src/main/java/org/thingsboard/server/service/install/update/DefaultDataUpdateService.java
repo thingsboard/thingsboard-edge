@@ -78,7 +78,6 @@ import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -91,7 +90,6 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
-import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -102,7 +100,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
@@ -190,9 +187,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private TimeseriesService tsService;
 
     @Autowired
-    private AlarmService alarmService;
-
-    @Autowired
     private EntityService entityService;
 
     @Autowired
@@ -202,7 +196,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private DeviceProfileRepository deviceProfileRepository;
 
     @Autowired
-    private OAuth2Service oAuth2Service;
+    private RateLimitsUpdater rateLimitsUpdater;
 
     @Autowired
     private TenantProfileService tenantProfileService;
@@ -242,22 +236,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.3.4":
                 log.info("Updating data from version 3.3.4 to 3.4.0 ...");
-                log.info("Loading queues...");
-                try {
-                    if (!CollectionUtils.isEmpty(queueConfig.getQueues())) {
-                        queueConfig.getQueues().forEach(queueSettings -> {
-                            Queue queue = queueConfigToQueue(queueSettings);
-                            Queue existing = queueService.findQueueByTenantIdAndName(queue.getTenantId(), queue.getName());
-                            if (existing == null) {
-                                queueService.saveQueue(queue);
-                            }
-                        });
-                    } else {
-                        systemDataLoaderService.createQueues();
-                    }
-                } catch (Exception e) {
-                }
-                tenantsProfileQueueConfigurationUpdater.updateEntities(null);
+                rateLimitsUpdater.updateEntities();
+                tenantsProfileQueueConfigurationUpdater.updateEntities();
                 String[] nodeTypes = {
                         "org.thingsboard.rule.engine.flow.TbCheckpointNode",
                         "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
@@ -272,9 +252,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.4.0":
                 log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
-                tenantsCustomersGroupAllUpdater.updateEntities(null);
-                tenantEntitiesGroupAllUpdater.updateEntities(null);
-                tenantIntegrationUpdater.updateEntities(null);
+                tenantsCustomersGroupAllUpdater.updateEntities();
+                tenantEntitiesGroupAllUpdater.updateEntities();
+                tenantIntegrationUpdater.updateEntities();
                 //for 2.4.0
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {
@@ -1399,29 +1379,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
         mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
         return mainQueueConfiguration;
-    }
-
-    private Queue queueConfigToQueue(TbRuleEngineQueueConfiguration queueSettings) {
-        Queue queue = new Queue();
-        queue.setTenantId(TenantId.SYS_TENANT_ID);
-        queue.setName(queueSettings.getName());
-        queue.setTopic(queueSettings.getTopic());
-        queue.setPollInterval(queueSettings.getPollInterval());
-        queue.setPartitions(queueSettings.getPartitions());
-        queue.setPackProcessingTimeout(queueSettings.getPackProcessingTimeout());
-        SubmitStrategy submitStrategy = new SubmitStrategy();
-        submitStrategy.setBatchSize(queueSettings.getSubmitStrategy().getBatchSize());
-        submitStrategy.setType(SubmitStrategyType.valueOf(queueSettings.getSubmitStrategy().getType()));
-        queue.setSubmitStrategy(submitStrategy);
-        ProcessingStrategy processingStrategy = new ProcessingStrategy();
-        processingStrategy.setType(ProcessingStrategyType.valueOf(queueSettings.getProcessingStrategy().getType()));
-        processingStrategy.setRetries(queueSettings.getProcessingStrategy().getRetries());
-        processingStrategy.setFailurePercentage(queueSettings.getProcessingStrategy().getFailurePercentage());
-        processingStrategy.setPauseBetweenRetries(queueSettings.getProcessingStrategy().getPauseBetweenRetries());
-        processingStrategy.setMaxPauseBetweenRetries(queueSettings.getProcessingStrategy().getMaxPauseBetweenRetries());
-        queue.setProcessingStrategy(processingStrategy);
-        queue.setConsumerPerPartition(queueSettings.isConsumerPerPartition());
-        return queue;
     }
 
     private final PaginatedUpdater<String, RuleNode> queueNameToIdRuleNodesUpdater =

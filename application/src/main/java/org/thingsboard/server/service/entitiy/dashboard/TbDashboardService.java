@@ -33,6 +33,6 @@ package org.thingsboard.server.service.entitiy.dashboard;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
-public interface  TbDashboardService extends SimpleTbEntityService<Dashboard> {
+public interface TbDashboardService extends SimpleTbEntityService<Dashboard> {
 
 }

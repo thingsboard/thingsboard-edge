@@ -52,6 +52,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
@@ -118,6 +119,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = ModelConstants.INTEGRATION_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
     private boolean edgeTemplate;
 
@@ -149,6 +153,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
+        if (integration.getExternalId() != null) {
+            this.externalId = integration.getExternalId().getId();
+        }
         this.edgeTemplate = integration.isEdgeTemplate();
     }
 
@@ -189,6 +196,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
         integration.setConfiguration(configuration);
         integration.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            integration.setExternalId(new IntegrationId(externalId));
+        }
         integration.setEdgeTemplate(edgeTemplate);
         return integration;
     }

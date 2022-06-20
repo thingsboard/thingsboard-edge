@@ -71,9 +71,6 @@ public class SchedulerEventTest extends AbstractControllerTest {
     @Autowired
     TbServiceInfoProvider serviceInfoProvider;
 
-    @SpyBean
-    TbClusterService clusterService;
-
     @Before
     public void before() throws Exception {
         loginTenantAdmin();
@@ -107,7 +104,7 @@ public class SchedulerEventTest extends AbstractControllerTest {
         SchedulerEvent schedulerEvent = createSchedulerEvent(savedDevice.getId());
         SchedulerEvent savedSchedulerEvent = doPost("/api/schedulerEvent", schedulerEvent, SchedulerEvent.class);
 
-        verify(clusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent.getId(), savedSchedulerEvent.getConfiguration())), argThat(tbMsg -> {
+        verify(tbClusterService, timeout(10000)).pushMsgToRuleEngine(eq(tenantId), eq(getOriginatorId(savedSchedulerEvent.getId(), savedSchedulerEvent.getConfiguration())), argThat(tbMsg -> {
                     if (tbMsg.getType().equals(RPC_CALL_FROM_SERVER_TO_DEVICE)) {
                         assertEquals(tbMsg.getOriginator(), savedDevice.getId());
                         assertEquals(testRpc, tbMsg.getData());
