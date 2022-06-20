@@ -56,6 +56,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MO
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
@@ -89,6 +90,9 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
     @Column(name = ModelConstants.CONVERTER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     public ConverterEntity() {
         super();
     }
@@ -106,6 +110,9 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         this.debugMode = converter.isDebugMode();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
+        if (converter.getExternalId() != null) {
+            this.externalId = converter.getExternalId().getId();
+        }
     }
 
     @Override
@@ -134,6 +141,9 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         converter.setDebugMode(debugMode);
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            converter.setExternalId(new ConverterId(externalId));
+        }
         return converter;
     }
 }

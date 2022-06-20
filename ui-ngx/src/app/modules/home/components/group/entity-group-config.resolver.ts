@@ -43,6 +43,7 @@ import {
 } from '@home/models/group/group-entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { EdgeService } from '@core/http/edge.service';
+import { deepClone } from '@app/core/utils';
 
 @Injectable()
 export class EntityGroupConfigResolver {
@@ -69,7 +70,7 @@ export class EntityGroupConfigResolver {
 
   public constructGroupConfig<T>(params: EntityGroupParams,
                                  entityGroup: EntityGroupInfo): Observable<EntityGroupStateInfo<T>> {
-    const entityGroupStateInfo: EntityGroupStateInfo<T> = entityGroup;
+    const entityGroupStateInfo: EntityGroupStateInfo<T> = deepClone(entityGroup);
     // entityGroupStateInfo.origEntityGroup = deepClone(entityGroup);
     return this.resolveParentGroupInfo(params, entityGroupStateInfo).pipe(
       mergeMap((resolvedEntityGroup) => {

@@ -59,6 +59,7 @@ import { ApiUsageModule } from '@home/pages/api-usage/api-usage.module';
 import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-templates.module';
+import { VcModule } from '@home/pages/vc/vc.module';
 
 @NgModule({
   exports: [
@@ -87,7 +88,8 @@ import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-
     IFrameViewModule,
     SchedulerModule,
     OtaUpdateModule,
-    SolutionTemplatesModule
+    SolutionTemplatesModule,
+    VcModule
   ],
   providers: [
     {

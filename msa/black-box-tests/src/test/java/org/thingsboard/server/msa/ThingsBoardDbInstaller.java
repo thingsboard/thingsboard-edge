@@ -52,6 +52,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final static String TB_MQTT_TRANSPORT_LOG_VOLUME = "tb-mqtt-transport-log-test-volume";
     private final static String TB_SNMP_TRANSPORT_LOG_VOLUME = "tb-snmp-transport-log-test-volume";
     private final static String TB_INTEGRATION_EXECUTOR_LOG_VOLUME = "tb-ie-log-test-volume";
+    private final static String TB_VC_EXECUTOR_LOG_VOLUME = "tb-vc-executor-log-test-volume";
 
     private final DockerComposeExecutor dockerCompose;
 
@@ -63,6 +64,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final String tbHttpTransportLogVolume;
     private final String tbMqttTransportLogVolume;
     private final String tbSnmpTransportLogVolume;
+    private final String tbVcExecutorLogVolume;
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
@@ -81,6 +83,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         tbHttpTransportLogVolume = project + "_" + TB_HTTP_TRANSPORT_LOG_VOLUME;
         tbMqttTransportLogVolume = project + "_" + TB_MQTT_TRANSPORT_LOG_VOLUME;
         tbSnmpTransportLogVolume = project + "_" + TB_SNMP_TRANSPORT_LOG_VOLUME;
+        tbVcExecutorLogVolume = project + "_" + TB_VC_EXECUTOR_LOG_VOLUME;
 
         dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
@@ -98,6 +101,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         env.put("TB_HTTP_TRANSPORT_LOG_VOLUME", tbHttpTransportLogVolume);
         env.put("TB_MQTT_TRANSPORT_LOG_VOLUME", tbMqttTransportLogVolume);
         env.put("TB_SNMP_TRANSPORT_LOG_VOLUME", tbSnmpTransportLogVolume);
+        env.put("TB_VC_EXECUTOR_LOG_VOLUME", tbVcExecutorLogVolume);
 
         env.put("DOCKER_REPO", "thingsboard");
         env.put("TB_VERSION", "latest");
@@ -137,6 +141,9 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("volume create " + tbSnmpTransportLogVolume);
             dockerCompose.invokeDocker();
 
+            dockerCompose.withCommand("volume create " + tbVcExecutorLogVolume);
+            dockerCompose.invokeDocker();
+
             dockerCompose.withCommand("up -d redis postgres");
             dockerCompose.invokeCompose();
 
@@ -160,10 +167,11 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         copyLogs(tbHttpTransportLogVolume, "./target/tb-http-transport-logs/");
         copyLogs(tbMqttTransportLogVolume, "./target/tb-mqtt-transport-logs/");
         copyLogs(tbSnmpTransportLogVolume, "./target/tb-snmp-transport-logs/");
+        copyLogs(tbVcExecutorLogVolume, "./target/tb-vc-executor-logs/");
 
         dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbIntegrationExecutorLogVolume +
                 " " + tbCoapTransportLogVolume + " " + tbLwm2mTransportLogVolume + " " + tbHttpTransportLogVolume +
-                " " + tbMqttTransportLogVolume + " " + tbSnmpTransportLogVolume);
+                " " + tbMqttTransportLogVolume + " " + tbSnmpTransportLogVolume + " " + tbVcExecutorLogVolume);
         dockerCompose.invokeDocker();
     }
 

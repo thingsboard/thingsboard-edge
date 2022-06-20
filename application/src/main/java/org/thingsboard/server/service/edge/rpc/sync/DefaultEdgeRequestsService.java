@@ -402,7 +402,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 }
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 for (EntityView entityView : entityViews) {
-                    ListenableFuture<Boolean> future = relationService.checkRelation(tenantId, edge.getId(), entityView.getId(),
+                    ListenableFuture<Boolean> future = relationService.checkRelationAsync(tenantId, edge.getId(), entityView.getId(),
                             EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
                     futures.add(Futures.transformAsync(future, result -> {
                         if (Boolean.TRUE.equals(result)) {

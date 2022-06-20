@@ -99,7 +99,6 @@ import {
   AlarmData,
   AlarmDataQuery,
   createDefaultEntityDataPageLink,
-  defaultEntityDataPageLink,
   EntityData,
   EntityDataQuery,
   entityDataToEntityInfo,
@@ -400,6 +399,9 @@ export class EntityService {
       case EntityType.ALARM:
         console.error('Get Alarm Entity is not implemented!');
         break;
+      case EntityType.DEVICE_PROFILE:
+        observable = this.deviceProfileService.getDeviceProfilesByIds(entityIds, config);
+        break;
       case EntityType.ENTITY_GROUP:
         observable = this.entityGroupService.getEntityGroupsByIds(entityIds, config);
         break;
@@ -565,6 +567,10 @@ export class EntityService {
       case EntityType.OTA_PACKAGE:
         pageLink.sortOrder.property = 'title';
         entitiesObservable = this.otaPackageService.getOtaPackages(pageLink, config);
+        break;
+      case EntityType.DEVICE_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.deviceProfileService.getDeviceProfileInfos(pageLink, null, config);
         break;
     }
     return entitiesObservable;

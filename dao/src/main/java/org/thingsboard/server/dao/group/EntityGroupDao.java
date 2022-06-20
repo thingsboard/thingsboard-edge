@@ -38,12 +38,13 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableEntityDao;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface EntityGroupDao extends Dao<EntityGroup> {
+public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<EntityGroupId, EntityGroup> {
     /**
      * Find entity groups by entity group Ids.
      *
@@ -53,22 +54,25 @@ public interface EntityGroupDao extends Dao<EntityGroup> {
      */
     ListenableFuture<List<EntityGroup>> findEntityGroupsByIdsAsync(UUID tenantId, List<UUID> entityGroupIds);
 
-    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType);
+    ListenableFuture<List<EntityGroup>> findEntityGroupsByType(UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType);
 
     ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink
-            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, String relationType, PageLink pageLink);
+            (UUID tenantId, UUID parentEntityId, EntityType parentEntityType, EntityType groupType, PageLink pageLink);
+
+    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(UUID tenantId, EntityType groupType, PageLink pageLink);
 
     ListenableFuture<List<EntityGroup>> findAllEntityGroups(UUID tenantId, UUID parentEntityId, EntityType parentEntityType);
 
     Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
-                                                       EntityType parentEntityType, String relationType, EntityType groupType, String name);
+                                                       EntityType parentEntityType, EntityType groupType, String name);
 
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId,
-                                                                              EntityType parentEntityType, String relationType, EntityType groupType, String name);
+                                                                              EntityType parentEntityType, EntityType groupType, String name);
 
     ListenableFuture<PageData<EntityId>> findGroupEntityIds(EntityType entityType, UUID groupId, PageLink pageLink);
 
-    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
+    PageData<EntityId> findGroupEntityIdsSync(EntityType entityType, UUID groupId, PageLink pageLink);
 
     PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);
+
 }

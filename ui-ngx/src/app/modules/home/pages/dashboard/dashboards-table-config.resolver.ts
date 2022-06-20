@@ -70,6 +70,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
 //   AddEntitiesToEdgeDialogData
 // } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { UtilsService } from '@core/services/utils.service';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
 export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo | Dashboard>> {
@@ -80,6 +81,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
               private dashboardService: DashboardService,
               private customerService: CustomerService,
               private dialogService: DialogService,
+              private homeDialogs: HomeDialogsService,
               private importExport: ImportExportService,
               private translate: TranslateService,
               private datePipe: DatePipe,

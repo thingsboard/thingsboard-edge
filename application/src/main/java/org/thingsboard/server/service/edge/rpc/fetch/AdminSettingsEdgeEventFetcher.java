@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.rpc.fetch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -80,6 +81,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
                 AdminSettings tenantMailSettings = new AdminSettings();
+                tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
                 String value = tenantMailSettingsAttr.get().getValueAsString();
                 tenantMailSettings.setJsonValue(mapper.readTree(value));
@@ -91,7 +93,3 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         return new PageData<>(result, 1, result.size(), false);
     }
 }
-
-
-
-

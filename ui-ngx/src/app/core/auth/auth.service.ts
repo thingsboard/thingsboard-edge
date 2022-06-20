@@ -516,10 +516,19 @@ export class AuthService {
     return this.http.get<boolean>('/api/edges/enabled', defaultHttpOptions());
   }
 
+  private loadHasRepository(authUser: AuthUser): Observable<boolean> {
+    if (authUser.authority === Authority.TENANT_ADMIN) {
+      return this.http.get<boolean>('/api/admin/repositorySettings/exists', defaultHttpOptions());
+    } else {
+      return of(false);
+    }
+  }
+
   private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
                      this.loadIsEdgesSupportEnabled(),
+                     this.loadHasRepository(authPayload.authUser),
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
@@ -531,8 +540,9 @@ export class AuthService {
         const userTokenAccessEnabled: boolean = data[0] as boolean;
         const allowedDashboardIds: string[] = data[1] as string[];
         const edgesSupportEnabled: boolean = data[2] as boolean;
-        const whiteLabelingAllowedInfo = data[3] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, ...whiteLabelingAllowedInfo};
+        const hasRepository: boolean = data[3] as boolean;
+        const whiteLabelingAllowedInfo = data[4] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
       })));

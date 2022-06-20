@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, forwardRef, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -49,7 +49,7 @@ import { Operation } from '@shared/models/security.models';
     multi: true
   }]
 })
-export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit {
+export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
   entityTypeFormGroup: FormGroup;
 
@@ -63,6 +63,12 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
 
   @Input()
   operation: Operation;
+
+  @Input()
+  filterAllowedEntityTypes = true;
+
+  @Input()
+  overrideEntityTypeTranslations: Map<EntityType | AliasEntityType, string>;
 
   private showLabelValue: boolean;
   get showLabel(): boolean {
@@ -106,7 +112,8 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
   ngOnInit() {
-    this.entityTypes = this.entityService.prepareAllowedEntityTypesList(this.allowedEntityTypes, this.useAliasEntityTypes, this.operation);
+    this.entityTypes = this.filterAllowedEntityTypes ?
+      this.entityService.prepareAllowedEntityTypesList(this.allowedEntityTypes, this.useAliasEntityTypes, this.operation) : this.allowedEntityTypes;
     this.entityTypeFormGroup.get('entityType').valueChanges.subscribe(
       (value) => {
         let modelValue;
@@ -118,6 +125,22 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
         this.updateView(modelValue);
       }
     );
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'allowedEntityTypes') {
+          this.entityTypes = this.filterAllowedEntityTypes ?
+            this.entityService.prepareAllowedEntityTypesList(this.allowedEntityTypes, this.useAliasEntityTypes) : this.allowedEntityTypes;
+          const currentEntityType: EntityType | AliasEntityType = this.entityTypeFormGroup.get('entityType').value;
+          if (currentEntityType && !this.entityTypes.includes(currentEntityType)) {
+            this.entityTypeFormGroup.get('entityType').patchValue(null, {emitEvent: true});
+          }
+        }
+      }
+    }
   }
 
   ngAfterViewInit(): void {
@@ -151,7 +174,11 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
 
   displayEntityTypeFn(entityType?: EntityType | AliasEntityType | null): string | undefined {
     if (entityType) {
-      return this.translate.instant(entityTypeTranslations.get(entityType as EntityType).type);
+      if (this.overrideEntityTypeTranslations && this.overrideEntityTypeTranslations.has(entityType)) {
+        return this.translate.instant(this.overrideEntityTypeTranslations.get(entityType));
+      } else {
+        return this.translate.instant(entityTypeTranslations.get(entityType as EntityType).type);
+      }
     } else {
       return '';
     }

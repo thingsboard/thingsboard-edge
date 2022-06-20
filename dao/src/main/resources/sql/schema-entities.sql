@@ -49,6 +49,7 @@ call insert_tb_schema_settings();
 
 CREATE TABLE IF NOT EXISTS admin_settings (
     id uuid NOT NULL CONSTRAINT admin_settings_pkey PRIMARY KEY,
+    tenant_id uuid NOT NULL,
     created_time bigint NOT NULL,
     json_value varchar(10000000),
     key varchar(255)
@@ -98,6 +99,7 @@ CREATE TABLE IF NOT EXISTS asset (
     search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
+    external_id uuid,
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name)
 );
 
@@ -117,7 +119,8 @@ CREATE TABLE IF NOT EXISTS integration (
     routing_key varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS converter (
@@ -129,7 +132,8 @@ CREATE TABLE IF NOT EXISTS converter (
     name varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -191,7 +195,8 @@ CREATE TABLE IF NOT EXISTS customer (
     tenant_id uuid,
     parent_customer_id uuid,
     title varchar(255),
-    zip varchar(255)
+    zip varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS dashboard (
@@ -205,7 +210,8 @@ CREATE TABLE IF NOT EXISTS dashboard (
     title varchar(255),
     mobile_hide boolean DEFAULT false,
     mobile_order int,
-    image varchar(1000000)
+    image varchar(1000000),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS rule_chain (
@@ -219,7 +225,8 @@ CREATE TABLE IF NOT EXISTS rule_chain (
     root boolean,
     debug_mode boolean,
     search_text varchar(255),
-    tenant_id uuid
+    tenant_id uuid,
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS rule_node (
@@ -231,7 +238,8 @@ CREATE TABLE IF NOT EXISTS rule_node (
     type varchar(255),
     name varchar(255),
     debug_mode boolean,
-    search_text varchar(255)
+    search_text varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS rule_node_state (
@@ -300,6 +308,7 @@ CREATE TABLE IF NOT EXISTS device_profile (
     default_dashboard_id uuid,
     default_queue_id uuid,
     provision_device_key varchar,
+    external_id uuid,
     CONSTRAINT device_profile_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT device_provision_key_unq_key UNIQUE (provision_device_key),
     CONSTRAINT fk_default_rule_chain_device_profile FOREIGN KEY (default_rule_chain_id) REFERENCES rule_chain(id),
@@ -344,6 +353,7 @@ CREATE TABLE IF NOT EXISTS device (
     tenant_id uuid,
     firmware_id uuid,
     software_id uuid,
+    external_id uuid,
     CONSTRAINT device_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT fk_device_profile FOREIGN KEY (device_profile_id) REFERENCES device_profile(id),
     CONSTRAINT fk_firmware_device FOREIGN KEY (firmware_id) REFERENCES ota_package(id),
@@ -469,7 +479,8 @@ CREATE TABLE IF NOT EXISTS widgets_bundle (
     tenant_id uuid,
     title varchar(255),
     image varchar(1000000),
-    description varchar(255)
+    description varchar(255),
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS entity_group (
@@ -481,6 +492,7 @@ CREATE TABLE IF NOT EXISTS entity_group (
     owner_type varchar(255),
     additional_info varchar,
     configuration varchar(10000000),
+    external_id uuid,
     CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)
 );
 
@@ -523,7 +535,8 @@ CREATE TABLE IF NOT EXISTS entity_view (
     start_ts bigint,
     end_ts bigint,
     search_text varchar(255),
-    additional_info varchar
+    additional_info varchar,
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS role (
@@ -535,7 +548,8 @@ CREATE TABLE IF NOT EXISTS role (
     type varchar(255),
     search_text varchar(255),
     permissions varchar(10000000),
-    additional_info varchar
+    additional_info varchar,
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS group_permission (

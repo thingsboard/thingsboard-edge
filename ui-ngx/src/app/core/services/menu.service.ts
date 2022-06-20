@@ -675,6 +675,18 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'version-control.version-control',
+          type: 'link',
+          path: '/vc',
+          icon: 'history',
+          disabled: disabledItems.indexOf('version_control') > -1
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
       sections.push(
         {
@@ -756,6 +768,24 @@ export class MenuService {
           path: '/settings/resources-library',
           icon: 'folder',
           disabled: disabledItems.indexOf('resources_library') > -1
+        });
+      }
+      if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+        pages.push({
+          id: guid(),
+          name: 'admin.repository-settings',
+          type: 'link',
+          path: '/settings/repository',
+          icon: 'manage_history',
+          disabled: disabledItems.indexOf('repository_settings') > -1
+        });
+        pages.push({
+          id: guid(),
+          name: 'admin.auto-commit-settings',
+          type: 'link',
+          path: '/settings/auto-commit',
+          icon: 'settings_backup_restore',
+          disabled: disabledItems.indexOf('auto_commit_settings') > -1
         });
       }
       sections.push(
@@ -1074,6 +1104,21 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+      homeSections.push(
+        {
+          name: 'version-control.management',
+          places: [
+            {
+              name: 'version-control.version-control',
+              icon: 'history',
+              path: '/vc',
+              disabled: disabledItems.indexOf('version_control') > -1
+            }
+          ]
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
       (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
       this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
@@ -1157,6 +1202,20 @@ export class MenuService {
           path: '/settings/resources-library',
           icon: 'folder',
           disabled: disabledItems.indexOf('resources_library') > -1
+        });
+      }
+      if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+        settings.places.push({
+          name: 'admin.repository-settings',
+          path: '/settings/repository',
+          icon: 'manage_history',
+          disabled: disabledItems.indexOf('repository_settings') > -1
+        });
+        settings.places.push({
+          name: 'admin.auto-commit-settings',
+          path: '/settings/auto-commit',
+          icon: 'settings_backup_restore',
+          disabled: disabledItems.indexOf('auto_commit_settings') > -1
         });
       }
     }

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
@@ -46,7 +46,7 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
   ]
 );
 
-export interface Converter extends BaseData<ConverterId> {
+export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId> {
   tenantId?: TenantId;
   name: string;
   type: ConverterType;

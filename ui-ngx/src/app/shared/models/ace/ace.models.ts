@@ -36,6 +36,7 @@ import { map, mergeMap, tap } from 'rxjs/operators';
 
 let aceDependenciesLoaded = false;
 let aceModule: any;
+let aceDiffModule: any;
 
 function loadAceDependencies(): Observable<any> {
   if (aceDependenciesLoaded) {
@@ -84,6 +85,21 @@ export function getAce(): Observable<any> {
       }),
       tap((module) => {
         aceModule = module;
+      })
+    );
+  }
+}
+
+export function getAceDiff(): Observable<any> {
+  if (aceDiffModule) {
+    return of(aceDiffModule);
+  } else {
+    return getAce().pipe(
+      mergeMap((ace) => {
+        return from(import('ace-diff'));
+      }),
+      tap((module) => {
+        aceDiffModule = module;
       })
     );
   }
