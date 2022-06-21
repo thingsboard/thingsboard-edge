@@ -61,8 +61,14 @@ import {
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { DAY, historyInterval } from '@shared/models/time/time.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink> {
+
+  private authUser = getCurrentAuthUser(this.store);
 
   searchStatus: AlarmSearchStatus;
   readonly = !this.userPermissionsService.hasGenericPermission(Resource.ALARM, Operation.WRITE);
@@ -74,7 +80,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
               private datePipe: DatePipe,
               private dialog: MatDialog,
               public entityId: EntityId = null,
-              private defaultSearchStatus: AlarmSearchStatus = AlarmSearchStatus.ANY) {
+              private defaultSearchStatus: AlarmSearchStatus = AlarmSearchStatus.ANY,
+              private store: Store<AppState>) {
     super();
     this.loadDataOnInit = false;
     this.tableTitle = '';
@@ -133,6 +140,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
   }
 
   showAlarmDetails(entity: AlarmInfo) {
+    const isPermissionWrite = this.authUser.authority !== Authority.CUSTOMER_USER || entity.customerId.id === this.authUser.customerId;
     this.dialog.open<AlarmDetailsDialogComponent, AlarmDetailsDialogData, boolean>
     (AlarmDetailsDialogComponent,
       {
@@ -141,8 +149,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         data: {
           alarmId: entity.id.id,
           alarm: entity,
-          allowAcknowledgment: !this.readonly,
-          allowClear: !this.readonly,
+          allowAcknowledgment: !this.readonly && isPermissionWrite,
+          allowClear: !this.readonly && isPermissionWrite,
           displayDetails: true
         }
       }).afterClosed().subscribe(
