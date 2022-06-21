@@ -569,6 +569,8 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getWidgetTypeProcessor().processWidgetTypeToEdge(edgeEvent, msgType, action);
             case ADMIN_SETTINGS:
                 return ctx.getAdminSettingsProcessor().processAdminSettingsToEdge(edgeEvent);
+            case OTA_PACKAGE:
+                return ctx.getOtaPackageEdgeProcessor().processOtaPackageToEdge(edgeEvent, msgType, action);
             case SCHEDULER_EVENT:
                 return ctx.getSchedulerEventProcessor().processSchedulerEventToEdge(edgeEvent, msgType);
             case ENTITY_GROUP:

@@ -58,6 +58,7 @@ import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
+import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -343,7 +344,11 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(groupPermissionProto));
             }
         }
-
+        if (downlinkMsg.getOtaPackageUpdateMsgCount() > 0) {
+            for (OtaPackageUpdateMsg otaPackageUpdateMsg : downlinkMsg.getOtaPackageUpdateMsgList()) {
+                result.add(saveDownlinkMsg(otaPackageUpdateMsg));
+            }
+        }
         return Futures.allAsList(result);
     }
 

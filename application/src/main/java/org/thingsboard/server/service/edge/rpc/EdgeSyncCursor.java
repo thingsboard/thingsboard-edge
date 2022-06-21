@@ -40,6 +40,7 @@ import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetc
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.OwnerEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.OtaPackagesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.RuleChainsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SchedulerEventsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.SysAdminRolesEdgeEventFetcher;
@@ -77,6 +78,7 @@ public class EdgeSyncCursor {
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DASHBOARD));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
         fetchers.add(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
+        fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
     }
 
     public boolean hasNext() {

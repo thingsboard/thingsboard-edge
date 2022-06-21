@@ -383,48 +383,43 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType, PageLink pageLink) {
         log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}] [{}]", tenantId, entityId, pageLink);
-        if (EntityType.TENANT.equals(entityId.getEntityType()) ||
-                EntityType.CUSTOMER.equals(entityId.getEntityType()) ||
-                EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
-            if (EntityType.TENANT.equals(entityId.getEntityType()) ||
-                    EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
+        switch (entityId.getEntityType()) {
+            case TENANT:
+            case DEVICE_PROFILE:
+            case OTA_PACKAGE:
                 return convertToEdgeIds(findEdgesByTenantId(tenantId, pageLink));
-            } else {
+            case CUSTOMER:
                 return convertToEdgeIds(findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink));
-            }
-        } else {
-            switch (entityId.getEntityType()) {
-                case EDGE:
-                    List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
-                    return new PageData<>(edgeIds, 1, 1, false);
-                case USER:
-                case DEVICE:
-                case ASSET:
-                case ENTITY_VIEW:
-                case DASHBOARD:
-                    List<EntityGroupId> entityGroupsForEntity = null;
-                    try {
-                        entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
-                    } catch (Exception e) {
-                        log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
-                    }
-                    if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
-                        return createEmptyEdgeIdPageData();
-                    }
-                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
-                case ENTITY_GROUP:
-                    EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
-                    if (groupType == null) {
-                        groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
-                    }
-                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
-                case RULE_CHAIN:
-                case SCHEDULER_EVENT:
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
-                default:
-                    log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
+            case EDGE:
+                List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
+                return new PageData<>(edgeIds, 1, 1, false);
+            case USER:
+            case DEVICE:
+            case ASSET:
+            case ENTITY_VIEW:
+            case DASHBOARD:
+                List<EntityGroupId> entityGroupsForEntity = null;
+                try {
+                    entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
+                } catch (Exception e) {
+                    log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
+                }
+                if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
                     return createEmptyEdgeIdPageData();
-            }
+                }
+                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
+            case ENTITY_GROUP:
+                EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
+                if (groupType == null) {
+                    groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
+                }
+                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
+            case RULE_CHAIN:
+            case SCHEDULER_EVENT:
+                return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
+            default:
+                log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
+                return createEmptyEdgeIdPageData();
         }
     }
 
