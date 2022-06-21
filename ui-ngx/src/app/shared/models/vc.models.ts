@@ -197,6 +197,8 @@ export interface VersionCreationResult {
   added: number;
   modified: number;
   removed: number;
+  error: string;
+  done: boolean;
 }
 
 export interface EntityTypeLoadResult {
@@ -232,6 +234,7 @@ export interface EntityLoadError {
 export interface VersionLoadResult {
   result: Array<EntityTypeLoadResult>;
   error: EntityLoadError;
+  done: boolean;
 }
 
 export interface AttributeExportData {

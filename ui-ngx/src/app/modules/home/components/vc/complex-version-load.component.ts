@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import {
@@ -43,15 +43,18 @@ import { AppState } from '@core/core.state';
 import { EntitiesVersionControlService } from '@core/http/entities-version-control.service';
 import { TranslateService } from '@ngx-translate/core';
 import { entityTypeTranslations } from '@shared/models/entity-type.models';
-import { SafeHtml } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TbPopoverComponent } from '@shared/components/popover.component';
+import { Observable, Subscription } from 'rxjs';
+import { share } from 'rxjs/operators';
+import { parseHttpErrorMessage } from '@core/utils';
 
 @Component({
   selector: 'tb-complex-version-load',
   templateUrl: './complex-version-load.component.html',
   styleUrls: ['./version-control.scss']
 })
-export class ComplexVersionLoadComponent extends PageComponent implements OnInit {
+export class ComplexVersionLoadComponent extends PageComponent implements OnInit, OnDestroy {
 
   @Input()
   branch: string;
@@ -76,10 +79,17 @@ export class ComplexVersionLoadComponent extends PageComponent implements OnInit
 
   errorMessage: SafeHtml;
 
+  hasError = false;
+
+  versionLoadResult$: Observable<VersionLoadResult>;
+
+  private versionLoadResultSubscription: Subscription;
+
   constructor(protected store: Store<AppState>,
               private entitiesVersionControlService: EntitiesVersionControlService,
               private cd: ChangeDetectorRef,
               private translate: TranslateService,
+              private sanitizer: DomSanitizer,
               private fb: FormBuilder) {
     super(store);
   }
@@ -88,6 +98,13 @@ export class ComplexVersionLoadComponent extends PageComponent implements OnInit
     this.loadVersionFormGroup = this.fb.group({
       entityTypes: [createDefaultEntityTypesVersionLoad(), []],
     });
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    if (this.versionLoadResultSubscription) {
+      this.versionLoadResultSubscription.unsubscribe();
+    }
   }
 
   entityTypeLoadResultMessage(result: EntityTypeLoadResult): string {
@@ -129,12 +146,27 @@ export class ComplexVersionLoadComponent extends PageComponent implements OnInit
       entityTypes: this.loadVersionFormGroup.get('entityTypes').value,
       type: VersionLoadRequestType.ENTITY_TYPE
     };
-    this.entitiesVersionControlService.loadEntitiesVersion(request).subscribe((result) => {
+    this.versionLoadResult$ = this.entitiesVersionControlService.loadEntitiesVersion(request, {ignoreErrors: true}).pipe(
+      share()
+    );
+    this.cd.detectChanges();
+    if (this.popoverComponent) {
+      this.popoverComponent.updatePosition();
+    }
+    this.versionLoadResultSubscription = this.versionLoadResult$.subscribe((result) => {
       this.versionLoadResult = result;
       this.entityTypeLoadResults = (result.result || []).filter(res => res.created || res.updated || res.deleted);
       if (result.error) {
         this.errorMessage = this.entitiesVersionControlService.entityLoadErrorToMessage(result.error);
       }
+      this.cd.detectChanges();
+      if (this.popoverComponent) {
+        this.popoverComponent.updatePosition();
+      }
+    },
+    (error) => {
+      this.hasError = true;
+      this.errorMessage = this.sanitizer.bypassSecurityTrustHtml(parseHttpErrorMessage(error, this.translate).message);
       this.cd.detectChanges();
       if (this.popoverComponent) {
         this.popoverComponent.updatePosition();
