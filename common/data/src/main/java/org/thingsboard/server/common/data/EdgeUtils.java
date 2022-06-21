@@ -48,9 +48,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public final class EdgeUtils {
 
-    private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("(\\$\\{)(.*?)(})");
-    private static final String ATTRIBUTE_PLACEHOLDER_PATTERN = "${%s}";
-    private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{%s}";
+    private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("(\\$\\{\\{)(.*?)(}})");
+    private static final String ATTRIBUTE_PLACEHOLDER_PATTERN = "${{%s}}";
+    private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{\\{%s}}";
 
     private EdgeUtils() {
     }
