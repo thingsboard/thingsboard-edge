@@ -128,7 +128,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
       {
         name: this.translate.instant('alarm.details'),
         icon: 'more_horiz',
-        isEnabled: (entity) => this.authUser.authority !== Authority.CUSTOMER_USER || entity.customerId.id === this.authUser.customerId,
+        isEnabled: () => true,
         onAction: ($event, entity) => this.showAlarmDetails(entity)
       }
     );
@@ -140,6 +140,7 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
   }
 
   showAlarmDetails(entity: AlarmInfo) {
+    const isPermissionWrite = this.authUser.authority !== Authority.CUSTOMER_USER || entity.customerId.id === this.authUser.customerId;
     this.dialog.open<AlarmDetailsDialogComponent, AlarmDetailsDialogData, boolean>
     (AlarmDetailsDialogComponent,
       {
@@ -148,8 +149,8 @@ export class AlarmTableConfig extends EntityTableConfig<AlarmInfo, TimePageLink>
         data: {
           alarmId: entity.id.id,
           alarm: entity,
-          allowAcknowledgment: !this.readonly,
-          allowClear: !this.readonly,
+          allowAcknowledgment: !this.readonly && isPermissionWrite,
+          allowClear: !this.readonly && isPermissionWrite,
           displayDetails: true
         }
       }).afterClosed().subscribe(
