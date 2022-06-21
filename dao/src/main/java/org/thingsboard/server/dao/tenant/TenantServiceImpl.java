@@ -33,7 +33,11 @@ package org.thingsboard.server.dao.tenant;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
@@ -49,7 +53,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -77,7 +81,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
-public class TenantServiceImpl extends AbstractEntityService implements TenantService {
+public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKey, Tenant, TenantEvictEvent> implements TenantService {
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
@@ -89,6 +93,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     private TenantProfileService tenantProfileService;
 
     @Autowired
+    @Lazy
     private UserService userService;
 
     @Autowired
@@ -103,11 +108,9 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private DeviceProfileService deviceProfileService;
 
+    @Lazy
     @Autowired
     private ApiUsageStateService apiUsageStateService;
-
-    @Autowired
-    private EntityViewService entityViewService;
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
@@ -157,11 +160,29 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     @Autowired
     private AdminSettingsService adminSettingsService;
 
+    @Autowired
+    protected TbTransactionalCache<TenantCacheKey, Boolean> existsTenantCache;
+
+    @Autowired
+    private EntityViewService entityViewService;
+
+    @TransactionalEventListener(classes = TenantEvictEvent.class)
+    @Override
+    public void handleEvictEvent(TenantEvictEvent event) {
+        TenantId tenantId = event.getTenantId();
+        cache.evict(TenantCacheKey.fromId(tenantId));
+        if (event.isExistsTenant()) {
+            existsTenantCache.evict(TenantCacheKey.fromIdExists(tenantId));
+        }
+    }
+
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        return tenantDao.findById(tenantId, tenantId.getId());
+
+        return cache.getAndPutInTransaction(TenantCacheKey.fromId(tenantId),
+                () -> tenantDao.findById(tenantId, tenantId.getId()), true);
     }
 
     @Override
@@ -173,7 +194,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
 
     @Override
     public ListenableFuture<Tenant> findTenantByIdAsync(TenantId callerId, TenantId tenantId) {
-        log.trace("Executing TenantIdAsync [{}]", tenantId);
+        log.trace("Executing findTenantByIdAsync [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         return tenantDao.findByIdAsync(callerId, tenantId.getId());
     }
@@ -186,6 +207,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     }
 
     @Override
+    @Transactional
     public Tenant saveTenant(Tenant tenant) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
@@ -195,6 +217,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         }
         tenantValidator.validate(tenant, Tenant::getId);
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
+        publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), false));
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
 
@@ -214,6 +237,7 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
     }
 
     @Override
+    @Transactional(timeout = 60 * 60)
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -243,6 +267,8 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         queueService.deleteQueuesByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
+        publishEvictEvent(new TenantEvictEvent(tenantId, true));
+        deleteEntityRelations(tenantId, tenantId);
     }
 
     @Override
@@ -271,17 +297,29 @@ public class TenantServiceImpl extends AbstractEntityService implements TenantSe
         tenantsRemover.removeEntities(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
     }
 
-    private PaginatedRemover<TenantId, Tenant> tenantsRemover =
-            new PaginatedRemover<>() {
+    @Override
+    public PageData<TenantId> findTenantsIds(PageLink pageLink) {
+        log.trace("Executing findTenantsIds");
+        Validator.validatePageLink(pageLink);
+        return tenantDao.findTenantsIds(pageLink);
+    }
 
-                @Override
-                protected PageData<Tenant> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
-                    return tenantDao.findTenants(tenantId, pageLink);
-                }
+    @Override
+    public boolean tenantExists(TenantId tenantId) {
+        return existsTenantCache.getAndPutInTransaction(TenantCacheKey.fromIdExists(tenantId),
+                () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
+    }
 
-                @Override
-                protected void removeEntity(TenantId tenantId, Tenant entity) {
-                    deleteTenant(TenantId.fromUUID(entity.getUuidId()));
-                }
-            };
+    private PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {
+
+        @Override
+        protected PageData<Tenant> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+            return tenantDao.findTenants(tenantId, pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, Tenant entity) {
+            deleteTenant(TenantId.fromUUID(entity.getUuidId()));
+        }
+    };
 }

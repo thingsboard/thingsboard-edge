@@ -36,7 +36,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.customer.CustomerDao;
@@ -44,7 +43,7 @@ import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.util.Optional;
 
@@ -55,7 +54,7 @@ public class CustomerDataValidator extends DataValidator<Customer> {
     private CustomerDao customerDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private TenantService tenantService;
 
     @Autowired
     @Lazy
@@ -102,8 +101,7 @@ public class CustomerDataValidator extends DataValidator<Customer> {
         if (customer.getTenantId() == null) {
             throw new DataValidationException("Customer should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, customer.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(customer.getTenantId())) {
                 throw new DataValidationException("Customer is referencing to non-existent tenant!");
             }
         }
