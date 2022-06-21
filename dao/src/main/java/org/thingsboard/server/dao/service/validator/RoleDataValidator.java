@@ -35,16 +35,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
@@ -55,7 +54,7 @@ public class RoleDataValidator extends DataValidator<Role> {
     private RoleDao roleDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private TenantService tenantService;
 
     @Autowired
     private CustomerDao customerDao;
@@ -115,8 +114,7 @@ public class RoleDataValidator extends DataValidator<Role> {
         if (role.getTenantId() == null) {
             role.setTenantId(new TenantId(NULL_UUID));
         } else if (!role.getTenantId().isNullUid()) { // not Sys admin level
-            Tenant tenant = tenantDao.findById(tenantId, role.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(role.getTenantId())) {
                 throw new DataValidationException("Role is referencing to non-existent tenant!");
             }
         }
