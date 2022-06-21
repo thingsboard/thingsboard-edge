@@ -278,16 +278,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 tenantsEdgeSettingsUpdater.updateEntities(null);
                 break;
             case "3.3.4":
-                log.info("Updating data from version 3.3.4 to 3.3.4.1 ...");
-                boolean fullSyncRequired = fixDuplicateSystemWidgetsBundles();
-                if (fullSyncRequired) {
-                    tenantsFullSyncRequiredUpdater.updateEntities(null);
-                }
-                break;
-            case "3.3.4.1":
-                log.info("Updating data from version 3.3.4.1 to 3.4.0 ...");
-                rateLimitsUpdater.updateEntities();
+                log.info("Updating data from version 3.3.4 to 3.4.0 ...");
                 tenantsProfileQueueConfigurationUpdater.updateEntities();
+                rateLimitsUpdater.updateEntities();
                 String[] nodeTypes = {
                         "org.thingsboard.rule.engine.flow.TbCheckpointNode",
                         "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
@@ -300,10 +293,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     queueNameToIdRuleNodesUpdater.updateEntities(type);
                 }
             case "3.4.0":
+                log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
+
+                // remove this line in 4+ release
+                fixDuplicateSystemWidgetsBundles();
+
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
 
-                log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 // tenantIntegrationUpdater.updateEntities();
