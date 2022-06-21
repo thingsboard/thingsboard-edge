@@ -38,6 +38,8 @@ server:
     # Maximum size of data that could be sent over HTTP form POST request
     max-http-form-post-size: "${MAX_HTTP_FORM_POST_SIZE:10000000}" # 10Mb
 
+spring.main.allow-circular-references: "true"
+
 # Zookeeper connection parameters. Used for service discovery.
 zk:
   # Enable/disable zookeeper discovery service.
