@@ -38,7 +38,13 @@ import io.swagger.annotations.ApiParam;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -50,7 +56,12 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.sync.vc.*;
+import org.thingsboard.server.common.data.sync.vc.EntityDataDiff;
+import org.thingsboard.server.common.data.sync.vc.EntityDataInfo;
+import org.thingsboard.server.common.data.sync.vc.EntityVersion;
+import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
+import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
+import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -61,7 +72,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.thingsboard.server.controller.ControllerConstants.*;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VERSION_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.VC_REQUEST_ID_PARAM_DESCRIPTION;
 
 @RestController
 @TbCoreComponent
@@ -114,14 +132,18 @@ public class EntitiesVersionControlController extends BaseController {
             "  }\n" +
             "}\n```")
     @PostMapping("/version")
-    public DeferredResult<VersionCreationResult> saveEntitiesVersion(@RequestBody VersionCreateRequest request) throws ThingsboardException {
+    public DeferredResult<UUID> saveEntitiesVersion(@RequestBody VersionCreateRequest request) throws Exception {
         SecurityUser user = getCurrentUser();
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
-            return wrapFuture(versionControlService.saveEntitiesVersion(user, request));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
+        return wrapFuture(versionControlService.saveEntitiesVersion(user, request));
+    }
+
+    @ApiOperation(value = "", notes = "")
+    @GetMapping(value = "/version/{requestId}/status")
+    public VersionCreationResult getVersionCreateRequestStatus(@ApiParam(value = VC_REQUEST_ID_PARAM_DESCRIPTION, required = true)
+                                                               @PathVariable UUID requestId) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        return versionControlService.getVersionCreateStatus(getCurrentUser(), requestId);
     }
 
     @ApiOperation(value = "", notes = "" +
@@ -145,16 +167,12 @@ public class EntitiesVersionControlController extends BaseController {
                                                                       @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = "timestamp")
                                                                       @RequestParam(required = false) String sortProperty,
                                                                       @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
-                                                                      @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            EntityId externalEntityId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
-            EntityId internalEntityId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid) : null;
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return wrapFuture(versionControlService.listEntityVersions(getTenantId(), branch, externalEntityId, internalEntityId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                                      @RequestParam(required = false) String sortOrder) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        EntityId externalEntityId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
+        EntityId internalEntityId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid) : null;
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return wrapFuture(versionControlService.listEntityVersions(getTenantId(), branch, externalEntityId, internalEntityId, pageLink));
     }
 
     @ApiOperation(value = "", notes = "" +
@@ -176,14 +194,10 @@ public class EntitiesVersionControlController extends BaseController {
                                                                           @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = "timestamp")
                                                                           @RequestParam(required = false) String sortProperty,
                                                                           @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
-                                                                          @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return wrapFuture(versionControlService.listEntityTypeVersions(getTenantId(), branch, entityType, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                                          @RequestParam(required = false) String sortOrder) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return wrapFuture(versionControlService.listEntityTypeVersions(getTenantId(), branch, entityType, pageLink));
     }
 
     @ApiOperation(value = "", notes = "" +
@@ -212,67 +226,47 @@ public class EntitiesVersionControlController extends BaseController {
                                                                 @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = "timestamp")
                                                                 @RequestParam(required = false) String sortProperty,
                                                                 @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
-                                                                @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return wrapFuture(versionControlService.listVersions(getTenantId(), branch, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                                @RequestParam(required = false) String sortOrder) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return wrapFuture(versionControlService.listVersions(getTenantId(), branch, pageLink));
     }
 
 
     @GetMapping("/entity/{branch}/{entityType}/{versionId}")
     public DeferredResult<List<VersionedEntityInfo>> listEntitiesAtVersion(@PathVariable String branch,
                                                                            @PathVariable EntityType entityType,
-                                                                           @PathVariable String versionId) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            return wrapFuture(versionControlService.listEntitiesAtVersion(getTenantId(), branch, versionId, entityType));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                                           @PathVariable String versionId) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        return wrapFuture(versionControlService.listEntitiesAtVersion(getTenantId(), branch, versionId, entityType));
     }
 
     @GetMapping("/entity/{branch}/{versionId}")
     public DeferredResult<List<VersionedEntityInfo>> listAllEntitiesAtVersion(@PathVariable String branch,
-                                                                              @PathVariable String versionId) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            return wrapFuture(versionControlService.listAllEntitiesAtVersion(getTenantId(), branch, versionId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                                              @PathVariable String versionId) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        return wrapFuture(versionControlService.listAllEntitiesAtVersion(getTenantId(), branch, versionId));
     }
 
     @GetMapping("/info/{versionId}/{entityType}/{externalEntityUuid}")
     public DeferredResult<EntityDataInfo> getEntityDataInfo(@PathVariable String versionId,
                                                             @PathVariable EntityType entityType,
                                                             @PathVariable UUID externalEntityUuid,
-                                                            @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            EntityId externalId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
-            EntityId internalId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid) : null;
-            return wrapFuture(versionControlService.getEntityDataInfo(getCurrentUser(), externalId, internalId, versionId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                            @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        EntityId externalId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
+        EntityId internalId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid) : null;
+        return wrapFuture(versionControlService.getEntityDataInfo(getCurrentUser(), externalId, internalId, versionId));
     }
 
     @GetMapping("/diff/{branch}/{entityType}/{internalEntityUuid}")
     public DeferredResult<EntityDataDiff> compareEntityDataToVersion(@PathVariable String branch,
                                                                      @PathVariable EntityType entityType,
                                                                      @PathVariable UUID internalEntityUuid,
-                                                                     @RequestParam String versionId) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-            EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid);
-            return wrapFuture(versionControlService.compareEntityDataToVersion(getCurrentUser(), branch, entityId, versionId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+                                                                     @RequestParam String versionId) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid);
+        return wrapFuture(versionControlService.compareEntityDataToVersion(getCurrentUser(), branch, entityId, versionId));
     }
 
     @ApiOperation(value = "", notes = "" +
@@ -308,14 +302,18 @@ public class EntitiesVersionControlController extends BaseController {
             "  }\n" +
             "}\n```")
     @PostMapping("/entity")
-    public DeferredResult<VersionLoadResult> loadEntitiesVersion(@RequestBody VersionLoadRequest request) throws ThingsboardException {
+    public UUID loadEntitiesVersion(@RequestBody VersionLoadRequest request) throws Exception {
         SecurityUser user = getCurrentUser();
-        try {
-            accessControlService.checkPermission(user, Resource.VERSION_CONTROL, Operation.WRITE);
-            return wrapFuture(versionControlService.loadEntitiesVersion(user, request));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        accessControlService.checkPermission(user, Resource.VERSION_CONTROL, Operation.WRITE);
+        return versionControlService.loadEntitiesVersion(user, request);
+    }
+
+    @ApiOperation(value = "", notes = "")
+    @GetMapping(value = "/entity/{requestId}/status")
+    public VersionLoadResult getVersionLoadRequestStatus(@ApiParam(value = VC_REQUEST_ID_PARAM_DESCRIPTION, required = true)
+                                                         @PathVariable UUID requestId) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        return versionControlService.getVersionLoadStatus(getCurrentUser(), requestId);
     }
 
 

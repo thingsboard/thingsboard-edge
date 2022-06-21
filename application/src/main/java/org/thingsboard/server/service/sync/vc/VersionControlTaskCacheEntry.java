@@ -28,23 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.vc;
+package org.thingsboard.server.service.sync.vc;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
+import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
 
 import java.io.Serializable;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
-public class EntityVersion implements Serializable {
+public class VersionControlTaskCacheEntry implements Serializable {
 
-    private static final long serialVersionUID = -3705022663019175258L;
-    
-    private long timestamp;
-    private String id;
-    private String name;
-    private String author;
+    private static final long serialVersionUID = -7875992200801588119L;
+
+    private VersionCreationResult exportResult;
+    private VersionLoadResult importResult;
+
+    public static VersionControlTaskCacheEntry newForExport(VersionCreationResult result) {
+        return new VersionControlTaskCacheEntry(result, null);
+    }
+
+    public static VersionControlTaskCacheEntry newForImport(VersionLoadResult result) {
+        return new VersionControlTaskCacheEntry(null, result);
+    }
+
+
 }

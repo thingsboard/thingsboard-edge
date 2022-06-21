@@ -132,6 +132,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -632,7 +633,7 @@ public abstract class BaseExportImportServiceTest extends AbstractControllerTest
     }
 
     protected <E extends ExportableEntity<I>, I extends EntityId> EntityImportResult<E> importEntity(User user, EntityExportData<E> exportData, EntityImportSettings importSettings) throws Exception {
-        EntitiesImportCtx ctx = new EntitiesImportCtx(getSecurityUser(user), null, importSettings);
+        EntitiesImportCtx ctx = new EntitiesImportCtx(UUID.randomUUID(), getSecurityUser(user), null, importSettings);
         ctx.setFinalImportAttempt(true);
         exportData = jsonMapper.treeToValue(jsonMapper.valueToTree(exportData), EntityExportData.class);
         EntityImportResult<E> importResult = exportImportService.importEntity(ctx, exportData);

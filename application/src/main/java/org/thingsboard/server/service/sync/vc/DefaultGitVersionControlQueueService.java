@@ -466,6 +466,7 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
                 commitResult.setAdded(commitResponse.getAdded());
                 commitResult.setRemoved(commitResponse.getRemoved());
                 commitResult.setModified(commitResponse.getModified());
+                commitResult.setDone(true);
                 ((CommitGitRequest) request).getFuture().set(commitResult);
             } else if (vcResponseMsg.hasListBranchesResponse()) {
                 var listBranchesResponse = vcResponseMsg.getListBranchesResponse();
