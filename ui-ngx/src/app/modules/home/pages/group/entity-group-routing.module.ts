@@ -568,11 +568,11 @@ const EDGE_SCHEDULER_ROUTE: Route = {
   path: ':edgeId/scheduler',
   component: SchedulerEventsComponent,
   data: {
-    groupType: EntityType.SCHEDULER_EVENT,
+    edgeEntitiesType: EntityType.SCHEDULER_EVENT,
     auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
     breadcrumb: {
     labelFunction: (route, translate, component, data) => {
-      return data.entityGroup.edgeGroupsTitle;
+      return data.entityGroup.edgeEntitiesTitle;
     },
       icon: 'schedule'
     }
@@ -585,10 +585,10 @@ const EDGE_SCHEDULER_ROUTE: Route = {
 const EDGE_RULE_CHAINS_ROUTE: Route = {
   path: ':edgeId/ruleChains',
   data: {
-    groupType: EntityType.RULE_CHAIN,
+    edgeEntitiesType: EntityType.RULE_CHAIN,
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
-        return data.entityGroup.edgeGroupsTitle;
+        return data.entityGroup.edgeEntitiesTitle;
       },
       icon: 'settings_ethernet'
     }
@@ -636,10 +636,10 @@ const EDGE_RULE_CHAINS_ROUTE: Route = {
 const EDGE_INTEGRATIONS_ROUTE: Route = {
   path: ':edgeId/integrations',
   data: {
-    grandChildGroupType: EntityType.INTEGRATION,
+    edgeEntitiesType: EntityType.INTEGRATION,
     breadcrumb: {
       labelFunction: (route, translate, component, data) => {
-        return data.entityGroup.edgeGroupsTitle;
+        return data.entityGroup.edgeEntitiesTitle;
       },
       icon: 'input'
     }
@@ -940,11 +940,11 @@ const routes: Routes = [
                   {...USER_GROUPS_ROUTE, ...{
                       path: ':edgeId/userGroups',
                       data: {
-                        grandChildGroupType: EntityType.USER,
+                        edgeEntitiesType: EntityType.USER,
                         groupType: EntityType.USER,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
+                            return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'account_circle'
                         }
@@ -954,11 +954,11 @@ const routes: Routes = [
                   {...ASSET_GROUPS_ROUTE, ...{
                       path: ':edgeId/assetGroups',
                       data: {
-                        grandChildGroupType: EntityType.ASSET,
+                        edgeEntitiesType: EntityType.ASSET,
                         groupType: EntityType.ASSET,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
+                            return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'domain'
                         }
@@ -968,11 +968,11 @@ const routes: Routes = [
                   {...DEVICE_GROUPS_ROUTE, ...{
                       path: ':edgeId/deviceGroups',
                       data: {
-                        grandChildGroupType: EntityType.DEVICE,
+                        edgeEntitiesType: EntityType.DEVICE,
                         groupType: EntityType.DEVICE,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
+                            return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'devices_other'
                         }
@@ -982,11 +982,11 @@ const routes: Routes = [
                   {...ENTITY_VIEW_GROUPS_ROUTE, ...{
                       path: ':edgeId/entityViewGroups',
                       data: {
-                        grandChildGroupType: EntityType.ENTITY_VIEW,
+                        edgeEntitiesType: EntityType.ENTITY_VIEW,
                         groupType: EntityType.ENTITY_VIEW,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
+                            return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'view_quilt'
                         }
@@ -996,54 +996,20 @@ const routes: Routes = [
                   {...DASHBOARD_GROUPS_ROUTE, ...{
                       path: ':edgeId/dashboardGroups',
                       data: {
-                        grandChildGroupType: EntityType.DASHBOARD,
+                        edgeEntitiesType: EntityType.DASHBOARD,
                         groupType: EntityType.DASHBOARD,
                         breadcrumb: {
                           labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
+                            return data.entityGroup.edgeEntitiesTitle;
                           },
                           icon: 'dashboard'
                         }
                       }
                     }
                   },
-                  {...EDGE_SCHEDULER_ROUTE, ...{
-                        data: {
-                          grandChildGroupType: EntityType.SCHEDULER_EVENT,
-                          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-                          breadcrumb: {
-                            labelFunction: (route, translate, component, data) => {
-                              return data.entityGroup.edgeGroupsTitle;
-                            },
-                            icon: 'schedule'
-                          }
-                        },
-                      }
-                    },
-                  {...EDGE_RULE_CHAINS_ROUTE, ...{
-                      data: {
-                        grandChildGroupType: EntityType.RULE_CHAIN,
-                        breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
-                          icon: 'settings_ethernet'
-                        }
-                      }
-                    }
-                  },
-                  {...EDGE_INTEGRATIONS_ROUTE, ...{
-                      data: {
-                        grandChildGroupType: EntityType.INTEGRATION,
-                        breadcrumb: {
-                          labelFunction: (route, translate, component, data) => {
-                            return data.entityGroup.edgeGroupsTitle;
-                          },
-                          icon: 'input'
-                        }
-                      }
-                    }
-                  }
+                  {...EDGE_SCHEDULER_ROUTE},
+                  {...EDGE_RULE_CHAINS_ROUTE},
+                  {...EDGE_INTEGRATIONS_ROUTE}
                 ]
               }
             ]
@@ -1123,7 +1089,7 @@ const routes: Routes = [
               groupType: EntityType.EDGE,
               breadcrumb: {
                 labelFunction: (route, translate, component, data) => {
-                  return data.entityGroup.edgeGroupsTitle;
+                  return data.entityGroup.edgeEntitiesTitle;
                 },
                 icon: 'supervisor_account'
               }
@@ -1165,7 +1131,7 @@ const routes: Routes = [
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeGroupsTitle;
+                    return data.entityGroup.edgeEntitiesTitle;
                   },
                   icon: 'account_circle'
                 }
@@ -1177,7 +1143,7 @@ const routes: Routes = [
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeGroupsTitle;
+                    return data.entityGroup.edgeEntitiesTitle;
                   },
                   icon: 'domain'
                 }
@@ -1189,7 +1155,7 @@ const routes: Routes = [
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeGroupsTitle;
+                    return data.entityGroup.edgeEntitiesTitle;
                   },
                   icon: 'devices_other'
                 }
@@ -1201,7 +1167,7 @@ const routes: Routes = [
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeGroupsTitle;
+                    return data.entityGroup.edgeEntitiesTitle;
                   },
                   icon: 'view_quilt'
                 }
@@ -1213,7 +1179,7 @@ const routes: Routes = [
               data: {
                 breadcrumb: {
                   labelFunction: (route, translate, component, data) => {
-                    return data.entityGroup.edgeGroupsTitle;
+                    return data.entityGroup.edgeEntitiesTitle;
                   },
                   icon: 'dashboard'
                 }

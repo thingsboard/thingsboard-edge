@@ -84,6 +84,10 @@
             <artifactId>cluster-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>version-control</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.thingsboard.common.js</groupId>
             <artifactId>js-api</artifactId>
         </dependency>

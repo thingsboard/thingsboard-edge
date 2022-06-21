@@ -48,7 +48,11 @@ export class IntegrationService {
     private http: HttpClient
   ) { }
 
-  public getIntegrations(pageLink: PageLink, isEdgeTemplate: boolean, config?: RequestConfig): Observable<PageData<Integration>> {
+  public getIntegrations(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Integration>> {
+    return this.getIntegrationsByEdgeTemplate(pageLink, false, config);
+  }
+
+  public getIntegrationsByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean, config?: RequestConfig): Observable<PageData<Integration>> {
     return this.http.get<PageData<Integration>>(`/api/integrations${pageLink.toQuery()}&isEdgeTemplate=${isEdgeTemplate}`,
       defaultHttpOptionsFromConfig(config));
   }

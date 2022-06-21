@@ -92,7 +92,6 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                         entityGroup.setCreatedTime(Uuids.unixTimestamp(entityGroupId.getId()));
                         created = true;
                     }
-
                     entityGroup.setName(entityGroupUpdateMsg.getName());
                     entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
                     entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
@@ -104,17 +103,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                         ownerId = new CustomerId(new UUID(entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB()));
                     }
                     entityGroup.setOwnerId(ownerId);
-                    EntityGroup savedEntityGroup = entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
-
-                    if (created) {
-                        EntityRelation entityRelation = new EntityRelation();
-                        entityRelation.setFrom(ownerId);
-                        entityRelation.setTo(savedEntityGroup.getId());
-                        entityRelation.setTypeGroup(RelationTypeGroup.TO_ENTITY_GROUP);
-                        entityRelation.setType(BaseEntityGroupService.ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
-                        relationService.saveRelation(tenantId, entityRelation);
-                    }
-
+                    entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
                 } finally {
                     entityGroupCreationLock.unlock();
                 }

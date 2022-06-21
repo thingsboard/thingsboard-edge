@@ -67,9 +67,9 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.asset.AssetBulkImportService;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.service.entitiy.asset.TbAssetService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;

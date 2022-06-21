@@ -29,38 +29,16 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM node:16.13.1-bullseye-slim
+FROM node:16.15.1-bullseye-slim
 
 ARG TARGETPLATFORM
-
-RUN apt-get update \
-    && apt-get install -yq wget unzip fonts-roboto chromium
-
-RUN apt-get clean \
-    && rm -r /var/lib/apt/lists/*
-
-RUN mkdir /noto
-
-ADD https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip /noto
-
-WORKDIR /noto
-
-RUN unzip NotoSansCJKjp-hinted.zip && \
-    mkdir -p /usr/share/fonts/noto && \
-    cp *.otf /usr/share/fonts/noto && \
-    chmod 655 -R /usr/share/fonts/noto/ && \
-    fc-cache -fv
-
-RUN rm -rf /noto
-
-COPY start-web-report.sh /tmp/
-
-RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-web-report.sh /usr/bin
 
 ENV NODE_ENV production
 ENV PUPPETEER_SKIP_DOWNLOAD true
 ENV DOCKER_MODE true
+
+COPY start-web-report.sh /tmp/
+ADD https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip /noto/NotoSansCJKjp-hinted.zip
 
 WORKDIR ${pkg.installFolder}
 
@@ -72,9 +50,20 @@ COPY ${pkg.name}.conf ./conf
 COPY src/api ./api
 COPY src/server.js ./
 
-RUN chown -R node:node ${pkg.installFolder}
-
-RUN yarn install --production && yarn cache clean --all
+RUN apt-get update \
+    && apt-get install -yq wget unzip fonts-roboto chromium \
+    && apt-get clean \
+    && rm -r /var/lib/apt/lists/* \
+    && unzip /noto/NotoSansCJKjp-hinted.zip -d /noto && \
+    mkdir -p /usr/share/fonts/noto && \
+    cp /noto/*.otf /usr/share/fonts/noto && \
+    chmod 655 -R /usr/share/fonts/noto/ && \
+    fc-cache -fv \
+    && rm -rf /noto \
+    && chmod a+x /tmp/*.sh \
+    && mv /tmp/start-web-report.sh /usr/bin \
+    && chown -R node:node ${pkg.installFolder} \
+    && yarn install --production && yarn cache clean --all
 
 USER node
 

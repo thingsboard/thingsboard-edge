@@ -54,6 +54,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.RestApiCallResponseM
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueClusterService;
 
@@ -66,6 +67,8 @@ public interface TbClusterService extends TbQueueClusterService {
     void pushMsgToCore(TenantId tenantId, EntityId entityId, ToCoreMsg msg, TbQueueCallback callback);
 
     void pushMsgToCore(ToDeviceActorNotificationMsg msg, TbQueueCallback callback);
+
+    void pushMsgToVersionControl(TenantId tenantId, ToVersionControlServiceMsg msg, TbQueueCallback callback);
 
     void pushNotificationToCore(String targetServiceId, IntegrationDownlinkMsg downlink, TbQueueCallback callback);
 

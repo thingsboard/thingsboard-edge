@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseEntityGroupControllerTest extends AbstractControllerTest {
@@ -99,6 +100,21 @@ public abstract class BaseEntityGroupControllerTest extends AbstractControllerTe
         doPost("/api/entityGroup", savedEntityGroup, EntityGroup.class);
         EntityGroup foundEntityGroup = doGet("/api/entityGroup/" + savedEntityGroup.getId().getId().toString(), EntityGroup.class);
         Assert.assertEquals(savedEntityGroup.getName(), foundEntityGroup.getName());
+    }
+
+    @Test
+    public void testSaveEntityGroupWithSameName() throws Exception {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Entity Group");
+        entityGroup.setType(EntityType.DEVICE);
+        EntityGroup savedEntityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+        Assert.assertNotNull(savedEntityGroup);
+        Assert.assertNotNull(savedEntityGroup.getId());
+        EntityGroup entityGroup2 = new EntityGroup();
+        entityGroup2.setName("Entity Group");
+        entityGroup2.setType(EntityType.DEVICE);
+        doPost("/api/entityGroup", entityGroup2).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Entity Group with such name, type and owner already exists!")));
     }
 
     @Test

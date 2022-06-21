@@ -52,6 +52,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -81,6 +82,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
@@ -102,6 +104,8 @@ import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
+import org.thingsboard.server.service.sync.vc.GitVersionControlQueueService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.PostConstruct;
@@ -148,6 +152,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final EdgeNotificationService edgeNotificationService;
     private final CloudNotificationService cloudNotificationService;
     private final OtaPackageStateService firmwareStateService;
+    private final GitVersionControlQueueService vcQueueService;
     private final TbCoreIntegrationApiService tbCoreIntegrationApiService;
     private final TbCoreConsumerStats stats;
     protected final TbQueueConsumer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
@@ -168,6 +173,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         EdgeNotificationService edgeNotificationService,
                                         CloudNotificationService cloudNotificationService,
                                         OtaPackageStateService firmwareStateService,
+                                        GitVersionControlQueueService vcQueueService,
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
                                         PartitionService partitionService) {
         super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
@@ -187,6 +193,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.cloudNotificationService = cloudNotificationService;
         this.stats = new TbCoreConsumerStats(statsFactory);
         this.firmwareStateService = firmwareStateService;
+        this.vcQueueService = vcQueueService;
         this.tbCoreIntegrationApiService = tbCoreIntegrationApiService;
     }
 
@@ -212,8 +219,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         }
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(value = 2)
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent event) {
         super.onApplicationEvent(event);
         launchUsageStatsConsumer();
@@ -387,6 +393,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasQueueDeleteMsg()) {
             TransportProtos.QueueDeleteMsg queue = toCoreNotification.getQueueDeleteMsg();
             partitionService.removeQueue(queue);
+            callback.onSuccess();
+        } else if (toCoreNotification.hasVcResponseMsg()) {
+            vcQueueService.processResponse(toCoreNotification.getVcResponseMsg());
             callback.onSuccess();
         }
         if (statsEnabled) {

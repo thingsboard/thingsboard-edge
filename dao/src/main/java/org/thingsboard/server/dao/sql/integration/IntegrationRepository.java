@@ -35,12 +35,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface IntegrationRepository extends JpaRepository<IntegrationEntity, UUID> {
+public interface IntegrationRepository extends JpaRepository<IntegrationEntity, UUID>, ExportableEntityRepository<IntegrationEntity> {
 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
@@ -74,5 +75,10 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
                                                     Pageable pageable);
 
     Long countByTenantId(UUID tenantId);
+
+    List<IntegrationEntity> findByTenantIdAndName(UUID tenantId, String name);
+
+    @Query("SELECT externalId FROM IntegrationEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
 
 }

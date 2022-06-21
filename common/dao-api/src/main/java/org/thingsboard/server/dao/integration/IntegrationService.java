@@ -64,6 +64,8 @@ public interface IntegrationService {
 
     PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink);
 
+    List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name);
+
     PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);

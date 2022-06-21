@@ -54,13 +54,10 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -74,6 +71,7 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
 import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.user.TbUserService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
 import org.thingsboard.server.service.security.model.JwtTokenPair;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -87,10 +85,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.controller.ControllerConstants.ASSET_INFO_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_DASHBOARD;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_HIDE_TOOLBAR;
@@ -107,14 +105,12 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_D
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.USER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.USER_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RequiredArgsConstructor
@@ -137,6 +133,7 @@ public class UserController extends BaseController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final SystemSecurityService systemSecurityService;
     private final ApplicationEventPublisher eventPublisher;
+    private final TbUserService tbUserService;
 
     @ApiOperation(value = "Get User (getUserById)",
             notes = "Fetch the User object based on the provided User Id. " +
@@ -226,6 +223,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
             HttpServletRequest request) throws ThingsboardException {
+
         try {
 
             if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
@@ -276,58 +274,9 @@ public class UserController extends BaseController {
                 ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
             }
 
-            boolean sendEmail = user.getId() == null && sendActivationMail;
-            User savedUser = checkNotNull(userService.saveUser(user));
-
-            // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
-            if (user.getId() == null && getCurrentUser().getAuthority() == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
-                entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-                logEntityAction(savedUser.getId(), savedUser,
-                        savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-                        savedUser.getId().toString(), admins.getId().toString(), admins.getName());
-            } else if (entityGroup != null && user.getId() == null) {
-                entityGroupService.addEntityToEntityGroup(getTenantId(), entityGroupId, savedUser.getId());
-                logEntityAction(savedUser.getId(), savedUser,
-                        savedUser.getCustomerId(), ActionType.ADDED_TO_ENTITY_GROUP, null,
-                        savedUser.getId().toString(), strEntityGroupId, entityGroup.getName());
-
-                /* merge comment
-                sendGroupEntityNotificationMsg(getTenantId(), savedUser.getId(),
-                        EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
-                 */
-            }
-
-            if (sendEmail) {
-                SecurityUser authUser = getCurrentUser();
-                UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
-                String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), getTenantId(), authUser.getCustomerId(), request);
-                String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
-                        userCredentials.getActivateToken());
-                String email = savedUser.getEmail();
-                try {
-                    mailService.sendActivationEmail(getTenantId(), activateUrl, email);
-                } catch (ThingsboardException e) {
-                    userService.deleteUser(authUser.getTenantId(), savedUser.getId());
-                    throw e;
-                }
-            }
-
-            userPermissionsService.onUserUpdatedOrRemoved(savedUser);
-
-            logEntityAction(savedUser.getId(), savedUser,
-                    savedUser.getCustomerId(),
-                    user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
-
-            sendEntityNotificationMsg(getTenantId(), savedUser.getId(),
-                    user.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-
-            return savedUser;
+            return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
+                    user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.USER), user,
-                    null, user.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-
             throw handleException(e);
         }
     }
@@ -402,28 +351,14 @@ public class UserController extends BaseController {
         try {
             UserId userId = new UserId(toUUID(strUserId));
             User user = checkUserId(userId, Operation.DELETE);
-
             if (user.getAuthority() == Authority.SYS_ADMIN && getCurrentUser().getId().equals(userId)) {
                 throw new ThingsboardException("Sysadmin is not allowed to delete himself", ThingsboardErrorCode.PERMISSION_DENIED);
             }
 
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), userId);
-
-            userService.deleteUser(getCurrentUser().getTenantId(), userId);
-
             userPermissionsService.onUserUpdatedOrRemoved(user);
 
-            logEntityAction(userId, user,
-                    user.getCustomerId(),
-                    ActionType.DELETED, null, strUserId);
-
-            sendDeleteNotificationMsg(getTenantId(), userId, relatedEdgeIds);
-
+            tbUserService.delete(getTenantId(), getCurrentUser().getCustomerId(), user, getCurrentUser());
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.USER),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strUserId);
             throw handleException(e);
         }
     }

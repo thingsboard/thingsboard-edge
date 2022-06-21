@@ -91,11 +91,6 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.queue.ProcessingStrategy;
-import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
-import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.queue.SubmitStrategy;
-import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
@@ -129,6 +124,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected ObjectMapper mapper = new ObjectMapper();
 
     protected static final String TEST_TENANT_NAME = "TEST TENANT";
+    protected static final String TEST_DIFFERENT_TENANT_NAME = "TEST DIFFERENT TENANT";
 
     protected static final String SYS_ADMIN_EMAIL = "sysadmin@thingsboard.org";
     private static final String SYS_ADMIN_PASSWORD = "sysadmin";
@@ -160,9 +156,12 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected TenantId tenantId;
     protected UserId tenantAdminUserId;
+    protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected TenantId differentTenantId;
     protected CustomerId differentCustomerId;
+    protected UserId customerUserId;
+    protected UserId customerAdminUserId;
 
     @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
@@ -227,6 +226,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
         tenantAdmin = createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
         tenantAdminUserId = tenantAdmin.getId();
+        tenantAdminCustomerId = tenantAdmin.getCustomerId();
 
         Customer customer = new Customer();
         customer.setTitle("Customer");
@@ -240,7 +240,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         customerUser.setCustomerId(savedCustomer.getId());
         customerUser.setEmail(CUSTOMER_USER_EMAIL);
 
-        createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUser = createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUserId = customerUser.getId();
 
         logout();
 
@@ -304,7 +305,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             loginSysAdmin();
 
             Tenant tenant = new Tenant();
-            tenant.setTitle("Different tenant");
+            tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
             savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
             differentTenantId = savedDifferentTenant.getId();
             Assert.assertNotNull(savedDifferentTenant);
@@ -321,13 +322,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         if (savedDifferentCustomer != null) {
             login(savedDifferentCustomer.getEmail(), CUSTOMER_USER_PASSWORD);
         } else {
-            loginTenantAdmin();
+            createDifferentCustomer();
 
-            Customer customer = new Customer();
-            customer.setTitle("Different customer");
-            savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
-            differentCustomerId = savedDifferentCustomer.getId();
-            Assert.assertNotNull(savedDifferentCustomer);
+            loginTenantAdmin();
             User differentCustomerUser = new User();
             differentCustomerUser.setAuthority(Authority.CUSTOMER_USER);
             differentCustomerUser.setTenantId(tenantId);
@@ -336,6 +333,18 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
             createUserAndLogin(differentCustomerUser, DIFFERENT_CUSTOMER_USER_PASSWORD);
         }
+    }
+
+    protected void createDifferentCustomer() throws Exception {
+        loginTenantAdmin();
+
+        Customer customer = new Customer();
+        customer.setTitle("Different customer");
+        savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
+        Assert.assertNotNull(savedDifferentCustomer);
+        differentCustomerId = savedDifferentCustomer.getId();
+
+        logout();
     }
 
     protected void deleteDifferentTenant() throws Exception {
@@ -673,7 +682,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected <T> T readResponse(ResultActions result, TypeReference<T> type) throws Exception {
         byte[] content = result.andReturn().getResponse().getContentAsByteArray();
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readerFor(type).readValue(content);
     }
 

@@ -29,15 +29,12 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM node:16.13.1-bullseye-slim
-
-COPY start-web-ui.sh /tmp/
-
-RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-web-ui.sh /usr/bin
+FROM node:16.15.1-bullseye-slim
 
 ENV NODE_ENV production
 ENV DOCKER_MODE true
+
+COPY start-web-ui.sh /tmp/
 
 WORKDIR ${pkg.installFolder}
 
@@ -48,9 +45,10 @@ COPY package/linux/conf ./config
 COPY web ./web
 COPY src/server.js ./
 
-RUN chown -R node:node ${pkg.installFolder}
-
-RUN yarn install --production && yarn cache clean --all
+RUN chmod a+x /tmp/*.sh \
+    && mv /tmp/start-web-ui.sh /usr/bin \
+    && chown -R node:node ${pkg.installFolder} \
+    && yarn install --production && yarn cache clean --all
 
 USER node
 

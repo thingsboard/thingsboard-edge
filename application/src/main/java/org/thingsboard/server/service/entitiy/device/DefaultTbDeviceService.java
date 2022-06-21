@@ -70,6 +70,7 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
         try {
             Device oldDevice =  device.getId() == null ? null : deviceService.findDeviceById(tenantId, device.getId());
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
+            vcService.autoCommit(user, savedDevice.getId());
             createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
             tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
             return savedDevice;

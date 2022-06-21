@@ -160,6 +160,11 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
+    public List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name) {
+        return integrationDao.findTenantIntegrationsByName(tenantId.getId(), name);
+    }
+
+    @Override
     @Transactional
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);

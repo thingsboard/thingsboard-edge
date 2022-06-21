@@ -29,41 +29,45 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
 import {
-  CellActionDescriptor, checkBoxCell,
+  CellActionDescriptor,
   DateEntityTableColumn,
-  defaultEntityTablePermissions, EntityColumn,
+  defaultEntityTablePermissions,
+  EntityColumn,
   EntityTableColumn,
-  EntityTableConfig, GroupActionDescriptor, HeaderActionDescriptor
+  EntityTableConfig,
+  GroupActionDescriptor,
+  HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
-import { TranslateService } from '@ngx-translate/core';
-import { DatePipe } from '@angular/common';
-import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { EntityAction } from '@home/models/entity/entity-component.models';
 import {
   getIntegrationHelpLink,
   Integration,
   IntegrationParams,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { TranslateService } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
+import { UtilsService } from '@core/services/utils.service';
+import { Router, UrlTree } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { IntegrationService } from '@core/http/integration.service';
+import { EdgeService } from '@core/http/edge.service';
+import { DialogService } from '@core/services/dialog.service';
+import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
-import { UtilsService } from '@core/services/utils.service';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Operation, Resource } from '@shared/models/security.models';
 import { forkJoin, Observable } from 'rxjs';
 import { isUndefined } from '@core/utils';
+import { map } from 'rxjs/operators';
+import { EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Edge } from '@shared/models/edge.models';
-import { Operation, Resource } from '@shared/models/security.models';
-import { EdgeService } from '@core/http/edge.service';
 import {
   AddEntitiesToEdgeDialogComponent,
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
-import { DialogService } from '@core/services/dialog.service';
-import { MatDialog } from '@angular/material/dialog';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
 
@@ -76,20 +80,13 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
               private utils: UtilsService,
               private dialogService: DialogService,
               private dialog: MatDialog,
-              private params: ActivatedRouteSnapshot | IntegrationParams) {
+              private params: IntegrationParams) {
     super();
 
     this.entityType = EntityType.INTEGRATION;
     this.entityComponent = IntegrationComponent;
     this.entityTabsComponent = IntegrationTabsComponent;
     this.entityTranslations = entityTypeTranslations.get(EntityType.INTEGRATION);
-
-    this.componentsData = this.setComponentsData(this.params);
-    this.columns = this.configureEntityTableColumns();
-    this.groupActionDescriptors = this.configureGroupActions(this.componentsData.integrationScope);
-    this.addActionDescriptors = this.configureAddActions(this.componentsData.integrationScope);
-    this.cellActionDescriptors = this.configureCellActions(this.componentsData);
-
     this.entityResources = {
       helpLinkId: null,
       helpLinkIdForEntity(entity: Integration): string {
@@ -98,14 +95,23 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     };
     this.addDialogStyle = {width: '800px'};
 
+    this.componentsData = params;
 
     this.deleteEntityTitle = integration =>
       this.translate.instant('integration.delete-integration-title', { integrationName: integration.name });
     this.deleteEntityContent = () => this.translate.instant('integration.delete-integration-text');
     this.deleteEntitiesTitle = count => this.translate.instant('integration.delete-integrations-title', {count});
     this.deleteEntitiesContent = () => this.translate.instant('integration.delete-integrations-text');
-    this.entitiesFetchFunction = this.configureEntityFunctions(this.componentsData.integrationScope, this.componentsData.edgeId);
+
+    this.tableTitle = this.translate.instant('integration.integrations');
+
+    this.columns = this.configureEntityTableColumns();
+    this.groupActionDescriptors = this.configureGroupActions(this.componentsData.integrationScope);
+    this.addActionDescriptors = this.configureAddActions(this.componentsData.integrationScope);
+    this.cellActionDescriptors = this.configureCellActions(this.componentsData);
+
     this.loadEntity = id => this.integrationService.getIntegration(id.id);
+    this.entitiesFetchFunction = this.configureEntityFunctions(this.componentsData.integrationScope, this.componentsData.edgeId);
     this.saveEntity = integration => this.saveIntegration(integration);
     this.deleteEntity = id => this.integrationService.deleteIntegration(id.id);
 
@@ -116,25 +122,6 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
-  private setComponentsData(params: any): IntegrationParams {
-    let edgeId: string;
-    let integrationScope: string;
-    if (params?.hierarchyView) {
-      edgeId = params.edgeId;
-      integrationScope = params.integrationScope;
-    } else {
-      edgeId = params.params?.edgeId;
-      integrationScope = params.data.integrationsType ? params.data.integrationsType : 'tenant';
-    }
-    return {
-      edgeId,
-      integrationScope,
-      hierarchyView: params?.hierarchyView,
-      entityGroupId: params?.entityGroupId,
-      customerGroupId: params?.customerGroupId,
-      customerId: params?.customerId
-    };
-  }
 
   private configureEntityTableColumns(): Array<EntityColumn<Integration>> {
     const columns: Array<EntityColumn<Integration>> = [];
@@ -218,8 +205,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
         integration.edgeTemplate = false;
       }
     }
-    let integrationObservable = this.integrationService.saveIntegration(integration);
-    integrationObservable.subscribe((integration) => {
+    return this.integrationService.saveIntegration(integration).pipe(
+      map((integration) => {
         if (this.componentsData.integrationScope === 'edges') {
           this.edgeService.findAllRelatedEdgesMissingAttributes(integration.id.id).subscribe(
             (missingEdgeAttributes) => {
@@ -238,9 +225,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
             }
           );
         }
-      }
+        return integration;
+      })
     );
-    return integrationObservable;
   }
 
   openIntegration($event: Event, integration: Integration, params?:IntegrationParams) {
@@ -250,8 +237,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     if (this.componentsData.integrationScope === 'edge') {
       let url: UrlTree;
       if (params && params.hierarchyView) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'integrations', integration.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'integrations', integration.id.id]);
         window.open(window.location.origin + url, '_blank');
       } else {
         url = this.router.createUrlTree([integration.id.id], { relativeTo: this.getActivatedRoute() });
@@ -278,9 +265,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
 
   private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<Integration>> {
     if (integrationScope === 'tenant') {
-      return pageLink => this.integrationService.getIntegrations(pageLink, false);
+      return pageLink => this.integrationService.getIntegrations(pageLink);
     } else if (integrationScope === 'edges') {
-      return pageLink => this.integrationService.getIntegrations(pageLink, true);
+      return pageLink => this.integrationService.getIntegrationsByEdgeTemplate(pageLink, true);
     } else if (integrationScope === 'edge') {
       return pageLink => this.integrationService.getEdgeIntegrations(edgeId, pageLink);
     }
@@ -298,6 +285,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       this.entitiesDeleteEnabled = false;
       this.deleteEnabled = () => false;
       this.detailsReadonly = () => true;
+      this.headerActionDescriptors = [];
       if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.WRITE)) {
         this.headerActionDescriptors.push({
             name: this.translate.instant('edge.assign-to-edge'),
@@ -413,5 +401,4 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       }
     );
   }
-
 }

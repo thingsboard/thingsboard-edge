@@ -31,7 +31,7 @@
 
 import { EntityType } from '@shared/models/entity-type.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { WidgetActionDescriptor, WidgetActionSource, WidgetActionType } from '@shared/models/widget.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
@@ -98,7 +98,6 @@ export interface EntityGroupSettings {
   detailsMode: EntityGroupDetailsMode;
   displayPagination: boolean;
   defaultPageSize: number;
-  enableAssignment: boolean;
   enableCredentialsManagement: boolean;
   enableLoginAsUser: boolean;
   enableUsersManagement: boolean;
@@ -253,7 +252,7 @@ export interface EntityGroupConfiguration {
   actions: {[actionSourceId: string]: Array<WidgetActionDescriptor>};
 }
 
-export interface EntityGroup extends BaseData<EntityGroupId> {
+export interface EntityGroup extends BaseData<EntityGroupId>, ExportableEntity<EntityGroupId> {
   type: EntityType;
   name: string;
   ownerId: EntityId;
@@ -413,12 +412,6 @@ export function groupSettingsDefaults(entityType: EntityType, settings: EntityGr
       defaultPageSize: 10
   }, ...settings};
 
-  if (entityType === EntityType.DEVICE || entityType === EntityType.ASSET || entityType === EntityType.ENTITY_VIEW) {
-    settings = {...{
-        enableAssignment: true
-      }, ...settings};
-  }
-
   if (entityType === EntityType.DEVICE) {
     settings = {...{
         enableCredentialsManagement: true
@@ -472,7 +465,19 @@ export function entityGroupsTitle(groupType: EntityType) {
       return 'entity-group.dashboard-groups';
     case EntityType.EDGE:
       return 'entity-group.edge-groups';
-    // TODO: vb - refactor this? all is related to edge
+  }
+}
+
+export function edgeEntitiesTitle(entityType: EntityType) {
+  switch (entityType) {
+    case EntityType.ASSET:
+    case EntityType.DEVICE:
+    case EntityType.CUSTOMER:
+    case EntityType.USER:
+    case EntityType.ENTITY_VIEW:
+    case EntityType.DASHBOARD:
+    case EntityType.EDGE:
+      return entityGroupsTitle(entityType);
     case EntityType.SCHEDULER_EVENT:
       return 'scheduler.scheduler';
     case EntityType.RULE_CHAIN:
@@ -502,7 +507,6 @@ export interface HierarchyCallbacks {
 
 export interface EntityGroupParams {
   customerId?: string;
-  customerGroupId?: string;
   entityGroupId?: string;
   childEntityGroupId?: string;
   groupType?: EntityType;
@@ -513,8 +517,8 @@ export interface EntityGroupParams {
   hierarchyCallbacks?: HierarchyCallbacks;
   edge?: Edge;
   edgeId?: string;
-  grandChildGroupType?: EntityType;
-  grandChildGroupId?: string;
+  edgeEntitiesType?: EntityType;
+  edgeEntitiesGroupId?: string;
 }
 
 export interface ShareGroupRequest {
@@ -534,11 +538,12 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
         !isEqual(routeParams.entityGroupId, route.params.entityGroupId)) {
       routeParams.childEntityGroupId = routeParams.entityGroupId;
     }
-    if (routeData.grandChildGroupType === routeData.groupType) {
-      routeData.grandChildGroupId = routeParams.childEntityGroupId;
-    }
-    if (routeData.groupType && route.data.groupType && !isEqual(routeData.groupType, route.data.groupType)) {
+    if (routeData.groupType && route.data.groupType &&
+      !isEqual(routeData.groupType, route.data.groupType)) {
       routeData.childGroupType = routeData.groupType;
+    }
+    if (isUndefinedOrNull(routeData.edgeEntitiesGroupId)) {
+      routeData.edgeEntitiesGroupId = routeParams.childEntityGroupId;
     }
     routeParams = {...routeParams, ...route.params};
     routeData = { ...routeData, ...route.data };
@@ -550,7 +555,7 @@ export function resolveGroupParams(route: ActivatedRouteSnapshot): EntityGroupPa
     childEntityGroupId: routeParams.childEntityGroupId,
     childGroupType: routeData.childGroupType,
     edgeId: routeParams.edgeId,
-    grandChildGroupType: routeData.grandChildGroupType,
-    grandChildGroupId: routeData.grandChildGroupId
+    edgeEntitiesType: routeData.edgeEntitiesType,
+    edgeEntitiesGroupId: routeData.edgeEntitiesGroupId
   };
 }

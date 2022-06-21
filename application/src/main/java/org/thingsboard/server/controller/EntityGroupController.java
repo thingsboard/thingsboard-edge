@@ -377,6 +377,49 @@ public class EntityGroupController extends BaseController {
         }
     }
 
+    @ApiOperation(value = "Get Entity Groups by owner and entity type and page link (getEntityGroupsByOwnerAndTypeAndPageLink)",
+            notes = "Returns a page of Entity Group objects based on the provided Owner Id and Entity Type and Page Link. " +
+                    ENTITY_GROUP_DESCRIPTION +
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/entityGroups/{ownerType}/{ownerId}/{groupType}", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<EntityGroup> getEntityGroupsByOwnerAndTypeAndPageLink(
+            @ApiParam(value = OWNER_TYPE_DESCRIPTION, required = true, allowableValues = "TENANT,CUSTOMER")
+            @PathVariable("ownerType") String strOwnerType,
+            @ApiParam(value = OWNER_ID_DESCRIPTION, required = true, example = "784f394c-42b6-435a-983c-b7beff2784f9")
+            @PathVariable("ownerId") String strOwnerId,
+            @ApiParam(value = ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION, required = true, allowableValues = EntityGroup.ENTITY_GROUP_TYPE_ALLOWABLE_VALUES)
+            @PathVariable("groupType") String strGroupType,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = ENTITY_GROUP_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder
+    ) throws ThingsboardException {
+        checkParameter("ownerId", strOwnerId);
+        checkParameter("ownerType", strOwnerType);
+        try {
+            EntityId ownerId = EntityIdFactory.getByTypeAndId(strOwnerType, strOwnerId);
+            EntityType groupType = checkStrEntityGroupType("groupType", strGroupType);
+            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+            checkEntityId(ownerId, Operation.READ);
+            MergedGroupTypePermissionInfo groupTypePermissionInfo = getCurrentUser().getUserPermissions().getReadGroupPermissions().get(groupType);
+            if (groupTypePermissionInfo.isHasGenericRead()) {
+                return entityGroupService.findEntityGroupsByTypeAndPageLink(getTenantId(), ownerId, groupType, pageLink).get();
+            } else {
+                throw permissionDenied();
+            }
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Get special group All by owner and entity type (getEntityGroupsByOwnerAndType)",
             notes = "Fetch reserved group 'All' based on the provided Owner Id and Entity Type. "
                     + ENTITY_GROUP_DESCRIPTION + ENTITY_GROUP_INFO_DESCRIPTION +

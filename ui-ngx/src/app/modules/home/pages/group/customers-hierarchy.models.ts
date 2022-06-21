@@ -39,7 +39,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 
 export type CustomersHierarchyViewMode = 'groups' | 'group' | 'scheduler';
 
-export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeGroups' | 'edgeGroup';
+export type CustomersHierarchyNodeType = 'group' | 'groups' | 'customer' | 'edge' | 'edgeEntities' | 'edgeGroup';
 
 export interface BaseCustomersHierarchyNodeData {
   type: CustomersHierarchyNodeType;
@@ -79,8 +79,8 @@ export interface EdgeNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNo
 }
 
 export interface EdgeEntityGroupsNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
-  type: 'edgeGroups';
-  groupsType: EntityType;
+  type: 'edgeEntities';
+  entityType: EntityType;
 }
 
 export interface EdgeEntityGroupNodeData extends BaseCustomersHierarchyNodeData, BaseEdgeNodeData {
@@ -116,7 +116,7 @@ export function entityGroupsNodeText(translate: TranslateService, groupType: Ent
   return nodeIcon + nodeText;
 }
 
-export function entitiesNodeText(translate: TranslateService, entityType: EntityType, name: string) {
+export function entitiesNodeText(translate: TranslateService, entityType: EntityType, name: string): string {
   const nodeIcon = materialIconByEntityType(entityType);
   const nodeText = translate.instant(name);
   return nodeIcon + nodeText;

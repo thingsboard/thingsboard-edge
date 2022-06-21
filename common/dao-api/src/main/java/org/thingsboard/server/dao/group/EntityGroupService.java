@@ -57,10 +57,6 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityGroup>> findEntityGroupByIdsAsync(TenantId tenantId, List<EntityGroupId> entityGroupIds);
 
-    ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
-
-    ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroupId entityGroupId, EntityType groupType);
-
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean doValidate);
 
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
@@ -99,6 +95,8 @@ public interface EntityGroupService {
     ListenableFuture<PageData<EntityGroup>> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityId parentEntityId,
                                                                               EntityType groupType, PageLink pageLink);
 
+    PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityType groupType, PageLink pageLink);
+
     Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
 
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name);
@@ -119,9 +117,11 @@ public interface EntityGroupService {
 
     ListenableFuture<List<EntityId>> findAllEntityIds(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink);
 
+    PageData<EntityId> findEntityIds(TenantId tenantId, EntityType entityType, EntityGroupId entityGroupId, PageLink pageLink);
+
     ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId);
 
-    boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId);
+    boolean isEntityInGroup(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId);
 
     GroupPermission findOrCreateEntityGroupPermission(TenantId tenantId, EntityGroupId entityGroupId,
                                                              EntityType entityGroupType, EntityGroupId userGroupId, RoleId roleId);

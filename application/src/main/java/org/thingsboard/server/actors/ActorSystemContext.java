@@ -66,6 +66,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.asset.AssetService;

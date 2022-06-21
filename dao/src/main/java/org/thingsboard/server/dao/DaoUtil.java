@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 public abstract class DaoUtil {
     private static final int MAX_IN_VALUE = Short.MAX_VALUE / 2;
@@ -65,6 +66,10 @@ public abstract class DaoUtil {
         return new PageData<>(data, page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
+    public static <T,V> PageData<V> pageToPageData(Page<T> page, Function<T, V> transform) {
+        return new PageData<>(page.getContent().stream().map(transform).collect(Collectors.toList()), page.getTotalPages(), page.getTotalElements(), page.hasNext());
+    }
+
     public static <T> PageData<T> pageToPageData(Page<T> page) {
         return new PageData<>(page.getContent(), page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
@@ -73,7 +78,7 @@ public abstract class DaoUtil {
         return toPageable(pageLink, Collections.emptyMap());
     }
 
-    public static Pageable toPageable(PageLink pageLink, Map<String,String> columnMap) {
+    public static Pageable toPageable(PageLink pageLink, Map<String, String> columnMap) {
         return PageRequest.of(pageLink.getPage(), pageLink.getPageSize(), pageLink.toSort(pageLink.getSortOrder(), columnMap));
     }
 
@@ -81,7 +86,7 @@ public abstract class DaoUtil {
         return toPageable(pageLink, Collections.emptyMap(), sortOrders);
     }
 
-    public static Pageable toPageable(PageLink pageLink, Map<String,String> columnMap, List<SortOrder> sortOrders) {
+    public static Pageable toPageable(PageLink pageLink, Map<String, String> columnMap, List<SortOrder> sortOrders) {
         return PageRequest.of(pageLink.getPage(), pageLink.getPageSize(), pageLink.toSort(sortOrders, columnMap));
     }
 
@@ -128,6 +133,20 @@ public abstract class DaoUtil {
             ids.add(getId(idBased));
         }
         return ids;
+    }
+
+    public static <T> void processInBatches(Function<PageLink, PageData<T>> finder, int batchSize, Consumer<T> processor) {
+        PageLink pageLink = new PageLink(batchSize);
+        PageData<T> batch;
+
+        boolean hasNextBatch;
+        do {
+            batch = finder.apply(pageLink);
+            batch.getData().forEach(processor);
+
+            hasNextBatch = batch.hasNext();
+            pageLink = pageLink.nextPageLink();
+        } while (hasNextBatch);
     }
 
     public static <T> ListenableFuture<List<T>> getEntitiesByTenantIdAndIdIn(List<UUID> entityIds,

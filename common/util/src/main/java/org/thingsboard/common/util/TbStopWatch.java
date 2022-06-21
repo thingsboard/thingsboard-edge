@@ -43,10 +43,19 @@ import org.springframework.util.StopWatch;
  * */
 public class TbStopWatch extends StopWatch {
 
-    public static TbStopWatch startNew(){
+    public static TbStopWatch create(){
+        return create("");
+    }
+
+    public static TbStopWatch create(String taskName){
         TbStopWatch stopWatch = new TbStopWatch();
-        stopWatch.start();
+        stopWatch.start(taskName);
         return stopWatch;
+    }
+
+    public void startNew(String taskName){
+        stop();
+        start(taskName);
     }
 
     public long stopAndGetTotalTimeMillis(){
@@ -67,6 +76,11 @@ public class TbStopWatch extends StopWatch {
     public long stopAndGetLastTaskTimeNanos(){
         stop();
         return getLastTaskTimeNanos();
+    }
+
+    public void stopAndStart(String task){
+        stop();
+        start(task);
     }
 
 }

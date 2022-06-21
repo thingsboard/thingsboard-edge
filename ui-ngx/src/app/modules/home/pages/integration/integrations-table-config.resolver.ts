@@ -35,14 +35,14 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
-import { Integration, IntegrationParams } from '@shared/models/integration.models';
+import { Integration, IntegrationParams, resolveIntegrationParams } from '@shared/models/integration.models';
 import { IntegrationService } from '@core/http/integration.service';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { IntegrationsTableConfig } from '@home/pages/integration/integrations-table-config';
 import { EdgeService } from '@core/http/edge.service';
 import { DialogService } from '@core/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
+import { IntegrationsTableConfig } from '@home/pages/integration/integrations-table-config';
 
 @Injectable()
 export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfig<Integration>> {
@@ -59,10 +59,10 @@ export class IntegrationsTableConfigResolver implements Resolve<EntityTableConfi
   }
 
   resolve(route: ActivatedRouteSnapshot): EntityTableConfig<Integration> {
-    return this.resolveIntegrationsTableConfig(route);
+    return this.resolveIntegrationsTableConfig(resolveIntegrationParams(route));
   }
 
-  resolveIntegrationsTableConfig(params: ActivatedRouteSnapshot | IntegrationParams): EntityTableConfig<Integration> {
+  resolveIntegrationsTableConfig(params: IntegrationParams): EntityTableConfig<Integration> {
     return new IntegrationsTableConfig(
       this.integrationService,
       this.userPermissionsService,

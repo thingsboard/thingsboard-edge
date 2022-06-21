@@ -42,8 +42,10 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @TbCoreComponent
@@ -53,6 +55,7 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
     private final InstallScripts installScripts;
     private final TbQueueService tbQueueService;
     private final TenantProfileService tenantProfileService;
+    private final EntitiesVersionControlService versionControlService;
 
     @Override
     public Tenant save(Tenant tenant) throws ThingsboardException {
@@ -85,6 +88,7 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
             tenantService.deleteTenant(tenantId);
             tenantProfileCache.evict(tenantId);
             notificationEntityService.notifyDeleteTenant(tenant);
+            versionControlService.deleteVersionControlSettings(tenantId).get(1, TimeUnit.MINUTES);
         } catch (Exception e) {
             throw handleException(e);
         }

@@ -48,7 +48,11 @@ import org.thingsboard.server.dao.model.sql.RelationEntity;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Valerii Sosliuk on 5/29/2017.
@@ -56,6 +60,12 @@ import java.util.List;
 @Slf4j
 @Component
 public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService implements RelationDao {
+
+    private static final List<String> ALL_TYPE_GROUP_NAMES = new ArrayList<>();
+
+    static {
+        Arrays.stream(RelationTypeGroup.values()).map(RelationTypeGroup::name).forEach(ALL_TYPE_GROUP_NAMES::add);
+    }
 
     @Autowired
     private RelationRepository relationRepository;
@@ -70,6 +80,15 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
                         from.getId(),
                         from.getEntityType().name(),
                         typeGroup.name()));
+    }
+
+    @Override
+    public List<EntityRelation> findAllByFrom(TenantId tenantId, EntityId from) {
+        return DaoUtil.convertDataList(
+                relationRepository.findAllByFromIdAndFromTypeAndRelationTypeGroupIn(
+                        from.getId(),
+                        from.getEntityType().name(),
+                        ALL_TYPE_GROUP_NAMES));
     }
 
     @Override
@@ -92,6 +111,15 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
+    public List<EntityRelation> findAllByTo(TenantId tenantId, EntityId to) {
+        return DaoUtil.convertDataList(
+                relationRepository.findAllByToIdAndToTypeAndRelationTypeGroupIn(
+                        to.getId(),
+                        to.getEntityType().name(),
+                        ALL_TYPE_GROUP_NAMES));
+    }
+
+    @Override
     public List<EntityRelation> findAllByToAndType(TenantId tenantId, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         return DaoUtil.convertDataList(
                 relationRepository.findAllByToIdAndToTypeAndRelationTypeAndRelationTypeGroup(
@@ -102,9 +130,14 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public ListenableFuture<Boolean> checkRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+    public ListenableFuture<Boolean> checkRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
+        return service.submit(() -> checkRelation(tenantId, from, to, relationType, typeGroup));
+    }
+
+    @Override
+    public boolean checkRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup) {
         RelationCompositeKey key = getRelationCompositeKey(from, to, relationType, typeGroup);
-        return service.submit(() -> relationRepository.existsById(key));
+        return relationRepository.existsById(key);
     }
 
     @Override
@@ -125,6 +158,12 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     @Override
     public boolean saveRelation(TenantId tenantId, EntityRelation relation) {
         return relationInsertRepository.saveOrUpdate(new RelationEntity(relation)) != null;
+    }
+
+    @Override
+    public void saveRelations(TenantId tenantId, Collection<EntityRelation> relations) {
+        List<RelationEntity> entities = relations.stream().map(RelationEntity::new).collect(Collectors.toList());
+        relationInsertRepository.saveOrUpdate(entities);
     }
 
     @Override
@@ -171,19 +210,21 @@ public class JpaRelationDao extends JpaAbstractDaoListeningExecutorService imple
     }
 
     @Override
-    public boolean deleteOutboundRelations(TenantId tenantId, EntityId entity) {
-        boolean relationExistsBeforeDelete = false;
+    public void deleteOutboundRelations(TenantId tenantId, EntityId entity) {
         try {
-            relationExistsBeforeDelete = relationRepository
-                    .findAllByFromIdAndFromType(entity.getId(), entity.getEntityType().name())
-                    .size() > 0;
-            if (relationExistsBeforeDelete) {
-                relationRepository.deleteByFromIdAndFromType(entity.getId(), entity.getEntityType().name());
-            }
+            relationRepository.deleteByFromIdAndFromType(entity.getId(), entity.getEntityType().name());
         } catch (ConcurrencyFailureException e) {
             log.debug("Concurrency exception while deleting relations [{}]", entity, e);
         }
-        return relationExistsBeforeDelete;
+    }
+
+    @Override
+    public void deleteInboundRelations(TenantId tenantId, EntityId entity) {
+        try {
+            relationRepository.deleteByToIdAndToTypeAndRelationTypeGroupIn(entity.getId(), entity.getEntityType().name(), ALL_TYPE_GROUP_NAMES);
+        } catch (ConcurrencyFailureException e) {
+            log.debug("Concurrency exception while deleting relations [{}]", entity, e);
+        }
     }
 
     @Override

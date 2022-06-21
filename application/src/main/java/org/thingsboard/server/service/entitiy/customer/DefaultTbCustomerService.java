@@ -32,7 +32,6 @@ package org.thingsboard.server.service.entitiy.customer;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -58,6 +57,7 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
         TenantId tenantId = customer.getTenantId();
         try {
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+            vcService.autoCommit(user, savedCustomer.getId());
             createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
             return savedCustomer;
         } catch (Exception e) {

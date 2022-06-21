@@ -35,6 +35,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
@@ -49,7 +52,7 @@ import java.util.Optional;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements GroupEntity<AssetId> {
+public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements GroupEntity<AssetId>, ExportableEntity<AssetId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -64,6 +67,9 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     @NoXss
     @Length(fieldName = "label")
     private String label;
+
+    @Getter @Setter
+    private AssetId externalId;
 
     public Asset() {
         super();
@@ -80,6 +86,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
+        this.externalId = asset.getExternalId();
     }
 
     public void update(Asset asset) {
@@ -89,6 +96,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.type = asset.getType();
         this.label = asset.getLabel();
         Optional.ofNullable(asset.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
+        this.externalId = asset.getExternalId();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the asset Id. " +

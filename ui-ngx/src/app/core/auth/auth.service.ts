@@ -38,7 +38,7 @@ import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 
 import { LoginRequest, LoginResponse, PublicLoginRequest } from '@shared/models/login.models';
 import { ActivatedRoute, Router, UrlTree } from '@angular/router';
-import { defaultHttpOptions } from '../http/http-utils';
+import { defaultHttpOptions, defaultHttpOptionsFromConfig, RequestConfig } from '../http/http-utils';
 import { UserService } from '../http/user.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '../core.state';
@@ -67,6 +67,7 @@ import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.com
 import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { isMobileApp } from '@core/utils';
 import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two-factor-auth.models';
+import { UserPasswordPolicy } from '@shared/models/settings.models';
 
 @Injectable({
     providedIn: 'root'
@@ -188,12 +189,16 @@ export class AuthService {
       ));
   }
 
-  public changePassword(currentPassword: string, newPassword: string) {
-    return this.http.post('/api/auth/changePassword', {currentPassword, newPassword}, defaultHttpOptions()).pipe(
+  public changePassword(currentPassword: string, newPassword: string, config?: RequestConfig) {
+    return this.http.post('/api/auth/changePassword', {currentPassword, newPassword}, defaultHttpOptionsFromConfig(config)).pipe(
       tap((loginResponse: LoginResponse) => {
           this.setUserFromJwtToken(loginResponse.token, loginResponse.refreshToken, false);
         }
       ));
+  }
+
+  public getUserPasswordPolicy() {
+    return this.http.get<UserPasswordPolicy>(`/api/noauth/userPasswordPolicy`, defaultHttpOptions());
   }
 
   public activateByEmailCode(emailCode: string): Observable<LoginResponse> {
@@ -511,10 +516,19 @@ export class AuthService {
     return this.http.get<boolean>('/api/edges/enabled', defaultHttpOptions());
   }
 
+  private loadHasRepository(authUser: AuthUser): Observable<boolean> {
+    if (authUser.authority === Authority.TENANT_ADMIN) {
+      return this.http.get<boolean>('/api/admin/repositorySettings/exists', defaultHttpOptions());
+    } else {
+      return of(false);
+    }
+  }
+
   private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
                      this.loadIsEdgesSupportEnabled(),
+                     this.loadHasRepository(authPayload.authUser),
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
@@ -526,8 +540,9 @@ export class AuthService {
         const userTokenAccessEnabled: boolean = data[0] as boolean;
         const allowedDashboardIds: string[] = data[1] as string[];
         const edgesSupportEnabled: boolean = data[2] as boolean;
-        const whiteLabelingAllowedInfo = data[3] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, ...whiteLabelingAllowedInfo};
+        const hasRepository: boolean = data[3] as boolean;
+        const whiteLabelingAllowedInfo = data[4] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
       })));

@@ -75,9 +75,7 @@ public class DefaultTbApiUsageReportClient implements TbApiUsageReportClient {
 
     private final EnumMap<ApiUsageRecordKey, ConcurrentMap<OwnerId, AtomicLong>> stats = new EnumMap<>(ApiUsageRecordKey.class);
 
-    @Lazy
-    @Autowired
-    private PartitionService partitionService;
+    private final PartitionService partitionService;
     private final SchedulerComponent scheduler;
     private final TbQueueProducerProvider producerProvider;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> msgProducer;

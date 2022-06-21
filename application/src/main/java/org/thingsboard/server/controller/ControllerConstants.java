@@ -157,7 +157,7 @@ public class ControllerConstants {
     protected static final String OTA_PACKAGE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, type, title, version, tag, url, fileName, dataSize, checksum";
     protected static final String RESOURCE_INFO_DESCRIPTION = "Resource Info is a lightweight object that includes main information about the Resource excluding the heavyweight data. ";
     protected static final String RESOURCE_DESCRIPTION = "Resource is a heavyweight object that includes main information about the Resource and also data. ";
-    protected static final String INTEGRATION_DESCRIPTION = "The integration object is heavyweight that contains main information about the Integration and also data. ";
+    protected static final String INTEGRATION_DESCRIPTION = "The integration object contains information about the Integration, including the heavyweight configuration object. ";
 
     protected static final String RESOURCE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the resource title.";
     protected static final String RESOURCE_SORT_PROPERTY_ALLOWABLE_VALUES = "createdTime, title, resourceType, tenantId";
@@ -174,6 +174,8 @@ public class ControllerConstants {
     protected static final String EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION = "(Edge will receive this instantly, if it's currently connected, or once it's going to be connected to platform). ";
     protected static final String EDGE_ASSIGN_ASYNC_FIRST_STEP_DESCRIPTION = "Assignment works in async way - first, notification event pushed to edge service queue on platform. ";
     protected static final String EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION = "(Edge will receive this instantly, if it's currently connected, or once it's going to be connected to platform). ";
+
+    protected static final String ENTITY_VERSION_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the entity version name.";
 
     protected static final String MARKDOWN_CODE_BLOCK_START = "```json\n";
     protected static final String MARKDOWN_CODE_BLOCK_END = "\n```";
