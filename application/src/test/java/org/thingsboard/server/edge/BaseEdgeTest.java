@@ -1741,7 +1741,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         integration.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         integrationConfiguration.putObject("metadata")
-                .put("baseUrl", "${{baseUrl}}");
+                .put("baseUrl", "${baseUrl}");
         integration.setConfiguration(integrationConfiguration);
         integration.setEdgeTemplate(true);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
@@ -1825,8 +1825,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
         ObjectNode updatedIntegrationConfig = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         updatedIntegrationConfig.putObject("metadata")
-                .put("baseUrl", "${{baseUrl}}/api/v1")
-                .put("deviceHW", "${{deviceHW}}");
+                .put("baseUrl", "${baseUrl}/api/v1")
+                .put("deviceHW", "${deviceHW}");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
         doPost("/api/integration", savedIntegration, Integration.class);
 

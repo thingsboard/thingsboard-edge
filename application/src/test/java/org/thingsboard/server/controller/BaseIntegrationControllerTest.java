@@ -506,8 +506,8 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         integration.setDefaultConverterId(edgeConverter.getId());
         integration.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        integrationConfiguration.putObject("metadata").put("deviceType", "${{DEVICE_TYPE}}").put("deviceFirmware", "${{DEVICE_FW}}");
-        integrationConfiguration.put("baseUrl", "${{HTTP_URL}}/api");
+        integrationConfiguration.putObject("metadata").put("deviceType", "${DEVICE_TYPE}").put("deviceFirmware", "${DEVICE_FW}");
+        integrationConfiguration.put("baseUrl", "${HTTP_URL}/api");
         integration.setConfiguration(integrationConfiguration);
         integration.setEdgeTemplate(true);
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
@@ -545,7 +545,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         integration2.setDefaultConverterId(edgeConverter.getId());
         integration2.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration2 = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        integrationConfiguration2.put("baseUrl", "${{HTTPS_URL}}/api");
+        integrationConfiguration2.put("baseUrl", "${HTTPS_URL}/api");
         integration2.setConfiguration(integrationConfiguration2);
         integration2.setEdgeTemplate(true);
         Integration savedIntegration2 = doPost("/api/integration", integration2, Integration.class);
