@@ -220,16 +220,14 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");
                          */
                         case "3.3.4":
-                            log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.3.4.1 ...");
-                            dataUpdateService.updateData("3.3.4");
                         case "3.3.4.1":
-                            log.info("Upgrading ThingsBoard Edge from version 3.3.4.1 to 3.4.0 ...");
+                            log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.4.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.4");
 
                             // reset full sync required - to upload latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
-                            dataUpdateService.updateData("3.3.4.1");
+                            dataUpdateService.updateData("3.3.4");
 
                             // @voba - system widgets update is not required - uploaded from cloud
                             // log.info("Updating system data...");

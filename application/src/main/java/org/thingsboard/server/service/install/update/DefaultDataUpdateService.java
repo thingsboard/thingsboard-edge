@@ -177,17 +177,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 updateNestedRuleChains();
                 break;
             case "3.3.4":
-                log.info("Updating data from version 3.3.4 to 3.3.4.1 ...");
-                boolean fullSyncRequired = fixDuplicateSystemWidgetsBundles();
-                if (fullSyncRequired) {
-                    tenantsFullSyncRequiredUpdater.updateEntities(null);
-                }
-                break;
-            case "3.3.4.1":
-                log.info("Updating data from version 3.3.4.1 to 3.4.0 ...");
+                log.info("Updating data from version 3.3.4 to 3.4.0 ...");
                 rateLimitsUpdater.updateEntities();
                 tenantsProfileQueueConfigurationUpdater.updateEntities();
                 checkPointRuleNodesUpdater.updateEntities();
+
+                // remove this line in 4+ release
+                fixDuplicateSystemWidgetsBundles();
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
