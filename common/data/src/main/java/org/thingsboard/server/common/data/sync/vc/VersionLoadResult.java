@@ -35,6 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -47,6 +48,10 @@ public class VersionLoadResult implements Serializable {
     private List<EntityTypeLoadResult> result;
     private EntityLoadError error;
     private boolean done;
+
+    public static VersionLoadResult empty() {
+        return VersionLoadResult.builder().result(Collections.emptyList()).build();
+    }
 
     public static VersionLoadResult success(List<EntityTypeLoadResult> result) {
         return VersionLoadResult.builder().result(result).build();
