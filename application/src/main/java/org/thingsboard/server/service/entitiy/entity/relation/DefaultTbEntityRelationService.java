@@ -28,42 +28,51 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.widgetsBundle;
+package org.thingsboard.server.service.entitiy.entity.relation;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
 @Service
 @TbCoreComponent
 @AllArgsConstructor
-public class DefaultWidgetsBundleService extends AbstractTbEntityService implements TbWidgetsBundleService{
+@Slf4j
+public class DefaultTbEntityRelationService extends AbstractTbEntityService implements TbEntityRelationService {
+
+    private final RelationService relationService;
+
     @Override
-    public WidgetsBundle save(WidgetsBundle widgetsBundle, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        try {
-        WidgetsBundle savedWidgetsBundle = checkNotNull(widgetsBundleService.saveWidgetsBundle(widgetsBundle));
-            notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), savedWidgetsBundle.getId(),
-                    widgetsBundle.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-        return savedWidgetsBundle;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+    public void save(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user) throws ThingsboardException {
+        relationService.saveRelation(tenantId, relation);
+        notificationEntityService.notifyCreateOrUpdateRelation(tenantId, customerId,
+                relation, user, ActionType.RELATION_ADD_OR_UPDATE, relation);
     }
 
     @Override
-    public void delete(WidgetsBundle widgetsBundle, SecurityUser user) throws ThingsboardException {
-        try {
-            widgetsBundleService.deleteWidgetsBundle(widgetsBundle.getTenantId(), widgetsBundle.getId());
-            notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), widgetsBundle.getId(),
-                    EdgeEventActionType.DELETED);
-        } catch (Exception e) {
-            throw handleException(e);
+    public void delete(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user) throws ThingsboardException {
+        boolean found = relationService.deleteRelation(tenantId, relation.getFrom(), relation.getTo(), relation.getType(), relation.getTypeGroup());
+        if (!found) {
+            throw new ThingsboardException("Requested item wasn't found!", ThingsboardErrorCode.ITEM_NOT_FOUND);
         }
+        notificationEntityService.notifyCreateOrUpdateRelation(tenantId, customerId,
+                relation, user, ActionType.RELATION_DELETED, relation);
+    }
+
+    @Override
+    public void deleteRelations(TenantId tenantId, CustomerId customerId, EntityId entityId, User user) throws ThingsboardException {
+        relationService.deleteEntityRelations(tenantId, entityId);
+        notificationEntityService.logEntityAction(tenantId, entityId, null, customerId, ActionType.RELATIONS_DELETED, user);
     }
 }

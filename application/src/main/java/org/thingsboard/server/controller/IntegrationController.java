@@ -30,17 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -72,7 +65,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
@@ -170,13 +162,14 @@ public class IntegrationController extends BaseController {
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
             tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
                     created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
+                    created ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
             return result;
         } catch (TimeoutException e) {
             throw handleException(new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL));
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.INTEGRATION), integration,
-                    null, integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), integration,
+                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -248,16 +241,12 @@ public class IntegrationController extends BaseController {
 
             tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
 
-            logEntityAction(integrationId, integration,
-                    null,
-                    ActionType.DELETED, null, strIntegrationId);
+            notificationEntityService.logEntityAction(getTenantId(), integrationId, integration, ActionType.DELETED,
+                    getCurrentUser(), strIntegrationId);
 
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.INTEGRATION),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strIntegrationId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), ActionType.DELETED,
+                    getCurrentUser(), e, strIntegrationId);
 
             throw handleException(e);
         }

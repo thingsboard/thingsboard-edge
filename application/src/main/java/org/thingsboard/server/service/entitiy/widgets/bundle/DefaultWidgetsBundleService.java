@@ -28,21 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.entityRelation;
+package org.thingsboard.server.service.entitiy.widgets.bundle;
 
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
-public interface TbEntityRelationService {
+@Service
+@TbCoreComponent
+@AllArgsConstructor
+public class DefaultWidgetsBundleService extends AbstractTbEntityService implements TbWidgetsBundleService {
 
-    void save(TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
+    private final WidgetsBundleService widgetsBundleService;
 
-    void  delete (TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
+    @Override
+    public WidgetsBundle save(WidgetsBundle widgetsBundle) throws ThingsboardException {
+        WidgetsBundle savedWidgetsBundle = checkNotNull(widgetsBundleService.saveWidgetsBundle(widgetsBundle));
+        notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), savedWidgetsBundle.getId(),
+                widgetsBundle.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+        return savedWidgetsBundle;
+    }
 
-    void deleteRelations (TenantId tenantId, CustomerId customerId, EntityId entityId, SecurityUser user) throws ThingsboardException;
-
+    @Override
+    public void delete(WidgetsBundle widgetsBundle) throws ThingsboardException {
+        widgetsBundleService.deleteWidgetsBundle(widgetsBundle.getTenantId(), widgetsBundle.getId());
+        notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), widgetsBundle.getId(),
+                EdgeEventActionType.DELETED);
+    }
 }

@@ -28,17 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.deviceProfile;
+package org.thingsboard.server.service.entitiy.widgets.bundle;
 
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
-public interface TbDeviceProfileService {
+public interface TbWidgetsBundleService {
+    WidgetsBundle save(WidgetsBundle entity) throws ThingsboardException;
 
-    DeviceProfile save(DeviceProfile deviceProfile, SecurityUser user) throws ThingsboardException;
-
-    void  delete (DeviceProfile deviceProfile, SecurityUser user) throws ThingsboardException;
-
-    DeviceProfile setDefaultDeviceProfile(DeviceProfile deviceProfile, DeviceProfile previousDefaultDeviceProfile, SecurityUser user) throws ThingsboardException;
+    void delete(WidgetsBundle entity) throws ThingsboardException;
 }

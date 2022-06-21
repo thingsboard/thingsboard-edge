@@ -31,15 +31,17 @@
 package org.thingsboard.server.service.entitiy.asset;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
 public interface TbAssetService {
 
-    Asset save(Asset asset, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
+    Asset save(Asset asset, EntityGroup entityGroup) throws ThingsboardException;
 
-    ListenableFuture<Void> delete(Asset asset, SecurityUser user) throws ThingsboardException;
+    Asset save(Asset asset, EntityGroup entityGroup, User user) throws ThingsboardException;
+
+    ListenableFuture<Void> delete(Asset asset, User user);
 
 }

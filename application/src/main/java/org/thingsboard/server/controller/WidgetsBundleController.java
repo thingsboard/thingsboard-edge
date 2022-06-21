@@ -53,7 +53,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.widgetsBundle.TbWidgetsBundleService;
+import org.thingsboard.server.service.entitiy.widgets.bundle.TbWidgetsBundleService;
 
 import java.util.List;
 
@@ -112,7 +112,7 @@ public class WidgetsBundleController extends BaseController {
     public WidgetsBundle saveWidgetsBundle(
             @ApiParam(value = "A JSON value representing the Widget Bundle.", required = true)
             @RequestBody WidgetsBundle widgetsBundle) throws ThingsboardException {
-
+        try {
             if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
                 widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
             } else {
@@ -120,8 +120,10 @@ public class WidgetsBundleController extends BaseController {
             }
 
             checkEntity(widgetsBundle.getId(), widgetsBundle, Resource.WIDGETS_BUNDLE, null);
-
-            return tbWidgetsBundleService.save(widgetsBundle, null, getCurrentUser());
+            return tbWidgetsBundleService.save(widgetsBundle);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Delete widgets bundle (deleteWidgetsBundle)",
@@ -132,10 +134,14 @@ public class WidgetsBundleController extends BaseController {
     public void deleteWidgetsBundle(
             @ApiParam(value = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("widgetsBundleId") String strWidgetsBundleId) throws ThingsboardException {
-        checkParameter("widgetsBundleId", strWidgetsBundleId);
-        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
-        WidgetsBundle widgetsBundle = checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
-        tbWidgetsBundleService.delete(widgetsBundle, getCurrentUser());
+        try {
+            checkParameter("widgetsBundleId", strWidgetsBundleId);
+            WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
+            WidgetsBundle widgetsBundle = checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
+            tbWidgetsBundleService.delete(widgetsBundle);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Widget Bundles (getWidgetsBundles)",

@@ -28,20 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.otaPackageController;
+package org.thingsboard.server.service.entitiy.entityview;
 
-import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
-public interface TbOtaPackageService  {
+public interface TbEntityViewService extends SimpleTbEntityService<EntityView> {
 
-    OtaPackageInfo save(SaveOtaPackageInfoRequest saveOtaPackageInfoRequest, SecurityUser user) throws ThingsboardException;
-
-    void  delete(OtaPackageInfo otaPackageInfo, SecurityUser user) throws ThingsboardException;
-
-    OtaPackageInfo saveOtaPackageData(OtaPackageInfo otaPackageInfo, String checksum, ChecksumAlgorithm checksumAlgorithm,
-                                      byte[] data, String filename, String contentType, SecurityUser securityUser) throws ThingsboardException;
 }

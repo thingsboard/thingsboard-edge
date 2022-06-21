@@ -33,7 +33,7 @@ package org.thingsboard.server.service.entitiy.asset;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -41,46 +41,40 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
 
 @Service
-@TbCoreComponent
 @AllArgsConstructor
 public class DefaultTbAssetService extends AbstractTbEntityService implements TbAssetService {
 
+    private final AssetService assetService;
+
     @Override
-    public Asset save(Asset asset, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
-        ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        TenantId tenantId = asset.getTenantId();
-        try {
-            Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
-            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
-            return savedAsset;
-        } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), asset, null, actionType, user, e);
-            throw handleException(e);
-        }
+    public Asset save(Asset asset, EntityGroup entityGroup) throws ThingsboardException {
+        return save(asset, entityGroup, null);
     }
 
     @Override
-    public ListenableFuture<Void> delete(Asset asset, SecurityUser user) throws ThingsboardException {
+    public Asset save(Asset asset, EntityGroup entityGroup, User user) throws ThingsboardException {
+        ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        TenantId tenantId = asset.getTenantId();
+        Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
+        createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
+        return savedAsset;
+    }
+
+    @Override
+    public ListenableFuture<Void> delete(Asset asset, User user) {
         TenantId tenantId = asset.getTenantId();
         AssetId assetId = asset.getId();
-        try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, assetId);
-            assetService.deleteAsset(tenantId, assetId);
-            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(), ActionType.DELETED,
-                    relatedEdgeIds, user, assetId.toString());
+        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, assetId);
+        assetService.deleteAsset(tenantId, assetId);
+        notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(), ActionType.DELETED,
+                relatedEdgeIds, user, assetId.toString());
 
-            return removeAlarmsByEntityId(tenantId, assetId);
-        } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ASSET), null, null,
-                    ActionType.DELETED, user, e, assetId.toString());
-            throw handleException(e);
-        }
+        return removeAlarmsByEntityId(tenantId, assetId);
     }
 }

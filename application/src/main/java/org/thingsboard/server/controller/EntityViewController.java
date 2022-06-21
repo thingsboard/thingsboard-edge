@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -64,7 +65,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.entityView.TbEntityViewService;
+import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -137,8 +138,8 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-            SecurityUser user = getCurrentUser();
-            return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, entityGroup, user));
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, entityGroup, user));
     }
 
     @ApiOperation(value = "Delete entity view (deleteEntityView)",
@@ -151,9 +152,15 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = ENTITY_VIEW_ID_PARAM_DESCRIPTION)
             @PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
         checkParameter(ENTITY_VIEW_ID, strEntityViewId);
-        EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
-        EntityView entityView = checkEntityViewId(entityViewId, Operation.DELETE);
-        tbEntityViewService.delete(entityView, getCurrentUser());
+        try {
+            EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
+            EntityView entityView = checkEntityViewId(entityViewId, Operation.DELETE);
+            tbEntityViewService.delete(entityView, getCurrentUser());
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_VIEW),
+                    ActionType.DELETED, getCurrentUser(), e, strEntityViewId);
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Entity View by name (getTenantEntityView)",

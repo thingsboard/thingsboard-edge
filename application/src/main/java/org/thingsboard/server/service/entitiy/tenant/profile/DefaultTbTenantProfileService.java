@@ -28,11 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.tenant;
+package org.thingsboard.server.service.entitiy.tenant.profile;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,45 +43,38 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.entitiy.queue.TbQueueService;
-import org.thingsboard.server.service.install.InstallScripts;
 
-import java.util.Collections;
+import java.util.List;
 
+@Slf4j
 @Service
 @TbCoreComponent
-@RequiredArgsConstructor
-public class DefaultTbTenantService extends AbstractTbEntityService implements TbTenantService {
-
-    private final TenantService tenantService;
-    private final TbTenantProfileCache tenantProfileCache;
-    private final InstallScripts installScripts;
+@AllArgsConstructor
+public class DefaultTbTenantProfileService extends AbstractTbEntityService implements TbTenantProfileService {
     private final TbQueueService tbQueueService;
     private final TenantProfileService tenantProfileService;
+    private final TenantService tenantService;
+    private final TbTenantProfileCache tenantProfileCache;
 
     @Override
-    public Tenant save(Tenant tenant) throws Exception {
-        boolean created = tenant.getId() == null;
-        Tenant oldTenant = !created ? tenantService.findTenantById(tenant.getId()) : null;
-        Tenant savedTenant = checkNotNull(tenantService.saveTenant(tenant));
-        if (created) {
-            installScripts.createDefaultRuleChains(savedTenant.getId());
-            installScripts.createDefaultEdgeRuleChains(savedTenant.getId());
+    public TenantProfile save(TenantId tenantId, TenantProfile tenantProfile, TenantProfile oldTenantProfile) throws ThingsboardException {
+        TenantProfile savedTenantProfile = checkNotNull(tenantProfileService.saveTenantProfile(tenantId, tenantProfile));
+        if (oldTenantProfile != null && savedTenantProfile.isIsolatedTbRuleEngine()) {
+            List<TenantId> tenantIds = tenantService.findTenantIdsByTenantProfileId(savedTenantProfile.getId());
+            tbQueueService.updateQueuesByTenants(tenantIds, savedTenantProfile, oldTenantProfile);
         }
-        tenantProfileCache.evict(savedTenant.getId());
-        notificationEntityService.notifyCreateOrUpdateTenant(savedTenant, created ?
-                ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
-        TenantProfile oldTenantProfile = oldTenant != null ? tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, oldTenant.getTenantProfileId()) : null;
-        TenantProfile newTenantProfile = tenantProfileService.findTenantProfileById(TenantId.SYS_TENANT_ID, savedTenant.getTenantProfileId());
-        tbQueueService.updateQueuesByTenants(Collections.singletonList(savedTenant.getTenantId()), newTenantProfile, oldTenantProfile);
-        return savedTenant;
+        tenantProfileCache.put(savedTenantProfile);
+        tbClusterService.onTenantProfileChange(savedTenantProfile, null);
+        tbClusterService.broadcastEntityStateChangeEvent(TenantId.SYS_TENANT_ID, savedTenantProfile.getId(),
+                tenantProfile.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+        return savedTenantProfile;
     }
 
     @Override
-    public void delete(Tenant tenant) throws ThingsboardException {
-        TenantId tenantId = tenant.getId();
-        tenantService.deleteTenant(tenantId);
-        tenantProfileCache.evict(tenantId);
-        notificationEntityService.notifyDeleteTenant(tenant);
+    public void delete(TenantId tenantId, TenantProfile tenantProfile) throws ThingsboardException {
+        tenantProfileService.deleteTenantProfile(tenantId, tenantProfile.getId());
+        tbClusterService.onTenantProfileDelete(tenantProfile, null);
     }
 }

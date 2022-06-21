@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.rule;
 
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -39,13 +40,16 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainOutputLabelsUsage;
 import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
-import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-public interface TbRuleChainService extends SimpleTbEntityService<RuleChain> {
+public interface TbRuleChainService {
+
+    RuleChain save(RuleChain ruleChain, User user) throws ThingsboardException;
+
+    void delete(RuleChain ruleChain, User user);
 
     Set<String> getRuleChainOutputLabels(TenantId tenantId, RuleChainId ruleChainId);
 
@@ -53,21 +57,20 @@ public interface TbRuleChainService extends SimpleTbEntityService<RuleChain> {
 
     List<RuleChain> updateRelatedRuleChains(TenantId tenantId, RuleChainId ruleChainId, RuleChainUpdateResult result);
 
-    RuleChain saveDefaultByName(TenantId tenantId, DefaultRuleChainCreateRequest request, SecurityUser user) throws ThingsboardException;
+    RuleChain saveDefaultByName(TenantId tenantId, DefaultRuleChainCreateRequest request, User user) throws IOException;
 
-    RuleChain setRootRuleChain(TenantId tenantId, RuleChain ruleChain, SecurityUser user) throws ThingsboardException;
+    RuleChain setRootRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException;
 
     RuleChainMetaData saveRuleChainMetaData(TenantId tenantId, RuleChain ruleChain, RuleChainMetaData ruleChainMetaData,
-                                            boolean updateRelated, SecurityUser user) throws ThingsboardException;
+                                            boolean updateRelated, User user) throws ThingsboardException;
 
-    RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChain ruleChain, Edge edge,
-                                    SecurityUser user) throws ThingsboardException;
-    RuleChain unassignRuleChainFromEdge(TenantId tenantId, RuleChain ruleChain, Edge edge,
-                                        SecurityUser user) throws ThingsboardException;
+    RuleChain assignRuleChainToEdge(TenantId tenantId, RuleChain ruleChain, Edge edge, User user) throws ThingsboardException;
 
-    RuleChain setEdgeTemplateRootRuleChain(TenantId tenantId, RuleChain ruleChain, SecurityUser user) throws ThingsboardException;
+    RuleChain unassignRuleChainFromEdge(TenantId tenantId, RuleChain ruleChain, Edge edge, User user) throws ThingsboardException;
 
-    RuleChain setAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, SecurityUser user) throws ThingsboardException;
+    RuleChain setEdgeTemplateRootRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException;
 
-    RuleChain unsetAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, SecurityUser user) throws ThingsboardException;
+    RuleChain setAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException;
+
+    RuleChain unsetAutoAssignToEdgeRuleChain(TenantId tenantId, RuleChain ruleChain, User user) throws ThingsboardException;
 }

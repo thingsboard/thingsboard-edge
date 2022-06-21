@@ -142,7 +142,11 @@ public class TenantController extends BaseController {
     public Tenant saveTenant(@ApiParam(value = "A JSON value representing the tenant.")
                              @RequestBody Tenant tenant) throws ThingsboardException {
         checkEntity(tenant.getId(), tenant, Resource.TENANT, null);
-        return tbTenantService.save(tenant);
+        try {
+            return tbTenantService.save(tenant);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Delete Tenant (deleteTenant)",
@@ -155,7 +159,11 @@ public class TenantController extends BaseController {
         checkParameter(TENANT_ID, strTenantId);
         TenantId tenantId = TenantId.fromUUID(toUUID(strTenantId));
         Tenant tenant = checkTenantId(tenantId, Operation.DELETE);
-        tbTenantService.delete(tenant);
+        try {
+            tbTenantService.delete(tenant);
+        } catch (Exception e) {
+            throw handleException(e);
+        }
     }
 
     @ApiOperation(value = "Get Tenants (getTenants)", notes = "Returns a page of tenants registered in the platform. " + PAGE_DATA_PARAMETERS + SYSTEM_AUTHORITY_PARAGRAPH)

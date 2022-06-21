@@ -28,16 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.entityView;
+package org.thingsboard.server.service.entitiy.device.profile;
 
-import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
-public interface TbEntityViewService {
+public interface TbDeviceProfileService {
 
-    EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
+    DeviceProfile save(DeviceProfile deviceProfile) throws ThingsboardException;
 
-    void  delete (EntityView entity, SecurityUser user) throws ThingsboardException;
+    DeviceProfile save(DeviceProfile deviceProfile, User user) throws ThingsboardException;
+
+    void delete(DeviceProfile deviceProfile, User user) throws ThingsboardException;
+
+    DeviceProfile setDefaultDeviceProfile(DeviceProfile deviceProfile, DeviceProfile previousDefaultDeviceProfile, User user) throws ThingsboardException;
 }

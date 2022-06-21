@@ -57,7 +57,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -140,10 +139,10 @@ public class AssetController extends BaseController {
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
     public Asset saveAsset(
-               @ApiParam(value = "A JSON value representing the asset.", required = true)
-               @RequestBody Asset asset,
-               @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-               @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @ApiParam(value = "A JSON value representing the asset.", required = true)
+            @RequestBody Asset asset,
+            @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         if (TB_SERVICE_QUEUE.equals(asset.getType())) {
             throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
@@ -164,10 +163,11 @@ public class AssetController extends BaseController {
             Asset asset = checkAssetId(assetId, Operation.DELETE);
             tbAssetService.delete(asset, getCurrentUser()).get();
         } catch (Exception e) {
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ASSET), ActionType.DELETED,
+                    getCurrentUser(), e, strAssetId);
             throw handleException(e);
         }
     }
-
 
     @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",
             notes = "Returns a page of assets owned by tenant. " +

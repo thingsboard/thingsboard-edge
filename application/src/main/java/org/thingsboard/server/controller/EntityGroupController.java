@@ -69,7 +69,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -240,9 +239,8 @@ public class EntityGroupController extends BaseController {
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getTenantId(), parentEntityId, entityGroup));
 
-            logEntityAction(savedEntityGroup.getId(), savedEntityGroup,
-                    null,
-                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), savedEntityGroup.getId(), savedEntityGroup,
+                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
             if (entityGroup.getId() != null) {
                 sendEntityNotificationMsg(getTenantId(), savedEntityGroup.getId(),
@@ -251,8 +249,8 @@ public class EntityGroupController extends BaseController {
 
             return toEntityGroupInfo(savedEntityGroup);
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ENTITY_GROUP), entityGroup,
-                    null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP), entityGroup,
+                    null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -289,17 +287,13 @@ public class EntityGroupController extends BaseController {
 
             entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
 
-            logEntityAction(entityGroupId, entityGroup,
-                    null,
-                    ActionType.DELETED, null, strEntityGroupId);
+            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
+                    ActionType.DELETED, getCurrentUser(), strEntityGroupId);
 
             sendDeleteNotificationMsg(getTenantId(), entityGroupId, relatedEdgeIds);
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.ENTITY_GROUP),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strEntityGroupId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
+                    ActionType.DELETED, getCurrentUser(), e, strEntityGroupId);
 
             throw handleException(e);
         }
@@ -465,9 +459,8 @@ public class EntityGroupController extends BaseController {
             }
 
             for (EntityId entityId : entityIds) {
-                logEntityAction((UUIDBased & EntityId) entityId, null,
-                        null,
-                        ActionType.ADDED_TO_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
+                notificationEntityService.logEntityAction(getTenantId(), entityId, null,
+                        ActionType.ADDED_TO_ENTITY_GROUP, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
                 sendGroupEntityNotificationMsg(getTenantId(), entityId, EdgeEventActionType.ADDED_TO_ENTITY_GROUP, entityGroupId);
             }
         } catch (Exception e) {
@@ -475,9 +468,8 @@ public class EntityGroupController extends BaseController {
                 EntityType entityType = entityGroup.getType();
                 String groupName = entityGroup.getName();
                 for (String strEntityId : strEntityIds) {
-                    logEntityAction(emptyId(entityType), null,
-                            null,
-                            ActionType.ADDED_TO_ENTITY_GROUP, e, strEntityId, strEntityGroupId, groupName);
+                    notificationEntityService.logEntityAction(getTenantId(), emptyId(entityType),
+                            ActionType.ADDED_TO_ENTITY_GROUP, getCurrentUser(), e, strEntityId, strEntityGroupId, groupName);
                 }
             }
             throw handleException(e);
@@ -528,9 +520,8 @@ public class EntityGroupController extends BaseController {
             }
 
             for (EntityId entityId : entityIds) {
-                logEntityAction((UUIDBased & EntityId) entityId, null,
-                        null,
-                        ActionType.REMOVED_FROM_ENTITY_GROUP, null, entityId.toString(), strEntityGroupId, entityGroup.getName());
+                notificationEntityService.logEntityAction(getTenantId(), entityId, null,
+                        ActionType.REMOVED_FROM_ENTITY_GROUP, getCurrentUser(), entityId.toString(), strEntityGroupId, entityGroup.getName());
                 sendGroupEntityNotificationMsg(getTenantId(), entityId,
                         EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, entityGroupId);
             }
@@ -539,9 +530,8 @@ public class EntityGroupController extends BaseController {
                 EntityType entityType = entityGroup.getType();
                 String groupName = entityGroup.getName();
                 for (String strEntityId : strEntityIds) {
-                    logEntityAction(emptyId(entityType), null,
-                            null,
-                            ActionType.REMOVED_FROM_ENTITY_GROUP, e, strEntityId, strEntityGroupId, groupName);
+                    notificationEntityService.logEntityAction(getTenantId(), emptyId(entityType),
+                            ActionType.REMOVED_FROM_ENTITY_GROUP, getCurrentUser(), e, strEntityId, strEntityGroupId, groupName);
                 }
             }
             throw handleException(e);
@@ -763,15 +753,13 @@ public class EntityGroupController extends BaseController {
             entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
             userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
-            logEntityAction(entityGroupId, null,
-                    null,
-                    ActionType.MADE_PUBLIC, null, strEntityGroupId, entityGroup.getName());
+            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, null,
+                    ActionType.MADE_PUBLIC, getCurrentUser(), strEntityGroupId, entityGroup.getName());
 
         } catch (Exception e) {
             if (entityGroup != null) {
-                logEntityAction(entityGroup.getId(), null,
-                        null,
-                        ActionType.MADE_PUBLIC, e, strEntityGroupId, entityGroup.getName());
+                notificationEntityService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PUBLIC,
+                        getCurrentUser(), e, strEntityGroupId, entityGroup.getName());
             }
             throw handleException(e);
         }
@@ -819,15 +807,13 @@ public class EntityGroupController extends BaseController {
 
             entityGroupService.saveEntityGroup(getTenantId(), entityGroup.getOwnerId(), entityGroup);
 
-            logEntityAction(entityGroupId, null,
-                    null,
-                    ActionType.MADE_PRIVATE, null, strEntityGroupId, entityGroup.getName());
+            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, null,
+                    ActionType.MADE_PRIVATE, getCurrentUser(), strEntityGroupId, entityGroup.getName());
 
         } catch (Exception e) {
             if (entityGroup != null) {
-                logEntityAction(entityGroup.getId(), null,
-                        null,
-                        ActionType.MADE_PRIVATE, e, strEntityGroupId, entityGroup.getName());
+                notificationEntityService.logEntityAction(getTenantId(), entityGroup.getId(), ActionType.MADE_PRIVATE,
+                        getCurrentUser(), e, strEntityGroupId, entityGroup.getName());
             }
             throw handleException(e);
         }
@@ -890,13 +876,13 @@ public class EntityGroupController extends BaseController {
 
                 GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
                 userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
-                logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
-                        ActionType.ADDED, null);
+                notificationEntityService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
+                        ActionType.ADDED, getCurrentUser());
             }
 
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.GROUP_PERMISSION), null, null,
-                    ActionType.ADDED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
+                    ActionType.ADDED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -998,18 +984,15 @@ public class EntityGroupController extends BaseController {
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.assignEntityGroupToEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
-            logEntityAction(entityGroupId, savedEntityGroup,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
+            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, savedEntityGroup,
+                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), groupType, EdgeEventActionType.ASSIGNED_TO_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.ENTITY_GROUP), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strEntityGroupId, strEdgeId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
+                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strEntityGroupId, strEdgeId);
 
             throw handleException(e);
         }
@@ -1043,18 +1026,15 @@ public class EntityGroupController extends BaseController {
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.unassignEntityGroupFromEdge(getCurrentUser().getTenantId(), entityGroupId, edgeId, groupType));
 
-            logEntityAction(entityGroupId, entityGroup,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, null, strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
+            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
+                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), strEntityGroupId, savedEntityGroup.getName(), strEdgeId, edge.getName());
 
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedEntityGroup.getId(), groupType, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedEntityGroup;
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.ENTITY_GROUP), null,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, e, strEntityGroupId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
+                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strEntityGroupId);
 
             throw handleException(e);
         }

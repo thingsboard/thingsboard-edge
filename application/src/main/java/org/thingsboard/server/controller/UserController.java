@@ -54,6 +54,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -137,9 +138,9 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "Get User (getUserById)",
             notes = "Fetch the User object based on the provided User Id. " +
-            "If the user has the authority of 'SYS_ADMIN', the server does not perform additional checks. " +
-            "If the user has the authority of 'TENANT_ADMIN', the server checks that the requested user is owned by the same tenant. " +
-            "If the user has the authority of 'CUSTOMER_USER', the server checks that the requested user is owned by the same customer.\n\n"+ RBAC_READ_CHECK)
+                    "If the user has the authority of 'SYS_ADMIN', the server does not perform additional checks. " +
+                    "If the user has the authority of 'TENANT_ADMIN', the server checks that the requested user is owned by the same tenant. " +
+                    "If the user has the authority of 'CUSTOMER_USER', the server checks that the requested user is owned by the same customer.\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
     @ResponseBody
@@ -168,7 +169,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "Check Token Access Enabled (isUserTokenAccessEnabled)",
             notes = "Checks that the system is configured to allow administrators to impersonate themself as other users. " +
                     "If the user who performs the request has the authority of 'SYS_ADMIN', it is possible to login as any tenant administrator. " +
-                    "If the user who performs the request has the authority of 'TENANT_ADMIN', it is possible to login as any customer user.\n\n"+ RBAC_READ_CHECK)
+                    "If the user who performs the request has the authority of 'TENANT_ADMIN', it is possible to login as any customer user.\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/tokenAccessEnabled", method = RequestMethod.GET)
     @ResponseBody
@@ -212,7 +213,7 @@ public class UserController extends BaseController {
                     "The newly created User Id will be present in the response. " +
                     "Specify existing User Id to update the device. " +
                     "Referencing non-existing User Id will cause 'Not Found' error." +
-                    "\n\nDevice email is unique for entire platform setup.\n\n"+ RBAC_WRITE_CHECK)
+                    "\n\nDevice email is unique for entire platform setup.\n\n" + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user", method = RequestMethod.POST)
     @ResponseBody
@@ -223,9 +224,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
             HttpServletRequest request) throws ThingsboardException {
-
         try {
-
             if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
                 user.setTenantId(getCurrentUser().getTenantId());
             }
@@ -277,12 +276,14 @@ public class UserController extends BaseController {
             return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
                     user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
         } catch (Exception e) {
+            ActionType actionType = user.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.USER), user, actionType, getCurrentUser(), e);
             throw handleException(e);
         }
     }
 
     @ApiOperation(value = "Send or re-send the activation email",
-            notes = "Force send the activation email to the user. Useful to resend the email if user has accidentally deleted it.\n\n"+ RBAC_DELETE_CHECK)
+            notes = "Force send the activation email to the user. Useful to resend the email if user has accidentally deleted it.\n\n" + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/sendActivationMail", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
@@ -312,7 +313,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "Get the activation link (getActivationLink)",
             notes = "Get the activation link for the user. " +
-                    "The base url for activation link is configurable in the general settings of system administrator. \n\n"+ RBAC_READ_CHECK)
+                    "The base url for activation link is configurable in the general settings of system administrator. \n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}/activationLink", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
@@ -340,7 +341,7 @@ public class UserController extends BaseController {
 
     @ApiOperation(value = "Delete User (deleteUser)",
             notes = "Deletes the User, it's credentials and all the relations (from and to the User). " +
-                    "Referencing non-existing User Id will cause an error. \n\n"+ RBAC_DELETE_CHECK)
+                    "Referencing non-existing User Id will cause an error. \n\n" + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
@@ -359,6 +360,8 @@ public class UserController extends BaseController {
 
             tbUserService.delete(getTenantId(), getCurrentUser().getCustomerId(), user, getCurrentUser());
         } catch (Exception e) {
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.USER),
+                    ActionType.DELETED, getCurrentUser(), e, strUserId);
             throw handleException(e);
         }
     }
