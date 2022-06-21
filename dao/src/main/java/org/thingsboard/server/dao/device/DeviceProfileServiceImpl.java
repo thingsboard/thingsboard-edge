@@ -63,8 +63,6 @@ import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -93,8 +91,6 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
 
     @Autowired
     private QueueService queueService;
-
-    private final Lock findOrCreateLock = new ReentrantLock();
 
     @TransactionalEventListener(classes = DeviceProfileEvictEvent.class)
     @Override

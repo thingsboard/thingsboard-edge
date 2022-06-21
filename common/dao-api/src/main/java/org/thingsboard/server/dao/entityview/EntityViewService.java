@@ -73,6 +73,8 @@ public interface EntityViewService {
 
     ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(TenantId tenantId, EntityId entityId);
 
+    List<EntityView> findEntityViewsByTenantIdAndEntityId(TenantId tenantId, EntityId entityId);
+
     void deleteEntityView(TenantId tenantId, EntityViewId entityViewId);
 
     void deleteEntityViewsByTenantId(TenantId tenantId);
