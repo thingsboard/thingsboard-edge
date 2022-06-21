@@ -67,6 +67,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -157,6 +158,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
     private QueueService queueService;
 
     @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
     protected TbTransactionalCache<TenantCacheKey, Boolean> existsTenantCache;
 
     @Autowired
@@ -238,9 +242,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
         log.trace("Executing deleteTenant [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
+        entityViewService.deleteEntityViewsByTenantId(tenantId);
         customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
-        entityViewService.deleteEntityViewsByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
@@ -261,6 +265,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
         otaPackageService.deleteOtaPackagesByTenantId(tenantId);
         rpcService.deleteAllRpcByTenantId(tenantId);
         queueService.deleteQueuesByTenantId(tenantId);
+        adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
         deleteEntityRelations(tenantId, tenantId);

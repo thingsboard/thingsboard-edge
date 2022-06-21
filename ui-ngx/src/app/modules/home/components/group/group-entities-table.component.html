@@ -37,6 +37,7 @@
               position="end"
               [opened]="isGroupDetailsOpen">
     <tb-entity-details-panel
+      #entityGroupDetailsPanel
       [entitiesTableConfig]="entityGroupDetailsConfig"
       [entityId]="entityGroup?.id"
       (closeEntityDetails)="isGroupDetailsOpen = false"

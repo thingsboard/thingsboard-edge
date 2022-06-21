@@ -57,6 +57,7 @@ import { Direction } from '@shared/models/page/sort-order';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { WidgetsBundleTabsComponent } from '@home/pages/widget/widgets-bundle-tabs.component';
 
 @Injectable()
 export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableConfig<WidgetsBundle>> {
@@ -75,6 +76,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
 
     this.config.entityType = EntityType.WIDGETS_BUNDLE;
     this.config.entityComponent = WidgetsBundleComponent;
+    this.config.entityTabsComponent = WidgetsBundleTabsComponent;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.WIDGETS_BUNDLE);
     this.config.entityResources = entityTypeResources.get(EntityType.WIDGETS_BUNDLE);
     this.config.defaultSortOrder = {property: 'title', direction: Direction.ASC};

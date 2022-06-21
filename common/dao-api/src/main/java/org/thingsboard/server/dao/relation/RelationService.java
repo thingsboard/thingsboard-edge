@@ -31,11 +31,8 @@
 package org.thingsboard.server.dao.relation;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -57,6 +54,8 @@ public interface RelationService {
 
     boolean saveRelation(TenantId tenantId, EntityRelation relation);
 
+    void saveRelations(TenantId tenantId, List<EntityRelation> relations);
+
     ListenableFuture<Boolean> saveRelationAsync(TenantId tenantId, EntityRelation relation);
 
     boolean deleteRelation(TenantId tenantId, EntityRelation relation);
@@ -68,8 +67,6 @@ public interface RelationService {
     ListenableFuture<Boolean> deleteRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup);
 
     void deleteEntityRelations(TenantId tenantId, EntityId entity);
-
-    ListenableFuture<Void> deleteEntityRelationsAsync(TenantId tenantId, EntityId entity);
 
     List<EntityRelation> findByFrom(TenantId tenantId, EntityId from, RelationTypeGroup typeGroup);
 

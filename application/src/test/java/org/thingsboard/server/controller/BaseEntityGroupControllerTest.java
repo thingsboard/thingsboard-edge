@@ -114,7 +114,7 @@ public abstract class BaseEntityGroupControllerTest extends AbstractControllerTe
         entityGroup2.setName("Entity Group");
         entityGroup2.setType(EntityType.DEVICE);
         doPost("/api/entityGroup", entityGroup2).andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Entity group with such name already present in")));
+                .andExpect(statusReason(containsString("Entity Group with such name, type and owner already exists!")));
     }
 
     @Test

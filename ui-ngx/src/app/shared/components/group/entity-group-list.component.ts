@@ -48,11 +48,14 @@ import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
 import { BaseData } from '@shared/models/base-data';
-import { EntityId } from '@shared/models/id/entity-id';
+import { EntityId, entityIdEquals } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipList } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { EntityGroupService } from '@core/http/entity-group.service';
+import { PageLink } from '@shared/models/page/page-link';
+import { Direction } from '@shared/models/page/sort-order';
 
 @Component({
   selector: 'tb-entity-group-list',
@@ -74,6 +77,19 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
 
   @Input()
   groupType: EntityType;
+
+  private ownerIdValue: EntityId;
+  get ownerId(): EntityId {
+    return this.ownerIdValue;
+  }
+
+  @Input()
+  set ownerId(value: EntityId) {
+    if (!entityIdEquals(this.ownerIdValue, value)) {
+      this.reset();
+    }
+    this.ownerIdValue = value;
+  }
 
   private requiredValue: boolean;
   get required(): boolean {
@@ -107,6 +123,7 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
               private entityService: EntityService,
+              private entityGroupService: EntityGroupService,
               private fb: FormBuilder) {
     this.entityGroupListFormGroup = this.fb.group({
       entityGroups: [this.entityGroups, this.required ? [Validators.required] : []],
@@ -230,9 +247,20 @@ export class EntityGroupListComponent implements ControlValueAccessor, OnInit, A
 
   fetchEntityGroups(searchText?: string): Observable<Array<BaseData<EntityId>>> {
     this.searchText = searchText;
-    return this.entityService.getEntitiesByNameFilter(EntityType.ENTITY_GROUP, searchText,
-      50, this.groupType, {ignoreLoading: true}).pipe(
-      map((data) => data ? data : []));
+    if (this.ownerId) {
+      const pageLink = new PageLink(50, 0, searchText, {
+        property: 'name',
+        direction: Direction.ASC
+      });
+      return this.entityGroupService.getEntityGroupsByOwnerIdAndPageLink(
+        this.ownerId.entityType as EntityType, this.ownerId.id, this.groupType, pageLink, {ignoreLoading: true}).pipe(
+        map((data) => data ? data.data : [])
+      );
+    } else {
+      return this.entityService.getEntitiesByNameFilter(EntityType.ENTITY_GROUP, searchText,
+        50, this.groupType, {ignoreLoading: true}).pipe(
+        map((data) => data ? data : []));
+    }
   }
 
   onFocus() {

@@ -44,6 +44,8 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
 
+import java.util.List;
+
 public interface DashboardService {
     
     Dashboard findDashboardById(TenantId tenantId, DashboardId dashboardId);
@@ -87,4 +89,7 @@ public interface DashboardService {
     void importDashboards(TenantId tenantId, EntityGroupId entityGroupId, List<Dashboard> dashboards, boolean overwrite) throws ThingsboardException;
 
     DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name);
+
+    List<Dashboard> findTenantDashboardsByTitle(TenantId tenantId, String title);
+
 }

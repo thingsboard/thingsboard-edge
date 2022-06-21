@@ -37,6 +37,9 @@ import { entityGroupActionSources, entityGroupActionTypes, EntityGroupInfo } fro
 import { WidgetActionsData } from '@home/components/widget/action/manage-widget-actions.component.models';
 import { PageLink } from '@shared/models/page/page-link';
 import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
+import { exportableEntityTypes } from '@shared/models/vc.models';
+import { groupResourceByGroupType, Operation, Resource, resourceByEntityType } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-entity-group-tabs',
@@ -49,7 +52,8 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
 
   entityGroupActionTypesList = entityGroupActionTypes;
 
-  constructor(protected store: Store<AppState>) {
+  constructor(private userPermissionsService: UserPermissionsService,
+              protected store: Store<AppState>) {
     super(store);
   }
 
@@ -64,6 +68,15 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
 
   onPermissionsChanged() {
     this.entitiesTableConfig.onGroupUpdated();
+  }
+
+  hasVersionControl(): boolean {
+    if (this.entity && exportableEntityTypes.includes(this.entity.type)) {
+      const entityResource = groupResourceByGroupType.get(this.entity.type);
+      return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.WRITE);
+    } else {
+      return false;
+    }
   }
 
   private validate() {

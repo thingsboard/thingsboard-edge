@@ -80,20 +80,34 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
         ActionType actionType = entityView.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = entityView.getTenantId();
         try {
+            EntityView existingEntityView =  entityView.getId() == null ? null : entityViewService.findEntityViewById(tenantId, entityView.getId());
+            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
+            this.updateEntityViewAttributes(user, savedEntityView, existingEntityView);
+            createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);
+            notificationEntityService.notifyCreateOrUpdateEntity(savedEntityView.getTenantId(), savedEntityView.getId(), savedEntityView,
+                    null, actionType, user);
+            return savedEntityView;
+        } catch (Exception e) {
+            notificationEntityService.notifyEntity(user.getTenantId(), emptyId(EntityType.ENTITY_VIEW), entityView, null, actionType, user, e);
+            throw handleException(e);
+        }
+    }
+
+    @Override
+    public void updateEntityViewAttributes(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException {
+        try {
             List<ListenableFuture<?>> futures = new ArrayList<>();
-            EntityView oldEntityView =  entityView.getId() == null ? null : entityViewService.findEntityViewById(tenantId, entityView.getId());
+
             if (oldEntityView != null) {
                 if (oldEntityView.getKeys() != null && oldEntityView.getKeys().getAttributes() != null) {
                     futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.CLIENT_SCOPE, oldEntityView.getKeys().getAttributes().getCs(), user));
-                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.SERVER_SCOPE, oldEntityView.getKeys().getAttributes().getCs(), user));
-                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.SHARED_SCOPE, oldEntityView.getKeys().getAttributes().getCs(), user));
+                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.SERVER_SCOPE, oldEntityView.getKeys().getAttributes().getSs(), user));
+                    futures.add(deleteAttributesFromEntityView(oldEntityView, DataConstants.SHARED_SCOPE, oldEntityView.getKeys().getAttributes().getSh(), user));
                 }
                 List<String> tsKeys = oldEntityView.getKeys() != null && oldEntityView.getKeys().getTimeseries() != null ?
                         oldEntityView.getKeys().getTimeseries() : Collections.emptyList();
                 futures.add(deleteLatestFromEntityView(oldEntityView, tsKeys, user));
             }
-            EntityView savedEntityView = checkNotNull(entityViewService.saveEntityView(entityView));
-            createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);
             if (savedEntityView.getKeys() != null) {
                 if (savedEntityView.getKeys().getAttributes() != null) {
                     futures.add(copyAttributesFromEntityToEntityView(savedEntityView, DataConstants.CLIENT_SCOPE, savedEntityView.getKeys().getAttributes().getCs(), user));
@@ -109,13 +123,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                     throw new RuntimeException("Failed to copy attributes to entity view", e);
                 }
             }
-
-            notificationEntityService.notifyCreateOrUpdateEntity(savedEntityView.getTenantId(), savedEntityView.getId(), savedEntityView,
-                    null, actionType, user);
-
-            return savedEntityView;
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(user.getTenantId(), emptyId(EntityType.ENTITY_VIEW), entityView, null, actionType, user, e);
             throw handleException(e);
         }
     }

@@ -33,7 +33,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component,
+  Component, EventEmitter,
   Inject,
   Input,
   OnChanges,
@@ -66,6 +66,7 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
+import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 
 // @dynamic
 @Component({
@@ -80,6 +81,8 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
 
   @ViewChild(EntitiesTableComponent, {static: true}) entitiesTable: EntitiesTableComponent;
 
+  @ViewChild('entityGroupDetailsPanel') entityGroupDetailsPanel: EntityDetailsPanelComponent;
+
   @Input()
   groupParams: EntityGroupParams;
 
@@ -91,6 +94,8 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
   entityGroupDetailsConfig: EntityGroupsTableConfig;
 
   private rxSubscriptions = new Array<Subscription>();
+
+  updateBreadcrumbs = new EventEmitter();
 
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
@@ -166,15 +171,18 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
   private reloadEntityGroup() {
     this.entityGroupService.getEntityGroup(this.entityGroup.id.id).subscribe(
       (entityGroup) => {
-        this.reloadEntityGroupConfig(entityGroup);
+        if (this.groupParams.hierarchyView) {
+          this.groupParams.hierarchyCallbacks.groupUpdated(entityGroup);
+        }
+        this.reloadEntityGroupConfig(entityGroup, true);
       }
     );
   }
 
-  private reloadEntityGroupConfig(entityGroup: EntityGroupInfo) {
+  private reloadEntityGroupConfig(entityGroup: EntityGroupInfo, reloadGroupDetails = false) {
     this.entityGroupConfigResolver.constructGroupConfig<BaseData<HasId>>(this.groupParams, entityGroup).subscribe(
       (entityGroupConfig) => {
-        this.init(entityGroupConfig, this.groupParams, false);
+        this.init(entityGroupConfig, this.groupParams, false, false, reloadGroupDetails);
       }
     );
   }
@@ -204,7 +212,8 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
     });
   }
 
-  private init(entityGroup: EntityGroupStateInfo<BaseData<HasId>>, groupParams: EntityGroupParams, closeGroupDetails = true) {
+  private init(entityGroup: EntityGroupStateInfo<BaseData<HasId>>, groupParams: EntityGroupParams, closeGroupDetails = true,
+               reloadGroupDetailsConfig = true, reloadGroupDetails = false) {
     if (closeGroupDetails) {
       this.isGroupDetailsOpen = false;
     }
@@ -221,13 +230,19 @@ export class GroupEntitiesTableComponent extends PageComponent implements AfterV
         this.isGroupDetailsOpen = false;
       }
     });
-    this.entityGroupDetailsConfig =
-      this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams, false) as EntityGroupsTableConfig;
-    this.entityGroupDetailsConfig.componentsData = {
-      isGroupEntitiesView: true,
-      reloadEntityGroup: this.reloadEntityGroup.bind(this)
-    };
+    if (reloadGroupDetailsConfig) {
+      this.entityGroupDetailsConfig =
+        this.entityGroupsTableConfigResolver.resolveEntityGroupTableConfig(this.groupParams, false) as EntityGroupsTableConfig;
+      this.entityGroupDetailsConfig.componentsData = {
+        isGroupEntitiesView: true,
+        reloadEntityGroup: this.reloadEntityGroup.bind(this)
+      };
+    }
+    if (reloadGroupDetails && this.entityGroupDetailsPanel) {
+      this.entityGroupDetailsPanel.reloadEntity();
+    }
     this.cd.detectChanges();
+    this.updateBreadcrumbs.emit();
   }
 
   ngAfterViewInit(): void {

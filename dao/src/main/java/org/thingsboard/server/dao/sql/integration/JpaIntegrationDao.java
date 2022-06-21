@@ -34,6 +34,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
@@ -81,6 +83,11 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
+    public List<Integration> findTenantIntegrationsByName(UUID tenantId, String name) {
+        return DaoUtil.convertDataList(integrationRepository.findByTenantIdAndName(tenantId, name));
+    }
+
+    @Override
     protected Class<IntegrationEntity> getEntityClass() {
         return IntegrationEntity.class;
     }
@@ -94,4 +101,21 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     public Long countByTenantId(TenantId tenantId) {
         return integrationRepository.countByTenantId(tenantId.getId());
     }
+
+    @Override
+    public Integration findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(integrationRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public IntegrationId getExternalIdByInternal(IntegrationId internalId) {
+        return Optional.ofNullable(integrationRepository.getExternalIdById(internalId.getId()))
+                .map(IntegrationId::new).orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.INTEGRATION;
+    }
+
 }
