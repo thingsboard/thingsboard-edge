@@ -28,27 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.server.dao.tenant;
 
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 
 import java.io.Serializable;
 
-@EqualsAndHashCode
-@Getter
+@Data
 @AllArgsConstructor
-public class AttributeCacheKey implements Serializable {
-    private static final long serialVersionUID = 2013369077925351881L;
+public class TenantCacheKey implements Serializable {
 
-    private final String scope;
-    private final EntityId entityId;
-    private final String key;
+    private static final long serialVersionUID = -121787454251592384L;
 
-    @Override
-    public String toString() {
-        return "{" + entityId + "}" + scope + "_" + key;
+    private final TenantId tenantId;
+    private final TenantCacheKeyPrefix keyPrefix;
+
+    public static TenantCacheKey fromId(TenantId tenantId) {
+        return new TenantCacheKey(tenantId, TenantCacheKeyPrefix.TENANT);
+    }
+
+    public static TenantCacheKey fromIdExists(TenantId tenantId) {
+        return new TenantCacheKey(tenantId, TenantCacheKeyPrefix.EXISTS);
+    }
+
+    public enum TenantCacheKeyPrefix {
+        TENANT, EXISTS
     }
 }

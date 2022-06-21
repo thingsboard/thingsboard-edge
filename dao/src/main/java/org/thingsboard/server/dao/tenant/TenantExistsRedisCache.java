@@ -28,27 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.server.dao.tenant;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.Tenant;
 
-import java.io.Serializable;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("TenantExistsCache")
+public class TenantExistsRedisCache extends RedisTbTransactionalCache<TenantCacheKey, Boolean> {
 
-@EqualsAndHashCode
-@Getter
-@AllArgsConstructor
-public class AttributeCacheKey implements Serializable {
-    private static final long serialVersionUID = 2013369077925351881L;
-
-    private final String scope;
-    private final EntityId entityId;
-    private final String key;
-
-    @Override
-    public String toString() {
-        return "{" + entityId + "}" + scope + "_" + key;
+    public TenantExistsRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.TENANTS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
     }
 }

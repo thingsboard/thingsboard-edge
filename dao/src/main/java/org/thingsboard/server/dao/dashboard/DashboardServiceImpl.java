@@ -300,7 +300,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
                     deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
                 }
-    };
+            };
 
     private PaginatedRemover<CustomerId, DashboardInfo> customerDashboardsRemover =
             new PaginatedRemover<CustomerId, DashboardInfo>() {

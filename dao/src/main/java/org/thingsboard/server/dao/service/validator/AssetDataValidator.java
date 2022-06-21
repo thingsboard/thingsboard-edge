@@ -36,7 +36,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -47,7 +46,7 @@ import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
@@ -58,7 +57,7 @@ public class AssetDataValidator extends DataValidator<Asset> {
     private AssetDao assetDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private TenantService tenantService;
 
     @Autowired
     private CustomerDao customerDao;
@@ -97,8 +96,7 @@ public class AssetDataValidator extends DataValidator<Asset> {
         if (asset.getTenantId() == null) {
             throw new DataValidationException("Asset should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, asset.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(asset.getTenantId())) {
                 throw new DataValidationException("Asset is referencing to non-existent tenant!");
             }
         }
