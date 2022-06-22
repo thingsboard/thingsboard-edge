@@ -31,6 +31,7 @@
 
 import { InjectionToken } from '@angular/core';
 import { IModulesMap } from '@modules/common/modules-map.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export const Constants = {
   serverErrorCode: {
@@ -52,6 +53,20 @@ export const Constants = {
     nonTokenBased: '/api/noauth'
   }
 };
+
+export const serverErrorCodesTranslations = new Map<number, string>([
+  [Constants.serverErrorCode.general, 'server-error.general'],
+  [Constants.serverErrorCode.authentication, 'server-error.authentication'],
+  [Constants.serverErrorCode.jwtTokenExpired, 'server-error.jwt-token-expired'],
+  [Constants.serverErrorCode.tenantTrialExpired, 'server-error.tenant-trial-expired'],
+  [Constants.serverErrorCode.credentialsExpired, 'server-error.credentials-expired'],
+  [Constants.serverErrorCode.permissionDenied, 'server-error.permission-denied'],
+  [Constants.serverErrorCode.invalidArguments, 'server-error.invalid-arguments'],
+  [Constants.serverErrorCode.badRequestParams, 'server-error.bad-request-params'],
+  [Constants.serverErrorCode.itemNotFound, 'server-error.item-not-found'],
+  [Constants.serverErrorCode.tooManyRequests, 'server-error.too-many-requests'],
+  [Constants.serverErrorCode.tooManyUpdates, 'server-error.too-many-updates'],
+]);
 
 export const MediaBreakpoints = {
   xs: 'screen and (max-width: 599px)',
@@ -79,6 +94,7 @@ export const HelpLinks = {
     smsProviderSettings: helpBaseUrl + '/docs/pe/user-guide/ui/sms-provider-settings',
     securitySettings: helpBaseUrl + '/docs/pe/user-guide/ui/security-settings',
     oauth2Settings: helpBaseUrl + '/docs/pe/user-guide/oauth-2-support/',
+    twoFactorAuthSettings: helpBaseUrl + '/docs/',
     ruleEngine: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/overview/',
     ruleNodeCheckRelation: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#check-relation-filter-node',
     ruleNodeCheckExistenceFields: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/filter-nodes/#check-existence-fields-node',
@@ -198,7 +214,10 @@ export const HelpLinks = {
     customTranslation: helpBaseUrl +  '/docs/pe/user-guide/custom-translation',
     customMenu: helpBaseUrl +  '/docs/pe/user-guide/custom-menu',
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
-    selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration'
+    selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
+    queue: helpBaseUrl + '/docs/pe/user-guide/queue',
+    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/ui/repository-settings',
+    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/ui/auto-commit-settings',
   }
 };
 
@@ -265,7 +284,7 @@ export const valueTypesMap = new Map<ValueType, ValueTypeData>(
       ValueType.JSON,
       {
         name: 'value.json',
-        icon: 'mdi:json'
+        icon: 'mdi:code-json'
       }
     ]
   ]

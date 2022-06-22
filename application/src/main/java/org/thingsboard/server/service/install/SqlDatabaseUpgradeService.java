@@ -30,23 +30,39 @@
  */
 package org.thingsboard.server.service.install;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.id.QueueId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.queue.ProcessingStrategy;
+import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
+import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.queue.SubmitStrategy;
+import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
+import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.service.install.sql.SqlDbHelper;
 
 import java.nio.charset.Charset;
@@ -60,8 +76,11 @@ import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
 import static org.thingsboard.server.service.install.DatabaseHelper.ASSIGNED_CUSTOMERS;
@@ -121,6 +140,18 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
 
     @Autowired
     private IntegrationRepository integrationRepository;
+
+    @Autowired
+    private QueueService queueService;
+
+    @Autowired
+    private TbRuleEngineQueueConfigService queueConfig;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
+    private TenantProfileService tenantProfileService;
 
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
@@ -551,59 +582,108 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 }
                 break;
             case "3.3.4":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", SCHEMA_UPDATE_SQL);
+                    loadSql(schemaUpdateFile, conn);
+
+                    log.info("Loading queues...");
+                    try {
+                        if (!CollectionUtils.isEmpty(queueConfig.getQueues())) {
+                            queueConfig.getQueues().forEach(queueSettings -> {
+                                Queue queue = queueConfigToQueue(queueSettings);
+                                Queue existing = queueService.findQueueByTenantIdAndName(queue.getTenantId(), queue.getName());
+                                if (existing == null) {
+                                    queueService.saveQueue(queue);
+                                }
+                            });
+                        } else {
+                            systemDataLoaderService.createQueues();
+                        }
+                    } catch (Exception e) {
+                    }
+
+                    log.info("Updating device profiles...");
+                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", "schema_update_device_profile.sql");
+                    loadSql(schemaUpdateFile, conn);
+
+                    log.info("Updating schema settings...");
+                    conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3004000;");
+                    log.info("Schema updated.");
+                } catch (Exception e) {
+                    log.error("Failed updating schema!!!", e);
+                }
+                break;
+            case "3.4.0":
                 log.info("Updating schema ...");
-                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4pe", SCHEMA_UPDATE_SQL);
+                schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.0pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE customer ADD COLUMN parent_customer_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE dashboard ADD COLUMN customer_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_type varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     conn.createStatement().execute("update converter set type = 'UPLINK' where type = 'CUSTOM'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN secret varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN is_remote boolean"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN enabled boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE entity_group ADD CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN allow_create_devices_or_assets boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_registration ADD COLUMN basic_parent_customer_name_pattern varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_registration ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_parent_customer_name_pattern varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE alarm ADD COLUMN propagate_to_owner_hierarchy boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN edge_license_key varchar(30) DEFAULT 'PUT_YOUR_EDGE_LICENSE_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {
@@ -631,7 +711,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         }
                     });
                     log.info("Schema updated.");
-                } catch(Exception e) {
+                } catch (Exception e) {
                     log.error("Failed to update schema!!!");
                 }
                 break;
@@ -680,4 +760,30 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         }
         return isOldSchema;
     }
+
+    private Queue queueConfigToQueue(TbRuleEngineQueueConfiguration queueSettings) {
+        Queue queue = new Queue();
+        queue.setTenantId(TenantId.SYS_TENANT_ID);
+        queue.setName(queueSettings.getName());
+        queue.setTopic(queueSettings.getTopic());
+        queue.setPollInterval(queueSettings.getPollInterval());
+        queue.setPartitions(queueSettings.getPartitions());
+        queue.setPackProcessingTimeout(queueSettings.getPackProcessingTimeout());
+        SubmitStrategy submitStrategy = new SubmitStrategy();
+        submitStrategy.setBatchSize(queueSettings.getSubmitStrategy().getBatchSize());
+        submitStrategy.setType(SubmitStrategyType.valueOf(queueSettings.getSubmitStrategy().getType()));
+        queue.setSubmitStrategy(submitStrategy);
+        ProcessingStrategy processingStrategy = new ProcessingStrategy();
+        processingStrategy.setType(ProcessingStrategyType.valueOf(queueSettings.getProcessingStrategy().getType()));
+        processingStrategy.setRetries(queueSettings.getProcessingStrategy().getRetries());
+        processingStrategy.setFailurePercentage(queueSettings.getProcessingStrategy().getFailurePercentage());
+        processingStrategy.setPauseBetweenRetries(queueSettings.getProcessingStrategy().getPauseBetweenRetries());
+        processingStrategy.setMaxPauseBetweenRetries(queueSettings.getProcessingStrategy().getMaxPauseBetweenRetries());
+        queue.setProcessingStrategy(processingStrategy);
+        queue.setConsumerPerPartition(queueSettings.isConsumerPerPartition());
+        return queue;
+    }
+
+
+
 }

@@ -30,21 +30,22 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAlarmsCountNodeV2Configuration> {
     private List<AlarmsCountMapping> alarmsCountMappings;
     private boolean countAlarmsForPropagationEntities;
     private List<EntityType> propagationEntityTypes;
-    private String queueName;
+    private String queueId;
 
     @Override
     public TbAlarmsCountNodeV2Configuration defaultConfiguration() {
@@ -58,7 +59,6 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
         configuration.setPropagationEntityTypes(Collections.emptyList());
         configuration.setAlarmsCountMappings(alarmsCountMappings);
 
-        configuration.setQueueName(ServiceQueue.MAIN);
         return configuration;
     }
 }

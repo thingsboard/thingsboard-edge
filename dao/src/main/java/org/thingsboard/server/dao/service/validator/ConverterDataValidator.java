@@ -35,16 +35,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 public class ConverterDataValidator extends DataValidator<Converter> {
@@ -54,7 +53,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
-    private TenantDao tenantDao;
+    private TenantService tenantService;
 
     @Autowired
     private ConverterDao converterDao;
@@ -74,14 +73,16 @@ public class ConverterDataValidator extends DataValidator<Converter> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, Converter converter) {
-        converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
+    protected Converter validateUpdate(TenantId tenantId, Converter converter) {
+        var oldConverter = converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName());
+        oldConverter.ifPresent(
                 d -> {
                     if (!d.getId().equals(converter.getId())) {
                         throw new DataValidationException("Converter with such name already exists!");
                     }
                 }
         );
+        return oldConverter.orElse(null);
     }
 
     @Override
@@ -95,8 +96,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
         if (converter.getTenantId() == null || converter.getTenantId().isNullUid()) {
             throw new DataValidationException("Converter should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, converter.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(converter.getTenantId())) {
                 throw new DataValidationException("Converter is referencing to non-existent tenant!");
             }
         }

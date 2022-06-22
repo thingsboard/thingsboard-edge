@@ -210,6 +210,12 @@ export class EntityGroupService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getEntityGroupsByOwnerIdAndPageLink(ownerType: EntityType, ownerId: string, groupType: EntityType,
+                                             pageLink: PageLink, config?: RequestConfig): Observable<PageData<EntityGroup>> {
+    return this.http.get<PageData<EntityGroup>>(`/api/entityGroups/${ownerType}/${ownerId}/${groupType}${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getEntityGroupAllByOwnerId(ownerType: EntityType, ownerId: string, groupType: EntityType,
                                     config?: RequestConfig): Observable<EntityGroupInfo> {
     return this.http.get<EntityGroupInfo>(`/api/entityGroup/all/${ownerType}/${ownerId}/${groupType}`,

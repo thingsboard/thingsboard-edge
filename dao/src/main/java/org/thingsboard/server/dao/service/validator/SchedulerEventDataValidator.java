@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -57,12 +56,12 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
 import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
@@ -85,7 +84,7 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
     private DeviceProfileService deviceProfileService;
 
     @Autowired
-    private TenantDao tenantDao;
+    private TenantService tenantService;
 
     @Autowired
     private CustomerDao customerDao;
@@ -122,8 +121,7 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
         if (schedulerEvent.getTenantId() == null) {
             throw new DataValidationException("SchedulerEvent should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, schedulerEvent.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(schedulerEvent.getTenantId())) {
                 throw new DataValidationException("SchedulerEvent is referencing to non-existent tenant!");
             }
         }

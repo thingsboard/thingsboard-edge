@@ -33,11 +33,13 @@ package org.thingsboard.server.dao.sql.asset;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -71,7 +73,7 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
     }
 
     @Override
-    protected CrudRepository<AssetEntity, UUID> getCrudRepository() {
+    protected JpaRepository<AssetEntity, UUID> getRepository() {
         return assetRepository;
     }
 
@@ -162,6 +164,17 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
     }
 
     @Override
+    public PageData<AssetId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        Page<UUID> page;
+        if(customerId == null){
+            page = assetRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
+        } else {
+            page = assetRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));
+        }
+        return DaoUtil.pageToPageData(page, AssetId::new);
+    }
+
+    @Override
     public ListenableFuture<List<EntitySubtype>> findTenantAssetTypesAsync(UUID tenantId) {
         return service.submit(() -> convertTenantAssetTypesToDto(tenantId, assetRepository.findTenantAssetTypes(tenantId)));
     }
@@ -181,4 +194,31 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
     public Long countByTenantId(TenantId tenantId) {
         return assetRepository.countByTenantIdAndTypeIsNot(tenantId.getId(), TB_SERVICE_QUEUE);
     }
+
+    @Override
+    public Asset findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(assetRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public Asset findByTenantIdAndName(UUID tenantId, String name) {
+        return findAssetsByTenantIdAndName(tenantId, name).orElse(null);
+    }
+
+    @Override
+    public PageData<Asset> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return findAssetsByTenantId(tenantId, pageLink);
+    }
+
+    @Override
+    public AssetId getExternalIdByInternal(AssetId internalId) {
+        return Optional.ofNullable(assetRepository.getExternalIdById(internalId.getId()))
+                .map(AssetId::new).orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ASSET;
+    }
+
 }

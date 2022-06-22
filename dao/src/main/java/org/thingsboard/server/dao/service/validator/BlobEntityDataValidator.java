@@ -33,14 +33,13 @@ package org.thingsboard.server.dao.service.validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
@@ -48,11 +47,11 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 @AllArgsConstructor
 public class BlobEntityDataValidator extends DataValidator<BlobEntity> {
 
-    private final TenantDao tenantDao;
+    private final TenantService tenantService;
     private final CustomerDao customerDao;
 
     @Override
-    protected void validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
+    protected BlobEntity validateUpdate(TenantId tenantId, BlobEntity blobEntity) {
         throw new DataValidationException("Update of BlobEntity is prohibited!");
     }
 
@@ -73,8 +72,7 @@ public class BlobEntityDataValidator extends DataValidator<BlobEntity> {
         if (blobEntity.getTenantId() == null) {
             throw new DataValidationException("BlobEntity should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, blobEntity.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(blobEntity.getTenantId())) {
                 throw new DataValidationException("BlobEntity is referencing to non-existent tenant!");
             }
         }

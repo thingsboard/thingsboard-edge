@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -38,10 +37,10 @@ import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -53,10 +52,15 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
-
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.*;
+import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ROLE_CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ROLE_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ROLE_PERMISSIONS_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -90,6 +94,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
     @Column(name = ModelConstants.ENTITY_VIEW_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public RoleEntity() {
@@ -112,6 +119,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         this.permissions = role.getPermissions();
         this.searchText = role.getSearchText();
         this.additionalInfo = role.getAdditionalInfo();
+        if (role.getExternalId() != null) {
+            this.externalId = role.getExternalId().getId();
+        }
     }
 
     @Override
@@ -139,6 +149,9 @@ public class RoleEntity extends BaseSqlEntity<Role> implements SearchTextEntity<
         role.setName(name);
         role.setPermissions(permissions);
         role.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            role.setExternalId(new RoleId(externalId));
+        }
         return role;
     }
 }

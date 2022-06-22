@@ -30,9 +30,10 @@
  */
 package org.thingsboard.server.service.edge.rpc.fetch;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -45,7 +46,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +54,6 @@ import java.util.List;
 @AllArgsConstructor
 @Slf4j
 public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final WhiteLabelingService whiteLabelingService;
     private final CustomTranslationService customTranslationService;
@@ -88,14 +86,14 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
         try {
             EntityId ownerId = edge.getOwnerId();
             List<EdgeEvent> result = new ArrayList<>();
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(new TenantId(EntityId.NULL_UUID))));
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantId)));
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
             if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
                 CustomerId customerId = new CustomerId(ownerId.getId());
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(customerId)));
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                        EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
             }
             return result;
         } catch (Exception e) {
@@ -108,14 +106,14 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
         try {
             EntityId ownerId = edge.getOwnerId();
             List<EdgeEvent> result = new ArrayList<>();
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(new TenantId(EntityId.NULL_UUID))));
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantId)));
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
             if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
                 CustomerId customerId = new CustomerId(ownerId.getId());
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, mapper.valueToTree(customerId)));
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                        EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
             }
             return result;
         } catch (Exception e) {
@@ -129,14 +127,14 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
 
             EntityId ownerId = edge.getOwnerId();
             List<EdgeEvent> result = new ArrayList<>();
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, mapper.valueToTree(new TenantId(EntityId.NULL_UUID))));
-            result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                    EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantId)));
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(new TenantId(EntityId.NULL_UUID))));
+            result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                    EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(tenantId)));
             if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
                 CustomerId customerId = new CustomerId(ownerId.getId());
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(),
-                        EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, mapper.valueToTree(customerId)));
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
+                        EdgeEventType.CUSTOM_TRANSLATION, EdgeEventActionType.UPDATED, null, JacksonUtil.valueToTree(customerId)));
             }
             return result;
         } catch (Exception e) {

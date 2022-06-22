@@ -38,10 +38,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.widget.WidgetTypeDao;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 
@@ -50,8 +51,8 @@ import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
 
     private final WidgetTypeDao widgetTypeDao;
-    private final TenantDao tenantDao;
     private final WidgetsBundleDao widgetsBundleDao;
+    private final TenantService tenantService;
 
     @Override
     protected void validateDataImpl(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
@@ -68,8 +69,7 @@ public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
             widgetTypeDetails.setTenantId(TenantId.fromUUID(ModelConstants.NULL_UUID));
         }
         if (!widgetTypeDetails.getTenantId().getId().equals(ModelConstants.NULL_UUID)) {
-            Tenant tenant = tenantDao.findById(tenantId, widgetTypeDetails.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(widgetTypeDetails.getTenantId())) {
                 throw new DataValidationException("Widget type is referencing to non-existent tenant!");
             }
         }
@@ -98,8 +98,8 @@ public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
-        WidgetType storedWidgetType = widgetTypeDao.findById(tenantId, widgetTypeDetails.getId().getId());
+    protected WidgetTypeDetails validateUpdate(TenantId tenantId, WidgetTypeDetails widgetTypeDetails) {
+        WidgetTypeDetails storedWidgetType = widgetTypeDao.findById(tenantId, widgetTypeDetails.getId().getId());
         if (!storedWidgetType.getTenantId().getId().equals(widgetTypeDetails.getTenantId().getId())) {
             throw new DataValidationException("Can't move existing widget type to different tenant!");
         }
@@ -109,5 +109,6 @@ public class WidgetTypeDataValidator extends DataValidator<WidgetTypeDetails> {
         if (!storedWidgetType.getAlias().equals(widgetTypeDetails.getAlias())) {
             throw new DataValidationException("Update of widget type alias is prohibited!");
         }
+        return new WidgetTypeDetails(storedWidgetType);
     }
 }

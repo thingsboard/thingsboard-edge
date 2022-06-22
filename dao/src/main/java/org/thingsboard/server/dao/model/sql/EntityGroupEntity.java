@@ -58,6 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_NAME_
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_OWNER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_OWNER_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_GROUP_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -91,6 +92,9 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
     @Column(name = ENTITY_GROUP_CONFIGURATION_PROPERTY)
     private JsonNode configuration;
 
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     public EntityGroupEntity() {
         super();
     }
@@ -108,6 +112,9 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         }
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
+        if (entityGroup.getExternalId() != null) {
+            this.externalId = entityGroup.getExternalId().getId();
+        }
     }
 
     @Override
@@ -121,6 +128,9 @@ public class EntityGroupEntity extends BaseSqlEntity<EntityGroup> implements Bas
         }
         entityGroup.setAdditionalInfo(additionalInfo);
         entityGroup.setConfiguration(configuration);
+        if (externalId != null) {
+            entityGroup.setExternalId(new EntityGroupId(externalId));
+        }
         return entityGroup;
     }
 

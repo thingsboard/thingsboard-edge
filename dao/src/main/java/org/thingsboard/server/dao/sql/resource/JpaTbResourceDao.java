@@ -31,8 +31,9 @@
 package org.thingsboard.server.dao.sql.resource;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -63,7 +64,7 @@ public class JpaTbResourceDao extends JpaAbstractSearchTextDao<TbResourceEntity,
     }
 
     @Override
-    protected CrudRepository<TbResourceEntity, UUID> getCrudRepository() {
+    protected JpaRepository<TbResourceEntity, UUID> getRepository() {
         return resourceRepository;
     }
 
@@ -111,4 +112,10 @@ public class JpaTbResourceDao extends JpaAbstractSearchTextDao<TbResourceEntity,
     public Long sumDataSizeByTenantId(TenantId tenantId) {
         return resourceRepository.sumDataSizeByTenantId(tenantId.getId());
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.TB_RESOURCE;
+    }
+
 }

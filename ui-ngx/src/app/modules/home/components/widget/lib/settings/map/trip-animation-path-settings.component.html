@@ -1,0 +1,131 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section class="tb-widget-settings" [formGroup]="tripAnimationPathSettingsFormGroup">
+  <fieldset class="fields-group">
+    <legend class="group-title" translate>widgets.maps.path-settings</legend>
+    <section fxLayout="row" fxLayoutGap="8px">
+      <tb-color-input
+        fxFlex
+        formControlName="color"
+        icon="format_color_fill"
+        label="{{ 'widgets.maps.path-color' | translate }}" openOnInput colorClearButton>
+      </tb-color-input>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.maps.stroke-weight</mat-label>
+        <input matInput type="number" min="0" formControlName="strokeWeight">
+      </mat-form-field>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>widgets.maps.stroke-opacity</mat-label>
+        <input matInput type="number" min="0" max="1" formControlName="strokeOpacity">
+      </mat-form-field>
+    </section>
+    <mat-expansion-panel class="tb-settings" [expanded]="tripAnimationPathSettingsFormGroup.get('useColorFunction').value">
+      <mat-expansion-panel-header fxLayout="row wrap">
+        <mat-panel-title>
+          <mat-slide-toggle formControlName="useColorFunction" (click)="$event.stopPropagation()"
+                            fxLayoutAlign="center">
+            {{ 'widgets.maps.use-path-color-function' | translate }}
+          </mat-slide-toggle>
+        </mat-panel-title>
+        <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+          widget-config.advanced-settings
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <tb-js-func formControlName="colorFunction"
+                    [globalVariables]="functionScopeVariables"
+                    [functionArgs]="['data', 'dsData', 'dsIndex']"
+                    functionTitle="{{ 'widgets.maps.path-color-function' | translate }}"
+                    helpId="widget/lib/map/path_color_fn">
+        </tb-js-func>
+      </ng-template>
+    </mat-expansion-panel>
+    <fieldset class="fields-group fields-group-slider">
+      <legend class="group-title" translate>widgets.maps.path-decorator</legend>
+      <mat-expansion-panel class="tb-settings" [expanded]="tripAnimationPathSettingsFormGroup.get('usePolylineDecorator').value">
+        <mat-expansion-panel-header fxLayout="row wrap">
+          <mat-panel-title>
+            <mat-slide-toggle formControlName="usePolylineDecorator" (click)="$event.stopPropagation()"
+                              fxLayoutAlign="center">
+              {{ 'widgets.maps.use-path-decorator' | translate }}
+            </mat-slide-toggle>
+          </mat-panel-title>
+          <mat-panel-description fxLayoutAlign="end center" fxHide.xs translate>
+            widget-config.advanced-settings
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <section fxLayout="row" fxLayoutGap="8px">
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.decorator-symbol</mat-label>
+              <mat-select required formControlName="decoratorSymbol">
+                <mat-option *ngFor="let symbol of polylineDecoratorSymbols" [value]="symbol">
+                  {{polylineDecoratorSymbolTranslations.get(symbol) | translate}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.decorator-symbol-size</mat-label>
+              <input matInput type="number" min="1" formControlName="decoratorSymbolSize">
+            </mat-form-field>
+          </section>
+          <section fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+            <mat-slide-toggle fxFlex formControlName="useDecoratorCustomColor">
+              {{ 'widgets.maps.use-path-decorator-custom-color' | translate }}
+            </mat-slide-toggle>
+            <tb-color-input
+              fxFlex
+              formControlName="decoratorCustomColor"
+              icon="format_color_fill"
+              label="{{ 'widgets.maps.decorator-custom-color' | translate }}" openOnInput colorClearButton>
+            </tb-color-input>
+          </section>
+          <section fxLayout="row" fxLayoutGap="8px">
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.decorator-offset</mat-label>
+              <input matInput formControlName="decoratorOffset">
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.end-decorator-offset</mat-label>
+              <input matInput formControlName="endDecoratorOffset">
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>widgets.maps.decorator-repeat</mat-label>
+              <input matInput formControlName="decoratorRepeat">
+            </mat-form-field>
+          </section>
+        </ng-template>
+      </mat-expansion-panel>
+    </fieldset>
+  </fieldset>
+</section>

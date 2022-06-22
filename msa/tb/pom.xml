@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.4PE-SNAPSHOT</version>
+        <version>3.4.0PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -151,6 +151,7 @@
                             <verbose>true</verbose>
                             <googleContainerRegistryEnabled>false</googleContainerRegistryEnabled>
                             <contextDirectory>${project.build.directory}/docker-tb</contextDirectory>
+                            <noCache>true</noCache>
                         </configuration>
                     </execution>
                     <execution>

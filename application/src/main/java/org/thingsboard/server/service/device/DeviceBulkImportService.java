@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfilePr
 import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
 import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingConfiguration;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -65,8 +66,10 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.importing.AbstractBulkImportService;
-import org.thingsboard.server.service.importing.BulkImportColumnType;
+import org.thingsboard.server.service.sync.ie.importing.csv.AbstractBulkImportService;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportColumnType;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -83,6 +86,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
     protected final DeviceService deviceService;
+    protected final TbDeviceService tbDeviceService;
     protected final DeviceCredentialsService deviceCredentialsService;
     protected final DeviceProfileService deviceProfileService;
 
@@ -114,7 +118,8 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
     }
 
     @Override
-    protected Device saveEntity(Device entity, Map<BulkImportColumnType, String> fields) {
+    @SneakyThrows
+    protected Device saveEntity(SecurityUser user, Device entity, EntityGroup entityGroup, Map<BulkImportColumnType, String> fields) {
         DeviceCredentials deviceCredentials;
         try {
             deviceCredentials = createDeviceCredentials(fields);
@@ -133,7 +138,7 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
         }
         entity.setDeviceProfileId(deviceProfile.getId());
 
-        return deviceService.saveDeviceWithCredentials(entity, deviceCredentials);
+        return tbDeviceService.saveDeviceWithCredentials(entity, deviceCredentials, entityGroup, user);
     }
 
     @Override

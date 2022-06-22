@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { DeviceId } from './id/device-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -44,6 +44,7 @@ import * as _moment from 'moment';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { OtaPackageId } from '@shared/models/id/ota-package-id';
 import { DashboardId } from '@shared/models/id/dashboard-id';
+import { QueueId } from '@shared/models/id/queue-id';
 import { DataType } from '@shared/models/constants';
 import {
   getDefaultProfileClientLwM2mSettingsConfig,
@@ -257,6 +258,7 @@ export interface DefaultDeviceProfileTransportConfiguration {
 export interface MqttDeviceProfileTransportConfiguration {
   deviceTelemetryTopic?: string;
   deviceAttributesTopic?: string;
+  sendAckOnValidationException?: boolean;
   transportPayloadTypeConfiguration?: {
     transportPayloadType?: TransportPayloadType;
     enableCompatibilityWithJsonPayloadFormat?: boolean;
@@ -373,6 +375,7 @@ export function createDeviceProfileTransportConfiguration(type: DeviceTransportT
         const mqttTransportConfiguration: MqttDeviceProfileTransportConfiguration = {
           deviceTelemetryTopic: 'v1/devices/me/telemetry',
           deviceAttributesTopic: 'v1/devices/me/attributes',
+          sendAckOnValidationException: false,
           transportPayloadTypeConfiguration: {
             transportPayloadType: TransportPayloadType.JSON,
             enableCompatibilityWithJsonPayloadFormat: false,
@@ -492,6 +495,10 @@ export const AlarmScheduleTypeTranslationMap = new Map<AlarmScheduleType, string
 );
 
 export interface AlarmSchedule{
+  dynamicValue?: {
+    sourceAttribute: string,
+    sourceType: string;
+  };
   type: AlarmScheduleType;
   timezone?: string;
   daysOfWeek?: number[];
@@ -573,7 +580,7 @@ export interface DeviceProfileData {
   provisionConfiguration?: DeviceProvisionConfiguration;
 }
 
-export interface DeviceProfile extends BaseData<DeviceProfileId> {
+export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEntity<DeviceProfileId> {
   tenantId?: TenantId;
   name: string;
   description?: string;
@@ -585,7 +592,7 @@ export interface DeviceProfile extends BaseData<DeviceProfileId> {
   provisionDeviceKey?: string;
   defaultRuleChainId?: RuleChainId;
   defaultDashboardId?: DashboardId;
-  defaultQueueName?: string;
+  defaultQueueId?: QueueId;
   firmwareId?: OtaPackageId;
   softwareId?: OtaPackageId;
   profileData: DeviceProfileData;
@@ -698,7 +705,7 @@ export interface DeviceData {
   transportConfiguration: DeviceTransportConfiguration;
 }
 
-export interface Device extends BaseData<DeviceId> {
+export interface Device extends BaseData<DeviceId>, ExportableEntity<DeviceId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
   name: string;

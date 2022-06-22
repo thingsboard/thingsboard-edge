@@ -47,6 +47,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { RuleChainsTableConfig } from '@home/pages/rulechain/rulechains-table-config';
+import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
 export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
@@ -57,6 +58,7 @@ export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<
               private importExport: ImportExportService,
               private itembuffer: ItemBufferService,
               private edgeService: EdgeService,
+              private homeDialogs: HomeDialogsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,

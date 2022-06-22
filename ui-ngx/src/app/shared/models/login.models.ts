@@ -29,6 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { Authority } from '@shared/models/authority.enum';
+
 export interface LoginRequest {
   username: string;
   password: string;
@@ -41,4 +43,5 @@ export interface PublicLoginRequest {
 export interface LoginResponse {
   token: string;
   refreshToken: string;
+  scope?: Authority;
 }

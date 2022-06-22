@@ -41,8 +41,10 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionDao;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -51,16 +53,18 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 @AllArgsConstructor
 public class GroupPermissionDataValidator extends DataValidator<GroupPermission> {
 
-    private final TenantDao tenantDao;
+    private final TenantService tenantService;
     private final EntityGroupDao entityGroupDao;
     private final RoleDao roleDao;
+    private final GroupPermissionDao groupPermissionDao;
 
     @Override
     protected void validateCreate(TenantId tenantId, GroupPermission groupPermission) {
     }
 
     @Override
-    protected void validateUpdate(TenantId tenantId, GroupPermission groupPermission) {
+    protected GroupPermission validateUpdate(TenantId tenantId, GroupPermission groupPermission) {
+        return groupPermissionDao.findById(tenantId, groupPermission.getId().getId());
     }
 
     @Override
@@ -71,8 +75,7 @@ public class GroupPermissionDataValidator extends DataValidator<GroupPermission>
         if (groupPermission.getTenantId() == null) {
             throw new DataValidationException("Group Permission should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, groupPermission.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(groupPermission.getTenantId())) {
                 throw new DataValidationException("Group Permission is referencing to non-existent tenant!");
             }
         }

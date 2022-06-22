@@ -50,6 +50,7 @@ import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.shared.AbstractContextAwareMsgProcessor;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -60,7 +61,6 @@ import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
@@ -78,14 +78,13 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.common.msg.timeout.DeviceActorServerSideRpcTimeoutMsg;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.AttributeUpdateNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ClaimDeviceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceSessionsCacheEntry;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.GetAttributeResponseMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.KeyValueProto;
-import org.thingsboard.server.gen.transport.TransportProtos.KeyValueType;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionCloseNotificationProto;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEvent;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionEventMsg;
@@ -112,7 +111,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -122,6 +120,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -215,8 +214,13 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         boolean sent = false;
         if (systemContext.isEdgesEnabled() && edgeId != null) {
             log.debug("[{}][{}] device is related to edge [{}]. Saving RPC request to edge queue", tenantId, deviceId, edgeId.getId());
-            saveRpcRequestToEdgeQueue(request, rpcRequest.getRequestId());
-            sent = true;
+            try {
+                saveRpcRequestToEdgeQueue(request, rpcRequest.getRequestId()).get();
+                sent = true;
+            } catch (InterruptedException | ExecutionException e) {
+                String errMsg = String.format("[%s][%s][%s] Failed to save rpc request to edge queue %s", tenantId, deviceId, edgeId.getId(), request);
+                log.error(errMsg, e);
+            }
         } else if (isSendNewRpcAvailable()) {
             sent = rpcSubscriptions.size() > 0;
             Set<UUID> syncSessionSet = new HashSet<>();
@@ -466,7 +470,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
                     GetAttributeResponseMsg responseMsg = GetAttributeResponseMsg.newBuilder()
                             .setRequestId(requestId)
                             .setSharedStateMsg(true)
-                            .addAllSharedAttributeList(toTsKvProtos(result))
+                            .addAllSharedAttributeList(KvProtoUtil.attrToTsKvProtos(result))
                             .setIsMultipleAttributesRequest(request.getSharedAttributeNamesCount() > 1)
                             .build();
                     sendToTransport(responseMsg, sessionInfo);
@@ -487,8 +491,8 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
                 public void onSuccess(@Nullable List<List<AttributeKvEntry>> result) {
                     GetAttributeResponseMsg responseMsg = GetAttributeResponseMsg.newBuilder()
                             .setRequestId(requestId)
-                            .addAllClientAttributeList(toTsKvProtos(result.get(0)))
-                            .addAllSharedAttributeList(toTsKvProtos(result.get(1)))
+                            .addAllClientAttributeList(KvProtoUtil.attrToTsKvProtos(result.get(0)))
+                            .addAllSharedAttributeList(KvProtoUtil.attrToTsKvProtos(result.get(1)))
                             .setIsMultipleAttributesRequest(
                                     request.getSharedAttributeNamesCount() + request.getClientAttributeNamesCount() > 1)
                             .build();
@@ -558,7 +562,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
                 if (DataConstants.SHARED_SCOPE.equals(msg.getScope())) {
                     List<AttributeKvEntry> attributes = new ArrayList<>(msg.getValues());
                     if (attributes.size() > 0) {
-                        List<TsKvProto> sharedUpdated = msg.getValues().stream().map(this::toTsKvProto)
+                        List<TsKvProto> sharedUpdated = msg.getValues().stream().map(t -> KvProtoUtil.toTsKvProto(t.getLastUpdateTs(), t))
                                 .collect(Collectors.toList());
                         if (!sharedUpdated.isEmpty()) {
                             notification.addAllSharedUpdated(sharedUpdated);
@@ -825,13 +829,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         systemContext.getTbCoreToTransportService().process(nodeId, msg);
     }
 
-    private void saveRpcRequestToEdgeQueue(ToDeviceRpcRequest msg, Integer requestId) {
-        EdgeEvent edgeEvent = new EdgeEvent();
-        edgeEvent.setTenantId(tenantId);
-        edgeEvent.setAction(EdgeEventActionType.RPC_CALL);
-        edgeEvent.setEntityId(deviceId.getId());
-        edgeEvent.setType(EdgeEventType.DEVICE);
-
+    private ListenableFuture<Void> saveRpcRequestToEdgeQueue(ToDeviceRpcRequest msg, Integer requestId) {
         ObjectNode body = mapper.createObjectNode();
         body.put("requestId", requestId);
         body.put("requestUUID", msg.getId().toString());
@@ -839,57 +837,13 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         body.put("expirationTime", msg.getExpirationTime());
         body.put("method", msg.getBody().getMethod());
         body.put("params", msg.getBody().getParams());
-        edgeEvent.setBody(body);
 
-        edgeEvent.setEdgeId(edgeId);
-        systemContext.getEdgeEventService().save(edgeEvent);
-        systemContext.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
-    }
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.DEVICE, EdgeEventActionType.RPC_CALL, deviceId, body);
 
-    private List<TsKvProto> toTsKvProtos(@Nullable List<AttributeKvEntry> result) {
-        List<TsKvProto> clientAttributes;
-        if (result == null || result.isEmpty()) {
-            clientAttributes = Collections.emptyList();
-        } else {
-            clientAttributes = new ArrayList<>(result.size());
-            for (AttributeKvEntry attrEntry : result) {
-                clientAttributes.add(toTsKvProto(attrEntry));
-            }
-        }
-        return clientAttributes;
-    }
-
-    private TsKvProto toTsKvProto(AttributeKvEntry attrEntry) {
-        return TsKvProto.newBuilder().setTs(attrEntry.getLastUpdateTs())
-                .setKv(toKeyValueProto(attrEntry)).build();
-    }
-
-    private KeyValueProto toKeyValueProto(KvEntry kvEntry) {
-        KeyValueProto.Builder builder = KeyValueProto.newBuilder();
-        builder.setKey(kvEntry.getKey());
-        switch (kvEntry.getDataType()) {
-            case BOOLEAN:
-                builder.setType(KeyValueType.BOOLEAN_V);
-                builder.setBoolV(kvEntry.getBooleanValue().get());
-                break;
-            case DOUBLE:
-                builder.setType(KeyValueType.DOUBLE_V);
-                builder.setDoubleV(kvEntry.getDoubleValue().get());
-                break;
-            case LONG:
-                builder.setType(KeyValueType.LONG_V);
-                builder.setLongV(kvEntry.getLongValue().get());
-                break;
-            case STRING:
-                builder.setType(KeyValueType.STRING_V);
-                builder.setStringV(kvEntry.getStrValue().get());
-                break;
-            case JSON:
-                builder.setType(KeyValueType.JSON_V);
-                builder.setJsonV(kvEntry.getJsonValue().get());
-                break;
-        }
-        return builder.build();
+        return Futures.transform(systemContext.getEdgeEventService().saveAsync(edgeEvent), unused -> {
+            systemContext.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
+            return null;
+        }, systemContext.getDbCallbackExecutor());
     }
 
     void restoreSessions() {
@@ -899,8 +853,8 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         log.debug("[{}] Restoring sessions from cache", deviceId);
         DeviceSessionsCacheEntry sessionsDump;
         try {
-            sessionsDump = DeviceSessionsCacheEntry.parseFrom(systemContext.getDeviceSessionCacheService().get(deviceId));
-        } catch (InvalidProtocolBufferException e) {
+            sessionsDump = systemContext.getDeviceSessionCacheService().get(deviceId);
+        } catch (Exception e) {
             log.warn("[{}] Failed to decode device sessions from cache", deviceId);
             return;
         }
@@ -955,7 +909,7 @@ class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcessor {
         });
         systemContext.getDeviceSessionCacheService()
                 .put(deviceId, DeviceSessionsCacheEntry.newBuilder()
-                        .addAllSessions(sessionsList).build().toByteArray());
+                        .addAllSessions(sessionsList).build());
     }
 
     void init(TbActorCtx ctx) {

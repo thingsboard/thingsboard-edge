@@ -38,7 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.utils.EventDeduplicationExecutor;
+import org.thingsboard.server.queue.common.EventDeduplicationExecutor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

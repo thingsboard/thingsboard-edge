@@ -31,10 +31,12 @@
 package org.thingsboard.server.service.edge.rpc.fetch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -45,7 +47,6 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.service.edge.rpc.EdgeEventUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,16 +75,17 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         for (String key : adminSettingsKeys) {
             AdminSettings sysAdminMainSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key);
             if (sysAdminMainSettings != null) {
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
                         EdgeEventActionType.UPDATED, null, mapper.valueToTree(sysAdminMainSettings)));
             }
             Optional<AttributeKvEntry> tenantMailSettingsAttr = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, key).get();
             if (tenantMailSettingsAttr.isPresent()) {
                 AdminSettings tenantMailSettings = new AdminSettings();
+                tenantMailSettings.setTenantId(tenantId);
                 tenantMailSettings.setKey(key);
                 String value = tenantMailSettingsAttr.get().getValueAsString();
                 tenantMailSettings.setJsonValue(mapper.readTree(value));
-                result.add(EdgeEventUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ADMIN_SETTINGS,
                         EdgeEventActionType.UPDATED, null, mapper.valueToTree(tenantMailSettings)));
             }
         }
@@ -91,7 +93,3 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         return new PageData<>(result, 1, result.size(), false);
     }
 }
-
-
-
-

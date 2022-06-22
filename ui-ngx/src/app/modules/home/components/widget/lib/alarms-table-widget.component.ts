@@ -312,9 +312,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         debounceTime(150),
         distinctUntilChanged(),
         tap(() => {
-          if (this.displayPagination) {
-            this.paginator.pageIndex = 0;
-          }
+          this.resetPageIndex();
           this.updateData();
         })
       )
@@ -580,6 +578,12 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.ctx.detectChanges();
   }
 
+  private resetPageIndex(): void {
+    if (this.displayPagination) {
+      this.paginator.pageIndex = 0;
+    }
+  }
+
   private editAlarmFilter($event: Event) {
     if ($event) {
       $event.stopPropagation();
@@ -624,6 +628,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         this.pageLink.statusList = result.statusList;
         this.pageLink.severityList = result.severityList;
         this.pageLink.typeList = result.typeList;
+        this.resetPageIndex();
         this.updateData();
       }
     });
@@ -644,9 +649,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   exitFilterMode() {
     this.textSearchMode = false;
     this.pageLink.textSearch = null;
-    if (this.displayPagination) {
-      this.paginator.pageIndex = 0;
-    }
+    this.resetPageIndex();
     this.updateData();
     this.ctx.hideTitlePanel = false;
     this.ctx.detectChanges(true);

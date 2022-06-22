@@ -35,10 +35,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -98,11 +97,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private DeviceService deviceService;
 
     @Autowired
-    private EntityViewService entityViewService;
-
-    @Autowired
     private DashboardService dashboardService;
 
+    @Lazy
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
@@ -123,6 +120,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private DataValidator<Customer> customerValidator;
+
+    @Autowired
+    private EntityViewService entityViewService;
 
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
@@ -222,7 +222,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     private List<CustomerId> fetchSubcustomers(TenantId tenantId, CustomerId customerId) throws Exception {
         List<CustomerId> customerIds = new ArrayList<>();
-        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, customerId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
         if (entityGroup.isPresent()) {
             List<EntityId> childCustomerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             childCustomerIds.forEach(entityId -> customerIds.add(new CustomerId(entityId.getId())));
@@ -237,7 +237,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
         try {
             Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
-                    EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+                    EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
             if (entityGroup.isPresent()) {
                 Customer publicCustomer = null;
                 PageLink pageLink = new PageLink(100);

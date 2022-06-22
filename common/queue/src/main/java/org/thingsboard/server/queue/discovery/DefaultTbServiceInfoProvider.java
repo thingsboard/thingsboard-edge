@@ -38,12 +38,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.TbTransportService;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
-import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.queue.util.AfterContextReady;
 
 import javax.annotation.PostConstruct;
@@ -53,14 +50,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
 
+    private static final String INTEGRATIONS_NONE = "NONE";
+    private static final String INTEGRATIONS_ALL = "ALL";
     @Getter
     @Value("${service.id:#{null}}")
     private String serviceId;
@@ -69,18 +66,17 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     @Value("${service.type:monolith}")
     private String serviceType;
 
-    @Getter
-    @Value("${service.tenant_id:}")
-    private String tenantIdStr;
+    @Value("${service.integrations.supported:ALL}")
+    private String supportedIntegrationsStr;
 
-    @Autowired(required = false)
-    private TbQueueRuleEngineSettings ruleEngineSettings;
+    @Value("${service.integrations.excluded:NONE}")
+    private String excludedIntegrationsStr;
+
     @Autowired
     private ApplicationContext applicationContext;
 
     private List<ServiceType> serviceTypes;
     private ServiceInfo serviceInfo;
-    private TenantId isolatedTenant;
 
     @PostConstruct
     public void init() {
@@ -100,27 +96,49 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         ServiceInfo.Builder builder = ServiceInfo.newBuilder()
                 .setServiceId(serviceId)
                 .addAllServiceTypes(serviceTypes.stream().map(ServiceType::name).collect(Collectors.toList()));
-        UUID tenantId;
-        if (!StringUtils.isEmpty(tenantIdStr)) {
-            tenantId = UUID.fromString(tenantIdStr);
-            isolatedTenant = TenantId.fromUUID(tenantId);
-        } else {
-            tenantId = TenantId.NULL_UUID;
-        }
-        builder.setTenantIdMSB(tenantId.getMostSignificantBits());
-        builder.setTenantIdLSB(tenantId.getLeastSignificantBits());
+        List<IntegrationType> supportedIntegrationTypes = getSupportedIntegrationTypes();
 
-        if (serviceTypes.contains(ServiceType.TB_RULE_ENGINE) && ruleEngineSettings != null) {
-            for (TbRuleEngineQueueConfiguration queue : ruleEngineSettings.getQueues()) {
-                TransportProtos.QueueInfo queueInfo = TransportProtos.QueueInfo.newBuilder()
-                        .setName(queue.getName())
-                        .setTopic(queue.getTopic())
-                        .setPartitions(queue.getPartitions()).build();
-                builder.addRuleEngineQueues(queueInfo);
-            }
-        }
+        supportedIntegrationTypes.forEach(integrationType -> builder.addIntegrationTypes(integrationType.name()));
 
         serviceInfo = builder.build();
+    }
+
+    @Override
+    public List<IntegrationType> getSupportedIntegrationTypes() {
+        List<IntegrationType> supportedIntegrationTypes;
+        if (serviceTypes.contains(ServiceType.TB_INTEGRATION_EXECUTOR)) {
+            if (StringUtils.isEmpty(supportedIntegrationsStr) || supportedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_NONE)) {
+                supportedIntegrationTypes = Collections.emptyList();
+            } else if (supportedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_ALL)) {
+                supportedIntegrationTypes = Arrays.asList(IntegrationType.values());
+            } else {
+                try {
+                    supportedIntegrationTypes = Arrays.stream(supportedIntegrationsStr.split(",")).map(String::trim).map(IntegrationType::valueOf).collect(Collectors.toList());
+                } catch (RuntimeException e) {
+                    log.warn("Failed to parse supplied integration types: {}", supportedIntegrationsStr);
+                    throw e;
+                }
+            }
+
+            List<IntegrationType> excludedIntegrationTypes;
+            if (StringUtils.isEmpty(excludedIntegrationsStr) || excludedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_NONE)) {
+                excludedIntegrationTypes = Collections.emptyList();
+            } else if (excludedIntegrationsStr.equalsIgnoreCase(INTEGRATIONS_ALL)) {
+                excludedIntegrationTypes = Arrays.asList(IntegrationType.values());
+            } else {
+                try {
+                    excludedIntegrationTypes = Arrays.stream(excludedIntegrationsStr.split(",")).map(String::trim).map(IntegrationType::valueOf).collect(Collectors.toList());
+                } catch (RuntimeException e) {
+                    log.warn("Failed to parse excluded integration types: {}", excludedIntegrationsStr);
+                    throw e;
+                }
+            }
+
+            supportedIntegrationTypes = supportedIntegrationTypes.stream().filter(it -> !it.isRemoteOnly()).filter(it -> !excludedIntegrationTypes.contains(it)).collect(Collectors.toList());
+        } else {
+            supportedIntegrationTypes = Collections.emptyList();
+        }
+        return supportedIntegrationTypes;
     }
 
     @AfterContextReady
@@ -146,8 +164,4 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         return serviceTypes.contains(serviceType);
     }
 
-    @Override
-    public Optional<TenantId> getIsolatedTenant() {
-        return Optional.ofNullable(isolatedTenant);
-    }
 }

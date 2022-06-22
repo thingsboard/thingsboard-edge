@@ -32,7 +32,7 @@ package org.thingsboard.server.dao.sql.blob;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
@@ -61,7 +61,7 @@ public class JpaBlobEntityInfoDao extends JpaAbstractDao<BlobEntityInfoEntity, B
     }
 
     @Override
-    protected CrudRepository<BlobEntityInfoEntity, UUID> getCrudRepository() {
+    protected JpaRepository<BlobEntityInfoEntity, UUID> getRepository() {
         return blobEntityInfoRepository;
     }
 

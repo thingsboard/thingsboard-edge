@@ -49,12 +49,17 @@ public class TbKafkaTopicConfigs {
     private String ruleEngineProperties;
     @Value("${queue.kafka.topic-properties.transport-api}")
     private String transportApiProperties;
+    @Value("${queue.kafka.topic-properties.integration-api:}")
+    private String integrationApiProperties;
     @Value("${queue.kafka.topic-properties.notifications}")
     private String notificationsProperties;
     @Value("${queue.kafka.topic-properties.js-executor}")
     private String jsExecutorProperties;
     @Value("${queue.kafka.topic-properties.ota-updates:}")
     private String fwUpdatesProperties;
+    @Value("${queue.kafka.topic-properties.version-control:}")
+    private String vcProperties;
+
 
     @Getter
     private Map<String, String> coreConfigs;
@@ -63,20 +68,26 @@ public class TbKafkaTopicConfigs {
     @Getter
     private Map<String, String> transportApiConfigs;
     @Getter
+    private Map<String, String> integrationApiConfigs;
+    @Getter
     private Map<String, String> notificationsConfigs;
     @Getter
     private Map<String, String> jsExecutorConfigs;
     @Getter
     private Map<String, String> fwUpdatesConfigs;
+    @Getter
+    private Map<String, String> vcConfigs;
 
     @PostConstruct
     private void init() {
         coreConfigs = getConfigs(coreProperties);
         ruleEngineConfigs = getConfigs(ruleEngineProperties);
         transportApiConfigs = getConfigs(transportApiProperties);
+        integrationApiConfigs = getConfigs(integrationApiProperties);
         notificationsConfigs = getConfigs(notificationsProperties);
         jsExecutorConfigs = getConfigs(jsExecutorProperties);
         fwUpdatesConfigs = getConfigs(fwUpdatesProperties);
+        vcConfigs = getConfigs(vcProperties);
     }
 
     private Map<String, String> getConfigs(String properties) {

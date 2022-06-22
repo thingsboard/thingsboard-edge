@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
@@ -234,7 +234,7 @@ export function getIntegrationHelpLink(integration: Integration): string {
   return 'integrations';
 }
 
-export interface Integration extends BaseData<IntegrationId> {
+export interface Integration extends BaseData<IntegrationId>, ExportableEntity<IntegrationId> {
   tenantId?: TenantId;
   defaultConverterId: ConverterId;
   downlinkConverterId?: ConverterId;

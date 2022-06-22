@@ -35,6 +35,8 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
@@ -59,8 +61,11 @@ public interface IntegrationService {
 
     PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink);
 
+    List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name);
+
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
+    List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 }

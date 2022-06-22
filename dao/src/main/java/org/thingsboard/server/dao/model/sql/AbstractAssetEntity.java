@@ -53,6 +53,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ASSET_LABEL_PROPER
 import static org.thingsboard.server.dao.model.ModelConstants.ASSET_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ASSET_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.ASSET_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
 
 @Data
@@ -83,6 +84,9 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
     @Column(name = ModelConstants.ASSET_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     public AbstractAssetEntity() {
         super();
     }
@@ -102,6 +106,9 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
         this.type = asset.getType();
         this.label = asset.getLabel();
         this.additionalInfo = asset.getAdditionalInfo();
+        if (asset.getExternalId() != null) {
+            this.externalId = asset.getExternalId().getId();
+        }
     }
 
     public AbstractAssetEntity(AssetEntity assetEntity) {
@@ -114,6 +121,7 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
         this.label = assetEntity.getLabel();
         this.searchText = assetEntity.getSearchText();
         this.additionalInfo = assetEntity.getAdditionalInfo();
+        this.externalId = assetEntity.getExternalId();
     }
 
     @Override
@@ -143,6 +151,9 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
         asset.setType(type);
         asset.setLabel(label);
         asset.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            asset.setExternalId(new AssetId(externalId));
+        }
         return asset;
     }
 

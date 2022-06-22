@@ -33,12 +33,12 @@ package org.thingsboard.server.service.install.update;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -48,62 +48,36 @@ import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.SearchTextBased;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.*;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.RuleNodeId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UUIDBased;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.*;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.wl.Favicon;
-import org.thingsboard.server.common.data.wl.PaletteSettings;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
+import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.queue.*;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.common.data.wl.Favicon;
+import org.thingsboard.server.common.data.wl.PaletteSettings;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -115,32 +89,29 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.oauth2.OAuth2Service;
-import org.thingsboard.server.dao.oauth2.OAuth2Utils;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
-import org.thingsboard.server.dao.model.sql.RelationEntity;
-import org.thingsboard.server.dao.oauth2.OAuth2Service;
-import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
+import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -216,9 +187,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private TimeseriesService tsService;
 
     @Autowired
-    private AlarmService alarmService;
-
-    @Autowired
     private EntityService entityService;
 
     @Autowired
@@ -228,7 +196,16 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private DeviceProfileRepository deviceProfileRepository;
 
     @Autowired
-    private OAuth2Service oAuth2Service;
+    private RateLimitsUpdater rateLimitsUpdater;
+
+    @Autowired
+    private TenantProfileService tenantProfileService;
+
+    @Autowired
+    private QueueService queueService;
+
+    @Autowired
+    private TbRuleEngineQueueConfigService queueConfig;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -258,10 +235,26 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 updateNestedRuleChains();
                 break;
             case "3.3.4":
-                log.info("Updating data from version 3.3.4 to 3.3.4PE ...");
-                tenantsCustomersGroupAllUpdater.updateEntities(null);
-                tenantEntitiesGroupAllUpdater.updateEntities(null);
-                tenantIntegrationUpdater.updateEntities(null);
+                log.info("Updating data from version 3.3.4 to 3.4.0 ...");
+                rateLimitsUpdater.updateEntities();
+                tenantsProfileQueueConfigurationUpdater.updateEntities();
+                String[] nodeTypes = {
+                        "org.thingsboard.rule.engine.flow.TbCheckpointNode",
+                        "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+                        "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode",
+                        "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode",
+                        "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2"
+                };
+                for (String type : nodeTypes) {
+                    log.info("Updating rule nodes with type [{}]...", type);
+                    queueNameToIdRuleNodesUpdater.updateEntities(type);
+                }
+                break;
+            case "3.4.0":
+                log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
+                tenantsCustomersGroupAllUpdater.updateEntities();
+                tenantEntitiesGroupAllUpdater.updateEntities();
+                tenantIntegrationUpdater.updateEntities();
                 //for 2.4.0
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {
@@ -276,7 +269,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
-
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -574,7 +566,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         }
                         EntityGroup entityGroup;
                         Optional<EntityGroup> customerGroupOptional =
-                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+                                entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
                         if (!customerGroupOptional.isPresent()) {
                             entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), EntityType.CUSTOMER);
                         } else {
@@ -607,7 +599,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                         for (EntityType groupType : entityGroupTypes) {
                             EntityGroup entityGroup;
                             Optional<EntityGroup> entityGroupOptional =
-                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                                    entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, tenant.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
                             boolean fetchAllTenantEntities;
                             if (!entityGroupOptional.isPresent()) {
                                 entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, tenant.getId(), groupType);
@@ -621,7 +613,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     new CustomerUsersTenantGroupAllRemover(entityGroup).updateEntities(tenant.getId());
                                     entityGroupService.findOrCreateTenantUsersGroup(tenant.getId());
                                     Optional<EntityGroup> tenantAdminsOptional =
-                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
+                                            entityGroupService.findEntityGroupByTypeAndName(tenant.getId(), tenant.getId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
                                     if (!tenantAdminsOptional.isPresent()) {
                                         EntityGroup tenantAdmins = entityGroupService.findOrCreateTenantAdminsGroup(tenant.getId());
                                         new TenantAdminsGroupAllUpdater(entityGroup, tenantAdmins).updateEntities(tenant.getId());
@@ -644,7 +636,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                                     break;
                             }
                         }
-                    } catch (InterruptedException | ExecutionException e) {
+                    } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
                     }
                 }
@@ -781,14 +773,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 EntityType[] entityGroupTypes = new EntityType[]{EntityType.USER, EntityType.CUSTOMER, EntityType.ASSET, EntityType.DEVICE, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.EDGE};
                 for (EntityType groupType : entityGroupTypes) {
                     Optional<EntityGroup> entityGroupOptional =
-                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME).get();
+                            entityGroupService.findEntityGroupByTypeAndName(TenantId.SYS_TENANT_ID, customer.getId(), groupType, EntityGroup.GROUP_ALL_NAME);
                     if (!entityGroupOptional.isPresent()) {
                         EntityGroup entityGroup = entityGroupService.createEntityGroupAll(TenantId.SYS_TENANT_ID, customer.getId(), groupType);
                         if (groupType == EntityType.USER) {
                             if (!customer.isPublic()) {
                                 entityGroupService.findOrCreateCustomerAdminsGroup(customer.getTenantId(), customer.getId(), null);
                                 Optional<EntityGroup> customerUsersOptional =
-                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME).get();
+                                        entityGroupService.findEntityGroupByTypeAndName(customer.getTenantId(), customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_USERS_NAME);
                                 if (!customerUsersOptional.isPresent()) {
                                     EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(customer.getTenantId(), customer.getId(), null);
                                     new CustomerUsersGroupAllUpdater(customer.getTenantId(), entityGroup, customerUsers).updateEntities(customer.getId());
@@ -894,7 +886,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             for (ListenableFuture<WhiteLabelingParams> future : futures) {
                 future.get();
             }
-            ListenableFuture<List<Void>> future = updateTenantMailTemplates(tenant.getId());
+            ListenableFuture<List<String>> future = updateTenantMailTemplates(tenant.getId());
             return Futures.transformAsync(future, l -> updateEntityWhiteLabelingParameters(tenant.getId()),
                     MoreExecutors.directExecutor());
         }
@@ -1030,13 +1022,11 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return result;
     }
 
-    private ListenableFuture<List<Void>> updateTenantMailTemplates(TenantId tenantId) {
+    private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            Optional<String> updated = this.installScripts.updateMailTemplatesFromVelocityToFreeMarker(mailTemplatesJsonString);
-            if (updated.isPresent()) {
-                return this.saveEntityAttribute(tenantId, MAIL_TEMPLATES, updated.get());
-            }
+            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(objectMapper.readTree(mailTemplatesJsonString));
+            return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
         }
         return Futures.immediateFuture(Collections.emptyList());
     }
@@ -1048,7 +1038,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         while (hasNext) {
             for (Integration integration : pageData.getData()) {
                 try {
-                    Field enabledField = integration.getClass().getDeclaredField("enabled");
+                    Field enabledField = IntegrationInfo.class.getDeclaredField("enabled");
                     enabledField.setAccessible(true);
                     Boolean booleanVal = (Boolean) enabledField.get(integration);
                     if (booleanVal == null) {
@@ -1241,7 +1231,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private ListenableFuture<List<Void>> saveEntityAttribute(EntityId entityId, String key, String value) {
+    private ListenableFuture<List<String>> saveEntityAttribute(EntityId entityId, String key, String value) {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(key, value), ts));
@@ -1326,6 +1316,112 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     private void updateOAuth2Params() {
         log.warn("CAUTION: Update of Oauth2 parameters from 3.2.2 to 3.3.0 available only in ThingsBoard versions 3.3.0/3.3.1");
+    }
+
+    private final PaginatedUpdater<String, TenantProfile> tenantsProfileQueueConfigurationUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenant profiles queue configuration updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<TenantProfile> findEntities(String id, PageLink pageLink) {
+                    return tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, pageLink);
+                }
+
+                @Override
+                protected void updateEntity(TenantProfile tenantProfile) {
+                    updateTenantProfileQueueConfiguration(tenantProfile);
+                }
+            };
+
+    private void updateTenantProfileQueueConfiguration(TenantProfile profile) {
+        try {
+            List<TenantProfileQueueConfiguration> queueConfiguration = profile.getProfileData().getQueueConfiguration();
+            if (profile.isIsolatedTbRuleEngine() && (queueConfiguration == null || queueConfiguration.isEmpty())) {
+                TenantProfileQueueConfiguration mainQueueConfig = getMainQueueConfiguration();
+                profile.getProfileData().setQueueConfiguration(Collections.singletonList((mainQueueConfig)));
+                tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, profile);
+                List<TenantId> isolatedTenants = tenantService.findTenantIdsByTenantProfileId(profile.getId());
+                isolatedTenants.forEach(tenantId -> {
+                    queueService.saveQueue(new Queue(tenantId, mainQueueConfig));
+                });
+            }
+        } catch (Exception e) {
+            log.error("Failed to update tenant profile queue configuration name=["+profile.getName()+"], id=["+ profile.getId().getId() +"]", e);
+        }
+    }
+
+    private TenantProfileQueueConfiguration getMainQueueConfiguration() {
+        TenantProfileQueueConfiguration mainQueueConfiguration = new TenantProfileQueueConfiguration();
+        mainQueueConfiguration.setName("Main");
+        mainQueueConfiguration.setTopic("tb_rule_engine.main");
+        mainQueueConfiguration.setPollInterval(25);
+        mainQueueConfiguration.setPartitions(10);
+        mainQueueConfiguration.setConsumerPerPartition(true);
+        mainQueueConfiguration.setPackProcessingTimeout(2000);
+        SubmitStrategy mainQueueSubmitStrategy = new SubmitStrategy();
+        mainQueueSubmitStrategy.setType(SubmitStrategyType.BURST);
+        mainQueueSubmitStrategy.setBatchSize(1000);
+        mainQueueConfiguration.setSubmitStrategy(mainQueueSubmitStrategy);
+        ProcessingStrategy mainQueueProcessingStrategy = new ProcessingStrategy();
+        mainQueueProcessingStrategy.setType(ProcessingStrategyType.SKIP_ALL_FAILURES);
+        mainQueueProcessingStrategy.setRetries(3);
+        mainQueueProcessingStrategy.setFailurePercentage(0);
+        mainQueueProcessingStrategy.setPauseBetweenRetries(3);
+        mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
+        mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
+        return mainQueueConfiguration;
+    }
+
+    private final PaginatedUpdater<String, RuleNode> queueNameToIdRuleNodesUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Queue name to id rule nodes updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<RuleNode> findEntities(String type, PageLink pageLink) {
+                    return ruleChainService.findAllRuleNodesByType(type, pageLink);
+                }
+
+                @Override
+                protected void updateEntity(RuleNode ruleNode) {
+                    updateQueueNameToIdRuleNodeConfiguration(ruleNode);
+                }
+            };
+
+    private void updateQueueNameToIdRuleNodeConfiguration(RuleNode node) {
+        try {
+            ObjectNode configuration = (ObjectNode) node.getConfiguration();
+            JsonNode queueNameNode = configuration.remove("queueName");
+            if (queueNameNode != null) {
+                RuleChain ruleChain = this.ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, node.getRuleChainId());
+                TenantId tenantId = ruleChain.getTenantId();
+                Map<String, QueueId> queues =
+                        queueService.findQueuesByTenantId(tenantId).stream().collect(Collectors.toMap(Queue::getName, Queue::getId));
+                String queueName = queueNameNode.asText();
+                QueueId queueId = queues.get(queueName);
+                configuration.put("queueId", queueId != null ? queueId.toString() : "");
+                ruleChainService.saveRuleNode(tenantId, node);
+            }
+        } catch (Exception e) {
+            log.error("Failed to update checkpoint rule node configuration name=["+node.getName()+"], id=["+ node.getId().getId() +"]", e);
+        }
     }
 
 }

@@ -37,8 +37,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
-import java.util.concurrent.ExecutionException;
-
 public interface WhiteLabelingService {
 
     WhiteLabelingParams getSystemWhiteLabelingParams(TenantId tenantId);

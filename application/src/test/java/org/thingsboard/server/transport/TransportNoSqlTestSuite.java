@@ -55,9 +55,4 @@ public class TransportNoSqlTestSuite {
                     ),
                     "cassandra-test.yaml", 30000l);
 
-    @BeforeClass
-    public static void cleanupInMemStorage() {
-        InMemoryStorage.getInstance().cleanup();
-    }
-
 }

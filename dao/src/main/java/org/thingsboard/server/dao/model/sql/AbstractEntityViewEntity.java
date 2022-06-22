@@ -40,7 +40,6 @@ import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -101,6 +100,9 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
     @Column(name = ModelConstants.ENTITY_VIEW_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public AbstractEntityViewEntity() {
@@ -133,6 +135,9 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
         this.endTs = entityView.getEndTimeMs();
         this.searchText = entityView.getSearchText();
         this.additionalInfo = entityView.getAdditionalInfo();
+        if (entityView.getExternalId() != null) {
+            this.externalId = entityView.getExternalId().getId();
+        }
     }
 
     public AbstractEntityViewEntity(EntityViewEntity entityViewEntity) {
@@ -149,6 +154,7 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
         this.endTs = entityViewEntity.getEndTs();
         this.searchText = entityViewEntity.getSearchText();
         this.additionalInfo = entityViewEntity.getAdditionalInfo();
+        this.externalId = entityViewEntity.getExternalId();
     }
 
     @Override
@@ -184,6 +190,9 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
         entityView.setStartTimeMs(startTs);
         entityView.setEndTimeMs(endTs);
         entityView.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            entityView.setExternalId(new EntityViewId(externalId));
+        }
         return entityView;
     }
 }

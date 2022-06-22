@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.service;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +51,7 @@ import org.thingsboard.integration.api.converter.TBDataConverter;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
 import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
@@ -62,12 +62,12 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.gen.integration.ConverterConfigurationProto;
 import org.thingsboard.server.gen.integration.DeviceDownlinkDataProto;
@@ -87,7 +87,6 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -145,7 +144,7 @@ public class RemoteIntegrationManagerService {
     @Autowired(required = false)
     private CoapServerService coapServerService;
 
-    private ThingsboardPlatformIntegration integration;
+    private ThingsboardPlatformIntegration<?> integration;
     private ComponentLifecycleEvent integrationEvent;
 
     private TBUplinkDataConverter uplinkDataConverter;
@@ -227,7 +226,7 @@ public class RemoteIntegrationManagerService {
         }
         try {
             Integration configuration = createIntegrationConfiguration(integrationConfigurationProto);
-            integration = createPlatformIntegration(integrationConfigurationProto.getType(), configuration.getConfiguration());
+            integration = IntegrationUtil.createPlatformIntegration(IntegrationType.valueOf(integrationConfigurationProto.getType()), configuration.getConfiguration(), true, coapServerService);
             integration.validateConfiguration(configuration, allowLocalNetworkHosts);
 
             if (uplinkDataConverter == null || !uplinkDataConverter.getName().equals(integrationConfigurationProto.getUplinkConverter().getName())) {
@@ -281,7 +280,7 @@ public class RemoteIntegrationManagerService {
         DefaultIntegrationDownlinkMsg downlinkMsg = new DefaultIntegrationDownlinkMsg(
                 integration.getConfiguration().getTenantId(),
                 integration.getConfiguration().getId(),
-                TbMsg.fromBytes(ServiceQueue.MAIN, deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY),
+                TbMsg.fromBytes(null, deviceDownlinkDataProto.getTbMsg().toByteArray(), TbMsgCallback.EMPTY),
                 deviceDownlinkDataProto.getDeviceName());
 
         integration.onDownlinkMsg(downlinkMsg);
@@ -321,11 +320,13 @@ public class RemoteIntegrationManagerService {
     private Integration createIntegrationConfiguration(IntegrationConfigurationProto integrationConfigurationProto) throws IOException {
         Integration integration = new Integration();
 
+        IntegrationId integrationId = new IntegrationId(new UUID(integrationConfigurationProto.getIntegrationIdMSB(), integrationConfigurationProto.getIntegrationIdLSB()));
         TenantId tenantId = new TenantId(new UUID(integrationConfigurationProto.getTenantIdMSB(), integrationConfigurationProto.getTenantIdLSB()));
 
         ConverterId defaultConverterId = new ConverterId(new UUID(integrationConfigurationProto.getUplinkConverter().getConverterIdMSB(), integrationConfigurationProto.getUplinkConverter().getConverterIdLSB()));
         ConverterId downlinkConverterId = new ConverterId(new UUID(integrationConfigurationProto.getDownlinkConverter().getConverterIdMSB(), integrationConfigurationProto.getDownlinkConverter().getConverterIdLSB()));
 
+        integration.setId(integrationId);
         integration.setTenantId(tenantId);
         integration.setDefaultConverterId(defaultConverterId);
         integration.setDownlinkConverterId(downlinkConverterId);
@@ -364,72 +365,6 @@ public class RemoteIntegrationManagerService {
         }
     }
 
-    private ThingsboardPlatformIntegration createPlatformIntegration(String type, JsonNode configuration) throws Exception {
-        switch (IntegrationType.valueOf(type)) {
-            case HTTP:
-                return newInstance("org.thingsboard.integration.http.basic.BasicHttpIntegration");
-            case LORIOT:
-                return newInstance("org.thingsboard.integration.http.basic.LoriotIntegration");
-            case SIGFOX:
-                return newInstance("org.thingsboard.integration.http.sigfox.SigFoxIntegration");
-            case OCEANCONNECT:
-                return newInstance("org.thingsboard.integration.http.oc.OceanConnectIntegration");
-            case THINGPARK:
-                return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegration");
-            case TPE:
-                return newInstance("org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise");
-            case TMOBILE_IOT_CDP:
-                return newInstance("org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration");
-            case CHIRPSTACK:
-                return newInstance("org.thingsboard.integration.http.chirpstack.ChirpStackIntegration");
-            case MQTT:
-                return newInstance("org.thingsboard.integration.mqtt.basic.BasicMqttIntegration");
-            case AWS_IOT:
-                return newInstance("org.thingsboard.integration.mqtt.aws.AwsIotIntegration");
-            case PUB_SUB:
-                return newInstance("org.thingsboard.gcloud.pubsub.PubSubIntegration");
-            case IBM_WATSON_IOT:
-                return newInstance("org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration");
-            case TTI:
-            case TTN:
-                return newInstance("org.thingsboard.integration.mqtt.ttn.TtnIntegration");
-            case AZURE_EVENT_HUB:
-                return newInstance("org.thingsboard.integration.azure.AzureEventHubIntegration");
-            case AZURE_IOT_HUB:
-                return newInstance("org.thingsboard.integration.mqtt.azure.AzureIotHubIntegration");
-            case OPC_UA:
-                return newInstance("org.thingsboard.integration.opcua.OpcUaIntegration");
-            case TCP:
-                return newInstance("org.thingsboard.integration.tcpip.tcp.BasicTcpIntegration");
-            case UDP:
-                return newInstance("org.thingsboard.integration.tcpip.udp.BasicUdpIntegration");
-            case AWS_SQS:
-                return newInstance("org.thingsboard.integration.aws.sqs.AwsSqsIntegration");
-            case AWS_KINESIS:
-                return newInstance("org.thingsboard.integration.kinesis.AwsKinesisIntegration");
-            case KAFKA:
-                return newInstance("org.thingsboard.integration.kafka.basic.BasicKafkaIntegration");
-            case RABBITMQ:
-                return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
-            case APACHE_PULSAR:
-                return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
-            case COAP:
-                return newInstance("org.thingsboard.integration.coap.CoapIntegration");
-            case CUSTOM:
-                return newInstance(configuration.get("clazz").asText());
-            default:
-                throw new RuntimeException("Not Implemented!");
-        }
-    }
-
-    private ThingsboardPlatformIntegration newInstance(String clazz) throws Exception {
-        if (clazz.equals("org.thingsboard.integration.coap.CoapIntegration")) {
-            Constructor<?> declaredConstructor = Class.forName(clazz).getDeclaredConstructor(CoapServerService.class);
-            return (ThingsboardPlatformIntegration) declaredConstructor.newInstance(coapServerService);
-        }
-        return (ThingsboardPlatformIntegration) Class.forName(clazz).getDeclaredConstructor().newInstance();
-    }
-
     private void processHandleMessages() {
         executor.submit(() -> {
             boolean interrupted = false;
@@ -453,7 +388,6 @@ public class RemoteIntegrationManagerService {
     }
 
     private void persistStatistics() {
-
         long ts = System.currentTimeMillis();
         IntegrationStatistics statistics = integration.popStatistics();
         try {
@@ -462,7 +396,7 @@ public class RemoteIntegrationManagerService {
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
                             .setType(DataConstants.STATS)
-                            .setUid(Uuids.timeBased().toString())
+                            .setUid(UUID.randomUUID().toString())
                             .setData(eventData)
                             .setDeviceName("")
                             .build())
@@ -500,7 +434,7 @@ public class RemoteIntegrationManagerService {
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
                             .setType(DataConstants.LC_EVENT)
-                            .setUid(Uuids.timeBased().toString())
+                            .setUid(UUID.randomUUID().toString())
                             .setData(eventData)
                             .setDeviceName("")
                             .build())

@@ -32,9 +32,11 @@ package org.thingsboard.server.dao.sql.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -80,7 +82,7 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
-    protected CrudRepository<ConverterEntity, UUID> getCrudRepository() {
+    protected JpaRepository<ConverterEntity, UUID> getRepository() {
         return converterRepository;
     }
 
@@ -88,4 +90,26 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     public Long countByTenantId(TenantId tenantId) {
         return converterRepository.countByTenantId(tenantId.getId());
     }
+
+    @Override
+    public Converter findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(converterRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public Converter findByTenantIdAndName(UUID tenantId, String name) {
+        return findConverterByTenantIdAndName(tenantId, name).orElse(null);
+    }
+
+    @Override
+    public ConverterId getExternalIdByInternal(ConverterId internalId) {
+        return Optional.ofNullable(converterRepository.getExternalIdById(internalId.getId()))
+                .map(ConverterId::new).orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CONVERTER;
+    }
+
 }

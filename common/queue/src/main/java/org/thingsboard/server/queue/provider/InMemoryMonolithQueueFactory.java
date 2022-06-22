@@ -30,11 +30,19 @@
  */
 package org.thingsboard.server.queue.provider;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -42,122 +50,163 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
+import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueConsumer;
 import org.thingsboard.server.queue.memory.InMemoryTbQueueProducer;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
+import org.thingsboard.server.queue.settings.TbQueueVersionControlSettings;
 
 @Slf4j
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='in-memory' && '${service.type:null}'=='monolith'")
-public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory {
+@RequiredArgsConstructor
+public class InMemoryMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngineQueueFactory, TbVersionControlQueueFactory {
 
-    private final PartitionService partitionService;
+    private static final String NOT_IMPLEMENTED = "Not Implemented! Should not be used by in-memory queue!";
+
+    private final NotificationsTopicService notificationsTopicService;
     private final TbQueueCoreSettings coreSettings;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRuleEngineSettings ruleEngineSettings;
+    private final TbQueueVersionControlSettings vcSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final InMemoryStorage storage;
-
-    public InMemoryMonolithQueueFactory(PartitionService partitionService, TbQueueCoreSettings coreSettings,
-                                        TbQueueRuleEngineSettings ruleEngineSettings,
-                                        TbServiceInfoProvider serviceInfoProvider,
-                                        TbQueueTransportApiSettings transportApiSettings,
-                                        TbQueueTransportNotificationSettings transportNotificationSettings) {
-        this.partitionService = partitionService;
-        this.coreSettings = coreSettings;
-        this.serviceInfoProvider = serviceInfoProvider;
-        this.ruleEngineSettings = ruleEngineSettings;
-        this.transportApiSettings = transportApiSettings;
-        this.transportNotificationSettings = transportNotificationSettings;
-        this.storage = InMemoryStorage.getInstance();
-    }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToTransportMsg>> createTransportNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(transportNotificationSettings.getNotificationsTopic());
+        return new InMemoryTbQueueProducer<>(storage, transportNotificationSettings.getNotificationsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> createRuleEngineMsgProducer() {
-        return new InMemoryTbQueueProducer<>(ruleEngineSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, ruleEngineSettings.getTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineNotificationMsg>> createRuleEngineNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(ruleEngineSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, ruleEngineSettings.getTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> createTbCoreMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createTbCoreNotificationsMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getTopic());
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> createToRuleEngineMsgConsumer(TbRuleEngineQueueConfiguration configuration) {
-        return new InMemoryTbQueueConsumer<>(configuration.getTopic());
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createToVersionControlMsgConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, vcSettings.getTopic());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> createToRuleEngineMsgConsumer(Queue configuration) {
+        return new InMemoryTbQueueConsumer<>(storage, configuration.getTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToRuleEngineNotificationMsg>> createToRuleEngineNotificationsMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceInfoProvider.getServiceId()).getFullTopicName());
+        return new InMemoryTbQueueConsumer<>(storage, notificationsTopicService.getNotificationsTopic(ServiceType.TB_RULE_ENGINE, serviceInfoProvider.getServiceId()).getFullTopicName());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> createToCoreMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createToCoreNotificationsMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());
+        return new InMemoryTbQueueConsumer<>(storage, notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getIntegrationsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.TransportApiRequestMsg>> createTransportApiRequestConsumer() {
-        return new InMemoryTbQueueConsumer<>(transportApiSettings.getRequestsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, transportApiSettings.getRequestsTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.TransportApiResponseMsg>> createTransportApiResponseProducer() {
-        return new InMemoryTbQueueProducer<>(transportApiSettings.getResponsesTopic());
+        return new InMemoryTbQueueProducer<>(storage, transportApiSettings.getResponsesTopic());
     }
 
     @Override
     public TbQueueRequestTemplate<TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> createRemoteJsRequestTemplate() {
-        return null;
+        throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getUsageStatsTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getUsageStatsTopic());
     }
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgConsumer() {
-        return new InMemoryTbQueueConsumer<>(coreSettings.getOtaPackageTopic());
+        return new InMemoryTbQueueConsumer<>(storage, coreSettings.getOtaPackageTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getOtaPackageTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getOtaPackageTopic());
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgProducer() {
-        return new InMemoryTbQueueProducer<>(coreSettings.getUsageStatsTopic());
+        return new InMemoryTbQueueProducer<>(storage, coreSettings.getUsageStatsTopic());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, integrationApiSettings.getRequestsTopic());
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+        return new InMemoryTbQueueProducer<>(storage, integrationApiSettings.getResponsesTopic());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
+        return new InMemoryTbQueueConsumer<>(storage, notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
+        return new InMemoryTbQueueProducer<>(storage, integrationNotificationSettings.getNotificationsTopic());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
+        return new InMemoryTbQueueConsumer<>(storage, HashPartitionService.getIntegrationDownlinkTopic(integrationType));
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
+        return new InMemoryTbQueueProducer<>(storage, integrationNotificationSettings.getDownlinkTopic());
+    }
+
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
+        return new InMemoryTbQueueProducer<>(storage, vcSettings.getTopic());
     }
 
     @Scheduled(fixedRateString = "${queue.in_memory.stats.print-interval-ms:60000}")
