@@ -48,7 +48,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -510,7 +510,7 @@ public abstract class BaseRuleChainServiceTest extends AbstractServiceTest {
     @Test
     public void testFindEdgeRuleChainsByTenantIdAndName() {
         Edge edge = constructEdge(tenantId, "My edge", "default");
-        Edge savedEdge = edgeService.saveEdge(edge, true);
+        Edge savedEdge = edgeService.saveEdge(edge);
 
         String name1 = "Edge RuleChain name 1";
         List<RuleChain> ruleChainsName1 = new ArrayList<>();

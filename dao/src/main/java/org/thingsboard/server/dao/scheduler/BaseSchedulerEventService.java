@@ -34,27 +34,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.OtaPackageInfo;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -62,25 +49,15 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.dao.customer.CustomerDao;
-import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
-import org.thingsboard.server.dao.ota.OtaPackageService;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 
-import static org.thingsboard.server.common.data.DataConstants.UPDATE_FIRMWARE;
-import static org.thingsboard.server.common.data.DataConstants.UPDATE_SOFTWARE;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validateString;
@@ -94,32 +71,16 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     public static final String INCORRECT_SCHEDULER_EVENT_ID = "Incorrect schedulerEventId ";
 
     @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
-    @Autowired
     private SchedulerEventDao schedulerEventDao;
 
     @Autowired
     private SchedulerEventInfoDao schedulerEventInfoDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private CustomerDao customerDao;
-
-    @Autowired
     private EdgeService edgeService;
 
     @Autowired
-    private OtaPackageService otaPackageService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private DeviceProfileService deviceProfileService;
+    private DataValidator<SchedulerEvent> schedulerEventValidator;
 
     @Override
     public SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId) {
@@ -281,96 +242,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
-    private DataValidator<SchedulerEvent> schedulerEventValidator =
-            new DataValidator<SchedulerEvent>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, SchedulerEvent data) {
-                    DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-                    long maxSchedulerEvents = profileConfiguration.getMaxSchedulerEvents();
-                    validateNumberOfEntitiesPerTenant(tenantId, schedulerEventDao, maxSchedulerEvents, EntityType.SCHEDULER_EVENT);
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, SchedulerEvent schedulerEvent) {
-                    if (StringUtils.isEmpty(schedulerEvent.getType())) {
-                        throw new DataValidationException("SchedulerEvent type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(schedulerEvent.getName())) {
-                        throw new DataValidationException("SchedulerEvent name should be specified!");
-                    }
-                    if (schedulerEvent.getSchedule() == null) {
-                        throw new DataValidationException("SchedulerEvent schedule configuration should be specified!");
-                    }
-                    if (schedulerEvent.getConfiguration() == null) {
-                        throw new DataValidationException("SchedulerEvent configuration should be specified!");
-                    }
-                    if (schedulerEvent.getTenantId() == null) {
-                        throw new DataValidationException("SchedulerEvent should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, schedulerEvent.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("SchedulerEvent is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (schedulerEvent.getCustomerId() == null) {
-                        schedulerEvent.setCustomerId(new CustomerId(NULL_UUID));
-                    } else if (!schedulerEvent.getCustomerId().getId().equals(NULL_UUID)) {
-                        Customer customer = customerDao.findById(tenantId, schedulerEvent.getCustomerId().getId());
-                        if (customer == null) {
-                            throw new DataValidationException("Can't assign schedulerEvent to non-existent customer!");
-                        }
-                        if (!customer.getTenantId().equals(schedulerEvent.getTenantId())) {
-                            throw new DataValidationException("Can't assign schedulerEvent to customer from different tenant!");
-                        }
-                    }
-
-                    boolean isFirmwareUpdate = UPDATE_FIRMWARE.equals(schedulerEvent.getType());
-                    boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(schedulerEvent.getType());
-
-                    if (isFirmwareUpdate || isSoftwareUpdate) {
-                        OtaPackageId firmwareId =
-                                JacksonUtil.convertValue(schedulerEvent.getConfiguration().get("msgBody"), OtaPackageId.class);
-                        if (firmwareId == null) {
-                            throw new DataValidationException("SchedulerEvent firmwareId should be specified!");
-                        }
-                        OtaPackageInfo firmwareInfo = otaPackageService.findOtaPackageById(tenantId, firmwareId);
-                        if (firmwareInfo == null) {
-                            throw new DataValidationException("Can't assign non-existent firmware!");
-                        }
-
-                        if ((isFirmwareUpdate && !OtaPackageType.FIRMWARE.equals(firmwareInfo.getType()))
-                                || (isSoftwareUpdate && !OtaPackageType.SOFTWARE.equals(firmwareInfo.getType()))) {
-                            throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
-                        }
-
-                        EntityId originatorId = getOriginatorId(schedulerEvent.getConfiguration());
-
-                        if (originatorId == null) {
-                            throw new DataValidationException("SchedulerEvent originatorId should be specified!");
-                        }
-
-                        switch (originatorId.getEntityType()) {
-                            case DEVICE:
-                                Device device = deviceService.findDeviceById(tenantId, (DeviceId) originatorId);
-                                if (!device.getDeviceProfileId().equals(firmwareInfo.getDeviceProfileId())) {
-                                    throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
-                                }
-                                break;
-                            case DEVICE_PROFILE:
-                                DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, (DeviceProfileId) originatorId);
-                                if (!deviceProfile.getId().equals(firmwareInfo.getDeviceProfileId())) {
-                                    throw new DataValidationException("SchedulerEvent can't assign firmware with different deviceProfile!");
-                                }
-                                break;
-                        }
-                    }
-                }
-            };
-
-    private EntityId getOriginatorId(JsonNode configuration) {
-        EntityId originatorId = null;
+    public static EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
+        EntityId originatorId = eventId;
         if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
             JsonNode entityId = configuration.get("originatorId");
             if (entityId != null) {

@@ -44,6 +44,14 @@ integration:
     enabled: "${INTEGRATION_STATISTICS_ENABLED:true}"
     persist_frequency: "${INTEGRATION_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
+# fix "Cannot get Jedis connection" exception, because we don't use redis in this integration,
+#  but spring-boot-autoconfigure autoconfigure this classes
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
 storage:
   data_folder_path: "${INTEGRATION_STORAGE_DATA_FOLDER_PATH:./}"
   max_file_count: "${INTEGRATION_STORAGE_MAX_FILE_COUNT:100}"

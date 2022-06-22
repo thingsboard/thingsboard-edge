@@ -32,9 +32,10 @@ package org.thingsboard.server.dao.sql.asset;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
 
 import java.util.List;
@@ -43,7 +44,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/21/2017.
  */
-public interface AssetRepository extends PagingAndSortingRepository<AssetEntity, UUID> {
+public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, ExportableEntityRepository<AssetEntity> {
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
@@ -123,4 +124,16 @@ public interface AssetRepository extends PagingAndSortingRepository<AssetEntity,
     List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
 
     Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
+
+    @Query("SELECT a.id FROM AssetEntity a WHERE a.tenantId = :tenantId AND (a.customerId is null OR a.customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
+    @Query("SELECT a.id FROM AssetEntity a WHERE a.tenantId = :tenantId AND a.customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                              @Param("customerId") UUID customerId,
+                                              Pageable pageable);
+
+    @Query("SELECT externalId FROM AssetEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

@@ -39,6 +39,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -48,15 +50,21 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.service.integration.IntegrationManagerService;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseIntegrationControllerTest extends AbstractControllerTest {
+
+    @Autowired
+    IntegrationManagerService integrationManagerService;
 
     private IdComparator<Integration> idComparator = new IdComparator<>();
 
@@ -318,4 +326,108 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    @Test
+    public void testUpdateIntegrationFromLocalToRemoteIsCorrect() throws Exception {
+        Integration integration = new Integration();
+        integration.setName("Local integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setDefaultConverterId(savedConverter.getId());
+        integration.setType(IntegrationType.HTTP);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        integration.setEnabled(true);
+        Integration foundIntegration = doPost("/api/integration", integration, Integration.class);
+
+        Awaitility.await("[PlatformIntegrationService]: try to get local integration by routing key")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                });
+
+        Assert.assertNotNull(
+                integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
+        );
+
+        foundIntegration.setRemote(true);
+        doPost("/api/integration", foundIntegration, Integration.class);
+
+
+        Awaitility.await("[PlatformIntegrationService]: try to get remote integration by routing key")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        return false;
+                    } catch (Exception e) {
+                        return true;
+                    }
+                });
+
+        try {
+            integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+            Assert.fail("Remote integration wasn't deleted from PlatformIntegrationService");
+        } catch (ExecutionException e) {
+            if (!e.getMessage().contains("The integration is executed remotely!")) {
+                Assert.fail("Exception during PlatformIntegrationService execution! " + e.getMessage());
+            }
+        }
+
+    }
+
+    @Test
+    public void testUpdateIntegrationFromRemoteToLocalIsCorrect() throws Exception {
+        Integration integration = new Integration();
+        integration.setName("Local integration");
+        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setDefaultConverterId(savedConverter.getId());
+        integration.setType(IntegrationType.HTTP);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        integration.setEnabled(true);
+        integration.setRemote(true);
+        Integration foundIntegration = doPost("/api/integration", integration, Integration.class);
+
+        Awaitility.await("[PlatformIntegrationService]: try to get local integration by routing key")
+                .atLeast(100, TimeUnit.MILLISECONDS)
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        return false;
+                    } catch (Exception e) {
+                        return true;
+                    }
+                });
+
+        try {
+            integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+            Assert.fail("Expected that remote integration is not present in PlatformIntegrationService but it is not!");
+        } catch (ExecutionException e) {
+            if (!e.getMessage().contains("The integration is executed remotely!")) {
+                Assert.fail("Exception during PlatformIntegrationService execution! " + e.getMessage());
+            }
+        }
+
+        foundIntegration.setRemote(false);
+        doPost("/api/integration", foundIntegration, Integration.class);
+
+        Awaitility.await("[PlatformIntegrationService]: try to get remote integration by routing key")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get();
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                });
+
+        Assert.assertNotNull(
+                "Expected that local integration is present in PlatformIntegrationService but it is not!",
+                integrationManagerService.getIntegrationByRoutingKey(foundIntegration.getRoutingKey()).get()
+        );
+    }
 }

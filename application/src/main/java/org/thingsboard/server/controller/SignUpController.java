@@ -70,7 +70,7 @@ import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParam
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.config.SignUpConfig;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.data.RecaptchaValidationResult;
@@ -459,7 +459,7 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Check privacy policy (privacyPolicyAccepted)",
             notes = "Checks that current user accepted the privacy policy.", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/privacyPolicyAccepted", method = RequestMethod.GET)
     public @ResponseBody Boolean privacyPolicyAccepted() throws ThingsboardException {
         try {
@@ -473,7 +473,7 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Accept privacy policy (acceptPrivacyPolicy)",
             notes = "Accept privacy policy by the current user.", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/acceptPrivacyPolicy", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
@@ -517,7 +517,7 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Check Terms Of User (termsOfUseAccepted)",
             notes = "Checks that current user accepted the privacy policy.", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/termsOfUseAccepted", method = RequestMethod.GET)
     public @ResponseBody
     Boolean termsOfUseAccepted() throws ThingsboardException {
@@ -532,7 +532,7 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Accept Terms of Use (acceptTermsOfUse)",
             notes = "Accept Terms of Use by the current user.", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/acceptTermsOfUse", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody

@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -67,7 +68,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
     public CustomerUserPermissions() {
         super();
         put(Resource.PROFILE, TenantAdminPermissions.genericPermissionChecker);
-        put(Resource.ALARM, TenantAdminPermissions.tenantStandaloneEntityPermissionChecker);
+        put(Resource.ALARM, customerAlarmPermissionChecker);
         put(Resource.ASSET, customerGroupEntityPermissionChecker);
         put(Resource.DEVICE, customerGroupEntityPermissionChecker);
         put(Resource.CUSTOMER, customerGroupEntityPermissionChecker);
@@ -91,6 +92,28 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.GROUP_PERMISSION, customerGroupPermissionEntityChecker);
         put(Resource.AUDIT_LOG, TenantAdminPermissions.genericPermissionChecker);
     }
+
+    private final PermissionChecker customerAlarmPermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) throws ThingsboardException {
+            if (!user.getTenantId().equals(entity.getTenantId())) {
+                return false;
+            }
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            if (!(user.getUserPermissions().hasGenericPermission(resource, operation))) {
+                return false;
+            } else {
+                return entity instanceof HasCustomerId &&
+                        (((HasCustomerId) entity).getCustomerId().equals(user.getCustomerId()));
+            }
+        }
+    };
 
     private final PermissionChecker customerStandaloneEntityPermissionChecker = new PermissionChecker() {
 

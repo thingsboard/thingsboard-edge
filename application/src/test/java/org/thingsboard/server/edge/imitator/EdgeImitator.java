@@ -107,6 +107,9 @@ public class EdgeImitator {
     @Getter
     private List<AbstractMessage> downlinkMsgs;
 
+    @Getter
+    private UplinkResponseMsg latestResponseMsg;
+
     private boolean connected = false;
 
     public EdgeImitator(String host, int port, String routingKey, String routingSecret) throws NoSuchFieldException, IllegalAccessException {
@@ -151,6 +154,7 @@ public class EdgeImitator {
 
     private void onUplinkResponse(UplinkResponseMsg msg) {
         log.info("onUplinkResponse: {}", msg);
+        latestResponseMsg = msg;
         responsesLatch.countDown();
     }
 

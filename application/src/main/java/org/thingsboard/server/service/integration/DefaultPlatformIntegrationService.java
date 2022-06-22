@@ -31,62 +31,25 @@
 package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.gcloud.pubsub.PubSubIntegration;
-import org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration;
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.IntegrationStatistics;
-import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
-import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.aws.kinesis.AwsKinesisIntegration;
-import org.thingsboard.integration.aws.sqs.AwsSqsIntegration;
-import org.thingsboard.integration.azure.AzureEventHubIntegration;
-import org.thingsboard.integration.coap.CoapIntegration;
-import org.thingsboard.integration.http.basic.BasicHttpIntegration;
-import org.thingsboard.integration.http.chirpstack.ChirpStackIntegration;
-import org.thingsboard.integration.http.loriot.LoriotIntegration;
-import org.thingsboard.integration.http.oc.OceanConnectIntegration;
-import org.thingsboard.integration.http.sigfox.SigFoxIntegration;
-import org.thingsboard.integration.http.thingpark.ThingParkIntegration;
-import org.thingsboard.integration.http.thingpark.ThingParkIntegrationEnterprise;
-import org.thingsboard.integration.http.tmobile.TMobileIotCdpIntegration;
-import org.thingsboard.integration.kafka.basic.BasicKafkaIntegration;
-import org.thingsboard.integration.mqtt.aws.AwsIotIntegration;
-import org.thingsboard.integration.mqtt.azure.AzureIotHubIntegration;
-import org.thingsboard.integration.mqtt.basic.BasicMqttIntegration;
-import org.thingsboard.integration.mqtt.ibm.IbmWatsonIotIntegration;
-import org.thingsboard.integration.mqtt.ttn.TtnIntegration;
-import org.thingsboard.integration.opcua.OpcUaIntegration;
-import org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
@@ -97,48 +60,46 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
-import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
-import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
-import org.thingsboard.server.common.transport.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.transport.util.JsonUtils;
+import org.thingsboard.server.common.util.KvProtoUtil;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.gen.integration.TbIntegrationTsDataProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
@@ -148,24 +109,19 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
-import org.thingsboard.server.queue.discovery.TbApplicationEventListener;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.integration.rpc.IntegrationRpcService;
 import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
-import org.thingsboard.server.utils.EventDeduplicationExecutor;
 
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -173,11 +129,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
+import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -186,7 +142,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @TbCoreComponent
 @Service
 @Data
-public class DefaultPlatformIntegrationService extends TbApplicationEventListener<PartitionChangeEvent> implements PlatformIntegrationService {
+public class DefaultPlatformIntegrationService implements PlatformIntegrationService {
 
     private static final ReentrantLock entityCreationLock = new ReentrantLock();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -228,7 +184,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     private TelemetrySubscriptionService telemetrySubscriptionService;
 
     @Autowired
-    private IntegrationRpcService integrationRpcService;
+    private RemoteIntegrationRpcService remoteIntegrationRpcService;
 
     @Autowired
     private DeviceService deviceService;
@@ -260,16 +216,13 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     @Autowired
     private DefaultTbDeviceProfileCache deviceProfileCache;
 
-    @Autowired(required = false)
-    private CoapServerService coapServerService;
-
-    @Value("${transport.rate_limits.enabled}")
+    @Value("${integrations.rate_limits.enabled}")
     private boolean rateLimitEnabled;
 
-    @Value("${transport.rate_limits.tenant}")
+    @Value("${integrations.rate_limits.tenant}")
     private String perTenantLimitsConf;
 
-    @Value("${transport.rate_limits.tenant}")
+    @Value("${integrations.rate_limits.tenant}")
     private String perDevicesLimitsConf;
 
     @Value("${integrations.reinit.enabled:false}")
@@ -287,19 +240,9 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
 
-    @Value("${integrations.allow_resource_intensive:true}")
-    private boolean allowResourceIntensive;
-
-    private ScheduledExecutorService statisticsExecutorService;
-    private ScheduledExecutorService reinitExecutorService;
-    private ListeningExecutorService refreshExecutorService;
     private ExecutorService callbackExecutor;
 
     private final Gson gson = new Gson();
-    private final ConcurrentMap<IntegrationId, ComponentLifecycleEvent> integrationEvents = new ConcurrentHashMap<>();
-    private final ConcurrentMap<IntegrationId, Pair<ThingsboardPlatformIntegration<?>, IntegrationContext>> integrationsByIdMap = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, ThingsboardPlatformIntegration<?>> integrationsByRoutingKeyMap = new ConcurrentHashMap<>();
-    private volatile EventDeduplicationExecutor<Set<TopicPartitionInfo>> deduplicationExecutor;
     private volatile Set<TopicPartitionInfo> myPartitions = ConcurrentHashMap.newKeySet();
 
     private ConcurrentMap<TenantId, TbRateLimits> perTenantLimits = new ConcurrentHashMap<>();
@@ -316,270 +259,170 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
-        refreshExecutorService = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(4, "default-integration-refresh"));
-        deduplicationExecutor = new EventDeduplicationExecutor<>(DefaultPlatformIntegrationService.class.getSimpleName(), refreshExecutorService, this::refreshAllIntegrations);
-        if (reinitEnabled) {
-            reinitExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-reinit"));
-            reinitExecutorService.scheduleAtFixedRate(this::reInitIntegrations, reinitFrequency, reinitFrequency, TimeUnit.MILLISECONDS);
-        }
-        if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("default-integration-stats"));
-            statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
-        }
     }
 
     @PreDestroy
     public void destroy() {
-        if (statisticsEnabled) {
-            statisticsExecutorService.shutdown();
-        }
-        if (reinitEnabled) {
-            reinitExecutorService.shutdownNow();
-        }
-        integrationsByIdMap.values().forEach(v -> v.getFirst().destroy());
-        integrationsByIdMap.clear();
-        integrationsByRoutingKeyMap.clear();
-        refreshExecutorService.shutdownNow();
-    }
-
-    @Override
-    public void validateIntegrationConfiguration(Integration integration) {
-        if (StringUtils.isEmpty(integration.getName())) {
-            throw new DataValidationException("Integration name should be specified!");
-        }
-        if (integration.getType() == null) {
-            throw new DataValidationException("Integration type should be specified!");
-        }
-        if (StringUtils.isEmpty(integration.getRoutingKey())) {
-            throw new DataValidationException("Integration routing key should be specified!");
-        }
-        if (!integration.getType().isRemoteOnly()) {
-            ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-            platformIntegration.validateConfiguration(integration, allowLocalNetworkHosts);
+        if (callbackExecutor != null) {
+            callbackExecutor.shutdownNow();
         }
     }
 
     @Override
-    public void checkIntegrationConnection(Integration integration) throws Exception {
-        ThingsboardPlatformIntegration platformIntegration = createThingsboardPlatformIntegration(integration);
-        platformIntegration.checkConnection(integration, new LocalIntegrationContext(contextComponent, integration));
+    public void processUplinkData(IntegrationInfo integration, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+        Device device = getOrCreateDevice(integration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
+
+        UUID sessionId = integration.getId().getId(); //for local integration context sessionId is exact integrationId
+        TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
+                .setSessionIdMSB(sessionId.getMostSignificantBits())
+                .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
+                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
+                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
+                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
+                .setDeviceName(device.getName())
+                .setDeviceType(device.getType())
+                .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
+                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
+
+        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
+            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
+            builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
+        }
+
+        TransportProtos.SessionInfoProto sessionInfo = builder.build();
+
+        if (data.hasPostTelemetryMsg()) {
+            process(sessionInfo, data.getPostTelemetryMsg(), callback);
+        }
+
+        if (data.hasPostAttributesMsg()) {
+            process(sessionInfo, data.getPostAttributesMsg(), callback);
+        }
     }
 
     @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration) {
-        return createIntegration(configuration, false);
-    }
+    public void processUplinkData(IntegrationInfo configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
+        Asset asset = getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
-    private ListenableFuture<ThingsboardPlatformIntegration> createIntegration(Integration configuration, boolean forceReinit) {
-        if (configuration.getType().isSingleton()) {
-            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, configuration.getTenantId(), configuration.getId());
-            if (!myPartitions.contains(tpi)) {
-                return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-            }
+        if (data.hasPostTelemetryMsg()) {
+            data.getPostTelemetryMsg().getTsKvListList()
+                    .forEach(tsKv -> {
+                        TbMsgMetaData metaData = new TbMsgMetaData();
+                        metaData.putValue("assetName", data.getAssetName());
+                        metaData.putValue("assetType", data.getAssetType());
+                        metaData.putValue("ts", tsKv.getTs() + "");
+                        JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
+                        process(asset.getTenantId(), tbMsg, callback);
+                    });
         }
-        if (configuration.isRemote()) {
-            return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-        }
-        if (!configuration.isEnabled()) {
-            return Futures.immediateFailedFuture(new ThingsboardException("The integration is disabled!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-        }
-        return refreshExecutorService.submit(() -> getOrCreateThingsBoardPlatformIntegration(configuration, forceReinit));
-    }
 
+        if (data.hasPostAttributesMsg()) {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("assetName", data.getAssetName());
+            metaData.putValue("assetType", data.getAssetType());
+            JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
+            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
+            process(asset.getTenantId(), tbMsg, callback);
+        }
+    }
 
     @Override
-    public void updateIntegration(Integration configuration) {
-        if (configuration.isRemote()) {
-            integrationRpcService.updateIntegration(configuration);
+    public void processUplinkData(IntegrationInfo integrationInfo, EntityViewDataProto data, IntegrationCallback<Void> callback) {
+        Device device = getOrCreateDevice(integrationInfo, data.getDeviceName(), data.getDeviceType(), null, null, null);
+        getOrCreateEntityView(integrationInfo, device, data);
+        callback.onSuccess(null);
+    }
+
+    @Override
+    public void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback callback) {
+        process(info.getTenantId(), data, callback);
+    }
+
+    @Override
+    public void processUplinkData(TbIntegrationEventProto data, IntegrationApiCallback callback) {
+        TenantId tenantId = new TenantId(new UUID(data.getTenantIdMSB(), data.getTenantIdLSB()));
+        var eventSource = data.getSource();
+        EntityId entityid = null;
+        switch (eventSource) {
+            case DEVICE:
+                Device device = deviceService.findDeviceByTenantIdAndName(tenantId, data.getDeviceName());
+                if (device != null) {
+                    entityid = device.getId();
+                }
+                break;
+            case INTEGRATION:
+                entityid = new IntegrationId(new UUID(data.getEventSourceIdMSB(), data.getEventSourceIdLSB()));
+                break;
+            case UPLINK_CONVERTER:
+            case DOWNLINK_CONVERTER:
+                entityid = new ConverterId(new UUID(data.getEventSourceIdMSB(), data.getEventSourceIdLSB()));
+                break;
+        }
+        if (entityid != null) {
+            saveEvent(tenantId, entityid, data, callback);
         } else {
-            if (configuration.getType().isSingleton()) {
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, configuration.getTenantId(), configuration.getId());
-                if (!myPartitions.contains(tpi)) {
-                    return;
-                }
-            }
-            if (configuration.isEnabled()) {
-                refreshExecutorService.submit(() -> {
-                    Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(configuration.getId());
-                    if (integration != null) {
-                        synchronized (integration) {
-                            try {
-                                IntegrationContext newCtx = new LocalIntegrationContext(contextComponent, configuration);
-                                integrationsByIdMap.put(configuration.getId(), Pair.of(integration.getFirst(), newCtx));
-                                integration.getFirst().update(new TbIntegrationInitParams(newCtx,
-                                        configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                                actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
-                                integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.UPDATED);
-                            } catch (Exception e) {
-                                integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
-                                actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
-                            }
-                        }
-                    } else {
-                        getOrCreateThingsBoardPlatformIntegration(configuration, false);
-                    }
-                });
-            } else {
-                stopIntegration(configuration.getId(), ComponentLifecycleEvent.STOPPED);
-            }
+            callback.onSuccess(null);
         }
     }
 
     @Override
-    public ListenableFuture<Void> deleteIntegration(IntegrationId integrationId) {
-        return stopIntegration(integrationId, ComponentLifecycleEvent.DELETED);
-    }
+    public void processUplinkData(TbIntegrationTsDataProto data, IntegrationApiCallback integrationApiCallback) {
+        TenantId tenantId = new TenantId(new UUID(data.getTenantIdMSB(), data.getTenantIdLSB()));
+        var eventSource = data.getSource();
+        EntityId entityid;
+        switch (eventSource) {
+            case INTEGRATION:
+                entityid = new IntegrationId(new UUID(data.getEntityIdMSB(), data.getEntityIdLSB()));
+                break;
+            case UPLINK_CONVERTER:
+            case DOWNLINK_CONVERTER:
+                entityid = new ConverterId(new UUID(data.getEntityIdMSB(), data.getEntityIdLSB()));
+                break;
+            default:
+                throw new RuntimeException("Not supported!");
+        }
 
-    private ListenableFuture<Void> stopIntegration(IntegrationId integrationId, ComponentLifecycleEvent event) {
-        return refreshExecutorService.submit(() -> {
-            Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.remove(integrationId);
-            integrationEvents.remove(integrationId);
-            if (integration != null) {
-                Integration configuration = integration.getFirst().getConfiguration();
-                try {
-                    integrationsByRoutingKeyMap.remove(configuration.getRoutingKey());
-                    integration.getFirst().destroy();
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, null);
-                } catch (Exception e) {
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, e);
-                    throw e;
-                }
+        List<TsKvEntry> statistics = KvProtoUtil.toTsKvEntityList(data.getTsDataList());
+        telemetrySubscriptionService.saveAndNotifyInternal(tenantId, entityid, statistics, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Integer result) {
+                log.trace("[{}] Persisted statistics telemetry: {}", entityid, statistics);
             }
-            return null;
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.warn("[{}] Failed to persist statistics telemetry: {}", entityid, statistics, t);
+            }
         });
     }
 
-    @Override
-    public ListenableFuture<ThingsboardPlatformIntegration> getIntegrationByRoutingKey(String key) {
-        ThingsboardPlatformIntegration<?> result = integrationsByRoutingKeyMap.get(key);
-        if (result == null) {
-            Optional<Integration> configurationOpt = integrationService.findIntegrationByRoutingKey(TenantId.SYS_TENANT_ID, key);
-            if (configurationOpt.isPresent()) {
-                Integration integration = configurationOpt.get();
-                if (integration.isRemote()) {
-                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is executed remotely!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-                }
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
-                if (integration.getType().isSingleton() && !myPartitions.contains(tpi)) {
-                    return Futures.immediateFailedFuture(new ThingsboardException("Singleton integration already present on another node!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-                }
-                if (!integration.isEnabled()) {
-                    return Futures.immediateFailedFuture(new ThingsboardException("The integration is disabled!", ThingsboardErrorCode.INVALID_ARGUMENTS));
-                }
-                return Futures.immediateFailedFuture(new ThingsboardException("Integration is not present in routing key map!", ThingsboardErrorCode.GENERAL));
-            } else {
-                return Futures.immediateFailedFuture(new ThingsboardException("Failed to find integration by routing key!", ThingsboardErrorCode.ITEM_NOT_FOUND));
-            }
-        } else {
-            return Futures.immediateFuture(result);
-        }
-    }
-
-    @Override
-    public void onQueueMsg(TransportProtos.IntegrationDownlinkMsgProto msgProto, TbCallback callback) {
+    private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
-            TenantId tenantId = new TenantId(new UUID(msgProto.getTenantIdMSB(), msgProto.getTenantIdLSB()));
-            IntegrationId integrationId = new IntegrationId(new UUID(msgProto.getIntegrationIdMSB(), msgProto.getIntegrationIdLSB()));
-            IntegrationDownlinkMsg msg = new DefaultIntegrationDownlinkMsg(tenantId, integrationId, TbMsg.fromBytes(ServiceQueue.MAIN, msgProto.getData().toByteArray(), TbMsgCallback.EMPTY), null);
-            Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integration = integrationsByIdMap.get(integrationId);
-            if (integration == null) {
-                boolean remoteIntegrationDownlink = integrationRpcService.handleRemoteDownlink(msg);
-                if (!remoteIntegrationDownlink) {
-                    Integration configuration = integrationService.findIntegrationById(TenantId.SYS_TENANT_ID, integrationId);
-                    DonAsynchron.withCallback(createIntegration(configuration), i -> {
-                        onMsg(i, msg);
-                        if (callback != null) {
-                            callback.onSuccess();
-                        }
-                    }, e -> {
-                        if (callback != null) {
-                            callback.onFailure(e);
-                        }
-                    }, refreshExecutorService);
-                    return;
-                }
+            Event event = new Event();
+            event.setTenantId(tenantId);
+            event.setEntityId(entityId);
+            event.setType(proto.getType());
+            event.setUid(proto.getUid());
+            event.setBody(mapper.readTree(proto.getData()));
+            DonAsynchron.withCallback(eventService.saveAsync(event), callback::onSuccess, callback::onError);
+        } catch (IOException e) {
+            log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
+            callback.onError(e);
+        } catch (Exception t) {
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
+            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("event_unq_key")) {
+                /* Catch exception to avoid endless loop in case:
+                ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
+                Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
+                 */
+                log.error("[{}] Failed to save event!", proto.getData(), e);
+                callback.onSuccess(null);
             } else {
-                onMsg(integration.getFirst(), msg);
+                callback.onError(t);
+                throw t;
             }
-            if (callback != null) {
-                callback.onSuccess();
-            }
-        } catch (Exception e) {
-            if (callback != null) {
-                callback.onFailure(e);
-            }
-            throw handleException(e);
-        }
-    }
-
-    private void onMsg(ThingsboardPlatformIntegration<?> integration, IntegrationDownlinkMsg msg) {
-        if (!integrationEvents.getOrDefault(msg.getIntegrationId(), ComponentLifecycleEvent.FAILED).equals(ComponentLifecycleEvent.FAILED)) {
-            integration.onDownlinkMsg(msg);
-        }
-    }
-
-    private void persistStatistics() {
-        String serviceId = serviceInfoProvider.getServiceId();
-        integrationsByIdMap.forEach((id, integration) -> {
-            long ts = System.currentTimeMillis();
-            IntegrationStatistics statistics = integration.getFirst().popStatistics();
-            try {
-                Event event = new Event();
-                event.setEntityId(id);
-                event.setTenantId(integration.getFirst().getConfiguration().getTenantId());
-                event.setType(DataConstants.STATS);
-                event.setBody(toBodyJson(serviceId, statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
-                eventService.saveAsync(event);
-
-                ComponentLifecycleEvent latestEvent = integrationEvents.get(id);
-
-                List<TsKvEntry> statsTs = new ArrayList<>();
-                statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_messagesCount", statistics.getMessagesProcessed())));
-                statsTs.add(new BasicTsKvEntry(ts, new LongDataEntry(serviceId + "_errorsCount", statistics.getErrorsOccurred())));
-                statsTs.add(new BasicTsKvEntry(ts, new StringDataEntry(serviceId + "_state", latestEvent != null ? latestEvent.name() : "N/A")));
-                telemetrySubscriptionService.saveAndNotifyInternal(integration.getFirst().getConfiguration().getTenantId(), id, statsTs, new FutureCallback<Integer>() {
-                    @Override
-                    public void onSuccess(@Nullable Integer result) {
-                        log.trace("[{}] Persisted statistics telemetry: {}", id, statistics);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        log.warn("[{}] Failed to persist statistics telemetry: {}", id, statistics, t);
-                    }
-                });
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist statistics: {}", id, statistics, e);
-            }
-        });
-    }
-
-    private JsonNode toBodyJson(String serviceId, long messagesProcessed, long errorsOccurred) {
-        return mapper.createObjectNode().put("server", serviceId).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
-    }
-
-    private TBUplinkDataConverter getUplinkDataConverter(Integration integration) {
-        return dataConverterService.getUplinkConverterById(integration.getTenantId(), integration.getDefaultConverterId())
-                .orElseThrow(() -> new ThingsboardRuntimeException("Converter not found!", ThingsboardErrorCode.ITEM_NOT_FOUND));
-    }
-
-    private TBDownlinkDataConverter getDownlinkDataConverter(Integration integration) {
-        return dataConverterService.getDownlinkConverterById(integration.getTenantId(), integration.getDownlinkConverterId())
-                .orElse(null);
-    }
-
-    private RuntimeException handleException(Exception e) {
-        if (e instanceof RuntimeException) {
-            throw (RuntimeException) e;
-        } else {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
-        if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
-            deduplicationExecutor.submit(partitionChangeEvent.getPartitions());
         }
     }
 
@@ -627,7 +470,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
 
     @Override
-    public Device getOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
+    public Device getOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null) {
             entityCreationLock.lock();
@@ -641,7 +484,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     @Override
-    public Asset getOrCreateAsset(Integration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
+    public Asset getOrCreateAsset(IntegrationInfo integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null) {
             entityCreationLock.lock();
@@ -655,7 +498,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
     @Override
-    public EntityView getOrCreateEntityView(Integration configuration, Device device, EntityViewDataProto proto) {
+    public EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, EntityViewDataProto proto) {
         String entityViewName = proto.getViewName();
         EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
         if (entityView == null) {
@@ -683,7 +526,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return entityView;
     }
 
-    private Device processGetOrCreateDevice(Integration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
+    private Device processGetOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
@@ -713,7 +556,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return device;
     }
 
-    private Asset processGetOrCreateAsset(Integration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
+    private Asset processGetOrCreateAsset(IntegrationInfo integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null && integration.isAllowCreateDevicesOrAssets()) {
             asset = new Asset();
@@ -741,7 +584,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return asset;
     }
 
-    private Customer getOrCreateCustomer(Integration integration, String customerName) {
+    private Customer getOrCreateCustomer(IntegrationInfo integration, String customerName) {
         Customer customer;
         Optional<Customer> customerOptional = customerService.findCustomerByTenantIdAndTitle(integration.getTenantId(), customerName);
         if (customerOptional.isPresent()) {
@@ -756,10 +599,10 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return customer;
     }
 
-    private void addEntityToEntityGroup(String groupName, Integration integration, EntityId entityId, EntityId parentId, EntityType entityType) {
+    private void addEntityToEntityGroup(String groupName, IntegrationInfo integration, EntityId entityId, EntityId parentId, EntityType entityType) {
         TenantId tenantId = integration.getTenantId();
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
-                .findEntityGroupByTypeAndName(tenantId, parentId, entityType, groupName);
+                .findEntityGroupByTypeAndNameAsync(tenantId, parentId, entityType, groupName);
 
         DonAsynchron.withCallback(futureEntityGroup, optionalEntityGroup -> {
             EntityGroup entityGroup =
@@ -776,7 +619,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
-    private void createRelationFromIntegration(Integration integration, EntityId entityId) {
+    private void createRelationFromIntegration(IntegrationInfo integration, EntityId entityId) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(integration.getId());
         relation.setTo(entityId);
@@ -785,23 +628,22 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         relationService.saveRelation(integration.getTenantId(), relation);
     }
 
-    private void pushDeviceCreatedEventToRuleEngine(Integration integration, Device device) {
+    private void pushDeviceCreatedEventToRuleEngine(IntegrationInfo integration, Device device) {
         try {
             DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
             RuleChainId ruleChainId;
-            String queueName;
+            QueueId queueId;
 
             if (deviceProfile == null) {
                 ruleChainId = null;
-                queueName = ServiceQueue.MAIN;
+                queueId = null;
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
-                String defaultQueueName = deviceProfile.getDefaultQueueName();
-                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+                queueId = deviceProfile.getDefaultQueueId();
             }
 
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
+            TbMsg tbMsg = TbMsg.newMsg(queueId, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
                     mapper.writeValueAsString(entityNode), ruleChainId, null);
 
             process(device.getTenantId(), tbMsg, null);
@@ -810,7 +652,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         }
     }
 
-    private void pushAssetCreatedEventToRuleEngine(Integration integration, Asset asset) {
+    private void pushAssetCreatedEventToRuleEngine(IntegrationInfo integration, Asset asset) {
         try {
             ObjectNode entityNode = mapper.valueToTree(asset);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
@@ -821,7 +663,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
     }
 
 
-    private void pushEntityGroupCreatedEventToRuleEngine(Integration integration, EntityGroup entityGroup) {
+    private void pushEntityGroupCreatedEventToRuleEngine(IntegrationInfo integration, EntityGroup entityGroup) {
         try {
             ObjectNode entityNode = mapper.valueToTree(entityGroup);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
@@ -831,7 +673,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         }
     }
 
-    private void pushCustomerCreatedEventToRuleEngine(Integration integration, Customer customer) {
+    private void pushCustomerCreatedEventToRuleEngine(IntegrationInfo integration, Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
@@ -841,15 +683,15 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         }
     }
 
-    private TbMsgMetaData deviceActionTbMsgMetaData(Integration integration, Device device) {
+    private TbMsgMetaData deviceActionTbMsgMetaData(IntegrationInfo integration, Device device) {
         return getActionTbMsgMetaData(integration, device.getCustomerId());
     }
 
-    private TbMsgMetaData assetActionTbMsgMetaData(Integration integration, Asset asset) {
+    private TbMsgMetaData assetActionTbMsgMetaData(IntegrationInfo integration, Asset asset) {
         return getActionTbMsgMetaData(integration, asset.getCustomerId());
     }
 
-    private TbMsgMetaData getActionTbMsgMetaData(Integration integration, CustomerId customerId) {
+    private TbMsgMetaData getActionTbMsgMetaData(IntegrationInfo integration, CustomerId customerId) {
         TbMsgMetaData metaData = getTbMsgMetaData(integration);
         if (customerId != null && !customerId.isNullUid()) {
             metaData.putValue("customerId", customerId.toString());
@@ -857,7 +699,7 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
         return metaData;
     }
 
-    private TbMsgMetaData getTbMsgMetaData(Integration integration) {
+    private TbMsgMetaData getTbMsgMetaData(IntegrationInfo integration) {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("integrationId", integration.getId().toString());
         metaData.putValue("integrationName", integration.getName());
@@ -881,25 +723,24 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
         RuleChainId ruleChainId;
-        String queueName;
+        QueueId queueId;
 
         if (deviceProfile == null) {
             log.warn("[{}] Device profile is null!", deviceProfileId);
             ruleChainId = null;
-            queueName = ServiceQueue.MAIN;
+            queueId = null;
         } else {
             ruleChainId = deviceProfile.getDefaultRuleChainId();
-            String defaultQueueName = deviceProfile.getDefaultQueueName();
-            queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+            queueId = deviceProfile.getDefaultQueueId();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueId, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
     private void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, tbMsg.getOriginator());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueId(), tenantId, tbMsg.getOriginator());
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();
@@ -952,154 +793,6 @@ public class DefaultPlatformIntegrationService extends TbApplicationEventListene
 
     private UUID toId(SessionInfoProto sessionInfo) {
         return new UUID(sessionInfo.getSessionIdMSB(), sessionInfo.getSessionIdLSB());
-    }
-
-    private synchronized void refreshAllIntegrations(Set<TopicPartitionInfo> partitions) {
-        Set<TopicPartitionInfo> newPartitions = ConcurrentHashMap.newKeySet();
-        newPartitions.addAll(partitions);
-        myPartitions = newPartitions;
-        Set<IntegrationId> currentIntegrationIds = new HashSet<>(integrationsByIdMap.keySet());
-        for (IntegrationId integrationId : currentIntegrationIds) {
-            Integration integration = integrationsByIdMap.get(integrationId).getFirst().getConfiguration();
-            if (integration.getType().isSingleton()) {
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
-                if (!myPartitions.contains(tpi)) {
-                    stopIntegration(integrationId, ComponentLifecycleEvent.STOPPED);
-                }
-            }
-        }
-
-        List<Integration> allIntegrations = integrationService.findAllIntegrations(TenantId.SYS_TENANT_ID);
-        try {
-            List<ListenableFuture<?>> futures = Lists.newArrayList();
-            for (Integration integration : allIntegrations) {
-                try {
-                    //Initialize the integration that belongs to current node only
-                    if (!integration.isRemote()) {
-                        if (!integration.getType().isSingleton()) {
-                            futures.add(createIntegration(integration));
-                        } else {
-                            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, integration.getTenantId(), integration.getId());
-                            if (myPartitions.contains(tpi)) {
-                                futures.add(createIntegration(integration));
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    log.info("[{}] Unable to initialize integration {}", integration.getId(), integration.getName(), e);
-                }
-            }
-            Futures.successfulAsList(futures).get();
-            log.info("{} Integrations refreshed", futures.size());
-        } catch (Throwable th) {
-            log.error("Could not init integrations", th);
-        }
-        initialized = true;
-    }
-
-    private void reInitIntegrations() {
-        if (initialized) {
-            integrationsByIdMap.forEach((integrationId, integration) -> {
-                if (integrationEvents.getOrDefault(integrationId, ComponentLifecycleEvent.STARTED).equals(ComponentLifecycleEvent.FAILED)) {
-                    DonAsynchron.withCallback(createIntegration(integration.getFirst().getConfiguration(), true),
-                            tmp -> log.debug("[{}] Re-initialized the integration {}", integration.getFirst().getConfiguration().getId(), integration.getFirst().getConfiguration().getName()),
-                            e -> log.info("[{}] Unable to initialize integration {}", integration.getFirst().getConfiguration().getId(), integration.getFirst().getConfiguration().getName(), e));
-                }
-            });
-        }
-    }
-
-    private ThingsboardPlatformIntegration<?> getOrCreateThingsBoardPlatformIntegration(Integration configuration, boolean forceReinit) {
-        Pair<ThingsboardPlatformIntegration<?>, IntegrationContext> integrationPair;
-        boolean newIntegration = false;
-        synchronized (integrationsByIdMap) {
-            integrationPair = integrationsByIdMap.get(configuration.getId());
-            if (integrationPair == null) {
-                IntegrationContext context = new LocalIntegrationContext(contextComponent, configuration);
-                ThingsboardPlatformIntegration<?> integration = newIntegration(context, configuration);
-                integrationPair = Pair.of(integration, context);
-                integrationsByIdMap.put(configuration.getId(), integrationPair);
-                integrationsByRoutingKeyMap.putIfAbsent(configuration.getRoutingKey(), integration);
-                newIntegration = true;
-            }
-        }
-
-        if (newIntegration || forceReinit) {
-            synchronized (integrationPair) {
-                try {
-                    integrationPair.getFirst().init(new TbIntegrationInitParams(integrationPair.getSecond(), configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
-                    integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.STARTED);
-                } catch (Exception e) {
-                    integrationEvents.put(configuration.getId(), ComponentLifecycleEvent.FAILED);
-                    actorContext.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
-                    throw handleException(e);
-                }
-            }
-        }
-        return integrationPair.getFirst();
-    }
-
-    private ThingsboardPlatformIntegration<?> newIntegration(IntegrationContext ctx, Integration configuration) {
-        ThingsboardPlatformIntegration<?> platformIntegration = createThingsboardPlatformIntegration(configuration);
-        platformIntegration.validateConfiguration(configuration, allowLocalNetworkHosts);
-        return platformIntegration;
-    }
-
-    private ThingsboardPlatformIntegration<?> createThingsboardPlatformIntegration(Integration integration) {
-        switch (integration.getType()) {
-            case HTTP:
-                return new BasicHttpIntegration();
-            case LORIOT:
-                return new LoriotIntegration();
-            case SIGFOX:
-                return new SigFoxIntegration();
-            case OCEANCONNECT:
-                return new OceanConnectIntegration();
-            case THINGPARK:
-                return new ThingParkIntegration();
-            case TPE:
-                return new ThingParkIntegrationEnterprise();
-            case TMOBILE_IOT_CDP:
-                return new TMobileIotCdpIntegration();
-            case MQTT:
-                return new BasicMqttIntegration();
-            case PUB_SUB:
-                return new PubSubIntegration();
-            case AWS_IOT:
-                return new AwsIotIntegration();
-            case AWS_SQS:
-                return new AwsSqsIntegration();
-            case IBM_WATSON_IOT:
-                return new IbmWatsonIotIntegration();
-            case TTN:
-            case TTI:
-                return new TtnIntegration();
-            case CHIRPSTACK:
-                return new ChirpStackIntegration();
-            case AZURE_EVENT_HUB:
-                return new AzureEventHubIntegration();
-            case AZURE_IOT_HUB:
-                return new AzureIotHubIntegration();
-            case OPC_UA:
-                return new OpcUaIntegration();
-            case AWS_KINESIS:
-                return new AwsKinesisIntegration();
-            case KAFKA:
-                return new BasicKafkaIntegration();
-            case RABBITMQ:
-                return new BasicRabbitMQIntegration();
-            case APACHE_PULSAR:
-                return new BasicPulsarIntegration();
-            case COAP:
-                return new CoapIntegration(coapServerService);
-            case CUSTOM:
-            case TCP:
-            case UDP:
-                throw new RuntimeException("Custom Integrations should be executed remotely!");
-            default:
-                throw new RuntimeException("Not Implemented!");
-        }
     }
 
     private class IntegrationTbQueueCallback implements TbQueueCallback {

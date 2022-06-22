@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.3.4PE-SNAPSHOT</version>
+        <version>3.4.0PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -86,8 +86,8 @@
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v12.16.1</nodeVersion>
-                            <yarnVersion>v1.22.4</yarnVersion>
+                            <nodeVersion>v16.15.1</nodeVersion>
+                            <yarnVersion>v1.22.17</yarnVersion>
                         </configuration>
                     </execution>
                     <execution>
@@ -277,7 +277,7 @@
         <repository>
             <id>jenkins</id>
             <name>Jenkins Repository</name>
-            <url>http://repo.jenkins-ci.org/releases</url>
+            <url>https://repo.jenkins-ci.org/releases</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>

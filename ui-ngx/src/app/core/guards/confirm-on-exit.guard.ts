@@ -93,6 +93,16 @@ export class ConfirmOnExitGuard implements CanDeactivate<HasConfirmForm & HasDir
             } else {
               return of(result);
             }
+          }),
+          map((dialogResult) => {
+            if (dialogResult) {
+              if (component.confirmForm && component.confirmForm()) {
+                component.confirmForm().markAsPristine();
+              } else {
+                component.isDirty = false;
+              }
+            }
+            return dialogResult;
           })
         );
       }

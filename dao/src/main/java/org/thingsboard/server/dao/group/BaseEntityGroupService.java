@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.group;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -42,10 +41,11 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -76,13 +76,14 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,6 +141,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Autowired
     private EdgeService edgeService;
 
+    @Autowired
+    private JpaExecutorService executorService;
+
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupById [{}]", entityGroupId);
@@ -168,12 +172,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
-        new EntityGroupValidator(parentEntityId).validate(entityGroup, data -> tenantId);
+        new EntityGroupValidator().validate(entityGroup, data -> tenantId);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
+            ObjectNode jsonConfiguration = (ObjectNode) JacksonUtil.valueToTree(entityGroupConfiguration);
             jsonConfiguration.putObject("settings");
             jsonConfiguration.putObject("actions");
             entityGroup.setConfiguration(jsonConfiguration);
@@ -189,37 +192,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 throw t;
             }
         }
-        if (entityGroup.getId() == null) {
-            EntityRelation entityRelation = new EntityRelation();
-            entityRelation.setFrom(parentEntityId);
-            entityRelation.setTo(savedEntityGroup.getId());
-            entityRelation.setTypeGroup(RelationTypeGroup.TO_ENTITY_GROUP);
-            entityRelation.setType(ENTITY_GROUP_RELATION_PREFIX + savedEntityGroup.getType().name());
-            relationService.saveRelation(tenantId, entityRelation);
-        }
         return savedEntityGroup;
-    }
-
-    @Override
-    public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
-        log.trace("Executing checkEntityGroup [{}]", entityGroup);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        return relationService.checkRelation(tenantId, parentEntityId, entityGroup.getId(),
-                ENTITY_GROUP_RELATION_PREFIX + entityGroup.getType().name()
-                , RelationTypeGroup.TO_ENTITY_GROUP);
-    }
-
-    @Override
-    public ListenableFuture<Boolean> checkEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroupId entityGroupId, EntityType groupType) {
-        log.trace("Executing checkEntityGroup, entityGroupId [{}], groupType [{}]", entityGroupId, groupType);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        validateEntityId(parentEntityId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        if (groupType == null) {
-            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
-        }
-        return relationService.checkRelation(tenantId, parentEntityId, entityGroupId,
-                ENTITY_GROUP_RELATION_PREFIX + groupType.name()
-                , RelationTypeGroup.TO_ENTITY_GROUP);
     }
 
     @Override
@@ -246,7 +219,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                                                String description, CustomerId publicCustomerId) {
         log.trace("Executing findOrCreateEntityGroup, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
         try {
-            Optional<EntityGroup> entityGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName).get();
+            Optional<EntityGroup> entityGroupOptional = findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName);
             if (entityGroupOptional.isPresent()) {
                 return entityGroupOptional.get();
             } else {
@@ -265,7 +238,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                 entityGroup.setAdditionalInfo(additionalInfo);
                 return saveEntityGroup(tenantId, parentEntityId, entityGroup);
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Unable find or create entity group!", e);
         }
     }
@@ -274,8 +247,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public Optional<EntityGroup> findOwnerEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String groupName) {
         log.trace("Executing findEntityGroup, parentEntityId [{}], groupType [{}], groupName [{}]", parentEntityId, groupType, groupName);
         try {
-            return findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName).get();
-        } catch (InterruptedException | ExecutionException e) {
+            return findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, groupName);
+        } catch (Exception e) {
             throw new RuntimeException("Entity group with name: " + groupName + " and type: " + groupType + " doesn't exist!", e);
         }
     }
@@ -445,7 +418,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing findPublicUserGroup, tenantId [{}], publicCustomerId [{}]", tenantId, publicCustomerId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validateId(publicCustomerId, INCORRECT_CUSTOMER_ID + publicCustomerId);
-        return findEntityGroupByTypeAndName(tenantId, publicCustomerId, EntityType.USER, EntityGroup.GROUP_PUBLIC_USERS_NAME);
+        return findEntityGroupByTypeAndNameAsync(tenantId, publicCustomerId, EntityType.USER, EntityGroup.GROUP_PUBLIC_USERS_NAME);
     }
 
     private GroupPermission findOrCreateUserGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId) {
@@ -525,8 +498,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), relationType);
+        return this.entityGroupDao.findEntityGroupsByType(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), groupType);
     }
 
     @Override
@@ -538,22 +510,43 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validatePageLink(pageLink);
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
         return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, pageLink);
+                parentEntityId.getEntityType(), groupType, pageLink);
     }
 
     @Override
-    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
+    public PageData<EntityGroup> findEntityGroupsByTypeAndPageLink(TenantId tenantId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEntityGroupsByTypeAndPageLink, tenantId [{}], groupType [{}], pageLink [{}]", tenantId, groupType, pageLink);
+        validateEntityId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        return this.entityGroupDao.findEntityGroupsByTypeAndPageLink(tenantId.getId(), groupType, pageLink);
+    }
+
+    @Override
+    public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
+        return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, name);
+    }
+
+    @Override
+    public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
+        log.warn("Executing findEntityGroupByTypeAndNameAsync, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
+        String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
+        return this.entityGroupDao.findEntityGroupByTypeAndNameAsync(tenantId.getId(), parentEntityId.getId(),
+                parentEntityId.getEntityType(), groupType, name);
+    }
+
+    private String validateAndComposeRelationType(EntityId parentEntityId, EntityType groupType, String name) {
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
         validateString(name, "Incorrect name " + name);
-        String relationType = ENTITY_GROUP_RELATION_PREFIX + groupType.name();
-        return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), relationType, name);
+        return ENTITY_GROUP_RELATION_PREFIX + groupType.name();
     }
 
     @Override
@@ -570,27 +563,38 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
+        log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
+        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        for (EntityId entityId : entityIds) {
+            validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+        }
+        var relations = entityIds.stream().map(entityId -> {
+            EntityRelation entityRelation = new EntityRelation();
+            entityRelation.setFrom(entityGroupId);
+            entityRelation.setTo(entityId);
+            entityRelation.setTypeGroup(RelationTypeGroup.FROM_ENTITY_GROUP);
+            entityRelation.setType(EntityRelation.CONTAINS_TYPE);
+            return entityRelation;
+        }).collect(Collectors.toList());
+        relationService.saveRelations(tenantId, relations);
+    }
+
+    @Override
     public void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
         validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
         try {
-            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME).get();
+            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME);
             if (entityGroup.isPresent()) {
                 addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
             } else {
                 throw new DataValidationException("Group All of type " + entityId.getEntityType() + " is absent for entityId " + parentEntityId);
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             log.error("Unable to add entity to group All", e);
         }
-    }
-
-    @Override
-    public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
-        log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        entityIds.forEach(entityId -> addEntityToEntityGroup(tenantId, entityGroupId, entityId));
     }
 
     @Override
@@ -614,7 +618,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
         validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
 
-        if (!isEntityInGroup(entityId, entityGroupId)) {
+        if (!isEntityInGroup(tenantId, entityId, entityGroupId)) {
             throw new IncorrectParameterException(String.format("Entity %s not present in entity group %s.", entityId, entityGroupId));
         }
 
@@ -773,16 +777,22 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityId> findEntityIds(TenantId tenantId, EntityType entityType, EntityGroupId entityGroupId, PageLink pageLink) {
+        log.trace("Executing findEntitiesSync, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
+        return entityGroupDao.findGroupEntityIdsSync(entityType, entityGroupId.getId(), pageLink);
+    }
+
+    @Override
     public ListenableFuture<List<EntityGroupId>> findEntityGroupsForEntity(TenantId tenantId, EntityId entityId) {
-        ListenableFuture<List<EntityRelation>> relations = relationDao.findAllByToAndType(tenantId, entityId,
-                EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
-        return Futures.transform(relations, input -> {
-            List<EntityGroupId> entityGroupIds = new ArrayList<>(input.size());
-            for (EntityRelation relation : input) {
+        return executorService.submit(() -> {
+            var relations = relationDao.findAllByToAndType(tenantId, entityId,
+                    EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+            List<EntityGroupId> entityGroupIds = new ArrayList<>(relations.size());
+            for (EntityRelation relation : relations) {
                 entityGroupIds.add(new EntityGroupId(relation.getFrom().getId()));
             }
             return entityGroupIds;
-        }, MoreExecutors.directExecutor());
+        });
     }
 
     @Override
@@ -810,7 +820,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             throw new DataValidationException("Can't unassign entity group from non-existent edge!");
         }
         try {
-            String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX +  groupType.name();
+            String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
             deleteRelation(tenantId, new EntityRelation(edgeId, entityGroupId, relationType, RelationTypeGroup.EDGE));
         } catch (Exception e) {
             log.warn("[{}] Failed to delete entity group relation. Edge id: [{}]", entityGroupId, edgeId);
@@ -836,7 +846,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<Boolean> checkEdgeEntityGroupById(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
         log.trace("Executing checkEdgeEntityGroupById, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        return relationService.checkRelation(tenantId, edgeId, entityGroupId,
+        return relationService.checkRelationAsync(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.EDGE);
     }
@@ -845,14 +855,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroup(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
         String entityGroupName = String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
-                .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
+                .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
         return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {
             if (optionalEntityGroup != null && optionalEntityGroup.isPresent()) {
                 return Futures.immediateFuture(optionalEntityGroup.get());
             } else {
                 try {
                     ListenableFuture<Optional<EntityGroup>> currentEntityGroupFuture = entityGroupService
-                            .findEntityGroupByTypeAndName(tenantId, edge.getOwnerId(), groupType, entityGroupName);
+                            .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
                     return Futures.transformAsync(currentEntityGroupFuture, currentEntityGroup -> {
                         if (currentEntityGroup.isEmpty()) {
                             EntityGroup entityGroup = createEntityGroup(entityGroupName, edge.getOwnerId(), tenantId);
@@ -880,14 +890,16 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public boolean isEntityInGroup(EntityId entityId, EntityGroupId entityGroupId) {
-        return entityGroupDao.isEntityInGroup(entityId, entityGroupId);
+    public boolean isEntityInGroup(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId) {
+        return relationService.checkRelation(tenantId, entityGroupId, entityId,
+                EntityRelation.CONTAINS_TYPE
+                , RelationTypeGroup.FROM_ENTITY_GROUP);
     }
 
     private ListenableFuture<List<EntityId>> findEntityIds(TenantId tenantId,
                                                            EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
         ListenableFuture<PageData<EntityId>> pageData = entityGroupDao.findGroupEntityIds(groupType, entityGroupId.getId(), pageLink);
-        return Futures.transform(pageData, input -> input.getData(), MoreExecutors.directExecutor());
+        return Futures.transform(pageData, PageData::getData, MoreExecutors.directExecutor());
     }
 
     private List<ColumnConfiguration> getEntityGroupColumns(EntityGroup entityGroup) {
@@ -896,9 +908,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (jsonConfiguration != null) {
             try {
                 EntityGroupConfiguration entityGroupConfiguration =
-                        new ObjectMapper().treeToValue(jsonConfiguration, EntityGroupConfiguration.class);
+                        JacksonUtil.treeToValue(jsonConfiguration, EntityGroupConfiguration.class);
                 columns = entityGroupConfiguration.getColumns();
-            } catch (JsonProcessingException e) {
+            } catch (IllegalArgumentException e) {
                 log.error("Unable to read entity group configuration", e);
                 throw new RuntimeException("Unable to read entity group configuration", e);
             }
@@ -911,40 +923,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {
 
-        private final EntityId parentEntityId;
-
-        EntityGroupValidator(EntityId parentEntityId) {
-            this.parentEntityId = parentEntityId;
-        }
-
         @Override
         protected void validateCreate(TenantId tenantId, EntityGroup entityGroup) {
-            try {
-                findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
-                        d -> {
-                            throw new DataValidationException("Entity group with such name already present in " +
-                                    this.parentEntityId.getEntityType().toString() + "!");
-                        }
-                );
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to validate creation of entity group.", e);
-            }
-        }
-
-        @Override
-        protected void validateUpdate(TenantId tenantId, EntityGroup entityGroup) {
-            try {
-                findEntityGroupByTypeAndName(tenantId, this.parentEntityId, entityGroup.getType(), entityGroup.getName()).get().ifPresent(
-                        d -> {
-                            if (!d.getId().equals(entityGroup.getId())) {
-                                throw new DataValidationException("Entity group with such name already present in " +
-                                        this.parentEntityId.getEntityType().toString() + "!");
-                            }
-                        }
-                );
-            } catch (InterruptedException | ExecutionException e) {
-                log.error("Unable to validate update of entity group.", e);
-            }
         }
 
         @Override

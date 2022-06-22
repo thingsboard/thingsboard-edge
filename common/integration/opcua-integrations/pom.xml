@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.3.4PE-SNAPSHOT</version>
+        <version>3.4.0PE-SNAPSHOT</version>
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.common.integration</groupId>
@@ -67,10 +67,6 @@
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.datastax.oss</groupId>
-            <artifactId>java-driver-core</artifactId>
         </dependency>
     </dependencies>
 

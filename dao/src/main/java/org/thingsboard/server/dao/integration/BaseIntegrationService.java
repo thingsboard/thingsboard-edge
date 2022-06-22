@@ -33,27 +33,21 @@ package org.thingsboard.server.dao.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.converter.Converter;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.dao.converter.ConverterDao;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,10 +59,9 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service
 @Slf4j
-public class BaseIntegrationService extends AbstractEntityService implements IntegrationService {
+public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
     public static final String INCORRECT_CONVERTER_ID = "Incorrect converterId ";
 
@@ -76,27 +69,31 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     private IntegrationDao integrationDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private IntegrationInfoDao integrationInfoDao;
 
     @Autowired
-    private ConverterDao converterDao;
+    private DataValidator<Integration> integrationValidator;
 
-    @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
+    @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
+    @Override
+    public void handleEvictEvent(IntegrationCacheEvictEvent event) {
+        cache.evict(event.getIntegrationId());
+    }
 
     @Override
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
-        return integrationDao.save(integration.getTenantId(), integration);
+        var result = integrationDao.save(integration.getTenantId(), integration);
+        publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+        return result;
     }
 
     @Override
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
-        return integrationDao.findById(tenantId, integrationId.getId());
+        return cache.getAndPutInTransaction(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()), true);
     }
 
     @Override
@@ -143,82 +140,36 @@ public class BaseIntegrationService extends AbstractEntityService implements Int
     }
 
     @Override
+    public List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name) {
+        return integrationDao.findTenantIntegrationsByName(tenantId.getId(), name);
+    }
+
+    @Override
+    @Transactional
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
         deleteEntityRelations(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
+        publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
     }
 
     @Override
+    @Transactional
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
-    private DataValidator<Integration> integrationValidator =
-            new DataValidator<Integration>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, Integration integration) {
-                    DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-                    long maxIntegrations = profileConfiguration.getMaxIntegrations();
-                    validateNumberOfEntitiesPerTenant(tenantId, integrationDao, maxIntegrations, EntityType.INTEGRATION);
-                    integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
-                            d -> {
-                                throw new DataValidationException("Integration with such routing key already exists!");
-                            }
-                    );
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, Integration integration) {
-                    integrationDao.findByRoutingKey(tenantId.getId(), integration.getRoutingKey()).ifPresent(
-                            d -> {
-                                if (!d.getId().equals(integration.getId())) {
-                                    throw new DataValidationException("Integration with such routing key already exists!");
-                                }
-                            }
-                    );
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Integration integration) {
-                    if (StringUtils.isEmpty(integration.getName())) {
-                        throw new DataValidationException("Integration name should be specified!");
-                    }
-                    if (integration.getType() == null) {
-                        throw new DataValidationException("Integration type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(integration.getRoutingKey())) {
-                        throw new DataValidationException("Integration routing key should be specified!");
-                    }
-                    if (integration.getTenantId() == null || integration.getTenantId().isNullUid()) {
-                        throw new DataValidationException("Integration should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, integration.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Integration is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (integration.getDefaultConverterId() == null || integration.getDefaultConverterId().isNullUid()) {
-                        throw new DataValidationException("Integration default converter should be specified!");
-                    } else {
-                        Converter converter = converterDao.findById(tenantId, integration.getDefaultConverterId().getId());
-                        if (converter == null) {
-                            throw new DataValidationException("Integration is referencing to non-existent converter!");
-                        }
-                        if (!converter.getTenantId().equals(integration.getTenantId())) {
-                            throw new DataValidationException("Integration can't have converter from different tenant!");
-                        }
-                    }
-                }
-            };
+    @Override
+    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        log.trace("Executing findAllIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
+        return integrationInfoDao.findAllIntegrationInfos(integrationType, remote, enabled);
+    }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =
-            new PaginatedRemover<TenantId, Integration>() {
+            new PaginatedRemover<>() {
 
                 @Override
                 protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {

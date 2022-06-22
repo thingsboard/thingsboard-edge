@@ -35,7 +35,7 @@ server:
   # Server bind port
   port: "${HTTP_BIND_PORT:8082}"
   tomcat:
-    # Maximum size of data that could be send over HTTP form POST request
+    # Maximum size of data that could be sent over HTTP form POST request
     max-http-form-post-size: "${MAX_HTTP_FORM_POST_SIZE:10000000}" # 10Mb
 
 integration:
@@ -46,11 +46,19 @@ integration:
   statistics:
     # Enable/disable integration statistics
     enabled: "${INTEGRATION_STATISTICS_ENABLED:true}"
-    # Send statistics interval. Dfault value is once per hour
+    # Send statistics interval. Default value is once per hour
     persist_frequency: "${INTEGRATION_STATISTICS_PERSIST_FREQUENCY:3600000}"
 
 # The default timeout for asynchronous requests in milliseconds
 spring.mvc.async.request-timeout: "${SPRING_MVC_ASYNC_REQUEST_TIMEOUT:30000}"
+
+# fix "Cannot get Jedis connection" exception, because we don't use redis in this integration,
+#  but spring-boot-autoconfigure autoconfigure this classes
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
 
 storage:
   # Location of the folder to store data files

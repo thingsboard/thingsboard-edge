@@ -59,7 +59,7 @@ import java.util.Map;
 public class ChirpStackIntegrationController extends BaseIntegrationController {
 
     @ApiOperation(hidden = true, value = "Process request from ChirpStack")
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes"})
     @RequestMapping(value = "/{routingKey}")
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<ResponseEntity> processRequest(
@@ -70,17 +70,7 @@ public class ChirpStackIntegrationController extends BaseIntegrationController {
         log.debug("[{}] Received request: {}", routingKey, msg);
         DeferredResult<ResponseEntity> result = new DeferredResult<>();
 
-        ListenableFuture<ThingsboardPlatformIntegration> integrationFuture = api.getIntegrationByRoutingKey(routingKey);
-
-        DonAsynchron.withCallback(integrationFuture, integration -> {
-            if (checkIntegrationPlatform(result, integration, IntegrationType.CHIRPSTACK)) {
-                return;
-            }
-            api.process(integration, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
-        }, failure -> {
-            log.trace("[{}] Failed to fetch integration by routing key", routingKey, failure);
-            result.setResult(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-        }, api.getCallbackExecutor());
+        api.process(IntegrationType.CHIRPSTACK, routingKey, result, new JsonHttpIntegrationMsg(requestHeaders, msg, result));
 
         return result;
     }

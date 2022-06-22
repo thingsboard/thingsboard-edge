@@ -33,6 +33,7 @@ package org.thingsboard.server.service.security.permission;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -62,6 +63,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     public TenantAdminPermissions() {
         super();
+        //TODO: entities-version-merge
+        put(Resource.ADMIN_SETTINGS, PermissionChecker.allowAllPermissionChecker);
         put(Resource.PROFILE, genericPermissionChecker);
         put(Resource.ALARM, tenantStandaloneEntityPermissionChecker);
         put(Resource.ASSET, tenantGroupEntityPermissionChecker);
@@ -94,6 +97,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.API_USAGE_STATE, tenantStandaloneEntityPermissionChecker);
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, tenantStandaloneEntityPermissionChecker);
+        put(Resource.QUEUE, queuePermissionChecker);
+        put(Resource.VERSION_CONTROL, genericPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -269,6 +274,28 @@ public class TenantAdminPermissions extends AbstractPermissions {
             return user.getUserPermissions().hasGenericPermission(resource, operation);
         }
 
+    };
+
+    private static final PermissionChecker queuePermissionChecker = new PermissionChecker() {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+            if (entity.getTenantId() == null || entity.getTenantId().isNullUid()) {
+                if (operation != Operation.READ) {
+                    return false;
+                }
+            } else if (!user.getTenantId().equals(entity.getTenantId())) {
+                return false;
+            }
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            // This entity does not have groups, so we are checking only generic level permissions
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
     };
 
 }

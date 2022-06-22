@@ -32,15 +32,15 @@ package org.thingsboard.server.dao.sql.edge;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.EdgeEntity;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface EdgeRepository extends PagingAndSortingRepository<EdgeEntity, UUID> {
+public interface EdgeRepository extends JpaRepository<EdgeEntity, UUID> {
 
     @Query("SELECT d FROM EdgeEntity d WHERE d.tenantId = :tenantId " +
             "AND d.customerId = :customerId " +

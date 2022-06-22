@@ -34,8 +34,15 @@ import com.google.protobuf.util.JsonFormat;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
@@ -52,7 +59,8 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.discovery.HashPartitionService;
+import org.thingsboard.server.queue.discovery.NotificationsTopicService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqAdmin;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqConsumerTemplate;
@@ -60,6 +68,8 @@ import org.thingsboard.server.queue.rabbitmq.TbRabbitMqProducerTemplate;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqQueueArguments;
 import org.thingsboard.server.queue.rabbitmq.TbRabbitMqSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -76,40 +86,48 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueCoreSettings coreSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
-    private final PartitionService partitionService;
+    private final NotificationsTopicService notificationsTopicService;
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
+    private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin transportApiAdmin;
     private final TbQueueAdmin notificationAdmin;
+    private final TbQueueAdmin integrationApiAdmin;
 
     public RabbitMqTbCoreQueueFactory(TbRabbitMqSettings rabbitMqSettings,
                                       TbQueueCoreSettings coreSettings,
                                       TbQueueTransportApiSettings transportApiSettings,
                                       TbQueueRuleEngineSettings ruleEngineSettings,
-                                      PartitionService partitionService,
+                                      NotificationsTopicService notificationsTopicService,
                                       TbServiceInfoProvider serviceInfoProvider,
                                       TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                       TbQueueTransportNotificationSettings transportNotificationSettings,
+                                      TbQueueIntegrationApiSettings integrationApiSettings,
+                                      TbQueueIntegrationNotificationSettings integrationNotificationSettings,
                                       TbRabbitMqQueueArguments queueArguments) {
         this.rabbitMqSettings = rabbitMqSettings;
         this.coreSettings = coreSettings;
         this.transportApiSettings = transportApiSettings;
         this.ruleEngineSettings = ruleEngineSettings;
-        this.partitionService = partitionService;
+        this.notificationsTopicService = notificationsTopicService;
         this.serviceInfoProvider = serviceInfoProvider;
         this.jsInvokeSettings = jsInvokeSettings;
         this.transportNotificationSettings = transportNotificationSettings;
+        this.integrationApiSettings = integrationApiSettings;
+        this.integrationNotificationSettings = integrationNotificationSettings;
 
         this.coreAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getCoreArgs());
         this.ruleEngineAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getRuleEngineArgs());
         this.jsExecutorAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getJsExecutorArgs());
         this.transportApiAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getTransportApiArgs());
         this.notificationAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getNotificationsArgs());
+        this.integrationApiAdmin = new TbRabbitMqAdmin(rabbitMqSettings, queueArguments.getIntegrationArgs());
     }
 
     @Override
@@ -146,7 +164,7 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreNotificationMsg>> createToCoreNotificationsMsgConsumer() {
         return new TbRabbitMqConsumerTemplate<>(notificationAdmin, rabbitMqSettings,
-                partitionService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName(),
+                notificationsTopicService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
@@ -185,6 +203,12 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
+        //TODO: version-control
+        return null;
+    }
+
+    @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> createToUsageStatsServiceMsgConsumer() {
         return new TbRabbitMqConsumerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getUsageStatsTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToUsageStatsServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
@@ -206,6 +230,51 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
         return new TbRabbitMqProducerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getUsageStatsTopic());
     }
 
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+        return new TbRabbitMqConsumerTemplate<>(integrationApiAdmin, rabbitMqSettings, integrationApiSettings.getRequestsTopic(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+        return new TbRabbitMqProducerTemplate<>(integrationApiAdmin, rabbitMqSettings, integrationApiSettings.getResponsesTopic());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
+        return new TbRabbitMqConsumerTemplate<>(coreAdmin, rabbitMqSettings, coreSettings.getIntegrationsTopic(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
+        return new TbRabbitMqConsumerTemplate<>(notificationAdmin, rabbitMqSettings,
+                notificationsTopicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName(),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
+        return new TbRabbitMqProducerTemplate<>(notificationAdmin, rabbitMqSettings, integrationNotificationSettings.getNotificationsTopic());
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
+        return new TbRabbitMqConsumerTemplate<>(ruleEngineAdmin, rabbitMqSettings,
+                HashPartitionService.getIntegrationDownlinkTopic(integrationType),
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders())
+        );
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
+        return new TbRabbitMqProducerTemplate<>(notificationAdmin, rabbitMqSettings, integrationNotificationSettings.getDownlinkTopic());
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -222,6 +291,9 @@ public class RabbitMqTbCoreQueueFactory implements TbCoreQueueFactory {
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (integrationApiAdmin != null) {
+            integrationApiAdmin.destroy();
         }
     }
 }

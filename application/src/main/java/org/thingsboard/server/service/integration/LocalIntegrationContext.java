@@ -33,7 +33,6 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -43,26 +42,17 @@ import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
-import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
-import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
 
 @Data
 @Slf4j
@@ -86,62 +76,12 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void processUplinkData(DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
-
-        UUID sessionId = configuration.getUuidId(); //for local integration context sessionId is exact integrationId
-        TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
-                .setSessionIdMSB(sessionId.getMostSignificantBits())
-                .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                .setDeviceName(device.getName())
-                .setDeviceType(device.getType())
-                .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
-
-        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
-            builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
-        }
-
-        TransportProtos.SessionInfoProto sessionInfo = builder.build();
-
-        if (data.hasPostTelemetryMsg()) {
-            ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), callback);
-        }
-
-        if (data.hasPostAttributesMsg()) {
-            ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), callback);
-        }
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
     }
 
     @Override
     public void processUplinkData(AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
-        Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
-
-        if (data.hasPostTelemetryMsg()) {
-            data.getPostTelemetryMsg().getTsKvListList()
-                    .forEach(tsKv -> {
-                        TbMsgMetaData metaData = new TbMsgMetaData();
-                        metaData.putValue("assetName", data.getAssetName());
-                        metaData.putValue("assetType", data.getAssetType());
-                        metaData.putValue("ts", tsKv.getTs() + "");
-                        JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-                        ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
-                    });
-        }
-
-        if (data.hasPostAttributesMsg()) {
-            TbMsgMetaData metaData = new TbMsgMetaData();
-            metaData.putValue("assetName", data.getAssetName());
-            metaData.putValue("assetType", data.getAssetType());
-            JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-            ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, callback);
-        }
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
     }
 
     @Override
@@ -176,7 +116,7 @@ public class LocalIntegrationContext implements IntegrationContext {
     public DownLinkMsg getDownlinkMsg(String deviceName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            return ctx.getDownlinkService().get(configuration.getId(), device.getId());
+            return ctx.getDownlinkCacheService().get(configuration.getId(), device.getId());
         } else {
             return null;
         }
@@ -184,14 +124,14 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
-        return ctx.getDownlinkService().put(msg);
+        return ctx.getDownlinkCacheService().put(msg);
     }
 
     @Override
     public void removeDownlinkMsg(String deviceName) {
         Device device = ctx.getDeviceService().findDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
         if (device != null) {
-            ctx.getDownlinkService().remove(configuration.getId(), device.getId());
+            ctx.getDownlinkCacheService().remove(configuration.getId(), device.getId());
         }
     }
 

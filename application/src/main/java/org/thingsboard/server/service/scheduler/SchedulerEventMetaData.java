@@ -33,6 +33,7 @@ package org.thingsboard.server.service.scheduler;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
 import lombok.Data;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
+import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 
 /**
  * Created by ashvayka on 25.06.18.

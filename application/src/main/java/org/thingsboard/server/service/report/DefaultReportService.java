@@ -70,6 +70,8 @@ import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.common.msg.queue.RuleEngineException;
+import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.user.UserService;
@@ -91,6 +93,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -103,9 +107,16 @@ public class DefaultReportService implements ReportService {
 
     private static ObjectMapper mapper = new ObjectMapper();
     private static final Pattern reportNameDatePattern = Pattern.compile("%d\\{([^\\}]*)\\}");
+    private static final ConcurrentMap<TenantId, TbRateLimits> rateLimits = new ConcurrentHashMap<>();
 
     @Value("${reports.server.endpointUrl}")
     private String reportsServerEndpointUrl;
+
+    @Value("${reports.rate_limits.enabled:false}")
+    private boolean rateLimitsEnabled;
+
+    @Value("${reports.rate_limits.configuration:5:300}")
+    private String rateLimitsConfiguration;
 
     @Autowired
     private UserService userService;
@@ -124,7 +135,6 @@ public class DefaultReportService implements ReportService {
 
     @Autowired
     private ThingsboardErrorResponseHandler errorResponseHandler;
-
 
     private EventLoopGroup eventLoopGroup;
     private AsyncRestTemplate httpClient;
@@ -149,10 +159,21 @@ public class DefaultReportService implements ReportService {
         }
     }
 
+    private void checkLimits(TenantId tenantId) {
+        if (rateLimitsEnabled) {
+            TbRateLimits limits = rateLimits.computeIfAbsent(tenantId, t -> new TbRateLimits(rateLimitsConfiguration));
+            if (!limits.tryConsume()) {
+                log.trace("[{}] Report generation limits exceeded!", tenantId);
+                throw new RuntimeException("Failed to generate report due to rate limits!");
+            }
+        }
+    }
+
     @Override
     public void generateDashboardReport(String baseUrl, DashboardId dashboardId, TenantId tenantId, UserId userId, String publicId,
                                         String reportName, JsonNode reportParams, Consumer<ReportData> onSuccess,
                                         Consumer<Throwable> onFailure) {
+        checkLimits(tenantId);
         log.trace("Executing generateDashboardReport, baseUrl [{}], dashboardId [{}], userId [{}]", baseUrl, dashboardId, userId);
 
         AccessJwtToken accessToken;
@@ -179,6 +200,7 @@ public class DefaultReportService implements ReportService {
 
     @Override
     public void generateReport(TenantId tenantId, ReportConfig reportConfig, String reportsServerEndpointUrl, Consumer<ReportData> onSuccess, Consumer<Throwable> onFailure) {
+        checkLimits(tenantId);
         log.trace("Executing generateReport, reportConfig [{}]", reportConfig);
 
         JsonNode dashboardReportRequest = createDashboardReportRequest(tenantId, reportConfig);

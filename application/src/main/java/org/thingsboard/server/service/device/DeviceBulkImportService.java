@@ -49,11 +49,14 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MClientCredential;
 import org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode;
+import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
+import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingConfiguration;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -63,10 +66,13 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.importing.AbstractBulkImportService;
-import org.thingsboard.server.service.importing.BulkImportColumnType;
+import org.thingsboard.server.service.sync.ie.importing.csv.AbstractBulkImportService;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportColumnType;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
@@ -80,6 +86,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
     protected final DeviceService deviceService;
+    protected final TbDeviceService tbDeviceService;
     protected final DeviceCredentialsService deviceCredentialsService;
     protected final DeviceProfileService deviceProfileService;
 
@@ -111,7 +118,8 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
     }
 
     @Override
-    protected Device saveEntity(Device entity, Map<BulkImportColumnType, String> fields) {
+    @SneakyThrows
+    protected Device saveEntity(SecurityUser user, Device entity, EntityGroup entityGroup, Map<BulkImportColumnType, String> fields) {
         DeviceCredentials deviceCredentials;
         try {
             deviceCredentials = createDeviceCredentials(fields);
@@ -130,7 +138,7 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
         }
         entity.setDeviceProfileId(deviceProfile.getId());
 
-        return deviceService.saveDeviceWithCredentials(entity, deviceCredentials);
+        return tbDeviceService.saveDeviceWithCredentials(entity, deviceCredentials, entityGroup, user);
     }
 
     @Override
@@ -240,11 +248,14 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
                     deviceProfile.setTransportType(DeviceTransportType.LWM2M);
                     deviceProfile.setProvisionType(DeviceProfileProvisionType.DISABLED);
 
+                    Lwm2mDeviceProfileTransportConfiguration transportConfiguration = new Lwm2mDeviceProfileTransportConfiguration();
+                    transportConfiguration.setBootstrap(Collections.emptyList());
+                    transportConfiguration.setClientLwM2mSettings(new OtherConfiguration(1,1,1, PowerMode.DRX, null, null, null, null, null));
+                    transportConfiguration.setObserveAttr(new TelemetryMappingConfiguration(Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptyMap()));
+
                     DeviceProfileData deviceProfileData = new DeviceProfileData();
                     DefaultDeviceProfileConfiguration configuration = new DefaultDeviceProfileConfiguration();
-                    DeviceProfileTransportConfiguration transportConfiguration = new Lwm2mDeviceProfileTransportConfiguration();
                     DisabledDeviceProfileProvisionConfiguration provisionConfiguration = new DisabledDeviceProfileProvisionConfiguration(null);
-
                     deviceProfileData.setConfiguration(configuration);
                     deviceProfileData.setTransportConfiguration(transportConfiguration);
                     deviceProfileData.setProvisionConfiguration(provisionConfiguration);

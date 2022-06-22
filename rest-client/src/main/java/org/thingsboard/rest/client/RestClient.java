@@ -53,7 +53,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.AdminSettings;
@@ -117,6 +116,7 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OAuth2ClientRegistrationTemplateId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
@@ -153,6 +153,7 @@ import org.thingsboard.server.common.data.query.AlarmDataQuery;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
+import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
@@ -192,7 +193,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -374,11 +374,11 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         params.put("entityType", entityId.getEntityType().name());
         params.put("entityId", entityId.getId().toString());
         params.put("fetchOriginator", String.valueOf(fetchOriginator));
-        if(searchStatus != null) {
+        if (searchStatus != null) {
             params.put("searchStatus", searchStatus.name());
             urlSecondPart += "&searchStatus={searchStatus}";
         }
-        if(status != null) {
+        if (status != null) {
             params.put("status", status.name());
             urlSecondPart += "&status={status}";
         }
@@ -386,7 +386,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         addTimePageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL +  urlSecondPart + "&" + getTimeUrlParams(pageLink),
+                baseURL + urlSecondPart + "&" + getTimeUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<AlarmInfo>>() {
@@ -483,12 +483,12 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public List<Asset> getAssetsByIds(List<AssetId> assetIds) {
         return restTemplate.exchange(
-                baseURL + "/api/assets?assetIds={assetIds}",
-                HttpMethod.GET,
-                HttpEntity.EMPTY,
-                new ParameterizedTypeReference<List<Asset>>() {
-                },
-                listIdsToString(assetIds))
+                        baseURL + "/api/assets?assetIds={assetIds}",
+                        HttpMethod.GET,
+                        HttpEntity.EMPTY,
+                        new ParameterizedTypeReference<List<Asset>>() {
+                        },
+                        listIdsToString(assetIds))
                 .getBody();
     }
 
@@ -503,7 +503,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public List<EntitySubtype> getAssetTypes() {
         return restTemplate.exchange(URI.create(
-                baseURL + "/api/asset/types"),
+                        baseURL + "/api/asset/types"),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<List<EntitySubtype>>() {
@@ -700,13 +700,13 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public List<ComponentDescriptor> getComponentDescriptorsByTypes(List<ComponentType> componentTypes, RuleChainType ruleChainType) {
         return restTemplate.exchange(
-                baseURL + "/api/components?componentTypes={componentTypes}&ruleChainType={ruleChainType}",
-                HttpMethod.GET,
-                HttpEntity.EMPTY,
-                new ParameterizedTypeReference<List<ComponentDescriptor>>() {
-                },
-                listEnumToString(componentTypes),
-                ruleChainType)
+                        baseURL + "/api/components?componentTypes={componentTypes}&ruleChainType={ruleChainType}",
+                        HttpMethod.GET,
+                        HttpEntity.EMPTY,
+                        new ParameterizedTypeReference<List<ComponentDescriptor>>() {
+                        },
+                        listEnumToString(componentTypes),
+                        ruleChainType)
                 .getBody();
     }
 
@@ -2404,7 +2404,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/resource/{resourceId}/download",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<>() {},
+                new ParameterizedTypeReference<>() {
+                },
                 params
         );
     }
@@ -2417,7 +2418,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/resource/info/{resourceId}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TbResourceInfo>() {},
+                new ParameterizedTypeReference<TbResourceInfo>() {
+                },
                 params
         ).getBody();
     }
@@ -2430,7 +2432,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/resource/{resourceId}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<TbResource>() {},
+                new ParameterizedTypeReference<TbResource>() {
+                },
                 params
         ).getBody();
     }
@@ -2450,7 +2453,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/resource?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<PageData<TbResourceInfo>>() {},
+                new ParameterizedTypeReference<PageData<TbResourceInfo>>() {
+                },
                 params
         ).getBody();
     }
@@ -2467,7 +2471,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/otaPackage/{otaPackageId}/download",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<>() {},
+                new ParameterizedTypeReference<>() {
+                },
                 params
         );
     }
@@ -2480,7 +2485,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/otaPackage/info/{otaPackageId}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<OtaPackageInfo>() {},
+                new ParameterizedTypeReference<OtaPackageInfo>() {
+                },
                 params
         ).getBody();
     }
@@ -2493,7 +2499,8 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/otaPackage/{otaPackageId}",
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<OtaPackage>() {},
+                new ParameterizedTypeReference<OtaPackage>() {
+                },
                 params
         ).getBody();
     }
@@ -2504,13 +2511,13 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         return restTemplate.postForEntity(baseURL + "/api/otaPackage?isUrl={isUrl}", otaPackageInfo, OtaPackageInfo.class, params).getBody();
     }
 
-    public OtaPackageInfo saveOtaPackageData(OtaPackageId otaPackageId, String checkSum, ChecksumAlgorithm checksumAlgorithm, MultipartFile file) throws Exception {
+    public OtaPackageInfo saveOtaPackageData(OtaPackageId otaPackageId, String checkSum, ChecksumAlgorithm checksumAlgorithm, String fileName, byte[] fileBytes) throws Exception {
         HttpHeaders header = new HttpHeaders();
         header.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         MultiValueMap<String, String> fileMap = new LinkedMultiValueMap<>();
-        fileMap.add(HttpHeaders.CONTENT_DISPOSITION, "form-data; name=file; filename=" + file.getName());
-        HttpEntity<ByteArrayResource> fileEntity = new HttpEntity<>(new ByteArrayResource(file.getBytes()), fileMap);
+        fileMap.add(HttpHeaders.CONTENT_DISPOSITION, "form-data; name=file; filename=" + fileName);
+        HttpEntity<ByteArrayResource> fileEntity = new HttpEntity<>(new ByteArrayResource(fileBytes), fileMap);
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", fileEntity);
@@ -2521,7 +2528,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         params.put("checksumAlgorithm", checksumAlgorithm.name());
         String url = "/api/otaPackage/{otaPackageId}?checksumAlgorithm={checksumAlgorithm}";
 
-        if(checkSum != null) {
+        if (checkSum != null) {
             url += "&checkSum={checkSum}";
         }
 
@@ -2566,6 +2573,39 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
     public void deleteOtaPackage(OtaPackageId otaPackageId) {
         restTemplate.delete(baseURL + "/api/otaPackage/{otaPackageId}", otaPackageId.getId().toString());
+    }
+
+    public PageData<Queue> getQueuesByServiceType(String serviceType, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("serviceType", serviceType);
+        addPageLinkToParam(params, pageLink);
+
+        return restTemplate.exchange(
+                baseURL + "/api/queues?{serviceType}&" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<Queue>>() {
+                },
+                params
+        ).getBody();
+    }
+
+    public Queue getQueueById(QueueId queueId) {
+        return restTemplate.exchange(
+                baseURL + "/api/queue/" + queueId,
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<Queue>() {
+                }
+        ).getBody();
+    }
+
+    public Queue saveQueue(Queue queue, String serviceType) {
+        return restTemplate.postForEntity(baseURL + "/api/queues?serviceType=" + serviceType, queue, Queue.class).getBody();
+    }
+
+    public void deleteQueue(QueueId queueId) {
+        restTemplate.delete(baseURL + "/api/queues/" + queueId);
     }
 
     @Deprecated

@@ -32,7 +32,6 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -43,17 +42,18 @@ import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @RuleNode(
@@ -78,10 +79,12 @@ import java.util.Set;
 public class TbAlarmsCountNodeV2 implements TbNode {
 
     private TbAlarmsCountNodeV2Configuration config;
+    private QueueId queueId;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
+        this.queueId = StringUtils.isNotEmpty(config.getQueueId()) ? new QueueId(UUID.fromString(config.getQueueId())) : null;
     }
 
     @Override
@@ -109,15 +112,11 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(getQueueName(), SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+            TbMsg newMsg = TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                     entityId, metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
         });
         ctx.ack(msg);
-    }
-
-    protected String getQueueName() {
-        return StringUtils.isEmpty(config.getQueueName()) ? ServiceQueue.MAIN : config.getQueueName();
     }
 
     private Set<EntityId> getPropagationEntityIds(TbContext ctx, Alarm alarm) {

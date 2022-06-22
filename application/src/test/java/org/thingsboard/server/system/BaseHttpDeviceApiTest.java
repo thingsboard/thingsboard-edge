@@ -32,6 +32,7 @@ package org.thingsboard.server.system;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.thingsboard.server.common.data.Device;
@@ -50,6 +51,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * @author Andrew Shvayka
  */
+@TestPropertySource(properties = {
+        "transport.http.enabled=true",
+})
 public abstract class BaseHttpDeviceApiTest extends AbstractControllerTest {
 
     private static final AtomicInteger idSeq = new AtomicInteger(new Random(System.currentTimeMillis()).nextInt());

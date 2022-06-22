@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
@@ -54,13 +55,12 @@ public interface TenantDao extends Dao<Tenant> {
     Tenant save(TenantId tenantId, Tenant tenant);
     
     /**
-     * Find tenants by region and page link.
+     * Find tenants by page link.
      * 
-     * @param region the region
      * @param pageLink the page link
      * @return the list of tenant objects
      */
-    PageData<Tenant> findTenantsByRegion(TenantId tenantId, String region, PageLink pageLink);
+    PageData<Tenant> findTenants(TenantId tenantId, PageLink pageLink);
 
     /**
      * Find tenants by tenant Ids.
@@ -70,8 +70,9 @@ public interface TenantDao extends Dao<Tenant> {
      */
     ListenableFuture<List<Tenant>> findTenantsByIdsAsync(UUID tenantId, List<UUID> tenantIds);
 
-    PageData<TenantInfo> findTenantInfosByRegion(TenantId tenantId, String region, PageLink pageLink);
+    PageData<TenantInfo> findTenantInfos(TenantId tenantId, PageLink pageLink);
 
     PageData<TenantId> findTenantsIds(PageLink pageLink);
 
+    List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId);
 }

@@ -59,8 +59,8 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -69,6 +69,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -80,8 +81,8 @@ import org.thingsboard.server.common.data.rule.RuleNodeState;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -101,14 +102,16 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.ota.OtaPackageService;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
@@ -192,15 +195,24 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    @Deprecated
     public void enqueue(TbMsg tbMsg, String queueName, Runnable onSuccess, Consumer<Throwable> onFailure) {
         TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);
+        enqueue(tpi, tbMsg, onFailure, onSuccess);
+    }
+
+    @Override
+    public void enqueue(TbMsg tbMsg, QueueId queueId, Runnable onSuccess, Consumer<Throwable> onFailure) {
+        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueId);
         enqueue(tpi, tbMsg, onFailure, onSuccess);
     }
 
     private void enqueue(TopicPartitionInfo tpi, TbMsg tbMsg, Consumer<Throwable> onFailure, Runnable onSuccess) {
         if (!tbMsg.isValid()) {
             log.trace("[{}] Skip invalid message: {}", getTenantId(), tbMsg);
-            onFailure.accept(new IllegalArgumentException("Source message is no longer valid!"));
+            if (onFailure != null) {
+                onFailure.accept(new IllegalArgumentException("Source message is no longer valid!"));
+            }
             return;
         }
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder()
@@ -244,41 +256,45 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public void enqueueForTellNext(TbMsg tbMsg, String queueName, String relationType, Runnable onSuccess, Consumer<Throwable> onFailure) {
-        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);
-        enqueueForTellNext(tpi, queueName, tbMsg, Collections.singleton(relationType), null, onSuccess, onFailure);
+    public void enqueueForTellNext(TbMsg tbMsg, QueueId queueId, String relationType, Runnable onSuccess, Consumer<Throwable> onFailure) {
+        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueId);
+        enqueueForTellNext(tpi, queueId, tbMsg, Collections.singleton(relationType), null, onSuccess, onFailure);
     }
 
     @Override
-    public void enqueueForTellNext(TbMsg tbMsg, String queueName, Set<String> relationTypes, Runnable onSuccess, Consumer<Throwable> onFailure) {
-        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueName);
-        enqueueForTellNext(tpi, queueName, tbMsg, relationTypes, null, onSuccess, onFailure);
+    public void enqueueForTellNext(TbMsg tbMsg, QueueId queueId, Set<String> relationTypes, Runnable onSuccess, Consumer<Throwable> onFailure) {
+        TopicPartitionInfo tpi = resolvePartition(tbMsg, queueId);
+        enqueueForTellNext(tpi, queueId, tbMsg, relationTypes, null, onSuccess, onFailure);
     }
 
+    private TopicPartitionInfo resolvePartition(TbMsg tbMsg, QueueId queueId) {
+        return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, queueId, getTenantId(), tbMsg.getOriginator());
+    }
+
+    @Deprecated
     private TopicPartitionInfo resolvePartition(TbMsg tbMsg, String queueName) {
-        if (StringUtils.isEmpty(queueName)) {
-            queueName = ServiceQueue.MAIN;
-        }
         return mainCtx.resolve(ServiceType.TB_RULE_ENGINE, queueName, getTenantId(), tbMsg.getOriginator());
     }
 
     private TopicPartitionInfo resolvePartition(TbMsg tbMsg) {
-        return resolvePartition(tbMsg, tbMsg.getQueueName());
+        return resolvePartition(tbMsg, tbMsg.getQueueId());
     }
 
     private void enqueueForTellNext(TopicPartitionInfo tpi, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
-        enqueueForTellNext(tpi, source.getQueueName(), source, relationTypes, failureMessage, onSuccess, onFailure);
+        enqueueForTellNext(tpi, source.getQueueId(), source, relationTypes, failureMessage, onSuccess, onFailure);
     }
 
-    private void enqueueForTellNext(TopicPartitionInfo tpi, String queueName, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
+    private void enqueueForTellNext(TopicPartitionInfo tpi, QueueId queueId, TbMsg source, Set<String> relationTypes, String failureMessage, Runnable onSuccess, Consumer<Throwable> onFailure) {
         if (!source.isValid()) {
             log.trace("[{}] Skip invalid message: {}", getTenantId(), source);
-            onFailure.accept(new IllegalArgumentException("Source message is no longer valid!"));
+            if (onFailure != null) {
+                onFailure.accept(new IllegalArgumentException("Source message is no longer valid!"));
+            }
             return;
         }
         RuleChainId ruleChainId = nodeCtx.getSelf().getRuleChainId();
         RuleNodeId ruleNodeId = nodeCtx.getSelf().getId();
-        TbMsg tbMsg = TbMsg.newMsg(source, queueName, ruleChainId, ruleNodeId);
+        TbMsg tbMsg = TbMsg.newMsg(source, queueId, ruleChainId, ruleNodeId);
         TransportProtos.ToRuleEngineMsg.Builder msg = TransportProtos.ToRuleEngineMsg.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
@@ -338,13 +354,13 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public TbMsg newMsg(String queueName, String type, EntityId originator, TbMsgMetaData metaData, String data) {
-        return newMsg(queueName, type, originator, null, metaData, data);
+    public TbMsg newMsg(QueueId queueId, String type, EntityId originator, TbMsgMetaData metaData, String data) {
+        return newMsg(queueId, type, originator, null, metaData, data);
     }
 
     @Override
-    public TbMsg newMsg(String queueName, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
-        return TbMsg.newMsg(queueName, type, originator, customerId, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
+    public TbMsg newMsg(QueueId queueId, String type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
+        return TbMsg.newMsg(queueId, type, originator, customerId, metaData, data, nodeCtx.getSelf().getRuleChainId(), nodeCtx.getSelf().getId());
     }
 
     @Override
@@ -358,20 +374,17 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
         RuleChainId ruleChainId = null;
-        String queueName = ServiceQueue.MAIN;
+        QueueId queueId = null;
         if (device.getDeviceProfileId() != null) {
             DeviceProfile deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());
             if (deviceProfile == null) {
                 log.warn("[{}] Device profile is null!", device.getDeviceProfileId());
-                ruleChainId = null;
-                queueName = ServiceQueue.MAIN;
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
-                String defaultQueueName = deviceProfile.getDefaultQueueName();
-                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+                queueId = deviceProfile.getDefaultQueueId();
             }
         }
-        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, queueName, ruleChainId);
+        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, queueId, ruleChainId);
     }
 
     public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
@@ -380,21 +393,18 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
         RuleChainId ruleChainId = null;
-        String queueName = ServiceQueue.MAIN;
+        QueueId queueId = null;
         if (EntityType.DEVICE.equals(alarm.getOriginator().getEntityType())) {
             DeviceId deviceId = new DeviceId(alarm.getOriginator().getId());
             DeviceProfile deviceProfile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
             if (deviceProfile == null) {
                 log.warn("[{}] Device profile is null!", deviceId);
-                ruleChainId = null;
-                queueName = ServiceQueue.MAIN;
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
-                String defaultQueueName = deviceProfile.getDefaultQueueName();
-                queueName = defaultQueueName != null ? defaultQueueName : ServiceQueue.MAIN;
+                queueId = deviceProfile.getDefaultQueueId();
             }
         }
-        return entityActionMsg(alarm, alarm.getId(), ruleNodeId, action, queueName, ruleChainId);
+        return entityActionMsg(alarm, alarm.getId(), ruleNodeId, action, queueId, ruleChainId);
     }
 
     @Override
@@ -403,12 +413,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action) {
-        return entityActionMsg(entity, id, ruleNodeId, action, ServiceQueue.MAIN, null);
+        return entityActionMsg(entity, id, ruleNodeId, action, null, null);
     }
 
-    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, String queueName, RuleChainId ruleChainId) {
+    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, QueueId queueId, RuleChainId ruleChainId) {
         try {
-            return TbMsg.newMsg(queueName, action, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), ruleChainId, null);
+            return TbMsg.newMsg(queueId, action, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), ruleChainId, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
         }
@@ -586,6 +596,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public QueueService getQueueService() {
+        return mainCtx.getQueueService();
+    }
+
+    @Override
     public EventLoopGroup getSharedEventLoop() {
         return mainCtx.getSharedEventLoopGroupService().getSharedEventLoopGroup();
     }
@@ -723,26 +738,32 @@ class DefaultTbContext implements TbContext, TbPeContext {
             serviceId = null;
         }
 
-        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
+        IntegrationDownlinkMsgProto downlinkMsgProto = IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdMSB(getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(getTenantId().getId().getLeastSignificantBits())
                 .setIntegrationIdMSB(integrationId.getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationId.getId().getLeastSignificantBits())
                 .setData(TbMsg.toByteString(msg)).build();
-        mainCtx.getClusterService().pushMsgToCore(getTenantId(), integrationId, TransportProtos.ToCoreMsg.newBuilder().setIntegrationDownlinkMsg(downlinkMsgProto).build(),
-                new SimpleTbQueueCallback(() -> {
-                    if (restApiCall) {
-                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
-                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
-                    }
-                    callback.onSuccess(null);
-                }, error -> {
-                    if (restApiCall) {
-                        FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
-                        mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
-                    }
-                    callback.onFailure(error);
-                }));
+        mainCtx.getDownlinkService().onRuleEngineDownlinkMsg(getTenantId(), integrationId, downlinkMsgProto, new TbCallback() {
+
+            @Override
+            public void onSuccess() {
+                if (restApiCall) {
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, null);
+                    mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
+                }
+                callback.onSuccess(null);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                if (restApiCall) {
+                    FromDeviceRpcResponse response = new FromDeviceRpcResponse(requestUUID, null, RpcError.INTERNAL);
+                    mainCtx.getClusterService().pushNotificationToCore(serviceId, response, null);
+                }
+                callback.onFailure(t);
+            }
+        });
     }
 
     @Override

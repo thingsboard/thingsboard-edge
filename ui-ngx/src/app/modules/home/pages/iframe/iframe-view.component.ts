@@ -65,9 +65,12 @@ export class IFrameViewComponent implements OnInit, OnDestroy {
       this.safeIframeUrl = null;
       if (this.isDashboard(queryParams)) {
         this.loading = true;
+        this.dashboard = null;
         this.resolveDashboard(queryParams, this.dashboard).subscribe((dashboard) => {
-          this.dashboard = dashboard;
-          this.loading = false;
+          setTimeout(() => {
+            this.dashboard = dashboard;
+            this.loading = false;
+          });
         });
       } else {
         this.dashboard = null;

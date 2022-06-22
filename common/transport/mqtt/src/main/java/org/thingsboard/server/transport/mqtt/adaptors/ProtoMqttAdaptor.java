@@ -67,7 +67,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         try {
             return JsonConverter.convertToTelemetryProto(new JsonParser().parse(ProtoConverter.dynamicMsgToJson(bytes, telemetryDynamicMsgDescriptor)));
         } catch (Exception e) {
-            log.warn("Failed to decode post telemetry request", e);
+            log.debug("Failed to decode post telemetry request", e);
             throw new AdaptorException(e);
         }
     }
@@ -80,7 +80,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         try {
             return JsonConverter.convertToAttributesProto(new JsonParser().parse(ProtoConverter.dynamicMsgToJson(bytes, attributesDynamicMessageDescriptor)));
         } catch (Exception e) {
-            log.warn("Failed to decode post attributes request", e);
+            log.debug("Failed to decode post attributes request", e);
             throw new AdaptorException(e);
         }
     }
@@ -91,7 +91,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         try {
             return ProtoConverter.convertToClaimDeviceProto(ctx.getDeviceId(), bytes);
         } catch (InvalidProtocolBufferException e) {
-            log.warn("Failed to decode claim device request", e);
+            log.debug("Failed to decode claim device request", e);
             throw new AdaptorException(e);
         }
     }
@@ -104,7 +104,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
             int requestId = getRequestId(topicName, topicBase);
             return ProtoConverter.convertToGetAttributeRequestMessage(bytes, requestId);
         } catch (InvalidProtocolBufferException e) {
-            log.warn("Failed to decode get attributes request", e);
+            log.debug("Failed to decode get attributes request", e);
             throw new AdaptorException(e);
         }
     }
@@ -120,7 +120,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
             JsonElement response = new JsonParser().parse(ProtoConverter.dynamicMsgToJson(bytes, rpcResponseDynamicMessageDescriptor));
             return TransportProtos.ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId).setPayload(response.toString()).build();
         } catch (Exception e) {
-            log.warn("Failed to decode rpc response", e);
+            log.debug("Failed to decode rpc response", e);
             throw new AdaptorException(e);
         }
     }
@@ -133,7 +133,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
             int requestId = getRequestId(topicName, topicBase);
             return ProtoConverter.convertToServerRpcRequest(bytes, requestId);
         } catch (InvalidProtocolBufferException e) {
-            log.warn("Failed to decode to server rpc request", e);
+            log.debug("Failed to decode to server rpc request", e);
             throw new AdaptorException(e);
         }
     }
@@ -144,7 +144,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         try {
             return ProtoConverter.convertToProvisionRequestMsg(bytes);
         } catch (InvalidProtocolBufferException ex) {
-            log.warn("Failed to decode provision request", ex);
+            log.debug("Failed to decode provision request", ex);
             throw new AdaptorException(ex);
         }
     }

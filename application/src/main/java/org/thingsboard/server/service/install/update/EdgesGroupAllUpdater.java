@@ -58,7 +58,7 @@ class EdgesGroupAllUpdater extends EntityGroupAllPaginatedUpdater<EdgeId, Edge> 
     @Override
     protected void unassignFromCustomer(Edge entity) {
         entity.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
-        edgeService.saveEdge(entity, true);
+        edgeService.saveEdge(entity);
     }
 
     @Override

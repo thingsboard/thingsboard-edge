@@ -32,6 +32,7 @@ package org.thingsboard.server.coap;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -41,6 +42,7 @@ import java.util.Arrays;
 @SpringBootConfiguration
 @EnableAsync
 @EnableScheduling
+@EnableAutoConfiguration
 @ComponentScan({"org.thingsboard.server.coap", "org.thingsboard.server.common", "org.thingsboard.server.coapserver", "org.thingsboard.server.transport.coap", "org.thingsboard.server.queue", "org.thingsboard.server.cache"})
 public class ThingsboardCoapTransportApplication {
 

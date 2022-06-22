@@ -53,6 +53,10 @@ public class TbRabbitMqQueueArguments {
     private String notificationsProperties;
     @Value("${queue.rabbitmq.queue-properties.js-executor}")
     private String jsExecutorProperties;
+    @Value("${queue.rabbitmq.queue-properties.version-control:}")
+    private String vcProperties;
+    @Value("${queue.rabbitmq.queue-properties.integration-api}")
+    private String integrationApiProperties;
 
     @Getter
     private Map<String, Object> coreArgs;
@@ -64,6 +68,10 @@ public class TbRabbitMqQueueArguments {
     private Map<String, Object> notificationsArgs;
     @Getter
     private Map<String, Object> jsExecutorArgs;
+    @Getter
+    private Map<String, Object> vcArgs;
+    @Getter
+    private Map<String, Object> integrationArgs;
 
     @PostConstruct
     private void init() {
@@ -72,6 +80,8 @@ public class TbRabbitMqQueueArguments {
         transportApiArgs = getArgs(transportApiProperties);
         notificationsArgs = getArgs(notificationsProperties);
         jsExecutorArgs = getArgs(jsExecutorProperties);
+        vcArgs = getArgs(vcProperties);
+        integrationArgs = getArgs(integrationApiProperties);
     }
 
     private Map<String, Object> getArgs(String properties) {

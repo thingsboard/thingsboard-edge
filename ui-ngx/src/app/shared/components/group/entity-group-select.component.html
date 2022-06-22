@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup">
+<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup"
+     [fxShow]="ownerId || originator !== 'ownerGroup'">
   <tb-entity-type-select
     style="min-width: 100px; padding-right: 8px;"
     *ngIf="displayGroupTypeSelect"

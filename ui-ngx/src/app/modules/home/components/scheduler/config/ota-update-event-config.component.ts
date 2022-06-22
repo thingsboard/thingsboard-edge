@@ -167,7 +167,7 @@ export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDe
   }
 
   currentEntity(entity: EntityId | EntityGroupInfo | null) {
-    if (entity !== null) {
+    if (isDefinedAndNotNull(entity)) {
       if (isString(entity.id) && 'entityType' in entity && entity.entityType === EntityType.DEVICE_PROFILE) {
         this.profileId = entity.id;
         this.groupId = null;

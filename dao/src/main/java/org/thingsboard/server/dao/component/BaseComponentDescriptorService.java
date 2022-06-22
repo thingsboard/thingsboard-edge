@@ -36,18 +36,16 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.main.JsonValidator;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.ComponentDescriptorId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentScope;
 import org.thingsboard.server.common.data.plugin.ComponentType;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
@@ -63,6 +61,9 @@ public class BaseComponentDescriptorService implements ComponentDescriptorServic
 
     @Autowired
     private ComponentDescriptorDao componentDescriptorDao;
+
+    @Autowired
+    private DataValidator<ComponentDescriptor> componentValidator;
 
     @Override
     public ComponentDescriptor saveComponent(TenantId tenantId, ComponentDescriptor component) {
@@ -115,23 +116,4 @@ public class BaseComponentDescriptorService implements ComponentDescriptorServic
             throw new IncorrectParameterException(e.getMessage(), e);
         }
     }
-
-    private DataValidator<ComponentDescriptor> componentValidator =
-            new DataValidator<ComponentDescriptor>() {
-                @Override
-                protected void validateDataImpl(TenantId tenantId, ComponentDescriptor plugin) {
-                    if (plugin.getType() == null) {
-                        throw new DataValidationException("Component type should be specified!");
-                    }
-                    if (plugin.getScope() == null) {
-                        throw new DataValidationException("Component scope should be specified!");
-                    }
-                    if (StringUtils.isEmpty(plugin.getName())) {
-                        throw new DataValidationException("Component name should be specified!");
-                    }
-                    if (StringUtils.isEmpty(plugin.getClazz())) {
-                        throw new DataValidationException("Component clazz should be specified!");
-                    }
-                }
-            };
 }

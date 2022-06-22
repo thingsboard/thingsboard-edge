@@ -29,19 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { JsonSettingsSchema } from '@shared/models/widget.models';
-import { MapProviders } from '@home/components/widget/lib/maps/map-models';
+import LeafletMap from '@home/components/widget/lib/maps/leaflet-map';
 
 export interface MapWidgetInterface {
-    map?: any;
+    map?: LeafletMap;
     resize();
     update();
     destroy();
 }
 
 export interface MapWidgetStaticInterface {
-    settingsSchema(mapProvider?: MapProviders, drawRoutes?: boolean): JsonSettingsSchema;
-    getProvidersSchema(mapProvider?: MapProviders, ignoreImageMap?: boolean): JsonSettingsSchema;
-    dataKeySettingsSchema(): object;
     actionSources(): object;
 }

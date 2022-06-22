@@ -30,16 +30,33 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.id.DashboardId;
 
-public class Dashboard extends DashboardInfo {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
+
+@EqualsAndHashCode(callSuper = true)
+public class Dashboard extends DashboardInfo implements ExportableEntity<DashboardId> {
 
     private static final long serialVersionUID = 872682138346187503L;
-    
+
     private transient JsonNode configuration;
-    
+
+    @Getter
+    @Setter
+    private DashboardId externalId;
+
     public Dashboard() {
         super();
     }
@@ -55,6 +72,7 @@ public class Dashboard extends DashboardInfo {
     public Dashboard(Dashboard dashboard) {
         super(dashboard);
         this.configuration = dashboard.getConfiguration();
+        this.externalId = dashboard.getExternalId();
     }
 
     @ApiModelProperty(position = 12, value = "JSON object with main configuration of the dashboard: layouts, widgets, aliases, etc. " +
@@ -69,29 +87,32 @@ public class Dashboard extends DashboardInfo {
         this.configuration = configuration;
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((configuration == null) ? 0 : configuration.hashCode());
-        return result;
+    @JsonIgnore
+    public List<ObjectNode> getEntityAliasesConfig() {
+        return getChildObjects("entityAliases");
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Dashboard other = (Dashboard) obj;
-        if (configuration == null) {
-            if (other.configuration != null)
-                return false;
-        } else if (!configuration.equals(other.configuration))
-            return false;
-        return true;
+    @JsonIgnore
+    public List<ObjectNode> getWidgetsConfig() {
+        return getChildObjects("widgets");
+    }
+
+    @JsonIgnore
+    private List<ObjectNode> getChildObjects(String propertyName) {
+        return Optional.ofNullable(configuration)
+                .map(config -> config.get(propertyName))
+                .filter(node -> !node.isEmpty())
+                .map(node -> (ObjectNode) node)
+                .map(object -> {
+                    List<ObjectNode> widgets = new ArrayList<>(object.size());
+                    object.forEach(child -> {
+                        if (child.isObject()) {
+                            widgets.add((ObjectNode) child);
+                        }
+                    });
+                    return widgets;
+                })
+                .orElse(Collections.emptyList());
     }
 
     @Override

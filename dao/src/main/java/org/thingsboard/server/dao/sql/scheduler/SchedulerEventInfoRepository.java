@@ -32,8 +32,8 @@ package org.thingsboard.server.dao.sql.scheduler;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.model.sql.SchedulerEventInfoEntity;
 import org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity;
@@ -41,7 +41,7 @@ import org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity
 import java.util.List;
 import java.util.UUID;
 
-public interface SchedulerEventInfoRepository extends CrudRepository<SchedulerEventInfoEntity, UUID> {
+public interface SchedulerEventInfoRepository extends JpaRepository<SchedulerEventInfoEntity, UUID> {
 
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
             "FROM SchedulerEventInfoEntity s " +

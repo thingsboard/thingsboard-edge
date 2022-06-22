@@ -33,26 +33,18 @@ package org.thingsboard.server.dao.converter;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.List;
 
@@ -70,17 +62,13 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public static final String INCORRECT_CONVERTER_ID = "Incorrect converterId ";
 
     @Autowired
-    @Lazy
-    private TbTenantProfileCache tenantProfileCache;
-
-    @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
     private ConverterDao converterDao;
 
     @Autowired
     private IntegrationService integrationService;
+
+    @Autowired
+    private DataValidator<Converter> converterValidator;
 
     @Override
     public Converter saveConverter(Converter converter) {
@@ -142,66 +130,6 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         tenantConvertersRemover.removeEntities(tenantId, tenantId);
     }
-
-    private DataValidator<Converter> converterValidator =
-            new DataValidator<Converter>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, Converter converter) {
-                    DefaultTenantProfileConfiguration profileConfiguration =
-                            (DefaultTenantProfileConfiguration) tenantProfileCache.get(tenantId).getProfileData().getConfiguration();
-                    long maxConverters = profileConfiguration.getMaxConverters();
-                    validateNumberOfEntitiesPerTenant(tenantId, converterDao, maxConverters, EntityType.CONVERTER);
-
-                    converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
-                            d -> {
-                                throw new DataValidationException("Converter with such name already exists!");
-                            }
-                    );
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, Converter converter) {
-                    converterDao.findConverterByTenantIdAndName(converter.getTenantId().getId(), converter.getName()).ifPresent(
-                            d -> {
-                                if (!d.getId().equals(converter.getId())) {
-                                    throw new DataValidationException("Converter with such name already exists!");
-                                }
-                            }
-                    );
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, Converter converter) {
-                    if (StringUtils.isEmpty(converter.getType())) {
-                        throw new DataValidationException("Converter type should be specified!");
-                    }
-                    if (StringUtils.isEmpty(converter.getName())) {
-                        throw new DataValidationException("Converter name should be specified!");
-                    }
-                    if (converter.getTenantId() == null || converter.getTenantId().isNullUid()) {
-                        throw new DataValidationException("Converter should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, converter.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Converter is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (converter.getConfiguration() == null || converter.getConfiguration().isNull()) {
-                        throw new DataValidationException("Converter configuration should be specified!");
-                    } else {
-                        if (converter.getType() == ConverterType.UPLINK) {
-                            if (!converter.getConfiguration().has("decoder")) {
-                                throw new DataValidationException("Converter 'decoder' field should be specified in configuration!");
-                            }
-                        } else {
-                            if (!converter.getConfiguration().has("encoder")) {
-                                throw new DataValidationException("Converter 'encoder' field should be specified in configuration!");
-                            }
-                        }
-                    }
-                }
-            };
 
     private PaginatedRemover<TenantId, Converter> tenantConvertersRemover =
             new PaginatedRemover<TenantId, Converter>() {

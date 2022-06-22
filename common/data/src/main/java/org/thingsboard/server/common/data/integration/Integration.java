@@ -35,7 +35,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -45,31 +49,29 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+@ToString(callSuper = true)
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Integration extends SearchTextBased<IntegrationId> implements HasName, TenantEntity {
+public class Integration extends IntegrationInfo implements ExportableEntity<IntegrationId> {
 
     private static final long serialVersionUID = 4934987577236873728L;
 
-    private TenantId tenantId;
     private ConverterId defaultConverterId;
     private ConverterId downlinkConverterId;
-    @NoXss
-    @Length(fieldName = "name")
-    private String name;
     @NoXss
     @Length(fieldName = "routingKey")
     private String routingKey;
     private IntegrationType type;
     private boolean debugMode;
-    private Boolean enabled;
-    private Boolean isRemote;
-    private Boolean allowCreateDevicesOrAssets;
+
     @NoXss
     @Length(fieldName = "secret")
     private String secret;
-    private transient JsonNode configuration;
-    private transient JsonNode additionalInfo;
+    private JsonNode configuration;
+    private JsonNode additionalInfo;
+
+    @Getter @Setter
+    private IntegrationId externalId;
 
     public Integration() {
         super();
@@ -81,19 +83,15 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
 
     public Integration(Integration integration) {
         super(integration);
-        this.tenantId = integration.getTenantId();
         this.defaultConverterId = integration.getDefaultConverterId();
         this.downlinkConverterId = integration.getDownlinkConverterId();
-        this.name = integration.getName();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
         this.debugMode = integration.isDebugMode();
-        this.enabled = integration.isEnabled();
-        this.isRemote = integration.isRemote();
-        this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
+        this.externalId = integration.getExternalId();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +
@@ -109,15 +107,6 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
-    }
-
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
-    public TenantId getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(TenantId tenantId) {
-        this.tenantId = tenantId;
     }
 
     @ApiModelProperty(position = 4, value = "JSON object with the Uplink Converter Id", required = true)
@@ -167,34 +156,6 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.debugMode = debugMode;
     }
 
-    @ApiModelProperty(position = 9, value = "Boolean flag to enable/disable the integration")
-    public Boolean isEnabled() {
-        return !(enabled == null) && enabled;
-    }
-
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @ApiModelProperty(position = 10, value = "Boolean flag to enable/disable the integration to be executed remotely. Remote integration is launched in a separate microservice. " +
-            "Local integration is executed by the platform core")
-    public Boolean isRemote() {
-        return !(isRemote == null) && isRemote;
-    }
-
-    public void setRemote(Boolean remote) {
-        isRemote = remote;
-    }
-
-    @ApiModelProperty(position = 11, value = "Boolean flag to allow/disallow the integration to create devices or assets that send message and do not exist in the system yet")
-    public Boolean isAllowCreateDevicesOrAssets() {
-        return !(allowCreateDevicesOrAssets == null) && allowCreateDevicesOrAssets;
-    }
-
-    public void setAllowCreateDevicesOrAssets(Boolean allow) {
-        allowCreateDevicesOrAssets = allow;
-    }
-
     @ApiModelProperty(position = 12, value = "String value used by the remote integrations. " +
             "Remote integration uses this value along with the 'routingKey' for kind of security and validation to be able to connect to the platform using Grpc", example = "nl83m1ktpwpwwmww29sm")
     public String getSecret() {
@@ -225,53 +186,11 @@ public class Integration extends SearchTextBased<IntegrationId> implements HasNa
         this.additionalInfo = additionalInfo;
     }
 
-    @ApiModelProperty(position = 15, required = true, value = "Integration Name", example = "Http Integration")
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public String getSearchText() {
         return getName();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Integration [tenantId=");
-        builder.append(tenantId);
-        builder.append(", defaultConverterId=");
-        builder.append(defaultConverterId);
-        builder.append(", name=");
-        builder.append(name);
-        builder.append(", routingKey=");
-        builder.append(routingKey);
-        builder.append(", type=");
-        builder.append(type);
-        builder.append(", debugMode=");
-        builder.append(debugMode);
-        builder.append(", isRemote=");
-        builder.append(isRemote);
-        builder.append(", secret=");
-        builder.append(secret);
-        builder.append(", configuration=");
-        builder.append(configuration);
-        builder.append(", additionalInfo=");
-        builder.append(additionalInfo);
-        builder.append(", createdTime=");
-        builder.append(createdTime);
-        builder.append(", id=");
-        builder.append(id);
-        builder.append(", allowCreateDevicesOrAssets=");
-        builder.append(allowCreateDevicesOrAssets);
-        builder.append("]");
-        return builder.toString();
-    }
 
     @Override
     @JsonIgnore

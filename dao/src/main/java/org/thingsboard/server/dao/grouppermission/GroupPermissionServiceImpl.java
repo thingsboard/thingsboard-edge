@@ -37,11 +37,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -55,13 +52,11 @@ import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.role.RoleDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
-import org.thingsboard.server.dao.tenant.TenantDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,9 +81,6 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     private GroupPermissionDao groupPermissionDao;
 
     @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
     private EntityGroupDao entityGroupDao;
 
     @Autowired
@@ -96,6 +88,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
 
     @Autowired
     private EntityService entityService;
+
+    @Autowired
+    private DataValidator<GroupPermission> groupPermissionValidator;
 
     @Override
     public GroupPermission saveGroupPermission(TenantId tenantId, GroupPermission groupPermission) {
@@ -341,64 +336,6 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
             }, MoreExecutors.directExecutor());
         }, MoreExecutors.directExecutor());
     }
-
-    private DataValidator<GroupPermission> groupPermissionValidator =
-            new DataValidator<GroupPermission>() {
-
-                @Override
-                protected void validateCreate(TenantId tenantId, GroupPermission groupPermission) {
-                }
-
-                @Override
-                protected void validateUpdate(TenantId tenantId, GroupPermission groupPermission) {
-                }
-
-                @Override
-                protected void validateDataImpl(TenantId tenantId, GroupPermission groupPermission) {
-                    if (StringUtils.isEmpty(groupPermission.getName())) {
-                        throw new DataValidationException("Group Permission name should be specified!");
-                    }
-                    if (groupPermission.getTenantId() == null) {
-                        throw new DataValidationException("Group Permission should be assigned to tenant!");
-                    } else {
-                        Tenant tenant = tenantDao.findById(tenantId, groupPermission.getTenantId().getId());
-                        if (tenant == null) {
-                            throw new DataValidationException("Group Permission is referencing to non-existent tenant!");
-                        }
-                    }
-                    if (groupPermission.getUserGroupId() == null || groupPermission.getUserGroupId().isNullUid()) {
-                        throw new DataValidationException("Group Permission userGroupId should be specified!");
-                    } else {
-                        EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getUserGroupId().getId());
-                        if (entityGroup == null) {
-                            throw new DataValidationException("Group Permission is referencing to non-existent user group!");
-                        } else if (entityGroup.getType() != EntityType.USER) {
-                            throw new DataValidationException("Group Permission is referencing to user group with non user group type!");
-                        }
-                    }
-                    if (groupPermission.getRoleId() == null || groupPermission.getRoleId().isNullUid()) {
-                        throw new DataValidationException("Group Permission roleId should be specified!");
-                    } else {
-                        Role role = roleDao.findById(tenantId, groupPermission.getRoleId().getId());
-                        if (role == null) {
-                            throw new DataValidationException("Group Permission is referencing to non-existent role!");
-                        }
-                    }
-                    if (groupPermission.getEntityGroupId() == null) {
-                        groupPermission.setEntityGroupId(new EntityGroupId(EntityId.NULL_UUID));
-                    }
-
-                    if (!groupPermission.getEntityGroupId().isNullUid()) {
-                        EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getEntityGroupId().getId());
-                        if (entityGroup == null) {
-                            throw new DataValidationException("Group Permission is referencing to non-existent entity group!");
-                        }
-                        groupPermission.setEntityGroupType(entityGroup.getType());
-                    } else {
-                        groupPermission.setEntityGroupType(null);
-                    }
-                }
-            };
 
     private PaginatedRemover<TenantId, GroupPermission> tenantGroupPermissionRemover = new PaginatedRemover<TenantId, GroupPermission>() {
 

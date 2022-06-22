@@ -83,6 +83,9 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
   @Input()
   ownerId: EntityId;
 
+  @Input()
+  originator: string;
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;

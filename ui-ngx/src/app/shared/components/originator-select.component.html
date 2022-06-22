@@ -47,10 +47,10 @@
   <tb-entity-select
     [fxShow]="originatorFormGroup.get('originator').value === 'entity'"
     [allowedEntityTypes]="allowedEntityTypes"
-    [required]="required"
+    [required]="required && originatorFormGroup.get('originator').value === 'entity'"
     formControlName="entityOriginatorId">
   </tb-entity-select>
-  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="originatorFormGroup.get('originator').value !== 'entity'">
+  <section fxLayout="row" fxLayoutGap="8px" *ngIf="originatorFormGroup.get('originator').value !== 'entity'">
     <tb-owner-autocomplete
       formControlName="groupOwnerId"
       [excludeOwnerIds]="[currentUser.tenantId]"
@@ -63,11 +63,12 @@
     <tb-entity-group-select
       fxFlex
       [ownerId]="originatorFormGroup.get('groupOwnerId').value"
+      [originator]="originatorFormGroup.get('originator').value"
       [allowedGroupTypes]="allowedEntityTypes"
       (currentGroupInfo)="entityGroupLoaded($event)"
       (currentGroupType)="currentGroupType.emit($event)"
       formControlName="groupOriginatorId"
-      [required]="required"
+      [required]="required && originatorFormGroup.get('originator').value !== 'entity'"
       placeholderText="entity-group.select-entity-group"
       notFoundText="entity-group.no-entity-groups-matching"
       requiredText="entity-group.target-entity-group-required">

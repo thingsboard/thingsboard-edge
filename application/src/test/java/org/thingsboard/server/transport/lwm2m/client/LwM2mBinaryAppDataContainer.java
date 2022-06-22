@@ -188,7 +188,8 @@ public class LwM2mBinaryAppDataContainer extends BaseInstanceEnabler implements 
     }
 
     private String getDescription() {
-        return this.description == null ? "meter reading" : this.description;
+//        return this.description == null ? "meter reading" : this.description;
+        return this.description;
     }
 
     private void setTimestamp(long time) {
@@ -218,6 +219,10 @@ public class LwM2mBinaryAppDataContainer extends BaseInstanceEnabler implements 
     }
 
     private Map<Integer, byte[]> getData() {
+        if (data == null) {
+            this.data = new HashMap<>();
+            this.data.put(0, new byte[]{(byte) 0xAC});
+        }
         return data;
     }
 

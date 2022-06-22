@@ -66,7 +66,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
       originatorId: [null, [Validators.required]],
       msgBody: this.fb.group(
         {
-          method: [null, [Validators.required]],
+          method: [null, [Validators.required, Validators.pattern(/^\S+$/)]],
           params: [null, [Validators.required]]
         }
       )

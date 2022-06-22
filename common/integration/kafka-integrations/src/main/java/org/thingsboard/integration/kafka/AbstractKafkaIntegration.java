@@ -39,6 +39,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.server.common.data.exception.ThingsboardKafkaClientError;
 
 import java.util.Collections;
 import java.util.Properties;
@@ -131,11 +132,9 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         try {
             kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
             kafkaConsumer.partitionsFor(configuration.getTopics());
-        }
-        catch(Exception e) {
+        } catch(Exception | ThingsboardKafkaClientError e) {
             throw new RuntimeException("Connection to node could not be established. Broker may not be available.", e);
-        }
-        finally {
+        } finally {
             kafkaLock.unlock();
         }
 

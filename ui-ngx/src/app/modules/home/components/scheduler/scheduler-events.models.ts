@@ -69,6 +69,15 @@ export const schedulerCalendarViewTranslationMap = new Map<schedulerCalendarView
   ]
 );
 
+export interface CustomSchedulerEventType {
+  name: string;
+  value: string;
+  originator: boolean;
+  msgType: boolean;
+  metadata: boolean;
+  template: string;
+}
+
 export interface SchedulerEventsWidgetSettings {
   title: string;
   displayCreatedTime: boolean;
@@ -80,12 +89,5 @@ export interface SchedulerEventsWidgetSettings {
   noDataDisplayMessage: string;
   enabledViews: 'both' | 'list' | 'calendar';
   forceDefaultEventType: string;
-  customEventTypes: {
-    name: string;
-    value: string;
-    originator: boolean;
-    msgType: boolean;
-    metadata: boolean;
-    template: string;
-  }[]
+  customEventTypes: CustomSchedulerEventType[];
 }

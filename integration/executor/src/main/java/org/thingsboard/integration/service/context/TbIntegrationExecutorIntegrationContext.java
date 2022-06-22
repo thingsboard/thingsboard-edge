@@ -1,0 +1,216 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.integration.service.context;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.channel.EventLoopGroup;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.integration.api.IntegrationCallback;
+import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.converter.ConverterContext;
+import org.thingsboard.integration.api.data.DownLinkMsg;
+import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.integration.api.util.LogSettingsComponent;
+import org.thingsboard.integration.service.api.IntegrationApiService;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
+import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
+import org.thingsboard.server.gen.integration.EntityViewDataProto;
+import org.thingsboard.server.gen.integration.IntegrationInfoProto;
+import org.thingsboard.server.gen.integration.TbEventSource;
+import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.service.integration.IntegrationProtoUtil;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+
+@Slf4j
+public class TbIntegrationExecutorIntegrationContext implements IntegrationContext {
+
+    private final String serviceId;
+    private final IntegrationApiService apiService;
+    private final TbIntegrationExecutorContextComponent contextComponent;
+    private final Integration configuration;
+    private final IntegrationInfoProto integrationInfoProto;
+    private final LogSettingsComponent logSettingsComponent;
+
+    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService,
+                                                   TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
+                                                   Integration configuration) {
+        this.serviceId = serviceId;
+        this.apiService = apiService;
+        this.contextComponent = contextComponent;
+        this.configuration = configuration;
+        this.logSettingsComponent = logSettingsComponent;
+        this.integrationInfoProto = IntegrationProtoUtil.toProto(configuration);
+    }
+
+    @Override
+    public String getServiceId() {
+        return serviceId;
+    }
+
+    @Override
+    public ConverterContext getUplinkConverterContext() {
+        return new TbIntegrationExecutorConverterContext(configuration.getDefaultConverterId(), TbEventSource.UPLINK_CONVERTER);
+    }
+
+    @Override
+    public ConverterContext getDownlinkConverterContext() {
+        return new TbIntegrationExecutorConverterContext(configuration.getDownlinkConverterId(), TbEventSource.DOWNLINK_CONVERTER);
+    }
+
+    @Override
+    public void processUplinkData(DeviceUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
+        log.trace("Received uplink: {}", uplinkData);
+        apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
+    }
+
+    @Override
+    public void processUplinkData(AssetUplinkDataProto uplinkData, IntegrationCallback<Void> callback) {
+        log.trace("Received uplink: {}", uplinkData);
+        apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
+    }
+
+    @Override
+    public void createEntityView(EntityViewDataProto uplinkData, IntegrationCallback<Void> callback) {
+        log.trace("Received uplink: {}", uplinkData);
+        apiService.sendUplinkData(configuration, integrationInfoProto, uplinkData, callback);
+    }
+
+    @Override
+    public void processCustomMsg(TbMsg msg, IntegrationCallback<Void> callback) {
+        apiService.sendUplinkData(configuration, integrationInfoProto, msg, callback);
+    }
+
+    @Override
+    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        saveEvent(TbEventSource.INTEGRATION, configuration.getId(), null, type, uid, body, callback);
+    }
+
+    @Override
+    public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        saveEvent(TbEventSource.DEVICE, null, deviceName, type, uid, body, callback);
+    }
+
+    @Override
+    public EventLoopGroup getEventLoopGroup() {
+        return contextComponent.getEventLoopGroup();
+    }
+
+    @Override
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return contextComponent.getScheduledExecutorService();
+    }
+
+    @Override
+    public ExecutorService getCallBackExecutorService() {
+        return contextComponent.getCallBackExecutorService();
+    }
+
+    @Override
+    public DownLinkMsg getDownlinkMsg(String deviceName) {
+        Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            return contextComponent.getDownlinkCacheService().get(configuration.getId(), device.getId());
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public DownLinkMsg putDownlinkMsg(IntegrationDownlinkMsg msg) {
+        return contextComponent.getDownlinkCacheService().put(msg);
+    }
+
+    @Override
+    public void removeDownlinkMsg(String deviceName) {
+        Device device = contextComponent.findCachedDeviceByTenantIdAndName(configuration.getTenantId(), deviceName);
+        if (device != null) {
+            contextComponent.getDownlinkCacheService().remove(configuration.getId(), device.getId());
+        }
+    }
+
+    @Override
+    public boolean isClosed() {
+        return false;
+    }
+
+    @Override
+    public boolean isExceptionStackTraceEnabled() {
+        return logSettingsComponent.isExceptionStackTraceEnabled();
+    }
+
+    private void saveEvent(TbEventSource tbEventSource, EntityId entityId, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
+        String eventData = JacksonUtil.toString(body);
+        var builder = TbIntegrationEventProto.newBuilder()
+                .setSource(tbEventSource)
+                .setType(type)
+                .setData(eventData);
+        builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
+        if (entityId != null) {
+            builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
+            builder.setEventSourceIdLSB(entityId.getId().getLeastSignificantBits());
+        }
+        if (StringUtils.isNotBlank(uid)) {
+            builder.setUid(uid);
+        }
+        if (StringUtils.isNotEmpty(deviceName)) {
+            builder.setDeviceName(deviceName);
+        }
+        apiService.sendEventData(configuration.getTenantId(), entityId, builder.build(), callback);
+    }
+
+    @RequiredArgsConstructor
+    private class TbIntegrationExecutorConverterContext implements ConverterContext {
+
+        private final ConverterId converterId;
+        private final TbEventSource eventSource;
+
+        @Override
+        public String getServiceId() {
+            return serviceId;
+        }
+
+        @Override
+        public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+            TbIntegrationExecutorIntegrationContext.this.saveEvent(eventSource, converterId, null, type, null, body, callback);
+        }
+    }
+}

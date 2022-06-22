@@ -213,7 +213,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeEdgeOwner(TenantId tenantId, EntityId targetOwnerId, Edge edge) throws ThingsboardException {
-        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, e -> edgeService.saveEdge(e, true));
+        changeEntityOwner(tenantId, targetOwnerId, edge.getId(), edge, e -> edgeService.saveEdge(e));
     }
 
     @Override
@@ -316,7 +316,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
                 Set<EntityId> ownerIds = getChildOwners(tenantId, securityUser.getOwnerId());
                 for (EntityId ownerId : ownerIds) {
                     Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
-                            entityType, EntityGroup.GROUP_ALL_NAME).get();
+                            entityType, EntityGroup.GROUP_ALL_NAME);
                     if (entityGroup.isPresent()) {
                         groupIds.add(entityGroup.get().getId());
                     }
@@ -361,7 +361,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     private void fetchChildOwners(TenantId tenantId, EntityId entityId, Set<EntityId> result) throws Exception {
         result.add(entityId);
-        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME).get();
+        Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, entityId, EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
         if (entityGroup.isPresent()) {
             List<EntityId> childOwnerIds = entityGroupService.findAllEntityIds(tenantId, entityGroup.get().getId(), new PageLink(Integer.MAX_VALUE)).get();
             for (EntityId ownerId : childOwnerIds) {

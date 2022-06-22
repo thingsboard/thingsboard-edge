@@ -90,6 +90,9 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
     @Column(name = ModelConstants.ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
+    private UUID externalId;
+
     public RuleChainEntity() {
     }
 
@@ -109,6 +112,9 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
         this.debugMode = ruleChain.isDebugMode();
         this.configuration = ruleChain.getConfiguration();
         this.additionalInfo = ruleChain.getAdditionalInfo();
+        if (ruleChain.getExternalId() != null) {
+            this.externalId = ruleChain.getExternalId().getId();
+        }
     }
 
     @Override
@@ -135,6 +141,9 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> implements SearchT
         ruleChain.setDebugMode(debugMode);
         ruleChain.setConfiguration(configuration);
         ruleChain.setAdditionalInfo(additionalInfo);
+        if (externalId != null) {
+            ruleChain.setExternalId(new RuleChainId(externalId));
+        }
         return ruleChain;
     }
 }

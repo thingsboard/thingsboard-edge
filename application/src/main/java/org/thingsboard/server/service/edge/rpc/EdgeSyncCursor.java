@@ -59,18 +59,18 @@ public class EdgeSyncCursor {
     int currentIdx = 0;
 
     public EdgeSyncCursor(EdgeContextComponent ctx, Edge edge) {
+        fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
+        fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
+        fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
             fetchers.add(new OwnerEdgeEventFetcher());
             fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
         }
         fetchers.add(new SysAdminRolesEdgeEventFetcher(ctx.getRoleService()));
         fetchers.add(new TenantRolesEdgeEventFetcher(ctx.getRoleService()));
+        fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
         fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
-        fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
-        fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
-        fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
-        fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));

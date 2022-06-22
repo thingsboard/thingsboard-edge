@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.core.node.LwM2mPath;
 import org.eclipse.leshan.server.registration.Registration;
-import org.eclipse.leshan.server.registration.RegistrationStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -88,7 +87,6 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
     private final LwM2MSessionManager sessionManager;
     private final TransportDeviceProfileCache deviceProfileCache;
     private final LwM2MModelConfigService modelConfigService;
-    private final RegistrationStore registrationStore;
 
     @Autowired
     @Lazy
@@ -101,7 +99,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
     private final Map<String, LwM2mClient> lwM2mClientsByRegistrationId = new ConcurrentHashMap<>();
     private final Map<UUID, Lwm2mDeviceProfileTransportConfiguration> profiles = new ConcurrentHashMap<>();
 
-    @AfterStartUp(order = Integer.MAX_VALUE - 1)
+    @AfterStartUp(order = AfterStartUp.BEFORE_TRANSPORT_SERVICE)
     public void init() {
         String nodeId = context.getNodeId();
         Set<LwM2mClient> fetchedClients = clientStore.getAll();
@@ -135,11 +133,8 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
 
     private void updateFetchedClient(String nodeId, LwM2mClient client) {
         boolean updated = false;
-        Registration registration = registrationStore.getRegistrationByEndpoint(client.getEndpoint());
-
-        if (registration != null) {
-            client.setRegistration(registration);
-            lwM2mClientsByRegistrationId.put(registration.getId(), client);
+        if (client.getRegistration() != null) {
+            lwM2mClientsByRegistrationId.put(client.getRegistration().getId(), client);
         }
         if (client.getSession() != null) {
             client.refreshSessionId(nodeId);
@@ -389,6 +384,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
     }
 
     private Lwm2mDeviceProfileTransportConfiguration doGetAndCache(UUID profileId) {
+
         Lwm2mDeviceProfileTransportConfiguration result = profiles.get(profileId);
         if (result == null) {
             log.debug("Fetching profile [{}]", profileId);
@@ -396,7 +392,7 @@ public class LwM2mClientContextImpl implements LwM2mClientContext {
             if (deviceProfile != null) {
                 result = profileUpdate(deviceProfile);
             } else {
-                log.info("Device profile was not found! Most probably device profile [{}] has been removed from the database.", profileId);
+                log.warn("Device profile was not found! Most probably device profile [{}] has been removed from the database.", profileId);
             }
         }
         return result;

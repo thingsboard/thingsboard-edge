@@ -69,13 +69,25 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   selectEntityGroupFormGroup: FormGroup;
 
-  modelValue: string | null;
+  modelValue: string | null = null;
 
   @Input()
   groupType: EntityType;
 
+  private ownerIdValue: EntityId | null = null;
+  get ownerId(): EntityId {
+    return this.ownerIdValue;
+  }
+
   @Input()
-  ownerId: EntityId;
+  set ownerId(value: EntityId) {
+    if (!isEqual(this.ownerIdValue, value)) {
+      const currentEntityGroup = this.getCurrentEntityGroup();
+      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
+      this.reset(keepEntityGroup);
+    }
+    this.ownerIdValue = value;
+  }
 
   @Input()
   excludeGroupIds: Array<string>;
@@ -115,7 +127,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   searchText = '';
 
-  private dirty = false;
+  private pristine = true;
   private cleanFilteredEntityGroups: Subject<Array<EntityGroupInfo>> = new Subject();
 
   private propagateChange = (v: any) => { };
@@ -171,11 +183,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           const currentEntityGroup = this.getCurrentEntityGroup();
           if (!currentEntityGroup || currentEntityGroup.type !== this.groupType) {
             this.reset();
-            this.dirty = true;
           }
-        } else if (propName === 'ownerId') {
-            this.reset();
-            this.dirty = true;
         }
       }
     }
@@ -224,21 +232,24 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
       this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
       this.entityGroupLoaded.next(null);
     }
-    this.dirty = true;
+    this.pristine = true;
   }
 
   onFocus() {
-    if (this.dirty) {
+    if (this.pristine) {
       this.selectEntityGroupFormGroup.get('entityGroup').updateValueAndValidity({onlySelf: true, emitEvent: true});
-      this.dirty = false;
+      this.pristine = false;
     }
   }
 
-  reset() {
+  reset(keepEntityGroup = false) {
     this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
-    this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
-    setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
+    this.pristine = true;
+    if (!keepEntityGroup) {
+      this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
+      setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
+    }
   }
 
   updateView(value: string | null, entityGroup: EntityGroupInfo | string | null ) {

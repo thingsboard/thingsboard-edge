@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output
+} from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -148,34 +157,42 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
 
   writeValue(value: EntityId | null): void {
     this.modelValue = value;
-    let originator = 'entity';
     if (this.modelValue && this.modelValue.entityType === EntityType.ENTITY_GROUP) {
-      originator = 'groupTenant';
+      this.originatorFormGroup.patchValue({
+        originator: 'groupTenant',
+        groupOriginatorId: this.modelValue
+      }, {emitEvent: false});
+      this.loadData = true;
+    } else {
+      this.originatorFormGroup.patchValue({
+        originator: 'entity',
+        entityOriginatorId: value,
+        groupOriginatorId: null
+      }, {emitEvent: false});
     }
-    this.originatorFormGroup.patchValue({
-      entityOriginatorId: originator === 'entity' ? value : null,
-      groupOriginatorId: originator !== 'entity' ? value : null
-    }, {emitEvent: false});
-    this.loadData = true;
   }
 
   entityGroupLoaded(entityGroup: EntityGroupInfo) {
-    if (this.loadData && isDefinedAndNotNull(entityGroup)) {
+    if (this.loadData) {
       this.loadData = false;
-      if (this.currentUser.authority === Authority.TENANT_ADMIN && entityGroup?.ownerId?.id !== this.currentUser.tenantId) {
-        this.originatorFormGroup.patchValue({
-          originator: 'ownerGroup',
-          groupOwnerId: entityGroup.ownerId,
-          groupOriginatorId: entityGroup.id
-        }, {emitEvent: false});
+      if (isDefinedAndNotNull(entityGroup)) {
+        if (this.currentUser.authority === Authority.TENANT_ADMIN && entityGroup.ownerId?.id !== this.currentUser.tenantId) {
+          this.originatorFormGroup.get('originator').patchValue('ownerGroup', {emitEvent: false});
+          this.originatorFormGroup.get('groupOwnerId').patchValue(entityGroup.ownerId, {emitEvent: false});
+        } else {
+          this.originatorFormGroup.get('originator').patchValue('groupTenant', {emitEvent: false});
+          this.originatorFormGroup.get('groupOwnerId').patchValue(null, {emitEvent: false});
+        }
       } else {
         this.originatorFormGroup.patchValue({
           originator: 'groupTenant',
-          groupOriginatorId: entityGroup.id
-        }, {emitEvent: false});
+          groupOwnerId: null,
+          groupOriginatorId: null
+        }, {emitEvent: true});
       }
     }
   }
+
 
   updateView(value: {originator: string, entityOriginatorId: EntityId, groupOriginatorId: EntityId} | null) {
     let originatorId = null;

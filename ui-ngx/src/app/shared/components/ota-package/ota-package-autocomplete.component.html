@@ -72,5 +72,5 @@
   <mat-error *ngIf="otaPackageFormGroup.get('packageId').hasError('required')">
     {{ requiredErrorText | translate }}
   </mat-error>
-  <mat-hint *ngIf="!disabled">{{ hintText | translate }}</mat-hint>
+  <mat-hint *ngIf="!disabled && !deviceGroupAll">{{ hintText | translate }}</mat-hint>
 </mat-form-field>

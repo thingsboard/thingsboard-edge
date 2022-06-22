@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.transport;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -48,6 +49,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
@@ -60,6 +62,7 @@ import java.util.concurrent.*;
 @Slf4j
 @Service
 @TbCoreComponent
+@RequiredArgsConstructor
 public class TbCoreTransportApiService {
     private final TbCoreQueueFactory tbCoreQueueFactory;
     private final TransportApiService transportApiService;
@@ -71,18 +74,12 @@ public class TbCoreTransportApiService {
     private long requestTimeout;
     @Value("${queue.transport_api.request_poll_interval:25}")
     private int responsePollDuration;
-    @Value("${queue.transport_api.max_callback_threads:100}")
+    @Value("${queue.transport_api.max_callback_threads:10}")
     private int maxCallbackThreads;
 
     private ExecutorService transportCallbackExecutor;
     private TbQueueResponseTemplate<TbProtoQueueMsg<TransportApiRequestMsg>,
             TbProtoQueueMsg<TransportApiResponseMsg>> transportApiTemplate;
-
-    public TbCoreTransportApiService(TbCoreQueueFactory tbCoreQueueFactory, TransportApiService transportApiService, StatsFactory statsFactory) {
-        this.tbCoreQueueFactory = tbCoreQueueFactory;
-        this.transportApiService = transportApiService;
-        this.statsFactory = statsFactory;
-    }
 
     @PostConstruct
     public void init() {
@@ -101,13 +98,11 @@ public class TbCoreTransportApiService {
         builder.requestTimeout(requestTimeout);
         builder.pollInterval(responsePollDuration);
         builder.executor(transportCallbackExecutor);
-        builder.handler(transportApiService);
         builder.stats(queueStats);
         transportApiTemplate = builder.build();
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(value = 2)
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         log.info("Received application ready event. Starting polling for events.");
         transportApiTemplate.init(transportApiService);

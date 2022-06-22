@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,23 +42,19 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.group.ColumnConfiguration;
-import org.thingsboard.server.common.data.group.ColumnType;
-import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
@@ -118,47 +112,11 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
         return savedOtaPackage;
     }
 
-    private Device createDevice(String name, DeviceProfileId deviceProfileId) {
-        Device device = new Device();
-        device.setTenantId(tenantId);
-        device.setName(name);
-        device.setDeviceProfileId(deviceProfileId);
-        Device savedDevice = deviceService.saveDevice(device);
-        Assert.assertNotNull(savedDevice);
-        return savedDevice;
-    }
-
-    private EntityGroup createDeviceGroup(String name) {
-        return createDeviceGroup(name, EntityType.DEVICE);
-    }
-
-    private EntityGroup createDeviceGroup(String name, EntityType groupType) {
-        EntityGroup testDevicesGroup = new EntityGroup();
-        testDevicesGroup.setType(groupType);
-        testDevicesGroup.setName(name);
-        testDevicesGroup.setOwnerId(tenantId);
-
-        EntityGroupConfiguration entityGroupConfiguration = new EntityGroupConfiguration();
-
-        entityGroupConfiguration.setColumns(Arrays.asList(
-                new ColumnConfiguration(ColumnType.ENTITY_FIELD, EntityField.NAME.name().toLowerCase())
-        ));
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode jsonConfiguration = mapper.valueToTree(entityGroupConfiguration);
-        jsonConfiguration.putObject("settings");
-        jsonConfiguration.putObject("actions");
-        testDevicesGroup.setConfiguration(jsonConfiguration);
-        EntityGroup savedGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, testDevicesGroup);
-        Assert.assertNotNull(savedGroup);
-        return savedGroup;
-    }
-
     @Test
     public void testSaveDeviceGroupOtaPackage() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
 
@@ -202,8 +160,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testSaveGroupOtaPackageWithInvalidEntityGroupType() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices", EntityType.ASSET);
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createEntityGroup(tenantId, EntityType.ASSET, "Test devices");
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
 
@@ -220,8 +178,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testSaveDeviceGroupOtaPackageWithEmptyType() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
         DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
@@ -237,8 +195,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testSaveDeviceGroupOtaPackageWithEmptyOtaPackage() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
         DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
@@ -254,8 +212,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testSaveDeviceGroupOtaPackageWithInvalidOtaPackage() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
         DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
@@ -272,8 +230,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testSaveDeviceGroupOtaPackageWithInvalidOtaPackageType() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
         DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
@@ -290,8 +248,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testFindDeviceGroupOtaPackageById() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
 
@@ -311,8 +269,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testFindDeviceGroupOtaPackageByGroupIdAndOtaPackageType() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
 
@@ -332,8 +290,8 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
     @Test
     public void testDeleteDeviceGroupOtaPackage() {
         OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice("Test device", deviceProfileId);
-        EntityGroup deviceGroup = createDeviceGroup("Test devices");
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
 
         entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
 
@@ -349,6 +307,29 @@ public abstract class BaseDeviceGroupOtaPackageServiceTest extends AbstractServi
 
         DeviceGroupOtaPackage foundDfg = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(savedDgf.getId());
         Assert.assertNull(foundDfg);
+    }
+
+    @Test
+    public void testDeviceGroupOtaPackageDeletionOnDeleteOta() {
+        OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
+        Device device = createDevice(tenantId, "Test device", deviceProfileId);
+        EntityGroup deviceGroup = createDeviceGroup(tenantId, "Test devices");
+
+        entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
+
+        DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
+        deviceGroupOtaPackage.setOtaPackageId(firmware.getId());
+        deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
+        deviceGroupOtaPackage.setGroupId(deviceGroup.getId());
+
+        deviceGroupOtaPackage = deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+
+        assertThat(otaPackageService.findOtaPackageById(tenantId, firmware.getId())).isNotNull();
+        assertThat(deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId())).isNotNull();
+
+        otaPackageService.deleteOtaPackage(tenantId, firmware.getId());
+
+        assertThat(deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId())).isNull();
     }
 
 }

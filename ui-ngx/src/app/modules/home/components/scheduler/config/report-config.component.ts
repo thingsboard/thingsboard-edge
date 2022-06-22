@@ -151,7 +151,7 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
   selectDashboardState() {
     this.dialog.open<SelectDashboardStateDialogComponent, SelectDashboardStateDialogData, string>(SelectDashboardStateDialogComponent, {
       disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog', 'tb-fullscreen-dialog-gt-sm'],
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog', 'tb-fullscreen-dialog-gt-xs'],
       data: {
         dashboardId: this.reportConfigFormGroup.get('dashboardId').value,
         state: this.reportConfigFormGroup.get('state').value

@@ -275,8 +275,11 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                         log.debug("[{}] Unsupported topic for provisioning requests: {}!", sessionId, topicName);
                         ctx.close();
                     }
-                } catch (RuntimeException | AdaptorException e) {
+                } catch (RuntimeException e) {
                     log.warn("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
+                    ctx.close();
+                } catch (AdaptorException e) {
+                    log.debug("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
                     ctx.close();
                 }
                 break;
@@ -387,9 +390,12 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 default:
                     ack(ctx, msgId);
             }
-        } catch (RuntimeException | AdaptorException e) {
+        } catch (RuntimeException e) {
             log.warn("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
             ctx.close();
+        } catch (AdaptorException e) {
+            log.debug("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
+            sendAckOrCloseSession(ctx, topicName, msgId);
         }
     }
 
@@ -477,7 +483,16 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 ack(ctx, msgId);
             }
         } catch (AdaptorException e) {
-            log.warn("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
+            log.debug("[{}] Failed to process publish msg [{}][{}]", sessionId, topicName, msgId, e);
+            sendAckOrCloseSession(ctx, topicName, msgId);
+        }
+    }
+
+    private void sendAckOrCloseSession(ChannelHandlerContext ctx, String topicName, int msgId) {
+        if (deviceSessionCtx.isSendAckOnValidationException() && msgId > 0) {
+            log.debug("[{}] Send pub ack on invalid publish msg [{}][{}]", sessionId, topicName, msgId);
+            ctx.writeAndFlush(createMqttPubAckMsg(msgId));
+        } else {
             log.info("[{}] Closing current session due to invalid publish msg [{}][{}]", sessionId, topicName, msgId);
             ctx.close();
         }
@@ -782,7 +797,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     }
                 }
             } catch (Exception e) {
-                log.warn("[{}] Failed to process unsubscription [{}] to [{}]", sessionId, mqttMsg.variableHeader().messageId(), topicName);
+                log.debug("[{}] Failed to process unsubscription [{}] to [{}]", sessionId, mqttMsg.variableHeader().messageId(), topicName);
             }
         }
         if (!activityReported) {

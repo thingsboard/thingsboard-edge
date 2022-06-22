@@ -43,8 +43,6 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.util.concurrent.ExecutionException;
-
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
 import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
 
@@ -75,16 +73,33 @@ public class TbTwilioSmsNode implements TbNode {
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        withCallback(ctx.getExternalCallExecutor().executeAsync(() -> {
-                    sendSms(ctx, msg);
-                    return null;
-                }),
-                ok -> ctx.tellNext(msg, SUCCESS),
-                fail -> ctx.tellFailure(msg, fail));
+    public void onMsg(TbContext ctx, TbMsg msg) {
+        log.trace("[{}][{}] Msg received: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg);
+        try {
+            withCallback(ctx.getExternalCallExecutor().executeAsync(() -> {
+                        sendSms(ctx, msg);
+                        return null;
+                    }),
+                    ok -> {
+                        log.trace("[{}][{}] Successfully processed msg: {}", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg);
+                        ctx.tellNext(msg, SUCCESS);
+                    },
+                    fail -> {
+                        logFailure(ctx, msg, fail);
+                        ctx.tellFailure(msg, fail);
+                    });
+        } catch (Exception ex) {
+            logFailure(ctx, msg, ex);
+            ctx.tellFailure(msg, ex);
+        }
     }
 
-    private void sendSms(TbContext ctx, TbMsg msg) throws Exception {
+    private void logFailure(TbContext ctx, TbMsg msg, Throwable fail) {
+        String errorMsg = String.format("[%s][%s] Failed to process msg: %s", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg);
+        log.error(errorMsg, fail);
+    }
+
+    private void sendSms(TbContext ctx, TbMsg msg) {
         String numberFrom = TbNodeUtils.processPattern(this.config.getNumberFrom(), msg);
         String numbersTo = TbNodeUtils.processPattern(this.config.getNumbersTo(), msg);
         String[] numbersToList = numbersTo.split(",");
@@ -92,11 +107,13 @@ public class TbTwilioSmsNode implements TbNode {
             throw new IllegalArgumentException("To numbers list is empty!");
         }
         for (String numberTo : numbersToList) {
+            log.trace("[{}][{}][{}] Sending sms for number: {} ...", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg.getId(), numbersTo);
             Message.creator(
                     new PhoneNumber(numberTo.trim()),
                     new PhoneNumber(numberFrom.trim()),
                     msg.getData().replaceAll("^\"|\"$", "").replaceAll("\\\\n", "\n")
             ).create(this.twilioRestClient);
+            log.trace("[{}][{}][{}] Sms for number: {} sent successfully!", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg.getId(), numbersTo);
         }
     }
 

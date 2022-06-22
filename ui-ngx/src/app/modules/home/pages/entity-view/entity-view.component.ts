@@ -88,14 +88,6 @@ export class EntityViewComponent extends GroupEntityComponent<EntityView> {
     }
   }
 
-  hideAssignmentActions() {
-    if (this.entitiesTableConfig) {
-      return !this.entitiesTableConfig.assignmentEnabled(this.entity);
-    } else {
-      return false;
-    }
-  }
-
   /* isAssignedToCustomer(entity: EntityView): boolean {
     return entity && entity.customerId && entity.customerId.id !== NULL_UUID;
   } */

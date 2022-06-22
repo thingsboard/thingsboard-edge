@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { DataSetHolder, Datasource, DatasourceType, widgetType } from '@shared/models/widget.models';
+import { DataKey, DataSetHolder, Datasource, DatasourceType, widgetType } from '@shared/models/widget.models';
 import { SubscriptionTimewindow } from '@shared/models/time/time.models';
 import { EntityData, EntityDataPageLink, KeyFilter } from '@shared/models/query/query.models';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
@@ -53,7 +53,8 @@ export interface EntityDataListener {
   dataLoaded: (pageData: PageData<EntityData>,
                data: Array<Array<DataSetHolder>>,
                datasourceIndex: number, pageLink: EntityDataPageLink) => void;
-  dataUpdated: (data: DataSetHolder, datasourceIndex: number, dataIndex: number, dataKeyIndex: number, detectChanges: boolean) => void;
+  dataUpdated: (data: DataSetHolder, datasourceIndex: number, dataIndex: number, dataKeyIndex: number,
+                detectChanges: boolean, isLatest: boolean) => void;
   initialPageDataChanged?: (nextPageData: PageData<EntityData>) => void;
   forceReInit?: () => void;
   updateRealtimeSubscription?: () => SubscriptionTimewindow;
@@ -109,6 +110,7 @@ export class EntityDataService {
     if (listener.subscription) {
       if (listener.subscriptionType === widgetType.timeseries) {
         listener.subscriptionOptions.subscriptionTimewindow = deepClone(listener.subscriptionTimewindow);
+        listener.subscriptionOptions.latestTsOffset = listener.latestTsOffset;
       } else if (listener.subscriptionType === widgetType.latest) {
         listener.subscriptionOptions.latestTsOffset = listener.latestTsOffset;
       }
@@ -137,6 +139,7 @@ export class EntityDataService {
     listener.subscription = new EntityDataSubscription(listener, this.telemetryService, this.utils);
     if (listener.subscriptionType === widgetType.timeseries) {
       listener.subscriptionOptions.subscriptionTimewindow = deepClone(listener.subscriptionTimewindow);
+      listener.subscriptionOptions.latestTsOffset = listener.latestTsOffset;
     } else if (listener.subscriptionType === widgetType.latest) {
       listener.subscriptionOptions.latestTsOffset = listener.latestTsOffset;
     }
@@ -158,14 +161,13 @@ export class EntityDataService {
                                     ignoreDataUpdateOnIntervalTick: boolean): EntityDataSubscriptionOptions {
     const subscriptionDataKeys: Array<SubscriptionDataKey> = [];
     datasource.dataKeys.forEach((dataKey) => {
-      const subscriptionDataKey: SubscriptionDataKey = {
-        name: dataKey.name,
-        type: dataKey.type,
-        funcBody: dataKey.funcBody,
-        postFuncBody: dataKey.postFuncBody
-      };
-      subscriptionDataKeys.push(subscriptionDataKey);
+      subscriptionDataKeys.push(this.toSubscriptionDataKey(dataKey, false));
     });
+    if (datasource.latestDataKeys) {
+      datasource.latestDataKeys.forEach((dataKey) => {
+        subscriptionDataKeys.push(this.toSubscriptionDataKey(dataKey, true));
+      });
+    }
     const entityDataSubscriptionOptions: EntityDataSubscriptionOptions = {
       datasourceType: datasource.type,
       dataKeys: subscriptionDataKeys,
@@ -183,5 +185,15 @@ export class EntityDataService {
     entityDataSubscriptionOptions.isPaginatedDataSubscription = isPaginatedDataSubscription;
     entityDataSubscriptionOptions.ignoreDataUpdateOnIntervalTick = ignoreDataUpdateOnIntervalTick;
     return entityDataSubscriptionOptions;
+  }
+
+  private toSubscriptionDataKey(dataKey: DataKey, latest: boolean): SubscriptionDataKey {
+    return {
+      name: dataKey.name,
+      type: dataKey.type,
+      funcBody: dataKey.funcBody,
+      postFuncBody: dataKey.postFuncBody,
+      latest
+    };
   }
 }

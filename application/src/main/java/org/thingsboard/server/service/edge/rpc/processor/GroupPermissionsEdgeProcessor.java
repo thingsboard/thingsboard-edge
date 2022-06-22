@@ -30,11 +30,9 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
@@ -54,6 +52,8 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -87,7 +87,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
         return downlinkMsg;
     }
 
-    public void processGroupPermissionNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+    public ListenableFuture<Void> processGroupPermissionNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
@@ -96,50 +96,38 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
             case ADDED:
             case UPDATED:
                 ListenableFuture<GroupPermission> gpFuture = groupPermissionService.findGroupPermissionByIdAsync(tenantId, new GroupPermissionId(entityId.getId()));
-                Futures.addCallback(gpFuture, new FutureCallback<GroupPermission>() {
-                    @Override
-                    public void onSuccess(@Nullable GroupPermission groupPermission) {
-                        if (groupPermission != null) {
-                            PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-                            PageData<EdgeId> pageData;
-                            do {
-                                pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER, pageLink);
-                                if (pageData.getData().size() > 0) {
-                                    for (EdgeId edgeId : pageData.getData()) {
-                                        ListenableFuture<Boolean> checkFuture =
-                                                entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
-                                        Futures.addCallback(checkFuture, new FutureCallback<Boolean>() {
-                                            @Override
-                                            public void onSuccess(@Nullable Boolean exists) {
-                                                if (Boolean.TRUE.equals(exists)) {
-                                                    saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
-                                                }
-                                            }
-
-                                            @Override
-                                            public void onFailure(Throwable t) {
-                                                log.error("Failed to check edge entity group id [{}]", edgeNotificationMsg, t);
-                                            }
-                                        }, dbCallbackExecutorService);
-
+                return Futures.transformAsync(gpFuture, groupPermission -> {
+                    if (groupPermission == null) {
+                        return Futures.immediateFuture(null);
+                    }
+                    PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+                    PageData<EdgeId> pageData;
+                    List<ListenableFuture<Void>> futures = new ArrayList<>();
+                    do {
+                        pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER, pageLink);
+                        if (pageData.getData().size() > 0) {
+                            for (EdgeId edgeId : pageData.getData()) {
+                                ListenableFuture<Boolean> checkFuture =
+                                        entityGroupService.checkEdgeEntityGroupById(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                                futures.add(Futures.transformAsync(checkFuture, exists -> {
+                                    if (Boolean.TRUE.equals(exists)) {
+                                        return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                                    } else {
+                                        return Futures.immediateFuture(null);
                                     }
-                                    if (pageData.hasNext()) {
-                                        pageLink = pageLink.nextPageLink();
-                                    }
-                                }
-                            } while (pageData.hasNext());
+                                }, dbCallbackExecutorService));
+                            }
+                            if (pageData.hasNext()) {
+                                pageLink = pageLink.nextPageLink();
+                            }
                         }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        log.error("Failed to find group permission by id [{}]", edgeNotificationMsg, t);
-                    }
+                    } while (pageData.hasNext());
+                    return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
-                break;
             case DELETED:
-                processActionForAllEdges(tenantId, type, actionType, entityId);
-                break;
+                return processActionForAllEdges(tenantId, type, actionType, entityId);
+            default:
+                return Futures.immediateFuture(null);
         }
     }
 

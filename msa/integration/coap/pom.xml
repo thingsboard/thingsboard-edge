@@ -36,7 +36,7 @@
 
 <parent>
     <groupId>org.thingsboard.msa</groupId>
-    <version>3.3.4PE-SNAPSHOT</version>
+    <version>3.4.0PE-SNAPSHOT</version>
     <artifactId>integration</artifactId>
 </parent>
 
@@ -154,10 +154,10 @@
 </build>
 <profiles>
     <profile>
-        <id>push-docker-image</id>
+        <id>push-integration-docker-image</id>
         <activation>
             <property>
-                <name>push-docker-image</name>
+                <name>push-integration-docker-image</name>
             </property>
         </activation>
         <build>
@@ -198,7 +198,7 @@
     <repository>
         <id>jenkins</id>
         <name>Jenkins Repository</name>
-        <url>http://repo.jenkins-ci.org/releases</url>
+        <url>https://repo.jenkins-ci.org/releases</url>
         <snapshots>
             <enabled>false</enabled>
         </snapshots>

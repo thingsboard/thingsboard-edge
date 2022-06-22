@@ -36,67 +36,73 @@ import { MarkerClusterGroup, MarkerClusterGroupOptions } from 'leaflet.markerclu
 import '@geoman-io/leaflet-geoman-free';
 
 import {
-  defaultSettings,
-  FormattedData,
-  MapSettings,
+  CircleData, defaultMapSettings,
+  MarkerClusteringSettings,
   MarkerIconInfo,
   MarkerImageInfo,
-  MarkerSettings,
-  PolygonSettings,
-  PolylineSettings,
-  ReplaceInfo,
-  UnitedMapSettings
+  WidgetPolygonSettings, WidgetPolylineSettings, WidgetMarkersSettings, WidgetUnitedMapSettings
 } from './map-models';
 import { Marker } from './markers';
 import { Observable, of } from 'rxjs';
 import { Polyline } from './polyline';
 import { Polygon } from './polygon';
-import { createTooltip } from '@home/components/widget/lib/maps/maps-utils';
+import { Circle } from './circle';
+import { createTooltip, isCutPolygon, isJSON } from '@home/components/widget/lib/maps/maps-utils';
 import {
   checkLngLat,
-  createLoadingDiv,
-  parseArray,
-  parseData,
-  safeExecute
+  createLoadingDiv
 } from '@home/components/widget/lib/maps/common-maps-utils';
 import { WidgetContext } from '@home/models/widget-component.models';
-import { deepClone, isDefinedAndNotNull, isEmptyStr, isString } from '@core/utils';
+import {
+  deepClone,
+  formattedDataArrayFromDatasourceData,
+  formattedDataFormDatasourceData,
+  isDefinedAndNotNull,
+  isNotEmptyStr,
+  isString, mergeFormattedData, safeExecute
+} from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import {
   SelectEntityDialogComponent,
   SelectEntityDialogData
 } from '@home/components/widget/lib/maps/dialogs/select-entity-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
+import { FormattedData, ReplaceInfo } from '@shared/models/widget.models';
 
 export default abstract class LeafletMap {
 
     markers: Map<string, Marker> = new Map();
     polylines: Map<string, Polyline> = new Map();
     polygons: Map<string, Polygon> = new Map();
+    circles: Map<string, Circle> = new Map();
     map: L.Map;
-    options: UnitedMapSettings;
+    options: WidgetUnitedMapSettings;
     bounds: L.LatLngBounds;
     datasources: FormattedData[];
     markersCluster: MarkerClusterGroup;
     points: FeatureGroup;
     markersData: FormattedData[] = [];
     polygonsData: FormattedData[] = [];
+    circleData: FormattedData[] = [];
     defaultMarkerIconInfo: MarkerIconInfo;
     loadingDiv: JQuery<HTMLElement>;
     loading = false;
     replaceInfoLabelMarker: Array<ReplaceInfo> = [];
     markerLabelText: string;
     polygonLabelText: string;
+    circleLabelText: string;
     replaceInfoLabelPolygon: Array<ReplaceInfo> = [];
     replaceInfoTooltipMarker: Array<ReplaceInfo> = [];
+    replaceInfoTooltipCircle: Array<ReplaceInfo> = [];
     markerTooltipText: string;
     drawRoutes: boolean;
-    showPolygon: boolean;
     updatePending = false;
     editPolygons = false;
+    editCircle = false;
     selectedEntity: FormattedData;
-    addMarkers: L.Marker[] = [];
-    addPolygons: L.Polygon[] = [];
+    ignoreUpdateBounds = false;
+    initDragModeIgnoreUpdateBoundsSet = false;
   // tslint:disable-next-line:no-string-literal
     southWest = new L.LatLng(-Projection.SphericalMercator['MAX_LATITUDE'], -180);
   // tslint:disable-next-line:no-string-literal
@@ -105,39 +111,34 @@ export default abstract class LeafletMap {
     saveMarkerLocation: (e: FormattedData, lat?: number, lng?: number) => Observable<any>;
     savePolygonLocation: (e: FormattedData, coordinates?: Array<any>) => Observable<any>;
     translateService: TranslateService;
+    tooltipInstances: ITooltipsterInstance[] = [];
 
     protected constructor(public ctx: WidgetContext,
                           public $container: HTMLElement,
-                          options: UnitedMapSettings) {
+                          options: WidgetUnitedMapSettings) {
         this.options = options;
+        this.options.tinyColor = tinycolor(this.options.color || defaultMapSettings.color);
         this.editPolygons = options.showPolygon && options.editablePolygon;
+        this.editCircle = options.showCircle && options.editableCircle;
         L.Icon.Default.imagePath = '/';
         this.translateService = this.ctx.$injector.get(TranslateService);
+        this.initMarkerClusterSettings();
     }
 
-    public initSettings(options: MapSettings) {
-        this.options.tinyColor = tinycolor(this.options.color || defaultSettings.color);
-        const { useClusterMarkers,
-            zoomOnClick,
-            showCoverageOnHover,
-            removeOutsideVisibleBounds,
-            animate,
-            chunkedLoading,
-            spiderfyOnMaxZoom,
-            maxClusterRadius,
-            maxZoom }: MapSettings = options;
-        if (useClusterMarkers) {
+    private initMarkerClusterSettings() {
+        const markerClusteringSettings: MarkerClusteringSettings = this.options;
+        if (markerClusteringSettings.useClusterMarkers) {
             // disabled marker cluster icon
             (L as any).MarkerCluster = (L as any).MarkerCluster.extend({
               options: { pmIgnore: true, ...L.Icon.prototype.options }
             });
             const clusteringSettings: MarkerClusterGroupOptions = {
-                spiderfyOnMaxZoom,
-                zoomToBoundsOnClick: zoomOnClick,
-                showCoverageOnHover,
-                removeOutsideVisibleBounds,
-                animate,
-                chunkedLoading,
+                spiderfyOnMaxZoom: markerClusteringSettings.spiderfyOnMaxZoom,
+                zoomToBoundsOnClick: markerClusteringSettings.zoomOnClick,
+                showCoverageOnHover: markerClusteringSettings.showCoverageOnHover,
+                removeOutsideVisibleBounds: markerClusteringSettings.removeOutsideVisibleBounds,
+                animate: markerClusteringSettings.animate,
+                chunkedLoading: markerClusteringSettings.chunkedLoading,
                 pmIgnore: true,
                 spiderLegPolylineOptions: {
                   pmIgnore: true
@@ -146,11 +147,11 @@ export default abstract class LeafletMap {
                   pmIgnore: true
                 }
             };
-            if (maxClusterRadius && maxClusterRadius > 0) {
-                clusteringSettings.maxClusterRadius = Math.floor(maxClusterRadius);
+            if (markerClusteringSettings.maxClusterRadius && markerClusteringSettings.maxClusterRadius > 0) {
+                clusteringSettings.maxClusterRadius = Math.floor(markerClusteringSettings.maxClusterRadius);
             }
-            if (maxZoom && maxZoom >= 0 && maxZoom < 19) {
-                clusteringSettings.disableClusteringAtZoom = Math.floor(maxZoom);
+            if (markerClusteringSettings.maxZoom && markerClusteringSettings.maxZoom >= 0 && markerClusteringSettings.maxZoom < 19) {
+                clusteringSettings.disableClusteringAtZoom = Math.floor(markerClusteringSettings.maxZoom);
             }
             this.markersCluster = new MarkerClusterGroup(clusteringSettings);
         }
@@ -165,6 +166,9 @@ export default abstract class LeafletMap {
           break;
         case 'Marker':
           entities = this.datasources.filter(mData => !this.convertPosition(mData));
+          break;
+        case 'Circle':
+          entities = this.datasources.filter(mData => !this.isValidCircle(mData));
           break;
         default:
           return of(null);
@@ -196,6 +200,16 @@ export default abstract class LeafletMap {
               // @ts-ignore
               this.map.pm.Draw.tbMarker._hintMarker.setTooltipContent(tooltipText);
               break;
+            case 'tbCircle':
+              tooltipText = this.translateService.instant('widgets.maps.tooltips.startCircle', {entityName: data.entityName});
+              // @ts-ignore
+              this.map.pm.Draw.tbCircle._hintMarker.setTooltipContent(tooltipText);
+              customTranslation = {
+                tooltips: {
+                  finishCircle: this.translateService.instant('widgets.maps.tooltips.finishCircle', {entityName: data.entityName})
+                }
+              };
+              break;
             case 'tbRectangle':
               tooltipText = this.translateService.instant('widgets.maps.tooltips.firstVertex', {entityName: data.entityName});
               // @ts-ignore
@@ -205,7 +219,6 @@ export default abstract class LeafletMap {
                   finishRect: this.translateService.instant('widgets.maps.tooltips.finishRect', {entityName: data.entityName})
                 }
               };
-              this.map.pm.setLang('en', customTranslation, 'en');
               break;
             case 'tbPolygon':
               tooltipText = this.translateService.instant('widgets.maps.tooltips.firstVertex', {entityName: data.entityName});
@@ -217,8 +230,11 @@ export default abstract class LeafletMap {
                   finishPoly: this.translateService.instant('widgets.maps.tooltips.finishPoly', {entityName: data.entityName})
                 }
               };
-              this.map.pm.setLang('en', customTranslation);
               break;
+          }
+          if (customTranslation) {
+            this.map.pm.setLang('en', customTranslation, 'en');
+            this.createdControlButtonTooltip();
           }
         } else {
           // @ts-ignore
@@ -280,6 +296,48 @@ export default abstract class LeafletMap {
         });
       }
 
+      // Customize edit circle
+      if (this.editCircle && !this.options.hideDrawControlButton) {
+        const actions = [{
+          text: L.PM.Utils.getTranslation('actions.cancel'),
+          onClick: () => this.toggleDrawMode('tbCircle')
+        }];
+
+        this.map.pm.Toolbar.copyDrawControl('Circle', {
+          name: 'tbCircle',
+          afterClick: () => this.selectEntityWithoutLocation('tbCircle'),
+          disabled: true,
+          actions
+        });
+      }
+
+      if (this.editPolygons && !this.options.hideEditControlButton) {
+        this.map.pm.Toolbar.copyDrawControl('cutPolygon', {
+          name: 'tbCut',
+          title: this.translateService.instant('widgets.maps.buttonTitles.cutButton'),
+          block: 'edit',
+          onClick: () => {
+            this.map.pm.setLang('en', {
+              tooltips: {
+                firstVertex: this.translateService.instant('widgets.maps.tooltips.firstVertex-cut'),
+                continueLine: this.translateService.instant('widgets.maps.tooltips.continueLine-cut'),
+                finishPoly: this.translateService.instant('widgets.maps.tooltips.finishPoly-cut')
+              }
+            }, 'en');
+            this.createdControlButtonTooltip();
+          },
+          // @ts-ignore
+          afterClick: (e, ctx) => {
+            this.map.pm.Draw[ctx.button._button.jsClass].toggle({
+              snappable: this.options.snappable,
+              cursorMarker: true,
+              allowSelfIntersection: false,
+            });
+          },
+        });
+        this.map.pm.Toolbar.changeControlOrder(['tbMarker', 'tbRectangle', 'tbPolygon', 'tbCircle', 'editMode', 'dragMode', 'tbCut', 'removalMode', 'rotateMode']);
+      }
+
       this.map.pm.setLang('en', this.translateService.instant('widgets.maps'), 'en');
       if (!this.options.hideAllControlButton) {
         this.map.pm.addControls({
@@ -292,8 +350,8 @@ export default abstract class LeafletMap {
           drawPolyline: false,
           drawPolygon: false,
           dragMode: !this.options.hideEditControlButton,
-          editMode: this.editPolygons && !this.options.hideEditControlButton,
-          cutPolygon: this.editPolygons && !this.options.hideEditControlButton,
+          editMode: (this.editPolygons || this.editCircle) && !this.options.hideEditControlButton,
+          cutPolygon: false,
           removalMode: !this.options.hideRemoveControlButton,
           rotateMode: this.editPolygons && !this.options.hideEditControlButton
         });
@@ -303,23 +361,36 @@ export default abstract class LeafletMap {
         this.map.pm.enableGlobalDragMode();
       }
 
+      this.map.on('pm:globaldrawmodetoggled', (e) => this.ignoreUpdateBounds = e.enabled);
+      this.map.on('pm:globaleditmodetoggled', (e) => this.ignoreUpdateBounds = e.enabled);
+      this.map.on('pm:globaldragmodetoggled', (e) => this.ignoreUpdateBounds = e.enabled);
+      this.map.on('pm:globalremovalmodetoggled', (e) => this.ignoreUpdateBounds = e.enabled);
+      this.map.on('pm:globalcutmodetoggled', (e) => this.ignoreUpdateBounds = e.enabled);
+      this.map.on('pm:globalrotatemodetoggled', (e) => this.ignoreUpdateBounds = e.enabled);
+
       this.map.on('pm:create', (e) => {
-        if (e.shape === 'tbMarker') {
-          // @ts-ignore
-          this.saveLocation(this.selectedEntity, this.convertToCustomFormat(e.layer.getLatLng())).subscribe(() => {
-          });
-        } else if (e.shape === 'tbRectangle' || e.shape === 'tbPolygon') {
-          let coordinates;
-          if (e.shape === 'tbRectangle') {
+        switch (e.shape) {
+          case 'tbMarker':
             // @ts-ignore
-            const bounds: L.LatLngBounds = e.layer.getBounds();
-            coordinates = [bounds.getNorthWest(), bounds.getSouthEast()];
-          } else {
+            this.saveLocation(this.selectedEntity, this.convertToCustomFormat(e.layer.getLatLng())).subscribe(() => {});
+            break;
+          case 'tbRectangle':
+          case 'tbPolygon':
+            let coordinates;
+            if (e.shape === 'tbRectangle') {
+              // @ts-ignore
+              const bounds: L.LatLngBounds = e.layer.getBounds();
+              coordinates = [bounds.getNorthWest(), bounds.getSouthEast()];
+            } else {
+              // @ts-ignore
+              coordinates = e.layer.getLatLngs()[0];
+            }
+            this.saveLocation(this.selectedEntity, this.convertPolygonToCustomFormat(coordinates)).subscribe(() => {});
+            break;
+          case 'tbCircle':
             // @ts-ignore
-            coordinates = e.layer.getLatLngs()[0];
-          }
-          this.saveLocation(this.selectedEntity, this.convertPolygonToCustomFormat(coordinates)).subscribe(() => {
-          });
+            this.saveLocation(this.selectedEntity, this.convertCircleToCustomFormat(e.layer.getLatLng(), e.layer.getRadius()))
+              .subscribe(() => {});
         }
         // @ts-ignore
         e.layer._pmTempLayer = true;
@@ -357,6 +428,13 @@ export default abstract class LeafletMap {
             result = iterator.next();
           }
           this.saveLocation(result.value.data, this.convertPolygonToCustomFormat(null)).subscribe(() => {});
+        } else if (e.shape === 'Circle') {
+          const iterator = this.circles.values();
+          let result = iterator.next();
+          while (!result.done && e.layer !== result.value.leafletCircle) {
+            result = iterator.next();
+          }
+          this.saveLocation(result.value.data, this.convertCircleToCustomFormat(null, 0)).subscribe(() => {});
         }
       });
     }
@@ -393,7 +471,7 @@ export default abstract class LeafletMap {
           });
         });
         if (this.options.useDefaultCenterPosition) {
-          this.map.panTo(this.options.defaultCenterPosition);
+          this.map.panTo(this.options.parsedDefaultCenterPosition);
           this.bounds = map.getBounds();
         } else {
           this.bounds = new L.LatLngBounds(null, null);
@@ -401,7 +479,7 @@ export default abstract class LeafletMap {
         if (this.options.disableScrollZooming) {
           this.map.scrollWheelZoom.disable();
         }
-        if (this.options.draggableMarker || this.editPolygons) {
+        if (this.options.draggableMarker || this.editPolygons || this.editCircle) {
           map.pm.setGlobalOptions({ snappable: false } as L.PM.GlobalOptions);
           map.pm.applyGlobalOptions();
           this.addEditControl();
@@ -413,13 +491,19 @@ export default abstract class LeafletMap {
         }
         if (this.updatePending) {
           this.updatePending = false;
-          this.updateData(this.drawRoutes, this.showPolygon);
+          this.updateData(this.drawRoutes);
         }
         this.createdControlButtonTooltip();
     }
 
     private createdControlButtonTooltip() {
       import('tooltipster').then(() => {
+        if ($.tooltipster) {
+          this.tooltipInstances.forEach((instance) => {
+            instance.destroy();
+          });
+          this.tooltipInstances = [];
+        }
         $(this.ctx.$container)
           .find('a[role="button"]:not(.leaflet-pm-action)')
           .each((index, element) => {
@@ -431,7 +515,7 @@ export default abstract class LeafletMap {
               title = element.title;
               $(element).removeAttr('title');
             }
-            $(element).tooltipster(
+            const tooltip =  $(element).tooltipster(
               {
                 content: title,
                 theme: 'tooltipster-shadow',
@@ -447,6 +531,7 @@ export default abstract class LeafletMap {
                 trackOrigin: true
               }
             );
+            this.tooltipInstances.push(tooltip.tooltipster('instance'));
           });
       });
     }
@@ -483,7 +568,7 @@ export default abstract class LeafletMap {
             if (!this.options.fitMapBounds && this.options.defaultZoomLevel) {
                 this.map.setZoom(this.options.defaultZoomLevel, { animate: false });
                 if (this.options.useDefaultCenterPosition) {
-                    this.map.panTo(this.options.defaultCenterPosition, { animate: false });
+                    this.map.panTo(this.options.parsedDefaultCenterPosition, { animate: false });
                 }
                 else {
                     this.map.panTo(this.bounds.getCenter());
@@ -499,7 +584,7 @@ export default abstract class LeafletMap {
                     }
                 });
                 if (this.options.useDefaultCenterPosition) {
-                    this.bounds = this.bounds.extend(this.options.defaultCenterPosition);
+                    this.bounds = this.bounds.extend(this.options.parsedDefaultCenterPosition);
                 }
                 this.map.fitBounds(this.bounds, { padding: padding || [50, 50], animate: false });
                 this.map.invalidateSize();
@@ -561,28 +646,42 @@ export default abstract class LeafletMap {
       };
     }
 
-    updateData(drawRoutes: boolean, showPolygon: boolean) {
+    updateData(drawRoutes: boolean) {
+      const data = this.ctx.data;
+      let formattedData = formattedDataFormDatasourceData(data);
+      if (this.ctx.latestData && this.ctx.latestData.length) {
+        const formattedLatestData = formattedDataFormDatasourceData(this.ctx.latestData);
+        formattedData = mergeFormattedData(formattedData, formattedLatestData);
+      }
+      let polyData: FormattedData[][] = null;
+      if (drawRoutes) {
+        polyData = formattedDataArrayFromDatasourceData(data);
+      }
+      this.updateFromData(drawRoutes, formattedData, polyData);
+    }
+
+    updateFromData(drawRoutes: boolean, formattedData: FormattedData[],
+                   polyData: FormattedData[][], markerClickCallback?: any) {
       this.drawRoutes = drawRoutes;
-      this.showPolygon = showPolygon;
       if (this.map) {
-        const data = this.ctx.data;
-        const formattedData = parseData(data);
         if (drawRoutes) {
-          const polyData = parseArray(data);
           this.updatePolylines(polyData, formattedData, false);
         }
-        if (showPolygon) {
+        if (this.options.showPolygon) {
           this.updatePolygons(formattedData, false);
         }
-        this.updateMarkers(formattedData, false);
+        if (this.options.showCircle) {
+          this.updateCircle(formattedData, false);
+        }
+        this.updateMarkers(formattedData, false, markerClickCallback);
         this.updateBoundsInternal();
-        if (this.options.draggableMarker || this.editPolygons) {
-          let foundEntityWithoutLocation = false;
+        if (this.options.draggableMarker || this.editPolygons || this.editCircle) {
           let foundEntityWithLocation = false;
-          let foundEntityWithoutPolygon = false;
           let foundEntityWithPolygon = false;
+          let foundEntityWithCircle = false;
 
           if (this.options.draggableMarker && !this.options.hideDrawControlButton && !this.options.hideAllControlButton) {
+            let foundEntityWithoutLocation = false;
             for (const mData of formattedData) {
               const position = this.convertPosition(mData);
               if (!position) {
@@ -602,6 +701,7 @@ export default abstract class LeafletMap {
           }
 
           if (this.editPolygons && !this.options.hideDrawControlButton && !this.options.hideAllControlButton) {
+            let foundEntityWithoutPolygon = false;
             for (const pData of formattedData) {
               const isValidPolygon = this.isValidPolygonPosition(pData);
               if (!isValidPolygon) {
@@ -620,22 +720,47 @@ export default abstract class LeafletMap {
             }
             this.datasources = formattedData;
           }
+
+          if (this.editCircle && !this.options.hideDrawControlButton && !this.options.hideAllControlButton) {
+            let foundEntityWithoutCircle = false;
+            for (const cData of formattedData) {
+              const isValidCircle = this.isValidCircle(cData);
+              if (!isValidCircle) {
+                foundEntityWithoutCircle = true;
+              } else if (isValidCircle) {
+                foundEntityWithCircle = true;
+              }
+              if (foundEntityWithoutCircle && foundEntityWithCircle) {
+                break;
+              }
+            }
+            // @ts-ignore
+            if (this.map.pm.Toolbar.getButtons().tbCircle.disable !== foundEntityWithoutCircle) {
+              this.map.pm.Toolbar.setButtonDisabled('tbCircle', !foundEntityWithoutCircle);
+            }
+            this.datasources = formattedData;
+          }
+
           if (!this.options.hideRemoveControlButton && !this.options.hideAllControlButton) {
-            const disabledButton = !foundEntityWithLocation && !foundEntityWithPolygon;
+            const disabledButton = !foundEntityWithLocation && !foundEntityWithPolygon && !foundEntityWithCircle;
             if (disabledButton && this.map.pm.globalRemovalModeEnabled()) {
               this.map.pm.toggleGlobalRemovalMode();
             }
             this.map.pm.Toolbar.setButtonDisabled('removalMode', disabledButton);
           }
           if (!this.options.hideEditControlButton && !this.options.hideAllControlButton) {
-            const disabledButton = !foundEntityWithLocation && !foundEntityWithPolygon;
+            const disabledButton = !foundEntityWithLocation && !foundEntityWithPolygon && !foundEntityWithCircle;
             // @ts-ignore
             if (this.map.pm.Toolbar.getButtons().dragMode.disable !== disabledButton) {
               this.map.pm.Toolbar.setButtonDisabled('dragMode', disabledButton);
+              const foundEntityWithPoly = foundEntityWithPolygon || foundEntityWithCircle;
               // @ts-ignore
-              if (this.editPolygons && this.map.pm.Toolbar.getButtons().editMode.disable !== foundEntityWithPolygon) {
-                this.map.pm.Toolbar.setButtonDisabled('editMode', !foundEntityWithPolygon);
-                this.map.pm.Toolbar.setButtonDisabled('cutPolygon', !foundEntityWithPolygon);
+              if ((this.editPolygons || this.editCircle) && this.map.pm.Toolbar.getButtons().editMode.disable !== foundEntityWithPoly) {
+                this.map.pm.Toolbar.setButtonDisabled('editMode', !foundEntityWithPoly);
+              }
+              // @ts-ignore
+              if (this.editPolygons && this.map.pm.Toolbar.getButtons().tbCut.disable !== foundEntityWithPolygon) {
+                this.map.pm.Toolbar.setButtonDisabled('tbCut', !foundEntityWithPolygon);
                 this.map.pm.Toolbar.setButtonDisabled('rotateMode', !foundEntityWithPolygon);
               }
             }
@@ -653,12 +778,17 @@ export default abstract class LeafletMap {
         bounds.extend(polyline.leafletPoly.getBounds());
       });
     }
-    if (this.showPolygon) {
+    if (this.options.showPolygon) {
       this.polygons.forEach((polygon) => {
         bounds.extend(polygon.leafletPoly.getBounds());
       });
     }
-    if ((this.options as MarkerSettings).useClusterMarkers && this.markersCluster.getBounds().isValid()) {
+    if (this.options.showCircle) {
+      this.circles.forEach((polygon) => {
+        bounds.extend(polygon.leafletCircle.getBounds());
+      });
+    }
+    if (this.options.useClusterMarkers && this.markersCluster.getBounds().isValid()) {
       bounds.extend(this.markersCluster.getBounds());
     } else {
       this.markers.forEach((marker) => {
@@ -670,7 +800,13 @@ export default abstract class LeafletMap {
     if (bounds.isValid() && (!this.bounds || !this.bounds.isValid() || !this.bounds.equals(bounds)
         && this.options.fitMapBounds ? !mapBounds.contains(bounds) : false)) {
       this.bounds = bounds;
-      this.fitBounds(bounds);
+      if (!this.ignoreUpdateBounds) {
+        this.fitBounds(bounds);
+      }
+    }
+    if (this.options.initDragMode && !this.initDragModeIgnoreUpdateBoundsSet) {
+      this.initDragModeIgnoreUpdateBoundsSet = true;
+      this.ignoreUpdateBounds = true;
     }
   }
 
@@ -685,7 +821,7 @@ export default abstract class LeafletMap {
       rawMarkers.forEach(data => {
         if (data.rotationAngle || data.rotationAngle === 0) {
           const currentImage: MarkerImageInfo = this.options.useMarkerImageFunction ?
-            safeExecute(this.options.markerImageFunction,
+            safeExecute(this.options.parsedMarkerImageFunction,
               [data, this.options.markerImages, markersData, data.dsIndex]) : this.options.currentImage;
           const style = currentImage ? 'background-image: url(' + currentImage.url + ');' : '';
           this.options.icon = { icon: L.divIcon({
@@ -703,7 +839,7 @@ export default abstract class LeafletMap {
             updatedMarkers.push(m);
           }
         } else {
-          m = this.createMarker(data.entityName, data, markersData, this.options, updateBounds, callback);
+          m = this.createMarker(data.entityName, data, markersData, this.options, updateBounds, callback, this.options.snappable);
           if (m) {
             createdMarkers.push(m);
           }
@@ -737,9 +873,9 @@ export default abstract class LeafletMap {
         this.saveLocation(data, this.convertToCustomFormat(e.target._latlng)).subscribe();
     }
 
-    private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: UnitedMapSettings,
-                         updateBounds = true, callback?): Marker {
-      const newMarker = new Marker(this, this.convertPosition(data), settings, data, dataSources, this.dragMarker);
+    private createMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: Partial<WidgetMarkersSettings>,
+                         updateBounds = true, callback?, snappable = false): Marker {
+      const newMarker = new Marker(this, this.convertPosition(data), settings, data, dataSources, this.dragMarker, snappable);
       if (callback) {
         newMarker.leafletMarker.on('click', () => {
           callback(data, true);
@@ -755,7 +891,7 @@ export default abstract class LeafletMap {
       return newMarker;
     }
 
-    private updateMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: MarkerSettings): Marker {
+    private updateMarker(key: string, data: FormattedData, dataSources: FormattedData[], settings: Partial<WidgetMarkersSettings>): Marker {
         const marker: Marker = this.markers.get(key);
         const location = this.convertPosition(data);
         marker.updateMarkerPosition(location);
@@ -803,7 +939,7 @@ export default abstract class LeafletMap {
         if (!!this.convertPosition(pdata)) {
           const dsData = pointsData.map(ds => ds[tsIndex]);
           if (this.options.useColorPointFunction) {
-            pointColor = safeExecute(this.options.colorPointFunction, [pdata, dsData, pdata.dsIndex]);
+            pointColor = safeExecute(this.options.parsedColorPointFunction, [pdata, dsData, pdata.dsIndex]);
           }
           const point = L.circleMarker(this.convertPosition(pdata), {
             color: pointColor,
@@ -812,7 +948,8 @@ export default abstract class LeafletMap {
           if (!this.options.pointTooltipOnRightPanel) {
             point.on('click', () => getTooltip(pdata, dsData));
           } else {
-            createTooltip(point, this.options, pdata.$datasource, getTooltip(pdata, dsData));
+            createTooltip(point, this.options, pdata.$datasource, this.options.autocloseTooltip,
+              this.options.showTooltipAction, getTooltip(pdata, dsData));
           }
           this.points.addLayer(point);
         }
@@ -849,7 +986,8 @@ export default abstract class LeafletMap {
         });
     }
 
-    createPolyline(data: FormattedData, tsData: FormattedData[], dsData: FormattedData[], settings: PolylineSettings, updateBounds = true) {
+    createPolyline(data: FormattedData, tsData: FormattedData[], dsData: FormattedData[],
+                   settings: Partial<WidgetPolylineSettings>, updateBounds = true) {
         const poly = new Polyline(this.map,
           tsData.map(el => this.convertPosition(el)).filter(el => !!el), data, dsData, settings);
         if (updateBounds) {
@@ -859,7 +997,8 @@ export default abstract class LeafletMap {
         this.polylines.set(data.entityName, poly);
     }
 
-    updatePolyline(data: FormattedData, tsData: FormattedData[], dsData: FormattedData[], settings: PolylineSettings, updateBounds = true) {
+    updatePolyline(data: FormattedData, tsData: FormattedData[], dsData: FormattedData[],
+                   settings: Partial<WidgetPolylineSettings>, updateBounds = true) {
         const poly = this.polylines.get(data.entityName);
         const oldBounds = poly.leafletPoly.getBounds();
         poly.updatePolyline(tsData.map(el => this.convertPosition(el)).filter(el => !!el), data, dsData, settings);
@@ -883,7 +1022,8 @@ export default abstract class LeafletMap {
     // Polygon
 
   isValidPolygonPosition(data: FormattedData): boolean {
-    return data && isDefinedAndNotNull(data[this.options.polygonKeyName]) && !isEmptyStr(data[this.options.polygonKeyName]);
+    return data && ((isNotEmptyStr(data[this.options.polygonKeyName]) && !isJSON(data[this.options.polygonKeyName])
+      || Array.isArray(data[this.options.polygonKeyName])));
   }
 
   updatePolygons(polyData: FormattedData[], updateBounds = true) {
@@ -899,7 +1039,7 @@ export default abstract class LeafletMap {
         if (this.polygons.get(data.entityName)) {
           this.updatePolygon(data, polyData, this.options, updateBounds);
         } else {
-          this.createPolygon(data, polyData, this.options, updateBounds);
+          this.createPolygon(data, polyData, this.options, updateBounds, this.options.snappable);
         }
         keys.push(data.entityName);
       }
@@ -923,7 +1063,7 @@ export default abstract class LeafletMap {
     if (coordinates.length === 1) {
       coordinates = coordinates[0];
     }
-    if (e.shape === 'Rectangle' && coordinates.length === 1) {
+    if (e.shape === 'Rectangle' && !isCutPolygon(coordinates)) {
       // @ts-ignore
       const bounds: L.LatLngBounds = e.layer.getBounds();
       const boundsArray = [bounds.getNorthWest(), bounds.getNorthEast(), bounds.getSouthWest(), bounds.getSouthEast()];
@@ -934,8 +1074,9 @@ export default abstract class LeafletMap {
     this.saveLocation(data, this.convertPolygonToCustomFormat(coordinates)).subscribe(() => {});
   }
 
-    createPolygon(polyData: FormattedData, dataSources: FormattedData[], settings: UnitedMapSettings, updateBounds = true) {
-      const polygon = new Polygon(this.map, polyData, dataSources, settings, this.dragPolygonVertex);
+    createPolygon(polyData: FormattedData, dataSources: FormattedData[], settings: Partial<WidgetPolygonSettings>,
+                  updateBounds = true, snappable = false) {
+      const polygon = new Polygon(this, polyData, dataSources, settings, this.dragPolygonVertex, snappable);
       if (updateBounds) {
         const bounds = polygon.leafletPoly.getBounds();
         this.fitBounds(bounds);
@@ -943,7 +1084,7 @@ export default abstract class LeafletMap {
       this.polygons.set(polyData.entityName, polygon);
     }
 
-    updatePolygon(polyData: FormattedData, dataSources: FormattedData[], settings: PolygonSettings, updateBounds = true) {
+    updatePolygon(polyData: FormattedData, dataSources: FormattedData[], settings: Partial<WidgetPolygonSettings>, updateBounds = true) {
       const poly = this.polygons.get(polyData.entityName);
       const oldBounds = poly.leafletPoly.getBounds();
       poly.updatePolygon(polyData, dataSources, settings);
@@ -965,6 +1106,89 @@ export default abstract class LeafletMap {
       if (this.map) {
         this.map.remove();
         this.map = null;
+      }
+      this.tooltipInstances.forEach((instance) => {
+        instance.destroy();
+      });
+    }
+
+    // Circle
+    isValidCircle(data: FormattedData): boolean {
+      return data && isNotEmptyStr(data[this.options.circleKeyName]) && isJSON(data[this.options.circleKeyName]);
+    }
+
+    convertCircleToCustomFormat(expression: L.LatLng, radius: number): {[key: string]: CircleData} {
+      let circleDara: CircleData = null;
+      if (expression) {
+        const position = checkLngLat(expression, this.southWest, this.northEast);
+        circleDara = {
+          latitude: position.lat,
+          longitude: position.lng,
+          radius
+        };
+      }
+      return {
+        [this.options.circleKeyName]: circleDara
+      };
+    }
+
+    convertToCircleFormat(circle: CircleData): CircleData {
+      const centerPoint = checkLngLat(new L.LatLng(circle.latitude, circle.longitude), this.southWest, this.northEast);
+      circle.latitude = centerPoint.lat;
+      circle.longitude = centerPoint.lng;
+      return circle;
+    }
+
+    dragCircleVertex = (e?, data = {} as FormattedData) => {
+      if (e === undefined) {
+        return;
+      }
+      const center = e.layer.getLatLng();
+      const radius = e.layer.getRadius();
+      this.saveLocation(data, this.convertCircleToCustomFormat(center, radius)).subscribe(() => {});
+    }
+
+    updateCircle(circlesData: FormattedData[], updateBounds = true) {
+      const toDelete = new Set(Array.from(this.circles.keys()));
+      const rawCircles = circlesData.filter(cdata => this.isValidCircle(cdata));
+      rawCircles.forEach(data => {
+        if (this.circles.get(data.entityName)) {
+          this.updatedCircle(data, circlesData, updateBounds);
+        } else {
+          this.createdCircle(data, circlesData, updateBounds);
+        }
+        toDelete.delete(data.entityName);
+      });
+      toDelete.forEach((key) => {
+        this.removeCircle(key);
+      });
+      this.circleData = circlesData;
+    }
+
+    updatedCircle(data: FormattedData, dataSources: FormattedData[], updateBounds = true) {
+      const circle = this.circles.get(data.entityName);
+      const oldBounds = circle.leafletCircle.getBounds();
+      circle.updateCircle(data, dataSources);
+      const newBounds = circle.leafletCircle.getBounds();
+      if (updateBounds && oldBounds.toBBoxString() !== newBounds.toBBoxString()) {
+        this.fitBounds(newBounds);
+      }
+    }
+
+    createdCircle(data: FormattedData, dataSources: FormattedData[], updateBounds = true) {
+      const circle = new Circle(this, data, dataSources, this.options, this.dragCircleVertex, this.options.snappable);
+      if (updateBounds) {
+        const bounds = circle.leafletCircle.getBounds();
+        this.fitBounds(bounds);
+      }
+      this.circles.set(data.entityName, circle);
+    }
+
+    removeCircle(name: string) {
+      const circle = this.circles.get(name);
+      if (circle) {
+        this.map.removeLayer(circle.leafletCircle);
+        this.circles.delete(name);
       }
     }
 }

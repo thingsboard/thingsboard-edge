@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.service;
 
-import com.google.common.util.concurrent.Futures;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,13 +83,13 @@ public abstract class BaseRelationCacheTest extends AbstractServiceTest {
             Object target = ((Advised) relationService).getTargetSource().getTarget();
             return (RelationService) target;
         }
-        return null;
+        return relationService;
     }
 
     @Test
     public void testFindRelationByFrom_Cached() throws ExecutionException, InterruptedException {
         when(relationDao.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON))
-                .thenReturn(Futures.immediateFuture(new EntityRelation(ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE)));
+                .thenReturn(new EntityRelation(ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE));
 
         relationService.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON);
         relationService.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON);
@@ -101,7 +100,7 @@ public abstract class BaseRelationCacheTest extends AbstractServiceTest {
     @Test
     public void testDeleteRelations_EvictsCache() {
         when(relationDao.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON))
-                .thenReturn(Futures.immediateFuture(new EntityRelation(ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE)));
+                .thenReturn(new EntityRelation(ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE));
 
         relationService.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON);
         relationService.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON);
@@ -114,6 +113,5 @@ public abstract class BaseRelationCacheTest extends AbstractServiceTest {
         relationService.getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON);
 
         verify(relationDao, times(2)).getRelation(SYSTEM_TENANT_ID, ENTITY_ID_FROM, ENTITY_ID_TO, RELATION_TYPE, RelationTypeGroup.COMMON);
-
     }
 }

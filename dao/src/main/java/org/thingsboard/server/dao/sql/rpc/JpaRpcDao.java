@@ -32,8 +32,9 @@ package org.thingsboard.server.dao.sql.rpc;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -60,7 +61,7 @@ public class JpaRpcDao extends JpaAbstractDao<RpcEntity, Rpc> implements RpcDao 
     }
 
     @Override
-    protected CrudRepository<RpcEntity, UUID> getCrudRepository() {
+    protected JpaRepository<RpcEntity, UUID> getRepository() {
         return rpcRepository;
     }
 
@@ -83,4 +84,10 @@ public class JpaRpcDao extends JpaAbstractDao<RpcEntity, Rpc> implements RpcDao 
     public Long deleteOutdatedRpcByTenantId(TenantId tenantId, Long expirationTime) {
         return rpcRepository.deleteOutdatedRpcByTenantId(tenantId.getId(), expirationTime);
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.RPC;
+    }
+
 }

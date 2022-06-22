@@ -29,14 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityId } from '@shared/models/id/entity-id';
+import { EntityId, entityIdsEquals } from '@shared/models/id/entity-id';
 import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupService } from '@core/http/entity-group.service';
@@ -54,7 +64,7 @@ import { ContactBased } from '@shared/models/contact-based.model';
     multi: true
   }]
 })
-export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit {
+export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges {
 
   selectOwnerFormGroup: FormGroup;
 
@@ -91,6 +101,7 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
   searchText = '';
 
   private dirty = false;
+  private excludeOwnerIdsChanged = false;
 
   private propagateChange = (v: any) => { };
 
@@ -128,13 +139,32 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
         }),
         // startWith<string | BaseData<EntityId>>(''),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-        distinctUntilChanged(),
+        distinctUntilChanged((name1, name2) => {
+          if (this.excludeOwnerIdsChanged) {
+            this.excludeOwnerIdsChanged = false;
+            return false;
+          } else {
+            return name1 === name2;
+          }
+        }),
         switchMap(name => this.fetchOwners(name) ),
         share()
       );
   }
 
   ngAfterViewInit(): void {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'excludeOwnerIds' && !entityIdsEquals(change.currentValue, change.previousValue)) {
+          this.dirty = true;
+          this.excludeOwnerIdsChanged = true;
+        }
+      }
+    }
+  }
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;

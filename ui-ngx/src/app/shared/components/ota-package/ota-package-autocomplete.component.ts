@@ -45,9 +45,8 @@ import { OtaPackageInfo, OtaUpdateTranslation, OtaUpdateType } from '@shared/mod
 import { OtaPackageService } from '@core/http/ota-package.service';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { isDefinedAndNotNull } from '@core/utils';
-import { PageData, emptyPageData } from '@shared/models/page/page-data';
-import { getEntityDetailsPageURL } from '@core/utils';
+import { getEntityDetailsPageURL, isDefinedAndNotNull } from '@core/utils';
+import { emptyPageData, PageData } from '@shared/models/page/page-data';
 
 @Component({
   selector: 'tb-ota-package-autocomplete',
@@ -65,7 +64,7 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
 
   modelValue: string | EntityId | null;
 
-  private otaUpdateType: OtaUpdateType;
+  private otaUpdateType: OtaUpdateType = OtaUpdateType.FIRMWARE;
 
   get type(): OtaUpdateType {
     return this.otaUpdateType;
@@ -110,11 +109,7 @@ export class OtaPackageAutocompleteComponent implements ControlValueAccessor, On
   @Input()
   set deviceGroupAll(value: boolean) {
     this.deviceGroupAllValue = coerceBooleanProperty(value);
-    if (this.deviceGroupAll) {
-      this.otaPackageFormGroup.disable({emitEvent: false});
-    } else {
-      this.otaPackageFormGroup.enable({emitEvent: false});
-    }
+    this.setDisabledState(this.deviceGroupAll);
   }
 
   @Input()

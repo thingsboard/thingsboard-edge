@@ -43,11 +43,7 @@ import java.util.Optional;
 
 public interface EventService {
 
-    Event save(Event event);
-
-    ListenableFuture<Event> saveAsync(Event event);
-
-    Optional<Event> saveIfNotExists(Event event);
+    ListenableFuture<Void> saveAsync(Event event);
 
     Optional<Event> findEvent(TenantId tenantId, EntityId entityId, String eventType, String eventUid);
 
@@ -63,6 +59,6 @@ public interface EventService {
 
     void removeEvents(TenantId tenantId, EntityId entityId, EventFilter eventFilter, Long startTime, Long endTime);
 
-    void cleanupEvents(long ttl, long debugTtl);
+    void cleanupEvents(long regularEventStartTs, long regularEventEndTs, long debugEventStartTs, long debugEventEndTs);
 
 }

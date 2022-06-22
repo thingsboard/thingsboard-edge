@@ -32,9 +32,11 @@ package org.thingsboard.server.dao.sql.role;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -62,7 +64,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     }
 
     @Override
-    protected CrudRepository<RoleEntity, UUID> getCrudRepository() {
+    protected JpaRepository<RoleEntity, UUID> getRepository() {
         return roleRepository;
     }
 
@@ -123,6 +125,27 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
     @Override
     public ListenableFuture<List<Role>> findRolesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> roleIds) {
         return service.submit(() -> DaoUtil.convertDataList(roleRepository.findRolesByTenantIdAndIdIn(tenantId, roleIds)));
+    }
+
+    @Override
+    public Role findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(roleRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public PageData<Role> findByTenantId(UUID tenantId, PageLink pageLink) {
+        return findRolesByTenantId(tenantId, pageLink);
+    }
+
+    @Override
+    public RoleId getExternalIdByInternal(RoleId internalId) {
+        return Optional.ofNullable(roleRepository.getExternalIdById(internalId.getId()))
+                .map(RoleId::new).orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ROLE;
     }
 
 }

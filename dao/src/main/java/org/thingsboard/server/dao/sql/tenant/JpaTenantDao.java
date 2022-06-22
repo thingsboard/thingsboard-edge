@@ -32,11 +32,13 @@ package org.thingsboard.server.dao.sql.tenant;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -48,6 +50,7 @@ import org.thingsboard.server.dao.tenant.TenantDao;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Created by Valerii Sosliuk on 4/30/2017.
@@ -64,7 +67,7 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
     }
 
     @Override
-    protected CrudRepository<TenantEntity, UUID> getCrudRepository() {
+    protected JpaRepository<TenantEntity, UUID> getRepository() {
         return tenantRepository;
     }
 
@@ -74,10 +77,9 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
     }
 
     @Override
-    public PageData<Tenant> findTenantsByRegion(TenantId tenantId, String region, PageLink pageLink) {
+    public PageData<Tenant> findTenants(TenantId tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(tenantRepository
-                .findByRegionNextPage(
-                        region,
+                .findTenantsNextPage(
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
@@ -87,11 +89,9 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
         return service.submit(() -> DaoUtil.convertDataList(tenantRepository.findTenantsByIdIn(tenantIds)));
     }
 
-    @Override
-    public PageData<TenantInfo> findTenantInfosByRegion(TenantId tenantId, String region, PageLink pageLink) {
+    public PageData<TenantInfo> findTenantInfos(TenantId tenantId, PageLink pageLink) {
         return DaoUtil.toPageData(tenantRepository
-                .findTenantInfoByRegionNextPage(
-                        region,
+                .findTenantInfosNextPage(
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink, TenantInfoEntity.tenantInfoColumnMap)));
     }
@@ -101,4 +101,15 @@ public class JpaTenantDao extends JpaAbstractSearchTextDao<TenantEntity, Tenant>
         return DaoUtil.pageToPageData(tenantRepository.findTenantsIds(DaoUtil.toPageable(pageLink))).mapData(TenantId::fromUUID);
     }
 
+
+    public List<TenantId> findTenantIdsByTenantProfileId(TenantProfileId tenantProfileId) {
+        return tenantRepository.findTenantIdsByTenantProfileId(tenantProfileId.getId()).stream()
+                .map(TenantId::fromUUID)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.TENANT;
+    }
 }
