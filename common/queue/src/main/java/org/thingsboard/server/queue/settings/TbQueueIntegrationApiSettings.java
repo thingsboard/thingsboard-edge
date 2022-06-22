@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@ConditionalOnExpression("'${service.type:null}'!='tb-transport'")
+@ConditionalOnExpression("'${service.type:null}' == 'monolith' || '${service.type:null}' == 'tb-core' || '${service.type:null}' == 'tb-integration-executor'")
 public class TbQueueIntegrationApiSettings {
 
     @Value("${queue.integration_api.requests_topic}")
