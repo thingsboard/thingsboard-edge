@@ -54,7 +54,7 @@ import static org.junit.Assert.fail;
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.*Test"})
 @Slf4j
 public class ContainerTestSuite {
-
+    final static boolean IS_REDIS_CLUSTER = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisCluster"));
     private static final String SOURCE_DIR = "./../../docker/";
     private static final String TB_CORE_LOG_REGEXP = ".*Starting polling for events.*";
     private static final String TB_IE_LOG_REGEXP = ".*Started ThingsboardIntegrationExecutorApplication.*";
@@ -69,6 +69,7 @@ public class ContainerTestSuite {
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         if (testContainer == null) {
+            log.info("System property of blackBoxTests.redisCluster is {}", IS_REDIS_CLUSTER);
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
             try {
                 final String targetDir = FileUtils.getTempDirectoryPath() + "/" + "ContainerTestSuite-" + UUID.randomUUID() + "/";
@@ -97,7 +98,10 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                         new File(targetDir + "docker-compose.integration.yml"),
                         new File(targetDir + "docker-compose.mosquitto.yml"),
-                        new File(targetDir + "advanced/docker-compose.kafka.yml"))
+                        new File(targetDir + "advanced/docker-compose.kafka.yml"),
+                        IS_REDIS_CLUSTER
+                                ? new File("advanced/docker-compose.redis-cluster.yml")
+                                : new File("advanced/docker/docker-compose.redis.yml"))
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
