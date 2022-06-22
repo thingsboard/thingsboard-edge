@@ -97,7 +97,8 @@ public class EntitiesVersionControlController extends BaseController {
 
     @ApiOperation(value = "Save entities version (saveEntitiesVersion)", notes = "" +
             "Creates a new version of entities (or a single entity) by request.\n" +
-            "Supported entity types: CUSTOMER, ASSET, RULE_CHAIN, DASHBOARD, DEVICE_PROFILE, DEVICE, ENTITY_VIEW, WIDGETS_BUNDLE." + NEW_LINE +
+            "Supported entity types: CUSTOMER, ASSET, RULE_CHAIN, DASHBOARD, DEVICE_PROFILE, DEVICE, ENTITY_VIEW, WIDGETS_BUNDLE, " +
+            "CONVERTER, INTEGRATION, ROLE and USER group." + NEW_LINE +
             "There are two available types of request: `SINGLE_ENTITY` and `COMPLEX`. " +
             "Each of them contains version name (`versionName`) and name of a branch (`branch`) to create version (commit) in. " +
             "If specified branch does not exists in a remote repo, then new empty branch will be created. " +
@@ -105,7 +106,9 @@ public class EntitiesVersionControlController extends BaseController {
             "which has following options: \n" +
             "- `saveRelations` - whether to add inbound and outbound relations of type COMMON to created entity version;\n" +
             "- `saveAttributes` - to save attributes of server scope (and also shared scope for devices);\n" +
-            "- `saveCredentials` - when saving a version of a device, to add its credentials to the version." + NEW_LINE +
+            "- `saveCredentials` - when saving a version of a device, to add its credentials to the version;\n" +
+            "- `savePermissions` - when saving a user group - to save group permission list;\n" +
+            "- `saveGroupEntities` - when saving an entity group - to save its entities as well." + NEW_LINE +
             "An example of a `SINGLE_ENTITY` version create request:\n" +
             MARKDOWN_CODE_BLOCK_START +
             "{\n" +
@@ -129,7 +132,8 @@ public class EntitiesVersionControlController extends BaseController {
             "- `entityTypes` - a structure with entity types to export and configuration for each entity type; " +
             "   this configuration has all the options available for `SINGLE_ENTITY` and additionally has these ones: \n" +
             "     - `allEntities` and `entityIds` - if you want to save the version of all entities of the entity type " +
-            "        then set `allEntities` param to true, otherwise set it to false and specify the list of specific entities (`entityIds`);\n" +
+            "        then set `allEntities` param to true, otherwise set it to false and specify `entityIds` - " +
+            "        in case entity type is group entity, list of specific entity groups, or if not - list of entities;\n" +
             "     - `syncStrategy` - synchronization strategy to use for this entity type: when set to `OVERWRITE` " +
             "        then the list of remote entities of this type will be overwritten by newly added entities. If set to " +
             "        `MERGE` - existing remote entities of this entity type will not be removed, new entities will just " +
@@ -341,8 +345,9 @@ public class EntitiesVersionControlController extends BaseController {
     @ApiOperation(value = "Get entity data info (getEntityDataInfo)", notes = "" +
             "Retrieves short info about the remote entity by external id at a concrete version. \n" +
             "Returned entity data info contains following properties: " +
-            "`hasRelations` (whether stored entity data contains relations), `hasAttributes` (contains attributes) and " +
-            "`hasCredentials` (whether stored device data has credentials)." +
+            "`hasRelations` (whether stored entity data contains relations), `hasAttributes` (contains attributes), " +
+            "`hasCredentials` (whether stored device data has credentials), `hasPermissions` (user group data contains group permission list) " +
+            "and `hasGroupEntities` (entity group data contains group entities)." +
             TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/info/{versionId}/{entityType}/{externalEntityUuid}")
     public DeferredResult<EntityDataInfo> getEntityDataInfo(@ApiParam(value = VERSION_ID_PARAM_DESCRIPTION, required = true)
@@ -373,13 +378,17 @@ public class EntitiesVersionControlController extends BaseController {
 
     @ApiOperation(value = "Load entities version (loadEntitiesVersion)", notes = "" +
             "Loads specific version of remote entities (or single entity) by request. " +
-            "Supported entity types: CUSTOMER, ASSET, RULE_CHAIN, DASHBOARD, DEVICE_PROFILE, DEVICE, ENTITY_VIEW, WIDGETS_BUNDLE." + NEW_LINE +
+            "Supported entity types: CUSTOMER, ASSET, RULE_CHAIN, DASHBOARD, DEVICE_PROFILE, DEVICE, ENTITY_VIEW, WIDGETS_BUNDLE, " +
+            "CONVERTER, INTEGRATION, ROLE and USER group." + NEW_LINE +
             "There are multiple types of request. Each of them requires branch name (`branch`) and version id (`versionId`). " +
             "Request of type `SINGLE_ENTITY` is needed to restore a concrete version of a specific entity. It contains " +
-            "id of a remote entity (`externalEntityId`) and additional configuration (`config`):\n" +
+            "id of a remote entity (`externalEntityId`), internal entity id (`internalEntityId`) and additional configuration (`config`):\n" +
             "- `loadRelations` - to update relations list (in case `saveRelations` option was enabled during version creation);\n" +
             "- `loadAttributes` - to load entity attributes (if `saveAttributes` config option was enabled);\n" +
-            "- `loadCredentials` - to update device credentials (if `saveCredentials` option was enabled during version creation)." + NEW_LINE +
+            "- `loadCredentials` - to update device credentials (if `saveCredentials` option was enabled during version creation);\n" +
+            "- `loadPermissions` - when loading user group, to update group permission list;\n" +
+            "- `loadGroupEntities` - when loading an entity group, to load its entities as well;\n" +
+            "- `autoGenerateIntegrationKey` - if loading integration version, to autogenerate routing key." + NEW_LINE +
             "An example of such request:\n" +
             MARKDOWN_CODE_BLOCK_START +
             "{\n" +
@@ -444,7 +453,10 @@ public class EntitiesVersionControlController extends BaseController {
             "- `result` - a list of load results for each entity type:\n" +
             "     - `created` - created entities count;\n" +
             "     - `updated` - updated entities count;\n" +
-            "     - `deleted` - removed entities count.\n" +
+            "     - `deleted` - removed entities count;\n" +
+            "     - `groupsCreated` - created entity groups count;\n" +
+            "     - `groupsUpdated` - updated entity groups count;\n" +
+            "     - `groupsDeleted` - removed entity groups count.\n" +
             "- `error` - if an error occurred during processing, error info:\n" +
             "     - `type` - error type;\n" +
             "     - `source` - an external id of remote entity;\n" +
@@ -459,13 +471,19 @@ public class EntitiesVersionControlController extends BaseController {
             "      \"entityType\": \"DEVICE\",\n" +
             "      \"created\": 10,\n" +
             "      \"updated\": 5,\n" +
-            "      \"deleted\": 5\n" +
+            "      \"deleted\": 5,\n" +
+            "      \"groupsCreated\": 1,\n" +
+            "      \"groupsUpdated\": 1,\n" +
+            "      \"groupsDeleted\": 1\n" +
             "    },\n" +
             "     {\n" +
             "      \"entityType\": \"ASSET\",\n" +
             "      \"created\": 4,\n" +
             "      \"updated\": 0,\n" +
-            "      \"deleted\": 8\n" +
+            "      \"deleted\": 8,\n" +
+            "      \"groupsCreated\": 1,\n" +
+            "      \"groupsUpdated\": 0,\n" +
+            "      \"groupsDeleted\": 2\n" +
             "    }\n" +
             "  ]\n" +
             "}" +
