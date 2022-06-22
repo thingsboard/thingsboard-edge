@@ -94,6 +94,7 @@ public class ContainerTestSuite {
 
                 testContainer = new DockerComposeContainerImpl<>(
                         new File(targetDir + "advanced/docker-compose.yml"),
+                        new File(targetDir + "advanced/docker-compose.volumes.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                         new File(targetDir + "docker-compose.integration.yml"),
@@ -101,7 +102,11 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.kafka.yml"),
                         IS_REDIS_CLUSTER
                                 ? new File("advanced/docker-compose.redis-cluster.yml")
-                                : new File("advanced/docker/docker-compose.redis.yml"))
+                                : new File("advanced/docker-compose.redis.yml"),
+                        IS_REDIS_CLUSTER
+                                ? new File("advanced/docker-compose.redis-cluster.volumes.yml")
+                                : new File("advanced/docker-compose.redis.volumes.yml")
+                )
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)

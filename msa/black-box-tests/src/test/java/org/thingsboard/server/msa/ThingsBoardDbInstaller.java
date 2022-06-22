@@ -79,12 +79,17 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
     public ThingsBoardDbInstaller() {
         log.info("System property of blackBoxTests.redisCluster is {}", IS_REDIS_CLUSTER);
-        List<File> composeFiles = Arrays.asList(new File("./../../docker/advanced/docker-compose.yml"),
+        List<File> composeFiles = Arrays.asList(
+                new File("./../../docker/advanced/docker-compose.yml"),
+                new File("./../../docker/advanced/docker-compose.volumes.yml"),
                 new File("./../../docker/advanced/docker-compose.postgres.yml"),
                 new File("./../../docker/advanced/docker-compose.postgres.volumes.yml"),
                 IS_REDIS_CLUSTER
-                        ? new File("./../../docker/docker-compose.redis-cluster.yml")
-                        : new File("./../../docker/docker-compose.redis.yml")
+                        ? new File("./../../docker/advanced/docker-compose.redis-cluster.yml")
+                        : new File("./../../docker/advanced/docker-compose.redis.yml"),
+                IS_REDIS_CLUSTER
+                        ? new File("./../../docker/advanced/docker-compose.redis-cluster.volumes.yml")
+                        : new File("./../../docker/advanced/docker-compose.redis.volumes.yml")
         );
 
         String identifier = Base58.randomString(6).toLowerCase();
@@ -206,7 +211,8 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         copyLogs(tbSnmpTransportLogVolume, "./target/tb-snmp-transport-logs/");
         copyLogs(tbVcExecutorLogVolume, "./target/tb-vc-executor-logs/");
 
-        dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbIntegrationExecutorLogVolume +
+        dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume +
+                " " + tbIntegrationExecutorLogVolume +
                 " " + tbCoapTransportLogVolume + " " + tbLwm2mTransportLogVolume + " " + tbHttpTransportLogVolume +
                 " " + tbMqttTransportLogVolume + " " + tbSnmpTransportLogVolume + " " + tbVcExecutorLogVolume +
                 (IS_REDIS_CLUSTER
