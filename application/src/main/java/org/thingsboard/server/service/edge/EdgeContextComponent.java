@@ -43,7 +43,9 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -56,6 +58,7 @@ import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
 import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.ConverterEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
@@ -64,6 +67,8 @@ import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityViewEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.IntegrationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.OtaPackageEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RelationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RoleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RuleChainEdgeProcessor;
@@ -123,6 +128,9 @@ public class EdgeContextComponent {
     private EdgeRequestsService edgeRequestsService;
 
     @Autowired
+    private OtaPackageService otaPackageService;
+
+    @Autowired
     private AlarmEdgeProcessor alarmProcessor;
 
     @Autowired
@@ -168,6 +176,9 @@ public class EdgeContextComponent {
     private AdminSettingsEdgeProcessor adminSettingsProcessor;
 
     @Autowired
+    private OtaPackageEdgeProcessor otaPackageEdgeProcessor;
+
+    @Autowired
     private EdgeEventStorageSettings edgeEventStorageSettings;
 
     @Autowired
@@ -194,6 +205,9 @@ public class EdgeContextComponent {
     protected EntityGroupService entityGroupService;
 
     @Autowired
+    protected IntegrationService integrationService;
+
+    @Autowired
     private EntityGroupEdgeProcessor entityGroupProcessor;
 
     @Autowired
@@ -207,4 +221,10 @@ public class EdgeContextComponent {
 
     @Autowired
     private SchedulerEventEdgeProcessor schedulerEventProcessor;
+
+    @Autowired
+    private ConverterEdgeProcessor converterProcessor;
+
+    @Autowired
+    private IntegrationEdgeProcessor integrationProcessor;
 }

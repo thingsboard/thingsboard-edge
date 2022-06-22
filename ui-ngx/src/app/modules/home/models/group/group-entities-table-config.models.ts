@@ -82,7 +82,7 @@ export interface EntityGroupStateInfo<T extends BaseData<HasId>> extends EntityG
   customerGroupsTitle?: string;
   parentEntityGroup?: EntityGroupInfo;
   entityGroupConfig?: GroupEntityTableConfig<T>;
-  edgeGroupsTitle?: string;
+  edgeEntitiesTitle?: string;
   edgeGroupName?: string;
 }
 
@@ -96,7 +96,6 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
   onToggleEntityGroupDetails = () => {};
   onToggleEntityDetails = ($event: Event, entity: ShortEntityView) => {};
 
-  assignmentEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableAssignment;
   loginAsUserEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableLoginAsUser;
   manageCredentialsEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableCredentialsManagement;
   manageUsersEnabled: EntityBooleanFunction<T | ShortEntityView> = () => this.settings.enableUsersManagement;

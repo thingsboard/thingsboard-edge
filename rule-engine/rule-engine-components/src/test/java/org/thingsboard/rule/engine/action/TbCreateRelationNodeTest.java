@@ -131,7 +131,7 @@ public class TbCreateRelationNodeTest {
         metaData.putValue("type", "AssetType");
         msg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
-        when(ctx.getRelationService().checkRelation(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
         when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));
@@ -162,7 +162,7 @@ public class TbCreateRelationNodeTest {
         when(ctx.getRelationService().findByToAndTypeAsync(any(), eq(msg.getOriginator()), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(Collections.singletonList(relation)));
         when(ctx.getRelationService().deleteRelationAsync(any(), eq(relation))).thenReturn(Futures.immediateFuture(true));
-        when(ctx.getRelationService().checkRelation(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
         when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));
@@ -189,7 +189,7 @@ public class TbCreateRelationNodeTest {
         metaData.putValue("type", "AssetType");
         msg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, metaData, TbMsgDataType.JSON, "{}", ruleChainId, ruleNodeId);
 
-        when(ctx.getRelationService().checkRelation(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
+        when(ctx.getRelationService().checkRelationAsync(any(), eq(assetId), eq(deviceId), eq(RELATION_TYPE_CONTAINS), eq(RelationTypeGroup.COMMON)))
                 .thenReturn(Futures.immediateFuture(false));
         when(ctx.getRelationService().saveRelationAsync(any(), eq(new EntityRelation(assetId, deviceId, RELATION_TYPE_CONTAINS, RelationTypeGroup.COMMON))))
                 .thenReturn(Futures.immediateFuture(true));

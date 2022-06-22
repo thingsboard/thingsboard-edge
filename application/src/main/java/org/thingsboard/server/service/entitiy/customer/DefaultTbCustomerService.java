@@ -57,6 +57,7 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
         TenantId tenantId = customer.getTenantId();
         try {
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+            vcService.autoCommit(user, savedCustomer.getId());
             createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
             return savedCustomer;
         } catch (Exception e) {

@@ -288,6 +288,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     @Override
     public void createAdminSettings() throws Exception {
         AdminSettings generalSettings = new AdminSettings();
+        generalSettings.setTenantId(TenantId.SYS_TENANT_ID);
         generalSettings.setKey("general");
         ObjectNode node = objectMapper.createObjectNode();
         node.put("baseUrl", "http://localhost:8080");
@@ -296,6 +297,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, generalSettings);
 
         AdminSettings mailSettings = new AdminSettings();
+        mailSettings.setTenantId(TenantId.SYS_TENANT_ID);
         mailSettings.setKey("mail");
         node = objectMapper.createObjectNode();
         node.put("mailFrom", "ThingsBoard <sysadmin@localhost.localdomain>");

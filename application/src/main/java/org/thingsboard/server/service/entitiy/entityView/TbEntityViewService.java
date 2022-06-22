@@ -39,5 +39,7 @@ public interface TbEntityViewService {
 
     EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
 
+    void updateEntityViewAttributes(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException;
+
     void  delete (EntityView entity, SecurityUser user) throws ThingsboardException;
 }

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const {logLevel, Kafka, CompressionTypes} = require('kafkajs');
+const {logLevel, Kafka, CompressionTypes, Partitioners} = require('kafkajs');
 
 const config = require('config'),
     JsInvokeMessageProcessor = require('../api/jsInvokeMessageProcessor'),
@@ -174,7 +174,7 @@ async function sendMessagesAsBatch(isImmediately) {
         }
 
         consumer = kafkaClient.consumer({groupId: 'js-executor-group'});
-        producer = kafkaClient.producer();
+        producer = kafkaClient.producer({ createPartitioner: Partitioners.DefaultPartitioner });
 
 /*
         //producer event instrumentation to debug

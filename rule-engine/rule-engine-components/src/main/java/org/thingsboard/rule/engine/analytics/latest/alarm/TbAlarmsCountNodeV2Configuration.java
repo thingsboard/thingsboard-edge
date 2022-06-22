@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.EntityType;
@@ -39,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAlarmsCountNodeV2Configuration> {
     private List<AlarmsCountMapping> alarmsCountMappings;
     private boolean countAlarmsForPropagationEntities;

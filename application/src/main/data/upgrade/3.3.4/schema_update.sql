@@ -29,6 +29,52 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+ALTER TABLE device
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE device_profile
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE asset
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE rule_chain
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE rule_node
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE dashboard
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE customer
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE widgets_bundle
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE entity_view
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE entity_group
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+ALTER TABLE role
+    ADD COLUMN IF NOT EXISTS external_id UUID;
+
+CREATE INDEX IF NOT EXISTS idx_device_external_id ON device(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_device_profile_external_id ON device_profile(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_asset_external_id ON asset(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_rule_chain_external_id ON rule_chain(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_rule_node_external_id ON rule_node(rule_chain_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_dashboard_external_id ON dashboard(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_customer_external_id ON customer(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_widgets_bundle_external_id ON widgets_bundle(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
+CREATE INDEX IF NOT EXISTS idx_entity_view_external_id ON entity_view(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_rule_node_type ON rule_node(type);
+
+ALTER TABLE admin_settings
+    ADD COLUMN IF NOT EXISTS tenant_id uuid NOT NULL DEFAULT '13814000-1dd2-11b2-8080-808080808080';
+
 CREATE TABLE IF NOT EXISTS queue (
     id uuid NOT NULL CONSTRAINT queue_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
@@ -50,3 +96,11 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     user_id uuid UNIQUE NOT NULL CONSTRAINT fk_user_auth_settings_user_id REFERENCES tb_user(id),
     two_fa_settings varchar
 );
+
+DELETE FROM relation WHERE relation_type_group = 'TO_ENTITY_GROUP';
+
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;
+
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;

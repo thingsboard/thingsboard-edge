@@ -48,7 +48,7 @@ public abstract class BaseSqlEntity<D> implements BaseEntity<D> {
     @Column(name = ModelConstants.ID_PROPERTY, columnDefinition = "uuid")
     protected UUID id;
 
-    @Column(name = ModelConstants.CREATED_TIME_PROPERTY)
+    @Column(name = ModelConstants.CREATED_TIME_PROPERTY, updatable = false)
     protected long createdTime;
 
     @Override

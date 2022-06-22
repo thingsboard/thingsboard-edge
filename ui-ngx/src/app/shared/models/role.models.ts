@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { RoleId } from '@shared/models/id/role-id';
@@ -43,7 +43,7 @@ export type GenericRolePermissions = {
 
 export type RolePermissions = SpecificRolePermissions & GenericRolePermissions;
 
-export interface Role extends BaseData<RoleId> {
+export interface Role extends BaseData<RoleId>, ExportableEntity<RoleId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
   name: string;

@@ -163,9 +163,11 @@ export function updateIntegrationFormDefaultFields(type: IntegrationType, integr
 }
 
 export function updateIntegrationFormValidators(integrationForm: FormGroup,
-                                                fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = {}) {
+                                                fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = {},
+                                                type: IntegrationType,
+                                                integrationScope: string) {
   for (const field of Object.keys(fieldValidators)) {
-    const validators = fieldValidators[field];
+    const validators = filterEdgeIntegrationTemplateValidators(fieldValidators[field], type, integrationScope);
     const path = field.split('.');
     let control: AbstractControl = integrationForm;
     for (const part of path) {
@@ -174,6 +176,47 @@ export function updateIntegrationFormValidators(integrationForm: FormGroup,
     control.setValidators(validators);
     control.updateValueAndValidity();
   }
+}
+
+export function filterEdgeIntegrationTemplateValidators(fieldValidators: ValidatorFn | ValidatorFn[],
+                                                        type: IntegrationType,
+                                                        integrationScope: string): ValidatorFn | ValidatorFn[] {
+  if (integrationScope == 'edge' || integrationScope == 'edges') {
+    if (!edgeTemplateIntegrationIgnoredValidators[type]) {
+      return fieldValidators;
+    }
+    let filteredFieldValidators: ValidatorFn[] = [];
+    if (Array.isArray(fieldValidators)) {
+      for (const validator of fieldValidators) {
+        if (!edgeTemplateIntegrationIgnoredValidators[type].includes(validator)) {
+          filteredFieldValidators.push(validator)
+        }
+      }
+    } else {
+      if (!edgeTemplateIntegrationIgnoredValidators[type].includes(fieldValidators)) {
+        filteredFieldValidators.push(fieldValidators)
+      }
+    }
+    return filteredFieldValidators;
+  } else {
+    return fieldValidators;
+  }
+}
+
+export const ibmWatsonIotApiKeyPatternValidator = Validators.pattern(/^a-\w+-\w+$/)
+export const mqttClientIdPatternValidator = Validators.pattern('[a-zA-Z0-9]*')
+export const mqttClientIdMaxLengthValidator = Validators.maxLength(23)
+
+export const edgeTemplateIntegrationIgnoredValidators = {
+  [IntegrationType.IBM_WATSON_IOT]:
+    [
+    ibmWatsonIotApiKeyPatternValidator
+    ],
+  [IntegrationType.MQTT]:
+    [
+    mqttClientIdPatternValidator,
+    mqttClientIdMaxLengthValidator
+    ]
 }
 
 export const templates = {
@@ -264,6 +307,7 @@ export const templates = {
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
+      'clientConfiguration.clientId': [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator],
       'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
       'clientConfiguration.credentials.username': [Validators.required],
@@ -408,7 +452,7 @@ export const templates = {
     downlinkTopicPattern: 'iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}',
     fieldValidators: {
       'clientConfiguration.connectTimeoutSec': [Validators.required, Validators.min(1), Validators.max(200)],
-      'clientConfiguration.credentials.username': [Validators.required, Validators.pattern(/^a-\w+-\w+$/)],
+      'clientConfiguration.credentials.username': [Validators.required, ibmWatsonIotApiKeyPatternValidator],
       'clientConfiguration.credentials.password': [Validators.required],
       'clientConfiguration.maxBytesInMessage': [Validators.min(1), Validators.max(256000000)],
       downlinkTopicPattern: [Validators.required],

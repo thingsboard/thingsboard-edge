@@ -391,7 +391,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -426,7 +426,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -444,7 +444,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
 
         List<IntegrationInfo> emptyIntegrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", emptyIntegrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, emptyIntegrationInfos.size());
 
@@ -470,7 +470,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
 
         List<IntegrationInfo> integrationInfos = integrationService
-                .findAllIntegrationInfos(null, false, false);
+                .findAllCoreIntegrationInfos(null, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -494,7 +494,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -515,7 +515,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
 
         integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.MQTT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.MQTT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -534,7 +534,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
 
         integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.HTTP, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.HTTP, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -560,7 +560,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<IntegrationInfo> integrationInfosRemote = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfosRemote);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfosRemote.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -578,7 +578,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
 
         List<IntegrationInfo> integrationInfosEnabled = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, true);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, true);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfosRemote);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfosRemote.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -595,7 +595,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
 
 
         List<IntegrationInfo> integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -621,7 +621,7 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationService
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",

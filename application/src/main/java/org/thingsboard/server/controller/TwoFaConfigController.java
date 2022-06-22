@@ -87,7 +87,7 @@ public class TwoFaConfigController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     public AccountTwoFaSettings getAccountTwoFaSettings() throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        accessControlService.checkPermission(user, Resource.PROFILE, Operation.READ);
+        accessControlService.checkPermission(user, Resource.PROFILE, Operation.WRITE);
         return twoFaConfigManager.getAccountTwoFaSettings(user.getTenantId(), user.getId()).orElse(null);
     }
 

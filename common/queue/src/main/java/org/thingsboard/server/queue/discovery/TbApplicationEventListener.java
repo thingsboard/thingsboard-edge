@@ -68,5 +68,4 @@ public abstract class TbApplicationEventListener<T extends TbApplicationEvent> i
         return true;
     }
 
-
 }

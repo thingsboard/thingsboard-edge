@@ -82,7 +82,7 @@ public class TbCaffeineCacheConfiguration {
         //SimpleCacheManager is not a bean (will be wrapped), so call initializeCaches manually
         manager.initializeCaches();
 
-        return new TransactionAwareCacheManagerProxy(manager);
+        return manager;
     }
 
     private CaffeineCache buildCache(String name, CacheSpecs cacheSpec) {

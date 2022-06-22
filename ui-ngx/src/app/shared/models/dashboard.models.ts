@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { DashboardId } from '@shared/models/id/dashboard-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ShortCustomerInfo } from '@shared/models/customer.model';
@@ -39,7 +39,7 @@ import { EntityAliases } from './alias.models';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { Filters } from '@shared/models/query/query.models';
 
-export interface DashboardInfo extends BaseData<DashboardId> {
+export interface DashboardInfo extends BaseData<DashboardId>, ExportableEntity<DashboardId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
   title?: string;

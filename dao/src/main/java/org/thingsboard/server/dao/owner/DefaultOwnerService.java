@@ -70,10 +70,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -118,7 +115,7 @@ public class DefaultOwnerService implements OwnerService {
 
     @Override
     public Set<EntityId> fetchOwnersHierarchy(TenantId tenantId, EntityId ownerId) {
-        Set<EntityId> result = new HashSet<>();
+        Set<EntityId> result = new LinkedHashSet<>();
         fetchOwnersHierarchy(tenantId, ownerId, result);
         return result;
 
@@ -194,7 +191,7 @@ public class DefaultOwnerService implements OwnerService {
             } else {
                 ownerId = getOwner(tenantId, entityId);
             }
-            result = new HashSet<>();
+            result = new LinkedHashSet<>();
             fetchOwnersHierarchy(tenantId, ownerId, result);
             cache.put(cacheKey, toBytes(result));
         }
@@ -269,7 +266,7 @@ public class DefaultOwnerService implements OwnerService {
         TransportProtos.OwnersListProto proto = TransportProtos.OwnersListProto.parseFrom(data);
         return proto.getEntityIdsList().stream().map(entityIdProto ->
                 EntityIdFactory.getByTypeAndUuid(entityIdProto.getEntityType(),
-                        new UUID(entityIdProto.getEntityIdMSB(), entityIdProto.getEntityIdLSB()))).collect(Collectors.toSet());
+                        new UUID(entityIdProto.getEntityIdMSB(), entityIdProto.getEntityIdLSB()))).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private byte[] toBytes(EntityId entityId) {

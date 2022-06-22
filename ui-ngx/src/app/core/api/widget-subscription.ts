@@ -69,12 +69,15 @@ import { CancelAnimationFrame } from '@core/services/raf.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import { alarmFields } from '@shared/models/alarm.models';
 import {
-  createLabelFromDatasource, createLabelFromPattern,
-  deepClone, getDescendantProp, flatFormattedData,
+  createLabelFromPattern,
+  deepClone,
+  getDescendantProp,
+  flatFormattedData,
   formattedDataFormDatasourceData,
   isDefined,
   isDefinedAndNotNull,
-  isEqual
+  isEqual,
+  parseHttpErrorMessage
 } from '@core/utils';
 import { EntityId } from '@app/shared/models/id/entity-id';
 import * as moment_ from 'moment';
@@ -300,7 +303,8 @@ export class WidgetSubscription implements IWidgetSubscription {
         (this.legendConfig.showMin === true ||
           this.legendConfig.showMax === true ||
           this.legendConfig.showAvg === true ||
-          this.legendConfig.showTotal === true);
+          this.legendConfig.showTotal === true ||
+          this.legendConfig.showLatest === true);
       this.initDataSubscription().subscribe(() => {
           subscriptionSubject.next(this);
           subscriptionSubject.complete();
@@ -818,10 +822,10 @@ export class WidgetSubscription implements IWidgetSubscription {
               this.rpcErrorText = 'Request Timeout.';
             } else {
               this.rpcErrorText =  'Error : ' + rejection.status + ' - ' + rejection.statusText;
-              const error = this.extractRejectionErrorText(rejection);
+              const error = parseHttpErrorMessage(rejection, this.ctx.translate);
               if (error) {
                 this.rpcErrorText += '</br>';
-                this.rpcErrorText += error;
+                this.rpcErrorText += error.message;
               }
             }
             this.callbacks.onRpcFailed(this);
@@ -830,40 +834,6 @@ export class WidgetSubscription implements IWidgetSubscription {
         });
       }
       return rpcSubject.asObservable();
-    }
-  }
-
-  private extractRejectionErrorText(rejection: HttpErrorResponse) {
-    let error = null;
-    if (rejection.error) {
-      error = rejection.error;
-      try {
-        error = rejection.error ? JSON.parse(rejection.error) : null;
-      } catch (e) {}
-    }
-    if (error && !error.message) {
-      error = this.prepareMessageFromData(error);
-    } else if (error && error.message) {
-      error = error.message;
-    }
-    return error;
-  }
-
-  private prepareMessageFromData(data) {
-    if (typeof data === 'object' && data.constructor === ArrayBuffer) {
-      const msg = String.fromCharCode.apply(null, new Uint8Array(data));
-      try {
-        const msgObj = JSON.parse(msg);
-        if (msgObj.message) {
-          return msgObj.message;
-        } else {
-          return msg;
-        }
-      } catch (e) {
-        return msg;
-      }
-    } else {
-      return data;
     }
   }
 
@@ -1450,6 +1420,7 @@ export class WidgetSubscription implements IWidgetSubscription {
                   max: null,
                   avg: null,
                   total: null,
+                  latest: null,
                   hidden: false
                 };
                 this.legendData.data.push(legendKeyData);
@@ -1681,6 +1652,9 @@ export class WidgetSubscription implements IWidgetSubscription {
     if (this.legendConfig.showTotal) {
       legendKeyData.total = this.ctx.widgetUtils.formatValue(calculateTotal(data), decimals, units);
     }
+    if (this.legendConfig.showLatest) {
+      legendKeyData.latest = this.ctx.widgetUtils.formatValue(calculateLatest(data), decimals, units);
+    }
     this.callbacks.legendDataUpdated(this, detectChanges !== false);
   }
 
@@ -1749,6 +1723,14 @@ function calculateTotal(data: DataSet): number {
       result += Number(dataRow[1]);
     });
     return result;
+  } else {
+    return null;
+  }
+}
+
+function calculateLatest(data: DataSet): number {
+  if (data.length > 0) {
+    return Number(data[data.length - 1][1]);
   } else {
     return null;
   }

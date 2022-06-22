@@ -80,11 +80,12 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.resource.TbResourceService;
 import org.thingsboard.server.service.rule.TbRuleChainService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -143,6 +144,8 @@ public abstract class AbstractTbEntityService {
     protected TbClusterService tbClusterService;
     @Autowired
     protected DashboardService dashboardService;
+    @Autowired
+    protected EntitiesVersionControlService vcService;
     @Autowired
     protected EntityViewService entityViewService;
     @Autowired

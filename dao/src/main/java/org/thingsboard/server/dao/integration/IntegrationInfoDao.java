@@ -49,6 +49,6 @@ import java.util.UUID;
  */
 public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
 
-    List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+    List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 
 }

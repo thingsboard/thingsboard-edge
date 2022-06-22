@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 import javax.validation.Valid;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @ApiModel
@@ -84,7 +86,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     @ApiModelProperty(position = 1, value = "JSON object with the dashboard Id. " +
             "Specify existing dashboard Id to update the dashboard. " +
             "Referencing non-existing dashboard id will cause error. " +
-            "Omit this field to create new dashboard." )
+            "Omit this field to create new dashboard.")
     @Override
     public DashboardId getId() {
         return super.getId();
@@ -255,30 +257,18 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        DashboardInfo other = (DashboardInfo) obj;
-        if (tenantId == null) {
-            if (other.tenantId != null)
-                return false;
-        } else if (!tenantId.equals(other.tenantId))
-            return false;
-        if (customerId == null) {
-            if (other.customerId != null)
-                return false;
-        } else if (!customerId.equals(other.customerId))
-            return false;
-        if (title == null) {
-            if (other.title != null)
-                return false;
-        } else if (!title.equals(other.title))
-            return false;
-        return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        DashboardInfo that = (DashboardInfo) o;
+        return mobileHide == that.mobileHide
+                && Objects.equals(tenantId, that.tenantId)
+                && Objects.equals(customerId, that.customerId)
+                && Objects.equals(title, that.title)
+                && Objects.equals(image, that.image)
+                && Objects.equals(assignedCustomers, that.assignedCustomers)
+                && Objects.equals(mobileOrder, that.mobileOrder);
     }
 
     @Override

@@ -103,8 +103,8 @@ export class EntityViewGroupConfigFactory implements EntityGroupStateConfigFacto
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.groupType === EntityType.EDGE) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'entityViewGroups', params.edgeEntitiesGroupId, entityView.id.id]);
       } else {
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'entityViewGroups', params.childEntityGroupId, entityView.id.id]);
