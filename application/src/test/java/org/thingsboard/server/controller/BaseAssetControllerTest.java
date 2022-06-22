@@ -119,7 +119,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         savedAsset.setName("My new asset");
         doPost("/api/asset", savedAsset, Asset.class);
 
-        testNotifyEntityAllOneTime(savedAsset, savedAsset.getId(), savedAsset.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedAsset, savedAsset.getId(), savedAsset.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED);
 
         Asset foundAsset = doGet("/api/asset/" + savedAsset.getId().getId().toString(), Asset.class);

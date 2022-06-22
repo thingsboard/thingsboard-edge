@@ -36,8 +36,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
-import org.springframework.cache.transaction.TransactionAwareCacheManagerProxy;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -61,13 +61,13 @@ public class CacheSpecsMapTest {
 
     @Test
     public void verifyTransactionAwareCacheManagerProxy() {
-        assertThat(cacheManager).isInstanceOf(TransactionAwareCacheManagerProxy.class);
+        assertThat(cacheManager).isInstanceOf(SimpleCacheManager.class);
     }
 
     @Test
     public void givenCacheConfig_whenCacheManagerReady_thenVerifyExistedCachesWithTransactionAwareCacheDecorator() {
-        assertThat(cacheManager.getCache("relations")).isInstanceOf(TransactionAwareCacheDecorator.class);
-        assertThat(cacheManager.getCache("devices")).isInstanceOf(TransactionAwareCacheDecorator.class);
+        assertThat(cacheManager.getCache("relations")).isInstanceOf(CaffeineCache.class);
+        assertThat(cacheManager.getCache("devices")).isInstanceOf(CaffeineCache.class);
     }
 
     @Test
