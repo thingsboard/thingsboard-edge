@@ -139,6 +139,11 @@ public class TbCoreConsumerStats {
         edgeNotificationsCounter.increment();
     }
 
+    public void log(TransportProtos.DeviceActivityProto msg) {
+        totalCounter.increment();
+        deviceStateCounter.increment();
+    }
+
     public void log(SchedulerServiceMsgProto schedulerServiceMsg) {
         totalCounter.increment();
         schedulerMsgCounter.increment();
