@@ -221,7 +221,11 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         Mockito.reset(tbClusterService, auditLogService);
 
+        String msgError = "You don't have permission to perform 'WRITE' operation with CUSTOMER 'My customer'";
         doPost("/api/customer", savedCustomer, Customer.class, status().isForbidden());
+
+        testNotifyEntityEqualsOneTimeError(savedCustomer,  differentTenantId, differentTenantAdminUserId, DIFFERENT_TENANT_ADMIN_EMAIL,
+                ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
         deleteDifferentTenant();
         login(tenantAdmin.getName(), "testPassword1");
@@ -255,6 +259,10 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isOk());
+
+        testNotifyEntityOneBroadcastEntityStateChangeEventTimeMsgToEdgeServiceNever(savedCustomer, savedCustomer.getId(),
+                savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
+                tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
 
         doGet("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isNotFound());
