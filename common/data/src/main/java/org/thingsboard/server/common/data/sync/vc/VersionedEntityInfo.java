@@ -33,7 +33,6 @@ package org.thingsboard.server.common.data.sync.vc;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.EntityId;
 

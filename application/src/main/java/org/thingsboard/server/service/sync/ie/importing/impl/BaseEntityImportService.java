@@ -174,6 +174,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
     protected void cleanupForComparison(E e) {
         e.setTenantId(null);
+        e.setExternalId(null);
         e.setCreatedTime(0);
     }
 
