@@ -106,7 +106,7 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
         tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
     }
 
-    public List<ListenableFuture<Void>> processTelemetryFromEdge(TenantId tenantId, CustomerId customerId, EntityDataProto entityData, UUID edgeSessionId) {
+    public List<ListenableFuture<Void>> processTelemetryFromEdge(TenantId tenantId, CustomerId customerId, EntityDataProto entityData) {
         log.trace("[{}] onTelemetryUpdate [{}]", tenantId, entityData);
         List<ListenableFuture<Void>> result = new ArrayList<>();
         EntityId entityId = constructEntityId(entityData);
@@ -124,46 +124,29 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
                 result.add(processPostTelemetry(tenantId, customerId, entityId, entityData.getPostTelemetryMsg(), metaData));
             }
             if (EntityType.DEVICE.equals(entityId.getEntityType())) {
-                Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
-                // for edge context sessionId is exact edgeSessionId
-                reportActivity(device, edgeSessionId);
+                DeviceId deviceId = new DeviceId(entityId.getId());
+
+                TransportProtos.SessionInfoProto sessionInfo = TransportProtos.SessionInfoProto.newBuilder()
+                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                        .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                        .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits()).build();
+
+                TransportProtos.DeviceActivityProto deviceActivityProto = TransportProtos.DeviceActivityProto.newBuilder()
+                        .setLastActivityTime(System.currentTimeMillis()).build();
+
+                TransportProtos.TransportToDeviceActorMsg msg = TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo)
+                        .setDeviceActivity(deviceActivityProto).build();
+
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
+                tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(),
+                        TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), null);
             }
         }
         if (entityData.hasAttributeDeleteMsg()) {
             result.add(processAttributeDeleteMsg(tenantId, entityId, entityData.getAttributeDeleteMsg(), entityData.getEntityType()));
         }
         return result;
-    }
-
-    private void reportActivity(Device device, UUID sessionId) {
-        TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
-                .setSessionIdMSB(sessionId.getMostSignificantBits())
-                .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                .setDeviceName(device.getName())
-                .setDeviceType(device.getType())
-                .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
-
-        if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
-            builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
-            builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
-        }
-        reportActivity(device.getTenantId(), device.getId(), device.getUuidId(), builder.build());
-    }
-
-    private void reportActivity(TenantId tenantId, DeviceId deviceId, UUID routingKey, TransportProtos.SessionInfoProto sessionInfo) {
-        TransportProtos.SubscriptionInfoProto subscriptionInfoProto = TransportProtos.SubscriptionInfoProto.newBuilder()
-                .setAttributeSubscription(false).setRpcSubscription(false)
-                .setLastActivityTime(System.currentTimeMillis()).build();
-        TransportProtos.TransportToDeviceActorMsg msg = TransportProtos.TransportToDeviceActorMsg.newBuilder().setSessionInfo(sessionInfo)
-                .setSubscriptionInfo(subscriptionInfoProto).build();
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
-        tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(routingKey,
-                TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), null);
     }
 
     private TbMsgMetaData constructBaseMsgMetadata(TenantId tenantId, EntityId entityId) {
