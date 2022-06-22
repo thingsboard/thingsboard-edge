@@ -33,6 +33,7 @@ import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
+import { ActivatedRouteSnapshot } from '@angular/router';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -53,6 +54,7 @@ export interface Converter extends BaseData<ConverterId>, ExportableEntity<Conve
   debugMode: boolean;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
 }
 
 export interface TestUpLinkInputParams {
@@ -94,4 +96,14 @@ export function getConverterHelpLink (converter: Converter) {
     }
   }
   return link;
+}
+
+export interface ConverterParams {
+  converterScope: string;
+}
+
+export function resolveConverterParams(route: ActivatedRouteSnapshot): ConverterParams {
+  return {
+    converterScope: route.data.convertersType ? route.data.convertersType : 'tenant'
+  };
 }

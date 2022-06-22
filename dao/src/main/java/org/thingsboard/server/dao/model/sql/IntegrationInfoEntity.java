@@ -95,6 +95,9 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = SEARCH_TEXT_PROPERTY)
     private String searchText;
 
+    @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
+    private boolean edgeTemplate;
+
     public IntegrationInfoEntity() {
         super();
     }
@@ -112,6 +115,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
+        this.edgeTemplate = integration.isEdgeTemplate();
     }
 
     public String getSearchText() {
@@ -140,6 +144,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
+        integration.setEdgeTemplate(edgeTemplate);
         return integration;
     }
 }

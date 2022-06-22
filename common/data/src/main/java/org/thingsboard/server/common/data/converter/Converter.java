@@ -61,6 +61,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private boolean debugMode;
     private JsonNode configuration;
     private JsonNode additionalInfo;
+    private boolean edgeTemplate;
 
     @Getter @Setter
     private ConverterId externalId;
@@ -82,6 +83,7 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
         this.externalId = converter.getExternalId();
+        this.edgeTemplate = converter.isEdgeTemplate();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Converter Id. " +
@@ -156,6 +158,15 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.additionalInfo = additionalInfo;
     }
 
+    @ApiModelProperty(position = 9, value = "Boolean flag that specifies that is regular or edge template converter")
+    public boolean isEdgeTemplate() {
+        return edgeTemplate;
+    }
+
+    public void setEdgeTemplate(boolean edgeTemplate) {
+        this.edgeTemplate = edgeTemplate;
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -176,6 +187,8 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         builder.append(configuration);
         builder.append(", additionalInfo=");
         builder.append(additionalInfo);
+        builder.append(", edgeTemplate=");
+        builder.append(edgeTemplate);
         builder.append(", createdTime=");
         builder.append(createdTime);
         builder.append(", id=");

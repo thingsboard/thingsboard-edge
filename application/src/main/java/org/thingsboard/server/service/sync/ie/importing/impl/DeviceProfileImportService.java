@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
-import org.thingsboard.server.common.data.sync.ie.EntityImportSettings;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -82,7 +81,7 @@ public class DeviceProfileImportService extends BaseEntityImportService<DevicePr
         clusterService.onDeviceProfileChange(savedDeviceProfile, null);
         clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedDeviceProfile.getId(),
                 oldDeviceProfile == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedDeviceProfile.getId(),
+        entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedDeviceProfile.getId(),
                 oldDeviceProfile == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
         otaPackageStateService.update(savedDeviceProfile,
                 oldDeviceProfile != null && !Objects.equals(oldDeviceProfile.getFirmwareId(), savedDeviceProfile.getFirmwareId()),

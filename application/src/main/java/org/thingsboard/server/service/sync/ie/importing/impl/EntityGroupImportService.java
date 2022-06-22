@@ -155,7 +155,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                             userPermissionsService.onGroupPermissionDeleted(existingPermission);
                             entityActionService.logEntityAction(ctx.getUser(), existingPermission.getId(), existingPermission,
                                     null, ActionType.DELETED, null, existingPermission.getId().toString());
-                            entityActionService.sendEntityNotificationMsgToEdgeService(tenantId,
+                            entityActionService.sendEntityNotificationMsgToEdge(tenantId,
                                     existingPermission.getId(), EdgeEventActionType.DELETED);
                         });
                     } else {
@@ -177,7 +177,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                     userPermissionsService.onGroupPermissionUpdated(savedPermission);
                     entityActionService.logEntityAction(ctx.getUser(), savedPermission.getId(), savedPermission,
                             null, ActionType.ADDED, null);
-                    entityActionService.sendEntityNotificationMsgToEdgeService(tenantId,
+                    entityActionService.sendEntityNotificationMsgToEdge(tenantId,
                             savedPermission.getId(), EdgeEventActionType.ADDED);
                 });
             }
@@ -195,7 +195,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     protected void onEntitySaved(SecurityUser user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) throws ThingsboardException {
         super.onEntitySaved(user, savedEntityGroup, oldEntityGroup);
         if (oldEntityGroup != null) {
-            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
+            entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
         }
     }
 

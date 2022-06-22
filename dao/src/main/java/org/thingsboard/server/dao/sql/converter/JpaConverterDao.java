@@ -66,6 +66,26 @@ public class JpaConverterDao extends JpaAbstractSearchTextDao<ConverterEntity, C
     }
 
     @Override
+    public PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                converterRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        false,
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                converterRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        true,
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public Optional<Converter> findConverterByTenantIdAndName(UUID tenantId, String name) {
         Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndName(tenantId, name));
         return Optional.ofNullable(converter);

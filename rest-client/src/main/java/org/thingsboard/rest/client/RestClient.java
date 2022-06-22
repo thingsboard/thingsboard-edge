@@ -2283,7 +2283,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
-    public PageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, TimePageLink pageLink) {
+    public PageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("edgeId", edgeId.getId().toString());
         addPageLinkToParam(params, pageLink);
@@ -2805,11 +2805,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public PageData<Converter> getConverters(PageLink pageLink) {
+        return getConverters(pageLink, false);
+    }
+
+    public PageData<Converter> getConverters(PageLink pageLink, boolean isEdgeTemplate) {
         Map<String, String> params = new HashMap<>();
+        params.put("isEdgeTemplate", Boolean.toString(isEdgeTemplate));
         addPageLinkToParam(params, pageLink);
 
         return restTemplate.exchange(
-                baseURL + "/api/converters?" + getUrlParams(pageLink),
+                baseURL + "/api/converters?isEdgeTemplate={isEdgeTemplate}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<Converter>>() {
@@ -3376,10 +3381,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
 
 
     public PageData<Integration> getIntegrations(PageLink pageLink) {
+        return getIntegrations(pageLink, false);
+    }
+
+    public PageData<Integration> getIntegrations(PageLink pageLink, boolean isEdgeTemplate) {
         Map<String, String> params = new HashMap<>();
+        params.put("isEdgeTemplate", Boolean.toString(isEdgeTemplate));
         addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
-                baseURL + "/api/integrations?" + getUrlParams(pageLink),
+                baseURL + "/api/integrations?isEdgeTemplate={isEdgeTemplate}&" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<Integration>>() {
@@ -3402,6 +3412,54 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 new ParameterizedTypeReference<List<Integration>>() {
                 },
                 listIdsToString(integrationIds)).getBody();
+    }
+
+    public Optional<Integration> assignIntegrationToEdge(EdgeId edgeId, IntegrationId integrationId) {
+        try {
+            ResponseEntity<Integration> integration = restTemplate.postForEntity(baseURL + "/api/edge/{edgeId}/integration/{integrationId}",
+                    null, Integration.class, edgeId.getId(), integrationId.getId());
+            return Optional.ofNullable(integration.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<Integration> unassignIntegrationFromEdge(EdgeId edgeId, IntegrationId integrationId) {
+        try {
+            ResponseEntity<Integration> integration = restTemplate.exchange(baseURL + "/api/edge/{edgeId}/integration/{integrationId}",
+                    HttpMethod.DELETE, HttpEntity.EMPTY, Integration.class, edgeId.getId(), integrationId.getId());
+            return Optional.ofNullable(integration.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public PageData<Integration> getEdgeIntegrations(EdgeId edgeId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("edgeId", edgeId.getId().toString());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/edge/{edgeId}/integrations?" + getUrlParams(pageLink),
+                HttpMethod.GET, HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<Integration>>() {
+                }, params).getBody();
+    }
+
+    public String findMissingAttributesForAllRelatedEdges(IntegrationId integrationId) {
+        return restTemplate.getForEntity(baseURL + "/api/edge/integration/{integrationId}/allMissingAttributes", String.class, integrationId.getId()).getBody();
+    }
+
+    public String findMissingAttributesForEdge(EdgeId edgeId, List<IntegrationId> integrationIds) {
+        return restTemplate.getForEntity(baseURL + "/api/edge/integration/{edgeId}/missingAttributes?integrationIds={integrationIds}",
+                String.class, edgeId.getId(), listIdsToString(integrationIds)).getBody();
     }
 
     public void changeOwnerToTenant(EntityId ownerId, EntityId entityId) {

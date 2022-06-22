@@ -497,7 +497,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         Customer updatedCustomer = importEntity(tenantAdmin2, updatedCustomerEntity).getSavedEntity();
         verify(entityActionService).logEntityAction(any(), eq(importedCustomer.getId()), eq(updatedCustomer),
                 any(), eq(ActionType.UPDATED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedCustomer.getId()), any(), any(), eq(EdgeEventActionType.UPDATED), any(), any());
+        verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedCustomer.getId()), any(), any(), eq(EdgeEventActionType.UPDATED), any(), any());
 
         Mockito.reset(entityActionService);
 
@@ -515,7 +515,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
 
         verify(entityActionService).logEntityAction(any(), eq(importedAsset.getId()), eq(updatedAsset),
                 any(), eq(ActionType.UPDATED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedAsset.getId()), any(), any(), eq(EdgeEventActionType.UPDATED), any(), any());
+        verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedAsset.getId()), any(), any(), eq(EdgeEventActionType.UPDATED), any(), any());
 
         RuleChain importedRuleChain = (RuleChain) importEntity(tenantAdmin2, getAndClone(entitiesExportData, EntityType.RULE_CHAIN)).getSavedEntity();
         verify(entityActionService).logEntityAction(any(), eq(importedRuleChain.getId()), eq(importedRuleChain),
@@ -531,7 +531,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
                 any(), eq(ActionType.ADDED), isNull());
         verify(tbClusterService).onDeviceProfileChange(eq(importedDeviceProfile), any());
         verify(tbClusterService).broadcastEntityStateChangeEvent(any(), eq(importedDeviceProfile.getId()), eq(ComponentLifecycleEvent.CREATED));
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedDeviceProfile.getId()), any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
+        verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedDeviceProfile.getId()), any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
         verify(otaPackageStateService).update(eq(importedDeviceProfile), eq(false), eq(false));
 
         Device importedDevice = (Device) importEntity(tenantAdmin2, getAndClone(entitiesExportData, EntityType.DEVICE)).getSavedEntity();
@@ -559,7 +559,7 @@ public class ExportImportServiceSqlTest extends BaseExportImportServiceTest {
         Role importedRole = (Role) importEntity(tenantAdmin2, entitiesExportData.get(EntityType.ROLE)).getSavedEntity();
         verify(userPermissionsService).onRoleUpdated(argThat(r -> r.getId().equals(importedRole.getId())));
         verify(entityActionService).logEntityAction(any(), eq(importedRole.getId()), notNull(), any(), eq(ActionType.ADDED), isNull());
-        verify(tbClusterService).sendNotificationMsgToEdgeService(any(), any(), eq(importedRole.getId()),
+        verify(tbClusterService).sendNotificationMsgToEdge(any(), any(), eq(importedRole.getId()),
                 any(), any(), eq(EdgeEventActionType.ADDED), any(), any());
     }
 

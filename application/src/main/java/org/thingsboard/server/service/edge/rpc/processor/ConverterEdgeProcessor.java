@@ -28,27 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.service.edge.rpc.processor;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationInfo;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.TenantEntityDao;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+@Component
+@Slf4j
+@TbCoreComponent
+public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
-/**
- * The Interface IntegrationDao.
- *
- */
-public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
-
-    List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
-
+    public DownlinkMsg processConverterToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+        ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
+        DownlinkMsg downlinkMsg = null;
+        switch (msgType) {
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);
+                if (converter != null) {
+                    return DownlinkMsg.newBuilder()
+                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                            .addConverterMsg(converterProtoConstructor.constructConverterUpdateMsg(msgType, converter))
+                            .build();
+                }
+                break;
+        }
+        return downlinkMsg;
+    }
 }

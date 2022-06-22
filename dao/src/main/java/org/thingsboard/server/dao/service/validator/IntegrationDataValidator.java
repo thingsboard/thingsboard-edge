@@ -116,6 +116,9 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
             if (!converter.getTenantId().equals(integration.getTenantId())) {
                 throw new DataValidationException("Integration can't have converter from different tenant!");
             }
+            if (converter.isEdgeTemplate() != integration.isEdgeTemplate()) {
+                throw new DataValidationException("Edge integration can't have non-edge converter and vise versa!");
+            }
         }
     }
 }

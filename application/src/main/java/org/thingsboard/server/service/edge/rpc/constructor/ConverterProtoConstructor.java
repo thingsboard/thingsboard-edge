@@ -28,27 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.service.edge.rpc.constructor;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationInfo;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.TenantEntityDao;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+@Component
+@Slf4j
+public class ConverterProtoConstructor {
 
-/**
- * The Interface IntegrationDao.
- *
- */
-public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
-
-    List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
-
+    public ConverterUpdateMsg constructConverterUpdateMsg(UpdateMsgType msgType, Converter converter) {
+        ConverterUpdateMsg.Builder builder = ConverterUpdateMsg.newBuilder()
+                .setMsgType(msgType)
+                .setIdMSB(converter.getId().getId().getMostSignificantBits())
+                .setIdLSB(converter.getId().getId().getLeastSignificantBits())
+                .setName(converter.getName())
+                .setType(converter.getType().name())
+                .setDebugMode(converter.isDebugMode())
+                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
+                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        return builder.build();
+    }
 }

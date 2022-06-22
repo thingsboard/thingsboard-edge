@@ -177,8 +177,8 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.groupType === EntityType.EDGE) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'deviceGroups', params.childEntityGroupId, device.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'deviceGroups', params.edgeEntitiesGroupId, device.id.id]);
       } else {
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'deviceGroups', params.childEntityGroupId, device.id.id]);

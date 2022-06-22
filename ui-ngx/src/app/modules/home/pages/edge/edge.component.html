@@ -105,6 +105,13 @@
             [fxShow]="!isEdit">
       {{ 'edge.manage-rulechains' | translate }}
     </button>
+    <button mat-raised-button color="primary"
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'manageIntegrations')"
+            *ngIf="isTenantAdmin() && (resource.INTEGRATION | hasGenericPermission: operation.READ)"
+            [fxShow]="!isEdit">
+      {{ 'edge.manage-integrations' | translate }}
+    </button>
     <button mat-raised-button color="primary" fxFlex.xs
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'delete')"

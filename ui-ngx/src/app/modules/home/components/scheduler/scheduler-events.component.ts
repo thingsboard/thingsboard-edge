@@ -663,7 +663,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       $event.stopPropagation();
     }
     this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
+      Array<string>>(AddEntitiesToEdgeDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {

@@ -39,10 +39,18 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public final class EdgeUtils {
+
+    private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("(\\$\\{\\{)(.*?)(}})");
+    private static final String ATTRIBUTE_PLACEHOLDER_PATTERN = "${{%s}}";
+    private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{\\{%s}}";
 
     private EdgeUtils() {
     }
@@ -83,6 +91,10 @@ public final class EdgeUtils {
                 return EdgeEventType.ROLE;
             case GROUP_PERMISSION:
                 return EdgeEventType.GROUP_PERMISSION;
+            case INTEGRATION:
+                return EdgeEventType.INTEGRATION;
+            case CONVERTER:
+                return EdgeEventType.CONVERTER;
             default:
                 log.warn("Unsupported entity type [{}]", entityType);
                 return null;
@@ -122,5 +134,22 @@ public final class EdgeUtils {
         }
         edgeEvent.setBody(body);
         return edgeEvent;
+    }
+
+    public static Set<String> getAttributeKeysFromConfiguration(String integrationConfiguration) {
+        Set<String> result = new HashSet<>();
+        Matcher m = ATTRIBUTE_PATTERN.matcher(integrationConfiguration);
+        while (m.find()) {
+            result.add(m.group(2));
+        }
+        return result;
+    }
+
+    public static String formatAttributeKeyToPlaceholderFormat(String attributeKey) {
+        return String.format(ATTRIBUTE_PLACEHOLDER_PATTERN, attributeKey);
+    }
+
+    public static String formatAttributeKeyToRegexpPlaceholderFormat(String attributeKey) {
+        return String.format(ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN, attributeKey);
     }
 }

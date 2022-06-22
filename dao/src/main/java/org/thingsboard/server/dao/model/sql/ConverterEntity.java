@@ -53,6 +53,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
@@ -93,6 +94,9 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
     @Column(name = EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
+    @Column(name = CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY)
+    private boolean edgeTemplate;
+
     public ConverterEntity() {
         super();
     }
@@ -113,6 +117,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         if (converter.getExternalId() != null) {
             this.externalId = converter.getExternalId().getId();
         }
+        this.edgeTemplate = converter.isEdgeTemplate();
     }
 
     @Override
@@ -144,6 +149,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements S
         if (externalId != null) {
             converter.setExternalId(new ConverterId(externalId));
         }
+        converter.setEdgeTemplate(edgeTemplate);
         return converter;
     }
 }

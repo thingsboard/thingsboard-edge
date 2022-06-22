@@ -120,7 +120,8 @@ CREATE TABLE IF NOT EXISTS integration (
     search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
-    external_id uuid
+    external_id uuid,
+    is_edge_template boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS converter (
@@ -133,7 +134,8 @@ CREATE TABLE IF NOT EXISTS converter (
     search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
-    external_id uuid
+    external_id uuid,
+    is_edge_template boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (

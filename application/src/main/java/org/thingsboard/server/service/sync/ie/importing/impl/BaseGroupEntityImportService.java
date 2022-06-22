@@ -44,7 +44,7 @@ public abstract class BaseGroupEntityImportService<I extends EntityId, E extends
     protected void onEntitySaved(SecurityUser user, E savedEntity, E oldEntity) throws ThingsboardException {
         super.onEntitySaved(user, savedEntity, oldEntity);
         if (oldEntity != null) {
-            entityActionService.sendEntityNotificationMsgToEdgeService(user.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
+            entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedEntity.getId(), EdgeEventActionType.UPDATED);
         }
     }
 

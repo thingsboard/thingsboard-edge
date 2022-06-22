@@ -122,6 +122,9 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
     @Column(name = EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
+    @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
+    private boolean edgeTemplate;
+
     public IntegrationEntity() {
         super();
     }
@@ -153,6 +156,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         if (integration.getExternalId() != null) {
             this.externalId = integration.getExternalId().getId();
         }
+        this.edgeTemplate = integration.isEdgeTemplate();
     }
 
     public String getSearchText() {
@@ -195,6 +199,7 @@ public class IntegrationEntity extends BaseSqlEntity<Integration> implements Sea
         if (externalId != null) {
             integration.setExternalId(new IntegrationId(externalId));
         }
+        integration.setEdgeTemplate(edgeTemplate);
         return integration;
     }
 }

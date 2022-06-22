@@ -1857,7 +1857,10 @@
         "dashboard": "Edge dashboard",
         "dashboards": "Edge Dashboards",
         "rulechain-templates": "Rule chain templates",
+        "converter-templates": "Converter templates",
+        "integration-templates": "Integration templates",
         "rulechains": "Rule chains",
+        "integrations": "Integrations",
         "search": "Search edges",
         "selected-edges": "{ count, plural, 1 {1 edge} other {# edges} } selected",
         "any-edge": "Any edge",
@@ -1881,6 +1884,7 @@
         "manage-edge-entity-view-groups": "Manage edge entity view groups",
         "manage-edge-dashboard-groups": "Manage edge dashboard groups",
         "manage-edge-rule-chains": "Manage edge rule chains",
+        "manage-edge-integrations": "Manage edge integrations",
         "manage-edge-scheduler-events": "Manage edge scheduler events",
         "select-group-to-add": "Select target group to add selected edges",
         "select-group-to-move": "Select target group to move selected edges",
@@ -1906,9 +1910,17 @@
         "manage-entity-view-groups": "Manage entity view groups",
         "manage-scheduler-events": "Manage scheduler events",
         "manage-rulechains": "Manage rule chains",
+        "manage-integrations": "Manage integrations",
         "assign-scheduler-event-to-edge-title": "Assign Scheduler Events To Edge",
         "assign-scheduler-event-to-edge-text": "Please select the scheduler events to assign to the edge",
-        "assign-entity-groups-to-edge-text": "Please select the entity groups to assign to the edge"
+        "assign-entity-groups-to-edge-text": "Please select the entity groups to assign to the edge",
+        "assign-integration-to-edge-title": "Assign Integrations To Edge",
+        "assign-integration-to-edge-text": "Please select the integrations to assign to the edge",
+        "missing-attributes-title": "Edge has missing attribute(s)",
+        "missing-attributes-text": "Integration(s), assigned to edge, have attribute placeholders that are not available on this edge. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
+        "missing-all-related-attributes-title": "Edge(s) have missing attribute(s)",
+        "missing-all-related-attributes-text": "Edge(s), related to integration, don't have attributes that are present inside integration configuration as attribute placeholders. <br><br> List of missing edge attributes(s): <br> {{missingEdgeAttributes}}",
+        "quick-overview-widget-header": "{{edgeName}} Quick Overview"
     },
     "edge-event": {
         "type-dashboard": "Dashboard",
@@ -1933,6 +1945,8 @@
         "type-custom-translation": "Custom Translation",
         "type-role": "Role",
         "type-group-permission": "Group Permission",
+        "type-integration": "Integration",
+        "type-converter": "Converter",
         "action-type-added": "Added",
         "action-type-deleted": "Deleted",
         "action-type-updated": "Updated",
@@ -3251,7 +3265,13 @@
         "coap-dtls-base-url": "DTLS Base URL",
         "coap-dtls-base-url-required": "DTLS Base URL is required",
         "coap-dtls-endpoint": "CoAP DTLS endpoint URL",
-        "coap-dtls-endpoint-url-copied-message": "CoAP DTLS endpoint URL has been copied to clipboard"
+        "coap-dtls-endpoint-url-copied-message": "CoAP DTLS endpoint URL has been copied to clipboard",
+        "unassign-integration-title": "Are you sure you want to unassign the integration '{{integrationName}}'?",
+        "unassign-integration-from-edge-text": "After the confirmation the integration will be unassigned and won't be accessible by the edge.",
+        "unassign-integrations-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 integration} other {# integrations} }?",
+        "unassign-integrations-from-edge-text": "After the confirmation all selected integrations will be unassigned and won't be accessible by the edge.",
+        "unassign-integrations": "Unassign integrations",
+        "edge-placeholder-hint": "You can use placeholder ${{ATTRIBUTE_KEY}} to substitute integration field with attribute value from specific Edge entity. For example, 'Edge A' has attribute 'baseUrl' that equals to 'http://localhost:9999'. You can set ${{baseUrl}} as one of the integration fields, and it is going to be replaced to 'http://localhost:9999' during the assignment of this integration to 'Edge A'. Additionally, if 'Edge A' attribute 'baseUrl' is going to be updated - integration with new updated value is going to be automatically provisioned to 'Edge A'."
     },
     "item": {
         "selected": "Selected"

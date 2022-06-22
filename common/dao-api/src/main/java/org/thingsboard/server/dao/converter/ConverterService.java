@@ -51,6 +51,8 @@ public interface ConverterService {
 
     PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink);
 
+    PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink);
+
     void deleteConverter(TenantId tenantId, ConverterId converterId);
 
     void deleteConvertersByTenantId(TenantId tenantId);

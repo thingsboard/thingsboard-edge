@@ -100,7 +100,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     this.loadEntity = id => this.ruleChainService.getRuleChain(id.id);
     this.saveEntity = ruleChain => this.saveRuleChain(ruleChain);
     this.deleteEntity = id => this.ruleChainService.deleteRuleChain(id.id);
-    this.onEntityAction = action => this.onRuleChainAction(action);
+    this.onEntityAction = action => this.onRuleChainAction(action, this.componentsData);
 
     this.configureRuleChainScope();
     defaultEntityTablePermissions(this.userPermissionsService, this);
@@ -121,7 +121,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       ruleChainScope,
       hierarchyView: params?.hierarchyView,
       entityGroupId: params?.entityGroupId,
-      customerGroupId: params?.customerGroupId,
+      childEntityGroupId: params?.childEntityGroupId,
       customerId: params?.customerId
     };
   }
@@ -258,7 +258,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
       $event.stopPropagation();
     }
     this.dialog.open<AddEntitiesToEdgeDialogComponent, AddEntitiesToEdgeDialogData,
-      boolean>(AddEntitiesToEdgeDialogComponent, {
+      Array<string>>(AddEntitiesToEdgeDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
@@ -406,10 +406,10 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     return this.ruleChainService.saveRuleChain(ruleChain);
   }
 
-  private onRuleChainAction(action: EntityAction<RuleChain>): boolean {
+  private onRuleChainAction(action: EntityAction<RuleChain>, params: RuleChainParams): boolean {
     switch (action.action) {
       case 'open':
-        this.openRuleChain(action.event, action.entity);
+        this.openRuleChain(action.event, action.entity, params);
         return true;
       case 'export':
         this.exportRuleChain(action.event, action.entity);
@@ -443,8 +443,8 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     if (this.componentsData.ruleChainScope === 'edge') {
       let url: UrlTree;
       if (params && params.hierarchyView) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'ruleChains', ruleChain.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'ruleChains', ruleChain.id.id]);
         window.open(window.location.origin + url, '_blank');
       } else {
         url = this.router.createUrlTree([ruleChain.id.id], { relativeTo: this.getActivatedRoute() });

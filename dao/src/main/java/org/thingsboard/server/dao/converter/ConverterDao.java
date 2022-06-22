@@ -50,13 +50,31 @@ import java.util.UUID;
 public interface ConverterDao extends Dao<Converter>, TenantEntityDao, ExportableEntityDao<ConverterId, Converter> {
 
     /**
-     * Find converters by tenantId and page link.
+     * Find all (core and edge template) converters by tenantId and page link.
      *
      * @param tenantId the tenantId
      * @param pageLink the page link
      * @return the list of converter objects
      */
     PageData<Converter> findByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
+     * Find core converters by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of converter objects
+     */
+    PageData<Converter> findCoreConvertersByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
+     * Find edge template converters by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of converter objects
+     */
+    PageData<Converter> findEdgeTemplateConvertersByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find converter by tenantId and converter name.

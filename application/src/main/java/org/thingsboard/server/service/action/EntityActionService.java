@@ -258,12 +258,12 @@ public class EntityActionService {
         }
     }
 
-    public void sendEntityNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, null, null);
+    public void sendEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
+        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, null, null);
     }
 
-    public void sendGroupEntityNotificationMsgToEdgeService(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+    public void sendGroupEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId, EdgeEventActionType action) {
+        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
     private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {

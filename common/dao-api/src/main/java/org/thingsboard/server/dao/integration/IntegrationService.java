@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -63,9 +64,17 @@ public interface IntegrationService {
 
     List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name);
 
+    PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink);
+
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
-    List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+    List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+
+    Integration assignIntegrationToEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId);
+
+    Integration unassignIntegrationFromEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId, boolean remove);
+
+    PageData<Integration> findIntegrationsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 }

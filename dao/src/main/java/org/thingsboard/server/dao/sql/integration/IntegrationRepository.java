@@ -46,14 +46,31 @@ public interface IntegrationRepository extends JpaRepository<IntegrationEntity, 
     @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationEntity> findByTenantId(@Param("tenantId") UUID tenantId,
-                                                      @Param("searchText") String searchText,
-                                                      Pageable pageable);
+                                           @Param("searchText") String searchText,
+                                           Pageable pageable);
+
+    @Query("SELECT a FROM IntegrationEntity a WHERE a.tenantId = :tenantId " +
+            "AND a.edgeTemplate = :isEdgeTemplate " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
+                                                            @Param("searchText") String searchText,
+                                                            @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                            Pageable pageable);
 
     IntegrationEntity findByRoutingKey(String routingKey);
 
     List<IntegrationEntity> findByConverterId(UUID converterId);
 
     List<IntegrationEntity> findIntegrationsByTenantIdAndIdIn(UUID tenantId, List<UUID> integrationIds);
+
+    @Query("SELECT ie FROM IntegrationEntity ie, RelationEntity re WHERE ie.tenantId = :tenantId " +
+            "AND ie.id = re.toId AND re.toType = 'INTEGRATION' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
+            "AND LOWER(ie.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
+                                                    @Param("edgeId") UUID edgeId,
+                                                    @Param("searchText") String searchText,
+                                                    Pageable pageable);
 
     Long countByTenantId(UUID tenantId);
 

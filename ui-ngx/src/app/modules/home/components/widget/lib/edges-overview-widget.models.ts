@@ -49,7 +49,7 @@ export interface BaseEdgeNodeData {
   groupType: EntityType;
 }
 
-export type EdgeNodeType = 'group' | 'groups' | 'edgeGroups';
+export type EdgeNodeType = 'group' | 'groups';
 
 export interface EntityGroupNodeData extends BaseEdgeNodeData {
   type: 'group';
@@ -57,10 +57,7 @@ export interface EntityGroupNodeData extends BaseEdgeNodeData {
 
 export interface EntityGroupsNodeData extends BaseEdgeNodeData {
   type: 'groups';
-}
-
-export interface EdgeGroupsNodeData extends BaseEdgeNodeData {
-  type: 'edgeGroups';
+  edge?: BaseData<HasId>;
 }
 
 export function edgeGroupsNodeText(translate: TranslateService, entityType: EntityType): string {
@@ -105,6 +102,9 @@ export function materialIconByEntityType(entityType: EntityType): string {
     case EntityType.RULE_CHAIN:
       materialIcon = 'settings_ethernet';
       break;
+    case EntityType.INTEGRATION:
+      materialIcon = 'input';
+      break;
   }
   return '<mat-icon class="node-icon material-icons" role="img" aria-hidden="false">' + materialIcon + '</mat-icon>';
 }
@@ -126,6 +126,8 @@ export function textForEntityGroupsType(translate: TranslateService, entityType:
       return translate.instant('entity.type-scheduler-events');
     case EntityType.RULE_CHAIN:
       return translate.instant('entity.type-rulechains');
+    case EntityType.INTEGRATION:
+      return translate.instant('entity.type-integrations');
   }
   return translate.instant(textForEntityGroupsType);
 }
