@@ -86,5 +86,5 @@ public interface EdgeService {
 
     PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 
-    String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
+    String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName);
 }
