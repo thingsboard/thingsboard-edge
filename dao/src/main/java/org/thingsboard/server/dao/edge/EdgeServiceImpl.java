@@ -70,8 +70,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -107,8 +107,6 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
-
-
 
     private static final int DEFAULT_PAGE_SIZE = 1000;
 
@@ -503,16 +501,19 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
-    public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId) {
+    public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName) {
         List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
         List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
         ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
-            List<RuleChainConnectionInfo> connectionInfos =
-                    ruleChainService.loadRuleChainMetaData(edgeRuleChain.getTenantId(), edgeRuleChain.getId()).getRuleChainConnections();
-            if (connectionInfos != null && !connectionInfos.isEmpty()) {
+            List<RuleNode> ruleNodes =
+                    ruleChainService.loadRuleChainMetaData(edgeRuleChain.getTenantId(), edgeRuleChain.getId()).getNodes();
+            if (ruleNodes != null && !ruleNodes.isEmpty()) {
                 List<RuleChainId> connectedRuleChains =
-                        connectionInfos.stream().map(RuleChainConnectionInfo::getTargetRuleChainId).collect(Collectors.toList());
+                        ruleNodes.stream()
+                                .filter(rn -> rn.getType().equals(tbRuleChainInputNodeClassName))
+                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText())))
+                                .collect(Collectors.toList());
                 List<String> missingRuleChains = new ArrayList<>();
                 for (RuleChainId connectedRuleChain : connectedRuleChains) {
                     if (!edgeRuleChainIds.contains(connectedRuleChain)) {

@@ -101,7 +101,7 @@ public interface EdgeService {
 
     void renameDeviceEdgeAllGroup(TenantId tenantId, Edge edge, String oldEdgeName);
 
-    String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId);
+    String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName);
 
     String findEdgeMissingAttributes(TenantId tenantId, EdgeId edgeId, List<IntegrationId> integrationIds) throws Exception;
 
