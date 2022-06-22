@@ -30,55 +30,30 @@
  */
 package org.thingsboard.server.queue.discovery;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 
-@Data
-@AllArgsConstructor
-public class QueueKey {
-    private static final String MAIN = "Main";
+import java.util.UUID;
 
-    private final ServiceType type;
-    private final String queueName;
-    private final TenantId tenantId;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public QueueKey(ServiceType type, Queue queue) {
-        this.type = type;
-        this.queueName = queue.getName();
-        this.tenantId = queue.getTenantId();
+@Slf4j
+class QueueKeyTest {
+
+    @Test
+    void testToStringSystemTenant() {
+        QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, "Main", TenantId.SYS_TENANT_ID);
+        log.info("The queue key is {}",queueKey);
+        assertThat(queueKey.toString()).isEqualTo("QK(Main,TB_RULE_ENGINE,system)");
     }
 
-    public QueueKey(ServiceType type, QueueRoutingInfo queueRoutingInfo) {
-        this.type = type;
-        this.queueName = queueRoutingInfo.getQueueName();
-        this.tenantId = queueRoutingInfo.getTenantId();
-    }
-
-    public QueueKey(ServiceType type, TenantId tenantId) {
-        this.type = type;
-        this.queueName = MAIN;
-        this.tenantId = tenantId != null ? tenantId : TenantId.SYS_TENANT_ID;
-    }
-
-    public QueueKey(ServiceType type) {
-        this.type = type;
-        this.queueName = MAIN;
-        this.tenantId = TenantId.SYS_TENANT_ID;
-    }
-
-    public QueueKey(ServiceType type, String queueName) {
-        this.type = type;
-        this.queueName = queueName;
-        this.tenantId = TenantId.SYS_TENANT_ID;
-    }
-
-    @Override
-    public String toString() {
-        return "QK(" + queueName + "," + type + "," +
-                (TenantId.SYS_TENANT_ID.equals(tenantId) ? "system" : tenantId) +
-                ')';
+    @Test
+    void testToStringCustomTenant() {
+        TenantId tenantId = TenantId.fromUUID(UUID.fromString("3ebd39eb-43d4-4911-a818-cdbf8d508f88"));
+        QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, "Main", tenantId);
+        log.info("The queue key is {}",queueKey);
+        assertThat(queueKey.toString()).isEqualTo("QK(Main,TB_RULE_ENGINE,3ebd39eb-43d4-4911-a818-cdbf8d508f88)");
     }
 }
