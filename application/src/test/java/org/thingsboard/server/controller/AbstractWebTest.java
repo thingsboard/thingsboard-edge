@@ -159,6 +159,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected TenantId differentTenantId;
+    protected UserId differentTenantAdminUserId;
     protected CustomerId differentCustomerId;
     protected UserId customerUserId;
     protected UserId customerAdminUserId;
@@ -255,6 +256,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         doDelete("/api/tenant/" + tenantId.getId().toString())
                 .andExpect(status().isOk());
+        deleteDifferentTenant();
 
         verifyNoTenantsLeft();
 
@@ -313,8 +315,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
             differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
             differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
-
-            createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
+            differentTenantAdminUserId = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD).getId();
         }
     }
 
@@ -352,6 +353,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             loginSysAdmin();
             doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
                     .andExpect(status().isOk());
+            savedDifferentTenant = null;
         }
     }
 

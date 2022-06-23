@@ -58,7 +58,9 @@ public class TbCoreConsumerStats {
     public static final String TO_CORE_NOTIFICATIONS = "coreNfs";
     public static final String SCHEDULER = "scheduler";
     public static final String EDGE_NOTIFICATIONS = "edgeNfs";
+
     public static final String CLOUD_NOTIFICATIONS = "cloudNfs";
+    public static final String DEVICE_ACTIVITIES = "deviceActivity";
 
     private final StatsCounter totalCounter;
     private final StatsCounter sessionEventCounter;
@@ -75,6 +77,7 @@ public class TbCoreConsumerStats {
     private final StatsCounter toCoreNotificationsCounter;
     private final StatsCounter edgeNotificationsCounter;
     private final StatsCounter cloudNotificationMsgCounter;
+    private final StatsCounter deviceActivitiesCounter;
 
     private final List<StatsCounter> counters = new ArrayList<>();
 
@@ -95,6 +98,7 @@ public class TbCoreConsumerStats {
         this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
         this.edgeNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS));
         this.cloudNotificationMsgCounter = register(statsFactory.createStatsCounter(statsKey, CLOUD_NOTIFICATIONS));
+        this.deviceActivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_ACTIVITIES));
     }
 
     private StatsCounter register(StatsCounter counter){
@@ -145,6 +149,16 @@ public class TbCoreConsumerStats {
     public void log(TransportProtos.EdgeNotificationMsgProto msg) {
         totalCounter.increment();
         edgeNotificationsCounter.increment();
+    }
+
+    public void log(TransportProtos.DeviceActivityProto msg) {
+        totalCounter.increment();
+        deviceActivitiesCounter.increment();
+    }
+
+    public void log(SchedulerServiceMsgProto schedulerServiceMsg) {
+        totalCounter.increment();
+        schedulerMsgCounter.increment();
     }
 
     public void log(TransportProtos.CloudNotificationMsgProto msg) {

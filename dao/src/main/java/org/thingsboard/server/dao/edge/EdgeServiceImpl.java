@@ -70,8 +70,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -107,8 +107,6 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
-
-
 
     private static final int DEFAULT_PAGE_SIZE = 1000;
 
@@ -421,54 +419,49 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, EntityType groupType, PageLink pageLink) {
         log.trace("[{}] Executing findRelatedEdgeIdsByEntityId [{}] [{}]", tenantId, entityId, pageLink);
-        if (EntityType.TENANT.equals(entityId.getEntityType()) ||
-                EntityType.CUSTOMER.equals(entityId.getEntityType()) ||
-                EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
-            if (EntityType.TENANT.equals(entityId.getEntityType()) ||
-                    EntityType.DEVICE_PROFILE.equals(entityId.getEntityType())) {
+        switch (entityId.getEntityType()) {
+            case TENANT:
+            case DEVICE_PROFILE:
+            case OTA_PACKAGE:
                 return convertToEdgeIds(findEdgesByTenantId(tenantId, pageLink));
-            } else {
+            case CUSTOMER:
                 return convertToEdgeIds(findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink));
-            }
-        } else {
-            switch (entityId.getEntityType()) {
-                case EDGE:
-                    List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
-                    return new PageData<>(edgeIds, 1, 1, false);
-                case USER:
-                case DEVICE:
-                case ASSET:
-                case ENTITY_VIEW:
-                case DASHBOARD:
-                    List<EntityGroupId> entityGroupsForEntity = null;
-                    try {
-                        entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
-                    } catch (Exception e) {
-                        log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
-                    }
-                    if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
-                        return createEmptyEdgeIdPageData();
-                    }
-                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
-                case ENTITY_GROUP:
-                    EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
-                    if (groupType == null) {
-                        groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
-                    }
-                    return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
-                case RULE_CHAIN:
-                case SCHEDULER_EVENT:
-                case INTEGRATION:
-                    return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
-                case CONVERTER:
-                    List<Integration> integrationsByConverterId =
-                            integrationService.findIntegrationsByConverterId(tenantId, new ConverterId(entityId.getId()));
-                    List<EntityId> integrationIds = integrationsByConverterId.stream().map(Integration::getId).collect(Collectors.toList());
-                    return findEdgeIdsByTenantIdAndEntityIds(tenantId, integrationIds, EntityType.INTEGRATION, pageLink);
-                default:
-                    log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
+            case EDGE:
+                List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
+                return new PageData<>(edgeIds, 1, 1, false);
+            case USER:
+            case DEVICE:
+            case ASSET:
+            case ENTITY_VIEW:
+            case DASHBOARD:
+                List<EntityGroupId> entityGroupsForEntity = null;
+                try {
+                    entityGroupsForEntity = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
+                } catch (Exception e) {
+                    log.error("[{}] Can't find entity group for entity {} {}", tenantId, entityId, e);
+                }
+                if (CollectionUtils.isEmpty(entityGroupsForEntity)) {
                     return createEmptyEdgeIdPageData();
-            }
+                }
+                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupsForEntity, entityId.getEntityType(), pageLink);
+            case ENTITY_GROUP:
+                EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
+                if (groupType == null) {
+                    groupType = entityGroupService.findEntityGroupById(tenantId, entityGroupId).getType();
+                }
+                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
+            case RULE_CHAIN:
+            case SCHEDULER_EVENT:
+            case INTEGRATION:
+                return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
+            case CONVERTER:
+                List<Integration> integrationsByConverterId =
+                        integrationService.findIntegrationsByConverterId(tenantId, new ConverterId(entityId.getId()));
+                List<EntityId> integrationIds = integrationsByConverterId.stream().map(Integration::getId).collect(Collectors.toList());
+                return findEdgeIdsByTenantIdAndEntityIds(tenantId, integrationIds, EntityType.INTEGRATION, pageLink);
+            default:
+                log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
+                return createEmptyEdgeIdPageData();
         }
     }
 
@@ -513,16 +506,19 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
-    public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId) {
+    public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName) {
         List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
         List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
         ObjectNode result = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
-            List<RuleChainConnectionInfo> connectionInfos =
-                    ruleChainService.loadRuleChainMetaData(edgeRuleChain.getTenantId(), edgeRuleChain.getId()).getRuleChainConnections();
-            if (connectionInfos != null && !connectionInfos.isEmpty()) {
+            List<RuleNode> ruleNodes =
+                    ruleChainService.loadRuleChainMetaData(edgeRuleChain.getTenantId(), edgeRuleChain.getId()).getNodes();
+            if (ruleNodes != null && !ruleNodes.isEmpty()) {
                 List<RuleChainId> connectedRuleChains =
-                        connectionInfos.stream().map(RuleChainConnectionInfo::getTargetRuleChainId).collect(Collectors.toList());
+                        ruleNodes.stream()
+                                .filter(rn -> rn.getType().equals(tbRuleChainInputNodeClassName))
+                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText())))
+                                .collect(Collectors.toList());
                 List<String> missingRuleChains = new ArrayList<>();
                 for (RuleChainId connectedRuleChain : connectedRuleChains) {
                     if (!edgeRuleChainIds.contains(connectedRuleChain)) {

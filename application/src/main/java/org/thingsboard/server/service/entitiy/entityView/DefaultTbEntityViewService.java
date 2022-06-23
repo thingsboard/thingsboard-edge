@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ConcurrentReferenceHashMap;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -52,8 +53,9 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -62,18 +64,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Service
-@TbCoreComponent
 @AllArgsConstructor
 @Slf4j
 public class DefaultTbEntityViewService extends AbstractTbEntityService implements TbEntityViewService {
 
     private final TimeseriesService tsService;
+
+    final Map<TenantId, Map<EntityId, List<EntityView>>> localCache = new ConcurrentHashMap<>();
 
     @Override
     public EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
@@ -86,6 +91,9 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
             createOrUpdateGroupEntity(tenantId, savedEntityView, entityGroup, actionType, user);
             notificationEntityService.notifyCreateOrUpdateEntity(savedEntityView.getTenantId(), savedEntityView.getId(), savedEntityView,
                     null, actionType, user);
+            localCache.computeIfAbsent(savedEntityView.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>()).clear();
+            tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
+                    entityView.getId() == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             return savedEntityView;
         } catch (Exception e) {
             notificationEntityService.notifyEntity(user.getTenantId(), emptyId(EntityType.ENTITY_VIEW), entityView, null, actionType, user, e);
@@ -137,10 +145,63 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
             entityViewService.deleteEntityView(tenantId, entityViewId);
             notificationEntityService.notifyDeleteEntity(tenantId, entityViewId, entityView, entityView.getCustomerId(), ActionType.DELETED,
                     relatedEdgeIds, user, entityViewId.toString());
+
+            localCache.computeIfAbsent(tenantId, (k) -> new ConcurrentReferenceHashMap<>()).clear();
+            tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
         } catch (Exception e) {
             notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.ENTITY_VIEW), null, null,
                     ActionType.DELETED, user, e, entityViewId.toString());
             throw handleException(e);
+        }
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(TenantId tenantId, EntityId entityId) {
+        Map<EntityId, List<EntityView>> localCacheByTenant = localCache.computeIfAbsent(tenantId, (k) -> new ConcurrentReferenceHashMap<>());
+        List<EntityView> fromLocalCache = localCacheByTenant.get(entityId);
+        if (fromLocalCache != null) {
+            return Futures.immediateFuture(fromLocalCache);
+        }
+
+        ListenableFuture<List<EntityView>> future = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(tenantId, entityId);
+
+        return Futures.transform(future, (entityViewList) -> {
+            localCacheByTenant.put(entityId, entityViewList);
+            return entityViewList;
+        }, MoreExecutors.directExecutor());
+    }
+
+    @Override
+    public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds) {
+        return entityViewService.findEntityViewsByTenantIdAndIdsAsync(tenantId, entityViewIds);
+    }
+
+    @Override
+    public void onComponentLifecycleMsg(ComponentLifecycleMsg componentLifecycleMsg) {
+        Map<EntityId, List<EntityView>> localCacheByTenant = localCache.computeIfAbsent(componentLifecycleMsg.getTenantId(), (k) -> new ConcurrentReferenceHashMap<>());
+        EntityViewId entityViewId = new EntityViewId(componentLifecycleMsg.getEntityId().getId());
+        deleteOldCacheValue(localCacheByTenant, entityViewId);
+        if (componentLifecycleMsg.getEvent() != ComponentLifecycleEvent.DELETED) {
+            EntityView entityView = entityViewService.findEntityViewById(componentLifecycleMsg.getTenantId(), entityViewId);
+            if (entityView != null) {
+                localCacheByTenant.remove(entityView.getEntityId());
+            }
+        }
+    }
+
+    private void deleteOldCacheValue(Map<EntityId, List<EntityView>> localCacheByTenant, EntityViewId entityViewId) {
+        for (var entry : localCacheByTenant.entrySet()) {
+            EntityView toDelete = null;
+            for (EntityView view : entry.getValue()) {
+                if (entityViewId.equals(view.getId())) {
+                    toDelete = view;
+                    break;
+                }
+            }
+            if (toDelete != null) {
+                entry.getValue().remove(toDelete);
+                break;
+            }
         }
     }
 
@@ -159,8 +220,8 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                                         long lastUpdateTs = attributeKvEntry.getLastUpdateTs();
                                         return startTime == 0 && endTime == 0 ||
                                                 (endTime == 0 && startTime < lastUpdateTs) ||
-                                                (startTime == 0 && endTime > lastUpdateTs)
-                                                ? true : startTime < lastUpdateTs && endTime > lastUpdateTs;
+                                                (startTime == 0 && endTime > lastUpdateTs) ||
+                                                (startTime < lastUpdateTs && endTime > lastUpdateTs);
                                     }).collect(Collectors.toList());
                     tsSubService.saveAndNotify(entityView.getTenantId(), entityId, scope, attributes, new FutureCallback<Void>() {
                         @Override
@@ -275,7 +336,7 @@ public class DefaultTbEntityViewService extends AbstractTbEntityService implemen
                 @Override
                 public void onFailure(Throwable t) {
                     try {
-                        logTimeseriesDeleted(entityView.getTenantId(),user, entityId, keys, t);
+                        logTimeseriesDeleted(entityView.getTenantId(), user, entityId, keys, t);
                     } catch (ThingsboardException e) {
                         log.error("Failed to log timeseries delete", e);
                     }

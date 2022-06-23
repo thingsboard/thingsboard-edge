@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.pe.twilio;
 
+import com.twilio.exception.ApiException;
 import com.twilio.http.TwilioRestClient;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -108,12 +109,19 @@ public class TbTwilioSmsNode implements TbNode {
         }
         for (String numberTo : numbersToList) {
             log.trace("[{}][{}][{}] Sending sms for number: {} ...", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg.getId(), numbersTo);
-            Message.creator(
-                    new PhoneNumber(numberTo.trim()),
-                    new PhoneNumber(numberFrom.trim()),
-                    msg.getData().replaceAll("^\"|\"$", "").replaceAll("\\\\n", "\n")
-            ).create(this.twilioRestClient);
-            log.trace("[{}][{}][{}] Sms for number: {} sent successfully!", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg.getId(), numbersTo);
+            try {
+                Message.creator(
+                        new PhoneNumber(numberTo.trim()),
+                        new PhoneNumber(numberFrom.trim()),
+                        msg.getData().replaceAll("^\"|\"$", "").replaceAll("\\\\n", "\n")
+                ).create(this.twilioRestClient);
+                log.trace("[{}][{}][{}] Sms for number: {} sent successfully!", ctx.getTenantId().getId(), ctx.getSelfId().getId(), msg.getId(), numbersTo);
+            } catch (ApiException e) {
+                String apiMsg = String.format("[%s][%s] Failed to send sms from number %s to number %s",
+                        ctx.getTenantId().getId(), ctx.getSelfId().getId(), numberFrom, numberTo);
+                log.debug(apiMsg, e);
+                ctx.tellFailure(msg, new RuntimeException(apiMsg, e));
+            }
         }
     }
 
