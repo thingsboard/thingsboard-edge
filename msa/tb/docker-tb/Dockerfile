@@ -42,7 +42,7 @@ ENV SPRING_DATASOURCE_PASSWORD=postgres
 COPY logback.xml ${pkg.name}.conf start-tb.sh upgrade-tb.sh install-tb.sh ${pkg.name}.deb tb-web-report.deb /tmp/
 
 RUN apt-get update \
-    && apt-get install -yq wget unzip fonts-roboto chromium \
+    && apt-get install -yq --no-install-recommends wget unzip fonts-roboto chromium \
         && apt-get clean \
         && rm -r /var/lib/apt/lists/* \
     && mkdir -p /noto \

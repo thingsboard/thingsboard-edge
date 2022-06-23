@@ -50,7 +50,7 @@ COPY src/api ./api
 COPY src/server.js ./
 
 RUN apt-get update \
-    && apt-get install -yq wget unzip fonts-roboto chromium \
+    && apt-get install -yq --no-install-recommends wget unzip fonts-roboto chromium \
     && apt-get clean \
     && rm -r /var/lib/apt/lists/* \
     && mkdir -p /noto \
