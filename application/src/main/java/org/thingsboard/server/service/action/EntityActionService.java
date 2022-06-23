@@ -262,10 +262,6 @@ public class EntityActionService {
         tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, null, null);
     }
 
-    public void sendGroupEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EntityGroupId entityGroupId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
-    }
-
     private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
         if (kvEntry.getDataType() == DataType.BOOLEAN) {
             kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
@@ -291,10 +287,6 @@ public class EntityActionService {
             pushEntityActionToRuleEngine(entityId, entity, user, customerId, actionType, additionalInfo);
         }
         auditLogService.logEntityAction(user.getTenantId(), customerId, user.getId(), user.getName(), entityId, entity, actionType, e, additionalInfo);
-    }
-
-    public void sendEntityNotificationMsgToEdge(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
     }
 
     private <T> T extractParameter(Class<T> clazz, int index, Object... additionalInfo) {
