@@ -35,17 +35,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.converter.ConverterDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 public class IntegrationDataValidator extends DataValidator<Integration> {
@@ -54,7 +53,7 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
     private IntegrationDao integrationDao;
 
     @Autowired
-    private TenantDao tenantDao;
+    private TenantService tenantService;
 
     @Autowired
     private ConverterDao converterDao;
@@ -103,8 +102,7 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
         if (integration.getTenantId() == null || integration.getTenantId().isNullUid()) {
             throw new DataValidationException("Integration should be assigned to tenant!");
         } else {
-            Tenant tenant = tenantDao.findById(tenantId, integration.getTenantId().getId());
-            if (tenant == null) {
+            if (!tenantService.tenantExists(integration.getTenantId())) {
                 throw new DataValidationException("Integration is referencing to non-existent tenant!");
             }
         }
@@ -117,6 +115,9 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
             }
             if (!converter.getTenantId().equals(integration.getTenantId())) {
                 throw new DataValidationException("Integration can't have converter from different tenant!");
+            }
+            if (converter.isEdgeTemplate() != integration.isEdgeTemplate()) {
+                throw new DataValidationException("Edge integration can't have non-edge converter and vise versa!");
             }
         }
     }

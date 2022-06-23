@@ -51,6 +51,8 @@ import { UserPermissionsService } from '../../../../core/http/user-permissions.s
 import { UtilsService } from '../../../../core/services/utils.service';
 import { Operation, Resource } from '../../../../shared/models/security.models';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
+import { map } from 'rxjs/operators';
+import { guid } from '@core/utils';
 
 @Injectable()
 export class TenantProfilesTableConfigResolver implements Resolve<EntityTableConfig<TenantProfile>> {

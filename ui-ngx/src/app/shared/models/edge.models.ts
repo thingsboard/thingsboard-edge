@@ -85,7 +85,9 @@ export enum EdgeEventType {
   LOGIN_WHITE_LABELING = "LOGIN_WHITE_LABELING",
   CUSTOM_TRANSLATION = "CUSTOM_TRANSLATION",
   ROLE = "ROLE",
-  GROUP_PERMISSION = "GROUP_PERMISSION"
+  GROUP_PERMISSION = "GROUP_PERMISSION",
+  INTEGRATION = "INTEGRATION",
+  CONVERTER = "CONVERTER",
 }
 
 export enum EdgeEventActionType {
@@ -142,7 +144,9 @@ export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
     [EdgeEventType.LOGIN_WHITE_LABELING, 'edge-event.type-login-white-labeling'],
     [EdgeEventType.CUSTOM_TRANSLATION, 'edge-event.type-custom-translation'],
     [EdgeEventType.ROLE, 'edge-event.type-role'],
-    [EdgeEventType.GROUP_PERMISSION, 'edge-event.type-group-permission']
+    [EdgeEventType.GROUP_PERMISSION, 'edge-event.type-group-permission'],
+    [EdgeEventType.INTEGRATION, 'edge-event.type-integration'],
+    [EdgeEventType.CONVERTER, 'edge-event.type-converter']
   ]
 );
 

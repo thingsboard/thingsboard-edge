@@ -258,6 +258,7 @@ export interface LegendConfig {
   showMax: boolean;
   showAvg: boolean;
   showTotal: boolean;
+  showLatest: boolean;
 }
 
 export function defaultLegendConfig(wType: widgetType): LegendConfig {
@@ -268,7 +269,8 @@ export function defaultLegendConfig(wType: widgetType): LegendConfig {
     showMin: false,
     showMax: false,
     showAvg: wType === widgetType.timeseries,
-    showTotal: false
+    showTotal: false,
+    showLatest: false
   };
 }
 
@@ -378,6 +380,7 @@ export interface LegendKeyData {
   max: string;
   avg: string;
   total: string;
+  latest: string;
   hidden: boolean;
 }
 

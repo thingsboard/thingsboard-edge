@@ -88,7 +88,7 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { User } from '@shared/models/user.model';
 import { Converter } from '@shared/models/converter.models';
-import { Integration } from '@shared/models/integration.models';
+import { Integration, IntegrationSubType } from '@shared/models/integration.models';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { Role } from '@shared/models/role.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
@@ -99,7 +99,6 @@ import {
   AlarmData,
   AlarmDataQuery,
   createDefaultEntityDataPageLink,
-  defaultEntityDataPageLink,
   EntityData,
   EntityDataQuery,
   entityDataToEntityInfo,
@@ -114,16 +113,12 @@ import {
 } from '@shared/models/query/query.models';
 import { alarmFields } from '@shared/models/alarm.models';
 import { EdgeService } from '@core/http/edge.service';
-import {
-  Edge,
-  EdgeEvent,
-  EdgeEventType,
-  bodyContentEdgeEventActionTypes
-} from '@shared/models/edge.models';
+import { bodyContentEdgeEventActionTypes, Edge, EdgeEvent, EdgeEventType } from '@shared/models/edge.models';
 import { OtaPackageService } from '@core/http/ota-package.service';
-import { RuleChainMetaData, RuleChainType, RuleChain } from '@shared/models/rule-chain.models';
+import { RuleChain, RuleChainMetaData, RuleChainType } from '@shared/models/rule-chain.models';
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
+import { QueueService } from '@core/http/queue.service';
 
 @Injectable({
   providedIn: 'root'
@@ -154,7 +149,8 @@ export class EntityService {
     private roleService: RoleService,
     private entityGroupService: EntityGroupService,
     private userPermissionsService: UserPermissionsService,
-    private utils: UtilsService
+    private utils: UtilsService,
+    private queueService: QueueService
   ) {
   }
 
@@ -217,6 +213,9 @@ export class EntityService {
         break;
       case EntityType.OTA_PACKAGE:
         observable = this.otaPackageService.getOtaPackageInfo(entityId, config);
+        break;
+      case EntityType.QUEUE:
+        observable = this.queueService.getQueueById(entityId, config);
         break;
     }
     return observable;
@@ -395,6 +394,9 @@ export class EntityService {
       case EntityType.ALARM:
         console.error('Get Alarm Entity is not implemented!');
         break;
+      case EntityType.DEVICE_PROFILE:
+        observable = this.deviceProfileService.getDeviceProfilesByIds(entityIds, config);
+        break;
       case EntityType.ENTITY_GROUP:
         observable = this.entityGroupService.getEntityGroupsByIds(entityIds, config);
         break;
@@ -535,11 +537,12 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.converterService.getConverters(pageLink, config);
+        entitiesObservable = this.converterService.getConvertersByEdgeTemplate(pageLink, false, config);
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';
-        entitiesObservable = this.integrationService.getIntegrations(pageLink, config);
+        const isEdgeTemplate = IntegrationSubType[subType] && subType as IntegrationSubType === IntegrationSubType.EDGE;
+        entitiesObservable = this.integrationService.getIntegrationsByEdgeTemplate(pageLink, isEdgeTemplate, config);
         break;
       case EntityType.SCHEDULER_EVENT:
         pageLink.sortOrder.property = 'name';
@@ -560,6 +563,10 @@ export class EntityService {
       case EntityType.OTA_PACKAGE:
         pageLink.sortOrder.property = 'title';
         entitiesObservable = this.otaPackageService.getOtaPackages(pageLink, config);
+        break;
+      case EntityType.DEVICE_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.deviceProfileService.getDeviceProfileInfos(pageLink, null, config);
         break;
     }
     return entitiesObservable;
@@ -1786,6 +1793,9 @@ export class EntityService {
       case EntityType.RULE_CHAIN:
         entitiesObservable = this.ruleChainService.getEdgeRuleChains(edgeId, pageLink).pipe(map(entities => entities.data));
         break;
+      case EntityType.INTEGRATION :
+        entitiesObservable = this.integrationService.getEdgeIntegrations(edgeId, pageLink).pipe(map(entities => entities.data));
+        break;
       default:
         entitiesObservable = of(null);
         console.error(`Edge does not support EntityType ${entityType}`);
@@ -1807,6 +1817,8 @@ export class EntityService {
       case EdgeEventType.CUSTOMER:
       case EdgeEventType.ENTITY_GROUP:
       case EdgeEventType.SCHEDULER_EVENT:
+      case EdgeEventType.INTEGRATION:
+      case EdgeEventType.CONVERTER:
       case EdgeEventType.TENANT:
       case EdgeEventType.ASSET:
       case EdgeEventType.DEVICE:

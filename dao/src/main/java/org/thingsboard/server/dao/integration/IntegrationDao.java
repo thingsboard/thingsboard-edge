@@ -31,10 +31,12 @@
 package org.thingsboard.server.dao.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
@@ -45,16 +47,34 @@ import java.util.UUID;
  * The Interface IntegrationDao.
  *
  */
-public interface IntegrationDao extends Dao<Integration>, TenantEntityDao {
+public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, ExportableEntityDao<IntegrationId, Integration> {
 
     /**
-     * Find integrations by tenantId and page link.
+     * Find all (core and edge template) integrations by tenantId and page link.
      *
      * @param tenantId the tenantId
      * @param pageLink the page link
      * @return the list of integration objects
      */
     PageData<Integration> findByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
+     * Find core integrations by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findCoreIntegrationsByTenantId(UUID tenantId, PageLink pageLink);
+
+    /**
+     * Find edge template integrations by tenantId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findEdgeTemplateIntegrationsByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
      * Find integrations by routing Key.
@@ -81,5 +101,15 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao {
      */
     ListenableFuture<List<Integration>> findIntegrationsByTenantIdAndIdsAsync(UUID tenantId, List<UUID> integrationIds);
 
+    List<Integration> findTenantIntegrationsByName(UUID tenantId, String name);
 
+    /**
+     * Find integrations by tenantId, edgeId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param edgeId the edgeId
+     * @param pageLink the page link
+     * @return the list of integration objects
+     */
+    PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 }

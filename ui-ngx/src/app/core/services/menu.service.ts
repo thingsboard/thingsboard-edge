@@ -269,11 +269,28 @@ export class MenuService {
       },
       {
         id: guid(),
+        name: 'admin.2fa.2fa',
+        type: 'link',
+        path: '/settings/2fa',
+        icon: 'mdi:two-factor-authentication',
+        isMdiIcon: true,
+        disabled: disabledItems.indexOf('2fa') > -1
+      },
+      {
+        id: guid(),
         name: 'resource.resources-library',
         type: 'link',
         path: '/settings/resources-library',
         icon: 'folder',
         disabled: disabledItems.indexOf('resources_library') > -1
+      },
+      {
+        id: guid(),
+        name: 'admin.queues',
+        type: 'link',
+        path: '/settings/queues',
+        icon: 'swap_calls',
+        disabled: disabledItems.indexOf('queues') > -1
       }
     ];
 
@@ -357,9 +374,22 @@ export class MenuService {
             disabled: disabledItems.indexOf('oauth2') > -1
           },
           {
+            name: 'admin.2fa.2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true,
+            path: '/settings/2fa',
+            disabled: disabledItems.indexOf('2fa') > -1
+          },
+          {
             name: 'resource.resources-library',
             icon: 'folder',
             path: '/settings/resources-library',
+            disabled: disabledItems.indexOf('resources_library') > -1
+          },
+          {
+            name: 'admin.queues',
+            icon: 'swap_calls',
+            path: '/settings/queues',
             disabled: disabledItems.indexOf('resources_library') > -1
           }
         ]
@@ -538,6 +568,26 @@ export class MenuService {
           disabled: disabledItems.indexOf('rulechain_templates') > -1
         }
       );
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.converter-templates',
+          type: 'link',
+          path: '/edgeManagement/converters',
+          icon: 'transform',
+          disabled: disabledItems.indexOf('converter_templates') > -1
+        }
+      );
+      pages.push(
+        {
+          id: guid(),
+          name: 'edge.integration-templates',
+          type: 'link',
+          path: '/edgeManagement/integrations',
+          icon: 'input',
+          disabled: disabledItems.indexOf('integration_templates') > -1
+        }
+      );
       sections.push(this.createEntityGroupSection(EntityType.EDGE));
       sections.push(
         {
@@ -645,6 +695,18 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'version-control.version-control',
+          type: 'link',
+          path: '/vc',
+          icon: 'history',
+          disabled: disabledItems.indexOf('version_control') > -1
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
       sections.push(
         {
@@ -706,6 +768,15 @@ export class MenuService {
             path: '/settings/selfRegistration',
             icon: 'group_add',
             disabled: disabledItems.indexOf('self_registration') > -1
+          },
+          {
+            id: guid(),
+            name: 'admin.2fa.2fa',
+            type: 'link',
+            path: '/settings/2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true,
+            disabled: disabledItems.indexOf('2fa') > -1
           }
         );
       }
@@ -717,6 +788,24 @@ export class MenuService {
           path: '/settings/resources-library',
           icon: 'folder',
           disabled: disabledItems.indexOf('resources_library') > -1
+        });
+      }
+      if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+        pages.push({
+          id: guid(),
+          name: 'admin.repository-settings',
+          type: 'link',
+          path: '/settings/repository',
+          icon: 'manage_history',
+          disabled: disabledItems.indexOf('repository_settings') > -1
+        });
+        pages.push({
+          id: guid(),
+          name: 'admin.auto-commit-settings',
+          type: 'link',
+          path: '/settings/auto-commit',
+          icon: 'settings_backup_restore',
+          disabled: disabledItems.indexOf('auto_commit_settings') > -1
         });
       }
       sections.push(
@@ -931,7 +1020,19 @@ export class MenuService {
               name: 'edge.rulechain-templates',
               icon: 'settings_ethernet',
               path: '/edgeManagement/ruleChains',
-              disabled: disabledItems.indexOf('edge_groups') > -1
+              disabled: disabledItems.indexOf('rulechain_templates') > -1
+            },
+            {
+              name: 'edge.converter-templates',
+              icon: 'transform',
+              path: '/edgeManagement/converters',
+              disabled: disabledItems.indexOf('converter_templates') > -1
+            },
+            {
+              name: 'edge.integration-templates',
+              icon: 'input',
+              path: '/edgeManagement/integrations',
+              disabled: disabledItems.indexOf('integration_templates') > -1
             }
           ]
         }
@@ -1035,6 +1136,21 @@ export class MenuService {
         }
       );
     }
+    if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+      homeSections.push(
+        {
+          name: 'version-control.management',
+          places: [
+            {
+              name: 'version-control.version-control',
+              icon: 'history',
+              path: '/vc',
+              disabled: disabledItems.indexOf('version_control') > -1
+            }
+          ]
+        }
+      );
+    }
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
       (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
       this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
@@ -1102,6 +1218,13 @@ export class MenuService {
             path: '/settings/selfRegistration',
             icon: 'group_add',
             disabled: disabledItems.indexOf('self_registration') > -1
+          },
+          {
+            name: 'admin.2fa.2fa',
+            path: '/settings/2fa',
+            icon: 'mdi:two-factor-authentication',
+            isMdiIcon: true,
+            disabled: disabledItems.indexOf('2fa') > -1
           }
         );
       }
@@ -1111,6 +1234,20 @@ export class MenuService {
           path: '/settings/resources-library',
           icon: 'folder',
           disabled: disabledItems.indexOf('resources_library') > -1
+        });
+      }
+      if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+        settings.places.push({
+          name: 'admin.repository-settings',
+          path: '/settings/repository',
+          icon: 'manage_history',
+          disabled: disabledItems.indexOf('repository_settings') > -1
+        });
+        settings.places.push({
+          name: 'admin.auto-commit-settings',
+          path: '/settings/auto-commit',
+          icon: 'settings_backup_restore',
+          disabled: disabledItems.indexOf('auto_commit_settings') > -1
         });
       }
     }

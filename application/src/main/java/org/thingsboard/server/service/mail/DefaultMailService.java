@@ -67,7 +67,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
-import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
@@ -323,6 +323,15 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
+    public void sendTwoFaVerificationEmail(TenantId tenantId, String email, String verificationCode, int expirationTimeSeconds) throws ThingsboardException {
+        sendTemplateEmail(tenantId, email, MailTemplates.TWO_FA_VERIFICATION, Map.of(
+                TARGET_EMAIL, email,
+                "code", verificationCode,
+                "expirationTimeSeconds", expirationTimeSeconds
+        ));
+    }
+
+    @Override
     public void sendApiFeatureStateEmail(TenantId tenantId, ApiFeature apiFeature, ApiUsageStateValue stateValue, String email, ApiUsageStateMailMessage msg) throws ThingsboardException {
         JsonNode mailTemplates = getConfig(null, "mailTemplates");
         String subject = null;
@@ -350,6 +359,20 @@ public class DefaultMailService implements MailService {
                 subject = MailTemplates.subject(mailTemplates, MailTemplates.API_USAGE_STATE_DISABLED);
                 break;
         }
+        sendMail(tenantId, email, subject, message);
+    }
+
+    @Override
+    public void testConnection(TenantId tenantId) throws Exception {
+        JsonNode jsonConfig = getConfig(tenantId, "mail");
+        JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
+        mailSender.testConnection();
+    }
+
+    private void sendTemplateEmail(TenantId tenantId, String email, String template, Map<String, Object> templateModel) throws ThingsboardException {
+        JsonNode mailTemplates = getConfig(tenantId, "mailTemplates");
+        String subject = MailTemplates.subject(mailTemplates, template);
+        String message = body(mailTemplates, template, templateModel);
         sendMail(tenantId, email, subject, message);
     }
 
@@ -494,7 +517,7 @@ public class DefaultMailService implements MailService {
                 javaMailProperties.put(MAIL_PROP + protocol + ".ssl.protocols", tlsVersion);
             }
         }
-        
+
         boolean enableProxy = jsonConfig.has("enableProxy") && jsonConfig.get("enableProxy").asBoolean();
 
         if (enableProxy) {

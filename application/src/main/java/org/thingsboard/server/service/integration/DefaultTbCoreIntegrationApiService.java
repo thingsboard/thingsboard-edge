@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.queue.ServiceQueue;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.stats.MessagesStats;
@@ -74,6 +73,7 @@ import org.thingsboard.server.queue.TbQueueResponseTemplate;
 import org.thingsboard.server.queue.common.DefaultTbQueueResponseTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
+import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -131,8 +131,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
         integrationApiTemplate = builder.build();
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(value = 2)
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent applicationReadyEvent) {
         log.info("Received application ready event. Starting polling for events.");
         integrationApiTemplate.init(this);
@@ -181,13 +180,13 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
             } else if (msg.hasEntityViewDataProto()) {
                 platformIntegrationService.processUplinkData(info, msg.getEntityViewDataProto(), new IntegrationApiCallback(callback));
             } else if (!msg.getCustomTbMsg().isEmpty()) {
-                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(ServiceQueue.MAIN, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
+                platformIntegrationService.processUplinkData(info, TbMsg.fromBytes(null, msg.getCustomTbMsg().toByteArray(), TbMsgCallback.EMPTY), new IntegrationApiCallback(callback));
             } else {
                 callback.onFailure(new RuntimeException("Empty or not supported ToCoreIntegrationMsg!"));
             }
         } else if (msg.hasEventProto()) {
             platformIntegrationService.processUplinkData(msg.getEventProto(), new IntegrationApiCallback(callback));
-        } else if (msg.hasTsDataProto()){
+        } else if (msg.hasTsDataProto()) {
             platformIntegrationService.processUplinkData(msg.getTsDataProto(), new IntegrationApiCallback(callback));
         } else {
             callback.onFailure(new IllegalArgumentException("Unsupported integration msg!"));
@@ -229,7 +228,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
 
     private ListenableFuture<IntegrationApiResponseMsg> handleListRequest(IntegrationInfoListRequestProto request) {
         IntegrationType integrationType = IntegrationType.valueOf(request.getType());
-        List<IntegrationInfo> data = integrationService.findAllIntegrationInfos(integrationType, false, request.getEnabled());
+        List<IntegrationInfo> data = integrationService.findAllCoreIntegrationInfos(integrationType, false, request.getEnabled());
 
         List<IntegrationInfoProto> integrationInfoList = data.stream().map(IntegrationProtoUtil::toProto).collect(Collectors.toList());
 

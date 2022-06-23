@@ -34,6 +34,7 @@ import { NgModule } from '@angular/core';
 import { AdminModule } from './admin/admin.module';
 import { HomeLinksModule } from './home-links/home-links.module';
 import { ProfileModule } from './profile/profile.module';
+import { SecurityModule } from '@home/pages/security/security.module';
 import { TenantModule } from '@modules/home/pages/tenant/tenant.module';
 import { CustomerModule } from '@modules/home/pages/customer/customer.module';
 import { AuditLogModule } from '@modules/home/pages/audit-log/audit-log.module';
@@ -58,12 +59,14 @@ import { ApiUsageModule } from '@home/pages/api-usage/api-usage.module';
 import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-templates.module';
+import { VcModule } from '@home/pages/vc/vc.module';
 
 @NgModule({
   exports: [
     AdminModule,
     HomeLinksModule,
     ProfileModule,
+    SecurityModule,
     TenantProfileModule,
     TenantModule,
     DeviceProfileModule,
@@ -85,7 +88,8 @@ import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-
     IFrameViewModule,
     SchedulerModule,
     OtaUpdateModule,
-    SolutionTemplatesModule
+    SolutionTemplatesModule,
+    VcModule
   ],
   providers: [
     {

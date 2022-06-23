@@ -55,6 +55,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFactory;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
+import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
@@ -132,14 +133,13 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        IntegrationType type = IntegrationType.valueOf(event.getServiceQueueKey().getServiceQueue().getQueue());
+        IntegrationType type = IntegrationType.valueOf(event.getQueueKey().getQueueName());
         subscribeEventsMap.computeIfAbsent(type, t -> new ConcurrentLinkedQueue<>()).add(event.getPartitions());
         queueExecutor.submit(() -> refreshIntegrationsByType(type));
         consumers.get(type).subscribe(event.getPartitions());
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    @Order(value = 2)
+    @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (!supportedIntegrationTypes.isEmpty()) {
             log.info("Subscribing to notifications: {}", nfConsumer.getTopic());

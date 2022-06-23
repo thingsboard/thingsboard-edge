@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {EntityType} from '@shared/models/entity-type.models';
-import {EntityId} from '@shared/models/id/entity-id';
-import {EntityGroupId} from '@shared/models/id/entity-group-id';
+import { EntityType } from '@shared/models/entity-type.models';
+import { EntityId } from '@shared/models/id/entity-id';
+import { EntityGroupId } from '@shared/models/id/entity-group-id';
 
 export enum RoleType {
   GENERIC = 'GENERIC',
@@ -108,7 +108,9 @@ export enum Resource {
   TB_RESOURCE = 'TB_RESOURCE',
   EDGE = 'EDGE',
   EDGE_GROUP = 'EDGE_GROUP',
-  OTA_PACKAGE = 'OTA_PACKAGE'
+  OTA_PACKAGE = 'OTA_PACKAGE',
+  QUEUE = 'QUEUE',
+  VERSION_CONTROL = 'VERSION_CONTROL'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
@@ -140,7 +142,8 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.GROUP_PERMISSION, Resource.GROUP_PERMISSION],
     [EntityType.TB_RESOURCE, Resource.TB_RESOURCE],
     [EntityType.EDGE, Resource.EDGE],
-    [EntityType.OTA_PACKAGE, Resource.OTA_PACKAGE]
+    [EntityType.OTA_PACKAGE, Resource.OTA_PACKAGE],
+    [EntityType.QUEUE, Resource.QUEUE]
   ]
 );
 

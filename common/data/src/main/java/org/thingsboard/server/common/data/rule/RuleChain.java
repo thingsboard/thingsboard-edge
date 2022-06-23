@@ -38,6 +38,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -51,7 +52,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> implements HasName, TenantEntity {
+public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> implements HasName, TenantEntity, ExportableEntity<RuleChainId> {
 
     private static final long serialVersionUID = -5656679015121935465L;
 
@@ -72,6 +73,8 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
     @ApiModelProperty(position = 9, value = "Reserved for future usage. The actual list of rule nodes and their relations is stored in the database separately.")
     private transient JsonNode configuration;
 
+    private RuleChainId externalId;
+
     @JsonIgnore
     private byte[] configurationBytes;
 
@@ -91,6 +94,7 @@ public class RuleChain extends SearchTextBasedWithAdditionalInfo<RuleChainId> im
         this.firstRuleNodeId = ruleChain.getFirstRuleNodeId();
         this.root = ruleChain.isRoot();
         this.setConfiguration(ruleChain.getConfiguration());
+        this.setExternalId(ruleChain.getExternalId());
     }
 
     @Override

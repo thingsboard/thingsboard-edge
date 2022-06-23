@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,7 +43,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.widgetsBundle.TbWidgetsBundleService;
 
 import java.util.List;
 
@@ -72,7 +73,10 @@ import static org.thingsboard.server.controller.ControllerConstants.WIDGET_BUNDL
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class WidgetsBundleController extends BaseController {
+
+    private final TbWidgetsBundleService tbWidgetsBundleService;
 
     private static final String WIDGET_BUNDLE_DESCRIPTION = "Widget Bundle represents a group(bundle) of widgets. Widgets are grouped into bundle by type or use case. ";
 
@@ -108,7 +112,7 @@ public class WidgetsBundleController extends BaseController {
     public WidgetsBundle saveWidgetsBundle(
             @ApiParam(value = "A JSON value representing the Widget Bundle.", required = true)
             @RequestBody WidgetsBundle widgetsBundle) throws ThingsboardException {
-        try {
+
             if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
                 widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
             } else {
@@ -116,15 +120,8 @@ public class WidgetsBundleController extends BaseController {
             }
 
             checkEntity(widgetsBundle.getId(), widgetsBundle, Resource.WIDGETS_BUNDLE, null);
-            WidgetsBundle savedWidgetsBundle = widgetsBundleService.saveWidgetsBundle(widgetsBundle);
 
-            sendEntityNotificationMsg(getTenantId(), savedWidgetsBundle.getId(),
-                    widgetsBundle.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-
-            return checkNotNull(savedWidgetsBundle);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            return tbWidgetsBundleService.save(widgetsBundle, null, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete widgets bundle (deleteWidgetsBundle)",
@@ -136,16 +133,9 @@ public class WidgetsBundleController extends BaseController {
             @ApiParam(value = WIDGET_BUNDLE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable("widgetsBundleId") String strWidgetsBundleId) throws ThingsboardException {
         checkParameter("widgetsBundleId", strWidgetsBundleId);
-        try {
-            WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
-            checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
-            widgetsBundleService.deleteWidgetsBundle(getTenantId(), widgetsBundleId);
-
-            sendEntityNotificationMsg(getTenantId(), widgetsBundleId, EdgeEventActionType.DELETED);
-
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
+        WidgetsBundle widgetsBundle = checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
+        tbWidgetsBundleService.delete(widgetsBundle, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Widget Bundles (getWidgetsBundles)",

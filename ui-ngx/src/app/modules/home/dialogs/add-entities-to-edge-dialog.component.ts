@@ -42,6 +42,8 @@ import { Router } from '@angular/router';
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { RuleChainType } from '@shared/models/rule-chain.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
+import { IntegrationService } from '@core/http/integration.service';
+import { IntegrationSubType } from '@shared/models/integration.models';
 
 export interface AddEntitiesToEdgeDialogData {
   edgeId: string;
@@ -55,7 +57,7 @@ export interface AddEntitiesToEdgeDialogData {
   styleUrls: []
 })
 export class AddEntitiesToEdgeDialogComponent extends
-  DialogComponent<AddEntitiesToEdgeDialogComponent, boolean> implements OnInit, ErrorStateMatcher {
+  DialogComponent<AddEntitiesToEdgeDialogComponent, Array<string>> implements OnInit, ErrorStateMatcher {
 
   addEntitiesToEdgeFormGroup: FormGroup;
 
@@ -73,8 +75,9 @@ export class AddEntitiesToEdgeDialogComponent extends
               @Inject(MAT_DIALOG_DATA) public data: AddEntitiesToEdgeDialogData,
               private ruleChainService: RuleChainService,
               private schedulerEventService: SchedulerEventService,
+              private integrationService: IntegrationService,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, boolean>,
+              public dialogRef: MatDialogRef<AddEntitiesToEdgeDialogComponent, Array<string>>,
               public fb: FormBuilder) {
     super(store, router, dialogRef);
     this.entityType = this.data.entityType;
@@ -84,15 +87,20 @@ export class AddEntitiesToEdgeDialogComponent extends
     this.addEntitiesToEdgeFormGroup = this.fb.group({
       entityIds: [null, [Validators.required]]
     });
-    this.subType = RuleChainType.EDGE;
     switch (this.entityType) {
       case EntityType.RULE_CHAIN:
         this.assignToEdgeTitle = 'rulechain.assign-rulechain-to-edge-title';
         this.assignToEdgeText = 'rulechain.assign-rulechain-to-edge-text';
+        this.subType = RuleChainType.EDGE;
         break;
       case EntityType.SCHEDULER_EVENT:
         this.assignToEdgeTitle = 'edge.assign-scheduler-event-to-edge-title';
         this.assignToEdgeText = 'edge.assign-scheduler-event-to-edge-text';
+        break;
+      case EntityType.INTEGRATION:
+        this.assignToEdgeTitle = 'edge.assign-integration-to-edge-title';
+        this.assignToEdgeText = 'edge.assign-integration-to-edge-text';
+        this.subType = IntegrationSubType.EDGE;
         break;
     }
   }
@@ -104,7 +112,7 @@ export class AddEntitiesToEdgeDialogComponent extends
   }
 
   cancel(): void {
-    this.dialogRef.close(false);
+    this.dialogRef.close(undefined);
   }
 
   assign(): void {
@@ -118,7 +126,7 @@ export class AddEntitiesToEdgeDialogComponent extends
     );
     forkJoin(tasks).subscribe(
       () => {
-        this.dialogRef.close(true);
+        this.dialogRef.close(entityIds);
       }
     );
   }
@@ -129,6 +137,8 @@ export class AddEntitiesToEdgeDialogComponent extends
         return this.ruleChainService.assignRuleChainToEdge(edgeId, entityId);
       case EntityType.SCHEDULER_EVENT:
         return this.schedulerEventService.assignSchedulerEventToEdge(edgeId, entityId);
+      case EntityType.INTEGRATION:
+        return this.integrationService.assignIntegrationToEdge(edgeId, entityId);
     }
   }
 

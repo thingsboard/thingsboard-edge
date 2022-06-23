@@ -87,6 +87,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -123,6 +124,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected ObjectMapper mapper = new ObjectMapper();
 
     protected static final String TEST_TENANT_NAME = "TEST TENANT";
+    protected static final String TEST_DIFFERENT_TENANT_NAME = "TEST DIFFERENT TENANT";
 
     protected static final String SYS_ADMIN_EMAIL = "sysadmin@thingsboard.org";
     private static final String SYS_ADMIN_PASSWORD = "sysadmin";
@@ -153,9 +155,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected String username;
 
     protected TenantId tenantId;
+    protected UserId tenantAdminUserId;
+    protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected TenantId differentTenantId;
+    protected UserId differentTenantAdminUserId;
     protected CustomerId differentCustomerId;
+    protected UserId customerUserId;
+    protected UserId customerAdminUserId;
 
     @SuppressWarnings("rawtypes")
     private HttpMessageConverter mappingJackson2HttpMessageConverter;
@@ -218,7 +225,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         tenantAdmin.setTenantId(tenantId);
         tenantAdmin.setEmail(TENANT_ADMIN_EMAIL);
 
-        createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
+        tenantAdmin = createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
+        tenantAdminUserId = tenantAdmin.getId();
+        tenantAdminCustomerId = tenantAdmin.getCustomerId();
 
         Customer customer = new Customer();
         customer.setTitle("Customer");
@@ -232,7 +241,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         customerUser.setCustomerId(savedCustomer.getId());
         customerUser.setEmail(CUSTOMER_USER_EMAIL);
 
-        createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUser = createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
+        customerUserId = customerUser.getId();
 
         logout();
 
@@ -246,6 +256,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         doDelete("/api/tenant/" + tenantId.getId().toString())
                 .andExpect(status().isOk());
+        deleteDifferentTenant();
 
         verifyNoTenantsLeft();
 
@@ -296,7 +307,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             loginSysAdmin();
 
             Tenant tenant = new Tenant();
-            tenant.setTitle("Different tenant");
+            tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
             savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
             differentTenantId = savedDifferentTenant.getId();
             Assert.assertNotNull(savedDifferentTenant);
@@ -304,8 +315,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
             differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
             differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
-
-            createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
+            differentTenantAdminUserId = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD).getId();
         }
     }
 
@@ -313,13 +323,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         if (savedDifferentCustomer != null) {
             login(savedDifferentCustomer.getEmail(), CUSTOMER_USER_PASSWORD);
         } else {
-            loginTenantAdmin();
+            createDifferentCustomer();
 
-            Customer customer = new Customer();
-            customer.setTitle("Different customer");
-            savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
-            differentCustomerId = savedDifferentCustomer.getId();
-            Assert.assertNotNull(savedDifferentCustomer);
+            loginTenantAdmin();
             User differentCustomerUser = new User();
             differentCustomerUser.setAuthority(Authority.CUSTOMER_USER);
             differentCustomerUser.setTenantId(tenantId);
@@ -330,11 +336,24 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
     }
 
+    protected void createDifferentCustomer() throws Exception {
+        loginTenantAdmin();
+
+        Customer customer = new Customer();
+        customer.setTitle("Different customer");
+        savedDifferentCustomer = doPost("/api/customer", customer, Customer.class);
+        Assert.assertNotNull(savedDifferentCustomer);
+        differentCustomerId = savedDifferentCustomer.getId();
+
+        logout();
+    }
+
     protected void deleteDifferentTenant() throws Exception {
         if (savedDifferentTenant != null) {
             loginSysAdmin();
             doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
                     .andExpect(status().isOk());
+            savedDifferentTenant = null;
         }
     }
 
@@ -665,8 +684,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected <T> T readResponse(ResultActions result, TypeReference<T> type) throws Exception {
         byte[] content = result.andReturn().getResponse().getContentAsByteArray();
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readerFor(type).readValue(content);
+    }
+
+    protected String getErrorMessage(ResultActions result) throws Exception {
+        return readResponse(result, JsonNode.class).get("message").asText();
     }
 
     public class IdComparator<D extends HasId> implements Comparator<D> {

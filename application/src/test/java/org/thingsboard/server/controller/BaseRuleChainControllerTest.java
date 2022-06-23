@@ -132,7 +132,7 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
     }
 
     @Test
-    public void testFindEdgeRuleChainsByTenantIdAndName() throws Exception {
+    public void testFindEdgeRuleChainsByEdgeId() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
