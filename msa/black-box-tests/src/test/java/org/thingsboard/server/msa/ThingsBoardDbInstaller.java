@@ -38,6 +38,7 @@ import org.testcontainers.utility.Base58;
 import io.github.cdimascio.dotenv.Dotenv;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -97,7 +98,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
                 IS_REDIS_CLUSTER
                         ? new File("./../../docker/advanced/docker-compose.redis-cluster.volumes.yml")
                         : new File("./../../docker/advanced/docker-compose.redis.volumes.yml")
-        );
+        ));
         if (IS_HYBRID_MODE) {
             composeFiles.add(new File("./../../docker/advanced/docker-compose.cassandra.volumes.yml"));
         }

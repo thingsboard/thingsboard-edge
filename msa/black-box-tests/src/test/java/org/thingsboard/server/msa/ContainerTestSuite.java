@@ -114,7 +114,7 @@ public class ContainerTestSuite {
                                 ? new File(targetDir + "advanced/docker-compose.redis-cluster.volumes.yml")
                                 : new File(targetDir + "advanced/docker-compose.redis.volumes.yml")));
                 if (IS_HYBRID_MODE) {
-                    composeFiles.add(new File(targetDir + "docker-compose.cassandra.volumes.yml"));
+                    composeFiles.add(new File(targetDir + "advanced/docker-compose.cassandra.volumes.yml"));
                 }
                 testContainer = new DockerComposeContainerImpl<>(composeFiles)
                         .withPull(false)
