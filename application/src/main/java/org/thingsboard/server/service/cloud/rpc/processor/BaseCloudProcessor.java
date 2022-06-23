@@ -177,24 +177,6 @@ public abstract class BaseCloudProcessor {
     @Autowired
     protected DeviceMsgConstructor deviceMsgConstructor;
 
-    protected void updateAuditLogs(TenantId tenantId, Device origin, Device destination) {
-        TimePageLink pageLink = new TimePageLink(100);
-        PageData<AuditLog> pageData;
-        do {
-            pageData = auditLogService.findAuditLogsByTenantIdAndEntityId(tenantId, origin.getId(), null, pageLink);
-            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                for (AuditLog auditLogEntry : pageData.getData()) {
-                    auditLogEntry.setEntityId(destination.getId());
-                    auditLogService.saveOrUpdateAuditLog(auditLogEntry);
-                }
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
-                }
-            }
-        } while (pageData != null && pageData.hasNext());
-        log.debug("Related audit logs updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
-    }
-
     protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
