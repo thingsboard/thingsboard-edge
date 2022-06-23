@@ -170,6 +170,17 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
                 Mockito.eq(edgeTypeByActionType(actionType)), Mockito.isNull(), Mockito.isNull());
     }
 
+    private void testSendNotificationMsgToEdgeServiceTime(EntityId entityId, TenantId tenantId, ActionType actionType, int cntTime) {
+        Mockito.verify(tbClusterService, times(cntTime)).sendNotificationMsgToEdge(Mockito.eq(tenantId),
+                Mockito.any(), Mockito.eq(entityId), Mockito.any(), Mockito.isNull(),
+                Mockito.eq(edgeTypeByActionType(actionType)));
+    }
+
+    private void testBroadcastEntityStateChangeEventTime(EntityId entityId, TenantId tenantId, int cntTime) {
+        Mockito.verify(tbClusterService, times(cntTime)).broadcastEntityStateChangeEvent(Mockito.eq(tenantId),
+                Mockito.any(entityId.getClass()), Mockito.any(ComponentLifecycleEvent.class));
+    }
+
     private void testLogEntityAction(HasName entity, EntityId originatorId, TenantId tenantId,
                                      CustomerId customerId, UserId userId, String userName,
                                      ActionType actionType, int cntTime, Object... additionalInfo) {

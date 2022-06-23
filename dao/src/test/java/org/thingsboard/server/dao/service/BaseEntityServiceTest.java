@@ -290,6 +290,12 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
 
     @Test
     public void testCountHierarchicalEntitiesByQuery() throws InterruptedException {
+
+        // TODO: @voba device profiles are not created on edge at the moment
+        for (int i = 0; i < ENTITY_COUNT; i++) {
+            deviceProfileService.findOrCreateDeviceProfile(tenantId, "default" + i);
+        }
+
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
