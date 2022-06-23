@@ -52,7 +52,28 @@ import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.gen.transport.TransportProtos.*;
+import org.thingsboard.server.gen.transport.TransportProtos.AddMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityIdProto;
+import org.thingsboard.server.gen.transport.TransportProtos.BranchInfoProto;
+import org.thingsboard.server.gen.transport.TransportProtos.CommitRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.CommitResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.DeleteMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityContentRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityContentResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityVersionProto;
+import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ListEntitiesRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ListEntitiesResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ListVersionsRequestMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ListVersionsResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.PrepareMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.VersionControlResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.VersionedEntityInfoProto;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -330,7 +351,10 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private void handleListBranches(VersionControlRequestCtx ctx, ListBranchesRequestMsg request) {
-        var branches = vcService.listBranches(ctx.getTenantId());
+        var branches = vcService.listBranches(ctx.getTenantId()).stream()
+                .map(branchInfo -> BranchInfoProto.newBuilder()
+                        .setName(branchInfo.getName())
+                        .setIsDefault(branchInfo.isDefault()).build()).collect(Collectors.toList());
         reply(ctx, Optional.empty(), builder -> builder.setListBranchesResponse(ListBranchesResponseMsg.newBuilder().addAllBranches(branches)));
     }
 
