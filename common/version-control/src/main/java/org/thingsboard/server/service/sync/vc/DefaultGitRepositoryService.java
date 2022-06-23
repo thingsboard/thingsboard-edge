@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.sync.vc.BranchInfo;
 import org.thingsboard.server.common.data.sync.vc.EntityVersion;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
@@ -98,7 +99,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
             repository.createAndCheckoutOrphanBranch(commit.getWorkingBranch());
             repository.resetAndClean();
 
-            if (repository.listRemoteBranches().contains(branch)) {
+            if (repository.listRemoteBranches().contains(new BranchInfo(branch, false))) {
                 repository.merge(branch);
             }
         } catch (IOException | GitAPIException gitAPIException) {
@@ -207,7 +208,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public List<String> listBranches(TenantId tenantId) {
+    public List<BranchInfo> listBranches(TenantId tenantId) {
         GitRepository repository = checkRepository(tenantId);
         try {
             return repository.listRemoteBranches();

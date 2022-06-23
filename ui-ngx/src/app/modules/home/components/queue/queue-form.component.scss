@@ -28,16 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
+:host {
   .queue-strategy {
     padding-bottom: 16px;
 
-    .mat-expansion-panel-header {
-      height: 50px;
+    .group-label {
+      display: block;
+      padding-bottom: 10px;
     }
 
-    .mat-expansion-panel-body {
-      padding-bottom: 0 !important;
+    .panel-title {
+      font-weight: 500;
+    }
+
+    .hint-icon {
+      width: 15px;
+      height: 15px;
+      vertical-align: top;
+    }
+  }
+
+  ::ng-deep {
+    .mat-form-field-infix {
+      width: 100% !important;
+    }
+    .queue-strategy {
+      .mat-expansion-panel-header {
+        height: 50px;
+      }
+
+      .mat-expansion-panel-body {
+        padding-bottom: 0 !important;
+      }
     }
   }
 }
