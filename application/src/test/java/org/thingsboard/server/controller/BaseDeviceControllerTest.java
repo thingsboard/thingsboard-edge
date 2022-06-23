@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
@@ -173,6 +174,11 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindDeviceTypesByTenantId() throws Exception {
+        // TODO: @voba device profiles are not created on edge at the moment
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
+
         List<Device> devices = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
             Device device = new Device();
@@ -519,6 +525,11 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantDevicesByType() throws Exception {
+
+        // TODO: @voba device profiles are not created on edge at the moment
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
+
         String title1 = "Device title 1";
         String type1 = "typeA";
         futures = new ArrayList<>(143);
@@ -721,6 +732,11 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindCustomerDevicesByType() throws Exception {
+
+        // TODO: @voba device profiles are not created on edge at the moment
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
+        doPost("/api/deviceProfile", this.createDeviceProfile("typeD"), DeviceProfile.class);
+
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer = doPost("/api/customer", customer, Customer.class);
