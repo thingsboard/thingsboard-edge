@@ -53,7 +53,8 @@ RUN apt-get update \
     && apt-get install -yq wget unzip fonts-roboto chromium \
     && apt-get clean \
     && rm -r /var/lib/apt/lists/* \
-    && wget --no-verbose -O /noto/NotoSansCJKjp-hinted.zip /noto https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip && \
+    && mkdir -p /noto \
+    && wget --no-verbose -O /noto/NotoSansCJKjp-hinted.zip https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip \
     && unzip /noto/NotoSansCJKjp-hinted.zip -d /noto && \
     mkdir -p /usr/share/fonts/noto && \
     cp /noto/*.otf /usr/share/fonts/noto && \
