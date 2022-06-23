@@ -105,8 +105,8 @@ public class DeviceProfileDataValidator extends DataValidator<DeviceProfile> {
     private DeviceDao deviceDao;
     @Autowired
     private TenantService tenantService;
-    @Autowired
     @Lazy
+    @Autowired
     private QueueService queueService;
     @Autowired
     private OtaPackageService otaPackageService;
