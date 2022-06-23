@@ -42,6 +42,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -55,6 +58,7 @@ import static org.junit.Assert.fail;
 @Slf4j
 public class ContainerTestSuite {
     final static boolean IS_REDIS_CLUSTER = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisCluster"));
+    final static boolean IS_HYBRID_MODE = Boolean.parseBoolean(System.getProperty("blackBoxTests.hybridMode"));
     private static final String SOURCE_DIR = "./../../docker/";
     private static final String TB_CORE_LOG_REGEXP = ".*Starting polling for events.*";
     private static final String TB_IE_LOG_REGEXP = ".*Started ThingsboardIntegrationExecutorApplication.*";
@@ -70,6 +74,7 @@ public class ContainerTestSuite {
     public static DockerComposeContainer getTestContainer() {
         if (testContainer == null) {
             log.info("System property of blackBoxTests.redisCluster is {}", IS_REDIS_CLUSTER);
+            log.info("System property of blackBoxTests.hybridMode is {}", IS_HYBRID_MODE);
             boolean skipTailChildContainers = Boolean.valueOf(System.getProperty("blackBoxTests.skipTailChildContainers"));
             try {
                 final String targetDir = FileUtils.getTempDirectoryPath() + "/" + "ContainerTestSuite-" + UUID.randomUUID() + "/";
@@ -81,7 +86,7 @@ public class ContainerTestSuite {
                 FileUtils.copyDirectory(new File(httpIntegrationDir), new File(targetDir));
 
                 class DockerComposeContainerImpl<SELF extends DockerComposeContainer<SELF>> extends DockerComposeContainer<SELF> {
-                    public DockerComposeContainerImpl(File... composeFiles) {
+                    public DockerComposeContainerImpl(List<File> composeFiles) {
                         super(composeFiles);
                     }
 
@@ -92,21 +97,26 @@ public class ContainerTestSuite {
                     }
                 }
 
-                testContainer = new DockerComposeContainerImpl<>(
+                List<File> composeFiles = new ArrayList<>(Arrays.asList(
                         new File(targetDir + "advanced/docker-compose.yml"),
                         new File(targetDir + "advanced/docker-compose.volumes.yml"),
-                        new File(targetDir + "advanced/docker-compose.postgres.yml"),
+                        IS_HYBRID_MODE
+                                ? new File(targetDir + "advanced/docker-compose.hybrid.yml")
+                                : new File(targetDir + "advanced/docker-compose.postgres.yml"),
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                         new File(targetDir + "docker-compose.integration.yml"),
                         new File(targetDir + "docker-compose.mosquitto.yml"),
                         new File(targetDir + "advanced/docker-compose.kafka.yml"),
                         IS_REDIS_CLUSTER
-                                ? new File("advanced/docker-compose.redis-cluster.yml")
-                                : new File("advanced/docker-compose.redis.yml"),
+                                ? new File(targetDir + "advanced/docker-compose.redis-cluster.yml")
+                                : new File(targetDir + "advanced/docker-compose.redis.yml"),
                         IS_REDIS_CLUSTER
-                                ? new File("advanced/docker-compose.redis-cluster.volumes.yml")
-                                : new File("advanced/docker-compose.redis.volumes.yml")
-                )
+                                ? new File(targetDir + "advanced/docker-compose.redis-cluster.volumes.yml")
+                                : new File(targetDir + "advanced/docker-compose.redis.volumes.yml")));
+                if (IS_HYBRID_MODE) {
+                    composeFiles.add(new File(targetDir + "docker-compose.cassandra.volumes.yml"));
+                }
+                testContainer = new DockerComposeContainerImpl<>(composeFiles)
                         .withPull(false)
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
