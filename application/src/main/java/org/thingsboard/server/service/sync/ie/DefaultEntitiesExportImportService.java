@@ -77,9 +77,9 @@ public class DefaultEntitiesExportImportService implements EntitiesExportImportS
     private final RateLimitService rateLimitService;
 
     protected static final List<EntityType> SUPPORTED_ENTITY_TYPES = List.of(
-            EntityType.CUSTOMER, EntityType.ENTITY_GROUP, EntityType.ASSET, EntityType.RULE_CHAIN,
+            EntityType.CUSTOMER, EntityType.ROLE, EntityType.ENTITY_GROUP, EntityType.ASSET, EntityType.RULE_CHAIN,
             EntityType.DASHBOARD, EntityType.DEVICE_PROFILE, EntityType.DEVICE, EntityType.ENTITY_VIEW, EntityType.CONVERTER,
-            EntityType.INTEGRATION, EntityType.ROLE, EntityType.WIDGETS_BUNDLE
+            EntityType.INTEGRATION, EntityType.WIDGETS_BUNDLE
     );
 
     @Override

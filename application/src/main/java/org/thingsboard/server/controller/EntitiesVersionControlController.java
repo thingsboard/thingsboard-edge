@@ -357,7 +357,7 @@ public class EntitiesVersionControlController extends BaseController {
                                                             @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
         EntityId externalId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
-        EntityId internalId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid) : null;
+        EntityId internalId = internalEntityUuid != null ? EntityIdFactory.getByTypeAndUuid(entityType, internalEntityUuid) : null;
         return wrapFuture(versionControlService.getEntityDataInfo(getCurrentUser(), externalId, internalId, versionId));
     }
 

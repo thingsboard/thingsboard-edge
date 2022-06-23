@@ -64,7 +64,7 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
         Role existingRole = super.findExistingEntity(ctx, role, idProvider);
         if (existingRole == null && ctx.isFindExistingByName()) {
             var tenantId = ctx.getTenantId();
-            if (role.getOwnerId().getEntityType() == EntityType.TENANT) {
+            if (role.getOwnerId() == null || role.getOwnerId().getEntityType() == EntityType.TENANT) {
                 existingRole = roleService.findRoleByTenantIdAndName(tenantId, role.getName()).orElse(null);
             } else {
                 existingRole = roleService.findRoleByByTenantIdAndCustomerIdAndName(tenantId,

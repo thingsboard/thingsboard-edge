@@ -136,7 +136,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                 permission.setId(null);
                 permission.setTenantId(tenantId);
                 permission.setRoleId(idProvider.getInternalId(permission.getRoleId()));
-                permission.setUserGroupId(idProvider.getInternalId(permission.getUserGroupId()));
+                permission.setUserGroupId(userGroup.getId());
                 permission.setEntityGroupId(idProvider.getInternalId(permission.getEntityGroupId()));
             }
 
