@@ -61,8 +61,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;

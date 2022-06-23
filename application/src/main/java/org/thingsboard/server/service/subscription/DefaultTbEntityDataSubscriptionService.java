@@ -534,13 +534,6 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
                 ctx.getWsLock().unlock();
             }
         }
-
-        if (!ctx.isInitialDataSent()) {
-            EntityDataUpdate update = new EntityDataUpdate(ctx.getCmdId(), ctx.getData(), null, ctx.getMaxEntitiesPerDataSubscription());
-            wsService.sendWsMsg(ctx.getSessionId(), update);
-            ctx.setInitialDataSent(true);
-        }
-        ctx.createLatestValuesSubscriptions(latestCmd.getKeys());
     }
 
     private Map<String, TsValue> toTsValue(List<TsKvEntry> data) {

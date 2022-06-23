@@ -50,11 +50,6 @@ import java.util.List;
 public class DummyAuditLogServiceImpl implements AuditLogService {
 
     @Override
-    public ListenableFuture<Void> saveOrUpdateAuditLog(AuditLog auditLogEntry) {
-        return null;
-    }
-
-    @Override
     public PageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink) {
         return new PageData<>();
     }

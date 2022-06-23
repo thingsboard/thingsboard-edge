@@ -46,8 +46,6 @@ import java.util.List;
 
 public interface AuditLogService {
 
-    ListenableFuture<Void> saveOrUpdateAuditLog(AuditLog auditLogEntry);
-
     PageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink);
 
     PageData<AuditLog> findAuditLogsByTenantIdAndUserId(TenantId tenantId, UserId userId, List<ActionType> actionTypes, TimePageLink pageLink);
