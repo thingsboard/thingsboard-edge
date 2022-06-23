@@ -103,6 +103,7 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
+import org.thingsboard.server.service.entitiy.entityView.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import javax.annotation.PostConstruct;
@@ -143,7 +144,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     private DashboardService dashboardService;
 
     @Autowired
-    private EntityViewService entityViewService;
+    private TbEntityViewService entityViewService;
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;

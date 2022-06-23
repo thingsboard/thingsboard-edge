@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -78,6 +79,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
@@ -110,12 +112,14 @@ public abstract class AbstractTbEntityService {
 
     @Autowired
     protected DbCallbackExecutorService dbExecutor;
-    @Autowired
+    @Autowired(required = false)
     protected TbNotificationEntityService notificationEntityService;
     @Autowired(required = false)
     protected EdgeService edgeService;
     @Autowired
     protected AlarmService alarmService;
+    @Autowired(required = false)
+    protected EntityActionService entityActionService;
     @Autowired
     protected DeviceService deviceService;
     @Autowired
@@ -126,15 +130,16 @@ public abstract class AbstractTbEntityService {
     protected TenantService tenantService;
     @Autowired
     protected CustomerService customerService;
-    @Autowired
+    @Lazy
+    @Autowired(required = false)
     protected ClaimDevicesService claimDevicesService;
     @Autowired
     protected TbTenantProfileCache tenantProfileCache;
     @Autowired
     protected RuleChainService ruleChainService;
-    @Autowired
+    @Autowired(required = false)
     protected TbRuleChainService tbRuleChainService;
-    @Autowired
+    @Autowired(required = false)
     protected EdgeNotificationService edgeNotificationService;
     @Autowired
     protected QueueService queueService;
@@ -144,10 +149,12 @@ public abstract class AbstractTbEntityService {
     protected TbClusterService tbClusterService;
     @Autowired
     protected DashboardService dashboardService;
+
     @Autowired
     protected EntitiesVersionControlService vcService;
     @Autowired
     protected EntityViewService entityViewService;
+    @Lazy
     @Autowired
     protected TelemetrySubscriptionService tsSubService;
     @Autowired
@@ -166,7 +173,7 @@ public abstract class AbstractTbEntityService {
     protected InstallScripts installScripts;
     @Autowired
     protected UserService userService;
-    @Autowired
+    @Autowired(required = false)
     protected TbResourceService resourceService;
     @Autowired
     protected WidgetsBundleService widgetsBundleService;

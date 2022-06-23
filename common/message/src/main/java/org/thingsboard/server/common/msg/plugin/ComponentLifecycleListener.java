@@ -28,29 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.entityView;
+package org.thingsboard.server.common.msg.plugin;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.plugin.ComponentLifecycleListener;
-import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.List;
-
-public interface TbEntityViewService extends ComponentLifecycleListener {
-
-    EntityView save(EntityView entityView, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException;
-
-    void updateEntityViewAttributes(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException;
-
-    void  delete (EntityView entity, SecurityUser user) throws ThingsboardException;
-
-    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(TenantId tenantId, EntityId entityId);
-
-    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds);
+public interface ComponentLifecycleListener {
+    void onComponentLifecycleMsg(ComponentLifecycleMsg componentLifecycleMsg);
 }
