@@ -34,14 +34,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 @Service

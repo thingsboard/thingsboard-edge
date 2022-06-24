@@ -49,7 +49,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
@@ -198,14 +197,6 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                     && prepared.getType() == EntityType.USER;
         }
         return different;
-    }
-
-    @Override
-    protected void onEntitySaved(SecurityUser user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) throws ThingsboardException {
-        super.onEntitySaved(user, savedEntityGroup, oldEntityGroup);
-        if (oldEntityGroup != null) {
-            entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
-        }
     }
 
     @Override

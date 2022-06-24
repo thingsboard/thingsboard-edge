@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -78,6 +79,8 @@ public class EntityViewImportService extends BaseGroupEntityImportService<Entity
     protected void onEntitySaved(SecurityUser user, EntityView savedEntityView, EntityView oldEntityView) throws ThingsboardException {
         tbEntityViewService.updateEntityViewAttributes(user, savedEntityView, oldEntityView);
         super.onEntitySaved(user, savedEntityView, oldEntityView);
+        clusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
+                oldEntityView == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
     }
 
     @Override
