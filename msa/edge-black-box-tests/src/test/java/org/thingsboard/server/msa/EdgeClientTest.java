@@ -24,14 +24,18 @@ import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
@@ -48,12 +52,14 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -68,6 +74,7 @@ import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,6 +83,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
@@ -162,6 +171,9 @@ public class EdgeClientTest extends AbstractContainerTest {
             case USER:
                 assertUsers(entityIds);
                 break;
+            case OTA_PACKAGE:
+                assertOtaPackages(entityIds);
+                break;
         }
     }
 
@@ -174,6 +186,15 @@ public class EdgeClientTest extends AbstractContainerTest {
             DeviceProfile actual = cloudDeviceProfile.get();
             actual.setDefaultRuleChainId(null);
             Assert.assertEquals("Device profiles on cloud and edge are different (except defaultRuleChainId)", expected, actual);
+        }
+    }
+
+    private void assertOtaPackages(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            OtaPackageId otaPackageId = new OtaPackageId(entityId.getId());
+            OtaPackage edgeOtaPackage = edgeRestClient.getOtaPackageById(otaPackageId);
+            OtaPackage cloudOtaPackage = restClient.getOtaPackageById(otaPackageId);
+            Assert.assertEquals("Ota packages on cloud and edge are different", edgeOtaPackage, cloudOtaPackage);
         }
     }
 
@@ -1116,6 +1137,34 @@ public class EdgeClientTest extends AbstractContainerTest {
                     JsonNode responseBody = rpcTwoWayRequest[0];
                     return "ok".equals(responseBody.get("result").textValue());
                 });
+    }
+
+    @Test
+    public void testOtaPackages() throws Exception {
+        DeviceProfileInfo defaultDeviceProfileInfo = restClient.getDefaultDeviceProfileInfo();
+        OtaPackageInfo firmware = new OtaPackageInfo();
+        firmware.setDeviceProfileId(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()));
+        firmware.setType(FIRMWARE);
+        firmware.setTitle("My firmware #2");
+        firmware.setVersion("v2.0");
+        firmware.setTag("My firmware #2 v2.0");
+        firmware.setHasData(false);
+        OtaPackageInfo savedOtaPackageInfo = restClient.saveOtaPackageInfo(firmware, false);
+
+        restClient.saveOtaPackageData(savedOtaPackageInfo.getId(), null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 1);
+
+        PageData<OtaPackageInfo> pageData = edgeRestClient.getOtaPackages(new PageLink(100));
+        assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.OTA_PACKAGE);
+
+        restClient.deleteOtaPackage(savedOtaPackageInfo.getId());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 0);
     }
 
     // Utility methods
