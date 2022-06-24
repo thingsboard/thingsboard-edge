@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
@@ -336,8 +337,8 @@ public class EdgeClientTest extends AbstractContainerTest {
     public void testDevices() throws Exception {
         Device edgeDevice1 = saveAndAssignDeviceToEdge();
 
-        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, mapper.readTree("{\"key1\":\"value1\"}"));
-        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, mapper.readTree("{\"key2\":\"value2\"}"));
+        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
+        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -418,22 +419,20 @@ public class EdgeClientTest extends AbstractContainerTest {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
 
-        ObjectMapper mapper = new ObjectMapper();
-
         RuleNode ruleNode1 = new RuleNode();
         ruleNode1.setName("name1");
         ruleNode1.setType("type1");
-        ruleNode1.setConfiguration(mapper.readTree("\"key1\": \"val1\""));
+        ruleNode1.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key1\": \"val1\""));
 
         RuleNode ruleNode2 = new RuleNode();
         ruleNode2.setName("name2");
         ruleNode2.setType("type2");
-        ruleNode2.setConfiguration(mapper.readTree("\"key2\": \"val2\""));
+        ruleNode2.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key2\": \"val2\""));
 
         RuleNode ruleNode3 = new RuleNode();
         ruleNode3.setName("name3");
         ruleNode3.setType("type3");
-        ruleNode3.setConfiguration(mapper.readTree("\"key3\": \"val3\""));
+        ruleNode3.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key3\": \"val3\""));
 
         List<RuleNode> ruleNodes = new ArrayList<>();
         ruleNodes.add(ruleNode1);
@@ -446,7 +445,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         ruleChainMetaData.addConnectionInfo(0, 2, "fail");
         ruleChainMetaData.addConnectionInfo(1, 2, "success");
 
-        // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", mapper.createObjectNode());
+        // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", JacksonUtil.OBJECT_MAPPER.createObjectNode());
 
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
@@ -586,7 +585,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
         widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
-        ObjectNode descriptor = mapper.createObjectNode();
+        ObjectNode descriptor = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);
         WidgetType savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
@@ -677,7 +676,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         ResponseEntity deviceTelemetryResponse = sourceRestClient.getRestTemplate()
                 .postForEntity(sourceUrl + "/api/v1/{credentialsId}/telemetry",
-                        mapper.readTree(timeseriesPayload.toString()),
+                        JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
                         ResponseEntity.class,
                         accessToken);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
@@ -765,7 +764,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceClientsAttributes = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", mapper.readTree(attributesPayload.toString()),
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()),
                         ResponseEntity.class,
                         accessToken);
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
@@ -793,6 +792,9 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .until(() -> {
                     List<AttributeKvEntry> attributeKvEntries =
                             restClient.getAttributesByScope(deviceId, DataConstants.SERVER_SCOPE, Collections.singletonList("active"));
+                    for (AttributeKvEntry attributeKvEntry : attributeKvEntries) {
+                        System.out.println("<<<<<<<<<<<<<<<<<< " + attributeKvEntry);
+                    }
                     if (attributeKvEntries.size() != 1) {
                         return false;
                     }
@@ -874,7 +876,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Device device = saveAndAssignDeviceToEdge();
 
-        sourceRestClient.saveDeviceAttributes(device.getId(), scope, mapper.readTree(attributesPayload.toString()));
+        sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -1066,7 +1068,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         }).start();
 
         // send rpc request to device over cloud
-        ObjectNode initialRequestBody = mapper.createObjectNode();
+        ObjectNode initialRequestBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
         cloudRestClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
@@ -1115,7 +1117,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         }).start();
 
         // send two-way rpc request to device over cloud
-        ObjectNode initialRequestBody = mapper.createObjectNode();
+        ObjectNode initialRequestBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
 
@@ -1140,7 +1142,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 });
 
         // send response back to the rpc request
-        ObjectNode replyBody = mapper.createObjectNode();
+        ObjectNode replyBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         replyBody.put("result", "ok");
 
         String rpcReply = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/rpc/" + rpcSubscriptionRequest[0].getBody().get("id");
