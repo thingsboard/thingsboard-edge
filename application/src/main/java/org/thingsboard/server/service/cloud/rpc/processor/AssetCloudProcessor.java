@@ -68,8 +68,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + assetUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(assetUpdateMsg.getMsgType());
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);

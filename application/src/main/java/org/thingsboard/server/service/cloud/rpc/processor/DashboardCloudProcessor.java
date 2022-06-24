@@ -72,8 +72,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + dashboardUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(dashboardUpdateMsg.getMsgType());
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs), future -> null, dbCallbackExecutor);

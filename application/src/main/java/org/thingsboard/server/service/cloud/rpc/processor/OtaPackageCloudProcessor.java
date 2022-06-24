@@ -120,8 +120,7 @@ public class OtaPackageCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + otaPackageUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(otaPackageUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

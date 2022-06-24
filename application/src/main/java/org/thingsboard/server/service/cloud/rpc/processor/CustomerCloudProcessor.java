@@ -77,8 +77,7 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + customerUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

@@ -116,12 +116,12 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + ruleChainUpdateMsg.getMsgType()));
+                    return handleUnsupportedMsgType(ruleChainUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
-            log.error("Can't process RuleChainUpdateMsg [{}]", ruleChainUpdateMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process RuleChainUpdateMsg " + ruleChainUpdateMsg, e));
+            String errMsg = String.format("Can't process rule chain update msg %s", ruleChainUpdateMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }
@@ -147,12 +147,12 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + ruleChainMetadataUpdateMsg.getMsgType()));
+                    return handleUnsupportedMsgType(ruleChainMetadataUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
-            log.error("Can't process RuleChainMetadataUpdateMsg [{}]", ruleChainMetadataUpdateMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Can't process RuleChainMetadataUpdateMsg " + ruleChainMetadataUpdateMsg, e));
+            String errMsg = String.format("Can't process rule chain metadata update msg %s", ruleChainMetadataUpdateMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }

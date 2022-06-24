@@ -316,7 +316,8 @@ public abstract class BaseCloudProcessor {
                 TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, metaData, TbMsgDataType.JSON, mapper.writeValueAsString(entityNode));
                 tbClusterService.pushMsgToRuleEngine(tenantId, entityId, tbMsg, null);
             } catch (Exception e) {
-                log.warn("[{}] Failed to push entity action to rule engine: {}", entityId, actionType, e);
+                String warnMsg = String.format("[%s] Failed to push entity action to rule engine: %s", entityId, actionType);
+                log.warn(warnMsg, e);
             }
         }
     }
@@ -349,5 +350,11 @@ public abstract class BaseCloudProcessor {
         }
         cloudEvent.setEntityBody(entityBody);
         return cloudEventService.saveAsync(cloudEvent);
+    }
+
+    protected ListenableFuture<Void> handleUnsupportedMsgType(UpdateMsgType msgType) {
+        String errMsg = String.format("Unsupported msg type %s", msgType);
+        log.error(errMsg);
+        return Futures.immediateFailedFuture(new RuntimeException(errMsg));
     }
 }

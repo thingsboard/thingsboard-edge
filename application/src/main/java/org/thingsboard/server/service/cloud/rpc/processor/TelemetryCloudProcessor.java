@@ -193,7 +193,8 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("Can't process post attributes [{}]", msg, t);
+                String errMsg = String.format("Can't process post attributes msg %s", msg);
+                log.error(errMsg, t);
                 futureToSet.setException(t);
             }
         });
@@ -214,7 +215,8 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("Can't process attributes update [{}]", msg, t);
+                String errMsg = String.format("Can't process attributes update msg %s", msg);
+                log.error(errMsg, t);
                 futureToSet.setException(t);
             }
         }, dbCallbackExecutor);
@@ -241,7 +243,8 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
                 @Override
                 public void onFailure(Throwable t) {
-                    log.error("Can't process attribute delete msg [{}]", attributeDeleteMsg, t);
+                    String errMsg = String.format("Can't process attributes delete msg %s", attributeDeleteMsg);
+                    log.error(errMsg, t);
                     futureToSet.setException(t);
                 }
             });
@@ -309,7 +312,8 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                     .addAllAttributesRequestMsg(allAttributesRequestMsg);
             return builder.build();
         } catch (Exception e) {
-            log.warn("Can't send attribute request msg, entityId [{}], body [{}]", cloudEvent.getEntityId(), cloudEvent.getEntityBody(), e);
+            String errMsg = String.format("Can't send attribute request msg, entityId [%s], body [%s]", cloudEvent.getEntityId(), cloudEvent.getEntityBody());
+            log.warn(errMsg, e);
             return null;
         }
     }

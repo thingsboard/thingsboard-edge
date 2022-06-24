@@ -125,8 +125,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + deviceProfileUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }
