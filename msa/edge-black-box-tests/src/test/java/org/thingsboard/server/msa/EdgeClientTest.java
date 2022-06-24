@@ -24,7 +24,6 @@ import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Dashboard;
@@ -43,12 +42,10 @@ import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -74,13 +71,11 @@ import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -97,7 +92,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         verifyDeviceProfilesOnEdge(4);
 
-        restClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
+        cloudRestClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
 
         verifyDeviceProfilesOnEdge(3);
     }
@@ -130,12 +125,12 @@ public class EdgeClientTest extends AbstractContainerTest {
                     .atMost(30, TimeUnit.SECONDS).
                     until(() -> {
                         List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                        List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                         return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
                                 && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
                     });
             List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
             assertEntitiesByIdsAndType(edgeBundleWidgetTypes.stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGET_TYPE);
@@ -181,7 +176,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             DeviceProfileId deviceProfileId = new DeviceProfileId(entityId.getId());
             Optional<DeviceProfile> edgeDeviceProfile = edgeRestClient.getDeviceProfileById(deviceProfileId);
-            Optional<DeviceProfile> cloudDeviceProfile = restClient.getDeviceProfileById(deviceProfileId);
+            Optional<DeviceProfile> cloudDeviceProfile = cloudRestClient.getDeviceProfileById(deviceProfileId);
             DeviceProfile expected = edgeDeviceProfile.get();
             DeviceProfile actual = cloudDeviceProfile.get();
             actual.setDefaultRuleChainId(null);
@@ -193,7 +188,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             OtaPackageId otaPackageId = new OtaPackageId(entityId.getId());
             OtaPackage edgeOtaPackage = edgeRestClient.getOtaPackageById(otaPackageId);
-            OtaPackage cloudOtaPackage = restClient.getOtaPackageById(otaPackageId);
+            OtaPackage cloudOtaPackage = cloudRestClient.getOtaPackageById(otaPackageId);
             Assert.assertEquals("Ota packages on cloud and edge are different", edgeOtaPackage, cloudOtaPackage);
         }
     }
@@ -202,7 +197,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             RuleChainId ruleChainId = new RuleChainId(entityId.getId());
             Optional<RuleChain> edgeRuleChain = edgeRestClient.getRuleChainById(ruleChainId);
-            Optional<RuleChain> cloudRuleChain = restClient.getRuleChainById(ruleChainId);
+            Optional<RuleChain> cloudRuleChain = cloudRestClient.getRuleChainById(ruleChainId);
             RuleChain expected = edgeRuleChain.get();
             RuleChain actual = cloudRuleChain.get();
             Assert.assertEquals("Edge rule chain type is incorrect", RuleChainType.CORE, expected.getType());
@@ -215,7 +210,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                     .atMost(30, TimeUnit.SECONDS).
                     until(() -> {
                         Optional<RuleChainMetaData> edgeRuleChainMetaData = edgeRestClient.getRuleChainMetaData(ruleChainId);
-                        Optional<RuleChainMetaData> cloudRuleChainMetaData = restClient.getRuleChainMetaData(ruleChainId);
+                        Optional<RuleChainMetaData> cloudRuleChainMetaData = cloudRestClient.getRuleChainMetaData(ruleChainId);
                         if (edgeRuleChainMetaData.isEmpty()) {
                             return false;
                         }
@@ -255,7 +250,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             WidgetsBundleId widgetsBundleId = new WidgetsBundleId(entityId.getId());
             Optional<WidgetsBundle> edgeWidgetsBundle = edgeRestClient.getWidgetsBundleById(widgetsBundleId);
-            Optional<WidgetsBundle> cloudWidgetsBundle = restClient.getWidgetsBundleById(widgetsBundleId);
+            Optional<WidgetsBundle> cloudWidgetsBundle = cloudRestClient.getWidgetsBundleById(widgetsBundleId);
             WidgetsBundle expected = edgeWidgetsBundle.get();
             WidgetsBundle actual = cloudWidgetsBundle.get();
             Assert.assertEquals("Widgets bundles on cloud and edge are different", expected, actual);
@@ -266,7 +261,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             WidgetTypeId widgetTypeId = new WidgetTypeId(entityId.getId());
             Optional<WidgetTypeDetails> edgeWidgetsBundle = edgeRestClient.getWidgetTypeById(widgetTypeId);
-            Optional<WidgetTypeDetails> cloudWidgetsBundle = restClient.getWidgetTypeById(widgetTypeId);
+            Optional<WidgetTypeDetails> cloudWidgetsBundle = cloudRestClient.getWidgetTypeById(widgetTypeId);
             WidgetTypeDetails expected = edgeWidgetsBundle.get();
             WidgetTypeDetails actual = cloudWidgetsBundle.get();
             Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
@@ -277,7 +272,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             DeviceId deviceId = new DeviceId(entityId.getId());
             Optional<Device> edgeDevice = edgeRestClient.getDeviceById(deviceId);
-            Optional<Device> cloudDevice = restClient.getDeviceById(deviceId);
+            Optional<Device> cloudDevice = cloudRestClient.getDeviceById(deviceId);
             Device expected = edgeDevice.get();
             Device actual = cloudDevice.get();
             Assert.assertEquals("Devices on cloud and edge are different", expected, actual);
@@ -288,7 +283,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             AssetId assetId = new AssetId(entityId.getId());
             Optional<Asset> edgeAsset = edgeRestClient.getAssetById(assetId);
-            Optional<Asset> cloudAsset = restClient.getAssetById(assetId);
+            Optional<Asset> cloudAsset = cloudRestClient.getAssetById(assetId);
             Asset expected = edgeAsset.get();
             Asset actual = cloudAsset.get();
             Assert.assertEquals("Assets on cloud and edge are different", expected, actual);
@@ -299,7 +294,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             EntityViewId entityViewId = new EntityViewId(entityId.getId());
             Optional<EntityView> edgeEntityView = edgeRestClient.getEntityViewById(entityViewId);
-            Optional<EntityView> cloudEntityView = restClient.getEntityViewById(entityViewId);
+            Optional<EntityView> cloudEntityView = cloudRestClient.getEntityViewById(entityViewId);
             EntityView expected = edgeEntityView.get();
             EntityView actual = cloudEntityView.get();
             Assert.assertEquals("Entity Views on cloud and edge are different", expected, actual);
@@ -310,7 +305,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             DashboardId dashboardId = new DashboardId(entityId.getId());
             Optional<Dashboard> edgeDashboard = edgeRestClient.getDashboardById(dashboardId);
-            Optional<Dashboard> cloudDashboard = restClient.getDashboardById(dashboardId);
+            Optional<Dashboard> cloudDashboard = cloudRestClient.getDashboardById(dashboardId);
             Dashboard expected = edgeDashboard.get();
             Dashboard actual = cloudDashboard.get();
             Assert.assertEquals("Dashboards on cloud and edge are different", expected, actual);
@@ -321,7 +316,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         for (EntityId entityId : entityIds) {
             UserId userId = new UserId(entityId.getId());
             Optional<User> edgeUser = edgeRestClient.getUserById(userId);
-            Optional<User> cloudUser = restClient.getUserById(userId);
+            Optional<User> cloudUser = cloudRestClient.getUserById(userId);
             User expected = edgeUser.get();
             User actual = cloudUser.get();
             expected.setAdditionalInfo(cleanLastLoginTsFromAdditionalInfo(expected.getAdditionalInfo()));
@@ -341,8 +336,8 @@ public class EdgeClientTest extends AbstractContainerTest {
     public void testDevices() throws Exception {
         Device edgeDevice1 = saveAndAssignDeviceToEdge();
 
-        restClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, mapper.readTree("{\"key1\":\"value1\"}"));
-        restClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, mapper.readTree("{\"key2\":\"value2\"}"));
+        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, mapper.readTree("{\"key1\":\"value1\"}"));
+        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, mapper.readTree("{\"key2\":\"value2\"}"));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -352,7 +347,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
-        restClient.unassignDeviceFromEdge(edge.getId(), edgeDevice1.getId());
+        cloudRestClient.unassignDeviceFromEdge(edge.getId(), edgeDevice1.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -372,19 +367,19 @@ public class EdgeClientTest extends AbstractContainerTest {
     public void testAssets() throws Exception {
         Asset savedAsset = saveAndAssignAssetToEdge();
 
-        restClient.assignAssetToEdge(edge.getId(), savedAsset.getId());
+        cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isPresent());
 
-        restClient.unassignAssetFromEdge(edge.getId(), savedAsset.getId());
+        cloudRestClient.unassignAssetFromEdge(edge.getId(), savedAsset.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isEmpty());
 
-        restClient.deleteAsset(savedAsset.getId());
+        cloudRestClient.deleteAsset(savedAsset.getId());
     }
 
     @Test
@@ -399,10 +394,10 @@ public class EdgeClientTest extends AbstractContainerTest {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("Edge Test Rule Chain");
         ruleChain.setType(RuleChainType.EDGE);
-        RuleChain savedRuleChain = restClient.saveRuleChain(ruleChain);
+        RuleChain savedRuleChain = cloudRestClient.saveRuleChain(ruleChain);
         createRuleChainMetadata(savedRuleChain);
 
-        restClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
+        cloudRestClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -410,13 +405,13 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         assertEntitiesByIdsAndType(Collections.singletonList(savedRuleChain.getId()), EntityType.RULE_CHAIN);
 
-        restClient.unassignRuleChainFromEdge(edge.getId(), savedRuleChain.getId());
+        cloudRestClient.unassignRuleChainFromEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
 
-        restClient.deleteRuleChain(savedRuleChain.getId());
+        cloudRestClient.deleteRuleChain(savedRuleChain.getId());
     }
 
     private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
@@ -453,26 +448,26 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", mapper.createObjectNode());
 
-        restClient.saveRuleChainMetaData(ruleChainMetaData);
+        cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
     @Test
     public void testDashboards() throws Exception {
         Dashboard savedDashboardOnCloud = saveDashboardOnCloud("Edge Dashboard 1");
 
-        restClient.assignDashboardToEdge(edge.getId(), savedDashboardOnCloud.getId());
+        cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboardOnCloud.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isPresent());
 
-        restClient.unassignDashboardFromEdge(edge.getId(), savedDashboardOnCloud.getId());
+        cloudRestClient.unassignDashboardFromEdge(edge.getId(), savedDashboardOnCloud.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isEmpty());
 
-        restClient.deleteDashboard(savedDashboardOnCloud.getId());
+        cloudRestClient.deleteDashboard(savedDashboardOnCloud.getId());
     }
 
     @Test
@@ -485,13 +480,13 @@ public class EdgeClientTest extends AbstractContainerTest {
         relation.setFrom(device.getId());
         relation.setTo(asset.getId());
         relation.setTypeGroup(RelationTypeGroup.COMMON);
-        restClient.saveRelation(relation);
+        cloudRestClient.saveRelation(relation);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
-        restClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
+        cloudRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -507,13 +502,13 @@ public class EdgeClientTest extends AbstractContainerTest {
         alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm");
         alarm.setSeverity(AlarmSeverity.CRITICAL);
-        Alarm savedAlarm = restClient.saveAlarm(alarm);
+        Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> getAlarmForEntityFromEdge(device.getId()).isPresent());
 
-        restClient.ackAlarm(savedAlarm.getId());
+        cloudRestClient.ackAlarm(savedAlarm.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -522,7 +517,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                     return alarmData.getAckTs() > 0;
                 });
 
-        restClient.clearAlarm(savedAlarm.getId());
+        cloudRestClient.clearAlarm(savedAlarm.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -531,7 +526,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                     return alarmData.getClearTs() > 0;
                 });
 
-        restClient.deleteAlarm(savedAlarm.getId());
+        cloudRestClient.deleteAlarm(savedAlarm.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -540,7 +535,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
 
     private Optional<AlarmInfo> getAlarmForEntityFromCloud(EntityId entityId) {
-        return getAlarmForEntity(entityId, restClient);
+        return getAlarmForEntity(entityId, cloudRestClient);
     }
 
     private Optional<AlarmInfo> getAlarmForEntityFromEdge(EntityId entityId) {
@@ -563,26 +558,26 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View 1", "Default", device.getId());
 
-        restClient.assignEntityViewToEdge(edge.getId(), savedEntityViewOnCloud.getId());
+        cloudRestClient.assignEntityViewToEdge(edge.getId(), savedEntityViewOnCloud.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isPresent());
 
-        restClient.unassignEntityViewFromEdge(edge.getId(), savedEntityViewOnCloud.getId());
+        cloudRestClient.unassignEntityViewFromEdge(edge.getId(), savedEntityViewOnCloud.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
 
-        restClient.deleteEntityView(savedEntityViewOnCloud.getId());
+        cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
     }
 
     @Test
     public void testWidgetsBundleAndWidgetType() throws Exception {
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");
-        WidgetsBundle savedWidgetsBundle = restClient.saveWidgetsBundle(widgetsBundle);
+        WidgetsBundle savedWidgetsBundle = cloudRestClient.saveWidgetsBundle(widgetsBundle);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -594,19 +589,19 @@ public class EdgeClientTest extends AbstractContainerTest {
         ObjectNode descriptor = mapper.createObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);
-        WidgetType savedWidgetType = restClient.saveWidgetType(widgetType);
+        WidgetType savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isPresent());
 
-        restClient.deleteWidgetType(savedWidgetType.getId());
+        cloudRestClient.deleteWidgetType(savedWidgetType.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isEmpty());
 
-        restClient.deleteWidgetsBundle(savedWidgetsBundle.getId());
+        cloudRestClient.deleteWidgetsBundle(savedWidgetsBundle.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -623,7 +618,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         timeseriesPayload.addProperty("doubleTelemetryToCloud", 42.0);
         timeseriesPayload.addProperty("longTelemetryToCloud", 72L);
 
-        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(edgeRestClient, edgeUrl, restClient, timeseriesPayload, keys);
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(edgeRestClient, edgeUrl, cloudRestClient, timeseriesPayload, keys);
 
         for (TsKvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals("strTelemetryToCloud")) {
@@ -651,7 +646,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         timeseriesPayload.addProperty("doubleTelemetryToEdge", 42.0);
         timeseriesPayload.addProperty("longTelemetryToEdge", 72L);
 
-        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(restClient, CLOUD_HTTPS_URL, edgeRestClient, timeseriesPayload, keys);
+        List<TsKvEntry> kvEntries = sendPostTelemetryRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, timeseriesPayload, keys);
 
         for (TsKvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals("strTelemetryToEdge")) {
@@ -672,6 +667,10 @@ public class EdgeClientTest extends AbstractContainerTest {
     private List<TsKvEntry> sendPostTelemetryRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
                                                      JsonObject timeseriesPayload, List<String> keys) throws Exception {
         Device device = saveAndAssignDeviceToEdge();
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
 
         DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
         String accessToken = deviceCredentials.getCredentialsId();
@@ -695,6 +694,8 @@ public class EdgeClientTest extends AbstractContainerTest {
                     return latestTimeseries.size() == keys.size();
                 });
 
+        verifyDeviceIsActive(targetRestClient, device.getId());
+
         return targetRestClient.getLatestTimeseries(device.getId(), keys);
     }
 
@@ -708,7 +709,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToCloud", 42.0);
         attrPayload.addProperty("longAttrToCloud", 72L);
 
-        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(edgeRestClient, edgeUrl, restClient, attrPayload, keys);
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(edgeRestClient, edgeUrl, cloudRestClient, attrPayload, keys);
 
         for (AttributeKvEntry attributeKvEntry : kvEntries) {
             if (attributeKvEntry.getKey().equals("strAttrToCloud")) {
@@ -737,7 +738,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToEdge", 42.0);
         attrPayload.addProperty("longAttrToEdge", 72L);
 
-        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(restClient, CLOUD_HTTPS_URL, edgeRestClient, attrPayload, keys);
+        List<AttributeKvEntry> kvEntries = testSendPostAttributesRequest(cloudRestClient, CLOUD_HTTPS_URL, edgeRestClient, attrPayload, keys);
 
         for (AttributeKvEntry attributeKvEntry : kvEntries) {
             if (attributeKvEntry.getKey().equals("strAttrToEdge")) {
@@ -781,7 +782,23 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> targetRestClient.getAttributesByScope(device.getId(), DataConstants.CLIENT_SCOPE, keys).size() == 0);
 
+        verifyDeviceIsActive(targetRestClient, device.getId());
+
         return attributeKvEntries;
+    }
+
+    private void verifyDeviceIsActive(RestClient restClient, DeviceId deviceId) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<AttributeKvEntry> attributeKvEntries =
+                            restClient.getAttributesByScope(deviceId, DataConstants.SERVER_SCOPE, Collections.singletonList("active"));
+                    if (attributeKvEntries.size() != 1) {
+                        return false;
+                    }
+                    AttributeKvEntry activeAttributeKv = attributeKvEntries.get(0);
+                    return activeAttributeKv.getValueAsString().equals("true");
+                });
     }
 
     @Test
@@ -794,10 +811,10 @@ public class EdgeClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToEdge", 42.0);
         attrPayload.addProperty("longAttrToEdge", 72L);
 
-        List<AttributeKvEntry> kvEntries = sendAttributesUpdated(restClient, edgeRestClient, attrPayload, keys, DataConstants.SERVER_SCOPE);
+        List<AttributeKvEntry> kvEntries = sendAttributesUpdated(cloudRestClient, edgeRestClient, attrPayload, keys, DataConstants.SERVER_SCOPE);
         verifyAttributesUpdatedToEdge(kvEntries);
 
-        kvEntries = sendAttributesUpdated(restClient, edgeRestClient, attrPayload, keys, DataConstants.SHARED_SCOPE);
+        kvEntries = sendAttributesUpdated(cloudRestClient, edgeRestClient, attrPayload, keys, DataConstants.SHARED_SCOPE);
         verifyAttributesUpdatedToEdge(kvEntries);
     }
 
@@ -828,10 +845,10 @@ public class EdgeClientTest extends AbstractContainerTest {
         attrPayload.addProperty("doubleAttrToCloud", 42.0);
         attrPayload.addProperty("longAttrToCloud", 72L);
 
-        List<AttributeKvEntry> kvEntries = sendAttributesUpdated(edgeRestClient, restClient, attrPayload, keys, DataConstants.SERVER_SCOPE);
+        List<AttributeKvEntry> kvEntries = sendAttributesUpdated(edgeRestClient, cloudRestClient, attrPayload, keys, DataConstants.SERVER_SCOPE);
         verifyAttributesUpdatedToCloud(kvEntries);
 
-        kvEntries = sendAttributesUpdated(edgeRestClient, restClient, attrPayload, keys, DataConstants.SHARED_SCOPE);
+        kvEntries = sendAttributesUpdated(edgeRestClient, cloudRestClient, attrPayload, keys, DataConstants.SHARED_SCOPE);
         verifyAttributesUpdatedToCloud(kvEntries);
     }
 
@@ -868,6 +885,8 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         sourceRestClient.deleteEntityAttributes(device.getId(), scope, keys);
 
+        verifyDeviceIsActive(targetRestClient, device.getId());
+
         return attributeKvEntries;
     }
 
@@ -877,7 +896,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> restClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
+                until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
 
@@ -895,7 +914,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
-                    PageData<Device> edgeDevices = restClient.getEdgeDevices(edge.getId(), new PageLink(1000));
+                    PageData<Device> edgeDevices = cloudRestClient.getEdgeDevices(edge.getId(), new PageLink(1000));
                     long count = edgeDevices.getData().stream().filter(d -> savedDeviceOnEdge.getId().equals(d.getId())).count();
                     return count == 0;
                 });
@@ -904,7 +923,7 @@ public class EdgeClientTest extends AbstractContainerTest {
     private void verifyDeviceCredentialsOnCloudAndEdge(Device savedDeviceOnEdge) {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> restClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
+                until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -916,7 +935,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                     DeviceCredentials deviceCredentialsOnEdge =
                             edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
                     DeviceCredentials deviceCredentialsOnCloud =
-                            restClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
+                            cloudRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
                     // TODO: @voba - potential fix for future releases
                     deviceCredentialsOnCloud.setId(null);
                     deviceCredentialsOnEdge.setId(null);
@@ -934,7 +953,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> restClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
+                until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         // device on edge must be renamed
         Awaitility.await()
@@ -942,8 +961,8 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() -> !edgeRestClient.getDeviceById(savedDeviceOnEdge.getId()).get().getName().equals(deviceName));
 
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
-        restClient.deleteDevice(savedDeviceOnEdge.getId());
-        restClient.deleteDevice(savedDeviceOnCloud.getId());
+        cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
+        cloudRestClient.deleteDevice(savedDeviceOnCloud.getId());
     }
 
     @Test
@@ -953,7 +972,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> restClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
+                until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         EntityRelation relation = new EntityRelation();
         relation.setType("test");
@@ -964,16 +983,16 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> restClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
+                until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
         edgeRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> restClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
+                until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
 
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
-        restClient.deleteDevice(savedDeviceOnEdge.getId());
+        cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
     }
 
     @Test
@@ -1028,7 +1047,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
-                    Optional<DeviceCredentials> cloudDeviceCredentials = restClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
                     return edgeDeviceCredentials.isPresent() &&
                             cloudDeviceCredentials.isPresent() &&
                             edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
@@ -1050,7 +1069,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         ObjectNode initialRequestBody = mapper.createObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
-        restClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
+        cloudRestClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
 
         // verify that rpc request was received
         Awaitility.await()
@@ -1077,7 +1096,7 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
-                    Optional<DeviceCredentials> cloudDeviceCredentials = restClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
                     return edgeDeviceCredentials.isPresent() &&
                             cloudDeviceCredentials.isPresent() &&
                             edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
@@ -1102,7 +1121,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         final JsonNode[] rpcTwoWayRequest = new JsonNode[]{null};
         new Thread(() -> {
-            rpcTwoWayRequest[0] = restClient.handleTwoWayDeviceRPCRequest(device.getId(), initialRequestBody);
+            rpcTwoWayRequest[0] = cloudRestClient.handleTwoWayDeviceRPCRequest(device.getId(), initialRequestBody);
         }).start();
 
         // verify that rpc request was received
@@ -1141,7 +1160,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     @Test
     public void testOtaPackages() throws Exception {
-        DeviceProfileInfo defaultDeviceProfileInfo = restClient.getDefaultDeviceProfileInfo();
+        DeviceProfileInfo defaultDeviceProfileInfo = cloudRestClient.getDefaultDeviceProfileInfo();
         OtaPackageInfo firmware = new OtaPackageInfo();
         firmware.setDeviceProfileId(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()));
         firmware.setType(FIRMWARE);
@@ -1149,9 +1168,9 @@ public class EdgeClientTest extends AbstractContainerTest {
         firmware.setVersion("v2.0");
         firmware.setTag("My firmware #2 v2.0");
         firmware.setHasData(false);
-        OtaPackageInfo savedOtaPackageInfo = restClient.saveOtaPackageInfo(firmware, false);
+        OtaPackageInfo savedOtaPackageInfo = cloudRestClient.saveOtaPackageInfo(firmware, false);
 
-        restClient.saveOtaPackageData(savedOtaPackageInfo.getId(), null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
+        cloudRestClient.saveOtaPackageData(savedOtaPackageInfo.getId(), null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -1160,7 +1179,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         PageData<OtaPackageInfo> pageData = edgeRestClient.getOtaPackages(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.OTA_PACKAGE);
 
-        restClient.deleteOtaPackage(savedOtaPackageInfo.getId());
+        cloudRestClient.deleteOtaPackage(savedOtaPackageInfo.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -1173,12 +1192,12 @@ public class EdgeClientTest extends AbstractContainerTest {
     }
 
     private Device saveDeviceOnCloud(String deviceName, String type) throws Exception {
-        return saveDevice(deviceName, type, restClient);
+        return saveDevice(deviceName, type, cloudRestClient);
     }
 
     private Device saveAndAssignDeviceToEdge() throws Exception {
         Device device = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), "default");
-        restClient.assignDeviceToEdge(edge.getId(), device.getId());
+        cloudRestClient.assignDeviceToEdge(edge.getId(), device.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -1189,7 +1208,7 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     private Asset saveAndAssignAssetToEdge() throws Exception {
         Asset asset = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), "Building");
-        restClient.assignAssetToEdge(edge.getId(), asset.getId());
+        cloudRestClient.assignAssetToEdge(edge.getId(), asset.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
@@ -1209,13 +1228,13 @@ public class EdgeClientTest extends AbstractContainerTest {
         Asset asset = new Asset();
         asset.setName(assetName);
         asset.setType(type);
-        return restClient.saveAsset(asset);
+        return cloudRestClient.saveAsset(asset);
     }
 
     private Dashboard saveDashboardOnCloud(String dashboardTitle) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
-        return restClient.saveDashboard(dashboard);
+        return cloudRestClient.saveDashboard(dashboard);
     }
 
     private EntityView saveEntityViewOnCloud(String entityViewName, String type, DeviceId deviceId) {
@@ -1223,7 +1242,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         entityView.setName(entityViewName);
         entityView.setType(type);
         entityView.setEntityId(deviceId);
-        return restClient.saveEntityView(entityView);
+        return cloudRestClient.saveEntityView(entityView);
     }
 
 

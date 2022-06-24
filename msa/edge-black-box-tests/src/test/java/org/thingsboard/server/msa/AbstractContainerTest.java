@@ -87,7 +87,7 @@ public abstract class AbstractContainerTest {
 
     protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
-    protected static RestClient restClient;
+    protected static RestClient cloudRestClient;
     protected static ObjectMapper mapper = new ObjectMapper();
 
     protected static RestClient edgeRestClient;
@@ -97,9 +97,9 @@ public abstract class AbstractContainerTest {
 
     @BeforeClass
     public static void before() throws Exception {
-        restClient = new RestClient(CLOUD_HTTPS_URL);
-        restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
-        restClient.login("tenant@thingsboard.org", "tenant");
+        cloudRestClient = new RestClient(CLOUD_HTTPS_URL);
+        cloudRestClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
         String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
         Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
@@ -157,7 +157,7 @@ public abstract class AbstractContainerTest {
                     until(() -> {
                         try {
                             List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+                            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                             return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
                                     && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
                         } catch (Throwable e) {
@@ -165,14 +165,14 @@ public abstract class AbstractContainerTest {
                         }
                     });
             List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            List<WidgetType> cloudBundleWidgetTypes = restClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
+            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
             Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
             Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
         }
     }
 
     protected static void updateRootRuleChain() throws IOException {
-        PageData<RuleChain> ruleChains = restClient.getRuleChains(new PageLink(100));
+        PageData<RuleChain> ruleChains = cloudRestClient.getRuleChains(new PageLink(100));
         RuleChainId rootRuleChainId = null;
         for (RuleChain datum : ruleChains.getData()) {
             if (datum.isRoot()) {
@@ -187,13 +187,13 @@ public abstract class AbstractContainerTest {
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
         ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
         ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
-        restClient.saveRuleChainMetaData(ruleChainMetaData);
+        cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
         DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, null);
         extendDeviceProfileData(deviceProfile);
-        return restClient.saveDeviceProfile(deviceProfile);
+        return cloudRestClient.saveDeviceProfile(deviceProfile);
     }
 
     @Rule
@@ -243,7 +243,7 @@ public abstract class AbstractContainerTest {
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
         extendDeviceProfileData(deviceProfile);
-        return restClient.saveDeviceProfile(deviceProfile);
+        return cloudRestClient.saveDeviceProfile(deviceProfile);
     }
 
     protected static void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -297,7 +297,7 @@ public abstract class AbstractContainerTest {
         edge.setType("DEFAULT");
         edge.setRoutingKey(routingKey);
         edge.setSecret(secret);
-        return restClient.saveEdge(edge);
+        return cloudRestClient.saveEdge(edge);
     }
 
 }
