@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
@@ -61,7 +62,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
             entityRelation.setType(relationUpdateMsg.getType());
             entityRelation.setTypeGroup(relationUpdateMsg.hasTypeGroup()
                     ? RelationTypeGroup.valueOf(relationUpdateMsg.getTypeGroup()) : RelationTypeGroup.COMMON);
-            entityRelation.setAdditionalInfo(mapper.readTree(relationUpdateMsg.getAdditionalInfo()));
+            entityRelation.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(relationUpdateMsg.getAdditionalInfo()));
 
             switch (relationUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
@@ -124,7 +125,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
 
     public UplinkMsg processRelationMsgToCloud(CloudEvent cloudEvent, UpdateMsgType msgType) {
         UplinkMsg msg = null;
-        EntityRelation entityRelation = mapper.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
+        EntityRelation entityRelation = JacksonUtil.OBJECT_MAPPER.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
             RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);
             msg = UplinkMsg.newBuilder()

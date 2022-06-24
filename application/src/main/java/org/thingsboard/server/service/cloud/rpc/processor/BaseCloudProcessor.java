@@ -24,6 +24,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
@@ -69,6 +71,8 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.discovery.PartitionService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
@@ -84,8 +88,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class BaseCloudProcessor {
-
-    protected static final ObjectMapper mapper = new ObjectMapper();
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
 
@@ -164,6 +166,13 @@ public abstract class BaseCloudProcessor {
     protected TbClusterService tbClusterService;
 
     @Autowired
+    protected PartitionService partitionService;
+
+    @Autowired
+    @Lazy
+    protected TbQueueProducerProvider producerProvider;
+
+    @Autowired
     protected DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
@@ -177,6 +186,7 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected DeviceMsgConstructor deviceMsgConstructor;
+
 
     protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
@@ -292,17 +302,17 @@ public abstract class BaseCloudProcessor {
                 }
                 ObjectNode entityNode;
                 if (entity != null) {
-                    entityNode = mapper.valueToTree(entity);
+                    entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(entity);
                     if (entityId.getEntityType() == EntityType.DASHBOARD) {
                         entityNode.put("configuration", "");
                     }
                 } else {
-                    entityNode = mapper.createObjectNode();
+                    entityNode = JacksonUtil.OBJECT_MAPPER.createObjectNode();
                     if (actionType == EdgeEventActionType.ATTRIBUTES_UPDATED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
                         String attributes = extractParameter(String.class, 1, additionalInfo);
                         metaData.putValue("scope", scope);
-                        entityNode.set("attributes", mapper.readTree(attributes));
+                        entityNode.set("attributes", JacksonUtil.OBJECT_MAPPER.readTree(attributes));
                     } else if (actionType == EdgeEventActionType.ATTRIBUTES_DELETED) {
                         String scope = extractParameter(String.class, 0, additionalInfo);
                         List<String> keys = extractParameter(List.class, 1, additionalInfo);
@@ -313,7 +323,7 @@ public abstract class BaseCloudProcessor {
                         }
                     }
                 }
-                TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, metaData, TbMsgDataType.JSON, mapper.writeValueAsString(entityNode));
+                TbMsg tbMsg = TbMsg.newMsg(msgType, entityId, metaData, TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
                 tbClusterService.pushMsgToRuleEngine(tenantId, entityId, tbMsg, null);
             } catch (Exception e) {
                 String warnMsg = String.format("[%s] Failed to push entity action to rule engine: %s", entityId, actionType);
