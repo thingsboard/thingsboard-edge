@@ -58,7 +58,6 @@ public class TbCoreConsumerStats {
     public static final String TO_CORE_NOTIFICATIONS = "coreNfs";
     public static final String SCHEDULER = "scheduler";
     public static final String EDGE_NOTIFICATIONS = "edgeNfs";
-
     public static final String CLOUD_NOTIFICATIONS = "cloudNfs";
     public static final String DEVICE_ACTIVITIES = "deviceActivity";
 
