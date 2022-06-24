@@ -33,11 +33,12 @@ package org.thingsboard.server.queue.settings;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+@Lazy
 @Data
 @Component
-@ConditionalOnExpression("'${service.type:null}' == 'monolith' || '${service.type:null}' == 'tb-core' || '${service.type:null}' == 'tb-integration-executor'")
 public class TbQueueIntegrationApiSettings {
 
     @Value("${queue.integration_api.requests_topic}")
