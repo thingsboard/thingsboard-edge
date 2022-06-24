@@ -323,7 +323,6 @@ export class MenuService {
         icon: 'mdi:alpha-d-box',
         isMdiIcon: true
       },
-      /* @voba - merge comment - hide this on edge
       {
         id: guid(),
         name: 'ota-update.ota-updates',
@@ -331,7 +330,6 @@ export class MenuService {
         path: '/otaUpdates',
         icon: 'memory'
       },
-       */
       {
         id: guid(),
         name: 'entity-view.entity-views',
@@ -512,13 +510,11 @@ export class MenuService {
             isMdiIcon: true,
             path: '/deviceProfiles'
           },
-          /* @voba - merge comment - hide this on edge
           {
             name: 'ota-update.ota-updates',
             icon: 'memory',
             path: '/otaUpdates'
           }
-           */
         ]
       },
       {

@@ -94,8 +94,15 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
 
     @Override
     public OtaPackage saveOtaPackage(OtaPackage otaPackage) {
+        return saveOtaPackage(otaPackage, true);
+    }
+
+    @Override
+    public OtaPackage saveOtaPackage(OtaPackage otaPackage, boolean doValidate) {
         log.trace("Executing saveOtaPackage [{}]", otaPackage);
-        otaPackageValidator.validate(otaPackage, OtaPackageInfo::getTenantId);
+        if (doValidate) {
+            otaPackageValidator.validate(otaPackage, OtaPackageInfo::getTenantId);
+        }
         OtaPackageId otaPackageId = otaPackage.getId();
         try {
             var result = otaPackageDao.save(otaPackage.getTenantId(), otaPackage);

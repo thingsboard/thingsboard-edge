@@ -39,6 +39,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
@@ -54,6 +55,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcesso
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
@@ -118,6 +120,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
 
     @Autowired
     private AdminSettingsCloudProcessor adminSettingsProcessor;
+
+    @Autowired
+    private OtaPackageCloudProcessor otaPackageProcessor;
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
@@ -236,6 +241,11 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
                 for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
                     result.add(adminSettingsProcessor.processAdminSettingsMsgFromCloud(tenantId, adminSettingsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getOtaPackageUpdateMsgCount() > 0) {
+                for (OtaPackageUpdateMsg otaPackageUpdateMsg : downlinkMsg.getOtaPackageUpdateMsgList()) {
+                    result.add(otaPackageProcessor.processOtaPackageMsgFromCloud(tenantId, otaPackageUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());

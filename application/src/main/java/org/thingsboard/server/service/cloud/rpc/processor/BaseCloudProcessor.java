@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -136,7 +137,7 @@ public abstract class BaseCloudProcessor {
     protected DashboardService dashboardService;
 
     @Autowired
-    private AuditLogService auditLogService;
+    protected OtaPackageService otaPackageService;
 
     @Autowired
     protected CloudEventService cloudEventService;
