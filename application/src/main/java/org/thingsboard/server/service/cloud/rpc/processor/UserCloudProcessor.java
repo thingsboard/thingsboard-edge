@@ -121,8 +121,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + userUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
         }
         ListenableFuture<Void> aDRF = Futures.transform(
                 requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs), future -> null, dbCallbackExecutor);

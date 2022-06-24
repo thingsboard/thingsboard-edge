@@ -101,8 +101,9 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
             }
             return Futures.immediateFuture(null);
         } catch (Exception e) {
-            log.error("Failed to process alarm update msg [{}]", alarmUpdateMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException("Failed to process alarm update msg", e));
+            String errMsg = String.format("Failed to process alarm update msg [%s]", alarmUpdateMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
     }
 

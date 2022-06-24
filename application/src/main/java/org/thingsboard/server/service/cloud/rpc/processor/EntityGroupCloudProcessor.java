@@ -161,9 +161,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 }, dbCallbackExecutor);
                 break;
             case UNRECOGNIZED:
-                String errMsg = "Unsupported msg type " + entityGroupUpdateMsg.getMsgType();
-                log.error(errMsg);
-                return Futures.immediateFailedFuture(new RuntimeException(errMsg));
+                return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
         }
 
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||

@@ -99,8 +99,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + widgetsBundleUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
     }

@@ -61,6 +61,7 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -82,6 +83,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProces
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.IntegrationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
@@ -170,6 +172,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
 
     @Autowired
     private ConverterCloudProcessor converterProcessor;
+
+    @Autowired
+    private OtaPackageCloudProcessor otaPackageProcessor;
 
     @Autowired
     private IntegrationCloudProcessor integrationProcessor;
@@ -334,6 +339,11 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             if (downlinkMsg.getAdminSettingsUpdateMsgCount() > 0) {
                 for (AdminSettingsUpdateMsg adminSettingsUpdateMsg : downlinkMsg.getAdminSettingsUpdateMsgList()) {
                     result.add(adminSettingsProcessor.processAdminSettingsMsgFromCloud(tenantId, adminSettingsUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getOtaPackageUpdateMsgCount() > 0) {
+                for (OtaPackageUpdateMsg otaPackageUpdateMsg : downlinkMsg.getOtaPackageUpdateMsgList()) {
+                    result.add(otaPackageProcessor.processOtaPackageMsgFromCloud(tenantId, otaPackageUpdateMsg));
                 }
             }
             if (downlinkMsg.getRoleMsgCount() > 0) {

@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -110,8 +111,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + deviceUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
         }
 
         SettableFuture<Void> futureToSet = SettableFuture.create();
@@ -131,7 +131,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
 
             @Override
             public void onFailure(Throwable t) {
-                log.error("Failed to request for additional data, deviceUpdateMsg [{}]", deviceUpdateMsg, t);
+                String errMsg = String.format("Failed to request for additional data, deviceUpdateMsg [%s]", deviceUpdateMsg);
+                log.error(errMsg, t);
                 futureToSet.setException(t);
             }
         }, dbCallbackExecutor);
@@ -153,12 +154,10 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                         ? deviceCredentialsUpdateMsg.getCredentialsValue() : null);
                 deviceCredentialsService.updateDeviceCredentials(tenantId, deviceCredentials);
             } catch (Exception e) {
-                log.error("Can't update device credentials for device [{}], deviceCredentialsUpdateMsg [{}]",
-                        device.getName(), deviceCredentialsUpdateMsg, e);
-                return Futures.immediateFailedFuture(
-                        new RuntimeException("Can't update device credentials for device " +
-                                device.getName() + ", deviceCredentialsUpdateMsg " + deviceCredentialsUpdateMsg,
-                                e));
+                String errMsg = String.format("Can't update device credentials for device [%s], deviceCredentialsUpdateMsg [%s]",
+                        device.getName(), deviceCredentialsUpdateMsg);
+                log.error(errMsg, e);
+                return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
             }
         }
         return Futures.immediateFuture(null);
@@ -272,7 +271,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             }
             saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, rpcRequest.getDeviceId(), body);
         } catch (Exception e) {
-            log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response);
+            String errMsg = String.format("Can't process RPC response [%s] [%s]", rpcRequest, response);
+            log.debug(errMsg, e);
         }
     }
 

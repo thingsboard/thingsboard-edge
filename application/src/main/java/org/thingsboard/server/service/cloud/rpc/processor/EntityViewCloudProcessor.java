@@ -120,8 +120,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case UNRECOGNIZED:
-                log.error("Unsupported msg type");
-                return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + entityViewUpdateMsg.getMsgType()));
+                return handleUnsupportedMsgType(entityViewUpdateMsg.getMsgType());
         }
         return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs), future -> null, dbCallbackExecutor);
     }

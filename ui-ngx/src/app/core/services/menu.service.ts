@@ -647,7 +647,6 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD) && disabledItems.indexOf('dashboard_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DASHBOARD));
     }
-    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
       sections.push(
         {
@@ -660,7 +659,6 @@ export class MenuService {
         }
       );
     }
-    */
     if (this.userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)) {
       sections.push(
         {
@@ -1043,7 +1041,6 @@ export class MenuService {
           }
         );
       }
-      /* @voba - merge comment - hide this on edge
       if (this.userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)) {
         deviceManagementSection.places.push(
           {
@@ -1054,7 +1051,6 @@ export class MenuService {
           }
         );
       }
-      */
     }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW)) {
       homeSections.push(

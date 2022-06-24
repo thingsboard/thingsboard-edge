@@ -93,12 +93,12 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                     relationService.deleteRelation(tenantId, entityRelation);
                     break;
                 case UNRECOGNIZED:
-                    log.error("Unsupported msg type");
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + relationUpdateMsg.getMsgType()));
+                    return handleUnsupportedMsgType(relationUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
-            log.error("Error during relation update msg", e);
-            return Futures.immediateFailedFuture(new RuntimeException("Error during relation update msg", e));
+            String errMsg = String.format("Error during relation update msg %s", relationUpdateMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
     }

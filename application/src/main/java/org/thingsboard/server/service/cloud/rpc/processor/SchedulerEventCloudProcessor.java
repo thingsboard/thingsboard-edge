@@ -96,9 +96,7 @@ public class SchedulerEventCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    String errMsg = "Unsupported msg type " + schedulerEventUpdateMsg.getMsgType();
-                    log.error(errMsg);
-                    return Futures.immediateFailedFuture(new RuntimeException(errMsg));
+                    return handleUnsupportedMsgType(schedulerEventUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
             String errMsg = String.format("Can't process SchedulerEventUpdateMsg [%s]", schedulerEventUpdateMsg);

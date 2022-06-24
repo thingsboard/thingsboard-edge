@@ -107,9 +107,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    String errMsg = "Unsupported msg type " + groupPermissionProto.getMsgType();
-                    log.error(errMsg);
-                    return Futures.immediateFailedFuture(new RuntimeException(errMsg));
+                    return handleUnsupportedMsgType(groupPermissionProto.getMsgType());
             }
         } catch (Exception e) {
             if (e instanceof DataValidationException

@@ -131,9 +131,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                     }
                     break;
                 case UNRECOGNIZED:
-                    String errMsg = "Unsupported msg type " + roleProto.getMsgType();
-                    log.error(errMsg);
-                    return Futures.immediateFailedFuture(new RuntimeException(errMsg));
+                    return handleUnsupportedMsgType(roleProto.getMsgType());
             }
         } catch (Exception e) {
             String errMsg = String.format("Can't process roleProto [%s]", roleProto);

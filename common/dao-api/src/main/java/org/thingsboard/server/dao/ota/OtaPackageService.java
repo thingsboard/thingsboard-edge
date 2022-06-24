@@ -51,6 +51,8 @@ public interface OtaPackageService {
 
     OtaPackage saveOtaPackage(OtaPackage otaPackage);
 
+    OtaPackage saveOtaPackage(OtaPackage otaPackage, boolean doValidate);
+
     String generateChecksum(ChecksumAlgorithm checksumAlgorithm, ByteBuffer data);
 
     OtaPackage findOtaPackageById(TenantId tenantId, OtaPackageId otaPackageId);
