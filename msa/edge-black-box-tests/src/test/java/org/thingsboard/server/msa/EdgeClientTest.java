@@ -1051,6 +1051,9 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .until(() -> {
                     List<AttributeKvEntry> attributeKvEntries =
                             restClient.getAttributesByScope(deviceId, DataConstants.SERVER_SCOPE, Collections.singletonList("active"));
+                    for (AttributeKvEntry attributeKvEntry : attributeKvEntries) {
+                        System.out.println("<<<<<<<<<<<<<<<<<< " + attributeKvEntry);
+                    }
                     if (attributeKvEntries.size() != 1) {
                         return false;
                     }
