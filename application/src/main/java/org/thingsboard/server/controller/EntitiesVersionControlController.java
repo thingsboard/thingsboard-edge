@@ -72,6 +72,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.controller.ControllerConstants.BRANCH_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_TYPE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_VERSION_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -248,8 +251,11 @@ public class EntitiesVersionControlController extends BaseController {
             MARKDOWN_CODE_BLOCK_END +
             TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/version/{entityType}/{externalEntityUuid}", params = {"branch", "pageSize", "page"})
-    public DeferredResult<PageData<EntityVersion>> listEntityVersions(@PathVariable EntityType entityType,
+    public DeferredResult<PageData<EntityVersion>> listEntityVersions(@ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+                                                                      @PathVariable EntityType entityType,
+                                                                      @ApiParam(value = "A string value representing external entity id. This is `externalId` property of an entity, or otherwise if not set - simply id of this entity.")
                                                                       @PathVariable UUID externalEntityUuid,
+                                                                      @ApiParam(value = BRANCH_PARAM_DESCRIPTION)
                                                                       @RequestParam String branch,
                                                                       @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid,
                                                                       @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
@@ -276,7 +282,9 @@ public class EntitiesVersionControlController extends BaseController {
             "The response structure is the same as for `listEntityVersions` API method." +
             TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/version/{entityType}", params = {"branch", "pageSize", "page"})
-    public DeferredResult<PageData<EntityVersion>> listEntityTypeVersions(@PathVariable EntityType entityType,
+    public DeferredResult<PageData<EntityVersion>> listEntityTypeVersions(@ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+                                                                          @PathVariable EntityType entityType,
+                                                                          @ApiParam(value = BRANCH_PARAM_DESCRIPTION, required = true)
                                                                           @RequestParam String branch,
                                                                           @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
                                                                           @RequestParam int pageSize,
@@ -299,7 +307,8 @@ public class EntitiesVersionControlController extends BaseController {
             "The response format is the same as for `listEntityVersions` API method." +
             TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/version", params = {"branch", "pageSize", "page"})
-    public DeferredResult<PageData<EntityVersion>> listVersions(@RequestParam String branch,
+    public DeferredResult<PageData<EntityVersion>> listVersions(@ApiParam(value = BRANCH_PARAM_DESCRIPTION, required = true)
+                                                                @RequestParam String branch,
                                                                 @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
                                                                 @RequestParam int pageSize,
                                                                 @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
@@ -322,9 +331,11 @@ public class EntitiesVersionControlController extends BaseController {
             "Entities order will be the same as in the repository." +
             TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/entity/{entityType}/{versionId}", params = {"branch"})
-    public DeferredResult<List<VersionedEntityInfo>> listEntitiesAtVersion(@PathVariable EntityType entityType,
+    public DeferredResult<List<VersionedEntityInfo>> listEntitiesAtVersion(@ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+                                                                           @PathVariable EntityType entityType,
                                                                            @ApiParam(value = VERSION_ID_PARAM_DESCRIPTION, required = true)
                                                                            @PathVariable String versionId,
+                                                                           @ApiParam(value = BRANCH_PARAM_DESCRIPTION, required = true)
                                                                            @RequestParam String branch) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
         return wrapFuture(versionControlService.listEntitiesAtVersion(getTenantId(), branch, versionId, entityType));
@@ -338,6 +349,7 @@ public class EntitiesVersionControlController extends BaseController {
     @GetMapping(value = "/entity/{versionId}", params = {"branch"})
     public DeferredResult<List<VersionedEntityInfo>> listAllEntitiesAtVersion(@ApiParam(value = VERSION_ID_PARAM_DESCRIPTION, required = true)
                                                                               @PathVariable String versionId,
+                                                                              @ApiParam(value = BRANCH_PARAM_DESCRIPTION, required = true)
                                                                               @RequestParam String branch) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
         return wrapFuture(versionControlService.listAllEntitiesAtVersion(getTenantId(), branch, versionId));
@@ -353,8 +365,11 @@ public class EntitiesVersionControlController extends BaseController {
     @GetMapping("/info/{versionId}/{entityType}/{externalEntityUuid}")
     public DeferredResult<EntityDataInfo> getEntityDataInfo(@ApiParam(value = VERSION_ID_PARAM_DESCRIPTION, required = true)
                                                             @PathVariable String versionId,
+                                                            @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
                                                             @PathVariable EntityType entityType,
+                                                            @ApiParam(value = "A string value representing external entity id", required = true)
                                                             @PathVariable UUID externalEntityUuid,
+                                                            @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION)
                                                             @RequestParam(required = false, value = "internalEntityId") UUID internalEntityUuid) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
         EntityId externalId = EntityIdFactory.getByTypeAndUuid(entityType, externalEntityUuid);
@@ -367,8 +382,11 @@ public class EntitiesVersionControlController extends BaseController {
             "Entity data structure is the same as stored in a repository. " +
             TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping(value = "/diff/{entityType}/{internalEntityUuid}", params = {"branch", "versionId"})
-    public DeferredResult<EntityDataDiff> compareEntityDataToVersion(@PathVariable EntityType entityType,
+    public DeferredResult<EntityDataDiff> compareEntityDataToVersion(@ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION, required = true)
+                                                                     @PathVariable EntityType entityType,
+                                                                     @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION, required = true)
                                                                      @PathVariable UUID internalEntityUuid,
+                                                                     @ApiParam(value = BRANCH_PARAM_DESCRIPTION)
                                                                      @RequestParam String branch,
                                                                      @ApiParam(value = VERSION_ID_PARAM_DESCRIPTION, required = true)
                                                                      @RequestParam String versionId) throws Exception {
