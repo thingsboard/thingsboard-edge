@@ -224,8 +224,8 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         String msgError = "You don't have permission to perform 'WRITE' operation with CUSTOMER 'My customer'";
         doPost("/api/customer", savedCustomer, Customer.class, status().isForbidden());
 
-        testNotifyEntityEqualsOneTimeError(savedCustomer,  differentTenantId, differentTenantAdminUserId, DIFFERENT_TENANT_ADMIN_EMAIL,
-                ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+        testNotifyEntityEqualsOneTimeError(savedCustomer,  savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
+                DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
 

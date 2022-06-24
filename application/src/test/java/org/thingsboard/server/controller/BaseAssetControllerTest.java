@@ -179,8 +179,8 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         String msgError = "You don't have permission to perform 'WRITE' operation with ASSET 'My asset'";
         doPost("/api/asset", savedAsset, Asset.class, status().isForbidden());
 
-        testNotifyEntityEqualsOneTimeError(savedAsset, differentTenantId, differentTenantAdminUserId, DIFFERENT_TENANT_ADMIN_EMAIL,
-                ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+        testNotifyEntityEqualsOneTimeError(savedAsset, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
+                DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
 

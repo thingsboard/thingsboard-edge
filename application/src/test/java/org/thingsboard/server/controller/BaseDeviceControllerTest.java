@@ -225,6 +225,8 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         doDelete("/api/device/" + savedDevice.getId().getId())
                 .andExpect(status().isOk());
 
+//        gatewayNotificationsService.onDeviceDeleted(device);
+
         doGet("/api/device/" + savedDevice.getId().getId())
                 .andExpect(status().isNotFound());
     }
