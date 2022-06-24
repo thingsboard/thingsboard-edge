@@ -135,20 +135,23 @@ export class EntitiesVersionControlService {
                             externalEntityId: EntityId,
                             internalEntityId: EntityId,
                             config?: RequestConfig): Observable<PageData<EntityVersion>> {
-    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}/${externalEntityId.entityType}/${externalEntityId.id}${pageLink.toQuery()}&internalEntityId=${internalEntityId.id}`,
+    const encodedBranch = encodeURIComponent(branch);
+    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${externalEntityId.entityType}/${externalEntityId.id}${pageLink.toQuery()}&branch=${encodedBranch}&internalEntityId=${internalEntityId.id}`,
       defaultHttpOptionsFromConfig(config));
   }
 
   public listEntityTypeVersions(pageLink: PageLink, branch: string,
                                 entityType: EntityType,
                                 config?: RequestConfig): Observable<PageData<EntityVersion>> {
-    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}/${entityType}${pageLink.toQuery()}`,
+    const encodedBranch = encodeURIComponent(branch);
+    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${entityType}${pageLink.toQuery()}&branch=${encodedBranch}`,
       defaultHttpOptionsFromConfig(config));
   }
 
   public listVersions(pageLink: PageLink, branch: string,
                       config?: RequestConfig): Observable<PageData<EntityVersion>> {
-    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version/${branch}${pageLink.toQuery()}`,
+    const encodedBranch = encodeURIComponent(branch);
+    return this.http.get<PageData<EntityVersion>>(`/api/entities/vc/version${pageLink.toQuery()}&branch=${encodedBranch}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -177,7 +180,8 @@ export class EntitiesVersionControlService {
                                     entityId: EntityId,
                                     versionId: string,
                                     config?: RequestConfig): Observable<EntityDataDiff> {
-    return this.http.get<EntityDataDiff>(`/api/entities/vc/diff/${branch}/${entityId.entityType}/${entityId.id}?versionId=${versionId}`,
+    const encodedBranch = encodeURIComponent(branch);
+    return this.http.get<EntityDataDiff>(`/api/entities/vc/diff/${entityId.entityType}/${entityId.id}?branch=${encodedBranch}&versionId=${versionId}`,
       defaultHttpOptionsFromConfig(config));
   }
 

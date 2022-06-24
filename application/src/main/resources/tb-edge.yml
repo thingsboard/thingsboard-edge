@@ -440,6 +440,10 @@ cache:
     integrations:
       timeToLiveInMinutes: "${CACHE_SPECS_INTEGRATIONS_TTL:1440}"
       maxSize: "${CACHE_SPECS_INTEGRATIONS_MAX_SIZE:10000}"
+
+#Disable this because it is not required.
+spring.data.redis.repositories.enabled: false
+
 redis:
   # standalone or cluster
   connection:

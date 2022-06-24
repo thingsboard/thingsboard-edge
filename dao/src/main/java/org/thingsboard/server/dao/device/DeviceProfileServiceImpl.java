@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.Device;
@@ -89,6 +90,7 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
     @Autowired
     private DataValidator<DeviceProfile> deviceProfileValidator;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
 

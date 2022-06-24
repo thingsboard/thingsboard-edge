@@ -57,7 +57,7 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
         TenantId tenantId = dashboard.getTenantId();
         try {
             Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
-            vcService.autoCommit(user, savedDashboard.getId());
+            autoCommit(user, savedDashboard.getId());
             createOrUpdateGroupEntity(tenantId, savedDashboard, entityGroup, actionType, user);
             return savedDashboard;
         } catch (Exception e) {

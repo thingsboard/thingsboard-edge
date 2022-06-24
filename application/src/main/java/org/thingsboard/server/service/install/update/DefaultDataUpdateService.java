@@ -40,6 +40,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
@@ -240,6 +241,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private TenantProfileService tenantProfileService;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
 
