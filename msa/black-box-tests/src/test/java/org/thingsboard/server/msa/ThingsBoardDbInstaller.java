@@ -169,6 +169,11 @@ public class ThingsBoardDbInstaller extends ExternalResource {
                 dockerCompose.invokeDocker();
             }
 
+            if (IS_HYBRID_MODE) {
+                dockerCompose.withCommand("volume create " + cassandraDataVolume);
+                dockerCompose.invokeDocker();
+            }
+
             dockerCompose.withCommand("volume create " + tbLogVolume);
             dockerCompose.invokeDocker();
 
