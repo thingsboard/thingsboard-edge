@@ -46,7 +46,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
@@ -109,7 +108,6 @@ import org.thingsboard.server.service.sync.vc.data.EntitiesExportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntityTypeExportCtx;
 import org.thingsboard.server.service.sync.vc.data.EntityTypeExportTask;
-import org.thingsboard.server.service.sync.vc.data.ReimportTask;
 import org.thingsboard.server.service.sync.vc.data.ReimportTask;
 import org.thingsboard.server.service.sync.vc.data.SimpleEntitiesExportCtx;
 import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsService;
@@ -287,7 +285,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         EntityGroup group = (EntityGroup) (entityData.getEntity());
         List<CustomerId> hierarchy = addCustomerHierarchyToCommit(ctx, entityId, group);
         ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, entityData));
-        if (ctx.getSettings().isExportGroupEntities() && group.getType() != EntityType.USER) {
+        if (ctx.getSettings().isExportGroupEntities() && ctx.shouldExportEntities(group.getType())) {
             PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
                     link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
             List<EntityId> groupEntityIds = new ArrayList<>();
@@ -332,7 +330,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             }
             parents.add(externalCustomerId);
         }
-        if (ctx.getEntityType() != EntityType.USER) {
+        if (ctx.shouldExportEntities(ctx.getEntityType())) {
             DaoUtil.processInBatches(pageLink -> exportableEntitiesService.findEntityIdsByTenantIdAndCustomerId(ctx.getTenantId(), customerId, ctx.getEntityType(), pageLink)
                     , 1024, entityId -> {
                         try {
@@ -346,7 +344,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         for (EntityGroup group : groupService.findEntityGroupsByType(ctx.getTenantId(), task.getOwnerId(), ctx.getEntityType()).get()) {
             EntityExportData<ExportableEntity<EntityGroupId>> entityData = exportImportService.exportEntity(ctx, group.getId());
             ctx.getFutures().add(gitServiceQueue.addToCommit(ctx.getCommit(), parents, entityData));
-            if (!group.isGroupAll() && group.getType() != EntityType.USER) {
+            if (!group.isGroupAll() && ctx.shouldExportEntities(ctx.getEntityType())) {
                 PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
                         link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
                 List<EntityId> groupEntityIds = new ArrayList<>();
@@ -467,7 +465,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             EntityExportData groupData = gitServiceQueue.getEntityGroup(ctx.getTenantId(), request.getVersionId(), ownerIds, ((EntityGroup) entity).getType(), request.getExternalEntityId()).get();
             EntityImportResult<?> importResult = exportImportService.importEntity(ctx, groupData);
             EntityGroup savedGroup = (EntityGroup) importResult.getSavedEntity();
-            if (config.isLoadGroupEntities() && savedGroup.getType() != EntityType.USER) {
+            if (config.isLoadGroupEntities() && ctx.shouldImportEntities(savedGroup.getType())) {
                 if (savedGroup.isGroupAll()) {
                     importEntities(ctx, ownerIds, savedGroup.getType(), false);
                 } else {
@@ -625,7 +623,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             List<EntityImportResult<?>> entityGroupResults = importEntityDataList(ctx, entityType, entityDataList);
             for (EntityImportResult<?> entityImportResult : entityGroupResults) {
                 EntityGroup savedGroup = (EntityGroup) entityImportResult.getSavedEntity();
-                if (!savedGroup.isGroupAll() && savedGroup.getType() != EntityType.USER) {
+                if (!savedGroup.isGroupAll() && ctx.shouldImportEntities(savedGroup.getType())) {
                     var ownerIds = ownersCache.get(savedGroup.getOwnerId());
                     if (ownerIds == null) {
                         ownerIds = getCustomerExternalIds(ctx.getTenantId(), savedGroup.getId(), savedGroup);
