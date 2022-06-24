@@ -166,7 +166,7 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
 
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
-            ObjectNode body = mapper.createObjectNode();
+            ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
             saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
             saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body);

@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -80,7 +81,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
                     existentAlarm.setStatus(AlarmStatus.valueOf(alarmUpdateMsg.getStatus()));
                     existentAlarm.setAckTs(alarmUpdateMsg.getAckTs());
                     existentAlarm.setEndTs(alarmUpdateMsg.getEndTs());
-                    existentAlarm.setDetails(mapper.readTree(alarmUpdateMsg.getDetails()));
+                    existentAlarm.setDetails(JacksonUtil.OBJECT_MAPPER.readTree(alarmUpdateMsg.getDetails()));
                     alarmService.createOrUpdateAlarm(existentAlarm);
                     break;
                 case ALARM_ACK_RPC_MESSAGE:
@@ -90,7 +91,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
                     break;
                 case ALARM_CLEAR_RPC_MESSAGE:
                     if (existentAlarm != null) {
-                        alarmService.clearAlarm(tenantId, existentAlarm.getId(), mapper.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
+                        alarmService.clearAlarm(tenantId, existentAlarm.getId(), JacksonUtil.OBJECT_MAPPER.readTree(alarmUpdateMsg.getDetails()), alarmUpdateMsg.getAckTs());
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
@@ -140,7 +141,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             case DELETED:
-                Alarm deletedAlarm = mapper.convertValue(cloudEvent.getEntityBody(), Alarm.class);
+                Alarm deletedAlarm = JacksonUtil.OBJECT_MAPPER.convertValue(cloudEvent.getEntityBody(), Alarm.class);
                 AlarmUpdateMsg alarmUpdateMsg =
                         alarmMsgConstructor.constructAlarmUpdatedMsg(tenantId, msgType, deletedAlarm);
                 msg = UplinkMsg.newBuilder()

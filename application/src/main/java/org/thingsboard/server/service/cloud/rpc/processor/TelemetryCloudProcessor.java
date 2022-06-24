@@ -39,6 +39,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.msg.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
@@ -66,6 +67,8 @@ import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
@@ -75,8 +78,11 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
 import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -88,6 +94,13 @@ import java.util.UUID;
 public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
     private final Gson gson = new Gson();
+
+    private TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreMsg>> tbCoreMsgProducer;
+
+    @PostConstruct
+    public void init() {
+        tbCoreMsgProducer = producerProvider.getTbCoreMsgProducer();
+    }
 
     public List<ListenableFuture<Void>> processTelemetryMsgFromCloud(TenantId tenantId, EntityDataProto entityData) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
@@ -104,6 +117,20 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
             }
             if (entityData.hasPostTelemetryMsg()) {
                 result.add(processPostTelemetry(tenantId, entityId, entityData.getPostTelemetryMsg(), metaData));
+            }
+            if (EntityType.DEVICE.equals(entityId.getEntityType())) {
+                DeviceId deviceId = new DeviceId(entityId.getId());
+
+                TransportProtos.DeviceActivityProto deviceActivityMsg = TransportProtos.DeviceActivityProto.newBuilder()
+                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
+                        .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                        .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
+                        .setLastActivityTime(System.currentTimeMillis()).build();
+
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
+                tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(),
+                        TransportProtos.ToCoreMsg.newBuilder().setDeviceActivityMsg(deviceActivityMsg).build()), null);
             }
         }
         if (entityData.hasAttributeDeleteMsg()) {
@@ -301,7 +328,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
         }
 
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction());
-        return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(mapper.writeValueAsString(cloudEvent.getEntityBody())));
+        return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(JacksonUtil.OBJECT_MAPPER.writeValueAsString(cloudEvent.getEntityBody())));
     }
 
 

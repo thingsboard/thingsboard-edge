@@ -179,7 +179,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             info.setFromIndex(proto.getFromIndex());
             info.setTargetRuleChainId(new RuleChainId(new UUID(proto.getTargetRuleChainIdMSB(), proto.getTargetRuleChainIdLSB())));
             info.setType(proto.getType());
-            info.setAdditionalInfo(mapper.readTree(proto.getAdditionalInfo()));
+            info.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(proto.getAdditionalInfo()));
             result.add(info);
         }
         return result;
@@ -208,8 +208,8 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             ruleNode.setType(proto.getType());
             ruleNode.setName(proto.getName());
             ruleNode.setDebugMode(proto.getDebugMode());
-            ruleNode.setConfiguration(mapper.readTree(proto.getConfiguration()));
-            ruleNode.setAdditionalInfo(mapper.readTree(proto.getAdditionalInfo()));
+            ruleNode.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree(proto.getConfiguration()));
+            ruleNode.setAdditionalInfo(JacksonUtil.OBJECT_MAPPER.readTree(proto.getAdditionalInfo()));
             result.add(ruleNode);
         }
         return result;

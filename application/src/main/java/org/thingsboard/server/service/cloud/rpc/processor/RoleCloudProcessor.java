@@ -144,7 +144,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
     Role replaceWriteOperationsToReadIfRequired(Role role) throws JsonProcessingException {
         if (RoleType.GROUP.equals(role.getType())) {
             CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = mapper.readValue(role.getPermissions().toString(), collectionType);
+            List<Operation> originOperations = JacksonUtil.OBJECT_MAPPER.readValue(role.getPermissions().toString(), collectionType);
             List<Operation> operations;
             if (originOperations.contains(Operation.ALL)) {
                 operations = new ArrayList<>(allowedEntityGroupOperations);
@@ -153,12 +153,12 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                         .filter(allowedEntityGroupOperations::contains)
                         .collect(Collectors.toList());
             }
-            role.setPermissions(mapper.valueToTree(operations));
+            role.setPermissions(JacksonUtil.OBJECT_MAPPER.valueToTree(operations));
         } else {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            JavaType resourceType = mapper.getTypeFactory().constructType(Resource.class);
+            JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
             MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
-            Map<Resource, List<Operation>> originPermissions = mapper.readValue(role.getPermissions().toString(), mapType);
+            Map<Resource, List<Operation>> originPermissions = JacksonUtil.OBJECT_MAPPER.readValue(role.getPermissions().toString(), mapType);
             Map<Resource, List<Operation>> newPermissions = new HashMap<>();
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();
@@ -192,7 +192,7 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                 }
                 newPermissions.put(entry.getKey(), newOperations);
             }
-            role.setPermissions(mapper.valueToTree(newPermissions));
+            role.setPermissions(JacksonUtil.OBJECT_MAPPER.valueToTree(newPermissions));
         }
         return role;
     }
