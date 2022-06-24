@@ -73,6 +73,11 @@ public class EntityGroupExportService extends BaseEntityExportService<EntityGrou
                         Role role = roleService.findRoleById(ctx.getTenantId(), permission.getRoleId());
                         return !role.getOwnerId().equals(TenantId.SYS_TENANT_ID);
                     })
+                    .peek(permission -> {
+                        permission.setUserGroupId(getExternalIdOrElseInternal(ctx, permission.getUserGroupId()));
+                        permission.setRoleId(getExternalIdOrElseInternal(ctx, permission.getRoleId()));
+                        permission.setEntityGroupId(getExternalIdOrElseInternal(ctx, permission.getEntityGroupId()));
+                    })
                     .collect(Collectors.toList());
             exportData.setPermissions(permissions);
         }
