@@ -32,11 +32,8 @@ package org.thingsboard.server.transport.coap.telemetry.attributes;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.CoAP;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
-import org.eclipse.californium.elements.exception.ConnectorException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,9 +41,9 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.coap.AbstractCoapIntegrationTest;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.msg.session.FeatureType;
+import org.thingsboard.server.transport.coap.CoapTestClient;
 import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -89,30 +86,17 @@ public class CoapAttributesIntegrationTest extends AbstractCoapIntegrationTest {
     }
 
     protected void processAttributesTest(List<String> expectedKeys, byte[] payload, boolean presenceFieldsTest) throws Exception {
-        client = getCoapClient(FeatureType.ATTRIBUTES);
 
-        postAttributes(client, payload);
+        client = new CoapTestClient(accessToken, FeatureType.ATTRIBUTES);
+        CoapResponse coapResponse = client.postMethod(payload);
+        assertEquals(CoAP.ResponseCode.CREATED, coapResponse.getCode());
 
         DeviceId deviceId = savedDevice.getId();
-
-        long start = System.currentTimeMillis();
-        long end = System.currentTimeMillis() + 5000;
-
-        List<String> actualKeys = null;
-        while (start <= end) {
-            actualKeys = doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + deviceId + "/keys/attributes/CLIENT_SCOPE", new TypeReference<>() {});
-            if (actualKeys.size() == expectedKeys.size()) {
-                break;
-            }
-            Thread.sleep(100);
-            start += 100;
-        }
+        List<String> actualKeys = getActualKeysList(deviceId, expectedKeys);
         assertNotNull(actualKeys);
 
         Set<String> actualKeySet = new HashSet<>(actualKeys);
-
         Set<String> expectedKeySet = new HashSet<>(expectedKeys);
-
         assertEquals(expectedKeySet, actualKeySet);
 
         String getAttributesValuesUrl = getAttributesValuesUrl(deviceId, actualKeySet);
@@ -124,14 +108,6 @@ public class CoapAttributesIntegrationTest extends AbstractCoapIntegrationTest {
         }
         String deleteAttributesUrl = "/api/plugins/telemetry/DEVICE/" + deviceId + "/CLIENT_SCOPE?keys=" + String.join(",", actualKeySet);
         doDelete(deleteAttributesUrl);
-    }
-
-    private void postAttributes(CoapClient client, byte[] payload) throws IOException, ConnectorException {
-        if (payload == null) {
-            payload = PAYLOAD_VALUES_STR.getBytes();
-        }
-        CoapResponse coapResponse = client.setTimeout((long) 60000).post(payload, MediaTypeRegistry.APPLICATION_JSON);
-        assertEquals(CoAP.ResponseCode.CREATED, coapResponse.getCode());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -184,6 +160,22 @@ public class CoapAttributesIntegrationTest extends AbstractCoapIntegrationTest {
                     break;
             }
         }
+    }
+
+    private List<String> getActualKeysList(DeviceId deviceId, List<String> expectedKeys) throws Exception {
+        long start = System.currentTimeMillis();
+        long end = System.currentTimeMillis() + 5000;
+
+        List<String> actualKeys = null;
+        while (start <= end) {
+            actualKeys = doGetAsyncTyped("/api/plugins/telemetry/DEVICE/" + deviceId + "/keys/attributes/CLIENT_SCOPE", new TypeReference<>() {});
+            if (actualKeys.size() == expectedKeys.size()) {
+                break;
+            }
+            Thread.sleep(100);
+            start += 100;
+        }
+        return actualKeys;
     }
 
     private String getAttributesValuesUrl(DeviceId deviceId, Set<String> actualKeySet) {
