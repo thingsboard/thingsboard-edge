@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.dashboard;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -57,18 +58,28 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
     public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = dashboard.getTenantId();
-        Dashboard saveDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
-        createOrUpdateGroupEntity(tenantId, saveDashboard, entityGroup, actionType, user);
-        return saveDashboard;
+        try {
+            Dashboard saveDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
+            createOrUpdateGroupEntity(tenantId, saveDashboard, entityGroup, actionType, user);
+            return saveDashboard;
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), dashboard, actionType, user, e);
+            throw e;
+        }
     }
 
     @Override
     public void delete(Dashboard dashboard, User user) {
         DashboardId dashboardId = dashboard.getId();
         TenantId tenantId = dashboard.getTenantId();
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, dashboardId);
-        dashboardService.deleteDashboard(tenantId, dashboardId);
-        notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
-                ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
+        try {
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, dashboardId);
+            dashboardService.deleteDashboard(tenantId, dashboardId);
+            notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
+                    ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), ActionType.DELETED, user, e, dashboardId.toString());
+            throw e;
+        }
     }
 }

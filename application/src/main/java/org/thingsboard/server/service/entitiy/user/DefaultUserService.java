@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -48,7 +49,6 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,57 +65,64 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
     private final UserService userService;
     private final MailService mailService;
     private final SystemSecurityService systemSecurityService;
-    private final UserPermissionsService userPermissionsService;
 
     @Override
     public User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser, boolean sendActivationMail,
                      HttpServletRequest request, EntityGroupId entityGroupId, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = tbUser.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        boolean sendEmail = tbUser.getId() == null && sendActivationMail;
-        User savedUser = checkNotNull(userService.saveUser(tbUser));
+        try {
+            boolean sendEmail = tbUser.getId() == null && sendActivationMail;
+            User savedUser = checkNotNull(userService.saveUser(tbUser));
 
-        // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
-        if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
-            EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
-            entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                    savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
-        } else if (entityGroup != null && tbUser.getId() == null) {
-            entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
+            // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
+            if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
+                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
+                entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
+                notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
+                        savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
+            } else if (entityGroup != null && tbUser.getId() == null) {
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
 
-            notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
-                    entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
-        }
-
-        if (sendEmail) {
-            User authUser = user;
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
-            String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
-            String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
-                    userCredentials.getActivateToken());
-            String email = savedUser.getEmail();
-            try {
-                mailService.sendActivationEmail(tenantId, activateUrl, email);
-            } catch (ThingsboardException e) {
-                userService.deleteUser(authUser.getTenantId(), savedUser.getId());
-                throw e;
+                notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
+                        entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
             }
-        }
 
-        userPermissionsService.onUserUpdatedOrRemoved(savedUser);
-        notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                savedUser, user, actionType, true, null);
-        return savedUser;
+            if (sendEmail) {
+                User authUser = user;
+                UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
+                String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
+                String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
+                        userCredentials.getActivateToken());
+                String email = savedUser.getEmail();
+                try {
+                    mailService.sendActivationEmail(tenantId, activateUrl, email);
+                } catch (ThingsboardException e) {
+                    userService.deleteUser(authUser.getTenantId(), savedUser.getId());
+                    throw e;
+                }
+            }
+            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
+                    savedUser, user, actionType, true, null);
+            return savedUser;
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER), user, actionType, user, e);
+            throw e;
+        }
     }
 
     @Override
     public void delete(TenantId tenantId, CustomerId customerId, User tbUser, User user) throws ThingsboardException {
         UserId userId = tbUser.getId();
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, userId);
 
-        userService.deleteUser(tenantId, userId);
-
-        notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
-                ActionType.DELETED, relatedEdgeIds, user, userId.toString());
+        try {
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, userId);
+            userService.deleteUser(tenantId, userId);
+            notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
+                    ActionType.DELETED, relatedEdgeIds, user, userId.toString());
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
+                    ActionType.DELETED, user, e, userId.toString());
+            throw e;
+        }
     }
 }

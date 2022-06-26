@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.customer;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -52,18 +53,30 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
     public Customer save(Customer customer, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = customer.getTenantId();
-        Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
-        createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
-        return savedCustomer;
+        try {
+            Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+            createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
+            return savedCustomer;
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), customer, actionType, user, e);
+            throw e;
+        }
     }
 
     @Override
     public void delete(Customer customer, User user) {
+        ActionType actionType = ActionType.DELETED;
         TenantId tenantId = customer.getTenantId();
         CustomerId customerId = customer.getId();
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, customerId);
-        customerService.deleteCustomer(tenantId, customerId);
-        notificationEntityService.notifyDeleteEntity(tenantId, customerId, customer, customerId,
-                ActionType.DELETED, relatedEdgeIds, user, customerId.toString());
+        try {
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, customerId);
+            customerService.deleteCustomer(tenantId, customerId);
+            notificationEntityService.notifyDeleteEntity(tenantId, customerId, customer, customerId,
+                    actionType, relatedEdgeIds, user, customerId.toString());
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), actionType,
+                    user, e, customerId.toString());
+            throw e;
+        }
     }
 }

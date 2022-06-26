@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterableByTenantIdEntityId;
@@ -59,6 +60,7 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
@@ -144,6 +146,10 @@ public abstract class AbstractTbEntityService {
             result.add(edgeId);
         }
         return result;
+    }
+
+    protected <I extends EntityId> I emptyId(EntityType entityType) {
+        return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
 
     protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, EntityGroup entityGroup,

@@ -61,7 +61,6 @@ import org.thingsboard.server.common.data.HomeDashboard;
 import org.thingsboard.server.common.data.HomeDashboardInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -221,16 +220,10 @@ public class DashboardController extends BaseController {
     public void deleteDashboard(
             @ApiParam(value = DASHBOARD_ID_PARAM_DESCRIPTION)
             @PathVariable(DASHBOARD_ID) String strDashboardId) throws ThingsboardException {
-        try {
-            checkParameter(DASHBOARD_ID, strDashboardId);
-            DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
-            Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
-            tbDashboardService.delete(dashboard, getCurrentUser());
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.DASHBOARD), ActionType.DELETED,
-                    getCurrentUser(), e, strDashboardId);
-            throw handleException(e);
-        }
+        checkParameter(DASHBOARD_ID, strDashboardId);
+        DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
+        Dashboard dashboard = checkDashboardId(dashboardId, Operation.DELETE);
+        tbDashboardService.delete(dashboard, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Dashboards by System Administrator (getTenantDashboards)",

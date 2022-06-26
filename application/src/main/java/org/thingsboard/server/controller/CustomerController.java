@@ -50,7 +50,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -215,16 +214,10 @@ public class CustomerController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteCustomer(@ApiParam(value = CUSTOMER_ID_PARAM_DESCRIPTION)
                                @PathVariable(CUSTOMER_ID) String strCustomerId) throws ThingsboardException {
-        try {
-            checkParameter(CUSTOMER_ID, strCustomerId);
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
-            Customer customer = checkCustomerId(customerId, Operation.DELETE);
-            tbCustomerService.delete(customer, getCurrentUser());
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CUSTOMER), ActionType.DELETED,
-                    getCurrentUser(), e, strCustomerId);
-            throw handleException(e);
-        }
+        checkParameter(CUSTOMER_ID, strCustomerId);
+        CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+        Customer customer = checkCustomerId(customerId, Operation.DELETE);
+        tbCustomerService.delete(customer, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Customers (getCustomers)",

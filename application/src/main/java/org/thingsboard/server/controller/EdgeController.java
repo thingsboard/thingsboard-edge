@@ -52,7 +52,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -158,38 +157,32 @@ public class EdgeController extends BaseController {
     public Edge saveEdge(
             @ApiParam(value = "A JSON value representing the edge.", required = true)
             @RequestBody Edge edge,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            edge.setTenantId(tenantId);
-            boolean created = edge.getId() == null;
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        edge.setTenantId(tenantId);
+        boolean created = edge.getId() == null;
 
-            RuleChain edgeTemplateRootRuleChain = null;
-            if (created) {
-                edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);
-                if (edgeTemplateRootRuleChain == null) {
-                    throw new DataValidationException("Root edge rule chain is not available!");
-                }
+        RuleChain edgeTemplateRootRuleChain = null;
+        if (created) {
+            edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);
+            if (edgeTemplateRootRuleChain == null) {
+                throw new DataValidationException("Root edge rule chain is not available!");
             }
-
-            EntityGroupId entityGroupId = null;
-            EntityGroup entityGroup = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
-            }
-
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
-                    edge.getId(), edge, entityGroupId);
-
-            return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
-        } catch (Exception e) {
-            ActionType actionType = edge.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.EDGE), edge, actionType, getCurrentUser(), e);
-            throw handleException(e);
         }
+
+        EntityGroupId entityGroupId = null;
+        EntityGroup entityGroup = null;
+        if (!StringUtils.isEmpty(strEntityGroupId)) {
+            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        }
+
+        Operation operation = created ? Operation.CREATE : Operation.WRITE;
+
+        accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
+                edge.getId(), edge, entityGroupId);
+
+        return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete edge (deleteEdge)",
@@ -200,16 +193,10 @@ public class EdgeController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                            @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
-        try {
-            checkParameter(EDGE_ID, strEdgeId);
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.DELETE);
-            tbEdgeService.delete(edge, getCurrentUser());
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.EDGE), ActionType.DELETED,
-                    getCurrentUser(), e, strEdgeId);
-            throw handleException(e);
-        }
+        checkParameter(EDGE_ID, strEdgeId);
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        Edge edge = checkEdgeId(edgeId, Operation.DELETE);
+        tbEdgeService.delete(edge, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Edges (getEdges)",
@@ -298,21 +285,15 @@ public class EdgeController extends BaseController {
     public Edge setEdgeRootRuleChain(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                      @PathVariable(EDGE_ID) String strEdgeId,
                                      @ApiParam(value = RULE_CHAIN_ID_PARAM_DESCRIPTION, required = true)
-                                     @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
-        try {
-            checkParameter(EDGE_ID, strEdgeId);
-            checkParameter("ruleChainId", strRuleChainId);
-            RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
-            checkRuleChain(ruleChainId, Operation.READ);
+                                     @PathVariable("ruleChainId") String strRuleChainId) throws Exception {
+        checkParameter(EDGE_ID, strEdgeId);
+        checkParameter("ruleChainId", strRuleChainId);
+        RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
+        checkRuleChain(ruleChainId, Operation.READ);
 
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            Edge edge = checkEdgeId(edgeId, Operation.WRITE);
-            return tbEdgeService.setEdgeRootRuleChain(edge, ruleChainId, getCurrentUser());
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.EDGE),
-                    ActionType.UPDATED, getCurrentUser(), e, strEdgeId);
-            throw handleException(e);
-        }
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        Edge edge = checkEdgeId(edgeId, Operation.WRITE);
+        return tbEdgeService.setEdgeRootRuleChain(edge, ruleChainId, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Customer Edges (getCustomerEdges)",

@@ -54,7 +54,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -224,62 +223,56 @@ public class UserController extends BaseController {
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
             HttpServletRequest request) throws ThingsboardException {
-        try {
-            if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
-                user.setTenantId(getCurrentUser().getTenantId());
-            }
+        if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
+            user.setTenantId(getCurrentUser().getTenantId());
+        }
 
-            EntityGroupId entityGroupId = null;
-            EntityGroup entityGroup = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
-            }
+        EntityGroupId entityGroupId = null;
+        EntityGroup entityGroup = null;
+        if (!StringUtils.isEmpty(strEntityGroupId)) {
+            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        }
 
-            if (user.getId() == null && getCurrentUser().getAuthority() != Authority.SYS_ADMIN &&
-                    (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
-                if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
-                    user.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
-                } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
-                    user.setOwnerId(getCurrentUser().getCustomerId());
-                }
+        if (user.getId() == null && getCurrentUser().getAuthority() != Authority.SYS_ADMIN &&
+                (user.getCustomerId() == null || user.getCustomerId().isNullUid())) {
+            if (entityGroup != null && entityGroup.getOwnerId().getEntityType() == EntityType.CUSTOMER) {
+                user.setOwnerId(new CustomerId(entityGroup.getOwnerId().getId()));
+            } else if (getCurrentUser().getAuthority() == Authority.CUSTOMER_USER) {
+                user.setOwnerId(getCurrentUser().getCustomerId());
             }
+        }
 
-            if (getCurrentUser().getId().equals(user.getId())) {
-                accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
-            } else {
-                checkEntity(user.getId(), user, Resource.USER, entityGroupId);
-            }
+        if (getCurrentUser().getId().equals(user.getId())) {
+            accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
+        } else {
+            checkEntity(user.getId(), user, Resource.USER, entityGroupId);
+        }
 
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
-                String prevHomeDashboardId = null;
-                boolean prevHideDashboardToolbar = true;
-                if (user.getId() != null) {
-                    User prevUser = userService.findUserById(getTenantId(), user.getId());
-                    JsonNode additionalInfo = prevUser.getAdditionalInfo();
-                    if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
-                        prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
-                        if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
-                            prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
-                        }
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
+            String prevHomeDashboardId = null;
+            boolean prevHideDashboardToolbar = true;
+            if (user.getId() != null) {
+                User prevUser = userService.findUserById(getTenantId(), user.getId());
+                JsonNode additionalInfo = prevUser.getAdditionalInfo();
+                if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                    prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                    if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                        prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
                     }
                 }
-                JsonNode additionalInfo = user.getAdditionalInfo();
-                if (additionalInfo == null) {
-                    additionalInfo = JacksonUtil.newObjectNode();
-                    user.setAdditionalInfo(additionalInfo);
-                }
-                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
-                ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
             }
-
-            return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
-                    user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
-        } catch (Exception e) {
-            ActionType actionType = user.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.USER), user, actionType, getCurrentUser(), e);
-            throw handleException(e);
+            JsonNode additionalInfo = user.getAdditionalInfo();
+            if (additionalInfo == null) {
+                additionalInfo = JacksonUtil.newObjectNode();
+                user.setAdditionalInfo(additionalInfo);
+            }
+            ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_ID, prevHomeDashboardId);
+            ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
+
+        return tbUserService.save(getTenantId(), getCurrentUser().getCustomerId(), getCurrentUser().getAuthority(),
+                user, sendActivationMail, request, entityGroupId, entityGroup, getCurrentUser());
     }
 
     @ApiOperation(value = "Send or re-send the activation email",
@@ -349,21 +342,15 @@ public class UserController extends BaseController {
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
-        try {
-            UserId userId = new UserId(toUUID(strUserId));
-            User user = checkUserId(userId, Operation.DELETE);
-            if (user.getAuthority() == Authority.SYS_ADMIN && getCurrentUser().getId().equals(userId)) {
-                throw new ThingsboardException("Sysadmin is not allowed to delete himself", ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-
-            userPermissionsService.onUserUpdatedOrRemoved(user);
-
-            tbUserService.delete(getTenantId(), getCurrentUser().getCustomerId(), user, getCurrentUser());
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.USER),
-                    ActionType.DELETED, getCurrentUser(), e, strUserId);
-            throw handleException(e);
+        UserId userId = new UserId(toUUID(strUserId));
+        User user = checkUserId(userId, Operation.DELETE);
+        if (user.getAuthority() == Authority.SYS_ADMIN && getCurrentUser().getId().equals(userId)) {
+            throw new ThingsboardException("Sysadmin is not allowed to delete himself", ThingsboardErrorCode.PERMISSION_DENIED);
         }
+
+        userPermissionsService.onUserUpdatedOrRemoved(user);
+
+        tbUserService.delete(getTenantId(), getCurrentUser().getCustomerId(), user, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Users (getTenantAdmins)",
@@ -515,7 +502,8 @@ public class UserController extends BaseController {
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId,
             @ApiParam(value = "Disable (\"true\") or enable (\"false\") the credentials.", defaultValue = "true")
-            @RequestParam(required = false, defaultValue = "true") boolean userCredentialsEnabled) throws ThingsboardException {
+            @RequestParam(required = false, defaultValue = "true") boolean userCredentialsEnabled) throws
+            ThingsboardException {
         checkParameter(USER_ID, strUserId);
         try {
             UserId userId = new UserId(toUUID(strUserId));

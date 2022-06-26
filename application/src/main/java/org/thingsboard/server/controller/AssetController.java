@@ -51,7 +51,6 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -156,17 +155,11 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteAsset(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+    public void deleteAsset(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws Exception {
         checkParameter(ASSET_ID, strAssetId);
-        try {
-            AssetId assetId = new AssetId(toUUID(strAssetId));
-            Asset asset = checkAssetId(assetId, Operation.DELETE);
-            tbAssetService.delete(asset, getCurrentUser()).get();
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ASSET), ActionType.DELETED,
-                    getCurrentUser(), e, strAssetId);
-            throw handleException(e);
-        }
+        AssetId assetId = new AssetId(toUUID(strAssetId));
+        Asset asset = checkAssetId(assetId, Operation.DELETE);
+        tbAssetService.delete(asset, getCurrentUser()).get();
     }
 
     @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",

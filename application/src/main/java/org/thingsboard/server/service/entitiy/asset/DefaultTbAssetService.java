@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.asset;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -61,20 +62,31 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
     public Asset save(Asset asset, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = asset.getTenantId();
-        Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
-        createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
-        return savedAsset;
+        try {
+            Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
+            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
+            return savedAsset;
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), asset, actionType, user, e);
+            throw e;
+        }
     }
 
     @Override
     public ListenableFuture<Void> delete(Asset asset, User user) {
         TenantId tenantId = asset.getTenantId();
         AssetId assetId = asset.getId();
-        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, assetId);
-        assetService.deleteAsset(tenantId, assetId);
-        notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(), ActionType.DELETED,
-                relatedEdgeIds, user, assetId.toString());
+        try {
+            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, assetId);
+            assetService.deleteAsset(tenantId, assetId);
+            notificationEntityService.notifyDeleteEntity(tenantId, assetId, asset, asset.getCustomerId(),
+                    ActionType.DELETED, relatedEdgeIds, user, assetId.toString());
 
-        return removeAlarmsByEntityId(tenantId, assetId);
+            return removeAlarmsByEntityId(tenantId, assetId);
+        } catch (Exception e) {
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), ActionType.DELETED, user, e,
+                    assetId.toString());
+            throw e;
+        }
     }
 }

@@ -50,7 +50,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -152,15 +151,9 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = ENTITY_VIEW_ID_PARAM_DESCRIPTION)
             @PathVariable(ENTITY_VIEW_ID) String strEntityViewId) throws ThingsboardException {
         checkParameter(ENTITY_VIEW_ID, strEntityViewId);
-        try {
-            EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
-            EntityView entityView = checkEntityViewId(entityViewId, Operation.DELETE);
-            tbEntityViewService.delete(entityView, getCurrentUser());
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_VIEW),
-                    ActionType.DELETED, getCurrentUser(), e, strEntityViewId);
-            throw handleException(e);
-        }
+        EntityViewId entityViewId = new EntityViewId(toUUID(strEntityViewId));
+        EntityView entityView = checkEntityViewId(entityViewId, Operation.DELETE);
+        tbEntityViewService.delete(entityView, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Entity View by name (getTenantEntityView)",
