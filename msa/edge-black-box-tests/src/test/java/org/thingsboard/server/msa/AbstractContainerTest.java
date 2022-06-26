@@ -131,7 +131,7 @@ public abstract class AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
-                            Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = restClient.getCurrentLoginWhiteLabelParams();
+                            Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
                             return cloudLoginWhiteLabelParams.isPresent() &&
                                     "tenant.org".equals(cloudLoginWhiteLabelParams.get().getDomainName());
                         });
@@ -227,37 +227,37 @@ public abstract class AbstractContainerTest {
     }
 
     private static void setWhiteLabelingAndCustomTranslation() throws JsonProcessingException {
-        restClient.login("sysadmin@thingsboard.org", "sysadmin");
+        cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
 
         CustomTranslation content = new CustomTranslation();
         ObjectNode enUsSysAdmin = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         enUsSysAdmin.put("home.home", "SYS_ADMIN_HOME");
         content.getTranslationMap().put("en_us", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsSysAdmin));
-        restClient.saveCustomTranslation(content);
+        cloudRestClient.saveCustomTranslation(content);
 
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setAppTitle("Sys Admin TB");
-        restClient.saveWhiteLabelParams(whiteLabelingParams);
+        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
 
         LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
         loginWhiteLabelingParams.setDomainName("sysadmin.org");
-        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
+        cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
 
-        restClient.login("tenant@thingsboard.org", "tenant");
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
         content = new CustomTranslation();
         ObjectNode enUsTenant = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         enUsTenant.put("home.home", "TENANT_HOME");
         content.getTranslationMap().put("en_us", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsTenant));
-        restClient.saveCustomTranslation(content);
+        cloudRestClient.saveCustomTranslation(content);
 
         whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setAppTitle("Tenant TB");
-        restClient.saveWhiteLabelParams(whiteLabelingParams);
+        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
 
         loginWhiteLabelingParams = new LoginWhiteLabelingParams();
         loginWhiteLabelingParams.setDomainName("tenant.org");
-        restClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
+        cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
     }
 
     @Rule
