@@ -28,44 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.rpc;
+package org.thingsboard.server.transport.coap;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
-import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.eclipse.californium.core.CoapHandler;
+import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.coap.CoAP;
+
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
-@DaoSqlTest
-public class CoapServerSideRpcJsonIntegrationTest extends AbstractCoapServerSideRpcIntegrationTest {
+@Data
+public class CoapTestCallback implements CoapHandler {
 
-    @Before
-    public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("RPC test device")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
-                .transportPayloadType(TransportPayloadType.JSON)
-                .build();
-        processBeforeTest(configProperties);
+    protected final CountDownLatch latch;
+    protected Integer observe;
+    protected byte[] payloadBytes;
+    protected CoAP.ResponseCode responseCode;
+
+    public CoapTestCallback() {
+        this.latch = new CountDownLatch(1);
     }
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
+    public CoapTestCallback(int subscribeCount) {
+        this.latch = new CountDownLatch(subscribeCount);
     }
 
-    @Test
-    public void testServerCoapOneWayRpc() throws Exception {
-        processOneWayRpcTest(false);
+    public Integer getObserve() {
+        return observe;
     }
 
-    @Test
-    public void testServerCoapTwoWayRpc() throws Exception {
-        processTwoWayRpcTest("{\"value1\":\"A\",\"value2\":\"B\"}", false);
+    public byte[] getPayloadBytes() {
+        return payloadBytes;
+    }
+
+    public CoAP.ResponseCode getResponseCode() {
+        return responseCode;
+    }
+
+    @Override
+    public void onLoad(CoapResponse response) {
+        observe = response.getOptions().getObserve();
+        payloadBytes = response.getPayload();
+        responseCode = response.getCode();
+        latch.countDown();
+    }
+
+    @Override
+    public void onError() {
+        log.warn("Command Response Ack Error, No connect");
     }
 
 }
