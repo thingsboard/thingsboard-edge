@@ -28,36 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.server.cache;
 
-import lombok.extern.slf4j.Slf4j;
-import org.nustaq.serialization.FSTConfiguration;
-import org.springframework.stereotype.Service;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.thingsboard.server.common.data.FSTUtils;
 
-import java.util.Optional;
-
-@Slf4j
-@Service
-public class ProtoWithFSTService implements DataDecodingEncodingService {
-
-    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
+public class TbFSTRedisSerializer<K, V> implements TbRedisSerializer<K, V> {
 
     @Override
-    public <T> Optional<T> decode(byte[] byteArray) {
-        try {
-            return Optional.ofNullable(FSTUtils.decode(byteArray));
-        } catch (IllegalArgumentException e) {
-            log.error("Error during deserialization message, [{}]", e.getMessage());
-            return Optional.empty();
-        }
+    public byte[] serialize(V value) throws SerializationException {
+        return FSTUtils.encode(value);
     }
-
 
     @Override
-    public <T> byte[] encode(T msq) {
-        return FSTUtils.encode(msq);
+    public V deserialize(K key, byte[] bytes) throws SerializationException {
+        return FSTUtils.decode(bytes);
     }
-
-
 }
