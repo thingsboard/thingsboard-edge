@@ -61,7 +61,8 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
             createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
             return savedCustomer;
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), customer, null, actionType, user, e);
+            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.CUSTOMER), customer, null,
+                    actionType, user, e);
             throw handleException(e);
         }
     }
