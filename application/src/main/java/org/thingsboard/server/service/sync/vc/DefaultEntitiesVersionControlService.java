@@ -212,9 +212,11 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private <T> T getStatus(SecurityUser user, UUID requestId, Function<VersionControlTaskCacheEntry, T> getter) throws ThingsboardException {
         var cacheEntry = taskCache.get(requestId);
         if (cacheEntry == null || cacheEntry.get() == null) {
+            log.debug("[{}] No cache record: {}", requestId, cacheEntry);
             throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);
         } else {
             var entry = cacheEntry.get();
+            log.debug("[{}] Cache get: {}", requestId, entry);
             var result = getter.apply(entry);
             if (result == null) {
                 throw new ThingsboardException(ThingsboardErrorCode.BAD_REQUEST_PARAMS);
@@ -640,6 +642,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     @SuppressWarnings({"rawtypes", "unchecked"})
     private List<EntityImportResult<?>> importEntityDataList(EntitiesImportCtx ctx, EntityType entityType,
                                                              List<EntityExportData> entityDataList) {
+        log.debug("[{}] Loading {} entities pack ({})", ctx.getTenantId(), entityType, entityDataList.size());
         List<EntityImportResult<?>> importResults = new ArrayList<>();
         for (EntityExportData entityData : entityDataList) {
             EntityExportData reimportBackup = JacksonUtil.clone(entityData);
@@ -660,6 +663,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             EntityId savedEntityId = importResult.getSavedEntity().getId();
             ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>()).add(savedEntityId);
         }
+        log.debug("Imported {} pack for tenant {}", entityType, ctx.getTenantId());
         return importResults;
     }
 
@@ -766,7 +770,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             future = gitServiceQueue.getEntity(user.getTenantId(), versionId, customerIds, externalId);
         }
 
-        return transformAsync(future,
+        return transform(future,
                 otherVersion -> {
                     SimpleEntitiesExportCtx ctx = new SimpleEntitiesExportCtx(user, null, null, EntityExportSettings.builder()
                             .exportRelations(otherVersion.hasRelations())
@@ -775,11 +779,13 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                             .exportPermissions(otherVersion.hasPermissions())
                             .exportGroupEntities(otherVersion.hasGroupEntities())
                             .build());
-                    EntityExportData<?> currentVersion = exportImportService.exportEntity(ctx, entityId);
-                    return transform(gitServiceQueue.getContentsDiff(user.getTenantId(),
-                            JacksonUtil.toPrettyString(currentVersion.sort()),
-                            JacksonUtil.toPrettyString(otherVersion.sort())),
-                            rawDiff -> new EntityDataDiff(currentVersion, otherVersion, rawDiff), MoreExecutors.directExecutor());
+                    EntityExportData<?> currentVersion;
+                    try {
+                        currentVersion = exportImportService.exportEntity(ctx, entityId);
+                    } catch (ThingsboardException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return new EntityDataDiff(currentVersion.sort(), otherVersion.sort());
                 }, MoreExecutors.directExecutor());
     }
 

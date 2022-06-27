@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.data;
 
+import com.google.common.base.Splitter;
+
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class StringUtils {
@@ -109,6 +111,10 @@ public class StringUtils {
 
     public static String emptyIfNull(String src){
         return src != null ? src : "";
+    }
+
+    public static Iterable<String> split(String value, int maxPartSize) {
+        return Splitter.fixedLength(maxPartSize).split(value);
     }
 
 }

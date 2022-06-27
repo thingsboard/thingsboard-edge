@@ -270,7 +270,6 @@ export interface EntityGroupExportData extends EntityExportData<EntityGroup> {
 export interface EntityDataDiff {
   currentVersion: EntityExportData<any>;
   otherVersion: EntityExportData<any>;
-  rawDiff: string;
 }
 
 export function entityExportDataToJsonString(data: EntityExportData<any>): string {
