@@ -33,11 +33,15 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ElementRef, EventEmitter,
+  ElementRef,
+  EventEmitter,
   Input,
   OnDestroy,
-  OnInit, Output, Renderer2,
-  ViewChild, ViewContainerRef
+  OnInit,
+  Output,
+  Renderer2,
+  ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
@@ -233,7 +237,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
               }
             }
           }
-        }, {}, {}, {}, false);
+        }, {maxHeight: '100vh', height: '100%', padding: '10px'}, {}, {}, false);
       createVersionPopover.tbComponentRef.instance.popoverComponent = createVersionPopover;
     }
   }
@@ -260,7 +264,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
               }
             }
           }
-        }, {}, {}, {}, false);
+        }, {maxHeight: '100vh', height: '100%', padding: '10px'}, {}, {}, false);
       complexCreateVersionPopover.tbComponentRef.instance.popoverComponent = complexCreateVersionPopover;
     }
   }
@@ -313,7 +317,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
               this.versionRestored.emit();
             }
           }
-        }, {}, {}, {}, false);
+        }, {maxHeight: '100vh', height: '100%', padding: '10px'}, {}, {}, false);
       restoreVersionPopover.tbComponentRef.instance.popoverComponent = restoreVersionPopover;
     }
   }
@@ -335,7 +339,7 @@ export class EntityVersionsTableComponent extends PageComponent implements OnIni
           onClose: (result: VersionLoadResult | null) => {
             restoreEntitiesVersionPopover.hide();
           }
-        }, {}, {}, {}, false);
+        }, {maxHeight: '100vh', height: '100%', padding: '10px'}, {}, {}, false);
       restoreEntitiesVersionPopover.tbComponentRef.instance.popoverComponent = restoreEntitiesVersionPopover;
     }
   }
