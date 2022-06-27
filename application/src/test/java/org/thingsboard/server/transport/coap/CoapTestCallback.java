@@ -28,17 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts;
+package org.thingsboard.server.transport.coap;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.californium.core.CoapHandler;
+import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.coap.CoAP;
 
-import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
-public interface AggregationTimeseriesDao {
+@Slf4j
+@Data
+public class CoapTestCallback implements CoapHandler {
 
-    ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, ReadTsKvQuery query);
+    protected final CountDownLatch latch;
+    protected Integer observe;
+    protected byte[] payloadBytes;
+    protected CoAP.ResponseCode responseCode;
+
+    public CoapTestCallback() {
+        this.latch = new CountDownLatch(1);
+    }
+
+    public CoapTestCallback(int subscribeCount) {
+        this.latch = new CountDownLatch(subscribeCount);
+    }
+
+    public Integer getObserve() {
+        return observe;
+    }
+
+    public byte[] getPayloadBytes() {
+        return payloadBytes;
+    }
+
+    public CoAP.ResponseCode getResponseCode() {
+        return responseCode;
+    }
+
+    @Override
+    public void onLoad(CoapResponse response) {
+        observe = response.getOptions().getObserve();
+        payloadBytes = response.getPayload();
+        responseCode = response.getCode();
+        latch.countDown();
+    }
+
+    @Override
+    public void onError() {
+        log.warn("Command Response Ack Error, No connect");
+    }
+
 }

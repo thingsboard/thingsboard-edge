@@ -40,7 +40,7 @@ services:
     environment:
       INTEGRATION_ROUTING_KEY: routing-key-123456
       INTEGRATION_SECRET: secret-key-123456
-      RPC_HOST: tb-core1
+      RPC_HOST: haproxy
       RPC_PORT: 9090
   tb-pe-mqtt-integration:
     restart: always
@@ -50,5 +50,5 @@ services:
     environment:
       INTEGRATION_ROUTING_KEY: routing-key-1234567
       INTEGRATION_SECRET: secret-key-1234567
-      RPC_HOST: tb-core1
+      RPC_HOST: haproxy
       RPC_PORT: 9090

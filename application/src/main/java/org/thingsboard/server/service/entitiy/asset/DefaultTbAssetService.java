@@ -58,7 +58,7 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
         TenantId tenantId = asset.getTenantId();
         try {
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
-            vcService.autoCommit(user, savedAsset.getId());
+            autoCommit(user, savedAsset.getId());
             createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
             return savedAsset;
         } catch (Exception e) {

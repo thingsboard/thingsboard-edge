@@ -28,17 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts;
+:host {
+  .fields-element {
+    padding-top: 15px;
+  }
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
-import org.thingsboard.server.common.data.kv.TsKvEntry;
+  .group-title > span {
+    color: rgba(0, 0, 0, 0.54);
+  }
 
-import java.util.List;
+  ::ng-deep {
+    .mat-expansion-panel {
+      &.configuration-panel {
+        box-shadow: none;
 
-public interface AggregationTimeseriesDao {
+        .mat-expansion-panel-header {
+          padding: 0;
 
-    ListenableFuture<List<TsKvEntry>> findAllAsync(TenantId tenantId, EntityId entityId, ReadTsKvQuery query);
+          &:hover {
+            background: none !important;
+          }
+
+          .mat-expansion-indicator {
+            padding: 2px;
+          }
+        }
+
+        > .mat-expansion-panel-content {
+          > .mat-expansion-panel-body {
+            padding: 0;
+          }
+        }
+
+        .mat-expansion-panel-header-description {
+          align-items: center;
+        }
+      }
+    }
+  }
 }
