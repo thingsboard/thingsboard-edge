@@ -38,7 +38,6 @@ ENV PUPPETEER_SKIP_DOWNLOAD true
 ENV DOCKER_MODE true
 
 COPY start-web-report.sh /tmp/
-ADD https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip /noto/NotoSansCJKjp-hinted.zip
 
 WORKDIR ${pkg.installFolder}
 
@@ -51,9 +50,11 @@ COPY src/api ./api
 COPY src/server.js ./
 
 RUN apt-get update \
-    && apt-get install -yq wget unzip fonts-roboto chromium \
+    && apt-get install -yq --no-install-recommends wget unzip fonts-roboto chromium \
     && apt-get clean \
     && rm -r /var/lib/apt/lists/* \
+    && mkdir -p /noto \
+    && wget --no-verbose -O /noto/NotoSansCJKjp-hinted.zip https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip \
     && unzip /noto/NotoSansCJKjp-hinted.zip -d /noto && \
     mkdir -p /usr/share/fonts/noto && \
     cp /noto/*.otf /usr/share/fonts/noto && \

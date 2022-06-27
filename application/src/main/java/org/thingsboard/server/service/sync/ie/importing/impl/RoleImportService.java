@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -91,7 +91,8 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
 
     @Override
     protected void onEntitySaved(User user, Role savedRole, Role oldRole) throws ThingsboardException {
-        super.onEntitySaved(user, savedRole, oldRole);
+        entityNotificationService.notifyCreateOrUpdateOrDelete(savedRole.getTenantId(), null,
+                savedRole.getId(), savedRole, user, oldRole == null ? ActionType.ADDED : ActionType.UPDATED, true, null);
         userPermissionsService.onRoleUpdated(savedRole);
     }
 
