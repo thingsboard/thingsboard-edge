@@ -33,6 +33,7 @@ package org.thingsboard.server.service.sync.vc.data;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -109,4 +110,9 @@ public abstract class EntitiesExportCtx<R extends VersionCreateRequest> {
         log.debug("[{}][{}] Local cache put: {}", internalId.getEntityType(), internalId.getId(), externalId);
         externalIdMap.put(internalId, externalId != null ? externalId : internalId);
     }
+
+    public boolean shouldExportEntities(EntityType entityType) {
+        return entityType != EntityType.USER;
+    }
+
 }

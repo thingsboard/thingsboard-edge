@@ -113,7 +113,6 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
 
     @Override
     protected EntityGroup saveOrUpdate(EntitiesImportCtx ctx, EntityGroup entity, EntityGroupExportData exportData, IdProvider idProvider) {
-        // TODO [viacheslav]: update actions config
         return entityGroupService.saveEntityGroup(ctx.getTenantId(), entity.getOwnerId(), entity);
     }
 
@@ -136,7 +135,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                 permission.setId(null);
                 permission.setTenantId(tenantId);
                 permission.setRoleId(idProvider.getInternalId(permission.getRoleId()));
-                permission.setUserGroupId(idProvider.getInternalId(permission.getUserGroupId()));
+                permission.setUserGroupId(userGroup.getId());
                 permission.setEntityGroupId(idProvider.getInternalId(permission.getEntityGroupId()));
             }
 
@@ -192,11 +191,13 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected void onEntitySaved(User user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) throws ThingsboardException {
-        super.onEntitySaved(user, savedEntityGroup, oldEntityGroup);
-        if (oldEntityGroup != null) {
-            entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
+    protected boolean compare(EntitiesImportCtx ctx, EntityGroupExportData exportData, EntityGroup prepared, EntityGroup existing) {
+        boolean different = super.compare(ctx, exportData, prepared, existing);
+        if (!different) {
+            different = ctx.isSaveUserGroupPermissions() && exportData.getPermissions() != null
+                    && prepared.getType() == EntityType.USER;
         }
+        return different;
     }
 
     @Override

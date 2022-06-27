@@ -173,5 +173,8 @@ public class EntitiesImportCtx {
         return notFoundIds.contains(externalId);
     }
 
+    public boolean shouldImportEntities(EntityType entityType) {
+        return entityType != EntityType.USER;
+    }
 
 }
