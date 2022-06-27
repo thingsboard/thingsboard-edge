@@ -253,7 +253,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         try {
             if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) && !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
                 sendNotificationMsgToEdge(tenantId, null, null, JacksonUtil.toString(relation),
-                        EdgeEventType.RELATION, edgeTypeByActionType(actionType), null, null);
+                        EdgeEventType.RELATION, edgeTypeByActionType(actionType));
             }
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
@@ -301,7 +301,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
     }
 
-    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                           EdgeEventType type, EdgeEventActionType action) {
         tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action);
     }
 

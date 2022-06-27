@@ -45,7 +45,6 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
@@ -131,7 +130,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.util.concurrent.Futures.transform;
-import static com.google.common.util.concurrent.Futures.transformAsync;
 
 @Service
 @TbCoreComponent

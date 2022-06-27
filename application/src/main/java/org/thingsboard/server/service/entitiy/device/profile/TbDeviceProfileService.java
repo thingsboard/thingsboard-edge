@@ -36,8 +36,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 
 public interface TbDeviceProfileService {
 
-    DeviceProfile save(DeviceProfile deviceProfile) throws Exception;
-
     DeviceProfile save(DeviceProfile deviceProfile, User user) throws Exception;
 
     void delete(DeviceProfile deviceProfile, User user) throws ThingsboardException;

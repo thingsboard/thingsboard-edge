@@ -57,11 +57,6 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
     private final OtaPackageStateService otaPackageStateService;
 
     @Override
-    public DeviceProfile save(DeviceProfile deviceProfile) throws Exception {
-        return save(deviceProfile, null);
-    }
-
-    @Override
     public DeviceProfile save(DeviceProfile deviceProfile, User user) throws Exception {
         ActionType actionType = deviceProfile.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = deviceProfile.getTenantId();

@@ -47,7 +47,6 @@ import org.thingsboard.server.common.data.sync.ie.EntityImportResult;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.apiusage.RateLimitService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.sync.ie.exporting.EntityExportService;

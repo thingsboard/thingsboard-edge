@@ -45,11 +45,11 @@ import java.util.List;
 
 public interface TbResourceService {
 
+    TbResource save(TbResource entity) throws ThingsboardException;
+
     TbResource save(TbResource entity, User user) throws ThingsboardException;
 
     void delete(TbResource entity, User user);
-
-    TbResource saveResourceInternal(TbResource resource) throws ThingsboardException;
 
     TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceKey);
 

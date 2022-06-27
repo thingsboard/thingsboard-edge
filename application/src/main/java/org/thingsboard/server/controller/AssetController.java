@@ -150,7 +150,7 @@ public class AssetController extends BaseController {
             try {
                 return tbAssetService.save(asset, entityGroup, user);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw handleException(e);
             }
         });
     }
