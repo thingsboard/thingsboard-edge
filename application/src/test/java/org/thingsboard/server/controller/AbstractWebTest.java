@@ -297,7 +297,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         login(userName, password);
     }
 
-    private Tenant savedDifferentTenant;
+    protected Tenant savedDifferentTenant;
+    protected User savedDifferentTenantUser;
     private Customer savedDifferentCustomer;
 
     protected void loginDifferentTenant() throws Exception {

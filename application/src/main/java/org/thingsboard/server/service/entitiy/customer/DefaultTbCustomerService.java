@@ -36,7 +36,6 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -50,7 +49,7 @@ import java.util.List;
 public class DefaultTbCustomerService extends AbstractTbEntityService implements TbCustomerService {
 
     @Override
-    public Customer save(Customer customer, EntityGroup entityGroup, User user) throws ThingsboardException {
+    public Customer save(Customer customer, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = customer.getTenantId();
         try {
@@ -60,7 +59,7 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
             return savedCustomer;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), customer, actionType, user, e);
-            throw new ThingsboardException();
+            throw e;
         }
     }
 
