@@ -73,25 +73,20 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
     private final TenantService tenantService;
 
     @Override
-    public Device save(Device device, EntityGroup entityGroup) throws ThingsboardException {
+    public Device save(Device device, EntityGroup entityGroup) throws Exception {
         return save(device, null, entityGroup, null);
     }
 
     @Override
-    public Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws ThingsboardException {
+    public Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = device.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = device.getTenantId();
-        try {
-
-            Device oldDevice = device.getId() == null ? null : deviceService.findDeviceById(tenantId, device.getId());
-            Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
-            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
-            tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
-            return savedDevice;
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE), device, actionType, user, e);
-            throw e;
-        }
+        Device oldDevice = device.getId() == null ? null : deviceService.findDeviceById(tenantId, device.getId());
+        Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
+        autoCommit(user, savedDevice.getId());
+        createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
+        tbClusterService.onDeviceUpdated(savedDevice, oldDevice);
+        return savedDevice;
     }
 
     @Override

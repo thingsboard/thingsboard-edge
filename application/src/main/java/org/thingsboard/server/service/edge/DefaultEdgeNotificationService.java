@@ -159,8 +159,11 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case DASHBOARD:
                 case CUSTOMER:
                 case RULE_CHAIN:
+                case OTA_PACKAGE:
                 case SCHEDULER_EVENT:
                 case ENTITY_GROUP:
+                case INTEGRATION:
+                case CONVERTER:
                     future = entityProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case WIDGETS_BUNDLE:

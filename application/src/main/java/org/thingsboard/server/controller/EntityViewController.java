@@ -138,7 +138,13 @@ public class EntityViewController extends BaseController {
             @RequestBody EntityView entityView,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, entityGroup, user));
+        return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> {
+            try {
+                return tbEntityViewService.save(entityView1, entityGroup, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete entity view (deleteEntityView)",

@@ -35,7 +35,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -46,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Converter extends SearchTextBased<ConverterId> implements HasName, TenantEntity {
+public class Converter extends SearchTextBased<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId> {
 
     private static final long serialVersionUID = -1541581333235769915L;
 
@@ -58,6 +61,10 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
     private boolean debugMode;
     private JsonNode configuration;
     private JsonNode additionalInfo;
+    private boolean edgeTemplate;
+
+    @Getter @Setter
+    private ConverterId externalId;
 
     public Converter() {
         super();
@@ -75,6 +82,8 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.debugMode = converter.isDebugMode();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
+        this.externalId = converter.getExternalId();
+        this.edgeTemplate = converter.isEdgeTemplate();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Converter Id. " +
@@ -149,6 +158,15 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         this.additionalInfo = additionalInfo;
     }
 
+    @ApiModelProperty(position = 9, value = "Boolean flag that specifies that is regular or edge template converter")
+    public boolean isEdgeTemplate() {
+        return edgeTemplate;
+    }
+
+    public void setEdgeTemplate(boolean edgeTemplate) {
+        this.edgeTemplate = edgeTemplate;
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -169,6 +187,8 @@ public class Converter extends SearchTextBased<ConverterId> implements HasName, 
         builder.append(configuration);
         builder.append(", additionalInfo=");
         builder.append(additionalInfo);
+        builder.append(", edgeTemplate=");
+        builder.append(edgeTemplate);
         builder.append(", createdTime=");
         builder.append(createdTime);
         builder.append(", id=");

@@ -63,6 +63,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     public TenantAdminPermissions() {
         super();
+        //TODO: entities-version-merge
+        put(Resource.ADMIN_SETTINGS, PermissionChecker.allowAllPermissionChecker);
         put(Resource.PROFILE, genericPermissionChecker);
         put(Resource.ALARM, tenantStandaloneEntityPermissionChecker);
         put(Resource.ASSET, tenantGroupEntityPermissionChecker);
@@ -96,6 +98,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.TB_RESOURCE, tbResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, tenantStandaloneEntityPermissionChecker);
         put(Resource.QUEUE, queuePermissionChecker);
+        put(Resource.VERSION_CONTROL, genericPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {

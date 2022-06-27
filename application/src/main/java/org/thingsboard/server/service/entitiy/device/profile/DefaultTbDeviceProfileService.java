@@ -57,12 +57,12 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
     private final OtaPackageStateService otaPackageStateService;
 
     @Override
-    public DeviceProfile save(DeviceProfile deviceProfile) throws ThingsboardException {
+    public DeviceProfile save(DeviceProfile deviceProfile) throws Exception {
         return save(deviceProfile, null);
     }
 
     @Override
-    public DeviceProfile save(DeviceProfile deviceProfile, User user) throws ThingsboardException {
+    public DeviceProfile save(DeviceProfile deviceProfile, User user) throws Exception {
         ActionType actionType = deviceProfile.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = deviceProfile.getTenantId();
         try {
@@ -79,7 +79,7 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
                 }
             }
             DeviceProfile savedDeviceProfile = checkNotNull(deviceProfileService.saveDeviceProfile(deviceProfile));
-
+            autoCommit(user, savedDeviceProfile.getId());
             tbClusterService.onDeviceProfileChange(savedDeviceProfile, null);
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedDeviceProfile.getId(),
                     actionType.equals(ActionType.ADDED) ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);

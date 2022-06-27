@@ -29,11 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
-import { DeviceTransportType } from '@shared/models/device.models';
+import { EntityGroupParams } from '@shared/models/entity-group.models';
+import { ActivatedRouteSnapshot } from '@angular/router';
 
 export enum IntegrationType {
   HTTP = 'HTTP',
@@ -234,7 +235,7 @@ export function getIntegrationHelpLink(integration: Integration): string {
   return 'integrations';
 }
 
-export interface Integration extends BaseData<IntegrationId> {
+export interface Integration extends BaseData<IntegrationId>, ExportableEntity<IntegrationId> {
   tenantId?: TenantId;
   defaultConverterId: ConverterId;
   downlinkConverterId?: ConverterId;
@@ -248,4 +249,37 @@ export interface Integration extends BaseData<IntegrationId> {
   secret: string;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
 }
+
+export interface IntegrationParams extends EntityGroupParams {
+  integrationScope: string;
+}
+
+export enum IntegrationSubType {
+  CORE = 'CORE',
+  EDGE = 'EDGE'
+}
+
+export function resolveIntegrationParams(route: ActivatedRouteSnapshot): IntegrationParams {
+  let routeParams = {...route.params};
+  let routeData = {...route.data};
+  let edgeId: string;
+  let integrationScope: string;
+  if (routeParams?.hierarchyView) {
+    edgeId = routeParams.edgeId;
+    integrationScope = routeParams.integrationScope;
+  } else {
+    edgeId = routeParams?.edgeId;
+    integrationScope = routeData.integrationsType ? routeData.integrationsType : 'tenant';
+  }
+  return {
+    edgeId,
+    integrationScope,
+    hierarchyView: routeParams?.hierarchyView,
+    entityGroupId: routeParams?.entityGroupId,
+    childEntityGroupId: routeParams?.childEntityGroupId,
+    customerId: routeParams?.customerId
+  };
+}
+

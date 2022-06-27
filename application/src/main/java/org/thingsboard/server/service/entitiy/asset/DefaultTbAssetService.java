@@ -37,7 +37,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -54,16 +53,17 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
     private final AssetService assetService;
 
     @Override
-    public Asset save(Asset asset, EntityGroup entityGroup) throws ThingsboardException {
+    public Asset save(Asset asset, EntityGroup entityGroup) throws Exception {
         return save(asset, entityGroup, null);
     }
 
     @Override
-    public Asset save(Asset asset, EntityGroup entityGroup, User user) throws ThingsboardException {
+    public Asset save(Asset asset, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = asset.getTenantId();
         try {
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
+            autoCommit(user, savedAsset.getId());
             createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
             return savedAsset;
         } catch (Exception e) {

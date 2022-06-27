@@ -30,9 +30,24 @@
  */
 package org.thingsboard.server.service.entitiy.entityview;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleListener;
 import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
-public interface TbEntityViewService extends SimpleTbEntityService<EntityView> {
+import java.util.List;
+
+public interface TbEntityViewService extends SimpleTbEntityService<EntityView>, ComponentLifecycleListener {
+
+    void updateEntityViewAttributes(TenantId tenantId, EntityView savedEntityView, EntityView oldEntityView, User user) throws ThingsboardException;
+
+    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(TenantId tenantId, EntityId entityId);
+
+    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds);
 
 }

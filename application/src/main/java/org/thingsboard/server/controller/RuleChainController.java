@@ -248,7 +248,7 @@ public class RuleChainController extends BaseController {
     @ResponseBody
     public RuleChain saveRuleChain(
             @ApiParam(value = "A JSON value representing the rule chain.")
-            @RequestBody RuleChain ruleChain) throws ThingsboardException {
+            @RequestBody RuleChain ruleChain) throws Exception {
         ruleChain.setTenantId(getCurrentUser().getTenantId());
         checkEntity(ruleChain.getId(), ruleChain, Resource.RULE_CHAIN, null);
         return tbRuleChainService.save(ruleChain, getCurrentUser());
@@ -262,7 +262,7 @@ public class RuleChainController extends BaseController {
     @ResponseBody
     public RuleChain saveRuleChain(
             @ApiParam(value = "A JSON value representing the request.")
-            @RequestBody DefaultRuleChainCreateRequest request) throws ThingsboardException, IOException {
+            @RequestBody DefaultRuleChainCreateRequest request) throws Exception {
         checkNotNull(request);
         checkParameter(request.getName(), "name");
         return tbRuleChainService.saveDefaultByName(getTenantId(), request, getCurrentUser());
@@ -292,7 +292,7 @@ public class RuleChainController extends BaseController {
             @RequestBody RuleChainMetaData ruleChainMetaData,
             @ApiParam(value = "Update related rule nodes.")
             @RequestParam(value = "updateRelated", required = false, defaultValue = "true") boolean updateRelated
-    ) throws ThingsboardException {
+    ) throws Exception {
         TenantId tenantId = getTenantId();
         if (debugPerTenantEnabled) {
             ConcurrentMap<TenantId, DebugTbRateLimits> debugPerTenantLimits = actorContext.getDebugPerTenantLimits();

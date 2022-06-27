@@ -37,6 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -52,7 +53,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, ExportableEntity<RoleId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -80,6 +81,8 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     @JsonIgnore
     private byte[] permissionsBytes;
 
+    private RoleId externalId;
+
     public Role() {
         super();
     }
@@ -91,6 +94,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public Role(Role role) {
         super(role);
         setPermissions(role.getPermissions());
+        externalId = role.getExternalId();
     }
 
     @Override

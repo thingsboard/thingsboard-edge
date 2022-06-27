@@ -47,7 +47,7 @@ import java.util.UUID;
  */
 public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfoEntity, UUID> {
 
-    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.type = :type AND ii.isRemote = :isRemote AND ii.enabled = :enabled")
-    List<IntegrationInfoEntity> findAllIntegrationInfos(@Param("type") IntegrationType type, @Param("isRemote") boolean remote, @Param("enabled") boolean enabled);
+    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.type = :type AND ii.isRemote = :isRemote AND ii.enabled = :enabled AND ii.edgeTemplate = false")
+    List<IntegrationInfoEntity> findAllCoreIntegrationInfos(@Param("type") IntegrationType type, @Param("isRemote") boolean remote, @Param("enabled") boolean enabled);
 
 }

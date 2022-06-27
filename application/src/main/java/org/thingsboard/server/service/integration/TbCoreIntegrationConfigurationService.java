@@ -53,7 +53,7 @@ public class TbCoreIntegrationConfigurationService implements IntegrationConfigu
 
     @Override
     public List<IntegrationInfo> getActiveIntegrationList(IntegrationType type, boolean remote) {
-        return integrationService.findAllIntegrationInfos(type, remote, true);
+        return integrationService.findAllCoreIntegrationInfos(type, remote, true);
     }
 
     @Override

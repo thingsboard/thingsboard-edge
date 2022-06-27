@@ -36,6 +36,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.CollectionsUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
 import org.thingsboard.rule.engine.api.RuleNode;
@@ -47,6 +48,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.objects.AttributesEntityView;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -155,15 +157,20 @@ public class TbCopyAttributesToEntityViewNode implements TbNode {
     }
 
     private boolean attributeContainsInEntityView(String scope, String attrKey, EntityView entityView) {
+        AttributesEntityView attributesEntityView = entityView.getKeys().getAttributes();
+        List<String> keys = null;
         switch (scope) {
             case DataConstants.CLIENT_SCOPE:
-                return entityView.getKeys().getAttributes().getCs().contains(attrKey);
+                keys = attributesEntityView.getCs();
+                break;
             case DataConstants.SERVER_SCOPE:
-                return entityView.getKeys().getAttributes().getSs().contains(attrKey);
+                keys = attributesEntityView.getSs();
+                break;
             case DataConstants.SHARED_SCOPE:
-                return entityView.getKeys().getAttributes().getSh().contains(attrKey);
+                keys = attributesEntityView.getSh();
+                break;
         }
-        return false;
+        return CollectionsUtil.contains(keys, attrKey);
     }
 
     @Override

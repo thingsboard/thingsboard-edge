@@ -31,16 +31,15 @@
 package org.thingsboard.server.service.entitiy;
 
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 
 public interface SimpleTbEntityService<T> {
 
-    default T save(T entity, EntityGroup entityGroup) throws ThingsboardException {
+    default T save(T entity, EntityGroup entityGroup) throws Exception {
         return save(entity, entityGroup, null);
     }
 
-    T save(T entity, EntityGroup entityGroup, User user) throws ThingsboardException;
+    T save(T entity, EntityGroup entityGroup, User user) throws Exception;
 
     void delete(T entity, User user);
 

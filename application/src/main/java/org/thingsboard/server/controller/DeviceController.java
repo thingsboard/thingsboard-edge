@@ -83,10 +83,10 @@ import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
-import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
@@ -175,7 +175,13 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(device, strEntityGroupId,
-                (device1, entityGroup) -> tbDeviceService.save(device1, accessToken, entityGroup, user));
+                (device1, entityGroup) -> {
+                    try {
+                        return tbDeviceService.save(device1, accessToken, entityGroup, user);
+                    } catch (Exception e) {
+                        throw handleException(e);
+                    }
+                });
     }
 
     @ApiOperation(value = "Create Device (saveDevice) with credentials ",

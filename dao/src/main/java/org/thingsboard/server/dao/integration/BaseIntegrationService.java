@@ -34,9 +34,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -44,10 +46,13 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -136,7 +141,20 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         log.trace("Executing findTenantIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
-        return integrationDao.findByTenantId(tenantId.getId(), pageLink);
+        return integrationDao.findCoreIntegrationsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findTenantEdgeTemplateIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return integrationDao.findEdgeTemplateIntegrationsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public List<Integration> findTenantIntegrationsByName(TenantId tenantId, String name) {
+        return integrationDao.findTenantIntegrationsByName(tenantId.getId(), name);
     }
 
     @Override
@@ -157,10 +175,56 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
+    public List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        log.trace("Executing findAllCoreIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
+        return integrationInfoDao.findAllCoreIntegrationInfos(integrationType, remote, enabled);
+    }
+
     @Override
-    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
-        log.trace("Executing findAllIntegrationInfos [{}][{}][{}]", integrationType, remote, enabled);
-        return integrationInfoDao.findAllIntegrationInfos(integrationType, remote, enabled);
+    public Integration assignIntegrationToEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId) {
+        Integration integration = findIntegrationById(tenantId, integrationId);
+        Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+        if (edge == null) {
+            throw new DataValidationException("Can't assign integration to non-existent edge!");
+        }
+        if (!edge.getTenantId().equals(integration.getTenantId())) {
+            throw new DataValidationException("Can't assign integration to edge from different tenant!");
+        }
+        if (!integration.isEdgeTemplate()) {
+            throw new DataValidationException("Can't assign non edge template integration to edge!");
+        }
+        try {
+            createRelation(tenantId, new EntityRelation(edgeId, integrationId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
+        } catch (Exception e) {
+            log.warn("[{}] Failed to create integration relation. Edge Id: [{}]", integrationId, edgeId);
+            throw new RuntimeException(e);
+        }
+        return integration;
+    }
+
+    @Override
+    public Integration unassignIntegrationFromEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId, boolean remove) {
+        Integration integration = findIntegrationById(tenantId, integrationId);
+        Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+        if (edge == null) {
+            throw new DataValidationException("Can't unassign integration from non-existent edge!");
+        }
+        try {
+            deleteRelation(tenantId, new EntityRelation(edgeId, integrationId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE));
+        } catch (Exception e) {
+            log.warn("[{}] Failed to delete integration relation. Edge Id: [{}]", integrationId, edgeId);
+            throw new RuntimeException(e);
+        }
+        return integration;
+    }
+
+    @Override
+    public PageData<Integration> findIntegrationsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+        log.trace("Executing findIntegrationsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validatePageLink(pageLink);
+        return integrationDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =

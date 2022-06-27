@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -156,11 +157,18 @@ public class ConverterController extends BaseController {
             checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
 
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+            if (!converter.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
+                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            }
 
             notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
                     converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
+
+            if (converter.isEdgeTemplate() && !created) {
+                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
+            }
 
             return result;
         } catch (Exception e) {
@@ -177,6 +185,8 @@ public class ConverterController extends BaseController {
     @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Converter> getConverters(
+            @ApiParam(value = "Fetch edge template converters")
+            @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
@@ -191,7 +201,11 @@ public class ConverterController extends BaseController {
             accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
+            if (isEdgeTemplate) {
+                return checkNotNull(converterService.findTenantEdgeTemplateConverters(tenantId, pageLink));
+            } else {
+                return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
+            }
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -210,7 +224,10 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId, Operation.DELETE);
             converterService.deleteConverter(getTenantId(), converterId);
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+
+            if (!converter.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+            }
 
             notificationEntityService.logEntityAction(getTenantId(), converterId, converter,
                     null,

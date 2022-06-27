@@ -40,6 +40,8 @@ import { AlarmTableConfig } from './alarm-table-config';
 import { AlarmSearchStatus } from '@shared/models/alarm.models';
 import { AlarmService } from '@app/core/http/alarm.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 @Component({
   selector: 'tb-alarm-table',
@@ -85,7 +87,8 @@ export class AlarmTableComponent implements OnInit {
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private store: Store<AppState>) {
   }
 
   ngOnInit() {
@@ -98,7 +101,8 @@ export class AlarmTableComponent implements OnInit {
       this.datePipe,
       this.dialog,
       this.entityIdValue,
-      AlarmSearchStatus.ANY
+      AlarmSearchStatus.ANY,
+      this.store
     );
   }
 

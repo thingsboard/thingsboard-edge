@@ -59,6 +59,9 @@ export interface DefaultTenantProfileConfiguration {
   transportDeviceTelemetryMsgRateLimit?: string;
   transportDeviceTelemetryDataPointsRateLimit?: string;
 
+  tenantEntityExportRateLimit?: string;
+  tenantEntityImportRateLimit?: string;
+
   maxTransportMessages: number;
   maxTransportDataPoints: number;
   maxREExecutions: number;

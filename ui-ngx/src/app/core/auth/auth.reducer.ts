@@ -40,6 +40,7 @@ const emptyUserAuthState: AuthPayload = {
   edgesSupportEnabled: false,
   whiteLabelingAllowed: false,
   customerWhiteLabelingAllowed: false,
+  hasRepository: false,
   allowedDashboardIds: []
 };
 
@@ -69,6 +70,9 @@ export function authReducer(
       return { ...state, ...action.payload};
 
     case AuthActionTypes.UPDATE_LAST_PUBLIC_DASHBOARD_ID:
+      return { ...state, ...action.payload};
+
+    case AuthActionTypes.UPDATE_HAS_REPOSITORY:
       return { ...state, ...action.payload};
 
     default:

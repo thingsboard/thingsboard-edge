@@ -183,6 +183,18 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
     }
 
     @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(UUID tenantId, List<UUID> entityIds, EntityType entityType, PageLink pageLink) {
+        log.debug("Try to find edge ids by tenantId [{}], entityIds [{}], pageLink [{}]", tenantId, entityIds, pageLink);
+        return DaoUtil.pageToPageData(
+                edgeRepository.findEdgeIdsByTenantIdAndEntityIds(
+                        tenantId,
+                        entityIds,
+                        entityType.name(),
+                        EntityRelation.CONTAINS_TYPE,
+                        DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
+    }
+
+    @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupId(UUID tenantId, List<UUID> entityGroupIds, EntityType groupType, PageLink pageLink) {
         log.debug("Try to find edge ids by tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         String relationType = BaseEntityGroupService.EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
@@ -204,6 +216,11 @@ public class JpaEdgeDao extends JpaAbstractSearchTextDao<EdgeEntity, Edge> imple
             }
         }
         return list;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.EDGE;
     }
 
 }

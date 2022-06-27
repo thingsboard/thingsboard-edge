@@ -37,11 +37,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 
+import java.util.List;
 import java.util.UUID;
 
-public interface DeviceProfileRepository extends JpaRepository<DeviceProfileEntity, UUID> {
+public interface DeviceProfileRepository extends JpaRepository<DeviceProfileEntity, UUID>, ExportableEntityRepository<DeviceProfileEntity> {
 
     @Query("SELECT new org.thingsboard.server.common.data.DeviceProfileInfo(d.id, d.name, d.image, d.defaultDashboardId, d.type, d.transportType) " +
             "FROM DeviceProfileEntity d " +
@@ -69,6 +71,12 @@ public interface DeviceProfileRepository extends JpaRepository<DeviceProfileEnti
                                                    @Param("transportType") DeviceTransportType transportType,
                                                    Pageable pageable);
 
+    @Query("SELECT new org.thingsboard.server.common.data.DeviceProfileInfo(d.id, d.name, d.image, d.defaultDashboardId, d.type, d.transportType) " +
+            "FROM DeviceProfileEntity d WHERE " +
+            "d.tenantId = :tenantId AND d.id IN :deviceProfileIds")
+    List<DeviceProfileInfo> findDeviceProfileInfosByTenantIdAndIdIn(@Param("tenantId") UUID tenantId,
+                                                                    @Param("deviceProfileIds") List<UUID> deviceProfileIds);
+
     @Query("SELECT d FROM DeviceProfileEntity d " +
             "WHERE d.tenantId = :tenantId AND d.isDefault = true")
     DeviceProfileEntity findByDefaultTrueAndTenantId(@Param("tenantId") UUID tenantId);
@@ -81,4 +89,8 @@ public interface DeviceProfileRepository extends JpaRepository<DeviceProfileEnti
     DeviceProfileEntity findByTenantIdAndName(UUID id, String profileName);
 
     DeviceProfileEntity findByProvisionDeviceKey(@Param("provisionDeviceKey") String provisionDeviceKey);
+
+    @Query("SELECT externalId FROM DeviceProfileEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

@@ -44,9 +44,9 @@ import org.thingsboard.server.dao.device.claim.ReclaimResult;
 
 public interface TbDeviceService {
 
-    Device save(Device device, EntityGroup entityGroup) throws ThingsboardException;
+    Device save(Device device, EntityGroup entityGroup) throws Exception;
 
-    Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws ThingsboardException;
+    Device save(Device device, String accessToken, EntityGroup entityGroup, User user) throws Exception;
 
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials, EntityGroup entityGroup, User user) throws ThingsboardException;
 

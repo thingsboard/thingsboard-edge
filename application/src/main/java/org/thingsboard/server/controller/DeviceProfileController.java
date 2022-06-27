@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -57,7 +59,10 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.device.profile.TbDeviceProfileService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,6 +76,7 @@ import static org.thingsboard.server.controller.ControllerConstants.NEW_LINE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
@@ -123,7 +129,7 @@ public class DeviceProfileController extends BaseController {
         checkParameter(DEVICE_PROFILE_ID, strDeviceProfileId);
         try {
             DeviceProfileId deviceProfileId = new DeviceProfileId(toUUID(strDeviceProfileId));
-            return checkNotNull(deviceProfileService.findDeviceProfileInfoById(getTenantId(), deviceProfileId));
+            return new DeviceProfileInfo(checkDeviceProfileId(deviceProfileId, Operation.READ));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -214,7 +220,7 @@ public class DeviceProfileController extends BaseController {
     @ResponseBody
     public DeviceProfile saveDeviceProfile(
             @ApiParam(value = "A JSON value representing the device profile.")
-            @RequestBody DeviceProfile deviceProfile) throws ThingsboardException {
+            @RequestBody DeviceProfile deviceProfile) throws Exception {
         deviceProfile.setTenantId(getTenantId());
         checkEntity(deviceProfile.getId(), deviceProfile, Resource.DEVICE_PROFILE, null);
         return tbDeviceProfileService.save(deviceProfile, getCurrentUser());
@@ -271,6 +277,7 @@ public class DeviceProfileController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(deviceProfileService.findDeviceProfiles(getTenantId(), pageLink));
         } catch (Exception e) {
@@ -299,10 +306,38 @@ public class DeviceProfileController extends BaseController {
             @ApiParam(value = "Type of the transport", allowableValues = TRANSPORT_TYPE_ALLOWABLE_VALUES)
             @RequestParam(required = false) String transportType) throws ThingsboardException {
         try {
+            accessControlService.checkPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ);
             PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
             return checkNotNull(deviceProfileService.findDeviceProfileInfos(getTenantId(), pageLink, transportType));
         } catch (Exception e) {
             throw handleException(e);
         }
     }
+
+    @ApiOperation(value = "Get Device Profiles By Ids (getDeviceProfilesByIds)",
+            notes = "Requested device profiles must be owned by tenant which is performing the request. " +
+                    NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/deviceProfileInfos", params = {"deviceProfileIds"}, method = RequestMethod.GET)
+    @ResponseBody
+    public List<DeviceProfileInfo> getDeviceProfilesByIds(
+            @ApiParam(value = "A list of device profile ids, separated by comma ','", required = true)
+            @RequestParam("deviceProfileIds") String[] strDeviceProfileIds) throws ThingsboardException {
+        checkArrayParameter("deviceProfileIds", strDeviceProfileIds);
+        try {
+            if (!accessControlService.hasPermission(getCurrentUser(), Resource.DEVICE_PROFILE, Operation.READ)) {
+                return Collections.emptyList();
+            }
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            List<DeviceProfileId> deviceProfileIds = new ArrayList<>();
+            for (String strDeviceProfileId : strDeviceProfileIds) {
+                deviceProfileIds.add(new DeviceProfileId(toUUID(strDeviceProfileId)));
+            }
+            return checkNotNull(deviceProfileService.findDeviceProfilesByIdsAsync(tenantId, deviceProfileIds).get());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

@@ -283,6 +283,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         return dashboardInfoDao.findFirstByTenantIdAndName(tenantId.getId(), name);
     }
 
+    @Override
+    public List<Dashboard> findTenantDashboardsByTitle(TenantId tenantId, String title) {
+        return dashboardDao.findByTenantIdAndTitle(tenantId.getId(), title);
+    }
+
     private PaginatedRemover<TenantId, DashboardInfo> tenantDashboardsRemover =
             new PaginatedRemover<TenantId, DashboardInfo>() {
 
@@ -295,7 +300,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
                     deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
                 }
-    };
+            };
 
     private PaginatedRemover<CustomerId, DashboardInfo> customerDashboardsRemover =
             new PaginatedRemover<CustomerId, DashboardInfo>() {

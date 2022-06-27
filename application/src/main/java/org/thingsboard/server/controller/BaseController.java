@@ -32,6 +32,10 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +48,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -121,7 +126,6 @@ import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rpc.Rpc;
@@ -189,6 +193,7 @@ import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -380,6 +385,9 @@ public abstract class BaseController {
 
     @Autowired
     protected QueueService queueService;
+
+    @Autowired
+    protected EntitiesVersionControlService vcService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -672,8 +680,8 @@ public abstract class BaseController {
         }
     }
 
-    protected <I extends EntityId, T extends GroupEntity<I>> T
-    saveGroupEntity(T entity, String strEntityGroupId, TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
+    protected <I extends EntityId, T extends GroupEntity<I>> T saveGroupEntity(T entity, String strEntityGroupId,
+                                                                               TbBiFunction<T, EntityGroup, T> saveEntityFunction) throws ThingsboardException {
         try {
             entity.setTenantId(getCurrentUser().getTenantId());
 
@@ -1259,75 +1267,46 @@ public abstract class BaseController {
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.UPDATED);
                 }
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.CHANGE_OWNER);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, null, EdgeEventActionType.CHANGE_OWNER);
             }
-        }
-    }
-
-    protected void sendRelationNotificationMsg(TenantId tenantId, EntityRelation relation, EdgeEventActionType action) {
-        try {
-            if (!relation.getFrom().getEntityType().equals(EntityType.EDGE) &&
-                    !relation.getTo().getEntityType().equals(EntityType.EDGE)) {
-                sendNotificationMsgToEdgeService(tenantId, null, null, json.writeValueAsString(relation), EdgeEventType.RELATION, action, null, null);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to push relation to core: {}", relation, e);
         }
     }
 
     protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
-        sendDeleteNotificationMsg(tenantId, entityId, edgeIds, null);
-    }
-
-    protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, String body) {
         if (edgeIds != null && !edgeIds.isEmpty()) {
             for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, EdgeEventActionType.DELETED);
+                sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, EdgeEventActionType.DELETED);
             }
         }
     }
 
-    protected void sendAlarmDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds, Alarm alarm) {
-        try {
-            sendDeleteNotificationMsg(tenantId, entityId, edgeIds, json.writeValueAsString(alarm));
-        } catch (Exception e) {
-            log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
-        }
-    }
-
     protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, action);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, action);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action);
     }
 
     protected void sendEntityAssignToEdgeNotificationMsg(TenantId tenantId, EdgeId edgeId, EntityId entityId, EntityType groupType, EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, null, null, action, groupType, null);
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, action, groupType, null);
     }
 
-    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action,
-                                                  EntityGroupId entityGroupId) {
-        sendNotificationMsgToEdgeService(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
+    protected void sendGroupEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, EntityGroupId entityGroupId) {
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                                  EdgeEventActionType action) {
-        sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, null, action, null, null);
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                           EdgeEventType type, EdgeEventActionType action,
+                                           EntityType entityGroupType, EntityGroupId entityGroupId) {
+        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
     }
 
-    private void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                                  EdgeEventType type, EdgeEventActionType action,
-                                                  EntityType entityGroupType, EntityGroupId entityGroupId) {
-        tbClusterService.sendNotificationMsgToEdgeService(tenantId, edgeId, entityId, body, type, action, entityGroupType, entityGroupId);
+    private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
+        tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action);
     }
 
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
-        return findRelatedEdgeIds(tenantId, entityId, null);
-    }
-
-    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId, EntityType groupType) {
         if (!edgesEnabled) {
             return null;
         }
@@ -1360,12 +1339,27 @@ public abstract class BaseController {
         }
     }
 
-
     protected void throwRealCause(ExecutionException e) throws Exception {
         if (e.getCause() != null && e.getCause() instanceof Exception) {
             throw (Exception) e.getCause();
         } else {
             throw e;
         }
+    }
+
+    protected <T> DeferredResult<T> wrapFuture(ListenableFuture<T> future) {
+        final DeferredResult<T> deferredResult = new DeferredResult<>();
+        Futures.addCallback(future, new FutureCallback<>() {
+            @Override
+            public void onSuccess(T result) {
+                deferredResult.setResult(result);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                deferredResult.setErrorResult(t);
+            }
+        }, MoreExecutors.directExecutor());
+        return deferredResult;
     }
 }

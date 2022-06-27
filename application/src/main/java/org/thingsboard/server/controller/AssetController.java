@@ -66,9 +66,9 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.asset.AssetBulkImportService;
 import org.thingsboard.server.service.entitiy.asset.TbAssetService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,7 +146,13 @@ public class AssetController extends BaseController {
             throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> tbAssetService.save(asset, entityGroup, user));
+        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
+            try {
+                return tbAssetService.save(asset, entityGroup, user);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete asset (deleteAsset)",

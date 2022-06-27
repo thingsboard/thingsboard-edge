@@ -195,6 +195,7 @@ import { HtmlComponent } from '@shared/components/html.component';
 import { SafePipe } from '@shared/pipe/safe.pipe';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MultipleImageInputComponent } from '@shared/components/multiple-image-input.component';
+import { BranchAutocompleteComponent } from '@shared/components/vc/branch-autocomplete.component';
 import { PhoneInputComponent } from '@shared/components/phone-input.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
@@ -339,6 +340,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     CopyButtonComponent,
     TogglePasswordComponent,
     ProtobufContentComponent,
+    BranchAutocompleteComponent,
     PhoneInputComponent
   ],
   imports: [
@@ -557,6 +559,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     CopyButtonComponent,
     TogglePasswordComponent,
     ProtobufContentComponent,
+    BranchAutocompleteComponent,
     PhoneInputComponent
   ]
 })

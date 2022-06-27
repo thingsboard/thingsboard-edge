@@ -62,8 +62,9 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -83,6 +85,8 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
     private final RuleChainService ruleChainService;
     private final RelationService relationService;
     private final InstallScripts installScripts;
+
+    private final EntitiesVersionControlService vcService;
 
     @Override
     public Set<String> getRuleChainOutputLabels(TenantId tenantId, RuleChainId ruleChainId) {
@@ -182,11 +186,13 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
     }
 
     @Override
-    public RuleChain save(RuleChain ruleChain, User user) throws ThingsboardException {
+    public RuleChain save(RuleChain ruleChain, User user) throws Exception {
         TenantId tenantId = ruleChain.getTenantId();
         ActionType actionType = ruleChain.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
-        RuleChain savedRuleChain = checkNotNull(ruleChainService.saveRuleChain(ruleChain));
         try {
+            RuleChain savedRuleChain = checkNotNull(ruleChainService.saveRuleChain(ruleChain));
+            vcService.autoCommit(user, savedRuleChain.getId());
+
             if (RuleChainType.CORE.equals(savedRuleChain.getType())) {
                 tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedRuleChain.getId(),
                         actionType.equals(ActionType.ADDED) ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -235,9 +241,10 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
     }
 
     @Override
-    public RuleChain saveDefaultByName(TenantId tenantId, DefaultRuleChainCreateRequest request, User user) throws IOException {
+    public RuleChain saveDefaultByName(TenantId tenantId, DefaultRuleChainCreateRequest request, User user) throws Exception {
         try {
             RuleChain savedRuleChain = installScripts.createDefaultRuleChain(tenantId, request.getName());
+            vcService.autoCommit(user, savedRuleChain.getId());
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
             notificationEntityService.logEntityAction(tenantId, savedRuleChain.getId(), savedRuleChain, ActionType.ADDED, user);
             return savedRuleChain;
@@ -281,7 +288,7 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
 
     @Override
     public RuleChainMetaData saveRuleChainMetaData(TenantId tenantId, RuleChain ruleChain, RuleChainMetaData ruleChainMetaData,
-                                                   boolean updateRelated, User user) throws ThingsboardException {
+                                                   boolean updateRelated, User user) throws Exception {
         RuleChainId ruleChainId = ruleChain.getId();
         RuleChainId ruleChainMetaDataId = ruleChainMetaData.getRuleChainId();
         try {
@@ -293,6 +300,15 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
                 updatedRuleChains = updateRelatedRuleChains(tenantId, ruleChainMetaDataId, result);
             } else {
                 updatedRuleChains = Collections.emptyList();
+            }
+
+            if (updatedRuleChains.isEmpty()) {
+                vcService.autoCommit(user, ruleChainMetaData.getRuleChainId());
+            } else {
+                List<UUID> uuids = new ArrayList<>(updatedRuleChains.size() + 1);
+                uuids.add(ruleChainMetaData.getRuleChainId().getId());
+                updatedRuleChains.forEach(rc -> uuids.add(rc.getId().getId()));
+                vcService.autoCommit(user, EntityType.RULE_CHAIN, uuids);
             }
 
             RuleChainMetaData savedRuleChainMetaData = checkNotNull(ruleChainService.loadRuleChainMetaData(tenantId, ruleChainMetaDataId));

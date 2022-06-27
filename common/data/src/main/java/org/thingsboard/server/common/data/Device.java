@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -54,7 +56,7 @@ import java.util.Optional;
 @ApiModel
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage, ExportableEntity<DeviceId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -77,6 +79,9 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
     private OtaPackageId firmwareId;
     private OtaPackageId softwareId;
 
+    @Getter @Setter
+    private DeviceId externalId;
+
     public Device() {
         super();
     }
@@ -96,6 +101,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.setDeviceData(device.getDeviceData());
         this.firmwareId = device.getFirmwareId();
         this.softwareId = device.getSoftwareId();
+        this.externalId = device.getExternalId();
     }
 
     public Device updateDevice(Device device) {
@@ -109,6 +115,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.setFirmwareId(device.getFirmwareId());
         this.setSoftwareId(device.getSoftwareId());
         Optional.ofNullable(device.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
+        this.setExternalId(device.getExternalId());
         return this;
     }
 

@@ -138,4 +138,14 @@ export class EdgeService {
   public bulkImportEdges(entitiesData: BulkImportRequest, config?: RequestConfig): Observable<BulkImportResult> {
     return this.http.post<BulkImportResult>('/api/edge/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
+
+  public findAllRelatedEdgesMissingAttributes(integrationId: string, config?: RequestConfig): Observable<string> {
+    let url = `/api/edge/integration/${integrationId}/allMissingAttributes`;
+    return this.http.get<string>(url, defaultHttpOptionsFromConfig(config));
+  }
+
+  public findEdgeMissingAttributes(integrationIds: Array<string>, edgeId: string, config?: RequestConfig): Observable<string> {
+    let url = `/api/edge/integration/${edgeId}/missingAttributes?integrationIds=${integrationIds.join(',')}`;
+    return this.http.get<string>(url, defaultHttpOptionsFromConfig(config));
+  }
 }
