@@ -138,7 +138,7 @@ async function generateDashboardReport(browser, url, type, timezone) {
         await page.emulateMediaType('screen');
 
         const startTime = performance.now();
-        const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
+        const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle0'});
         if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
             await page.waitForSelector('section.tb-dashboard-container');
             await page.waitForFunction(() => {
