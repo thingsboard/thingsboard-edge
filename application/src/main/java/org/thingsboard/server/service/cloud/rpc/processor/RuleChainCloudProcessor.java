@@ -92,12 +92,9 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     if (ruleChainUpdateMsg.getRoot()) {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
                     }
-
-                    saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
-
                     tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-                    break;
+                    return saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
                     if (ruleChainById != null) {
@@ -114,8 +111,9 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
 
                         tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                     }
-                    break;
+                    return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
+                default:
                     return handleUnsupportedMsgType(ruleChainUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
@@ -123,7 +121,6 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
-        return Futures.immediateFuture(null);
     }
 
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {

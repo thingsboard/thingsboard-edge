@@ -65,9 +65,6 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     @Value("${sql.cloud_events.stats_print_interval_ms:10000}")
     private long statsPrintIntervalMs;
 
-    @Value("${sql.cloud_events.batch_threads:3}")
-    private int batchThreads;
-
     private TbSqlBlockingQueueWrapper<CloudEventEntity> queue;
 
     @Autowired
@@ -106,7 +103,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                 return NULL_UUID.hashCode();
             }
         };
-        queue = new TbSqlBlockingQueueWrapper<>(params, hashcodeFunction, batchThreads, statsFactory);
+        queue = new TbSqlBlockingQueueWrapper<>(params, hashcodeFunction, 1, statsFactory);
         queue.init(logExecutor, v -> cloudEventInsertRepository.save(v),
                 Comparator.comparing(CloudEventEntity::getTs)
         );

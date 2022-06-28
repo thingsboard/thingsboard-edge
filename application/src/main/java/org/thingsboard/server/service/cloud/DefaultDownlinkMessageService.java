@@ -145,7 +145,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcRequestMsg : downlinkMsg.getDeviceRpcCallMsgList()) {
-                    result.add(deviceProcessor.processDeiceRpcRequestFromCloud(tenantId, deviceRpcRequestMsg));
+                    result.add(deviceProcessor.processDeviceRpcRequestFromCloud(tenantId, deviceRpcRequestMsg));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgCount() > 0) {
@@ -274,9 +274,10 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
     private ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
         if (deviceCredentialsRequestMsg.getDeviceIdMSB() != 0 && deviceCredentialsRequestMsg.getDeviceIdLSB() != 0) {
             DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
-            saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null);
+            return saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null);
+        } else {
+            return Futures.immediateFuture(null);
         }
-        return Futures.immediateFuture(null);
     }
 
 }

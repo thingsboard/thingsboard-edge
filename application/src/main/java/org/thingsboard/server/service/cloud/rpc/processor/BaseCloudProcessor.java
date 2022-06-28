@@ -81,6 +81,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructo
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -205,17 +206,20 @@ public abstract class BaseCloudProcessor {
                 return Futures.immediateFuture(false);
             } else {
                 log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
-                saveCloudEvent(tenantId, cloudEventType,
-                        EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null);
-                saveCloudEvent(tenantId, cloudEventType,
-                        EdgeEventActionType.RELATION_REQUEST, entityId, null);
+                List<ListenableFuture<Void>> futures = new ArrayList<>();
+                futures.add(saveCloudEvent(tenantId, cloudEventType,
+                        EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null));
+                futures.add(saveCloudEvent(tenantId, cloudEventType,
+                        EdgeEventActionType.RELATION_REQUEST, entityId, null));
                 if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
-                    saveCloudEvent(tenantId, cloudEventType,
-                            EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null);
+                    futures.add(saveCloudEvent(tenantId, cloudEventType,
+                            EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null));
                 }
+                return Futures.transform(Futures.allAsList(futures), voids -> true, dbCallbackExecutor);
             }
+        } else {
+            return Futures.immediateFuture(true);
         }
-        return Futures.immediateFuture(true);
     }
 
     protected void updateEvents(TenantId tenantId, Device origin, Device destination) {

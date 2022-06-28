@@ -432,6 +432,11 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void onDeviceUpdated(Device device, Device old, boolean notifyEdge) {
+        onDeviceUpdated(device, old, true, true);
+    }
+
+    @Override
+    public void onDeviceUpdated(Device device, Device old, boolean notifyEdge, boolean notifyCloud) {
         var created = old == null;
         broadcastEntityChangeToTransport(device.getTenantId(), device.getId(), device, null);
         if (old != null) {
@@ -450,7 +455,9 @@ public class DefaultTbClusterService implements TbClusterService {
             sendNotificationMsgToEdge(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED);
         }
 
-        sendNotificationMsgToCloud(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+        if (notifyCloud) {
+            sendNotificationMsgToCloud(device.getTenantId(), device.getId(), CloudEventType.DEVICE, created ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+        }
     }
 
     @Override

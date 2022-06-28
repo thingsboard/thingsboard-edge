@@ -104,12 +104,15 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
             if (EntityType.DEVICE.equals(entityId.getEntityType())) {
                 DeviceId deviceId = new DeviceId(entityId.getId());
 
+                long currentTs = System.currentTimeMillis();
                 TransportProtos.DeviceActivityProto deviceActivityMsg = TransportProtos.DeviceActivityProto.newBuilder()
                         .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                         .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                         .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
                         .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
-                        .setLastActivityTime(System.currentTimeMillis()).build();
+                        .setLastActivityTime(currentTs).build();
+
+                log.trace("[{}][{}] device activity time is going to be updated, ts {}", tenantId, deviceId, currentTs);
 
                 TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, deviceId);
                 tbCoreMsgProducer.send(tpi, new TbProtoQueueMsg<>(deviceId.getId(),

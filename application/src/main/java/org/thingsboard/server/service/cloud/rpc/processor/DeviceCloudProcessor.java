@@ -27,7 +27,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -35,7 +34,6 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
@@ -95,15 +93,21 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Boolean requestForAdditionalData) {
-                if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
-                        UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                    if (requestForAdditionalData != null && requestForAdditionalData) {
-                        saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null);
+                try {
+                    if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
+                            UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+                        if (requestForAdditionalData != null && requestForAdditionalData) {
+                            saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null).get();
+                        }
+                    } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
+                        saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null).get();
                     }
-                } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                    saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null);
+                    futureToSet.set(null);
+                } catch (Exception e) {
+                    String errMsg = String.format("Failed to save credential updated cloud event, deviceUpdateMsg [%s]", deviceUpdateMsg);
+                    log.error(errMsg, e);
+                    futureToSet.setException(e);
                 }
-                futureToSet.set(null);
             }
 
             @Override
@@ -181,7 +185,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
                 deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
 
-                tbClusterService.onDeviceUpdated(savedDevice, device);
+                tbClusterService.onDeviceUpdated(savedDevice, device, false, false);
             }
         } finally {
             deviceCreationLock.unlock();
@@ -189,7 +193,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return device;
     }
 
-    public ListenableFuture<Void> processDeiceRpcRequestFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcRequestMsg) {
+    public ListenableFuture<Void> processDeviceRpcRequestFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcRequestMsg) {
         DeviceId deviceId = new DeviceId(new UUID(deviceRpcRequestMsg.getDeviceIdMSB(), deviceRpcRequestMsg.getDeviceIdLSB()));
         boolean oneWay = deviceRpcRequestMsg.getOneway();
         long expTime = deviceRpcRequestMsg.getExpirationTime();
@@ -232,7 +236,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 body.put("response", response.getResponse().orElse("{}"));
             }
-            saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, rpcRequest.getDeviceId(), body);
+            saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, rpcRequest.getDeviceId(), body).get();
         } catch (Exception e) {
             String errMsg = String.format("Can't process RPC response [%s] [%s]", rpcRequest, response);
             log.debug(errMsg, e);

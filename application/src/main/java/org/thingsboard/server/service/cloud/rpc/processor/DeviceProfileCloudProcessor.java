@@ -113,21 +113,20 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     }
                     deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
-                    saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, EdgeEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
+                    return saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, EdgeEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
                 } finally {
                     deviceCreationLock.unlock();
                 }
-                break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                 if (deviceProfile != null) {
                     deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
         }
-        return Futures.immediateFuture(null);
     }
 
     public UplinkMsg processDeviceProfileDevicesRequestMsgToCloud(CloudEvent cloudEvent) {

@@ -517,7 +517,7 @@ public class CloudManagerService extends BaseCloudEventService {
         initialized = true;
     }
 
-    private void saveEdge(EdgeConfiguration edgeConfiguration) {
+    private void saveEdge(EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
         Edge edge = new Edge();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         EdgeId edgeId = new EdgeId(edgeUUID);
@@ -533,8 +533,8 @@ public class CloudManagerService extends BaseCloudEventService {
         edge.setSecret(edgeConfiguration.getSecret());
         edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
         edgeService.saveEdge(edge, false);
-        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null);
-        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null);
+        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
+        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
     }
 
     private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {
