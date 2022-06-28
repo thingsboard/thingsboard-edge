@@ -49,6 +49,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
@@ -73,7 +74,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
@@ -225,8 +225,6 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 public abstract class BaseController {
 
     /*Swagger UI description*/
-
-    private static final ObjectMapper json = new ObjectMapper();
 
     @Autowired
     private ThingsboardErrorResponseHandler errorResponseHandler;
@@ -1268,7 +1266,7 @@ public abstract class BaseController {
                 String body = null;
                 if (EntityType.EDGE.equals(entityId.getEntityType())) {
                     try {
-                        body = json.writeValueAsString(previousOwnerId);
+                        body = JacksonUtil.OBJECT_MAPPER.writeValueAsString(previousOwnerId);
                     } catch (Exception e) {
                         log.warn("[{}][{}] Failed to push change owner event to core: {} {}", tenantId, entityId, previousOwnerId, e);
                     }
