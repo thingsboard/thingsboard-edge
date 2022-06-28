@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.server.cache.CacheSpecsMap;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbFSTRedisSerializer;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.cache.RedisTbTransactionalCache;
 import org.thingsboard.server.cache.TbRedisSerializer;
@@ -45,6 +46,6 @@ import org.thingsboard.server.cache.TbRedisSerializer;
 public class DownlinkRedisCache extends RedisTbTransactionalCache<DownlinkCacheKey, DownLinkMsg> {
 
     public DownlinkRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.DOWNLINK_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
+        super(CacheConstants.DOWNLINK_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
     }
 }

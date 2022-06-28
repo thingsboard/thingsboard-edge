@@ -28,38 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.tenant_profile;
+package org.thingsboard.server.service.entitiy.entity.relation;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.tenant.TenantProfileService;
-import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.queue.TbQueueService;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 
-import java.util.List;
+public interface TbEntityRelationService {
 
-@Slf4j
-@Service
-@TbCoreComponent
-@AllArgsConstructor
-public class DefaultTbTenantProfileService implements TbTenantProfileService {
-    private final TbQueueService tbQueueService;
-    private final TenantProfileService tenantProfileService;
-    private final TenantService tenantService;
+    void save(TenantId tenantId, CustomerId customerId, EntityRelation entity, User user) throws ThingsboardException;
 
-    @Override
-    public TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, TenantProfile oldTenantProfile) {
-        TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfile);
+    void delete(TenantId tenantId, CustomerId customerId, EntityRelation entity, User user) throws ThingsboardException;
 
-        if (oldTenantProfile != null && savedTenantProfile.isIsolatedTbRuleEngine()) {
-            List<TenantId> tenantIds = tenantService.findTenantIdsByTenantProfileId(savedTenantProfile.getId());
-            tbQueueService.updateQueuesByTenants(tenantIds, savedTenantProfile, oldTenantProfile);
-        }
+    void deleteRelations(TenantId tenantId, CustomerId customerId, EntityId entityId, User user) throws ThingsboardException;
 
-        return savedTenantProfile;
-    }
 }

@@ -32,15 +32,15 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.sync.ie.GroupEntityExportData;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
 public abstract class BaseGroupEntityImportService<I extends EntityId, E extends ExportableEntity<I> & GroupEntity<I>, D extends GroupEntityExportData<E>> extends BaseEntityImportService<I, E, D> {
 
     @Override
-    protected void onEntitySaved(SecurityUser user, E savedEntity, E oldEntity) throws ThingsboardException {
+    protected void onEntitySaved(User user, E savedEntity, E oldEntity) throws ThingsboardException {
         super.onEntitySaved(user, savedEntity, oldEntity);
     }
 

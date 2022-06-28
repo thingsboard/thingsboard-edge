@@ -28,21 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.entityRelation;
+package org.thingsboard.server.service.entitiy.widgets.bundle;
 
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
-public interface TbEntityRelationService {
+public interface TbWidgetsBundleService {
+    WidgetsBundle save(WidgetsBundle entity) throws ThingsboardException;
 
-    void save(TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
-
-    void  delete (TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
-
-    void deleteRelations (TenantId tenantId, CustomerId customerId, EntityId entityId, SecurityUser user) throws ThingsboardException;
-
+    void delete(WidgetsBundle entity) throws ThingsboardException;
 }

@@ -63,12 +63,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.controller.ControllerConstants.ASSET_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.GROUP_PERMISSION_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_CHECK;
-import static org.thingsboard.server.controller.ControllerConstants.RBAC_GROUP_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
@@ -161,15 +158,15 @@ public class GroupPermissionController extends BaseController {
 
             userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
-            logEntityAction(savedGroupPermission.getId(), savedGroupPermission, null,
-                    groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
+                    groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
             sendEntityNotificationMsg(getTenantId(), savedGroupPermission.getId(),
                     groupPermission.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
             return savedGroupPermission;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.GROUP_PERMISSION), groupPermission, null,
-                    groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION), groupPermission,
+                    groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -201,14 +198,13 @@ public class GroupPermissionController extends BaseController {
             groupPermissionService.deleteGroupPermission(getTenantId(), groupPermissionId);
             userPermissionsService.onGroupPermissionDeleted(groupPermission);
 
-            logEntityAction(groupPermissionId, groupPermission, null, ActionType.DELETED, null, strGroupPermissionId);
+            notificationEntityService.logEntityAction(getTenantId(), groupPermissionId, groupPermission,
+                    ActionType.DELETED, getCurrentUser(), strGroupPermissionId);
 
             sendEntityNotificationMsg(getTenantId(), groupPermissionId, EdgeEventActionType.DELETED);
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.GROUP_PERMISSION),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strGroupPermissionId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION),
+                    ActionType.DELETED, getCurrentUser(), e, strGroupPermissionId);
             throw handleException(e);
         }
     }
@@ -242,7 +238,7 @@ public class GroupPermissionController extends BaseController {
     @ResponseBody
     public List<GroupPermissionInfo> loadUserGroupPermissionInfos(
             @ApiParam(value = "JSON array of group permission objects", required = true)
-           @RequestBody List<GroupPermission> permissions) throws ThingsboardException {
+            @RequestBody List<GroupPermission> permissions) throws ThingsboardException {
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);

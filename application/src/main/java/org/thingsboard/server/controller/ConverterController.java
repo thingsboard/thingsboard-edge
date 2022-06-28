@@ -109,7 +109,6 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @Slf4j
 public class ConverterController extends BaseController {
 
-
     @Autowired
     private EventService eventService;
 
@@ -164,9 +163,8 @@ public class ConverterController extends BaseController {
                         created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             }
 
-            logEntityAction(result.getId(), result,
-                    null,
-                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
+                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
             if (converter.isEdgeTemplate() && !created) {
                 sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
@@ -174,8 +172,8 @@ public class ConverterController extends BaseController {
 
             return result;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.CONVERTER), converter,
-                    null, converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER), converter,
+                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -231,16 +229,13 @@ public class ConverterController extends BaseController {
                 tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
             }
 
-            logEntityAction(converterId, converter,
+            notificationEntityService.logEntityAction(getTenantId(), converterId, converter,
                     null,
-                    ActionType.DELETED, null, strConverterId);
+                    ActionType.DELETED, getCurrentUser(), strConverterId);
 
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.CONVERTER),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strConverterId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER),
+                    ActionType.DELETED, getCurrentUser(), e, strConverterId);
 
             throw handleException(e);
         }

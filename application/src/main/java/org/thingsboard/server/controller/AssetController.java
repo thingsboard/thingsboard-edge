@@ -51,13 +51,11 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,10 +65,10 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.asset.AssetBulkImportService;
-import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
-import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.service.entitiy.asset.TbAssetService;
 import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,15 +138,21 @@ public class AssetController extends BaseController {
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
     public Asset saveAsset(
-               @ApiParam(value = "A JSON value representing the asset.", required = true)
-               @RequestBody Asset asset,
-               @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-               @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @ApiParam(value = "A JSON value representing the asset.", required = true)
+            @RequestBody Asset asset,
+            @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         if (TB_SERVICE_QUEUE.equals(asset.getType())) {
             throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> tbAssetService.save(asset, entityGroup, user));
+        return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
+            try {
+                return tbAssetService.save(asset, entityGroup, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete asset (deleteAsset)",
@@ -157,17 +161,12 @@ public class AssetController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteAsset(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws ThingsboardException {
+    public void deleteAsset(@ApiParam(value = ASSET_ID_PARAM_DESCRIPTION) @PathVariable(ASSET_ID) String strAssetId) throws Exception {
         checkParameter(ASSET_ID, strAssetId);
-        try {
-            AssetId assetId = new AssetId(toUUID(strAssetId));
-            Asset asset = checkAssetId(assetId, Operation.DELETE);
-            tbAssetService.delete(asset, getCurrentUser()).get();
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        AssetId assetId = new AssetId(toUUID(strAssetId));
+        Asset asset = checkAssetId(assetId, Operation.DELETE);
+        tbAssetService.delete(asset, getCurrentUser()).get();
     }
-
 
     @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",
             notes = "Returns a page of assets owned by tenant. " +

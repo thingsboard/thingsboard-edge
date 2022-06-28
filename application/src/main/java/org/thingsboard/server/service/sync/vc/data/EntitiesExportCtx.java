@@ -34,12 +34,12 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.ie.EntityExportSettings;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateConfig;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +50,7 @@ import java.util.Map;
 @Data
 public abstract class EntitiesExportCtx<R extends VersionCreateRequest> {
 
-    protected final SecurityUser user;
+    protected final User user;
     protected final CommitGitRequest commit;
     protected final R request;
     private final List<ListenableFuture<Void>> futures;
@@ -59,7 +59,7 @@ public abstract class EntitiesExportCtx<R extends VersionCreateRequest> {
     private final boolean exportRelatedEntities;
 
 
-    public EntitiesExportCtx(SecurityUser user, CommitGitRequest commit, R request, boolean exportRelatedCustomers, boolean exportRelatedEntities) {
+    public EntitiesExportCtx(User user, CommitGitRequest commit, R request, boolean exportRelatedCustomers, boolean exportRelatedEntities) {
         this.user = user;
         this.commit = commit;
         this.request = request;
