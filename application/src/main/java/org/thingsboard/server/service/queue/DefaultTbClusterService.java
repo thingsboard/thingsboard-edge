@@ -218,7 +218,6 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, TbQueueCallback callback) {
-        log.error("entityId [{}]", entityId);
         if (tenantId.isNullUid()) {
             if (entityId.getEntityType().equals(EntityType.TENANT)) {
                 tenantId = TenantId.fromUUID(entityId.getId());

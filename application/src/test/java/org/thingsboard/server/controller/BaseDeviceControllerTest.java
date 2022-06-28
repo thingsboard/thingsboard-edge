@@ -49,6 +49,8 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.DeviceCredentialsId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -151,11 +153,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         Assert.assertEquals(20, deviceCredentials.getCredentialsId().length());
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
-        Device originatorDevice = new Device (savedDevice);
         savedDevice.setName("My new device");
         doPost("/api/device", savedDevice, Device.class);
 
-        log.error("oldDevice.getId() [{}]", oldDevice.getId());
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.UPDATED, ActionType.UPDATED, 1 , 2, 1);
@@ -177,7 +177,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         doPost("/api/device", device).andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
@@ -187,7 +187,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         doPost("/api/device", device).andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
@@ -197,7 +197,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         doPost("/api/device", device).andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
     }
 
@@ -211,9 +211,15 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        doPost("/api/device", savedDevice, Device.class, status().isNotFound());
+        String msgError = "Device with id [" + savedDevice.getId().getId().toString() + "] is not found";
+        doPost("/api/device", device)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityNever(savedDevice.getId(), savedDevice);
+
+        testNotifyEntityEqualsOneTimeError(savedDevice, savedDifferentTenant.getId(),
+                savedDifferentTenantUser.getId(), savedDifferentTenantUser.getEmail(), ActionType.UPDATED,
+                new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
@@ -333,7 +339,8 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
+                new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
     }
 
