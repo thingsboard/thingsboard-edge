@@ -31,10 +31,10 @@
 'use strict';
 
 const config = require('config');
+const { performance } = require("node:perf_hooks");
 const logger = require('../../config/logger')('ReportController');
 
 const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
-const dashboardLoadWaitTime = Number(config.get('browser.dashboardLoadWaitTime'));
 
 exports.genDashboardReport = function(req, res, browser) {
     const body = req.body;
@@ -137,9 +137,15 @@ async function generateDashboardReport(browser, url, type, timezone) {
 
         await page.emulateMediaType('screen');
 
+        const startTime = performance.now();
         const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
         if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
-            await page.waitForTimeout(dashboardLoadWaitTime);
+            await page.waitForSelector('section.tb-dashboard-container');
+            await page.waitForFunction(() => {
+                return Array.from(document.querySelectorAll('tb-widget>div.tb-widget-loading')).every(item => item.style.display === 'none');
+            },{polling: 100});
+            const endTime = performance.now();
+            logger.debug(`Open page time: ${endTime - startTime}ms`);
         } else {
             const status = dashboardLoadResponse && dashboardLoadResponse.status() || 'null';
             throw new Error(`Dashboard page load returned error status: ${status}`);

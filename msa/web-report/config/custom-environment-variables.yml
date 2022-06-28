@@ -39,8 +39,6 @@ browser:
   launchTimeout: "BROWSER_LAUNCH_TIMEOUT"
   # Default page navigation timeout (ms)
   defaultPageNavigationTimeout: "DEFAULT_PAGE_NAVIGATION_TIMEOUT"
-  # Dashboard load wait time (ms)
-  dashboardLoadWaitTime: "DASHBOARD_LOAD_WAIT_TIME"
 logger:
   level: "LOGGER_LEVEL"
   path: "LOG_FOLDER"
