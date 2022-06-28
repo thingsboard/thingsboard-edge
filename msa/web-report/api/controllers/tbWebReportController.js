@@ -30,34 +30,34 @@
  */
 'use strict';
 
-var config = require('config');
-var logger = require('../../config/logger')('ReportController');
+const config = require('config');
+const { performance } = require("node:perf_hooks");
+const logger = require('../../config/logger')('ReportController');
 
 const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
-const dashboardLoadWaitTime = Number(config.get('browser.dashboardLoadWaitTime'));
 
 exports.genDashboardReport = function(req, res, browser) {
-    var body = req.body;
+    const body = req.body;
     if (body.baseUrl && body.dashboardId) {
-        var baseUrl = body.baseUrl;
+        let baseUrl = body.baseUrl;
         if (!baseUrl.endsWith("/")) {
             baseUrl += "/";
         }
-        var dashboardUrl = baseUrl;
-        dashboardUrl += "dashboard/"+body.dashboardId;
-        var url = dashboardUrl;
-        var token = body.token;
-        var name = body.name;
-        var timewindow = null;
-        var type = 'pdf'; // 'jpeg', 'png';
-        var timezone = null;
+        let dashboardUrl = baseUrl;
+        dashboardUrl += "dashboard/" + body.dashboardId;
+        let url = dashboardUrl;
+        const token = body.token;
+        const name = body.name;
+        let timewindow = null;
+        let type = 'pdf'; // 'jpeg', 'png';
+        let timezone = null;
 
-        var reportParams = body.reportParams;
+        const reportParams = body.reportParams;
         if (reportParams) {
             if (reportParams.type && reportParams.type.length) {
                 type = reportParams.type;
             }
-            var urlParams = [];
+            const urlParams = [];
             urlParams.push("reportView=true");
             urlParams.push("accessToken="+token);
 
@@ -69,7 +69,7 @@ exports.genDashboardReport = function(req, res, browser) {
             }
             if (reportParams.timewindow) {
                 timewindow = reportParams.timewindow;
-                var timewindowStr = JSON.stringify(timewindow);
+                const timewindowStr = JSON.stringify(timewindow);
                 urlParams.push("reportTimewindow="+encodeURIComponent(timewindowStr));
             }
             if (typeof reportParams.timezone === 'string') {
@@ -81,7 +81,7 @@ exports.genDashboardReport = function(req, res, browser) {
             }
         }
 
-        var contentType, ext;
+        let contentType, ext;
         if (type === 'pdf') {
             contentType = 'application/pdf';
             ext = '.pdf';
@@ -117,7 +117,10 @@ exports.genDashboardReport = function(req, res, browser) {
 };
 
 async function generateDashboardReport(browser, url, type, timezone) {
-    var page = await browser.newPage();
+    let buffer;
+
+    const context = await browser.createIncognitoBrowserContext();
+    const page = await context.newPage();
     page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
     //page.on('console', msg => logger.info('PAGE LOG: %s', msg.text()));
     try {
@@ -134,14 +137,21 @@ async function generateDashboardReport(browser, url, type, timezone) {
 
         await page.emulateMediaType('screen');
 
-        const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle2'});
-        if (dashboardLoadResponse._status < 400) {
-            await page.waitForTimeout(dashboardLoadWaitTime);
+        const startTime = performance.now();
+        const dashboardLoadResponse = await page.goto(url, {waitUntil: 'networkidle0'});
+        if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
+            await page.waitForSelector('section.tb-dashboard-container');
+            await page.waitForFunction(() => {
+                return Array.from(document.querySelectorAll('tb-widget>div.tb-widget-loading')).every(item => item.style.display === 'none');
+            },{polling: 100});
+            const endTime = performance.now();
+            logger.debug(`Open page time: ${endTime - startTime}ms`);
         } else {
-            throw new Error("Dashboard page load returned error status: " + dashboardLoadResponse._status);
+            const status = dashboardLoadResponse && dashboardLoadResponse.status() || 'null';
+            throw new Error(`Dashboard page load returned error status: ${status}`);
         }
 
-        var toEval = "var height = 0;\n" +
+        const toEval = "var height = 0;\n" +
             "     var gridsterChild = document.getElementById('gridster-child');\n" +
             "     if (gridsterChild) {\n" +
             "         height = Number(document.getElementById('gridster-child').scrollHeight);\n" +
@@ -161,11 +171,10 @@ async function generateDashboardReport(browser, url, type, timezone) {
             isMobile: false,
             isLandscape: false
         });
-        var buffer;
         if (type === 'pdf') {
             buffer = await page.pdf({printBackground: true, width: '1920px', height: fullHeight + 'px'});
         } else {
-            var options = {omitBackground: false, fullPage: true, type: type};
+            const options = {omitBackground: false, fullPage: true, type: type};
             if (type === 'jpeg') {
                 options.quality = 100;
             }

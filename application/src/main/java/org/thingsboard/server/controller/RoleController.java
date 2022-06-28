@@ -66,10 +66,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES;
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TYPE_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.GROUP_PERMISSION_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
@@ -183,16 +179,16 @@ public class RoleController extends BaseController {
 
             userPermissionsService.onRoleUpdated(savedRole);
 
-            logEntityAction(savedRole.getId(), savedRole, null,
-                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), savedRole.getId(), savedRole,
+                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
             sendEntityNotificationMsg(getTenantId(), savedRole.getId(),
                     role.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedRole;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ROLE), role, null,
-                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), role,
+                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -214,15 +210,12 @@ public class RoleController extends BaseController {
                 throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
             roleService.deleteRole(getTenantId(), roleId);
-            logEntityAction(roleId, role, null, ActionType.DELETED, null, strRoleId);
+            notificationEntityService.logEntityAction(getTenantId(), roleId, role, ActionType.DELETED, getCurrentUser(), strRoleId);
 
             sendEntityNotificationMsg(getTenantId(), roleId, EdgeEventActionType.DELETED);
 
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ROLE),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strRoleId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), ActionType.DELETED, getCurrentUser(), e, strRoleId);
             throw handleException(e);
         }
     }

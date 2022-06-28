@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -138,9 +139,11 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Autowired
     private ApiUsageStateService apiUsageStateService;
 
+    @Lazy
     @Autowired
     private IntegrationRepository integrationRepository;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
 
@@ -686,12 +689,10 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     }
                     try {
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN edge_license_key varchar(30) DEFAULT 'PUT_YOUR_EDGE_LICENSE_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {
-                    }
+                    } catch (Exception ignored) {}
                     try {
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {
-                    }
+                    } catch (Exception ignored) {}
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");

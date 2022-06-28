@@ -49,6 +49,6 @@ public class AttributeCacheKey implements Serializable {
 
     @Override
     public String toString() {
-        return entityId + "_" + scope + "_" + key;
+        return "{" + entityId + "}" + scope + "_" + key;
     }
 }

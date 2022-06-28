@@ -83,10 +83,10 @@ import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
-import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
@@ -175,7 +175,13 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(device, strEntityGroupId,
-                (device1, entityGroup) -> tbDeviceService.save(device1, accessToken, entityGroup, user));
+                (device1, entityGroup) -> {
+                    try {
+                        return tbDeviceService.save(device1, accessToken, entityGroup, user);
+                    } catch (Exception e) {
+                        throw handleException(e);
+                    }
+                });
     }
 
     @ApiOperation(value = "Create Device (saveDevice) with credentials ",
@@ -204,15 +210,11 @@ public class DeviceController extends BaseController {
     @RequestMapping(value = "/device/{deviceId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteDevice(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
-                             @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
+                             @PathVariable(DEVICE_ID) String strDeviceId) throws Exception {
         checkParameter(DEVICE_ID, strDeviceId);
         DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
         Device device = checkDeviceId(deviceId, Operation.DELETE);
-        try {
-            tbDeviceService.delete(device, getCurrentUser()).get();
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        tbDeviceService.delete(device, getCurrentUser()).get();
     }
 
     @ApiOperation(value = "Get Device Credentials (getDeviceCredentialsByDeviceId)",
@@ -593,7 +595,6 @@ public class DeviceController extends BaseController {
         if (newTenant == null) {
             throw new ThingsboardException("Could not find the specified Tenant!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-
         return tbDeviceService.assignDeviceToTenant(device, newTenant, getCurrentUser());
     }
 

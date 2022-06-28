@@ -79,6 +79,7 @@ import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -166,6 +167,15 @@ public class DefaultTbClusterService implements TbClusterService {
         byte[] msgBytes = encodingService.encode(msg);
         ToCoreMsg toCoreMsg = ToCoreMsg.newBuilder().setToDeviceActorNotificationMsg(ByteString.copyFrom(msgBytes)).build();
         producerProvider.getTbCoreMsgProducer().send(tpi, new TbProtoQueueMsg<>(msg.getDeviceId().getId(), toCoreMsg), callback);
+        toCoreMsgs.incrementAndGet();
+    }
+
+    @Override
+    public void pushMsgToVersionControl(TenantId tenantId, TransportProtos.ToVersionControlServiceMsg msg, TbQueueCallback callback) {
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_VC_EXECUTOR, tenantId, tenantId);
+        log.trace("PUSHING msg: {} to:{}", msg, tpi);
+        producerProvider.getTbVersionControlMsgProducer().send(tpi, new TbProtoQueueMsg<>(tenantId.getId(), msg), callback);
+        //TODO: ashvayka
         toCoreMsgs.incrementAndGet();
     }
 
@@ -403,7 +413,7 @@ public class DefaultTbClusterService implements TbClusterService {
     private void broadcast(ComponentLifecycleMsg msg) {
         byte[] msgBytes = encodingService.encode(msg);
         TbQueueProducer<TbProtoQueueMsg<ToRuleEngineNotificationMsg>> toRuleEngineProducer = producerProvider.getRuleEngineNotificationsMsgProducer();
-        Set<String> tbRuleEngineServices = new HashSet<>(partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE));
+        Set<String> tbRuleEngineServices = partitionService.getAllServiceIds(ServiceType.TB_RULE_ENGINE);
         EntityType entityType = msg.getEntityId().getEntityType();
 
         boolean toIntegrationExecutor = entityType.equals(EntityType.CONVERTER) || entityType.equals(EntityType.INTEGRATION);
@@ -424,6 +434,7 @@ public class DefaultTbClusterService implements TbClusterService {
                 entityType.equals(EntityType.DEVICE_PROFILE) ||
                 entityType.equals(EntityType.API_USAGE_STATE) ||
                 (entityType.equals(EntityType.DEVICE) && msg.getEvent() == ComponentLifecycleEvent.UPDATED) ||
+                entityType.equals(EntityType.ENTITY_VIEW) ||
                 msg.getEntityId().getEntityType().equals(EntityType.EDGE);
 
         boolean toRuleEngine = !toIntegrationExecutor;
@@ -501,14 +512,20 @@ public class DefaultTbClusterService implements TbClusterService {
         sendDeviceStateServiceEvent(device.getTenantId(), device.getId(), created, !created, false);
         otaPackageStateService.update(device);
         if (!created && notifyEdge) {
-            sendNotificationMsgToEdgeService(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED, null, null);
+            sendNotificationMsgToEdge(device.getTenantId(), null, device.getId(), null, null, EdgeEventActionType.UPDATED);
         }
     }
 
     @Override
-    public void sendNotificationMsgToEdgeService(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
-                                                 EdgeEventType type, EdgeEventActionType action,
-                                                 EntityType entityGroupType, EntityGroupId entityGroupId) {
+    public void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                          EdgeEventType type, EdgeEventActionType action) {
+        sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action, null, null);
+    }
+
+    @Override
+    public void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body,
+                                          EdgeEventType type, EdgeEventActionType action,
+                                          EntityType entityGroupType, EntityGroupId entityGroupId) {
         if (!edgesEnabled) {
             return;
         }

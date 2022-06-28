@@ -66,12 +66,6 @@
       <mat-label translate>entity-group.default-page-size</mat-label>
       <input matInput type="number" min="5" step="1" formControlName="defaultPageSize">
     </mat-form-field>
-    <mat-checkbox *ngIf="entityType === entityTypes.DEVICE ||
-                         entityType === entityTypes.ASSET ||
-                         entityType === entityTypes.ENTITY_VIEW"
-                  fxFlex formControlName="enableAssignment" style="padding-bottom: 16px;">
-      {{ 'entity-group.enable-assignment-actions' | translate }}
-    </mat-checkbox>
     <mat-checkbox *ngIf="entityType === entityTypes.DEVICE"
                   fxFlex formControlName="enableCredentialsManagement" style="padding-bottom: 16px;">
       {{ 'entity-group.enable-credentials-management' | translate }}

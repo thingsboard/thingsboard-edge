@@ -52,6 +52,8 @@ public class TbPubSubSubscriptionSettings {
     private String notificationsProperties;
     @Value("${queue.pubsub.queue-properties.js-executor}")
     private String jsExecutorProperties;
+    @Value("${queue.pubsub.queue-properties.version-control:}")
+    private String vcProperties;
     @Value("${queue.pubsub.queue-properties.integration-api}")
     private String integrationApiProperties;
 
@@ -66,6 +68,8 @@ public class TbPubSubSubscriptionSettings {
     @Getter
     private Map<String, String> jsExecutorSettings;
     @Getter
+    private Map<String, String> vcSettings;
+    @Getter
     private Map<String, String> integrationSettings;
 
     @PostConstruct
@@ -75,6 +79,7 @@ public class TbPubSubSubscriptionSettings {
         transportApiSettings = getSettings(transportApiProperties);
         notificationsSettings = getSettings(notificationsProperties);
         jsExecutorSettings = getSettings(jsExecutorProperties);
+        vcSettings = getSettings(vcProperties);
         integrationSettings = getSettings(integrationApiProperties);
     }
 

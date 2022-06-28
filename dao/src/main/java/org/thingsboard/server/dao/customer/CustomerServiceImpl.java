@@ -97,9 +97,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     private DeviceService deviceService;
 
     @Autowired
-    private EntityViewService entityViewService;
-
-    @Autowired
     private DashboardService dashboardService;
 
     @Lazy
@@ -123,6 +120,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
 
     @Autowired
     private DataValidator<Customer> customerValidator;
+
+    @Autowired
+    private EntityViewService entityViewService;
 
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {

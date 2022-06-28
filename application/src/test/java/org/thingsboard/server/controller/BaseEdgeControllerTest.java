@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.Customer;
@@ -215,9 +214,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString("Edge name should be specified")));
     }
 
-    @Ignore
     // keeping CE test for merge compatibility
-    @Test
+    // @Test
     public void testAssignUnassignEdgeToCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -251,9 +249,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @Ignore
     // keeping CE test for merge compatibility
-    @Test
+    // @Test
     public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
         loginSysAdmin();
 
@@ -480,9 +477,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    @Ignore
     // keeping CE test for merge compatibility
-    @Test
+    // @Test
     public void testFindCustomerEdges() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -516,9 +512,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edges, loadedEdges);
     }
 
-    @Ignore
     // keeping CE test for merge compatibility
-    @Test
+    // @Test
     public void testFindCustomerEdgesByName() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -608,9 +603,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    @Ignore
     // keeping CE test for merge compatibility
-    @Test
+    // @Test
     public void testFindCustomerEdgesByType() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -702,9 +696,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    @Ignore
     // keeping CE test for merge compatibility
-    @Test
+    // @Test
     public void testSyncEdge() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
 

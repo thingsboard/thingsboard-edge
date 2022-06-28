@@ -31,9 +31,12 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
@@ -48,7 +51,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-
+@Slf4j
 @Component
 public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntity, Integration> implements IntegrationDao {
 
@@ -61,6 +64,26 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
                 integrationRepository.findByTenantId(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Integration> findCoreIntegrationsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                integrationRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        false,
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<Integration> findEdgeTemplateIntegrationsByTenantId(UUID tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                integrationRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        true,
                         DaoUtil.toPageable(pageLink)));
     }
 
@@ -86,6 +109,22 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     }
 
     @Override
+    public List<Integration> findTenantIntegrationsByName(UUID tenantId, String name) {
+        return DaoUtil.convertDataList(integrationRepository.findByTenantIdAndName(tenantId, name));
+    }
+
+    @Override
+    public PageData<Integration> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
+        log.debug("Try to find integrations by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
+        return DaoUtil.toPageData(integrationRepository
+                .findByTenantIdAndEdgeId(
+                        tenantId,
+                        edgeId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     protected Class<IntegrationEntity> getEntityClass() {
         return IntegrationEntity.class;
     }
@@ -99,4 +138,21 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
     public Long countByTenantId(TenantId tenantId) {
         return integrationRepository.countByTenantId(tenantId.getId());
     }
+
+    @Override
+    public Integration findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
+        return DaoUtil.getData(integrationRepository.findByTenantIdAndExternalId(tenantId, externalId));
+    }
+
+    @Override
+    public IntegrationId getExternalIdByInternal(IntegrationId internalId) {
+        return Optional.ofNullable(integrationRepository.getExternalIdById(internalId.getId()))
+                .map(IntegrationId::new).orElse(null);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.INTEGRATION;
+    }
+
 }

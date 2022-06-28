@@ -1,0 +1,113 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section style="min-width: 300px;">
+  <section *ngIf="!versionCreateResult$">
+    <mat-toolbar>
+      <h2>{{ 'version-control.create-entity-version' | translate }}</h2>
+      <span fxFlex></span>
+    </mat-toolbar>
+    <mat-progress-bar color="warn" style="z-index: 10; width: 100%; margin-bottom: -4px;" mode="indeterminate"
+                      *ngIf="isLoading$ | async">
+    </mat-progress-bar>
+    <form [formGroup]="createVersionFormGroup" style="padding-top: 16px;">
+      <fieldset [disabled]="isLoading$ | async">
+        <div fxFlex fxLayout="column">
+          <tb-branch-autocomplete
+            required
+            formControlName="branch">
+          </tb-branch-autocomplete>
+          <mat-form-field class="mat-block" fxFlex>
+            <mat-label translate>version-control.version-name</mat-label>
+            <input required matInput formControlName="versionName">
+            <mat-error *ngIf="createVersionFormGroup.get('versionName').hasError('required') ||
+                              createVersionFormGroup.get('versionName').hasError('pattern')">
+              {{ 'version-control.version-name-required' | translate }}
+            </mat-error>
+          </mat-form-field>
+          <mat-checkbox *ngIf="entityId.entityType === entityTypes.ENTITY_GROUP && entityTypes.USER !== groupType" formControlName="saveGroupEntities" style="margin-bottom: 16px;">
+            {{ 'version-control.export-group-entities' | translate }}
+          </mat-checkbox>
+          <mat-checkbox *ngIf="entityId.entityType === entityTypes.ENTITY_GROUP && entityTypes.USER === groupType" formControlName="savePermissions" style="margin-bottom: 16px;">
+            {{ 'version-control.export-roles' | translate }}
+          </mat-checkbox>
+          <mat-checkbox *ngIf="entityId.entityType === entityTypes.DEVICE || entityTypes.DEVICE === groupType" formControlName="saveCredentials" style="margin-bottom: 16px;">
+            {{ 'version-control.export-credentials' | translate }}
+          </mat-checkbox>
+          <mat-checkbox formControlName="saveAttributes" style="margin-bottom: 16px;">
+            {{ 'version-control.export-attributes' | translate }}
+          </mat-checkbox>
+          <mat-checkbox formControlName="saveRelations" style="margin-bottom: 16px;">
+            {{ 'version-control.export-relations' | translate }}
+          </mat-checkbox>
+        </div>
+      </fieldset>
+    </form>
+    <div fxLayoutAlign="end center" fxLayoutGap="8px">
+      <button mat-button color="primary"
+              type="button"
+              [disabled]="(isLoading$ | async)"
+              (click)="cancel()" cdkFocusInitial>
+        {{ 'action.cancel' | translate }}
+      </button>
+      <button mat-raised-button color="primary"
+              type="button"
+              (click)="export()"
+              [disabled]="(isLoading$ | async) || createVersionFormGroup.invalid">
+        {{ 'action.create' | translate }}
+      </button>
+    </div>
+  </section>
+  <section *ngIf="versionCreateResult$">
+    <section *ngIf="(versionCreateResult$ | async)?.done || resultMessage; else progress">
+      <section *ngIf="resultMessage">
+        <div class="mat-title vc-result-message">{{ resultMessage }}</div>
+        <div fxLayoutAlign="end center" fxLayoutGap="8px">
+          <button mat-button color="primary"
+                  type="button"
+                  [disabled]="(isLoading$ | async)"
+                  (click)="cancel()" cdkFocusInitial>
+            {{ 'action.close' | translate }}
+          </button>
+        </div>
+      </section>
+    </section>
+    <ng-template #progress>
+      <section fxLayout="column" fxLayoutAlign="center center">
+        <div class="mat-title vc-result-message progress">
+          <span translate>version-control.creating-version</span>
+          <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        </div>
+      </section>
+    </ng-template>
+  </section>
+</section>

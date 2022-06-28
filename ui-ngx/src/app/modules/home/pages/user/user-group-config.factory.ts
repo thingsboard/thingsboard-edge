@@ -135,8 +135,8 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.groupType === EntityType.EDGE) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'userGroups', params.childEntityGroupId, user.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'userGroups', params.edgeEntitiesGroupId, user.id.id]);
       } else {
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'userGroups', params.childEntityGroupId, user.id.id]);

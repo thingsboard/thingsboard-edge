@@ -46,10 +46,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,34 +62,35 @@ import static org.thingsboard.server.controller.UserController.ACTIVATE_URL_PATT
 @Slf4j
 public class DefaultUserService extends AbstractTbEntityService implements TbUserService {
 
+    private final UserService userService;
     private final MailService mailService;
     private final SystemSecurityService systemSecurityService;
-    private final UserPermissionsService userPermissionsService;
 
     @Override
     public User save(TenantId tenantId, CustomerId customerId, Authority authority, User tbUser, boolean sendActivationMail,
-                     HttpServletRequest request, EntityGroupId entityGroupId, EntityGroup entityGroup,
-                     SecurityUser user) throws ThingsboardException {
+                     HttpServletRequest request, EntityGroupId entityGroupId, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = tbUser.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         try {
             boolean sendEmail = tbUser.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(tbUser));
 
-            // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
-            if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
-                entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-                notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                        savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
-            } else if (entityGroup != null && tbUser.getId() == null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
-
-                notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
-                        entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
+            // Sys Admins do not have entity groups
+            if (!tbUser.isSystemAdmin()) {
+                // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
+                if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
+                    EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
+                    entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
+                    notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
+                            savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
+                } else if (entityGroup != null && tbUser.getId() == null) {
+                    entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
+                    notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
+                            entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
+                }
             }
 
             if (sendEmail) {
-                SecurityUser authUser = user;
+                User authUser = user;
                 UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), savedUser.getId());
                 String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
                 String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
@@ -103,33 +103,28 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     throw e;
                 }
             }
-
-            userPermissionsService.onUserUpdatedOrRemoved(savedUser);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
                     savedUser, user, actionType, true, null);
             return savedUser;
         } catch (Exception e) {
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.USER),
-                    tbUser, user, actionType, false, e);
-            throw handleException(e);
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER), user, actionType, user, e);
+            throw e;
         }
     }
 
     @Override
-    public void delete(TenantId tenantId, CustomerId customerId, User tbUser, SecurityUser user) throws ThingsboardException {
+    public void delete(TenantId tenantId, CustomerId customerId, User tbUser, User user) throws ThingsboardException {
         UserId userId = tbUser.getId();
 
         try {
             List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, userId);
-
             userService.deleteUser(tenantId, userId);
-
             notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
-                    ActionType.DELETED,  relatedEdgeIds, user, userId.toString());
+                    ActionType.DELETED, relatedEdgeIds, user, userId.toString());
         } catch (Exception e) {
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.USER),
-                    null, user, ActionType.DELETED, false, e, userId.toString());
-            throw handleException(e);
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
+                    ActionType.DELETED, user, e, userId.toString());
+            throw e;
         }
     }
 }

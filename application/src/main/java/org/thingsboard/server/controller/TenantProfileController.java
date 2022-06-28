@@ -47,15 +47,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.tenant_profile.TbTenantProfileService;
+import org.thingsboard.server.service.entitiy.tenant.profile.TbTenantProfileService;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -186,26 +184,18 @@ public class TenantProfileController extends BaseController {
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/tenantProfile", method = RequestMethod.POST)
     @ResponseBody
-    public TenantProfile saveTenantProfile(
-            @ApiParam(value = "A JSON value representing the tenant profile.")
-            @RequestBody TenantProfile tenantProfile) throws ThingsboardException {
+    public TenantProfile saveTenantProfile(@ApiParam(value = "A JSON value representing the tenant profile.")
+                                           @RequestBody TenantProfile tenantProfile) throws ThingsboardException {
         try {
-            boolean newTenantProfile = tenantProfile.getId() == null;
             TenantProfile oldProfile;
-            if (newTenantProfile) {
-                accessControlService
-                        .checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, Operation.CREATE);
+            if (tenantProfile.getId() == null) {
+                accessControlService.checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, Operation.CREATE);
                 oldProfile = null;
             } else {
                 oldProfile = checkTenantProfileId(tenantProfile.getId(), Operation.WRITE);
             }
 
-            tenantProfile = checkNotNull(tbTenantProfileService.saveTenantProfile(getTenantId(), tenantProfile, oldProfile));
-            tenantProfileCache.put(tenantProfile);
-            tbClusterService.onTenantProfileChange(tenantProfile, null);
-            tbClusterService.broadcastEntityStateChangeEvent(TenantId.SYS_TENANT_ID, tenantProfile.getId(),
-                    newTenantProfile ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            return tenantProfile;
+            return tbTenantProfileService.save(getTenantId(), tenantProfile, oldProfile);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -216,15 +206,13 @@ public class TenantProfileController extends BaseController {
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/tenantProfile/{tenantProfileId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public void deleteTenantProfile(
-            @ApiParam(value = TENANT_PROFILE_ID_PARAM_DESCRIPTION)
-            @PathVariable("tenantProfileId") String strTenantProfileId) throws ThingsboardException {
-        checkParameter("tenantProfileId", strTenantProfileId);
+    public void deleteTenantProfile(@ApiParam(value = TENANT_PROFILE_ID_PARAM_DESCRIPTION)
+                                    @PathVariable("tenantProfileId") String strTenantProfileId) throws ThingsboardException {
         try {
+            checkParameter("tenantProfileId", strTenantProfileId);
             TenantProfileId tenantProfileId = new TenantProfileId(toUUID(strTenantProfileId));
             TenantProfile profile = checkTenantProfileId(tenantProfileId, Operation.DELETE);
-            tenantProfileService.deleteTenantProfile(getTenantId(), tenantProfileId);
-            tbClusterService.onTenantProfileDelete(profile, null);
+            tbTenantProfileService.delete(getTenantId(), profile);
         } catch (Exception e) {
             throw handleException(e);
         }

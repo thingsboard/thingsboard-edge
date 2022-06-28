@@ -33,8 +33,10 @@ package org.thingsboard.server.common.data.widget;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -44,7 +46,8 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ApiModel
-public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity {
+@EqualsAndHashCode(callSuper = true)
+public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId> {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -80,6 +83,10 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
     @ApiModelProperty(position = 7, value = "Description", readOnly = true)
     private String description;
 
+    @Getter
+    @Setter
+    private WidgetsBundleId externalId;
+
     public WidgetsBundle() {
         super();
     }
@@ -95,6 +102,7 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
         this.title = widgetsBundle.getTitle();
         this.image = widgetsBundle.getImage();
         this.description = widgetsBundle.getDescription();
+        this.externalId = widgetsBundle.getExternalId();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Widget Bundle Id. " +
@@ -117,31 +125,10 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
         return getTitle();
     }
 
+    @JsonIgnore
     @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (tenantId != null ? tenantId.hashCode() : 0);
-        result = 31 * result + (alias != null ? alias.hashCode() : 0);
-        result = 31 * result + (title != null ? title.hashCode() : 0);
-        result = 31 * result + (image != null ? image.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        WidgetsBundle that = (WidgetsBundle) o;
-
-        if (tenantId != null ? !tenantId.equals(that.tenantId) : that.tenantId != null) return false;
-        if (alias != null ? !alias.equals(that.alias) : that.alias != null) return false;
-        if (title != null ? !title.equals(that.title) : that.title != null) return false;
-        if (image != null ? !image.equals(that.image) : that.image != null) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        return true;
+    public String getName() {
+        return title;
     }
 
     @Override
@@ -150,7 +137,6 @@ public class WidgetsBundle extends SearchTextBased<WidgetsBundleId> implements T
         sb.append("tenantId=").append(tenantId);
         sb.append(", alias='").append(alias).append('\'');
         sb.append(", title='").append(title).append('\'');
-        sb.append(", image='").append(image).append('\'');
         sb.append(", description='").append(description).append('\'');
         sb.append('}');
         return sb.toString();

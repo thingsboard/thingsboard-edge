@@ -41,7 +41,10 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
@@ -286,6 +289,22 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                                 new DeviceId(entityId.getId()), DataConstants.SHARED_SCOPE, new ArrayList<>(attributes))
                         , null);
             }
+        }
+        if (entityId.getEntityType() == EntityType.EDGE) {
+            try {
+                EdgeId edgeId = new EdgeId(entityId.getId());
+                String body = JacksonUtil.OBJECT_MAPPER.writeValueAsString(attributes);
+                clusterService.sendNotificationMsgToEdge(tenantId,
+                        edgeId,
+                        edgeId,
+                        body,
+                        EdgeEventType.EDGE,
+                        EdgeEventActionType.ATTRIBUTES_UPDATED);
+            } catch (Exception e) {
+                String errMsg = String.format("[%s][%s] Can't send edge attributes updated event {%s}", tenantId, entityId.getId(), attributes);
+                log.warn(errMsg, e);
+            }
+
         }
         callback.onSuccess();
     }

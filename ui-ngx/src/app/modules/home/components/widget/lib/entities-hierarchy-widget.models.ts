@@ -120,10 +120,7 @@ export const defaultNodeRelationQueryFunction: NodeRelationQueryFunction = nodeC
       entityTypes: []
     }
   ];
-  if (entityType === EntityType.ENTITY_GROUP) {
-    relationTypeGroup = RelationTypeGroup.FROM_ENTITY_GROUP
-  } else if (entityType === EntityType.TENANT || entityType === EntityType.CUSTOMER){
-    relationTypeGroup = RelationTypeGroup.TO_ENTITY_GROUP;
+  if (entityType === EntityType.TENANT || entityType === EntityType.CUSTOMER){
     filters = [];
   }
   const query: EntityRelationsQuery = {

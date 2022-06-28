@@ -36,4 +36,3 @@ export const entityDetailsPageBreadcrumbLabelFunction: BreadCrumbLabelFunction<E
   = ((route, translate, component) => {
   return component.entity?.name || component.headerSubtitle;
 });
-

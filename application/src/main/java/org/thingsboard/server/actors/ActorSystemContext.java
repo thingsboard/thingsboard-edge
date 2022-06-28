@@ -66,6 +66,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -105,6 +106,7 @@ import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
@@ -251,6 +253,11 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private EntityViewService entityViewService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private TbEntityViewService tbEntityViewService;
 
     @Autowired
     @Getter

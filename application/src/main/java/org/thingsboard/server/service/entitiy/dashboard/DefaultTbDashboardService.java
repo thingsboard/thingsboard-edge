@@ -34,15 +34,16 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
 
@@ -51,21 +52,25 @@ import java.util.List;
 @AllArgsConstructor
 public class DefaultTbDashboardService extends AbstractTbEntityService implements TbDashboardService {
 
+    private final DashboardService dashboardService;
+
     @Override
-    public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, SecurityUser user) throws ThingsboardException {
+    public Dashboard save(Dashboard dashboard, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = dashboard.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = dashboard.getTenantId();
         try {
-            Dashboard saveDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
-            createOrUpdateGroupEntity(tenantId, saveDashboard, entityGroup, actionType, user);
-            return saveDashboard;
+            Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
+            autoCommit(user, savedDashboard.getId());
+            createOrUpdateGroupEntity(tenantId, savedDashboard, entityGroup, actionType, user);
+            return savedDashboard;
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), dashboard, null, actionType, user, e);
-            throw handleException(e);
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), dashboard, actionType, user, e);
+            throw e;
         }
     }
+
     @Override
-    public void delete(Dashboard dashboard, SecurityUser user) throws ThingsboardException {
+    public void delete(Dashboard dashboard, User user) {
         DashboardId dashboardId = dashboard.getId();
         TenantId tenantId = dashboard.getTenantId();
         try {
@@ -74,9 +79,8 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
             notificationEntityService.notifyDeleteEntity(tenantId, dashboardId, dashboard, null,
                     ActionType.DELETED, relatedEdgeIds, user, dashboardId.toString());
         } catch (Exception e) {
-            notificationEntityService.notifyEntity(tenantId, emptyId(EntityType.DASHBOARD), null, null,
-                    ActionType.DELETED, user, e, dashboardId.toString());
-            throw handleException(e);
+            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), ActionType.DELETED, user, e, dashboardId.toString());
+            throw e;
         }
     }
- }
+}

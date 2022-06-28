@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.EntityViewEntity;
 
 import java.util.List;
@@ -43,7 +44,7 @@ import java.util.UUID;
 /**
  * Created by Victor Basanets on 8/31/2017.
  */
-public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UUID> {
+public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UUID>, ExportableEntityRepository<EntityViewEntity> {
 
     @Query("SELECT e FROM EntityViewEntity e WHERE e.tenantId = :tenantId " +
             "AND LOWER(e.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
@@ -140,4 +141,19 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
                                                    @Param("type") String type,
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
+
+    @Query("SELECT id FROM EntityViewEntity WHERE tenantId = :tenantId " +
+            "AND (customerId IS NULL OR customerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId,
+                                                  Pageable pageable);
+
+    @Query("SELECT id FROM EntityViewEntity WHERE tenantId = :tenantId " +
+            "AND customerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                              @Param("customerId") UUID customerId,
+                                              Pageable pageable);
+
+    @Query("SELECT externalId FROM EntityViewEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }
