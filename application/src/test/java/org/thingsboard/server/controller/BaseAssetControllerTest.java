@@ -135,7 +135,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         Mockito.reset(tbClusterService, auditLogService);
 
         String msgError = "length of name must be equal or less than 255";
-        doPost("/api/asset", asset).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/asset", asset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -146,7 +148,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         asset.setName("Normal name");
         asset.setType(RandomStringUtils.randomAlphabetic(300));
         msgError = "length of type must be equal or less than 255";
-        doPost("/api/asset", asset).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/asset", asset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -157,7 +161,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         asset.setType("default");
         asset.setLabel(RandomStringUtils.randomAlphabetic(300));
         msgError = "length of label must be equal or less than 255";
-        doPost("/api/asset", asset).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/asset", asset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -260,8 +266,11 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, savedAsset.getId().getId().toString());
 
+        String assetIdStr = savedAsset.getId().getId().toString();
+        String msgError = "Asset with id [" + assetIdStr + "] is not found";
         doGet("/api/asset/" + savedAsset.getId().getId().toString())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgError)));
     }
 
     @Test
@@ -285,10 +294,11 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doDelete("/api/asset/" + savedAsset1.getId().getId().toString())
-                .andExpect(status().isBadRequest());
-
         String msgError = "Can't delete asset that has entity views";
+        doDelete("/api/asset/" + savedAsset1.getId().getId().toString())
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
         testNotifyEntityIsNullOneTimeError(savedAsset1, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, new DataValidationException(msgError), savedAsset1.getId().getId().toString());
 
@@ -299,8 +309,11 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         doDelete("/api/asset/" + savedAsset1.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        doGet("/api/asset/" + savedAsset1.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        String assetIdStr = savedAsset1.getId().getId().toString();
+        msgError = "Asset with id [" + assetIdStr + "] is not found";
+        doGet("/api/asset/" + assetIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgError)));
     }
 
     @Test
