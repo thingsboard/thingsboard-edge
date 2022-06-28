@@ -104,6 +104,8 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void onDeviceUpdated(Device device, Device old, boolean notifyEdge);
 
+    void onDeviceUpdated(Device device, Device old, boolean notifyEdge, boolean notifyCloud);
+
     void onDeviceDeleted(Device device, TbQueueCallback callback);
 
     void onResourceChange(TbResource resource, TbQueueCallback callback);

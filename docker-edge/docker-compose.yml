@@ -43,7 +43,6 @@ services:
       CLOUD_ROUTING_KEY: "${CLOUD_ROUTING_KEY}"
       CLOUD_ROUTING_SECRET: "${CLOUD_ROUTING_SECRET}"
       CLOUD_RPC_HOST: "${CLOUD_RPC_HOST}"
-      CACHE_ATTRIBUTES_ENABLED: "false"
       HTTP_BIND_PORT: "8082"
       CONF_FOLDER: "/config"
     env_file:

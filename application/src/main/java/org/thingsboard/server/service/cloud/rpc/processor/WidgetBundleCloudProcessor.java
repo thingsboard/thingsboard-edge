@@ -52,12 +52,13 @@ import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @Component
 @Slf4j
 public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
 
-    public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) {
+    public ListenableFuture<Void> processWidgetsBundleMsgFromCloud(TenantId tenantId, WidgetsBundleUpdateMsg widgetsBundleUpdateMsg) throws ExecutionException, InterruptedException {
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(new UUID(widgetsBundleUpdateMsg.getIdMSB(), widgetsBundleUpdateMsg.getIdLSB()));
         switch (widgetsBundleUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
@@ -86,38 +87,39 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                     widgetsBundleService.saveWidgetsBundle(widgetsBundle, false);
 
                     if (created) {
-                        requestWidgetsBundleTypes(tenantId, widgetsBundleId);
+                        return requestWidgetsBundleTypes(tenantId, widgetsBundleId);
+                    } else {
+                        return Futures.immediateFuture(null);
                     }
                 } finally {
                     widgetCreationLock.unlock();
                 }
-                break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleById(tenantId, widgetsBundleId);
                 if (widgetsBundle != null) {
                     widgetsBundleService.deleteWidgetsBundle(tenantId, widgetsBundle.getId());
                 }
-                break;
+                return Futures.immediateFuture(null);
             case UNRECOGNIZED:
+            default:
                 return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
         }
-        return Futures.immediateFuture(null);
     }
 
-    private void requestWidgetsBundleTypes(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
-        saveCloudEvent(tenantId,
+    private ListenableFuture<Void> requestWidgetsBundleTypes(TenantId tenantId, WidgetsBundleId widgetsBundleId) {
+        return saveCloudEvent(tenantId,
                 CloudEventType.WIDGETS_BUNDLE,
                 EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST,
                 widgetsBundleId,
                 null);
     }
 
-    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId) {
+    private void deleteSystemWidgetBundleIfAlreadyExists(TenantId tenantId, String bundleAlias, WidgetsBundleId widgetsBundleId) throws ExecutionException, InterruptedException {
         try {
             WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, bundleAlias);
             if (widgetsBundle != null && !widgetsBundleId.equals(widgetsBundle.getId())) {
                 widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, widgetsBundle.getId());
-                requestWidgetsBundleTypes(tenantId, widgetsBundleId);
+                requestWidgetsBundleTypes(tenantId, widgetsBundleId).get();
             }
         } catch (IncorrectResultSizeDataAccessException e) {
             // fix for duplicate entries of system widgets
@@ -129,7 +131,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                 }
             }
             log.warn("Duplicate widgets bundle found, alias {}. Removed all duplicates!", bundleAlias);
-            requestWidgetsBundleTypes(tenantId, widgetsBundleId);
+            requestWidgetsBundleTypes(tenantId, widgetsBundleId).get();
         }
     }
 

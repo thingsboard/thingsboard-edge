@@ -59,6 +59,7 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -97,7 +98,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                                 EdgeEventActionType cloudEventAction,
                                 EntityId entityId,
                                 JsonNode entityBody,
-                                EntityId entityGroupId) {
+                                EntityId entityGroupId) throws ExecutionException, InterruptedException {
         log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], " +
                         "cloudEventAction[{}], entityId [{}], entityBody [{}], entityGroupId [{}]",
                 tenantId, cloudEventType, cloudEventAction, entityId, entityBody, entityGroupId);
@@ -113,7 +114,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             cloudEvent.setEntityGroupId(entityGroupId.getId());
         }
         cloudEvent.setEntityBody(entityBody);
-        cloudEventService.saveAsync(cloudEvent);
+        cloudEventService.saveAsync(cloudEvent).get();
     }
 
     @Override
@@ -141,14 +142,15 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                     log.debug("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
             }
         } catch (Exception e) {
+            String errMsg = String.format("Can't push to cloud updates, cloudNotificationMsg [%s]", cloudNotificationMsg);
+            log.error(errMsg, e);
             callback.onFailure(e);
-            log.error("Can't push to cloud updates, cloudNotificationMsg [{}]", cloudNotificationMsg, e);
         } finally {
             callback.onSuccess();
         }
     }
 
-    private void processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
+    private void processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
@@ -157,18 +159,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             case UPDATED:
             case CREDENTIALS_UPDATED:
             case ADDED_TO_ENTITY_GROUP:
-                try {
-                    EntityGroupId entityGroupId = null;
-                    if (cloudNotificationMsg.getEntityGroupIdMSB() != 0 && cloudNotificationMsg.getEntityGroupIdLSB() != 0) {
-                        entityGroupId = new EntityGroupId(
-                                new UUID(cloudNotificationMsg.getEntityGroupIdMSB(), cloudNotificationMsg.getEntityGroupIdLSB()));
-                    }
-                    saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, entityGroupId);
-                } catch (Exception e) {
-                    log.error("[{}] Failed to push event to cloud [{}], cloudEventType [{}], cloudEventActionType [{}], entityId [{}]",
-                            tenantId, cloudEventType, cloudEventActionType, entityId, e);
-                }
-                break;
             case DELETED:
             case REMOVED_FROM_ENTITY_GROUP:
                 EntityGroupId entityGroupId = null;
@@ -181,7 +171,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         }
     }
 
-    private void processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws JsonProcessingException {
+    private void processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (actionType) {
@@ -195,25 +185,23 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                         null);
                 break;
             default:
-                ListenableFuture<Alarm> alarmFuture = alarmService.findAlarmByIdAsync(tenantId, alarmId);
-                Futures.transform(alarmFuture, alarm -> {
-                    if (alarm != null) {
-                        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
-                        if (cloudEventType != null) {
-                            saveCloudEvent(tenantId,
-                                    CloudEventType.ALARM,
-                                    EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
-                                    alarmId,
-                                    null,
-                                    null);
-                        }
+                // TODO: @voba - improve performance by using async method properly
+                Alarm alarm = alarmService.findAlarmByIdAsync(tenantId, alarmId).get();
+                if (alarm != null) {
+                    CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
+                    if (cloudEventType != null) {
+                        saveCloudEvent(tenantId,
+                                CloudEventType.ALARM,
+                                EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
+                                alarmId,
+                                null,
+                                null);
                     }
-                    return null;
-                }, dbCallbackExecutorService);
+                }
         }
     }
 
-    private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws JsonProcessingException {
+    private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EntityRelation relation = mapper.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
         saveCloudEvent(tenantId,
                 CloudEventType.RELATION,
