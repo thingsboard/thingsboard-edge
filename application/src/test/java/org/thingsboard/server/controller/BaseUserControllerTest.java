@@ -131,6 +131,47 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testCreateSysAdmin() throws Exception {
+        loginSysAdmin();
+
+        String email = "sysadmin2@thingsboard.org";
+        User user = new User();
+        user.setAuthority(Authority.SYS_ADMIN);
+        user.setTenantId(TenantId.SYS_TENANT_ID);
+        user.setEmail(email);
+        user.setFirstName("Joe");
+        user.setLastName("Downs");
+        User savedUser = doPost("/api/user", user, User.class);
+        Assert.assertNotNull(savedUser);
+        Assert.assertNotNull(savedUser.getId());
+        Assert.assertTrue(savedUser.getCreatedTime() > 0);
+        Assert.assertEquals(user.getEmail(), savedUser.getEmail());
+
+        User foundUser = doGet("/api/user/" + savedUser.getId().getId().toString(), User.class);
+        Assert.assertEquals(foundUser, savedUser);
+
+        logout();
+
+        loginSysAdmin();
+        doDelete("/api/user/" + savedUser.getId().getId().toString())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testTryCreateSysAdminByUserWithNoAuthority() throws Exception {
+        loginTenantAdmin();
+
+        String email = "sysadmin2@thingsboard.org";
+        User user = new User();
+        user.setAuthority(Authority.SYS_ADMIN);
+        user.setTenantId(TenantId.SYS_TENANT_ID);
+        user.setEmail(email);
+        user.setFirstName("Joe");
+        user.setLastName("Downs");
+        doPost("/api/user", user).andExpect(status().is4xxClientError());
+    }
+
+    @Test
     public void testUpdateUserFromDifferentTenant() throws Exception {
         loginSysAdmin();
 
