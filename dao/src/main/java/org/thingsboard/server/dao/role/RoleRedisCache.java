@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.cache.TbRedisSerializer;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
 @Service("RoleCache")

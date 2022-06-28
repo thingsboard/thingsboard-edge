@@ -39,7 +39,6 @@ import org.thingsboard.server.cache.TbFSTRedisSerializer;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.cache.TbRedisSerializer;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
 @Service("RemoteIntegrationCache")
