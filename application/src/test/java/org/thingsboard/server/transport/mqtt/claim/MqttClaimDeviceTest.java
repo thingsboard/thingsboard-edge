@@ -190,6 +190,9 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
         assertNotNull(savedDevice);
 
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
+
         loginUser(customerAdmin.getName(), CUSTOMER_USER_PASSWORD);
         ClaimRequest claimRequest;
         if (!emptyPayload) {
