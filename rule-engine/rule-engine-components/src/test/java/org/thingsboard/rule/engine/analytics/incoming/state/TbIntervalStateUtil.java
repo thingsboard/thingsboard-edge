@@ -30,53 +30,20 @@
  */
 package org.thingsboard.rule.engine.analytics.incoming.state;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.google.gson.JsonPrimitive;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
-/**
- * Created by ashvayka on 13.06.18.
- */
-@Data
-@NoArgsConstructor
-public class TbAvgIntervalState extends TbBaseIntervalState {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private BigDecimal sum = BigDecimal.ZERO;
-    private long count = 0L;
-
-    public TbAvgIntervalState(JsonElement stateJson) {
-        JsonObject jsonObject = stateJson.getAsJsonObject();
-        this.sum = new BigDecimal(jsonObject.get("sum").getAsString());
-        this.count = jsonObject.get("count").getAsLong();
+public class TbIntervalStateUtil {
+    public static void assertEquals(BigDecimal expected, BigDecimal actual, String alias) {
+        assertThat(actual).as(alias).isEqualTo(expected);
     }
 
-    @Override
-    protected boolean doUpdate(JsonElement data) {
-        BigDecimal value = data.getAsBigDecimal();
-        if (value.compareTo(BigDecimal.ZERO) != 0) {
-            sum = sum.add(value);
+    public static void doUpdateForValues(TbBaseIntervalState state, BigDecimal ... values) {
+        for (BigDecimal value : values) {
+            state.doUpdate(new JsonPrimitive(value));
         }
-        this.count++;
-        return true;
-    }
-
-    @Override
-    public String toValueJson(Gson gson, String outputValueKey) {
-        JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP));
-        return gson.toJson(json);
-    }
-
-    @Override
-    public String toStateJson(Gson gson) {
-        JsonObject object = new JsonObject();
-        object.addProperty("sum", sum.toString());
-        object.addProperty("count", Long.toString(count));
-        return gson.toJson(object);
     }
 }
