@@ -30,9 +30,9 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
@@ -302,11 +302,11 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
 
         String error = readResponse(doDelete("/api/converter/" + uplinkConverter.getId())
                 .andExpect(status().isBadRequest()), String.class);
-        assertThat(error).containsIgnoringCase("deletion will affect existing integrations");
+        assertThat(error).containsIgnoringCase("The converter referenced by the integration cannot be deleted!");
 
         error = readResponse(doDelete("/api/converter/" + downlinkConverter.getId())
                 .andExpect(status().isBadRequest()), String.class);
-        assertThat(error).containsIgnoringCase("deletion will affect existing integrations");
+        assertThat(error).containsIgnoringCase("The downlink converter referenced by the integration cannot be deleted!");
     }
 
 }

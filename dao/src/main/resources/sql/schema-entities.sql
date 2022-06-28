@@ -103,6 +103,21 @@ CREATE TABLE IF NOT EXISTS asset (
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name)
 );
 
+
+CREATE TABLE IF NOT EXISTS converter (
+    id uuid NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    additional_info varchar,
+    configuration varchar(10000000),
+    debug_mode boolean,
+    name varchar(255),
+    search_text varchar(255),
+    tenant_id uuid,
+    type varchar(255),
+    external_id uuid,
+    is_edge_template boolean DEFAULT false
+);
+
 CREATE TABLE IF NOT EXISTS integration (
     id uuid NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
@@ -121,21 +136,9 @@ CREATE TABLE IF NOT EXISTS integration (
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
-    is_edge_template boolean DEFAULT false
-);
-
-CREATE TABLE IF NOT EXISTS converter (
-    id uuid NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
-    created_time bigint NOT NULL,
-    additional_info varchar,
-    configuration varchar(10000000),
-    debug_mode boolean,
-    name varchar(255),
-    search_text varchar(255),
-    tenant_id uuid,
-    type varchar(255),
-    external_id uuid,
-    is_edge_template boolean DEFAULT false
+    is_edge_template boolean DEFAULT false,
+    CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
+    CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (

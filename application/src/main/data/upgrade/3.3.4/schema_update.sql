@@ -104,3 +104,19 @@ ALTER TABLE converter
 
 ALTER TABLE integration
     ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;
+
+DO $$
+BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_converter') THEN
+ALTER TABLE integration
+    ADD CONSTRAINT fk_integration_converter
+        FOREIGN KEY (converter_id) REFERENCES converter(id);
+END IF;
+
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_downlink_converter') THEN
+ALTER TABLE integration
+    ADD CONSTRAINT fk_integration_downlink_converter
+        FOREIGN KEY (downlink_converter_id) REFERENCES converter(id);
+END IF;
+END;
+$$;

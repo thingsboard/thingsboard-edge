@@ -70,8 +70,6 @@ public interface IntegrationService {
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
 
-    boolean existsByConverterId(TenantId tenantId, ConverterId converterId);
-
     List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
 
     Integration assignIntegrationToEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId);

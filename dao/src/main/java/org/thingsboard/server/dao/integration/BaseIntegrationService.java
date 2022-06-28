@@ -34,9 +34,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -225,11 +225,6 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
         Validator.validatePageLink(pageLink);
         return integrationDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
-    }
-
-    @Override
-    public boolean existsByConverterId(TenantId tenantId, ConverterId converterId) {
-        return integrationDao.existsByUplinkOrDownlinkConverterId(tenantId.getId(), converterId.getId());
     }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =

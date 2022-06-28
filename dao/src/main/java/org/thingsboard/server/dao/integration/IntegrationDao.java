@@ -92,8 +92,6 @@ public interface IntegrationDao extends Dao<Integration>, TenantEntityDao, Expor
      */
     List<Integration> findByConverterId(UUID tenantId, UUID converterId);
 
-    boolean existsByUplinkOrDownlinkConverterId(UUID tenantId, UUID converterId);
-
     /**
      * Find integrations by tenantId and integration Ids.
      *

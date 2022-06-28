@@ -75,7 +75,9 @@ CREATE TABLE IF NOT EXISTS integration (
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
-    is_edge_template boolean DEFAULT false
+    is_edge_template boolean DEFAULT false,
+    CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
+    CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
 );
 
 ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);
