@@ -381,7 +381,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
 
     private void sendAlarmDeleteNotificationMsgToCloud(TenantId tenantId, EntityId entityId, Alarm alarm) {
         try {
-            tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, json.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED);
+            tbClusterService.sendNotificationMsgToCloud(tenantId, entityId, JacksonUtil.OBJECT_MAPPER.writeValueAsString(alarm), CloudEventType.ALARM, EdgeEventActionType.DELETED);
         } catch (Exception e) {
             log.warn("Failed to push delete alarm msg to core: {}", alarm, e);
         }
@@ -389,7 +389,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
 
     private void sendNotificationMsgToCloud(TenantId tenantId, EntityRelation relation, EdgeEventActionType cloudEventAction) {
         try {
-            tbClusterService.sendNotificationMsgToCloud(tenantId, null, json.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);
+            tbClusterService.sendNotificationMsgToCloud(tenantId, null, JacksonUtil.OBJECT_MAPPER.writeValueAsString(relation), CloudEventType.RELATION, cloudEventAction);
         } catch (Exception e) {
             log.warn("Failed to push relation to core: {}", relation, e);
         }
