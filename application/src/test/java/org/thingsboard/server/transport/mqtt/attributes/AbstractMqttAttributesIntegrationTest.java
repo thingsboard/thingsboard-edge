@@ -251,6 +251,10 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 100);
         assertNotNull(device);
         client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
+
+        // sleep 0.5 seconds to make sure that device actor and subscriptions are created
+        Thread.sleep(500);
+
         doPostAsync("/api/plugins/telemetry/DEVICE/" + device.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         validateProtoGatewayUpdateAttributesResponse(onUpdateCallback, deviceName);
         MqttTestCallback onDeleteCallback = new MqttTestCallback();
