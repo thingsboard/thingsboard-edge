@@ -33,6 +33,7 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -41,7 +42,6 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
 @Service
@@ -72,7 +72,7 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     }
 
     @Override
-    protected void onEntitySaved(SecurityUser user, Converter savedConverter, Converter oldConverter) throws ThingsboardException {
+    protected void onEntitySaved(User user, Converter savedConverter, Converter oldConverter) throws ThingsboardException {
         super.onEntitySaved(user, savedConverter, oldConverter);
         clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedConverter.getId(),
                 oldConverter == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);

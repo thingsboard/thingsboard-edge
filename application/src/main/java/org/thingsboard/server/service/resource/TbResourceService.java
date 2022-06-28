@@ -33,19 +33,23 @@ package org.thingsboard.server.service.resource;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
 import java.util.List;
 
-public interface TbResourceService extends SimpleTbEntityService<TbResource> {
+public interface TbResourceService {
 
-    TbResource saveResourceInternal(TbResource resource) throws ThingsboardException;
+    TbResource save(TbResource entity) throws ThingsboardException;
+
+    TbResource save(TbResource entity, User user) throws ThingsboardException;
+
+    void delete(TbResource entity, User user);
 
     TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceKey);
 

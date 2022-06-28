@@ -28,11 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.tenant_profile;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.extern.slf4j.Slf4j;
+import org.nustaq.serialization.FSTConfiguration;
 
-public interface TbTenantProfileService {
-    TenantProfile saveTenantProfile(TenantId tenantId, TenantProfile tenantProfile, TenantProfile oldTenantProfile);
+@Slf4j
+public class FSTUtils {
+
+    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
+
+    @SuppressWarnings("unchecked")
+    public static <T> T decode(byte[] byteArray) {
+        return byteArray != null && byteArray.length > 0 ? (T) CONFIG.asObject(byteArray) : null;
+    }
+
+    public static <T> byte[] encode(T msq) {
+        return CONFIG.asByteArray(msq);
+    }
+
 }

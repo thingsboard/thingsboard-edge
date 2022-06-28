@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [ngStyle]="versionLoadResult$ ? {minWidth: '500px'} : {minWidth: '800px'}">
+<section [ngStyle]="versionLoadResult$ ? {minWidth: '500px'} : {minWidth: '600px'}">
   <section *ngIf="!versionLoadResult$">
     <mat-toolbar>
       <h2>{{ 'version-control.restore-entities-from-version' | translate: {versionName} }}</h2>

@@ -36,10 +36,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -57,42 +57,13 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterableByTenantIdEntityId;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.alarm.AlarmService;
-import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.ClaimDevicesService;
-import org.thingsboard.server.dao.device.DeviceCredentialsService;
-import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.ota.OtaPackageService;
-import org.thingsboard.server.dao.queue.QueueService;
-import org.thingsboard.server.dao.relation.RelationService;
-import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.widget.WidgetsBundleService;
-import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.service.action.EntityActionService;
-import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.install.InstallScripts;
-import org.thingsboard.server.service.ota.OtaPackageStateService;
-import org.thingsboard.server.service.resource.TbResourceService;
-import org.thingsboard.server.service.rule.TbRuleChainService;
-import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import javax.mail.MessagingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -120,65 +91,14 @@ public abstract class AbstractTbEntityService {
     protected EdgeService edgeService;
     @Autowired
     protected AlarmService alarmService;
-    @Autowired(required = false)
-    protected EntityActionService entityActionService;
-    @Autowired
-    protected DeviceService deviceService;
-    @Autowired
-    protected AssetService assetService;
-    @Autowired
-    protected DeviceCredentialsService deviceCredentialsService;
-    @Autowired
-    protected TenantService tenantService;
     @Autowired
     protected CustomerService customerService;
-    @Lazy
-    @Autowired(required = false)
-    protected ClaimDevicesService claimDevicesService;
-    @Autowired
-    protected TbTenantProfileCache tenantProfileCache;
-    @Autowired
-    protected RuleChainService ruleChainService;
-    @Autowired(required = false)
-    protected TbRuleChainService tbRuleChainService;
-    @Autowired(required = false)
-    protected EdgeNotificationService edgeNotificationService;
-    @Autowired
-    protected QueueService queueService;
-    @Autowired
-    protected EntityGroupService entityGroupService;
     @Autowired
     protected TbClusterService tbClusterService;
     @Autowired
-    protected DashboardService dashboardService;
-
+    protected EntityGroupService entityGroupService;
     @Autowired(required = false)
     private EntitiesVersionControlService vcService;
-    @Autowired
-    protected EntityViewService entityViewService;
-    @Lazy
-    @Autowired
-    protected TelemetrySubscriptionService tsSubService;
-    @Autowired
-    protected AttributesService attributesService;
-    @Autowired
-    protected AccessControlService accessControlService;
-    @Autowired
-    protected DeviceProfileService deviceProfileService;
-    @Autowired
-    protected OtaPackageStateService otaPackageStateService;
-    @Autowired
-    protected RelationService relationService;
-    @Autowired
-    protected OtaPackageService otaPackageService;
-    @Autowired
-    protected InstallScripts installScripts;
-    @Autowired
-    protected UserService userService;
-    @Autowired(required = false)
-    protected TbResourceService resourceService;
-    @Autowired
-    protected WidgetsBundleService widgetsBundleService;
 
     protected ListenableFuture<Void> removeAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
         ListenableFuture<PageData<AlarmInfo>> alarmsFuture =
@@ -216,37 +136,6 @@ public abstract class AbstractTbEntityService {
         }
     }
 
-    protected ThingsboardException handleException(Exception exception) {
-        return handleException(exception, true);
-    }
-
-    protected ThingsboardException handleException(Exception exception, boolean logException) {
-        if (logException && logControllerErrorStackTrace) {
-            log.error("Error [{}]", exception.getMessage(), exception);
-        }
-
-        String cause = "";
-        if (exception.getCause() != null) {
-            cause = exception.getCause().getClass().getCanonicalName();
-        }
-
-        if (exception instanceof ThingsboardException) {
-            return (ThingsboardException) exception;
-        } else if (exception instanceof IllegalArgumentException || exception instanceof IncorrectParameterException
-                || exception instanceof DataValidationException || cause.contains("IncorrectParameterException")) {
-            return new ThingsboardException(exception.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        } else if (exception instanceof MessagingException) {
-            return new ThingsboardException("Unable to send mail: " + exception.getMessage(), ThingsboardErrorCode.GENERAL);
-        } else {
-            return new ThingsboardException(exception.getMessage(), exception, ThingsboardErrorCode.GENERAL);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <I extends EntityId> I emptyId(EntityType entityType) {
-        return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
-    }
-
     protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
         if (!edgesEnabled) {
             return null;
@@ -263,8 +152,12 @@ public abstract class AbstractTbEntityService {
         return result;
     }
 
+    protected <I extends EntityId> I emptyId(EntityType entityType) {
+        return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
+    }
+
     protected <I extends EntityId, T extends GroupEntity<I>> void createOrUpdateGroupEntity(TenantId tenantId, T entity, EntityGroup entityGroup,
-                                                                                            ActionType actionType, SecurityUser user) throws ThingsboardException {
+                                                                                            ActionType actionType, User user) throws ThingsboardException {
         EntityId entityId = entity.getId();
         CustomerId customerId = entity.getCustomerId();
         if (entityGroup != null && actionType == ActionType.ADDED) {
@@ -277,7 +170,7 @@ public abstract class AbstractTbEntityService {
         notificationEntityService.notifyCreateOrUpdateEntity(tenantId, entityId, entity, customerId, actionType, user);
     }
 
-    protected ListenableFuture<UUID> autoCommit(SecurityUser user, EntityId entityId) throws Exception {
+    protected ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {
         if (vcService != null) {
             return vcService.autoCommit(user, entityId);
         } else {

@@ -33,7 +33,8 @@ package org.thingsboard.server.service.sync.ie.importing.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -41,7 +42,6 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
@@ -64,7 +64,7 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
         Role existingRole = super.findExistingEntity(ctx, role, idProvider);
         if (existingRole == null && ctx.isFindExistingByName()) {
             var tenantId = ctx.getTenantId();
-            if (role.getOwnerId().getEntityType() == EntityType.TENANT) {
+            if (role.getOwnerId() == null || role.getOwnerId().getEntityType() == EntityType.TENANT) {
                 existingRole = roleService.findRoleByTenantIdAndName(tenantId, role.getName()).orElse(null);
             } else {
                 existingRole = roleService.findRoleByByTenantIdAndCustomerIdAndName(tenantId,
@@ -90,11 +90,10 @@ public class RoleImportService extends BaseEntityImportService<RoleId, Role, Ent
     }
 
     @Override
-    protected void onEntitySaved(SecurityUser user, Role savedRole, Role oldRole) throws ThingsboardException {
-        super.onEntitySaved(user, savedRole, oldRole);
+    protected void onEntitySaved(User user, Role savedRole, Role oldRole) throws ThingsboardException {
+        entityNotificationService.notifyCreateOrUpdateOrDelete(savedRole.getTenantId(), null,
+                savedRole.getId(), savedRole, user, oldRole == null ? ActionType.ADDED : ActionType.UPDATED, true, null);
         userPermissionsService.onRoleUpdated(savedRole);
-        entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedRole.getId(),
-                oldRole == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
     }
 
     @Override

@@ -13,7 +13,7 @@ Also, for start test for MQTT integration, you need to have an **_eclipse-mosqui
         docker pull eclipse-mosquitto
 
 As result, in REPOSITORY column, next images should be present:
-        
+
         thingsboard/tb-pe-coap-transport
         thingsboard/tb-pe-lwm2m-transport
         thingsboard/tb-pe-http-transport
@@ -33,6 +33,11 @@ As result, in REPOSITORY column, next images should be present:
 - Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with Redis cluster:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.redisCluster=true
+
+- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory in Hybrid mode (postgres +
+  cassandra):
+
+        mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.hybridMode=true
 
 
 

@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.relation.EntityRelationInfo;
 import org.thingsboard.server.common.data.relation.EntityRelationsQuery;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.entityRelation.TbEntityRelationService;
+import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
@@ -101,7 +101,6 @@ public class EntityRelationController extends BaseController {
         if (relation.getTypeGroup() == null) {
             relation.setTypeGroup(RelationTypeGroup.COMMON);
         }
-
         tbEntityRelationService.save(getTenantId(), getCurrentUser().getCustomerId(), relation, getCurrentUser());
     }
 
@@ -128,7 +127,6 @@ public class EntityRelationController extends BaseController {
 
         RelationTypeGroup relationTypeGroup = parseRelationTypeGroup(strRelationTypeGroup, RelationTypeGroup.COMMON);
         EntityRelation relation = new EntityRelation(fromId, toId, strRelationType, relationTypeGroup);
-
         tbEntityRelationService.delete(getTenantId(), getCurrentUser().getCustomerId(), relation, getCurrentUser());
     }
 
@@ -144,9 +142,7 @@ public class EntityRelationController extends BaseController {
         checkParameter("entityType", strType);
         EntityId entityId = EntityIdFactory.getByTypeAndId(strType, strId);
         checkEntityId(entityId, Operation.WRITE);
-
         tbEntityRelationService.deleteRelations(getTenantId(), getCurrentUser().getCustomerId(), entityId, getCurrentUser());
-
     }
 
     @ApiOperation(value = "Get Relation (getRelation)",

@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -49,7 +50,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.sync.vc.data.EntitiesImportCtx;
 
@@ -113,7 +113,6 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
 
     @Override
     protected EntityGroup saveOrUpdate(EntitiesImportCtx ctx, EntityGroup entity, EntityGroupExportData exportData, IdProvider idProvider) {
-        // TODO [viacheslav]: update actions config
         return entityGroupService.saveEntityGroup(ctx.getTenantId(), entity.getOwnerId(), entity);
     }
 
@@ -136,7 +135,7 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
                 permission.setId(null);
                 permission.setTenantId(tenantId);
                 permission.setRoleId(idProvider.getInternalId(permission.getRoleId()));
-                permission.setUserGroupId(idProvider.getInternalId(permission.getUserGroupId()));
+                permission.setUserGroupId(userGroup.getId());
                 permission.setEntityGroupId(idProvider.getInternalId(permission.getEntityGroupId()));
             }
 
@@ -192,11 +191,13 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
     }
 
     @Override
-    protected void onEntitySaved(SecurityUser user, EntityGroup savedEntityGroup, EntityGroup oldEntityGroup) throws ThingsboardException {
-        super.onEntitySaved(user, savedEntityGroup, oldEntityGroup);
-        if (oldEntityGroup != null) {
-            entityActionService.sendEntityNotificationMsgToEdge(user.getTenantId(), savedEntityGroup.getId(), EdgeEventActionType.UPDATED);
+    protected boolean compare(EntitiesImportCtx ctx, EntityGroupExportData exportData, EntityGroup prepared, EntityGroup existing) {
+        boolean different = super.compare(ctx, exportData, prepared, existing);
+        if (!different) {
+            different = ctx.isSaveUserGroupPermissions() && exportData.getPermissions() != null
+                    && prepared.getType() == EntityType.USER;
         }
+        return different;
     }
 
     @Override

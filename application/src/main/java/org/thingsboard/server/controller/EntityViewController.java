@@ -64,7 +64,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.entityView.TbEntityViewService;
+import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -137,8 +137,14 @@ public class EntityViewController extends BaseController {
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-            SecurityUser user = getCurrentUser();
-            return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> tbEntityViewService.save(entityView1, entityGroup, user));
+        SecurityUser user = getCurrentUser();
+        return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> {
+            try {
+                return tbEntityViewService.save(entityView1, entityGroup, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete entity view (deleteEntityView)",

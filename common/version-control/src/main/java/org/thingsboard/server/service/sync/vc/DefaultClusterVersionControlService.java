@@ -30,7 +30,12 @@
  */
 package org.thingsboard.server.service.sync.vc;
 
-import com.google.common.util.concurrent.*;
+import com.google.common.collect.Iterables;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -39,6 +44,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.CollectionsUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -62,6 +68,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentReque
 import org.thingsboard.server.gen.transport.TransportProtos.EntitiesContentResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityContentRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityContentResponseMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.EntityIdProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EntityVersionProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ListBranchesResponseMsg;
@@ -89,8 +96,19 @@ import org.thingsboard.server.queue.util.TbVersionControlComponent;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -125,6 +143,8 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     private long packProcessingTimeout;
     @Value("${vc.git.io_pool_size:3}")
     private int ioPoolSize;
+    @Value("${queue.vc.msg-chunk-size:500000}")
+    private int msgChunkSize;
 
     //We need to manually manage the threads since tasks for particular tenant need to be processed sequentially.
     private final List<ListeningExecutorService> ioThreads = new ArrayList<>();
@@ -254,8 +274,6 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                         handleEntitiesContentRequest(ctx, msg.getEntitiesContentRequest());
                     } else if (msg.hasVersionsDiffRequest()) {
                         handleVersionsDiffRequest(ctx, msg.getVersionsDiffRequest());
-                    } else if (msg.hasContentsDiffRequest()) {
-                        handleContentsDiffRequest(ctx, msg.getContentsDiffRequest());
                     }
                 }
             }
@@ -269,27 +287,46 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
 
     private void handleEntitiesContentRequest(VersionControlRequestCtx ctx, EntitiesContentRequestMsg request) throws Exception {
         var entityType = EntityType.valueOf(request.getEntityType());
-        var response = EntitiesContentResponseMsg.newBuilder();
         if (request.getIdsList().isEmpty()) {
             var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), request.getPath(), entityType, request.getGroups(), request.getRecursive())
                     .skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
-            for (VersionedEntityInfo info : ids) {
-                addData(info.getPath(), request, ctx, response);
+            if (!ids.isEmpty()) {
+                for (VersionedEntityInfo info : ids) {
+                    sendData(info.getPath(), request, ctx, ids.size());
+                }
+            } else {
+                reply(ctx, Optional.empty(), builder -> builder.setEntitiesContentResponse(
+                        EntitiesContentResponseMsg.newBuilder()
+                                .setItemsCount(0)));
             }
         } else {
             for (EntityIdProto idProto : request.getIdsList()) {
                 UUID uuid = new UUID(idProto.getEntityIdMSB(), idProto.getEntityIdLSB());
                 var entityPath = getRelativePath(request.getPath(), EntityType.valueOf(request.getEntityType()), uuid.toString());
-                addData(entityPath, request, ctx, response);
+                sendData(entityPath, request, ctx, request.getIdsCount());
             }
         }
-        reply(ctx, Optional.empty(), builder -> builder.setEntitiesContentResponse(response));
     }
 
-    private void addData(String entityPath, EntitiesContentRequestMsg request, VersionControlRequestCtx ctx, EntitiesContentResponseMsg.Builder response) throws IOException {
+    private void sendData(String entityPath, EntitiesContentRequestMsg request, VersionControlRequestCtx ctx, int totalItemsCount) throws IOException {
         entityPath = StringUtils.isNotEmpty(request.getPath()) ? request.getPath() + entityPath : entityPath;
         var data = vcService.getFileContentAtCommit(ctx.getTenantId(), entityPath, request.getVersionId());
-        response.addData(data);
+
+        Iterable<String> dataChunks = StringUtils.split(data, msgChunkSize);
+        String chunkedMsgId = UUID.randomUUID().toString();
+        int chunksCount = Iterables.size(dataChunks);
+        AtomicInteger chunkIndex = new AtomicInteger();
+        dataChunks.forEach(chunk -> {
+            EntitiesContentResponseMsg.Builder response = EntitiesContentResponseMsg.newBuilder()
+                    .setItemsCount(totalItemsCount)
+                    .setItem(EntityContentResponseMsg.newBuilder()
+                            .setData(chunk)
+                            .setChunkedMsgId(chunkedMsgId)
+                            .setChunksCount(chunksCount)
+                            .setChunkIndex(chunkIndex.getAndIncrement())
+                            .build());
+            reply(ctx, Optional.empty(), builder -> builder.setEntitiesContentResponse(response));
+        });
     }
 
     private void handleEntityContentRequest(VersionControlRequestCtx ctx, EntityContentRequestMsg request) throws IOException {
@@ -298,7 +335,18 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             path = path + getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());
         }
         String data = vcService.getFileContentAtCommit(ctx.getTenantId(), path, request.getVersionId());
-        reply(ctx, Optional.empty(), builder -> builder.setEntityContentResponse(EntityContentResponseMsg.newBuilder().setData(data)));
+
+        Iterable<String> dataChunks = StringUtils.split(data, msgChunkSize);
+        String chunkedMsgId = UUID.randomUUID().toString();
+        int chunksCount = Iterables.size(dataChunks);
+
+        AtomicInteger chunkIndex = new AtomicInteger();
+        dataChunks.forEach(chunk -> {
+            log.trace("[{}] sending chunk {} for 'getEntity'", chunkedMsgId, chunkIndex.get());
+            reply(ctx, Optional.empty(), builder -> builder.setEntityContentResponse(EntityContentResponseMsg.newBuilder()
+                    .setData(chunk).setChunkedMsgId(chunkedMsgId).setChunksCount(chunksCount)
+                    .setChunkIndex(chunkIndex.getAndIncrement())));
+        });
     }
 
     private void handleListVersions(VersionControlRequestCtx ctx, ListVersionsRequestMsg request) throws Exception {
@@ -377,12 +425,6 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                 .addAllDiff(diffList)));
     }
 
-    private void handleContentsDiffRequest(VersionControlRequestCtx ctx, TransportProtos.ContentsDiffRequestMsg request) throws IOException {
-        String diff = vcService.getContentsDiff(ctx.getTenantId(), request.getContent1(), request.getContent2());
-        reply(ctx, builder -> builder.setContentsDiffResponse(TransportProtos.ContentsDiffResponseMsg.newBuilder()
-                .setDiff(diff)));
-    }
-
     private void handleCommitRequest(VersionControlRequestCtx ctx, CommitRequestMsg request) throws Exception {
         var tenantId = ctx.getTenantId();
         UUID txId = UUID.fromString(request.getTxId());
@@ -434,7 +476,16 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private void addToCommit(VersionControlRequestCtx ctx, PendingCommit commit, AddMsg addMsg) throws IOException {
-        vcService.add(commit, addMsg.getRelativePath(), addMsg.getEntityDataJson());
+        log.trace("[{}] received chunk {} for 'addToCommit'", addMsg.getChunkedMsgId(), addMsg.getChunkIndex());
+        Map<String, String[]> chunkedMsgs = commit.getChunkedMsgs();
+        String[] msgChunks = chunkedMsgs.computeIfAbsent(addMsg.getChunkedMsgId(), id -> new String[addMsg.getChunksCount()]);
+        msgChunks[addMsg.getChunkIndex()] = addMsg.getEntityDataJsonChunk();
+        if (CollectionsUtil.countNonNull(msgChunks) == msgChunks.length) {
+            log.trace("[{}] collected all chunks for 'addToCommit'", addMsg.getChunkedMsgId());
+            String entityDataJson = String.join("", msgChunks);
+            chunkedMsgs.remove(addMsg.getChunkedMsgId());
+            vcService.add(commit, addMsg.getRelativePath(), entityDataJson);
+        }
     }
 
     private void doAbortCurrentCommit(TenantId tenantId, PendingCommit current) {

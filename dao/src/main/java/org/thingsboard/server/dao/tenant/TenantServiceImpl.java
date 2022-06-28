@@ -81,7 +81,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
-public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKey, Tenant, TenantEvictEvent> implements TenantService {
+public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Tenant, TenantEvictEvent> implements TenantService {
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
@@ -162,7 +162,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
     private AdminSettingsService adminSettingsService;
 
     @Autowired
-    protected TbTransactionalCache<TenantCacheKey, Boolean> existsTenantCache;
+    protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
     @Autowired
     private EntityViewService entityViewService;
@@ -171,9 +171,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
     @Override
     public void handleEvictEvent(TenantEvictEvent event) {
         TenantId tenantId = event.getTenantId();
-        cache.evict(TenantCacheKey.fromId(tenantId));
-        if (event.isExistsTenant()) {
-            existsTenantCache.evict(TenantCacheKey.fromIdExists(tenantId));
+        cache.evict(tenantId);
+        if (event.isInvalidateExists()) {
+            existsTenantCache.evict(tenantId);
         }
     }
 
@@ -182,8 +182,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
         log.trace("Executing findTenantById [{}]", tenantId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
 
-        return cache.getAndPutInTransaction(TenantCacheKey.fromId(tenantId),
-                () -> tenantDao.findById(tenantId, tenantId.getId()), true);
+        return cache.getAndPutInTransaction(tenantId, () -> tenantDao.findById(tenantId, tenantId.getId()), true);
     }
 
     @Override
@@ -217,8 +216,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
             tenant.setTenantProfileId(tenantProfile.getId());
         }
         tenantValidator.validate(tenant, Tenant::getId);
+        boolean create = tenant.getId() == null;
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
-        publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), false));
+        publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), create));
         if (tenant.getId() == null) {
             deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
 
@@ -244,12 +244,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, tenantId);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
-        customerService.deleteCustomersByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
         assetService.deleteAssetsByTenantId(tenantId);
         deviceService.deleteDevicesByTenantId(tenantId);
         deviceProfileService.deleteDeviceProfilesByTenantId(tenantId);
         dashboardService.deleteDashboardsByTenantId(tenantId);
+        customerService.deleteCustomersByTenantId(tenantId);
         edgeService.deleteEdgesByTenantId(tenantId);
         userService.deleteTenantAdmins(tenantId);
         integrationService.deleteIntegrationsByTenantId(tenantId);
@@ -307,8 +307,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantCacheKe
 
     @Override
     public boolean tenantExists(TenantId tenantId) {
-        return existsTenantCache.getAndPutInTransaction(TenantCacheKey.fromIdExists(tenantId),
-                () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
+        return existsTenantCache.getAndPutInTransaction(tenantId, () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
     }
 
     private PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {

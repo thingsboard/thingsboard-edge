@@ -33,7 +33,9 @@ package org.thingsboard.server.service.sync.vc;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 public class PendingCommit {
@@ -46,8 +48,9 @@ public class PendingCommit {
     private String versionName;
 
     private String authorName;
-
     private String authorEmail;
+
+    private Map<String, String[]> chunkedMsgs;
 
     public PendingCommit(TenantId tenantId, String nodeId, UUID txId, String branch, String versionName, String authorName, String authorEmail) {
         this.tenantId = tenantId;
@@ -59,4 +62,12 @@ public class PendingCommit {
         this.authorEmail = authorEmail;
         this.workingBranch = txId.toString();
     }
+
+    public Map<String, String[]> getChunkedMsgs() {
+        if (chunkedMsgs == null) {
+            chunkedMsgs = new ConcurrentHashMap<>();
+        }
+        return chunkedMsgs;
+    }
+
 }

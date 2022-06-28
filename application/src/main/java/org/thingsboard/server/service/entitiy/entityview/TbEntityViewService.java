@@ -28,21 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.entityRelation;
+package org.thingsboard.server.service.entitiy.entityview;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleListener;
+import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
 
-public interface TbEntityRelationService {
+import java.util.List;
 
-    void save(TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
+public interface TbEntityViewService extends SimpleTbEntityService<EntityView>, ComponentLifecycleListener {
 
-    void  delete (TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
+    void updateEntityViewAttributes(TenantId tenantId, EntityView savedEntityView, EntityView oldEntityView, User user) throws ThingsboardException;
 
-    void deleteRelations (TenantId tenantId, CustomerId customerId, EntityId entityId, SecurityUser user) throws ThingsboardException;
+    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndEntityIdAsync(TenantId tenantId, EntityId entityId);
+
+    ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds);
 
 }
