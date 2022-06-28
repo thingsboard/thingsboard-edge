@@ -1722,13 +1722,13 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
         sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"key1\":\"value1\"}",
-                "key1", "value1", 2);
+                "key1", "value1");
         sendAttributesRequestAndVerify(device, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}",
-                "key2", "value2", 1);
+                "key2", "value2");
     }
 
     private void sendAttributesRequestAndVerify(Device device, String scope, String attributesDataStr, String expectedKey,
-                                                String expectedValue, int expectedSize) throws Exception {
+                                                String expectedValue) throws Exception {
         JsonNode attributesData = mapper.readTree(attributesDataStr);
 
         doPost("/api/plugins/telemetry/DEVICE/" + device.getUuidId() + "/attributes/" + scope,
@@ -1764,13 +1764,16 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertTrue(latestEntityDataMsg.hasAttributesUpdatedMsg());
 
         TransportProtos.PostAttributeMsg attributesUpdatedMsg = latestEntityDataMsg.getAttributesUpdatedMsg();
-        Assert.assertEquals(expectedSize, attributesUpdatedMsg.getKvList().size());
+
+        boolean found = false;
         for (TransportProtos.KeyValueProto keyValueProto : attributesUpdatedMsg.getKvList()) {
             if (keyValueProto.getKey().equals(expectedKey)) {
                 Assert.assertEquals(expectedKey, keyValueProto.getKey());
                 Assert.assertEquals(expectedValue, keyValueProto.getStringV());
+                found = true;
             }
         }
+        Assert.assertTrue("Expected key and value must be found", found);
     }
 
     @Test

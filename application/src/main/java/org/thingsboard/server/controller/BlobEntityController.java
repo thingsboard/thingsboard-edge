@@ -158,16 +158,12 @@ public class BlobEntityController extends BaseController {
             BlobEntityInfo blobEntityInfo = checkBlobEntityInfoId(blobEntityId, Operation.DELETE);
             blobEntityService.deleteBlobEntity(getTenantId(), blobEntityId);
 
-            logEntityAction(blobEntityId, blobEntityInfo,
-                    blobEntityInfo.getCustomerId(),
-                    ActionType.DELETED, null, strBlobEntityId);
+            notificationEntityService.logEntityAction(getTenantId(), blobEntityId, blobEntityInfo,
+                    blobEntityInfo.getCustomerId(), ActionType.DELETED, getCurrentUser(), strBlobEntityId);
 
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.BLOB_ENTITY),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strBlobEntityId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.BLOB_ENTITY),
+                    ActionType.DELETED, getCurrentUser(), e, strBlobEntityId);
 
             throw handleException(e);
         }

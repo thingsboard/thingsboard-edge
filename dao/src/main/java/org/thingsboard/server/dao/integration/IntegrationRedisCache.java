@@ -36,18 +36,16 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.CacheSpecsMap;
 import org.thingsboard.server.cache.RedisTbTransactionalCache;
 import org.thingsboard.server.cache.TBRedisCacheConfiguration;
-import org.thingsboard.server.cache.TbRedisSerializer;
+import org.thingsboard.server.cache.TbFSTRedisSerializer;
 import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.dao.asset.AssetCacheKey;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
 @Service("IntegrationCache")
 public class IntegrationRedisCache extends RedisTbTransactionalCache<IntegrationId, Integration> {
 
     public IntegrationRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.INTEGRATIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbRedisSerializer<>());
+        super(CacheConstants.INTEGRATIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbFSTRedisSerializer<>());
     }
 }

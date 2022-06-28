@@ -28,21 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.entityRelation;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import lombok.extern.slf4j.Slf4j;
+import org.nustaq.serialization.FSTConfiguration;
 
-public interface TbEntityRelationService {
+@Slf4j
+public class FSTUtils {
 
-    void save(TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
+    public static final FSTConfiguration CONFIG = FSTConfiguration.createDefaultConfiguration();
 
-    void  delete (TenantId tenantId, CustomerId customerId, EntityRelation entity, SecurityUser user) throws ThingsboardException;
+    @SuppressWarnings("unchecked")
+    public static <T> T decode(byte[] byteArray) {
+        return byteArray != null && byteArray.length > 0 ? (T) CONFIG.asObject(byteArray) : null;
+    }
 
-    void deleteRelations (TenantId tenantId, CustomerId customerId, EntityId entityId, SecurityUser user) throws ThingsboardException;
+    public static <T> byte[] encode(T msq) {
+        return CONFIG.asByteArray(msq);
+    }
 
 }

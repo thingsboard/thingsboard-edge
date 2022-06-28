@@ -178,21 +178,19 @@ public class IntegrationController extends BaseController {
                         created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             }
 
-            logEntityAction(result.getId(), result, null, created ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
+                    created ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
-            /* merge comment
             if (result.isEdgeTemplate() && !created) {
                 sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
             }
-             */
-
 
             return result;
         } catch (TimeoutException e) {
             throw handleException(new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL));
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.INTEGRATION), integration,
-                    null, integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), integration,
+                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
             throw handleException(e);
         }
     }
@@ -268,11 +266,9 @@ public class IntegrationController extends BaseController {
             Integration integration = checkIntegrationId(integrationId, Operation.DELETE);
 
             List<EdgeId> relatedEdgeIds = null;
-            /* merge comment
             if (integration.isEdgeTemplate()) {
                 relatedEdgeIds = findRelatedEdgeIds(getTenantId(), integrationId);
             }
-             */
 
             integrationService.deleteIntegration(getTenantId(), integrationId);
 
@@ -280,21 +276,16 @@ public class IntegrationController extends BaseController {
                 tbClusterService.broadcastEntityStateChangeEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.DELETED);
             }
 
-            logEntityAction(integrationId, integration,
-                    null,
-                    ActionType.DELETED, null, strIntegrationId);
-            /* merge comment
+            notificationEntityService.logEntityAction(getTenantId(), integrationId, integration, ActionType.DELETED,
+                    getCurrentUser(), strIntegrationId);
+
             if (integration.isEdgeTemplate()) {
                 sendDeleteNotificationMsg(integration.getTenantId(), integrationId, relatedEdgeIds);
             }
-             */
 
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.INTEGRATION),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strIntegrationId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), ActionType.DELETED,
+                    getCurrentUser(), e, strIntegrationId);
 
             throw handleException(e);
         }
@@ -349,7 +340,7 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.POST)
     @ResponseBody
     public Integration assignIntegrationToEdge(@PathVariable("edgeId") String strEdgeId,
-                                            @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+                                               @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
@@ -361,19 +352,15 @@ public class IntegrationController extends BaseController {
 
             Integration savedIntegration = checkNotNull(integrationService.assignIntegrationToEdge(getCurrentUser().getTenantId(), integrationId, edgeId));
 
-            logEntityAction(integrationId, savedIntegration,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, null, strIntegrationId, strEdgeId, edge.getName());
+            notificationEntityService.logEntityAction(getTenantId(), integrationId, savedIntegration,
+                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strIntegrationId, strEdgeId, edge.getName());
 
-            /* merge comment
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.ASSIGNED_TO_EDGE);
-             */
 
             return savedIntegration;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.INTEGRATION), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strIntegrationId, strEdgeId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
+                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strIntegrationId, strEdgeId);
 
             throw handleException(e);
         }
@@ -390,7 +377,7 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseBody
     public Integration unassignIntegrationFromEdge(@PathVariable("edgeId") String strEdgeId,
-                                                 @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+                                                   @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
@@ -401,19 +388,15 @@ public class IntegrationController extends BaseController {
 
             Integration savedIntegration = checkNotNull(integrationService.unassignIntegrationFromEdge(getCurrentUser().getTenantId(), integrationId, edgeId, false));
 
-            logEntityAction(integrationId, integration,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, null, strIntegrationId, strEdgeId, edge.getName());
+            notificationEntityService.logEntityAction(getTenantId(), integrationId, integration,
+                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), strIntegrationId, strEdgeId, edge.getName());
 
-            /* merge comment
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, savedIntegration.getId(), EdgeEventActionType.UNASSIGNED_FROM_EDGE);
-             */
 
             return savedIntegration;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.INTEGRATION), null,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, e, strIntegrationId, strEdgeId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
+                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strIntegrationId, strEdgeId);
 
             throw handleException(e);
         }

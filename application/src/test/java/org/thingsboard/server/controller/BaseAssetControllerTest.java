@@ -183,6 +183,13 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         testNotifyEntityEqualsOneTimeError(savedAsset, differentTenantId, differentTenantAdminUserId, DIFFERENT_TENANT_ADMIN_EMAIL,
                 ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
+        Mockito.reset(tbClusterService, auditLogService);
+
+        doDelete("/api/asset" + savedAsset.getId().getId().toString())
+                .andExpect(status().isNotFound());
+
+        testNotifyEntityNever(savedAsset.getId(), savedAsset);
+
         deleteDifferentTenant();
     }
 

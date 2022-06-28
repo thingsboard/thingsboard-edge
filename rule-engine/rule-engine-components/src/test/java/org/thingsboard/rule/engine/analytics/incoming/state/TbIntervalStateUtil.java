@@ -28,10 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.widgetsBundle;
+package org.thingsboard.rule.engine.analytics.incoming.state;
 
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.service.entitiy.SimpleTbEntityService;
+import com.google.gson.JsonPrimitive;
 
-public interface TbWidgetsBundleService  extends SimpleTbEntityService<WidgetsBundle> {
+import java.math.BigDecimal;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class TbIntervalStateUtil {
+    public static void assertEquals(BigDecimal expected, BigDecimal actual, String alias) {
+        assertThat(actual).as(alias).isEqualTo(expected);
+    }
+
+    public static void doUpdateForValues(TbBaseIntervalState state, BigDecimal ... values) {
+        for (BigDecimal value : values) {
+            state.doUpdate(new JsonPrimitive(value));
+        }
+    }
 }

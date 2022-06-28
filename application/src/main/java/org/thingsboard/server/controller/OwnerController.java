@@ -206,14 +206,13 @@ public class OwnerController extends BaseController {
             }
             return previousOwnerId;
         } catch (ThingsboardException e) {
-            logEntityAction(entityId, null,
-                    null, ActionType.CHANGE_OWNER, e);
+            notificationEntityService.logEntityAction(tenantId, entityId, ActionType.CHANGE_OWNER, getCurrentUser(), e);
             throw handleException(e);
         }
     }
 
     private <E extends HasName, I extends EntityId> void logChangeOwnerAction(I entityId, E entity, EntityId targetOwnerId) throws ThingsboardException {
-        logEntityAction(entityId, entity, null, ActionType.CHANGE_OWNER, null, targetOwnerId);
+        notificationEntityService.logEntityAction(getTenantId(), entityId, entity, ActionType.CHANGE_OWNER, getCurrentUser(), targetOwnerId);
     }
 
 }

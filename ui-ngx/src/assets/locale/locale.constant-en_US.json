@@ -4546,6 +4546,7 @@
     "version-control": {
         "version-control": "Version control",
         "management": "Version control management",
+        "search": "Search versions",
         "branch": "Branch",
         "default": "Default",
         "select-branch": "Select branch",
@@ -4617,7 +4618,8 @@
         "add-entity-groups": "Add entity groups",
         "entity-groups": "Entity groups",
         "integration-routing-key-conflict": "Failed to load the integration with external id <b>{{entityId}}</b><br/>due to the same integration key is already present in the database for another integration.<br/>Please consider enabling the <b>auto-generate integration key</b> setting in the restore form.",
-        "auto-generate-integration-key": "Auto-generate integration key"
+        "auto-generate-integration-key": "Auto-generate integration key",
+        "runtime-failed": "<b>Failed:</b> {{message}}"
     },
     "widget": {
         "widget-library": "Widgets Library",

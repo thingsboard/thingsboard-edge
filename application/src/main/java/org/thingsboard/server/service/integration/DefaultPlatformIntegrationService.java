@@ -226,7 +226,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Value("${integrations.rate_limits.tenant}")
     private String perTenantLimitsConf;
 
-    @Value("${integrations.rate_limits.tenant}")
+    @Value("${integrations.rate_limits.device}")
     private String perDevicesLimitsConf;
 
     @Value("${integrations.reinit.enabled:false}")

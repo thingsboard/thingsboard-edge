@@ -28,33 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.tenant;
+package org.thingsboard.server.service.entitiy.entity.relation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 
-import java.io.Serializable;
+public interface TbEntityRelationService {
 
-@Data
-@AllArgsConstructor
-public class TenantCacheKey implements Serializable {
+    void save(TenantId tenantId, CustomerId customerId, EntityRelation entity, User user) throws ThingsboardException;
 
-    private static final long serialVersionUID = -121787454251592384L;
+    void delete(TenantId tenantId, CustomerId customerId, EntityRelation entity, User user) throws ThingsboardException;
 
-    private final TenantId tenantId;
-    private final TenantCacheKeyPrefix keyPrefix;
+    void deleteRelations(TenantId tenantId, CustomerId customerId, EntityId entityId, User user) throws ThingsboardException;
 
-    public static TenantCacheKey fromId(TenantId tenantId) {
-        return new TenantCacheKey(tenantId, TenantCacheKeyPrefix.TENANT);
-    }
-
-    public static TenantCacheKey fromIdExists(TenantId tenantId) {
-        return new TenantCacheKey(tenantId, TenantCacheKeyPrefix.EXISTS);
-    }
-
-    public enum TenantCacheKeyPrefix {
-        TENANT, EXISTS
-    }
 }

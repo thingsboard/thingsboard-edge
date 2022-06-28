@@ -39,6 +39,7 @@ import io.swagger.annotations.Example;
 import io.swagger.annotations.ExampleProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -197,7 +198,7 @@ public class DashboardController extends BaseController {
                     "Specify existing Dashboard id to update the dashboard. " +
                     "Referencing non-existing dashboard Id will cause 'Not Found' error. " +
                     "Only users with 'TENANT_ADMIN') authority may create the dashboards." +
-            TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -208,12 +209,18 @@ public class DashboardController extends BaseController {
             @RequestBody Dashboard dashboard,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> tbDashboardService.save(dashboard1, entityGroup, user));
+        return saveGroupEntity(dashboard, strEntityGroupId, (dashboard1, entityGroup) -> {
+            try {
+                return tbDashboardService.save(dashboard1, entityGroup, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete the Dashboard (deleteDashboard)",
             notes = "Delete the Dashboard. Only users with 'TENANT_ADMIN') authority may delete the dashboards." +
-            TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboard/{dashboardId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
@@ -537,7 +544,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Home Dashboard Info (getTenantHomeDashboardInfo)",
             notes = "Returns the home dashboard info object that is configured as 'homeDashboardId' parameter in the 'additionalInfo' of the corresponding tenant. " +
-            TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK,
+                    TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/dashboard/home/info", method = RequestMethod.GET)
