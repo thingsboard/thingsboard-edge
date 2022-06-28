@@ -58,6 +58,7 @@ import org.springframework.web.client.RestTemplate;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -243,6 +244,10 @@ public class SignUpController extends BaseController {
             }
             sendUserActivityNotification(tenantId, signUpRequest.getFirstName() + " " + signUpRequest.getLastName(),
                     signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
+
+            notificationEntityService.logEntityAction(tenantId, savedUser.getId(), ActionType.ADDED, savedUser, null);
+            notificationEntityService.logEntityAction(tenantId, savedCustomer.getId(), ActionType.ADDED, savedUser, null);
+
             return SignUpResult.SUCCESS;
         } catch (Exception e) {
             throw handleException(e);
