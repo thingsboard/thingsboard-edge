@@ -74,17 +74,19 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
             boolean sendEmail = tbUser.getId() == null && sendActivationMail;
             User savedUser = checkNotNull(userService.saveUser(tbUser));
 
-            // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
-            if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
-                EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
-                entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
-                notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                        savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
-            } else if (entityGroup != null && tbUser.getId() == null) {
-                entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
-
-                notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
-                        entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
+            // Sys Admins do not have entity groups
+            if (!tbUser.isSystemAdmin()) {
+                // Add Tenant Admins to 'Tenant Administrators' user group if created by Sys Admin
+                if (tbUser.getId() == null && authority == Authority.SYS_ADMIN) {
+                    EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
+                    entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
+                    notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
+                            savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
+                } else if (entityGroup != null && tbUser.getId() == null) {
+                    entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
+                    notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
+                            entityGroupId, user, savedUser.getId().toString(), entityGroupId.toString(), entityGroup.getName());
+                }
             }
 
             if (sendEmail) {
