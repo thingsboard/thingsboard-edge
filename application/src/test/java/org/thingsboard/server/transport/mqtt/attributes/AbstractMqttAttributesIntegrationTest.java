@@ -124,6 +124,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         client.setCallback(onUpdateCallback);
         client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
 
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
+
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         onUpdateCallback.getSubscribeLatch().await(3, TimeUnit.SECONDS);
 
