@@ -144,6 +144,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         client.setCallback(onUpdateCallback);
         client.subscribeAndWait(attrSubTopic, MqttQoS.AT_MOST_ONCE);
 
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
+
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         onUpdateCallback.getSubscribeLatch().await(3, TimeUnit.SECONDS);
         validateUpdateAttributesProtoResponse(onUpdateCallback);
@@ -208,6 +211,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
 
         client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
 
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
+
         doPostAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         onUpdateCallback.getSubscribeLatch().await(3, TimeUnit.SECONDS);
 
@@ -237,8 +243,8 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
         assertNotNull(device);
         client.subscribeAndWait(GATEWAY_ATTRIBUTES_TOPIC, MqttQoS.AT_MOST_ONCE);
 
-        // sleep 0.5 seconds to make sure that device actor and subscriptions are created
-        Thread.sleep(500);
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
 
         doPostAsync("/api/plugins/telemetry/DEVICE/" + device.getId().getId() + "/attributes/SHARED_SCOPE", SHARED_ATTRIBUTES_PAYLOAD, String.class, status().isOk());
         validateProtoGatewayUpdateAttributesResponse(onUpdateCallback, deviceName);
@@ -394,6 +400,9 @@ public abstract class AbstractMqttAttributesIntegrationTest extends AbstractMqtt
                 20,
                 100);
         assertNotNull(device);
+
+        // sleep 1 second to make sure that device actor and subscriptions are created
+        Thread.sleep(1000);
 
         SingleEntityFilter dtf = new SingleEntityFilter();
         dtf.setSingleEntity(device.getId());
