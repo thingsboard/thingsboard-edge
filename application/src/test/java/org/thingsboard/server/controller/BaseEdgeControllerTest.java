@@ -37,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.Customer;
@@ -119,7 +120,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testSaveEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -143,7 +145,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testSaveEdgeWithViolationOfLengthValidation() throws Exception {
         Edge edge = constructEdge(RandomStringUtils.randomAlphabetic(300), "default");
         doPost("/api/edge", edge).andExpect(statusReason(containsString("length of name must be equal or less than 255")));
@@ -157,7 +160,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testFindEdgeById() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -168,7 +172,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testFindEdgeTypesByTenantId() throws Exception {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -196,7 +201,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testDeleteEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -210,7 +216,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testSaveEdgeWithEmptyType() throws Exception {
         Edge edge = constructEdge("My edge", null);
         doPost("/api/edge", edge)
@@ -220,7 +227,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testSaveEdgeWithEmptyName() throws Exception {
         Edge edge = constructEdge(null, "default");
         doPost("/api/edge", edge)
@@ -231,7 +239,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     // @voba - merge comment
     // edge entities support available in CE/PE
     // keeping CE test for merge compatibility
-    // @Test
+    @Test
+    @Ignore
     public void testAssignUnassignEdgeToCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -257,7 +266,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testAssignEdgeToNonExistentCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
@@ -270,7 +280,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     // @voba - merge comment
     // edge entities support available in CE/PE
     // keeping CE test for merge compatibility
-    // @Test
+    @Test
+    @Ignore
     public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
         loginSysAdmin();
 
@@ -309,7 +320,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testFindTenantEdges() throws Exception {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 178; i++) {
@@ -337,7 +349,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testFindTenantEdgesByName() throws Exception {
         String title1 = "Edge title 1";
         List<Edge> edgesTitle1 = new ArrayList<>();
@@ -420,7 +433,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge entities support available in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testFindTenantEdgesByType() throws Exception {
         String title1 = "Edge title 1";
         String type1 = "typeA";
@@ -506,7 +520,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     // @voba - merge comment
     // edge entities support available in CE/PE
     // keeping CE test for merge compatibility
-    // @Test
+    @Test
+    @Ignore
     public void testFindCustomerEdges() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -543,7 +558,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     // @voba - merge comment
     // keeping CE test for merge compatibility
     // keeping CE test for merge compatibility
-    // @Test
+    @Test
+    @Ignore
     public void testFindCustomerEdgesByName() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -636,7 +652,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     // @voba - merge comment
     // edge entities support available in CE/PE
     // keeping CE test for merge compatibility
-    // @Test
+    @Test
+    @Ignore
     public void testFindCustomerEdgesByType() throws Exception {
         Customer customer = new Customer();
         customer.setTitle("Test customer");
@@ -731,7 +748,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     // @voba - merge comment
     // edge entities support available in CE/PE
     // keeping CE test for merge compatibility
-    // @Test
+    @Test
+    @Ignore
     public void testSyncEdge() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
 
@@ -789,7 +807,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     // @voba - merge comment
     // edge assign functionality only in CE/PE
-    // @Test
+    @Test
+    @Ignore
     public void testSyncEdgeEntityGroup() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
