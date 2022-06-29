@@ -236,7 +236,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         PageData<DashboardInfo> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
-                    new TypeReference<PageData<DashboardInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedDashboards.addAll(pageData.getData());
             if (pageData.hasNext()) {

@@ -54,6 +54,7 @@ import org.thingsboard.server.service.stats.DefaultRuleEngineStatisticsService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -65,6 +66,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
     private User tenantAdmin;
+    private final  String classNameAsset = "Asset";
 
     @Before
     public void beforeTest() throws Exception {
@@ -182,20 +184,21 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
+        String msgError = classNameAsset.toUpperCase(Locale.ENGLISH) + " '" + savedAsset.getName() +"'!";
         doPost("/api/asset", savedAsset)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermission)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + msgError)));
 
         testNotifyEntityEqualsOneTimeError(savedAsset, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
                 DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
-                new ThingsboardException(msgErrorPermissionWrite + entityClass(savedAsset) + " '" + savedAsset.getName() + "'!",
-                        ThingsboardErrorCode.PERMISSION_DENIED));
+                new ThingsboardException(msgErrorPermissionWrite + msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
 
         doDelete("/api/asset/" + savedAsset.getId().getId().toString())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermission)));
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + msgError)));
+
 
         testNotifyEntityNever(savedAsset.getId(), savedAsset);
 
@@ -273,7 +276,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         String assetIdStr = savedAsset.getId().getId().toString();
         doGet("/api/asset/" + assetIdStr)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgErrorNoFound("Asset", assetIdStr))));
+                .andExpect(statusReason(containsString(msgErrorNoFound(classNameAsset, assetIdStr))));
     }
 
     @Test
@@ -315,7 +318,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         String assetIdStr = savedAsset1.getId().getId().toString();
         doGet("/api/asset/" + assetIdStr)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgErrorNoFound("Asset", assetIdStr))));
+                .andExpect(statusReason(containsString(msgErrorNoFound(classNameAsset, assetIdStr))));
     }
 
     @Test

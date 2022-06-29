@@ -529,17 +529,13 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     }
 
     private EntityId createEntityId_NULL_UUID(HasName entity) {
-        String entityTypeStr = entityClass(entity);
+        String entityTypeStr = entity.getClass().toString()
+                .substring(entity.getClass().toString().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
         if ( "GROUPPERMISSION".equals(entityTypeStr)) {
             entityTypeStr = "GROUP_PERMISSION";
         }
         return EntityIdFactory.getByTypeAndUuid(EntityType.valueOf(entityTypeStr),
                 ModelConstants.NULL_UUID);
-    }
-
-    protected String entityClass(HasName entity) {
-        return entity.getClass().toString()
-                .substring(entity.getClass().toString().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
     }
 
     protected String msgErrorFieldLength(String fieldName){

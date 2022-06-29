@@ -57,6 +57,7 @@ import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,6 +72,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
     private Tenant savedTenant;
     private User tenantAdmin;
+    private final String classNameCustomer = "Customer";
 
     @Before
     public void beforeTest() throws Exception {
@@ -237,7 +239,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         testNotifyEntityEqualsOneTimeError(savedCustomer,  savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
                 DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
-                new ThingsboardException(msgErrorPermissionWrite + entityClass(savedCustomer) + " '" + savedCustomer.getName() + "'!",
+                new ThingsboardException(msgErrorPermissionWrite + classNameCustomer.toUpperCase(Locale.ENGLISH) + " '" + savedCustomer.getName() + "'!",
                         ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -245,7 +247,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isForbidden())
                 .andExpect(statusReason(containsString(
-                        msgErrorPermissionDelete  + entityClass(savedCustomer) + " '" + savedCustomer.getName() + "'!")));
+                        msgErrorPermissionDelete  + classNameCustomer.toUpperCase(Locale.ENGLISH) + " '" + savedCustomer.getName() + "'!")));
 
         testNotifyEntityNever(savedCustomer.getId(), savedCustomer);
 
@@ -291,7 +293,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         String customerIdStr = savedCustomer.getId().getId().toString();
         doGet("/api/customer/" + customerIdStr)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgErrorNoFound("Customer", customerIdStr))));
+                .andExpect(statusReason(containsString(msgErrorNoFound(classNameCustomer, customerIdStr))));
     }
 
     @Test
