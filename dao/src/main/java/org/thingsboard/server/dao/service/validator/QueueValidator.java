@@ -44,6 +44,8 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.exception.DataValidationException;
 
+import java.util.regex.Pattern;
+
 @Component
 public class QueueValidator extends DataValidator<Queue> {
 
@@ -52,6 +54,8 @@ public class QueueValidator extends DataValidator<Queue> {
 
     @Autowired
     private TbTenantProfileCache tenantProfileCache;
+
+    private final Pattern queueTopicPattern = Pattern.compile("^[a-zA-Z0-9_.\\-]+$");
 
     @Override
     protected void validateCreate(TenantId tenantId, Queue queue) {
@@ -91,8 +95,14 @@ public class QueueValidator extends DataValidator<Queue> {
         if (StringUtils.isEmpty(queue.getName())) {
             throw new DataValidationException("Queue name should be specified!");
         }
-        if (StringUtils.isBlank(queue.getTopic())) {
-            throw new DataValidationException("Queue topic should be non empty and without spaces!");
+        if (!queueTopicPattern.matcher(queue.getName()).matches()) {
+            throw new DataValidationException("Queue name contains a character other than ASCII alphanumerics, '.', '_' and '-'!");
+        }
+        if (StringUtils.isEmpty(queue.getTopic())) {
+            throw new DataValidationException("Queue topic should be specified!");
+        }
+        if (!queueTopicPattern.matcher(queue.getTopic()).matches()) {
+            throw new DataValidationException("Queue topic contains a character other than ASCII alphanumerics, '.', '_' and '-'!");
         }
         if (queue.getPollInterval() < 1) {
             throw new DataValidationException("Queue poll interval should be more then 0!");
