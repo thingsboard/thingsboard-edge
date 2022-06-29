@@ -58,9 +58,6 @@ import { parseHttpErrorMessage } from '@core/utils';
 export class EntityVersionRestoreComponent extends PageComponent implements OnInit, OnDestroy {
 
   @Input()
-  branch: string;
-
-  @Input()
   versionName: string;
 
   @Input()
@@ -135,7 +132,6 @@ export class EntityVersionRestoreComponent extends PageComponent implements OnIn
 
   restore(): void {
     const request: SingleEntityVersionLoadRequest = {
-      branch: this.branch,
       versionId: this.versionId,
       internalEntityId: this.internalEntityId,
       externalEntityId: this.externalEntityId,

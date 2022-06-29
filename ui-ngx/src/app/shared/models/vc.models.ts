@@ -141,7 +141,6 @@ export enum VersionLoadRequestType {
 }
 
 export interface VersionLoadRequest {
-  branch: string;
   versionId: string;
   type: VersionLoadRequestType;
 }
