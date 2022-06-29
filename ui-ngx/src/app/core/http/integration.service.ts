@@ -52,7 +52,8 @@ export class IntegrationService {
     return this.getIntegrationsByEdgeTemplate(pageLink, false, config);
   }
 
-  public getIntegrationsByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean, config?: RequestConfig): Observable<PageData<Integration>> {
+  public getIntegrationsByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean,
+                                       config?: RequestConfig): Observable<PageData<Integration>> {
     return this.http.get<PageData<Integration>>(`/api/integrations${pageLink.toQuery()}&isEdgeTemplate=${isEdgeTemplate}`,
       defaultHttpOptionsFromConfig(config));
   }
@@ -84,7 +85,7 @@ export class IntegrationService {
     return url;
   }
 
-  public checkIntegrationConnection(value: Integration, config?: RequestConfig) : Observable<string>{
+  public checkIntegrationConnection(value: Integration, config?: RequestConfig): Observable<string>{
     return this.http.post<string>('/api/integration/check', value, defaultHttpOptionsFromConfig(config));
   }
 
