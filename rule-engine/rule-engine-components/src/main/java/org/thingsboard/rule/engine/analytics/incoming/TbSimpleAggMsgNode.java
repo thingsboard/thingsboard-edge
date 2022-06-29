@@ -255,7 +255,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         };
     }
 
-    private void scheduleReportTickMsg(TbContext ctx, TbMsg msg) {
+    void scheduleReportTickMsg(TbContext ctx, TbMsg msg) {
         TbMsg tickMsg = ctx.newMsg(queueId, TB_REPORT_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextReportTickId = tickMsg.getId();
@@ -286,7 +286,7 @@ public class TbSimpleAggMsgNode implements TbNode {
     }
 
     private JsonElement extractValue(TbMsg msg) {
-        JsonElement jsonElement = gsonParser.parse(msg.getData());
+        JsonElement jsonElement = JsonParser.parseString(msg.getData());
         if (!jsonElement.isJsonObject()) {
             throw new IllegalArgumentException("Incoming message is not a json object!");
         }
@@ -294,7 +294,15 @@ public class TbSimpleAggMsgNode implements TbNode {
         if (!jsonObject.has(config.getInputValueKey())) {
             throw new IllegalArgumentException("Incoming message does not contain " + config.getInputValueKey() + "!");
         }
-        return jsonObject.get(config.getInputValueKey());
+        return checkForNullAndGet(jsonObject);
+    }
+
+    JsonElement checkForNullAndGet(JsonObject jsonObject) {
+        JsonElement je = jsonObject.get(config.getInputValueKey());
+        if (je.isJsonNull()) {
+            throw new IllegalArgumentException("Found JSON null for [" + config.getInputValueKey() + "] key!");
+        }
+        return je;
     }
 
     @Override
