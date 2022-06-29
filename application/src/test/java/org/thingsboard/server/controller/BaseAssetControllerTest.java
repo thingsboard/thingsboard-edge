@@ -182,7 +182,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/asset", savedAsset, Asset.class, status().isForbidden());
+        doPost("/api/asset", savedAsset)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermission)));
 
         testNotifyEntityEqualsOneTimeError(savedAsset, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
                 DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
@@ -191,9 +193,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        //TODO fix bug: "No value at JSON path "$.message"
-        doDelete("/api/asset" + savedAsset.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        doDelete("/api/asset/" + savedAsset.getId().getId().toString())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermission)));
 
         testNotifyEntityNever(savedAsset.getId(), savedAsset);
 
