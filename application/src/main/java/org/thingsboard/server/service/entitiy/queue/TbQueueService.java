@@ -26,6 +26,8 @@ public interface TbQueueService {
 
     Queue saveQueue(Queue queue);
 
+    Queue saveQueue(Queue queue, boolean create);
+
     void deleteQueue(TenantId tenantId, QueueId queueId);
 
     void deleteQueueByQueueName(TenantId tenantId, String queueName);

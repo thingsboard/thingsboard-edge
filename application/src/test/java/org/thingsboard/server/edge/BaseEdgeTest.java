@@ -1708,6 +1708,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testOtaPackages_usesUrl() throws Exception {
         // 1
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
@@ -1758,6 +1759,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testOtaPackages_hasData() throws Exception {
         // 1
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
@@ -1812,6 +1814,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore
     public void testQueues() throws Exception {
         loginSysAdmin();
 

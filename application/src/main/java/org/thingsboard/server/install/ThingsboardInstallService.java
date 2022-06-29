@@ -233,12 +233,6 @@ public class ThingsboardInstallService {
                             // log.info("Updating system data...");
                             // systemDataLoaderService.updateSystemWidgets();
 
-                            try {
-                                // TODO: @voba - queues must be uploaded from the cloud in next release
-                                // remove this line once queues are imported from cloud
-                                systemDataLoaderService.createQueues();
-                            } catch (Exception ignored) {}
-
                             break;
 
                         //TODO update CacheCleanupService on the next version upgrade
@@ -276,8 +270,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createAdminSettings();
                 // systemDataLoaderService.loadSystemWidgets();
                 // systemDataLoaderService.createOAuth2Templates();
-                // TODO: @voba - queues must be uploaded from the cloud in next release
-                systemDataLoaderService.createQueues();
+                // systemDataLoaderService.createQueues();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
 

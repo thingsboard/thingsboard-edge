@@ -575,6 +575,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", SCHEMA_UPDATE_SQL);
                     loadSql(schemaUpdateFile, conn);
 
+                    /* TODO: @voba - queues are uploaded from the cloud
                     log.info("Loading queues...");
                     try {
                         if (!CollectionUtils.isEmpty(queueConfig.getQueues())) {
@@ -590,6 +591,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         }
                     } catch (Exception e) {
                     }
+                     */
 
                     log.info("Updating device profiles...");
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", "schema_update_device_profile.sql");
