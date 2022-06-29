@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
@@ -87,6 +88,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     private Role role;
     private EntityGroup entityGroup;
     private GroupPermission groupPermission;
+
 
     @Before
     public void setup() throws Exception {
@@ -150,7 +152,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     @Test
     public void testCreateAlarmViaCustomerWithoutPermission() throws Exception {
         loginCustomerUser();
-        createAlarmAndReturnAction(TEST_ALARM_TYPE).andExpect(status().isForbidden());
+        createAlarmAndReturnAction(TEST_ALARM_TYPE)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionCreate)));
     }
 
     @Test
@@ -186,7 +190,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     @Test
     public void testUpdateAlarmViaCustomerWithoutPermission() throws Exception {
         loginCustomerUser();
-        createAlarmAndReturnAction(TEST_ALARM_TYPE).andExpect(status().isForbidden());
+        createAlarmAndReturnAction(TEST_ALARM_TYPE)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionCreate)));
     }
 
     @Test
@@ -215,7 +221,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/alarm", alarm).andExpect(status().isForbidden());
+        doPost("/api/alarm", alarm)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -230,9 +238,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/alarm", alarm).andExpect(status().isForbidden());
+        doPost("/api/alarm", alarm)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+
         loginDifferentCustomerAdministrator();
-        doPost("/api/alarm", alarm).andExpect(status().isForbidden());
+        doPost("/api/alarm", alarm)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -257,7 +270,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
         loginCustomerUser();
-        doDelete("/api/alarm/" + alarm.getId()).andExpect(status().isForbidden());
+        doDelete("/api/alarm/" + alarm.getId())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
     }
 
     @Test
@@ -282,7 +297,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doDelete("/api/alarm/" + alarm.getId()).andExpect(status().isForbidden());
+        doDelete("/api/alarm/" + alarm.getId())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -296,12 +313,16 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doDelete("/api/alarm/" + alarm.getId()).andExpect(status().isForbidden());
+        doDelete("/api/alarm/" + alarm.getId())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
-        doDelete("/api/alarm/" + alarm.getId()).andExpect(status().isForbidden());
+        doDelete("/api/alarm/" + alarm.getId())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -344,7 +365,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         Alarm alarm = createAlarm(TEST_ALARM_TYPE);
         loginCustomerUser();
-        doPost("/api/alarm/" + alarm.getId() + "/ack").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/ack")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
     }
 
     @Test
@@ -374,12 +397,16 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/alarm/" + alarm.getId() + "/clear").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/clear")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
-        doPost("/api/alarm/" + alarm.getId() + "/clear").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/clear")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -393,7 +420,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/alarm/" + alarm.getId() + "/clear").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/clear")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -407,12 +436,16 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/alarm/" + alarm.getId() + "/ack").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/ack")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
-        doPost("/api/alarm/" + alarm.getId() + "/ack").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/ack")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -426,7 +459,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/alarm/" + alarm.getId() + "/ack").andExpect(status().isForbidden());
+        doPost("/api/alarm/" + alarm.getId() + "/ack")
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -476,12 +511,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginDifferentCustomer();
         doGet("/api/alarm/" + customerDevice.getEntityType() + "/"
                 + customerDevice.getUuidId() + "?page=0&pageSize=" + size)
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionRead)));
 
         loginDifferentCustomerAdministrator();
         doGet("/api/alarm/" + customerDevice.getEntityType() + "/"
                 + customerDevice.getUuidId() + "?page=0&pageSize=" + size)
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionRead)));
     }
 
     @Test

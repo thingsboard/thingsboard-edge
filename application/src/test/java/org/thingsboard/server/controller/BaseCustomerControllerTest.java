@@ -144,7 +144,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         Mockito.reset(tbClusterService, auditLogService);
 
         String msgError = "length of title must be equal or less than 255";
-        doPost("/api/customer", customer).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/customer", customer)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -158,7 +160,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/customer", customer).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/customer", customer)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -169,7 +173,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         customer.setCity("Normal city");
         customer.setCountry(RandomStringUtils.randomAlphabetic(300));
         msgError = "length of country must be equal or less than 255";
-        doPost("/api/customer", customer).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/customer", customer)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -180,7 +186,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         customer.setCountry("Ukraine");
         customer.setPhone(RandomStringUtils.randomAlphabetic(300));
         msgError = "length of phone must be equal or less than 255";
-        doPost("/api/customer", customer).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/customer", customer)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -191,7 +199,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         customer.setPhone("+3892555554512");
         customer.setState(RandomStringUtils.randomAlphabetic(300));
         msgError = "length of state must be equal or less than 255";
-        doPost("/api/customer", customer).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/customer", customer)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -202,7 +212,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         customer.setState("Normal state");
         customer.setZip(RandomStringUtils.randomAlphabetic(300));
         msgError = "length of zip or postal code must be equal or less than 255";
-        doPost("/api/customer", customer).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/customer", customer)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -221,16 +233,17 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "You don't have permission to perform 'WRITE' operation with CUSTOMER 'My customer'";
         doPost("/api/customer", savedCustomer, Customer.class, status().isForbidden());
 
         testNotifyEntityEqualsOneTimeError(savedCustomer,  savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
-                DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
+                new ThingsboardException(msgErrorPermissionWrite, ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete)));
 
         testNotifyEntityNever(savedCustomer.getId(), savedCustomer);
 
@@ -273,8 +286,11 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
                 tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
 
-        doGet("/api/customer/" + savedCustomer.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        String customerIdStr = savedCustomer.getId().getId().toString();
+        String msgError = "Customer with id [" + customerIdStr + "] is not found";
+        doGet("/api/customer/" + customerIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgError)));
     }
 
     @Test

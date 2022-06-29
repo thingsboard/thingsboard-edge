@@ -72,6 +72,11 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     @SpyBean
     protected GatewayNotificationsService gatewayNotificationsService;
 
+    protected final String msgErrorPermissionWrite = "You don't have permission to perform 'WRITE' operation with";
+    protected final String msgErrorPermissionRead = "You don't have permission to perform 'READ' operation with";
+    protected final String msgErrorPermissionDelete = "You don't have permission to perform 'DELETE' operation with";
+    protected final String msgErrorPermissionCreate = "You don't have permission to perform 'CREATE' operation with";
+
     protected void testNotifyEntityEntityGroupNullAllOneTime(HasName entity, EntityId entityId, EntityId originatorId,
                                                              TenantId tenantId, CustomerId customerId, UserId userId, String userName,
                                                              ActionType actionType, Object... additionalInfo) {
