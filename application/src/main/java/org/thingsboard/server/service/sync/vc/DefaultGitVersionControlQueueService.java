@@ -370,6 +370,7 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
     @SuppressWarnings("rawtypes")
     public ListenableFuture<EntityExportData> getEntityGroup(TenantId tenantId, String versionId, List<CustomerId> hierarchy, EntityType groupType, EntityId groupId) {
         EntityContentGitRequest request = new EntityContentGitRequest(tenantId, versionId, groupId);
+        chunkedMsgs.put(request.getRequestId(), new HashMap<>());
         registerAndSend(request, builder -> builder.setEntityContentRequest(EntityContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
                         .setPath(getHierarchyPath(hierarchy) + "groups/")
@@ -435,6 +436,7 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
         var idProtos = ids.stream().map(id -> TransportProtos.EntityIdProto.newBuilder()
                 .setEntityIdMSB(id.getMostSignificantBits()).setEntityIdLSB(id.getLeastSignificantBits()).build()).collect(Collectors.toList());
 
+        chunkedMsgs.put(request.getRequestId(), new HashMap<>());
         registerAndSend(request, builder -> builder.setEntitiesContentRequest(EntitiesContentRequestMsg.newBuilder()
                         .setVersionId(versionId)
                         .setPath(getHierarchyPath(hierarchy))

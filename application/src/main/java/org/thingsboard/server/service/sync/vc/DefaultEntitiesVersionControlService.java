@@ -292,7 +292,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             List<EntityId> groupEntityIds = new ArrayList<>();
             for (EntityId groupEntityId : entityIdsIterator) {
                 if (!group.isGroupAll()) {
-                    groupEntityIds.add(exportableEntitiesService.getExternalIdByInternal(groupEntityId));
+                    groupEntityIds.add(Optional.ofNullable(exportableEntitiesService.getExternalIdByInternal(groupEntityId)).orElse(groupEntityId));
                 }
                 if (ctx.isExportRelatedEntities()) {
                     EntityExportData<ExportableEntity<EntityId>> groupEntityData = exportImportService.exportEntity(ctx, groupEntityId);

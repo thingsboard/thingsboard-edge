@@ -43,7 +43,7 @@ public class ComplexEntitiesExportCtx extends EntitiesExportCtx<ComplexVersionCr
     private final Map<EntityType, EntityExportSettings> settings = new HashMap<>();
 
     public ComplexEntitiesExportCtx(User user, CommitGitRequest commit, ComplexVersionCreateRequest request) {
-        super(user, commit, request, false, false);
+        super(user, commit, request, false, true);
         request.getEntityTypes().forEach((type, config) -> settings.put(type, buildExportSettings(config)));
     }
 
