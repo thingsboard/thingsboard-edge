@@ -191,6 +191,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
+        //TODO fix bug: "No value at JSON path "$.message"
         doDelete("/api/asset" + savedAsset.getId().getId().toString())
                 .andExpect(status().isNotFound());
 

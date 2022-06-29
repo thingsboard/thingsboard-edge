@@ -266,6 +266,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
     }
 
+    // TODO  "You don't have permission to perform 'DELETE' operation with"
     @Test
     public void testDeleteAlarmViaCustomerWithoutPermission() throws Exception {
         loginTenantAdmin();
