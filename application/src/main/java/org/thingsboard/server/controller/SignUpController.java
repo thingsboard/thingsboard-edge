@@ -245,8 +245,10 @@ public class SignUpController extends BaseController {
             sendUserActivityNotification(tenantId, signUpRequest.getFirstName() + " " + signUpRequest.getLastName(),
                     signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
 
-            notificationEntityService.logEntityAction(tenantId, savedUser.getId(), ActionType.ADDED, savedUser, null);
-            notificationEntityService.logEntityAction(tenantId, savedCustomer.getId(), ActionType.ADDED, savedUser, null);
+            notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedCustomer.getId(), savedCustomer,
+                    savedCustomer.getId(), ActionType.ADDED, null);
+            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, savedUser.getCustomerId(), savedUser.getId(),
+                    savedUser, null, ActionType.ADDED, true, null);
 
             return SignUpResult.SUCCESS;
         } catch (Exception e) {
