@@ -36,6 +36,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,6 +45,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
+import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 
@@ -61,6 +64,9 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
     @Autowired
     private IntegrationDao integrationDao;
+
+    @Autowired
+    private ConverterDao converterDao;
 
     @After
     public void tearDown() {
@@ -346,6 +352,8 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
     }
 
     private Integration saveIntegration(UUID id, UUID tenantId, UUID converterId, String name, String routingKey, IntegrationType type, boolean isRemote, boolean isEnabled) {
+        saveConverter(converterId, tenantId, "CONVERTER", ConverterType.UPLINK);
+
         Integration integration = new Integration();
         integration.setId(new IntegrationId(id));
         integration.setTenantId(new TenantId(tenantId));
@@ -356,6 +364,15 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         integration.setRemote(isRemote);
         integration.setEnabled(isEnabled);
         return integrationDao.save(new TenantId(tenantId), integration);
+    }
+
+    private void saveConverter(UUID id, UUID tenantId, String name, ConverterType type) {
+        Converter converter = new Converter();
+        converter.setId(new ConverterId(id));
+        converter.setTenantId(new TenantId(tenantId));
+        converter.setName(name);
+        converter.setType(type);
+        converterDao.save(new TenantId(tenantId), converter);
     }
 
     private void clearSavedIntegrations() {
