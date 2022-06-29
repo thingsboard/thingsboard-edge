@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -72,10 +73,10 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     @SpyBean
     protected GatewayNotificationsService gatewayNotificationsService;
 
-    protected final String msgErrorPermissionWrite = "You don't have permission to perform 'WRITE' operation with";
-    protected final String msgErrorPermissionRead = "You don't have permission to perform 'READ' operation with";
-    protected final String msgErrorPermissionDelete = "You don't have permission to perform 'DELETE' operation with";
-    protected final String msgErrorPermissionCreate = "You don't have permission to perform 'CREATE' operation with";
+    protected final String msgErrorPermissionWrite = "You don't have permission to perform 'WRITE' operation with ";
+    protected final String msgErrorPermissionRead = "You don't have permission to perform 'READ' operation with ";
+    protected final String msgErrorPermissionDelete = "You don't have permission to perform 'DELETE' operation with ";
+    protected final String msgErrorPermissionCreate = "You don't have permission to perform 'CREATE' operation with ";
 
     protected void testNotifyEntityEntityGroupNullAllOneTime(HasName entity, EntityId entityId, EntityId originatorId,
                                                              TenantId tenantId, CustomerId customerId, UserId userId, String userName,
@@ -276,9 +277,11 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     }
 
     private void testSendNotificationMsgToEdgeServiceTime(EntityId entityId, TenantId tenantId, ActionType actionType, int cntTime) {
+        EdgeEventActionType edgeEventActionType = ActionType.CREDENTIALS_UPDATED.equals(actionType) ?
+                EdgeEventActionType.CREDENTIALS_UPDATED : edgeTypeByActionType(actionType);
         Mockito.verify(tbClusterService, times(cntTime)).sendNotificationMsgToEdge(Mockito.eq(tenantId),
                 Mockito.any(), Mockito.eq(entityId), Mockito.any(), Mockito.isNull(),
-                Mockito.eq(edgeTypeByActionType(actionType)));
+                Mockito.eq(edgeEventActionType));
     }
 
     private void testBroadcastEntityStateChangeEventNever(EntityId entityId, TenantId tenantId) {
@@ -524,12 +527,16 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     }
 
     private EntityId createEntityId_NULL_UUID(HasName entity) {
-        String entityTypeStr = entity.getClass().toString()
-                .substring(entity.getClass().toString().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
+        String entityTypeStr = entityClass(entity);
         if ( "GROUPPERMISSION".equals(entityTypeStr)) {
             entityTypeStr = "GROUP_PERMISSION";
         }
         return EntityIdFactory.getByTypeAndUuid(EntityType.valueOf(entityTypeStr),
                 ModelConstants.NULL_UUID);
+    }
+
+    protected String entityClass(HasName entity) {
+        return entity.getClass().toString()
+                .substring(entity.getClass().toString().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
     }
 }

@@ -154,7 +154,8 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginCustomerUser();
         createAlarmAndReturnAction(TEST_ALARM_TYPE)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionCreate)));
+                .andExpect(statusReason(containsString(
+                        msgErrorPermissionCreate  + entityClass(new Alarm()) + " '" + TEST_ALARM_TYPE + "'!")));
     }
 
     @Test
@@ -192,7 +193,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginCustomerUser();
         createAlarmAndReturnAction(TEST_ALARM_TYPE)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionCreate)));
+                .andExpect(statusReason(containsString(msgErrorPermissionCreate  + entityClass(new Alarm()) + " '" + TEST_ALARM_TYPE +  "'!")));
     }
 
     @Test
@@ -223,7 +224,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doPost("/api/alarm", alarm)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -240,12 +241,12 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doPost("/api/alarm", alarm)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         loginDifferentCustomerAdministrator();
         doPost("/api/alarm", alarm)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -272,7 +273,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginCustomerUser();
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
     }
 
     @Test
@@ -299,7 +300,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -315,14 +316,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -367,7 +368,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginCustomerUser();
         doPost("/api/alarm/" + alarm.getId() + "/ack")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + entityClass(alarm) + " '" + alarm.getType() +"'!")));
     }
 
     @Test
@@ -399,14 +400,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doPost("/api/alarm/" + alarm.getId() + "/clear")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
         doPost("/api/alarm/" + alarm.getId() + "/clear")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -422,7 +423,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doPost("/api/alarm/" + alarm.getId() + "/clear")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -438,14 +439,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doPost("/api/alarm/" + alarm.getId() + "/ack")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
         doPost("/api/alarm/" + alarm.getId() + "/ack")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -461,7 +462,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doPost("/api/alarm/" + alarm.getId() + "/ack")
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite+ entityClass(alarm) + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -512,13 +513,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         doGet("/api/alarm/" + customerDevice.getEntityType() + "/"
                 + customerDevice.getUuidId() + "?page=0&pageSize=" + size)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead)));
+                .andExpect(statusReason(containsString(msgErrorPermissionRead + "'" + entityClass(new Alarm()) + "' resource!")));
 
         loginDifferentCustomerAdministrator();
         doGet("/api/alarm/" + customerDevice.getEntityType() + "/"
                 + customerDevice.getUuidId() + "?page=0&pageSize=" + size)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionRead)));
+                .andExpect(statusReason(containsString(
+                        msgErrorPermissionRead  + entityClass(customerDevice) + " '" + customerDevice.getName() + "'!")));
     }
 
     @Test

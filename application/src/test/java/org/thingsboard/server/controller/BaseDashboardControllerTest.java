@@ -137,7 +137,9 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doPost("/api/dashboard", dashboard).andExpect(statusReason(containsString(msgError)));
+        doPost("/api/dashboard", dashboard)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         dashboard.setTenantId(savedTenant.getId());
         testNotifyEntityEqualsOneTimeError(dashboard, savedTenant.getId(),
@@ -191,8 +193,11 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
                 savedDashboard.getTenantId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED,
                 savedDashboard.getId().getId().toString());
 
+        String dashboardIdStr = savedDashboard.getId().getId().toString();
+        String msgError = "Dashboard with id [" + dashboardIdStr + "] is not found";
         doGet("/api/dashboard/" + savedDashboard.getId().getId().toString())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgError)));
     }
 
     @Test

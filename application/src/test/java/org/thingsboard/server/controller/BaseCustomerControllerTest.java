@@ -237,13 +237,15 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         testNotifyEntityEqualsOneTimeError(savedCustomer,  savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
                 DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
-                new ThingsboardException(msgErrorPermissionWrite, ThingsboardErrorCode.PERMISSION_DENIED));
+                new ThingsboardException(msgErrorPermissionWrite + entityClass(savedCustomer) + " '" + savedCustomer.getName() + "'!",
+                        ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionDelete)));
+                .andExpect(statusReason(containsString(
+                        msgErrorPermissionDelete  + entityClass(savedCustomer) + " '" + savedCustomer.getName() + "'!")));
 
         testNotifyEntityNever(savedCustomer.getId(), savedCustomer);
 
