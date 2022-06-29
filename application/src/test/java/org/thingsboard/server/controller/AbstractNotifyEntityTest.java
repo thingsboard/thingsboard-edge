@@ -77,6 +77,8 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     protected final String msgErrorPermissionRead = "You don't have permission to perform 'READ' operation with ";
     protected final String msgErrorPermissionDelete = "You don't have permission to perform 'DELETE' operation with ";
     protected final String msgErrorPermissionCreate = "You don't have permission to perform 'CREATE' operation with ";
+    protected final String msgErrorShouldBeSpecified = "should be specified";
+
 
     protected void testNotifyEntityEntityGroupNullAllOneTime(HasName entity, EntityId entityId, EntityId originatorId,
                                                              TenantId tenantId, CustomerId customerId, UserId userId, String userName,
@@ -538,5 +540,13 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     protected String entityClass(HasName entity) {
         return entity.getClass().toString()
                 .substring(entity.getClass().toString().lastIndexOf(".") + 1).toUpperCase(Locale.ENGLISH);
+    }
+
+    protected String msgErrorFieldLength(String fieldName){
+        return "length of " + fieldName + " must be equal or less than 255";
+    }
+
+    protected String msgErrorNoFound(String entityClassName, String assetIdStr){
+        return entityClassName + " with id [" + assetIdStr + "] is not found";
     }
 }

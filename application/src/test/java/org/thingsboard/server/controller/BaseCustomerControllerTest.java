@@ -143,7 +143,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "length of title must be equal or less than 255";
+        String msgError = msgErrorFieldLength("title");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -156,7 +156,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         customer.setTitle("Normal title");
         customer.setCity(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of city must be equal or less than 255";
+        msgError = msgErrorFieldLength("city");
 
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -172,7 +172,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         customer.setCity("Normal city");
         customer.setCountry(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of country must be equal or less than 255";
+        msgError = msgErrorFieldLength("country");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -185,7 +185,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         customer.setCountry("Ukraine");
         customer.setPhone(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of phone must be equal or less than 255";
+        msgError = msgErrorFieldLength("phone");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -198,7 +198,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         customer.setPhone("+3892555554512");
         customer.setState(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of state must be equal or less than 255";
+        msgError = msgErrorFieldLength("state");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -211,7 +211,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         customer.setState("Normal state");
         customer.setZip(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of zip or postal code must be equal or less than 255";
+        msgError = msgErrorFieldLength("zip or postal code");
         doPost("/api/customer", customer)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -289,16 +289,15 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
 
         String customerIdStr = savedCustomer.getId().getId().toString();
-        String msgError = "Customer with id [" + customerIdStr + "] is not found";
         doGet("/api/customer/" + customerIdStr)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgError)));
+                .andExpect(statusReason(containsString(msgErrorNoFound("Customer", customerIdStr))));
     }
 
     @Test
     public void testSaveCustomerWithEmptyTitle() throws Exception {
         Customer customer = new Customer();
-        String msgError = "Customer title should be specified";
+        String msgError = "Customer title " + msgErrorShouldBeSpecified;
 
         Mockito.reset(tbClusterService, auditLogService);
 
