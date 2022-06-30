@@ -873,6 +873,34 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @Override
+    public ListenableFuture<UUID> autoCommit(User user, EntityType entityType, EntityGroupId groupId) throws Exception {
+        var repositorySettings = repositorySettingsService.get(user.getTenantId());
+        if (repositorySettings == null) {
+            return Futures.immediateFuture(null);
+        }
+        var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());
+        if (autoCommitSettings == null) {
+            return Futures.immediateFuture(null);
+        }
+        AutoVersionCreateConfig autoCommitConfig = autoCommitSettings.get(entityType);
+        if (autoCommitConfig == null) {
+            return Futures.immediateFuture(null);
+        }
+        AutoVersionCreateConfig groupConfig = autoCommitConfig.copy();
+        groupConfig.setSaveGroupEntities(false);
+        SingleEntityVersionCreateRequest vcr = new SingleEntityVersionCreateRequest();
+        var autoCommitBranchName = groupConfig.getBranch();
+        if (StringUtils.isEmpty(autoCommitBranchName)) {
+            autoCommitBranchName = StringUtils.isNotEmpty(repositorySettings.getDefaultBranch()) ? repositorySettings.getDefaultBranch() : "auto-commits";
+        }
+        vcr.setBranch(autoCommitBranchName);
+        vcr.setVersionName("auto-commit at " + Instant.ofEpochSecond(System.currentTimeMillis() / 1000));
+        vcr.setEntityId(groupId);
+        vcr.setConfig(groupConfig);
+        return saveEntitiesVersion(user, vcr);
+    }
+
+    @Override
     public ListenableFuture<UUID> autoCommit(User user, EntityType entityType, List<UUID> entityIds) throws Exception {
         var repositorySettings = repositorySettingsService.get(user.getTenantId());
         if (repositorySettings == null) {

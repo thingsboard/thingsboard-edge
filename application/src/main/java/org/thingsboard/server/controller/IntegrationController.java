@@ -98,7 +98,7 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
-public class IntegrationController extends BaseController {
+public class IntegrationController extends AutoCommitController {
 
     @Autowired
     private IntegrationManagerService integrationManagerService;
@@ -114,14 +114,10 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
     @ResponseBody
     public Integration getIntegrationById(@ApiParam(required = true, value = INTEGRATION_ID_PARAM_DESCRIPTION)
-                                          @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+                                          @PathVariable(INTEGRATION_ID) String strIntegrationId) throws Exception {
         checkParameter(INTEGRATION_ID, strIntegrationId);
-        try {
-            IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            return checkIntegrationId(integrationId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
+        return checkIntegrationId(integrationId, Operation.READ);
     }
 
     @ApiOperation(value = "Get Integration by Routing Key (getIntegrationByRoutingKey)",
@@ -134,14 +130,10 @@ public class IntegrationController extends BaseController {
     @ResponseBody
     public Integration getIntegrationByRoutingKey(
             @ApiParam(required = true, value = "A string value representing the integration routing key. For example, '542047e6-c1b2-112e-a87e-e49247c09d4b'")
-            @PathVariable("routingKey") String routingKey) throws ThingsboardException {
-        try {
-            Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
-            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
-            return integration;
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+            @PathVariable("routingKey") String routingKey) throws Exception {
+        Integration integration = checkNotNull(integrationService.findIntegrationByRoutingKey(getTenantId(), routingKey));
+        accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ, integration.getId(), integration);
+        return integration;
     }
 
     @ApiOperation(value = "Create Or Update Integration (saveIntegration)",
@@ -156,9 +148,10 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/integration", method = RequestMethod.POST)
     @ResponseBody
     public Integration saveIntegration(@ApiParam(required = true, value = "A JSON value representing the integration.")
-                                       @RequestBody Integration integration) throws ThingsboardException {
+                                       @RequestBody Integration integration) throws Exception {
+        SecurityUser currentUser = getCurrentUser();
         try {
-            integration.setTenantId(getCurrentUser().getTenantId());
+            integration.setTenantId(currentUser.getTenantId());
             boolean created = integration.getId() == null;
 
             checkEntity(integration.getId(), integration, Resource.INTEGRATION, null);
@@ -173,13 +166,15 @@ public class IntegrationController extends BaseController {
 
             Integration result = checkNotNull(integrationService.saveIntegration(integration));
 
+            autoCommit(currentUser, result.getId());
+
             if (!result.isEdgeTemplate()) {
                 tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
                         created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
             }
 
             notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
-                    created ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
+                    created ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
             if (result.isEdgeTemplate() && !created) {
                 sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
@@ -187,11 +182,11 @@ public class IntegrationController extends BaseController {
 
             return result;
         } catch (TimeoutException e) {
-            throw handleException(new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL));
+            throw new ThingsboardRuntimeException("Timeout to validate the configuration!", ThingsboardErrorCode.GENERAL);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), integration,
-                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
-            throw handleException(e);
+                    integration.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
+            throw e;
         }
     }
 
@@ -213,18 +208,14 @@ public class IntegrationController extends BaseController {
             @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
-            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            if (isEdgeTemplate) {
-                return checkNotNull(integrationService.findTenantEdgeTemplateIntegrations(tenantId, pageLink));
-            } else {
-                return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
-            }
-        } catch (Exception e) {
-            throw handleException(e);
+            @RequestParam(required = false) String sortOrder) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (isEdgeTemplate) {
+            return checkNotNull(integrationService.findTenantEdgeTemplateIntegrations(tenantId, pageLink));
+        } else {
+            return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
         }
     }
 
@@ -235,7 +226,7 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/integration/check", method = RequestMethod.POST)
     @ResponseBody
     public void checkIntegrationConnection(@ApiParam(required = true, value = "A JSON value representing the integration.")
-                                           @RequestBody Integration integration) throws ThingsboardException {
+                                           @RequestBody Integration integration) throws Exception {
         try {
             checkNotNull(integration);
             integration.setTenantId(getCurrentUser().getTenantId());
@@ -245,9 +236,7 @@ public class IntegrationController extends BaseController {
                 throwRealCause(e);
             }
         } catch (TimeoutException e) {
-            throw handleException(new ThingsboardRuntimeException("Timeout to process the request!", ThingsboardErrorCode.GENERAL));
-        } catch (Exception e) {
-            throw handleException(e);
+            throw new ThingsboardRuntimeException("Timeout to process the request!", ThingsboardErrorCode.GENERAL);
         }
     }
 
@@ -259,7 +248,7 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteIntegration(@ApiParam(required = true, value = INTEGRATION_ID_PARAM_DESCRIPTION)
-                                  @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+                                  @PathVariable(INTEGRATION_ID) String strIntegrationId) throws Exception {
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
             IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
@@ -287,7 +276,7 @@ public class IntegrationController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION), ActionType.DELETED,
                     getCurrentUser(), e, strIntegrationId);
 
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -299,7 +288,7 @@ public class IntegrationController extends BaseController {
     @ResponseBody
     public List<Integration> getIntegrationsByIds(
             @ApiParam(value = "A list of integration ids, separated by comma ','", required = true)
-            @RequestParam("integrationIds") String[] strIntegrationIds) throws ThingsboardException {
+            @RequestParam("integrationIds") String[] strIntegrationIds) throws Exception {
         checkArrayParameter("integrationIds", strIntegrationIds);
         try {
             if (!accessControlService.hasPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ)) {
@@ -314,7 +303,7 @@ public class IntegrationController extends BaseController {
             List<Integration> integrations = checkNotNull(integrationService.findIntegrationsByIdsAsync(tenantId, integrationIds).get());
             return filterIntegrationsByReadPermission(integrations);
         } catch (Exception e) {
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -340,7 +329,7 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.POST)
     @ResponseBody
     public Integration assignIntegrationToEdge(@PathVariable("edgeId") String strEdgeId,
-                                               @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+                                               @PathVariable(INTEGRATION_ID) String strIntegrationId) throws Exception {
         checkParameter("edgeId", strEdgeId);
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
@@ -362,7 +351,7 @@ public class IntegrationController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
                     ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strIntegrationId, strEdgeId);
 
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -377,7 +366,7 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseBody
     public Integration unassignIntegrationFromEdge(@PathVariable("edgeId") String strEdgeId,
-                                                   @PathVariable(INTEGRATION_ID) String strIntegrationId) throws ThingsboardException {
+                                                   @PathVariable(INTEGRATION_ID) String strIntegrationId) throws Exception {
         checkParameter("edgeId", strEdgeId);
         checkParameter(INTEGRATION_ID, strIntegrationId);
         try {
@@ -398,7 +387,7 @@ public class IntegrationController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.INTEGRATION),
                     ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strIntegrationId, strEdgeId);
 
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -421,15 +410,11 @@ public class IntegrationController extends BaseController {
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter(EDGE_ID, strEdgeId);
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            checkEdgeId(edgeId, Operation.READ);
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-            return checkNotNull(integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        TenantId tenantId = getCurrentUser().getTenantId();
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        checkEdgeId(edgeId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
     }
 
     @ApiOperation(value = "Find edge missing attributes for assigned integrations (findEdgeMissingAttributes)",
@@ -440,21 +425,17 @@ public class IntegrationController extends BaseController {
     public String findEdgeMissingAttributes(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                             @PathVariable(EDGE_ID) String strEdgeId,
                                             @ApiParam(value = "A list of assigned integration ids, separated by comma ','", required = true)
-                                            @RequestParam("integrationIds") String[] strIntegrationIds) throws ThingsboardException {
+                                            @RequestParam("integrationIds") String[] strIntegrationIds) throws Exception {
         checkArrayParameter("integrationIds", strIntegrationIds);
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            edgeId = checkNotNull(edgeId);
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<IntegrationId> integrationIds = new ArrayList<>();
-            for (String strIntegrationId : strIntegrationIds) {
-                integrationIds.add(new IntegrationId(toUUID(strIntegrationId)));
-            }
-            return edgeService.findEdgeMissingAttributes(tenantId, edgeId, integrationIds);
-        } catch (Exception e) {
-            throw handleException(e);
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        edgeId = checkNotNull(edgeId);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<IntegrationId> integrationIds = new ArrayList<>();
+        for (String strIntegrationId : strIntegrationIds) {
+            integrationIds.add(new IntegrationId(toUUID(strIntegrationId)));
         }
+        return edgeService.findEdgeMissingAttributes(tenantId, edgeId, integrationIds);
     }
 
     @ApiOperation(value = "Find missing attributes for all related edges (findAllRelatedEdgesMissingAttributes)",
@@ -463,17 +444,13 @@ public class IntegrationController extends BaseController {
     @RequestMapping(value = "/edge/integration/{integrationId}/allMissingAttributes")
     @ResponseBody
     public String findAllRelatedEdgesMissingAttributes(@ApiParam(value = INTEGRATION_ID_PARAM_DESCRIPTION, required = true)
-                                                       @PathVariable("integrationId") String strIntegrationId) throws ThingsboardException {
+                                                       @PathVariable("integrationId") String strIntegrationId) throws Exception {
         checkParameter("integrationId", strIntegrationId);
-        try {
-            IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
-            integrationId = checkNotNull(integrationId);
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            return edgeService.findAllRelatedEdgesMissingAttributes(tenantId, integrationId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        IntegrationId integrationId = new IntegrationId(toUUID(strIntegrationId));
+        integrationId = checkNotNull(integrationId);
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        return edgeService.findAllRelatedEdgesMissingAttributes(tenantId, integrationId);
     }
 
 }
