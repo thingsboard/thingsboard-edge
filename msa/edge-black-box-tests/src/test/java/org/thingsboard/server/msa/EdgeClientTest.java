@@ -1249,7 +1249,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         cloudRestClient.deleteQueue(savedQueue.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 1);
+                until(() ->  edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 3);
 
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
     }
