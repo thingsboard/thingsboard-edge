@@ -76,8 +76,10 @@ export class TbWebReportPageQueue {
     }
 
     private async doGenerateDashboardReport(page: TbWebReportPage, url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
-        const buffer = await page.generateDashboardReport(url, type, timezone);
-        this.pages.push(page);
-        return buffer;
+        try {
+            return await page.generateDashboardReport(url, type, timezone);
+        } finally {
+            this.pages.push(page);
+        }
     }
 }
