@@ -55,6 +55,7 @@ import org.thingsboard.server.service.stats.DefaultRuleEngineStatisticsService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,6 +67,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
     private User tenantAdmin;
+    private final  String classNameAsset = "Asset";
 
     @Before
     public void beforeTest() throws Exception {
@@ -135,8 +137,10 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "length of name must be equal or less than 255";
-        doPost("/api/asset", asset).andExpect(statusReason(containsString(msgError)));
+        String msgError = msgErrorFieldLength("name");
+        doPost("/api/asset", asset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -146,8 +150,10 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         asset.setName("Normal name");
         asset.setType(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of type must be equal or less than 255";
-        doPost("/api/asset", asset).andExpect(statusReason(containsString(msgError)));
+        msgError = msgErrorFieldLength("type");
+        doPost("/api/asset", asset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -157,8 +163,10 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         asset.setType("default");
         asset.setLabel(RandomStringUtils.randomAlphabetic(300));
-        msgError = "length of label must be equal or less than 255";
-        doPost("/api/asset", asset).andExpect(statusReason(containsString(msgError)));
+        msgError = msgErrorFieldLength("label");
+        doPost("/api/asset", asset)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
@@ -177,16 +185,21 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "You don't have permission to perform 'WRITE' operation with ASSET 'My asset'";
-        doPost("/api/asset", savedAsset, Asset.class, status().isForbidden());
+        String msgError = classNameAsset.toUpperCase(Locale.ENGLISH) + " '" + savedAsset.getName() +"'!";
+        doPost("/api/asset", savedAsset)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + msgError)));
 
-        testNotifyEntityEqualsOneTimeError(savedAsset, differentTenantId, differentTenantAdminUserId, DIFFERENT_TENANT_ADMIN_EMAIL,
-                ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+        testNotifyEntityEqualsOneTimeError(savedAsset, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
+                DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
+                new ThingsboardException(msgErrorPermissionWrite + msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doDelete("/api/asset" + savedAsset.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        doDelete("/api/asset/" + savedAsset.getId().getId().toString())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + msgError)));
+
 
         testNotifyEntityNever(savedAsset.getId(), savedAsset);
 
@@ -261,8 +274,10 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, savedAsset.getId().getId().toString());
 
-        doGet("/api/asset/" + savedAsset.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        String assetIdStr = savedAsset.getId().getId().toString();
+        doGet("/api/asset/" + assetIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound(classNameAsset, assetIdStr))));
     }
 
     @Test
@@ -286,10 +301,11 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        doDelete("/api/asset/" + savedAsset1.getId().getId().toString())
-                .andExpect(status().isBadRequest());
-
         String msgError = "Can't delete asset that has entity views";
+        doDelete("/api/asset/" + savedAsset1.getId().getId().toString())
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
         testNotifyEntityIsNullOneTimeError(savedAsset1, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, new DataValidationException(msgError), savedAsset1.getId().getId().toString());
 
@@ -300,8 +316,10 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         doDelete("/api/asset/" + savedAsset1.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        doGet("/api/asset/" + savedAsset1.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        String assetIdStr = savedAsset1.getId().getId().toString();
+        doGet("/api/asset/" + assetIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound(classNameAsset, assetIdStr))));
     }
 
     @Test
@@ -311,7 +329,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "Asset type should be specified";
+        String msgError = "Asset type " + msgErrorShouldBeSpecified;
         doPost("/api/asset", asset)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -330,7 +348,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "Asset name should be specified";
+        String msgError = "Asset name " + msgErrorShouldBeSpecified;
         doPost("/api/asset", asset)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));

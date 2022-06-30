@@ -76,9 +76,6 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
   diffViewerElmRef: ElementRef<HTMLElement>;
 
   @Input()
-  branch: string;
-
-  @Input()
   versionName: string;
 
   @Input()
@@ -127,7 +124,7 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
 
   ngOnInit(): void {
     this.entitiesVersionControlService
-      .compareEntityDataToVersion(this.branch, this.entityId, this.versionId).subscribe((diffData) => {
+      .compareEntityDataToVersion(this.entityId, this.versionId).subscribe((diffData) => {
       const leftContent = entityExportDataToJsonString(diffData.currentVersion);
       const rightContent = entityExportDataToJsonString(diffData.otherVersion);
       const leftLines = leftContent.split('\n').length;
@@ -329,7 +326,6 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
       const restoreVersionPopover = this.popoverService.displayPopover(trigger, this.renderer,
         this.viewContainerRef, EntityVersionRestoreComponent, 'leftTop', true, null,
         {
-          branch: this.branch,
           versionName: this.versionName,
           versionId: this.versionId,
           groupType: this.groupType,

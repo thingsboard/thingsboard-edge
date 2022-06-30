@@ -542,7 +542,7 @@ export class EntityService {
         break;
       case EntityType.INTEGRATION:
         pageLink.sortOrder.property = 'name';
-        const isEdgeTemplate = IntegrationSubType[subType] && subType as IntegrationSubType === IntegrationSubType.EDGE;
+        const isEdgeTemplate = isDefined(IntegrationSubType[subType]) && subType as IntegrationSubType === IntegrationSubType.EDGE;
         entitiesObservable = this.integrationService.getIntegrationsByEdgeTemplate(pageLink, isEdgeTemplate, config);
         break;
       case EntityType.SCHEDULER_EVENT:

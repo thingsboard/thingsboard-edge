@@ -28,24 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.vc.request.load;
+package org.thingsboard.server.controller.sql;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.Data;
+import org.thingsboard.server.controller.BaseSignUpControllerSqlTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import static com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-@JsonSubTypes({
-        @Type(name = "SINGLE_ENTITY", value = SingleEntityVersionLoadRequest.class),
-        @Type(name = "ENTITY_TYPE", value = EntityTypeVersionLoadRequest.class)
-})
-@Data
-public abstract class VersionLoadRequest {
-
-    private String versionId;
-
-    public abstract VersionLoadRequestType getType();
-
+@DaoSqlTest
+public class SignUpControllerSqlTest extends BaseSignUpControllerSqlTest {
 }
