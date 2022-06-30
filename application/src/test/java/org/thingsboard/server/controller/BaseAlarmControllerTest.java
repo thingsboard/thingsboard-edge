@@ -275,7 +275,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         loginCustomerUser();
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + classNameAlarm + " '" + alarm.getType() +"'!")));
     }
 
     @Test
@@ -302,7 +302,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + classNameAlarm + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
@@ -318,14 +318,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + classNameAlarm + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
 
         loginDifferentCustomerAdministrator();
         doDelete("/api/alarm/" + alarm.getId())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + classNameAlarm + " '" + alarm.getType() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + classNameAlarm + " '" + alarm.getType() +"'!")));
 
         testNotifyEntityNever(alarm.getId(), alarm);
     }
