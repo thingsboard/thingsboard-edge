@@ -36,6 +36,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode;
+import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode;
+import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2;
+import org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode;
 import org.thingsboard.rule.engine.flow.TbCheckpointNode;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -60,7 +64,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public abstract class AbstractRuleChainMetadataConstructor implements RuleChainMetadataConstructor {
 
-    public static final List<String> nodeTypes = List.of(TbCheckpointNode.class.getName());
+    public static final List<String> nodeTypes = List.of(
+            TbCheckpointNode.class.getName(),
+            TbSimpleAggMsgNode.class.getName(),
+            TbAggLatestTelemetryNode.class.getName(),
+            TbAlarmsCountNode.class.getName(),
+            TbAlarmsCountNodeV2.class.getName());
 
     private final QueueService queueService;
 
