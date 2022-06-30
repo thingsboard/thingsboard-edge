@@ -158,8 +158,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected UserId tenantAdminUserId;
     protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
-    protected TenantId differentTenantId;
-    protected UserId differentTenantAdminUserId;
     protected CustomerId differentCustomerId;
     protected UserId customerUserId;
     protected UserId customerAdminUserId;
@@ -310,13 +308,12 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             Tenant tenant = new Tenant();
             tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
             savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
-            differentTenantId = savedDifferentTenant.getId();
             Assert.assertNotNull(savedDifferentTenant);
             User differentTenantAdmin = new User();
             differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
             differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
             differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
-            differentTenantAdminUserId = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD).getId();
+            savedDifferentTenantUser = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
         }
     }
 
