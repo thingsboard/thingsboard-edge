@@ -28,38 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.widgets.bundle;
+package org.thingsboard.server.controller;
 
-import lombok.AllArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.widget.WidgetsBundleService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 
-@Service
-@TbCoreComponent
-@AllArgsConstructor
-public class DefaultWidgetsBundleService extends AbstractTbEntityService implements TbWidgetsBundleService {
+import java.util.UUID;
 
-    private final WidgetsBundleService widgetsBundleService;
+public class AutoCommitController extends BaseController {
 
-    @Override
-    public WidgetsBundle save(WidgetsBundle widgetsBundle, User user) throws Exception {
-        WidgetsBundle savedWidgetsBundle = checkNotNull(widgetsBundleService.saveWidgetsBundle(widgetsBundle));
-        autoCommit(user, savedWidgetsBundle.getId());
-        notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), savedWidgetsBundle.getId(),
-                widgetsBundle.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-        return savedWidgetsBundle;
+    @Autowired
+    private EntitiesVersionControlService vcService;
+
+    protected ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {
+        if (vcService != null) {
+            return vcService.autoCommit(user, entityId);
+        } else {
+            // We do not support auto-commit for rule engine
+            return Futures.immediateFailedFuture(new RuntimeException("Operation not supported!"));
+        }
     }
 
-    @Override
-    public void delete(WidgetsBundle widgetsBundle) throws ThingsboardException {
-        widgetsBundleService.deleteWidgetsBundle(widgetsBundle.getTenantId(), widgetsBundle.getId());
-        notificationEntityService.notifySendMsgToEdgeService(widgetsBundle.getTenantId(), widgetsBundle.getId(),
-                EdgeEventActionType.DELETED);
-    }
+
 }
