@@ -61,6 +61,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
+import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
@@ -718,10 +719,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(11);
+        edgeImitator.expectMessageAmount(12);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class)).as("one msg once device assigned to edge").hasSize(1);
@@ -729,10 +731,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(UserUpdateMsg.class)).as("one msg during sync process for tenant admin user").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(4);
 
-        edgeImitator.expectMessageAmount(8);
+        edgeImitator.expectMessageAmount(9);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetUpdateMsg.class)).as("asset update msg").hasSize(1);
@@ -786,10 +789,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(14);
+        edgeImitator.expectMessageAmount(15);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - two msgs during sync process, four msgs from assign to edge").hasSize(6);
@@ -797,10 +801,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling params update").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
 
-        edgeImitator.expectMessageAmount(11);
+        edgeImitator.expectMessageAmount(12);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(4);
         assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(2);
