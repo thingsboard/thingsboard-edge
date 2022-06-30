@@ -120,9 +120,11 @@ public class WidgetTypeController extends AutoCommitController {
 
             WidgetTypeDetails savedWidgetTypeDetails = widgetTypeService.saveWidgetType(widgetTypeDetails);
 
-            WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(widgetTypeDetails.getTenantId(), widgetTypeDetails.getBundleAlias());
-            if (widgetsBundle != null) {
-                autoCommit(currentUser, widgetsBundle.getId());
+            if (!Authority.SYS_ADMIN.equals(currentUser.getAuthority())) {
+                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(widgetTypeDetails.getTenantId(), widgetTypeDetails.getBundleAlias());
+                if (widgetsBundle != null) {
+                    autoCommit(currentUser, widgetsBundle.getId());
+                }
             }
 
             sendEntityNotificationMsg(getTenantId(), savedWidgetTypeDetails.getId(),
@@ -144,9 +146,17 @@ public class WidgetTypeController extends AutoCommitController {
             @PathVariable("widgetTypeId") String strWidgetTypeId) throws ThingsboardException {
         checkParameter("widgetTypeId", strWidgetTypeId);
         try {
+            var currentUser = getCurrentUser();
             WidgetTypeId widgetTypeId = new WidgetTypeId(toUUID(strWidgetTypeId));
-            checkWidgetTypeId(widgetTypeId, Operation.DELETE);
-            widgetTypeService.deleteWidgetType(getCurrentUser().getTenantId(), widgetTypeId);
+            WidgetTypeDetails wtd = checkWidgetTypeId(widgetTypeId, Operation.DELETE);
+            widgetTypeService.deleteWidgetType(currentUser.getTenantId(), widgetTypeId);
+
+            if (wtd != null && !Authority.SYS_ADMIN.equals(currentUser.getAuthority())) {
+                WidgetsBundle widgetsBundle = widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(wtd.getTenantId(), wtd.getBundleAlias());
+                if (widgetsBundle != null) {
+                    autoCommit(currentUser, widgetsBundle.getId());
+                }
+            }
 
             sendEntityNotificationMsg(getTenantId(), widgetTypeId, EdgeEventActionType.DELETED);
 
