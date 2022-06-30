@@ -143,6 +143,8 @@ public class EntityIdFactory {
                 return new WidgetTypeId(uuid);
             case OTA_PACKAGE:
                 return new OtaPackageId(uuid);
+            case QUEUE:
+                return new QueueId(uuid);
             case EDGE:
                 return new EdgeId(uuid);
             case SCHEDULER_EVENT:

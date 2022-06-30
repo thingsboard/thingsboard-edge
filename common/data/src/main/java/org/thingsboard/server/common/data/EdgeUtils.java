@@ -85,6 +85,8 @@ public final class EdgeUtils {
                 return EdgeEventType.WIDGET_TYPE;
             case OTA_PACKAGE:
                 return EdgeEventType.OTA_PACKAGE;
+            case QUEUE:
+                return EdgeEventType.QUEUE;
             case ENTITY_GROUP:
                 return EdgeEventType.ENTITY_GROUP;
             case SCHEDULER_EVENT:

@@ -48,6 +48,7 @@ public enum EdgeEventType {
     WIDGET_TYPE,
     ADMIN_SETTINGS,
     OTA_PACKAGE,
+    QUEUE,
     ENTITY_GROUP,
     SCHEDULER_EVENT,
     WHITE_LABELING,

@@ -168,6 +168,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     break;
                 case WIDGETS_BUNDLE:
                 case WIDGET_TYPE:
+                case QUEUE:
                     future = entityProcessor.processEntityNotificationForAllEdges(tenantId, edgeNotificationMsg);
                     break;
                 case ALARM:
