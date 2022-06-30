@@ -40,6 +40,8 @@ browser:
   launchTimeout: "60000"
   # Default page navigation timeout (ms)
   defaultPageNavigationTimeout: "120000"
+  # Max browser pages
+  maxPages: "5"
 
 logger:
   level: "info"
