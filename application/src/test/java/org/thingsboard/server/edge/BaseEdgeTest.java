@@ -97,6 +97,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -195,6 +196,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private Tenant savedTenant;
     private TenantId tenantId;
     private User tenantAdmin;
+    private QueueId defaultQueueId;
 
     private DeviceProfile thermostatDeviceProfile;
 
@@ -227,6 +229,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         loginWhiteLabelingParams.setDomainName("sysadmin.org");
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
+        defaultQueueId = getRandomQueueId();
+
         tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         tenantAdmin.setTenantId(savedTenant.getId());
@@ -258,6 +262,13 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.connect();
 
         verifyEdgeConnectionAndInitialData();
+    }
+
+    private QueueId getRandomQueueId() throws Exception {
+        List<Queue> ruleEngineQueues = doGetTypedWithPageLink("/api/queues?serviceType={serviceType}&",
+                new TypeReference<PageData<Queue>>() {}, new PageLink(100), ServiceType.TB_RULE_ENGINE.name())
+                .getData();
+        return ruleEngineQueues.get(0).getId();
     }
 
     @After
@@ -422,7 +433,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     @Test
     public void testDeviceProfiles() throws Exception {
         // 1
-        DeviceProfile deviceProfile = this.createDeviceProfile("ONE_MORE_DEVICE_PROFILE", null);
+        DeviceProfile deviceProfile = this.createDeviceProfile("ONE_MORE_DEVICE_PROFILE", null, defaultQueueId);
         extendDeviceProfileData(deviceProfile);
         edgeImitator.expectMessageAmount(1);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -433,6 +444,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
         Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
+        Assert.assertEquals(defaultQueueId.getId().getMostSignificantBits(), deviceProfileUpdateMsg.getDefaultQueueIdMSB());
+        Assert.assertEquals(defaultQueueId.getId().getLeastSignificantBits(), deviceProfileUpdateMsg.getDefaultQueueIdLSB());
 
         // 2
         edgeImitator.expectMessageAmount(1);
