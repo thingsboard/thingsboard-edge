@@ -29,37 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-/*
- * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of ThingsBoard, Inc. and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to ThingsBoard, Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
- *
- * Dissemination of this information or reproduction of this material is strictly forbidden
- * unless prior written permission is obtained from COMPANY.
- *
- * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
- * managers or contractors who have executed Confidentiality and Non-disclosure agreements
- * explicitly covering such access.
- *
- * The copyright notice above does not evidence any actual or intended publication
- * or disclosure  of  this source code, which includes
- * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
- * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
- * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
- * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
- * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
- * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
- * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
- * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
- */
-
 import express from 'express';
 import bodyParser from 'body-parser';
 import config from 'config';
@@ -72,20 +41,11 @@ import { TbWebReportPageQueue } from './api/controllers/tbWebReportPageQueue';
 const logger = _logger('main');
 const app = express();
 
-/* var express = require('express'),
-  app = express(),
-  bodyParser = require('body-parser'),
-  puppeteer = require('puppeteer'),
-  config = require('config'); */
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// var routes = require('./api/routes/tbWebReportRoutes'); //importing route
-
 const address: string = config.get('server.address');
 const port = Number(config.get('server.port'));
-const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
 const maxPages = Number(config.get('browser.maxPages'));
 
 logger.info('Bind address: %s', address);
@@ -104,7 +64,7 @@ let pagesQueue: TbWebReportPageQueue;
             args: ['--no-sandbox'],
             timeout: Number(config.get('browser.launchTimeout'))
         };
-        if (typeof process.env.CHROME_EXECUTABLE === 'string') {
+        if (typeof process.env.CHROME_EXECUTABLE !== 'undefined') {
             logger.info('Chrome headless browser executable: %s', process.env.CHROME_EXECUTABLE);
             browserOptions.executablePath = process.env.CHROME_EXECUTABLE;
         }
@@ -118,7 +78,7 @@ let pagesQueue: TbWebReportPageQueue;
 
         logger.info('Initializing pages queue with size: %s', maxPages);
 
-        pagesQueue = new TbWebReportPageQueue(browser, maxPages, defaultPageNavigationTimeout);
+        pagesQueue = new TbWebReportPageQueue(browser, maxPages);
         await pagesQueue.init();
 
         logger.info('Pages queue initialized.');

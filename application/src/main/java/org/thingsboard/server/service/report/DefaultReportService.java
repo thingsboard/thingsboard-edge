@@ -57,9 +57,12 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRequestCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClientResponseException;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -228,7 +231,11 @@ public class DefaultReportService implements ReportService {
 
             @Override
             public void onFailure(Throwable t) {
-                onFailure.accept(t);
+                if (t instanceof RestClientResponseException) {
+                    onFailure.accept(new ThingsboardException(((RestClientResponseException)t).getStatusText(), ThingsboardErrorCode.GENERAL));
+                } else {
+                    onFailure.accept(t);
+                }
             }
         });
     }

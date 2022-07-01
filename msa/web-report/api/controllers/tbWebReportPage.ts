@@ -32,8 +32,9 @@
 import { Browser, Page, ScreenshotOptions } from 'puppeteer';
 import { performance } from 'perf_hooks';
 import { _logger } from '../../config/logger';
+import config from 'config';
 
-const logger = _logger('TbWebReportPage');
+const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
 
 const heightCalculationScript = "var height = 0;\n" +
     "     var gridsterChild = document.getElementById('gridster-child');\n" +
@@ -48,18 +49,17 @@ const heightCalculationScript = "var height = 0;\n" +
 
 export class TbWebReportPage {
 
-    // @ts-ignore
+    private logger = _logger(`TbWebReportPage-${this.id}`);
     private page: Page;
 
     constructor(private browser: Browser,
-                private defaultPageNavigationTimeout: number,
                 private id: number) {
     }
 
     async init(): Promise<void> {
         const context = await this.browser.createIncognitoBrowserContext();
         this.page = await context.newPage();
-        this.page.setDefaultNavigationTimeout(this.defaultPageNavigationTimeout);
+        this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
         await this.page.setViewport({
             width: 1920,
             height: 1080,
@@ -70,10 +70,12 @@ export class TbWebReportPage {
         await this.page.emulateMediaType('screen');
     }
 
-    async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
-        logger.info('[%s] Generating dashboard report', this.id);
-        if (timezone) {
+    async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone = 'Europe/London'): Promise<Buffer> {
+        this.logger.info('Generating dashboard report');
+        try {
             await this.page.emulateTimezone(timezone);
+        } catch (e) {
+            await this.page.emulateTimezone('Europe/London');
         }
         const startTime = performance.now();
         const dashboardLoadResponse = await this.page.goto(url, {waitUntil: 'networkidle0'});
@@ -81,7 +83,7 @@ export class TbWebReportPage {
             await this.page.waitForSelector('section.tb-dashboard-container');
             await this.page.waitForFunction('Array.from(document.querySelectorAll(\'tb-widget>div.tb-widget-loading\')).every(item => item.style.display === \'none\')', {polling: 100});
             const endTime = performance.now();
-            logger.debug(`Open page time: ${endTime - startTime}ms`);
+            this.logger.debug(`Open page time: ${endTime - startTime}ms`);
         } else {
             const status = dashboardLoadResponse && dashboardLoadResponse.status() || 'null';
             throw new Error(`Dashboard page load returned error status: ${status}`);
@@ -109,7 +111,7 @@ export class TbWebReportPage {
             buffer = await this.page.screenshot(options) as Buffer;
         }
         const endTime = performance.now();
-        logger.info('[%s] Dashboard report generated in %sms.', this.id, endTime - startTime);
+        this.logger.info('Dashboard report generated in %sms.', endTime - startTime);
         return buffer;
     }
 

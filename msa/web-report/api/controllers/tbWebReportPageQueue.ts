@@ -31,25 +31,25 @@
 
 import { Browser } from 'puppeteer';
 import { TbWebReportPage } from './tbWebReportPage';
+import { RequestState } from './tbWebReportController';
 
 export class TbWebReportPageQueue {
 
     private pages: Array<TbWebReportPage> = [];
 
     constructor(private browser: Browser,
-                private maxPageCount: number,
-                private defaultPageNavigationTimeout: number) {
+                private maxPageCount: number) {
     }
 
     async init(): Promise<void> {
         for (let i = 0; i < this.maxPageCount; i++) {
-            const page = new TbWebReportPage(this.browser, this.defaultPageNavigationTimeout, i+1);
+            const page = new TbWebReportPage(this.browser, i+1);
             await page.init();
             this.pages.push(page);
         }
     }
 
-    async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
+    async generateDashboardReport(requestState: RequestState, url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
         const page = this.pages.pop();
         if (page) {
             return await this.doGenerateDashboardReport(page, url, type, timezone);
@@ -57,17 +57,22 @@ export class TbWebReportPageQueue {
             return new Promise<Buffer>(
                 (resolve, reject) => {
                     const waitInterval = setInterval(() => {
-                        const page = this.pages.pop();
-                        if (page) {
+                        if (requestState.closed || requestState.timeout) {
                             clearInterval(waitInterval);
-                            this.doGenerateDashboardReport(page, url, type, timezone).then(
-                                (buffer) => {
-                                    resolve(buffer);
-                                },
-                                (e) => {
-                                    reject(e);
-                                }
-                            );
+                            reject(requestState.closed ? 'Request cancelled!' : 'Generate report timeout!');
+                        } else {
+                            const page = this.pages.pop();
+                            if (page) {
+                                clearInterval(waitInterval);
+                                this.doGenerateDashboardReport(page, url, type, timezone).then(
+                                    (buffer) => {
+                                        resolve(buffer);
+                                    },
+                                    (e) => {
+                                        reject(e);
+                                    }
+                                );
+                            }
                         }
                     }, 100);
                 }
