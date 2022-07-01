@@ -342,15 +342,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private boolean fixDuplicateSystemWidgetsBundles() {
-        boolean fullSyncRequired = false;
+    private void fixDuplicateSystemWidgetsBundles() {
         try {
             List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
             for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
                 try {
                     widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
                 } catch (IncorrectResultSizeDataAccessException e) {
-                    fullSyncRequired = true;
                     // fix for duplicate entries of system widgets
                     for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
                         if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
@@ -360,10 +358,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         } catch (Exception e) {
-            fullSyncRequired = true;
             log.error("Unable to fix duplicate system widgets bundles", e);
         }
-        return fullSyncRequired;
     }
 
     private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
