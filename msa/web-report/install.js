@@ -44,8 +44,11 @@ let _projectRoot = null;
 
 
 (async() => {
-    await downloadChromiumPlatform('linux');
-    await downloadChromiumPlatform('windows');
+    var chromiumPath = path.join(projectRoot(), 'target', 'chromium');
+    if (!fs.existsSync(chromiumPath)) {
+        fs.mkdirSync(chromiumPath);
+    }
+    await Promise.all([downloadChromiumPlatform('linux'), downloadChromiumPlatform('windows')]);
     await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux'),
                    path.join(targetPackageDir('linux'), 'bin', 'tb-web-report'),
                    {overwrite: true});

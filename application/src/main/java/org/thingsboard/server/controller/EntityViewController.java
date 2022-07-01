@@ -136,7 +136,7 @@ public class EntityViewController extends BaseController {
     public EntityView saveEntityView(
             @ApiParam(value = "A JSON object representing the entity view.")
             @RequestBody EntityView entityView,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(entityView, strEntityGroupId, (entityView1, entityGroup) -> {
             try {

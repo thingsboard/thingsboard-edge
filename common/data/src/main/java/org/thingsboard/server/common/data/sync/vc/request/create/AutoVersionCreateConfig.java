@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.sync.vc.request.create;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -40,5 +41,17 @@ public class AutoVersionCreateConfig extends VersionCreateConfig {
     private static final long serialVersionUID = 8245450889383315551L;
 
     private String branch;
+
+    @JsonIgnore
+    public AutoVersionCreateConfig copy() {
+        AutoVersionCreateConfig result = new AutoVersionCreateConfig();
+        result.setBranch(this.branch);
+        result.setSaveAttributes(this.isSaveAttributes());
+        result.setSaveRelations(this.isSaveRelations());
+        result.setSaveCredentials(this.isSaveCredentials());
+        result.setSavePermissions(this.isSavePermissions());
+        result.setSaveGroupEntities(this.isSaveGroupEntities());
+        return result;
+    }
 
 }

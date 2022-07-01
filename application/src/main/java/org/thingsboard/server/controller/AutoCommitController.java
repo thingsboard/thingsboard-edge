@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
@@ -28,51 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-var config = require('config'),
-    path = require('path'),
-    DailyRotateFile = require('winston-daily-rotate-file');
+package org.thingsboard.server.controller;
 
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, label, printf, splat } = format;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 
-var loggerTransports = [];
+import java.util.UUID;
 
-if (process.env.NODE_ENV !== 'production' || process.env.DOCKER_MODE === 'true') {
-    loggerTransports.push(new transports.Console({
-        handleExceptions: true
-    }));
-} else {
-    var filename = path.join(config.get('logger.path'), config.get('logger.filename'));
-    var transport = new (DailyRotateFile)({
-        filename: filename,
-        datePattern: 'YYYY-MM-DD-HH',
-        zippedArchive: true,
-        maxSize: '20m',
-        maxFiles: '14d',
-        handleExceptions: true
-    });
-    loggerTransports.push(transport);
-}
+public class AutoCommitController extends BaseController {
 
-const tbFormat = printf(info => {
-    var logMessage = `${info.timestamp} [${info.label}] ${info.level.toUpperCase()}: ${info.message}`;
-    if (info.stack) {
-        logMessage += ':\n' + info.stack;
+    @Autowired
+    private EntitiesVersionControlService vcService;
+
+    protected ListenableFuture<UUID> autoCommit(User user, EntityId entityId) throws Exception {
+        if (vcService != null) {
+            return vcService.autoCommit(user, entityId);
+        } else {
+            // We do not support auto-commit for rule engine
+            return Futures.immediateFailedFuture(new RuntimeException("Operation not supported!"));
+        }
     }
-    return logMessage;
-});
 
-function _logger(moduleLabel) {
-    return createLogger({
-        level: config.get('logger.level'),
-        format:combine(
-            splat(),
-            label({ label: moduleLabel }),
-            timestamp({format: 'YYYY-MM-DD HH:mm:ss,SSS'}),
-            tbFormat
-        ),
-        transports: loggerTransports
-    });
+    protected ListenableFuture<UUID> autoCommit(User user, EntityType entityType, EntityGroupId groupId) throws Exception {
+        if (vcService != null) {
+            return vcService.autoCommit(user, entityType, groupId);
+        } else {
+            // We do not support auto-commit for rule engine
+            return Futures.immediateFailedFuture(new RuntimeException("Operation not supported!"));
+        }
+    }
+
 }
-
-module.exports = _logger;

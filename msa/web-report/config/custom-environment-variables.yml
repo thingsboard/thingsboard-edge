@@ -39,6 +39,10 @@ browser:
   launchTimeout: "BROWSER_LAUNCH_TIMEOUT"
   # Default page navigation timeout (ms)
   defaultPageNavigationTimeout: "DEFAULT_PAGE_NAVIGATION_TIMEOUT"
+  # Generate report request timeout (ms)
+  generateReportTimeout: "GENERATE_REPORT_TIMEOUT"
+  # Max browser pages
+  maxPages: "BROWSER_MAX_PAGES"
 logger:
   level: "LOGGER_LEVEL"
   path: "LOG_FOLDER"

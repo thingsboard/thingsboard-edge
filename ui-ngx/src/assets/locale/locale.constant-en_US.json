@@ -4579,7 +4579,7 @@
         "load-credentials": "Load credentials",
         "load-group-entities": "Load group entities",
         "load-roles": "Load roles",
-        "show-version-diff": "Show version diff",
+        "compare-with-current": "Compare with current",
         "diff-entity-with-version": "Diff with entity version '{{versionName}}'",
         "previous-difference": "Previous Difference",
         "next-difference": "Next Difference",

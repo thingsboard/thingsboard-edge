@@ -131,7 +131,7 @@ import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
-public class EntityGroupController extends BaseController {
+public class EntityGroupController extends AutoCommitController {
 
     public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
@@ -217,6 +217,7 @@ public class EntityGroupController extends BaseController {
     public EntityGroupInfo saveEntityGroup(
             @ApiParam(value = "A JSON value representing the entity group.", required = true)
             @RequestBody EntityGroup entityGroup) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
         try {
             checkEntityGroupType(entityGroup.getType());
 
@@ -225,9 +226,9 @@ public class EntityGroupController extends BaseController {
             EntityId parentEntityId = entityGroup.getOwnerId();
             if (operation == Operation.CREATE) {
                 if (parentEntityId == null || parentEntityId.isNullUid()) {
-                    parentEntityId = getCurrentUser().getOwnerId();
+                    parentEntityId = currentUser.getOwnerId();
                 } else {
-                    if (!ownersCacheService.fetchOwnersHierarchy(getTenantId(), parentEntityId).contains(getCurrentUser().getOwnerId())) {
+                    if (!ownersCacheService.fetchOwnersHierarchy(getTenantId(), parentEntityId).contains(currentUser.getOwnerId())) {
                         throw new ThingsboardException("Unable to create entity group: " +
                                 "Invalid entity group ownerId!", ThingsboardErrorCode.PERMISSION_DENIED);
                     }
@@ -236,12 +237,14 @@ public class EntityGroupController extends BaseController {
                 validateEntityId(parentEntityId, "Incorrect entity group ownerId " + parentEntityId);
             }
 
-            accessControlService.checkEntityGroupPermission(getCurrentUser(), operation, entityGroup);
+            accessControlService.checkEntityGroupPermission(currentUser, operation, entityGroup);
 
             EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getTenantId(), parentEntityId, entityGroup));
 
+            autoCommit(currentUser, savedEntityGroup.getType(), savedEntityGroup.getId());
+
             notificationEntityService.logEntityAction(getTenantId(), savedEntityGroup.getId(), savedEntityGroup,
-                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
+                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
             /* merge comment
             if (entityGroup.getId() != null) {
@@ -253,7 +256,7 @@ public class EntityGroupController extends BaseController {
             return toEntityGroupInfo(savedEntityGroup);
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP), entityGroup,
-                    null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
+                    null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
             throw handleException(e);
         }
     }

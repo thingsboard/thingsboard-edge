@@ -3897,7 +3897,6 @@
         "load-relations": "Cargar relaciones",
         "load-attributes": "Cargar atributos",
         "load-credentials": "Cargar credencialess",
-        "show-version-diff": "Mostrar diff de versión",
         "diff-entity-with-version": "Diff de la versión de entidad '{{versionName}}'",
         "previous-difference": "Anterior diferencia",
         "next-difference": "Siguiente diferencia",

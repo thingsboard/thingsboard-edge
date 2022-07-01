@@ -47,6 +47,7 @@ COPY package/linux/conf ./conf
 COPY package/linux/conf ./config
 COPY ${pkg.name}.conf ./conf
 COPY src/api ./api
+COPY src/config ./config
 COPY src/server.js ./
 
 RUN apt-get update \
