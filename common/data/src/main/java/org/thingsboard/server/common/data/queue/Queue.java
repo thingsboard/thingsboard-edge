@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.queue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
@@ -84,6 +85,7 @@ public class Queue extends SearchTextBasedWithAdditionalInfo<QueueId> implements
     }
 
     @Override
+    @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.QUEUE;
     }
