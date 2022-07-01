@@ -20,7 +20,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -35,11 +34,10 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -55,9 +53,6 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
 
     @Autowired
     private DeviceProfileService deviceProfileService;
-
-    @Autowired
-    private QueueService queueService;
 
     @Autowired
     private DataDecodingEncodingService dataDecodingEncodingService;
@@ -93,12 +88,6 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                             ? new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
                     deviceProfile.setProvisionType(deviceProfileUpdateMsg.hasProvisionType()
                             ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
-                    String defaultQueueName = StringUtils.isBlank(deviceProfileUpdateMsg.getDefaultQueueName())
-                            ? null : deviceProfileUpdateMsg.getDefaultQueueName();
-                    if (defaultQueueName != null) {
-                        Queue queueByTenantIdAndName = queueService.findQueueByTenantIdAndName(tenantId, defaultQueueName);
-                        deviceProfile.setDefaultQueueId(queueByTenantIdAndName.getId());
-                    }
                     deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey() ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
@@ -110,6 +99,12 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                         RuleChainId defaultRuleChainId = new RuleChainId(
                                 new UUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB()));
                         deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
+                    }
+                    if (deviceProfileUpdateMsg.getDefaultQueueIdMSB() != 0 &&
+                            deviceProfileUpdateMsg.getDefaultQueueIdLSB() != 0) {
+                        QueueId defaultQueueId = new QueueId(
+                                new UUID(deviceProfileUpdateMsg.getDefaultQueueIdMSB(), deviceProfileUpdateMsg.getDefaultQueueIdLSB()));
+                        deviceProfile.setDefaultQueueId(defaultQueueId);
                     }
                     deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
