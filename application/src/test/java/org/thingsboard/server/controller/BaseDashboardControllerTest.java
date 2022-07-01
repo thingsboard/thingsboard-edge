@@ -142,7 +142,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
                 .andExpect(statusReason(containsString(msgError)));
 
         dashboard.setTenantId(savedTenant.getId());
-        testNotifyEntityEqualsOneTimeError(dashboard, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(dashboard, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
     }
@@ -162,7 +162,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
                 .andExpect(status().isForbidden())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeError(dashboard, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(dashboard, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
                 DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
 
         deleteDifferentTenant();
@@ -210,7 +210,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeError(dashboard, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(dashboard, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
