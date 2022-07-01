@@ -52,7 +52,7 @@ public class DefaultTbDashboardService extends AbstractTbEntityService implement
             Dashboard savedDashboard = checkNotNull(dashboardService.saveDashboard(dashboard));
             autoCommit(user, savedDashboard.getId());
             notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedDashboard.getId(), savedDashboard,
-                    null, actionType, user);
+                    null, actionType, user, false);
             return savedDashboard;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DASHBOARD), dashboard, actionType, user, e);

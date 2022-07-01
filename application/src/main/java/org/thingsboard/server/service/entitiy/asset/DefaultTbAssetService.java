@@ -48,7 +48,7 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
             Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
             autoCommit(user, savedAsset.getId());
             notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedAsset.getId(), savedAsset,
-                    asset.getCustomerId(), actionType, user);
+                    asset.getCustomerId(), actionType, user, false);
             return savedAsset;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), asset, actionType, user, e);

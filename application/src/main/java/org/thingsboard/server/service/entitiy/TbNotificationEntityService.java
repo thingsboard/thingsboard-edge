@@ -55,7 +55,7 @@ public interface TbNotificationEntityService {
 
     <E extends HasName, I extends EntityId> void notifyCreateOrUpdateEntity(TenantId tenantId, I entityId, E entity,
                                                                             CustomerId customerId, ActionType actionType,
-                                                                            User user, Object... additionalInfo);
+                                                                            User user, boolean notifyCloud, Object... additionalInfo);
 
     <E extends HasName, I extends EntityId> void notifyDeleteEntity(TenantId tenantId, I entityId, E entity,
                                                                     CustomerId customerId, ActionType actionType,
@@ -92,7 +92,7 @@ public interface TbNotificationEntityService {
                             List<EdgeId> relatedEdgeIds, User user, Object... additionalInfo);
 
     void notifyUpdateDeviceCredentials(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                                       DeviceCredentials deviceCredentials, User user);
+                                       DeviceCredentials deviceCredentials, User user, boolean notifyCloud);
 
     void notifyAssignDeviceToTenant(TenantId tenantId, TenantId newTenantId, DeviceId deviceId, CustomerId customerId,
                                     Device device, Tenant tenant, User user, Object... additionalInfo);
@@ -100,11 +100,12 @@ public interface TbNotificationEntityService {
     void notifyEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge, ActionType actionType,
                     User user, Object... additionalInfo);
 
-    void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, User user, Object... additionalInfo);
+    void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, User user, boolean notifyCloud, Object... additionalInfo);
 
     <E extends HasName, I extends EntityId> void notifyCreateOrUpdateOrDelete(TenantId tenantId, CustomerId customerId,
                                                                               I entityId, E entity, User user,
                                                                               ActionType actionType, boolean sendNotifyMsgToEdge,
+                                                                              boolean notifyCloud,
                                                                               Exception e, Object... additionalInfo);
 
     void notifyRelation(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,

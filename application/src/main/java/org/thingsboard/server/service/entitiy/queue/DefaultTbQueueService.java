@@ -82,7 +82,8 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
             onQueueUpdated(savedQueue, oldQueue);
         }
 
-        notificationEntityService.notifySendMsgToEdgeService(queue.getTenantId(), savedQueue.getId(), create ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
+        notificationEntityService.notifySendMsgToEdgeService(queue.getTenantId(), savedQueue.getId(),
+                create ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
         return savedQueue;
     }

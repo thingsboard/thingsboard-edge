@@ -269,7 +269,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
 
     protected void onEntitySaved(User user, E savedEntity, E oldEntity) throws ThingsboardException {
         entityNotificationService.notifyCreateOrUpdateEntity(user.getTenantId(), savedEntity.getId(), savedEntity,
-                null, oldEntity == null ? ActionType.ADDED : ActionType.UPDATED, user);
+                null, oldEntity == null ? ActionType.ADDED : ActionType.UPDATED, user, true);
     }
 
 

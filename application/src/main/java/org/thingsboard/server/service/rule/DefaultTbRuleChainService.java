@@ -184,7 +184,7 @@ public class DefaultTbRuleChainService extends AbstractTbEntityService implement
             }
             boolean sendMsgToEdge = RuleChainType.EDGE.equals(savedRuleChain.getType()) && actionType.equals(ActionType.UPDATED);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedRuleChain.getId(),
-                    savedRuleChain, user, actionType, sendMsgToEdge, null);
+                    savedRuleChain, user, actionType, sendMsgToEdge, false, null);
             return savedRuleChain;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.RULE_CHAIN), ruleChain, actionType, user, e);

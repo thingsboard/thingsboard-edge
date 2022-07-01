@@ -44,7 +44,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
         TenantId tenantId = alarm.getTenantId();
         try {
             Alarm savedAlarm = checkNotNull(alarmService.createOrUpdateAlarm(alarm).getAlarm());
-            notificationEntityService.notifyCreateOrUpdateAlarm(savedAlarm, actionType, user);
+            notificationEntityService.notifyCreateOrUpdateAlarm(savedAlarm, actionType, user, true);
             return savedAlarm;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ALARM), alarm, actionType, user, e);
@@ -59,7 +59,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
         return Futures.transform(future, result -> {
             alarm.setAckTs(ackTs);
             alarm.setStatus(alarm.getStatus().isCleared() ? AlarmStatus.CLEARED_ACK : AlarmStatus.ACTIVE_ACK);
-            notificationEntityService.notifyCreateOrUpdateAlarm(alarm, ActionType.ALARM_ACK, user);
+            notificationEntityService.notifyCreateOrUpdateAlarm(alarm, ActionType.ALARM_ACK, user, true);
             return null;
         }, MoreExecutors.directExecutor());
     }
@@ -71,7 +71,7 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
         return Futures.transform(future, result -> {
             alarm.setClearTs(clearTs);
             alarm.setStatus(alarm.getStatus().isAck() ? AlarmStatus.CLEARED_ACK : AlarmStatus.CLEARED_UNACK);
-            notificationEntityService.notifyCreateOrUpdateAlarm(alarm, ActionType.ALARM_CLEAR, user);
+            notificationEntityService.notifyCreateOrUpdateAlarm(alarm, ActionType.ALARM_CLEAR, user, true);
             return null;
         }, MoreExecutors.directExecutor());
     }
