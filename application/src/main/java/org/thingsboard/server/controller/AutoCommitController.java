@@ -33,7 +33,9 @@ package org.thingsboard.server.controller;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 
@@ -53,5 +55,13 @@ public class AutoCommitController extends BaseController {
         }
     }
 
+    protected ListenableFuture<UUID> autoCommit(User user, EntityType entityType, EntityGroupId groupId) throws Exception {
+        if (vcService != null) {
+            return vcService.autoCommit(user, entityType, groupId);
+        } else {
+            // We do not support auto-commit for rule engine
+            return Futures.immediateFailedFuture(new RuntimeException("Operation not supported!"));
+        }
+    }
 
 }
