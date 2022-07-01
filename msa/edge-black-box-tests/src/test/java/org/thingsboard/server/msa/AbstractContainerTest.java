@@ -75,6 +75,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -115,6 +116,8 @@ public abstract class AbstractContainerTest {
     protected static Edge edge;
     protected static String edgeUrl;
 
+    protected static QueueId defaultQueueId;
+
     @BeforeClass
     public static void before() throws Exception {
         cloudRestClient = new RestClient(CLOUD_HTTPS_URL);
@@ -154,6 +157,8 @@ public abstract class AbstractContainerTest {
                     return loginSuccessful;
                 });
 
+        defaultQueueId = getRandomQueueId();
+
         Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
         Assert.assertTrue(tenant.isPresent());
         Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
@@ -164,6 +169,14 @@ public abstract class AbstractContainerTest {
 
         // This is a starting point to start other tests
         verifyWidgetBundles();
+    }
+
+    private static QueueId getRandomQueueId() {
+        return cloudRestClient
+                .getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100))
+                .getData()
+                .get(0)
+                .getId();
     }
 
     private static void verifyWidgetBundles() {
@@ -306,6 +319,7 @@ public abstract class AbstractContainerTest {
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
+        deviceProfile.setDefaultQueueId(defaultQueueId);
         extendDeviceProfileData(deviceProfile);
         return cloudRestClient.saveDeviceProfile(deviceProfile);
     }
