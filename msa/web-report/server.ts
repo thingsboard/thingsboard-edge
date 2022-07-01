@@ -90,7 +90,7 @@ let pagesQueue: TbWebReportPageQueue;
     }
     // @ts-ignore
     route(app, pagesQueue); //register the route
-    app.use(function(req, res) {
+    app.use((req, res) => {
         res.statusMessage = req.originalUrl + ' not found';
         res.status(404).end();
     });
@@ -102,7 +102,7 @@ let pagesQueue: TbWebReportPageQueue;
     });
 })();
 
-process.on('exit', function () {
+process.on('exit', () => {
     exit(0);
 });
 
