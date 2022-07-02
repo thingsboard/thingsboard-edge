@@ -60,6 +60,8 @@ import static org.junit.Assert.assertTrue;
 public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     List<Integration> savedIntegrations = new ArrayList<>();
+    List<Converter> savedConverters = new ArrayList<>();
+
     @Autowired
     private IntegrationDao integrationDao;
 
@@ -68,10 +70,10 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     @After
     public void tearDown() {
-        for (Integration integration : savedIntegrations) {
-            integrationDao.removeById(integration.getTenantId(), integration.getUuidId());
-        }
+        savedIntegrations.forEach(integration -> integrationDao.removeById(integration.getTenantId(), integration.getUuidId()));
         savedIntegrations.clear();
+        savedConverters.forEach(converter -> converterDao.removeById(converter.getTenantId(), converter.getUuidId()));
+        savedConverters.clear();
     }
 
     @Test
@@ -151,6 +153,8 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         converter.setTenantId(new TenantId(tenantId));
         converter.setName(name);
         converter.setType(type);
-        return converterDao.save(new TenantId(tenantId), converter);
+        Converter savedConverter = converterDao.save(new TenantId(tenantId), converter);
+        savedConverters.add(savedConverter);
+        return savedConverter;
     }
 }
