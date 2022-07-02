@@ -105,6 +105,10 @@ ALTER TABLE converter
 ALTER TABLE integration
     ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;
 
+UPDATE integration SET converter_id = NULL WHERE converter_id IS NOT NULL AND (SELECT id FROM converter where converter.id = converter_id) IS NULL;
+
+UPDATE integration SET downlink_converter_id = NULL WHERE downlink_converter_id IS NOT NULL AND (SELECT id FROM converter where converter.id = downlink_converter_id) IS NULL;
+
 DO $$
 BEGIN
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_converter') THEN

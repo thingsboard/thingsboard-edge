@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS integration (
     allow_create_devices_or_assets boolean,
     name varchar(255),
     secret varchar(255),
-    converter_id uuid,
+    converter_id uuid not null,
     downlink_converter_id uuid,
     routing_key varchar(255),
     search_text varchar(255),
