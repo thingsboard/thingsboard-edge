@@ -113,7 +113,6 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
-                default:
                     return handleUnsupportedMsgType(ruleChainUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
@@ -121,6 +120,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
+        return Futures.immediateFuture(null);
     }
 
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {

@@ -61,7 +61,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                saveOrUpdateDevice(tenantId, deviceUpdateMsg);
+                createDevice(tenantId, deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
@@ -144,7 +144,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private Device saveOrUpdateDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    private Device createDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
         Device device;
         deviceCreationLock.lock();
         try {
@@ -153,11 +153,10 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             boolean created = false;
             String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
+                created = true;
                 device = new Device();
                 device.setTenantId(tenantId);
-                device.setId(deviceId);
                 device.setCreatedTime(Uuids.unixTimestamp(deviceId.getId()));
-                created = true;
                 Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, deviceName);
                 if (deviceByName != null) {
                     deviceName = deviceName + "_" + RandomStringUtils.randomAlphabetic(15);
@@ -167,16 +166,24 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             }
             device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
-            device.setLabel(deviceUpdateMsg.hasLabel() ? deviceUpdateMsg.getLabel() : null);
+            if (deviceUpdateMsg.hasLabel()) {
+                device.setLabel(deviceUpdateMsg.getLabel());
+            }
+            if (deviceUpdateMsg.hasAdditionalInfo()) {
+                device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
+            }
             if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
                 DeviceProfileId deviceProfileId = new DeviceProfileId(
                         new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(),
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
-            } else {
-                device.setDeviceProfileId(null);
             }
-            device.setAdditionalInfo(deviceUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()) : null);
+            if (created) {
+                deviceValidator.validate(device, Device::getTenantId);
+                device.setId(deviceId);
+            } else {
+                deviceValidator.validate(device, Device::getTenantId);
+            }
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();
@@ -184,9 +191,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
                 deviceCredentials.setCredentialsId(RandomStringUtils.randomAlphanumeric(20));
                 deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
-
-                tbClusterService.onDeviceUpdated(savedDevice, device, false, false);
             }
+            tbClusterService.onDeviceUpdated(savedDevice, created ? null : device, false, false);
         } finally {
             deviceCreationLock.unlock();
         }

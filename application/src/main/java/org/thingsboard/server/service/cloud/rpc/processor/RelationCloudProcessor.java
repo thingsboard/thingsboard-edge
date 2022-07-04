@@ -69,14 +69,15 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     if (isEntityExists(tenantId, entityRelation.getTo())
                             && isEntityExists(tenantId, entityRelation.getFrom())) {
-                        relationService.saveRelationAsync(tenantId, entityRelation);
+                        return Futures.transform(relationService.saveRelationAsync(tenantId, entityRelation),
+                                (result) -> null, dbCallbackExecutor);
                     } else {
                         log.warn("Skipping relating update msg because from/to entity doesn't exists on edge, {}", relationUpdateMsg);
+                        return Futures.immediateFuture(null);
                     }
-                    break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    relationService.deleteRelation(tenantId, entityRelation);
-                    break;
+                    return Futures.transform(relationService.deleteRelationAsync(tenantId, entityRelation),
+                            (result) -> null, dbCallbackExecutor);
                 case UNRECOGNIZED:
                     return handleUnsupportedMsgType(relationUpdateMsg.getMsgType());
             }
