@@ -279,8 +279,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, boolean notifyCloud) {
-        // TODO: @voba - notifications to edge not required on edge
-        // sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
         if (notifyCloud) {
             sendNotificationMsgToCloud(tenantId, entityId, action);
         }
