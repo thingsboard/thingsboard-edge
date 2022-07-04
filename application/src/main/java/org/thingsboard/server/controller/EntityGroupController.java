@@ -246,12 +246,10 @@ public class EntityGroupController extends AutoCommitController {
             notificationEntityService.logEntityAction(getTenantId(), savedEntityGroup.getId(), savedEntityGroup,
                     entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
-            /* merge comment
             if (entityGroup.getId() != null) {
                 sendEntityNotificationMsg(getTenantId(), savedEntityGroup.getId(),
                         EdgeEventActionType.UPDATED);
             }
-             */
 
             return toEntityGroupInfo(savedEntityGroup);
         } catch (Exception e) {

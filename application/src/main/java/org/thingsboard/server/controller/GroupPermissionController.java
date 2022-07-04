@@ -161,10 +161,8 @@ public class GroupPermissionController extends BaseController {
             notificationEntityService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
                     groupPermission.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
-            /* merge comment
             sendEntityNotificationMsg(getTenantId(), savedGroupPermission.getId(),
                     groupPermission.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
-             */
             return savedGroupPermission;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.GROUP_PERMISSION), groupPermission,

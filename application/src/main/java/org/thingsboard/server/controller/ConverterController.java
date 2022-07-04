@@ -165,11 +165,9 @@ public class ConverterController extends AutoCommitController {
             notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
                     converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
-            /* merge comment
             if (converter.isEdgeTemplate() && !created) {
                 sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
             }
-             */
 
             return result;
         } catch (Exception e) {
