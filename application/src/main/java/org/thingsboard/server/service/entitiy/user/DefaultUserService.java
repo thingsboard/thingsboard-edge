@@ -81,7 +81,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     EntityGroup admins = entityGroupService.findOrCreateTenantAdminsGroup(savedUser.getTenantId());
                     entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, admins.getId(), savedUser.getId());
                     notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                            savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, null);
+                            savedUser, user, ActionType.ADDED_TO_ENTITY_GROUP, false, false, null);
                 } else if (entityGroup != null && tbUser.getId() == null) {
                     entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, savedUser.getId());
                     notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, customerId,
@@ -104,7 +104,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                 }
             }
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                    savedUser, user, actionType, true, null);
+                    savedUser, user, actionType, true, false, null);
             return savedUser;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER), user, actionType, user, e);

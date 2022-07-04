@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -73,6 +74,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     EntityView entityView = entityViewService.findEntityViewById(tenantId, entityViewId);
                     boolean created = false;
                     if (entityView == null) {
+                        created = true;
                         entityView = new EntityView();
                         entityView.setTenantId(tenantId);
                         entityView.setId(entityViewId);
@@ -102,6 +104,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     }
 
                     addToEntityGroup(tenantId, entityViewUpdateMsg, entityViewId);
+                    tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
+                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                 } finally {
                     entityViewCreationLock.unlock();
                 }
@@ -116,6 +120,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
                     if (entityViewById != null) {
                         entityViewService.deleteEntityView(tenantId, entityViewId);
+                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
                     }
                 }
                 break;

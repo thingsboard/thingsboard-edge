@@ -82,7 +82,7 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
             otaPackageStateService.update(savedDeviceProfile, isFirmwareChanged, isSoftwareChanged);
 
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedDeviceProfile.getId(),
-                    savedDeviceProfile, user, actionType, true, null);
+                    savedDeviceProfile, user, actionType, true, false, null);
             return savedDeviceProfile;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE_PROFILE), deviceProfile, actionType, user, e);
@@ -100,7 +100,7 @@ public class DefaultTbDeviceProfileService extends AbstractTbEntityService imple
             tbClusterService.onDeviceProfileDelete(deviceProfile, null);
             tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, deviceProfileId, deviceProfile,
-                    user, ActionType.DELETED, true, null, deviceProfileId.toString());
+                    user, ActionType.DELETED, true, false, null, deviceProfileId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE_PROFILE), ActionType.DELETED,
                     user, e, deviceProfileId.toString());

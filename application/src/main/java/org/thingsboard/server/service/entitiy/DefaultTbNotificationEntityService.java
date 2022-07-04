@@ -154,7 +154,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
 
     @Override
     public <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventActionType edgeEventActionType) {
-        sendEntityNotificationMsg(tenantId, entityId, edgeEventActionType);
+        sendEntityNotificationMsg(tenantId, entityId, edgeEventActionType, false);
     }
 
     @Override
@@ -173,7 +173,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
                                                                                    Object... additionalInfo) {
         logEntityAction(tenantId, entityId, entity, customerId, actionType, user, null, additionalInfo);
         if (actionType == ActionType.UPDATED) {
-            sendEntityNotificationMsg(tenantId, entityId, EdgeEventActionType.UPDATED);
+            sendEntityNotificationMsg(tenantId, entityId, EdgeEventActionType.UPDATED, true);
         }
     }
 
@@ -200,9 +200,9 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
 
     @Override
     public void notifyUpdateDeviceCredentials(TenantId tenantId, DeviceId deviceId, CustomerId customerId, Device device,
-                                              DeviceCredentials deviceCredentials, User user) {
+                                              DeviceCredentials deviceCredentials, User user, boolean notifyCloud) {
         tbClusterService.pushMsgToCore(new DeviceCredentialsUpdateNotificationMsg(tenantId, deviceCredentials.getDeviceId(), deviceCredentials), null);
-        sendEntityNotificationMsg(tenantId, deviceId, EdgeEventActionType.CREDENTIALS_UPDATED);
+        sendEntityNotificationMsg(tenantId, deviceId, EdgeEventActionType.CREDENTIALS_UPDATED, notifyCloud);
         logEntityAction(tenantId, deviceId, device, customerId, ActionType.CREDENTIALS_UPDATED, user, deviceCredentials);
     }
 
@@ -236,20 +236,23 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
-    public void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, User user, Object... additionalInfo) {
+    public void notifyCreateOrUpdateAlarm(Alarm alarm, ActionType actionType, User user, boolean notifyCloud, Object... additionalInfo) {
         logEntityAction(alarm.getTenantId(), alarm.getOriginator(), alarm, alarm.getCustomerId(), actionType, user, additionalInfo);
-        sendEntityNotificationMsg(alarm.getTenantId(), alarm.getId(), edgeTypeByActionType(actionType));
+        sendEntityNotificationMsg(alarm.getTenantId(), alarm.getId(), edgeTypeByActionType(actionType), notifyCloud);
     }
 
     @Override
     public <E extends HasName, I extends EntityId> void notifyCreateOrUpdateOrDelete(TenantId tenantId, CustomerId customerId,
                                                                                      I entityId, E entity, User user,
-                                                                                     ActionType actionType, boolean sendNotifyMsgToEdge, Exception e,
+                                                                                     ActionType actionType, boolean sendNotifyMsgToEdge,
+                                                                                     boolean notifyCloud, Exception e,
                                                                                      Object... additionalInfo) {
         logEntityAction(tenantId, entityId, entity, customerId, actionType, user, e, additionalInfo);
-        if (sendNotifyMsgToEdge) {
-            sendEntityNotificationMsg(tenantId, entityId, edgeTypeByActionType(actionType));
-        }
+        // TODO: @voba - in next release make sync between EDGE and CE notification services
+        // move sendNotifyMsgToEdge variable into sendEntityNotificationMsg method
+        //if (sendNotifyMsgToEdge) {
+            sendEntityNotificationMsg(tenantId, entityId, edgeTypeByActionType(actionType), notifyCloud);
+        //}
     }
 
     @Override
@@ -268,9 +271,11 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         }
     }
 
-    private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
+    private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, boolean notifyCloud) {
         sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
-        sendNotificationMsgToCloud(tenantId, entityId, action);
+        if (notifyCloud) {
+            sendNotificationMsgToCloud(tenantId, entityId, action);
+        }
     }
 
     private void sendAlarmDeleteNotificationMsg(TenantId tenantId, Alarm alarm, List<EdgeId> edgeIds, String body) {

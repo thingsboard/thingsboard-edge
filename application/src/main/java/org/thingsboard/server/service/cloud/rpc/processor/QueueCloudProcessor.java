@@ -97,7 +97,7 @@ public class QueueCloudProcessor extends BaseCloudProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 Queue queue = queueService.findQueueById(tenantId, queueId);
                 if (queue != null) {
-                    queueService.deleteQueue(tenantId, queueId);
+                    tbQueueService.deleteQueue(tenantId, queueId);
                 }
                 break;
             case UNRECOGNIZED:

@@ -101,9 +101,9 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
                 }
                 return Futures.immediateFuture(null);
             case UNRECOGNIZED:
-            default:
                 return handleUnsupportedMsgType(widgetsBundleUpdateMsg.getMsgType());
         }
+        return Futures.immediateFuture(null);
     }
 
     private ListenableFuture<Void> requestWidgetsBundleTypes(TenantId tenantId, WidgetsBundleId widgetsBundleId) {

@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
@@ -59,6 +60,7 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -81,7 +83,9 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 try {
                     DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                     String deviceProfileName = deviceProfileUpdateMsg.getName();
+                    boolean created = false;
                     if (deviceProfile == null) {
+                        created = true;
                         deviceProfile = new DeviceProfile();
                         deviceProfile.setId(deviceProfileId);
                         deviceProfile.setCreatedTime(Uuids.unixTimestamp(deviceProfileId.getId()));
@@ -121,7 +125,10 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                                 new UUID(deviceProfileUpdateMsg.getDefaultQueueIdMSB(), deviceProfileUpdateMsg.getDefaultQueueIdLSB()));
                         deviceProfile.setDefaultQueueId(defaultQueueId);
                     }
-                    deviceProfileService.saveDeviceProfile(deviceProfile, false);
+                    DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
+
+                    // TODO: @voba - move this part to device profile notification service
+                    notifyCluster(tenantId, deviceProfile, created, savedDeviceProfile);
 
                     return saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, EdgeEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
                 } finally {
@@ -131,12 +138,32 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                 DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                 if (deviceProfile != null) {
                     deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
+                    tbClusterService.onDeviceProfileDelete(deviceProfile, null);
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
                 }
                 return Futures.immediateFuture(null);
             case UNRECOGNIZED:
-            default:
                 return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
         }
+        return Futures.immediateFuture(null);
+    }
+
+    private void notifyCluster(TenantId tenantId, DeviceProfile deviceProfile, boolean created, DeviceProfile savedDeviceProfile) {
+        boolean isFirmwareChanged = false;
+        boolean isSoftwareChanged = false;
+        if (!created) {
+            DeviceProfile oldDeviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfile.getId());
+            if (!Objects.equals(deviceProfile.getFirmwareId(), oldDeviceProfile.getFirmwareId())) {
+                isFirmwareChanged = true;
+            }
+            if (!Objects.equals(deviceProfile.getSoftwareId(), oldDeviceProfile.getSoftwareId())) {
+                isSoftwareChanged = true;
+            }
+        }
+        tbClusterService.onDeviceProfileChange(savedDeviceProfile, null);
+        tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedDeviceProfile.getId(),
+                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+        otaPackageStateService.update(savedDeviceProfile, isFirmwareChanged, isSoftwareChanged);
     }
 
     public UplinkMsg processDeviceProfileDevicesRequestMsgToCloud(CloudEvent cloudEvent) {

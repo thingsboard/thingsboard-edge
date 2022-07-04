@@ -109,6 +109,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstruc
 import org.thingsboard.server.service.edge.rpc.constructor.RelationMsgConstructor;
 import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 
 import java.util.ArrayList;
@@ -209,11 +210,17 @@ public abstract class BaseCloudProcessor {
     protected TbClusterService tbClusterService;
 
     @Autowired
+    protected OtaPackageStateService otaPackageStateService;
+
+    @Autowired
     protected PartitionService partitionService;
 
     @Autowired
     @Lazy
     protected TbQueueProducerProvider producerProvider;
+
+    @Autowired
+    protected DataValidator<Device> deviceValidator;
 
     @Autowired
     protected DbCallbackExecutorService dbCallbackExecutor;
