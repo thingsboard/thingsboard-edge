@@ -41,20 +41,11 @@ import { TbWebReportPageQueue } from './api/controllers/tbWebReportPageQueue';
 const logger = _logger('main');
 const app = express();
 
-/* var express = require('express'),
-  app = express(),
-  bodyParser = require('body-parser'),
-  puppeteer = require('puppeteer'),
-  config = require('config'); */
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// var routes = require('./api/routes/tbWebReportRoutes'); //importing route
-
 const address: string = config.get('server.address');
 const port = Number(config.get('server.port'));
-const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
 const maxPages = Number(config.get('browser.maxPages'));
 
 logger.info('Bind address: %s', address);
@@ -73,7 +64,7 @@ let pagesQueue: TbWebReportPageQueue;
             timeout: Number(config.get('browser.launchTimeout')),
             channel: 'chrome'
         };
-        if (typeof process.env.CHROME_EXECUTABLE === 'string') {
+        if (typeof process.env.CHROME_EXECUTABLE !== 'undefined') {
             logger.info('Chrome headless browser executable: %s', process.env.CHROME_EXECUTABLE);
             browserOptions.executablePath = process.env.CHROME_EXECUTABLE;
         }
@@ -87,7 +78,7 @@ let pagesQueue: TbWebReportPageQueue;
 
         logger.info('Initializing pages queue with size: %s', maxPages);
 
-        pagesQueue = new TbWebReportPageQueue(browser, maxPages, defaultPageNavigationTimeout);
+        pagesQueue = new TbWebReportPageQueue(browser, maxPages);
         await pagesQueue.init();
 
         logger.info('Pages queue initialized.');
@@ -99,7 +90,7 @@ let pagesQueue: TbWebReportPageQueue;
     }
     // @ts-ignore
     route(app, pagesQueue); //register the route
-    app.use(function(req, res) {
+    app.use((req, res) => {
         res.statusMessage = req.originalUrl + ' not found';
         res.status(404).end();
     });
@@ -111,7 +102,7 @@ let pagesQueue: TbWebReportPageQueue;
     });
 })();
 
-process.on('exit', function () {
+process.on('exit', () => {
     exit(0);
 });
 

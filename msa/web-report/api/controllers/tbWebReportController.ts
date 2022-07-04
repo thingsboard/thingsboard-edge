@@ -32,8 +32,10 @@
 import { _logger } from '../../config/logger';
 import { TbWebReportPageQueue } from './tbWebReportPageQueue';
 import { Request, Response } from 'express';
+import config from 'config';
 
 const logger = _logger('ReportController');
+const generateReportTimeout = Number(config.get('browser.generateReportTimeout'));
 
 let activeRequestsCount = 0;
 
@@ -99,8 +101,19 @@ export function genDashboardReport(req: Request, res: Response, queue: TbWebRepo
         }
         activeRequestsCount++;
         logger.info('Generating dashboard report: %s. Active requests count: %s', dashboardUrl, activeRequestsCount);
-        queue.generateDashboardReport(url, type, timezone).then(
+        const requestState: RequestState = {
+            closed: false,
+            timeout: false
+        };
+        req.socket.on('close', () => {
+            requestState.closed = true;
+        });
+        const timeoutTimer = setTimeout(() => {
+            requestState.timeout = true;
+        }, generateReportTimeout);
+        queue.generateDashboardReport(requestState, url, type, timezone).then(
             (reportBuffer) => {
+                clearTimeout(timeoutTimer);
                 res.attachment(name + ext);
                 res.contentType(contentType);
                 res.send(reportBuffer);
@@ -108,9 +121,15 @@ export function genDashboardReport(req: Request, res: Response, queue: TbWebRepo
                 logger.info('Report data sent. Active requests count: %s', activeRequestsCount);
             },
             (e) => {
+                clearTimeout(timeoutTimer);
                 logger.error(e);
-                res.statusMessage = 'Failed to load dashboard page: ' + e;
-                res.status(500).end();
+                if (requestState.timeout) {
+                    res.statusMessage = 'Generate report timeout!';
+                    res.status(503).end();
+                } else {
+                    res.statusMessage = 'Failed to load dashboard page: ' + e;
+                    res.status(500).end();
+                }
                 activeRequestsCount--;
             }
         );
@@ -118,4 +137,9 @@ export function genDashboardReport(req: Request, res: Response, queue: TbWebRepo
         res.statusMessage = 'Base url or Dashboard Id parameters are missing';
         res.status(400).end()
     }
+}
+
+export interface RequestState {
+    closed: boolean;
+    timeout: boolean;
 }

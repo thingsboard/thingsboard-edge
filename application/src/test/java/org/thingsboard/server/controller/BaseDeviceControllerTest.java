@@ -170,36 +170,36 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        String msgError = "length of name must be equal or less than 255";
+        String msgError = msgErrorFieldLength("name");
         doPost("/api/device", device)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
         device.setTenantId(savedTenant.getId());
-        msgError = "length of type must be equal or less than 255";
+        msgError = msgErrorFieldLength("type");
         device.setType(RandomStringUtils.randomAlphabetic(300));
         doPost("/api/device", device)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        msgError = "length of label must be equal or less than 255";
+        msgError = msgErrorFieldLength("label");
         device.setType("Normal type");
         device.setLabel(RandomStringUtils.randomAlphabetic(300));
         doPost("/api/device", device)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
     }
@@ -214,17 +214,19 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        String msgError = "Device with id [" + savedDevice.getId().getId().toString() + "] is not found";
-        doPost("/api/device", savedDevice, Device.class, status().isNotFound());
+        String savedDeviceIdStr = savedDevice.getId().getId().toString();
+        doPost("/api/device", savedDevice)
+                .andExpect( status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Device", savedDeviceIdStr))));
 
-        testNotifyEntityEqualsOneTimeError(savedDevice, savedDifferentTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedDevice, savedDifferentTenant.getId(),
                 savedDifferentTenantUser.getId(), savedDifferentTenantUser.getEmail(), ActionType.UPDATED,
-                new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                new ThingsboardException(msgErrorNoFound("Device", savedDevice.getId().getId().toString()),
+                        ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        String savedDeviceIdStr = savedDevice.getId().getId().toString();
         doDelete("/api/device/" + savedDeviceIdStr)
                 .andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgErrorNoFound("Device", savedDeviceIdStr))));
@@ -342,7 +344,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
                 new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
@@ -417,7 +419,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityIsNullOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityIsNullOneTimeEdgeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.CREDENTIALS_UPDATED,
                 new DataValidationException(msgError), deviceCredentials);
         testNotificationUpdateGatewayNever();
@@ -440,7 +442,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityIsNullOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityIsNullOneTimeEdgeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.CREDENTIALS_UPDATED,
                 new DeviceCredentialsValidationException(msgError), deviceCredentials);
         testNotificationUpdateGatewayNever();
@@ -467,7 +469,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityIsNullOneTimeError(device, savedTenant.getId(),
+        testNotifyEntityIsNullOneTimeEdgeServiceNeverError(device, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.CREDENTIALS_UPDATED,
                 new DeviceCredentialsValidationException(msgError), newDeviceCredentials);
         testNotificationUpdateGatewayNever();

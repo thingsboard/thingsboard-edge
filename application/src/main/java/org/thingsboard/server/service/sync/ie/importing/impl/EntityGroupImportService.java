@@ -144,7 +144,6 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
 
                 for (GroupPermission existingPermission : existingPermissions) {
                     if (permissions.stream().noneMatch(permission -> permissionsEqual(permission, existingPermission))) {
-                        if (existingPermission.isPublic()) continue;
                         Role role = roleService.findRoleById(tenantId, existingPermission.getRoleId());
                         if (role.getOwnerId().equals(TenantId.SYS_TENANT_ID)) continue;
 
@@ -164,9 +163,6 @@ public class EntityGroupImportService extends BaseEntityImportService<EntityGrou
             }
 
             for (GroupPermission permission : permissions) {
-                if (permission.isPublic()) {
-                    throw new IllegalArgumentException("Import of public permissions is not supported");
-                }
                 Role role = roleService.findRoleById(tenantId, permission.getRoleId());
                 if (role.getOwnerId().equals(TenantId.SYS_TENANT_ID)) continue;
 
