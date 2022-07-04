@@ -134,7 +134,7 @@ public class JpaRoleDao extends JpaAbstractSearchTextDao<RoleEntity, Role> imple
 
     @Override
     public PageData<Role> findByTenantId(UUID tenantId, PageLink pageLink) {
-        return findRolesByTenantId(tenantId, pageLink);
+        return DaoUtil.toPageData(roleRepository.findByTenantId(tenantId, DaoUtil.toPageable(pageLink)));
     }
 
     @Override

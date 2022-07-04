@@ -216,17 +216,19 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        String msgError = "Device with id [" + savedDevice.getId().getId().toString() + "] is not found";
-        doPost("/api/device", savedDevice, Device.class, status().isNotFound());
+        String savedDeviceIdStr = savedDevice.getId().getId().toString();
+        doPost("/api/device", savedDevice)
+                .andExpect( status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Device", savedDeviceIdStr))));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(savedDevice, savedDifferentTenant.getId(),
                 savedDifferentTenantUser.getId(), savedDifferentTenantUser.getEmail(), ActionType.UPDATED,
-                new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+                new ThingsboardException(msgErrorNoFound("Device", savedDevice.getId().getId().toString()),
+                        ThingsboardErrorCode.PERMISSION_DENIED));
         testNotificationUpdateGatewayNever();
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        String savedDeviceIdStr = savedDevice.getId().getId().toString();
         doDelete("/api/device/" + savedDeviceIdStr)
                 .andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgErrorNoFound("Device", savedDeviceIdStr))));
