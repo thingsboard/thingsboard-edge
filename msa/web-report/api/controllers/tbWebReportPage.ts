@@ -75,7 +75,7 @@ export class TbWebReportPage {
     }
 
     async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'pdf', timezone = 'Europe/London'): Promise<Buffer> {
-        this.logger.info('[%s] Generating dashboard report', this.id);
+        this.logger.info('Generating dashboard report');
         try {
             await this.session.send('Emulation.setTimezoneOverride', {timezoneId: timezone});
         } catch (e) {
@@ -111,6 +111,7 @@ export class TbWebReportPage {
             }
             buffer = await this.page.screenshot(options);
         }
+        await this.page.setContent('<body></body>');
         const endTime = performance.now();
         this.logger.info('Dashboard report generated in %sms.', endTime - startTime);
         return buffer;
