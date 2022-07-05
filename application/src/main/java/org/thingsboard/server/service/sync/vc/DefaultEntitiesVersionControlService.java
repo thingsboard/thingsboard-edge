@@ -288,7 +288,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), hierarchy, entityData));
         if (ctx.getSettings().isExportGroupEntities() && ctx.shouldExportEntities(group.getType())) {
             PageDataIterable<EntityId> entityIdsIterator = new PageDataIterable<>(
-                    link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), group.getId(), link), 1024);
+                    link -> groupService.findEntityIds(ctx.getTenantId(), group.getType(), entityId, link), 1024);
             List<EntityId> groupEntityIds = new ArrayList<>();
             for (EntityId groupEntityId : entityIdsIterator) {
                 if (!group.isGroupAll()) {
