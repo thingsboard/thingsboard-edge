@@ -157,6 +157,7 @@ public abstract class BaseSignUpControllerSqlTest extends AbstractControllerTest
                 eq(null),
                 eq(ActionType.ADDED),
                 eq(true),
+                eq(false),
                 eq(null)
         );
         verify(notificationService, times(1)).notifyAddToEntityGroup(
