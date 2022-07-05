@@ -54,7 +54,6 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -526,22 +525,6 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         Customer customer = new Customer();
         customer.setTitle(title);
         return customer;
-    }
-
-    private Tenant getNewTenant(String title) {
-        Tenant tenant = new Tenant();
-        tenant.setTitle(title);
-        return tenant;
-    }
-
-    private List<ListenableFuture<EntityView>> fillListByTemplate(int limit, String partOfName, String urlTemplate) {
-        List<ListenableFuture<EntityView>> futures = new ArrayList<>(limit);
-        for (ListenableFuture<EntityView> viewFuture : fillListOf(limit, partOfName)) {
-            futures.add(Futures.transform(viewFuture, view ->
-                            doPost(urlTemplate + view.getId().getId().toString(), EntityView.class),
-                    MoreExecutors.directExecutor()));
-        }
-        return futures;
     }
 
     private List<ListenableFuture<EntityView>> fillListOf(int limit, String partOfName) {
