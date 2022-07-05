@@ -40,4 +40,6 @@ source "${CONF_FOLDER}/${configfile}"
 
 cd ${pkg.installFolder}
 
+export CHROME_EXECUTABLE=$(node -e "console.log(require('playwright-core/lib/server').registry.findExecutable('chromium').executablePath());")
+
 exec /bin/sh -c "node server.js"

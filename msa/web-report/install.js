@@ -28,77 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
+const server = require('playwright-core/lib/server');
+const chromeInfo = server.registry.findExecutable('chromium');
 
-const chromium_revision = process.env.PUPPETEER_CHROMIUM_REVISION || process.env.npm_config_puppeteer_chromium_revision
-    || require('puppeteer/lib/cjs/puppeteer/revisions.js').PUPPETEER_REVISIONS.chromium;
+const EXECUTABLE_PATHS = {
+    'linux': ['chrome-linux', 'chrome'],
+    'windows': ['chrome-win', 'chrome.exe']
+};
 
-const BrowserFetcher = require('puppeteer/lib/cjs/puppeteer/node/BrowserFetcher.js').BrowserFetcher;
-const ProgressBar = require('progress');
+const DOWNLOAD_PATHS = {
+    'linux': 'builds/chromium/%s/chromium-linux.zip',
+    'windows': 'builds/chromium/%s/chromium-win64.zip'
+}
 
-let lastDownloadedBytes = 0;
-let progressBar = null;
 let _projectRoot = null;
-
+let browsersJSON = null;
+let chromium = null;
 
 (async() => {
-    var chromiumPath = path.join(projectRoot(), 'target', 'chromium');
-    if (!fs.existsSync(chromiumPath)) {
-        fs.mkdirSync(chromiumPath);
-    }
-    await Promise.all([downloadChromiumPlatform('linux'), downloadChromiumPlatform('windows')]);
+    browsersJSON = fse.readJsonSync(path.join(projectRoot(), 'node_modules', 'playwright-core', 'browsers.json')).browsers;
+    chromium = browsersJSON.find(d => d.name === 'chromium');
+    await server.registry.install([createdExecutables('linux'),  createdExecutables('windows')], true);
+    await copyChromeFromPkg('linux');
+    await copyChromeFromPkg('windows');
     await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux'),
-                   path.join(targetPackageDir('linux'), 'bin', 'tb-web-report'),
-                   {overwrite: true});
+        path.join(targetPackageDir('linux'), 'bin', 'tb-web-report'),
+        {overwrite: true});
     await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-win.exe'),
-                   path.join(targetPackageDir('windows'), 'bin', 'tb-web-report.exe'),
-                   {overwrite: true});
+        path.join(targetPackageDir('windows'), 'bin', 'tb-web-report.exe'),
+        {overwrite: true});
 })();
 
-async function downloadChromiumPlatform(platform) {
-    try {
-        var chromium_platform;
-        if (platform === 'linux') {
-            chromium_platform = 'linux';
-        } else if (platform === 'windows') {
-            chromium_platform = 'win64';
-        }
-        console.log(`Downloading Chromium ${chromium_platform} r${chromium_revision}`);
-        var chromiumPath = path.join(projectRoot(), 'target', 'chromium');
-        const browserFetcher = new BrowserFetcher(projectRoot(),{
-            path: chromiumPath,
-            platform: chromium_platform
-        });
-        const revisionInfo = browserFetcher.revisionInfo(chromium_revision);
-        if (revisionInfo.local) {
-            await prepareChromiumRevision(browserFetcher, revisionInfo, platform);
-            return;
-        }
-        lastDownloadedBytes = 0;
-        progressBar = null;
-        await browserFetcher.download(revisionInfo.revision, (downloadedBytes, totalBytes) => {
-            if (!progressBar) {
-                progressBar = new ProgressBar(`Downloading Chromium ${chromium_platform} r${chromium_revision} - ${toMegabytes(totalBytes)} [:bar] :percent :etas `, {
-                    complete: '=',
-                    incomplete: ' ',
-                    width: 20,
-                    total: totalBytes,
-                });
-            }
-            onProgress(downloadedBytes, totalBytes, progressBar);
-        });
-        await prepareChromiumRevision(browserFetcher, revisionInfo, platform);
-    } catch(error) {
-        onError(error, chromium_platform);
-    }
-}
-
-async function prepareChromiumRevision(browserFetcher, revisionInfo, platform) {
-    var localRevisions = await browserFetcher.localRevisions();
-    await onSuccess(localRevisions, revisionInfo, browserFetcher, platform);
-}
 
 function projectRoot() {
     if (!_projectRoot) {
@@ -115,32 +77,38 @@ function targetChromiumDir(platform) {
     return path.join(targetPackageDir(platform), 'chromium');
 }
 
-async function onSuccess(localRevisions, revisionInfo, browserFetcher, platform) {
-    console.log('Chromium downloaded to ' + revisionInfo.folderPath);
-    var chromiumDir = targetChromiumDir(platform);
+function downloadChromiumDir(platform) {
+    let platformDir;
+    if (platform === 'linux') {
+        platformDir = 'chromiumLinux';
+    } else if (platform === 'windows') {
+        platformDir = 'chromiumWin';
+    }
+    return  path.join(projectRoot(), 'target', platformDir);
+}
+
+async function copyChromeFromPkg(platform) {
+    const chromiumDir = targetChromiumDir(platform);
     await fse.emptyDir(chromiumDir);
-    var fromDir = path.dirname(revisionInfo.executablePath);
+    let fromDir = path.join(downloadChromiumDir(platform), EXECUTABLE_PATHS[platform][0])
     await fse.copy(fromDir, chromiumDir);
-
-    localRevisions = localRevisions.filter(revision => revision !== revisionInfo.revision);
-    // Remove previous chromium revisions.
-    const cleanupOldVersions = localRevisions.map(revision => browserFetcher.remove(revision));
-    return Promise.all([...cleanupOldVersions]);
 }
 
-function onError(error, chromium_platform) {
-    console.error(`ERROR: Failed to download Chromium r${chromium_revision} for platform ${chromium_platform}!`);
-    console.error(error);
-    process.exit(1);
-}
-
-function onProgress(downloadedBytes, totalBytes, progressBar) {
-    const delta = downloadedBytes - lastDownloadedBytes;
-    lastDownloadedBytes = downloadedBytes;
-    progressBar.tick(delta);
-}
-
-function toMegabytes(bytes) {
-    const mb = bytes / 1024 / 1024;
-    return `${Math.round(mb * 10) / 10} Mb`;
+function createdExecutables(platform) {
+    const chromiumData = JSON.parse(JSON.stringify(chromium));
+    chromiumData.dir = downloadChromiumDir(platform);
+    const executablePath = path.join(chromiumData.dir, ...EXECUTABLE_PATHS[platform]);
+    return {
+        type: 'browser',
+        name: 'chromium-linux',
+        browserName: 'chromium',
+        directory: chromeInfo.directory,
+        executablePath: executablePath,
+        executablePathOrDie: (sdkLanguage) => server.registry.executablePathOrDie('chromium', executablePath, false, sdkLanguage),
+        installType: 'download-by-default',
+        validateHostRequirements: (sdkLanguage) => server.registry._validateHostRequirements(sdkLanguage, 'chromium', chromium.dir, ['chrome-linux'], [], ['chrome-win']),
+        _install: () => server.registry._downloadExecutable(chromiumData, executablePath, DOWNLOAD_PATHS[platform], 'PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST'),
+        _dependencyGroup: 'chromium',
+        _isHermeticInstallation: true,
+    };
 }
