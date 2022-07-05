@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Browser } from 'puppeteer';
+import { Browser } from 'playwright-core';
 import { TbWebReportPage } from './tbWebReportPage';
 import { RequestState } from './tbWebReportController';
 
@@ -49,7 +49,7 @@ export class TbWebReportPageQueue {
         }
     }
 
-    async generateDashboardReport(requestState: RequestState, url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
+    async generateDashboardReport(requestState: RequestState, url: string, type: 'png' | 'jpeg' | 'pdf', timezone: string): Promise<Buffer> {
         const page = this.pages.pop();
         if (page) {
             return await this.doGenerateDashboardReport(page, url, type, timezone);
@@ -80,7 +80,7 @@ export class TbWebReportPageQueue {
         }
     }
 
-    private async doGenerateDashboardReport(page: TbWebReportPage, url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
+    private async doGenerateDashboardReport(page: TbWebReportPage, url: string, type: 'png' | 'jpeg' | 'pdf', timezone: string): Promise<Buffer> {
         try {
             return await page.generateDashboardReport(url, type, timezone);
         } finally {

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Browser, Page, ScreenshotOptions } from 'puppeteer';
+import { Browser, BrowserContextOptions, CDPSession, Page, PageScreenshotOptions } from 'playwright-core';
 import { performance } from 'perf_hooks';
 import { _logger } from '../../config/logger';
 import config from 'config';
@@ -51,34 +51,38 @@ export class TbWebReportPage {
 
     private logger = _logger(`TbWebReportPage-${this.id}`);
     private page: Page;
+    private session: CDPSession;
 
     constructor(private browser: Browser,
                 private id: number) {
     }
 
     async init(): Promise<void> {
-        const context = await this.browser.createIncognitoBrowserContext();
-        this.page = await context.newPage();
-        this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
-        await this.page.setViewport({
-            width: 1920,
-            height: 1080,
+        const config: BrowserContextOptions = {
+            ignoreHTTPSErrors: true,
             deviceScaleFactor: 1,
             isMobile: false,
-            isLandscape: false
-        });
-        await this.page.emulateMediaType('screen');
+            viewport: {
+                width: 1920,
+                height: 1080
+            }
+        }
+        const context = await this.browser.newContext(config);
+        this.page = await context.newPage();
+        this.session = await context.newCDPSession(this.page);
+        this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
+        await this.page.emulateMedia({media: 'screen'});
     }
 
-    async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone = 'Europe/London'): Promise<Buffer> {
+    async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'pdf', timezone = 'Europe/London'): Promise<Buffer> {
         this.logger.info('Generating dashboard report');
         try {
-            await this.page.emulateTimezone(timezone);
+            await this.session.send('Emulation.setTimezoneOverride', {timezoneId: timezone});
         } catch (e) {
-            await this.page.emulateTimezone('Europe/London');
+            await this.session.send('Emulation.setTimezoneOverride', {timezoneId: 'Europe/London'});
         }
         const startTime = performance.now();
-        const dashboardLoadResponse = await this.page.goto(url, {waitUntil: 'networkidle0'});
+        const dashboardLoadResponse = await this.page.goto(url, {waitUntil: 'networkidle'});
         if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
             await this.page.waitForSelector('section.tb-dashboard-container');
             await this.page.waitForFunction('Array.from(document.querySelectorAll(\'tb-widget>div.tb-widget-loading\')).every(item => item.style.display === \'none\')', {polling: 100});
@@ -89,14 +93,11 @@ export class TbWebReportPage {
             throw new Error(`Dashboard page load returned error status: ${status}`);
         }
 
-        const fullHeight = await this.page.evaluate(heightCalculationScript);
+        const fullHeight: number = await this.page.evaluate(heightCalculationScript);
 
-        await this.page.setViewport({
+        await this.page.setViewportSize({
             width: 1920,
-            height: fullHeight || 1080,
-            deviceScaleFactor: 1,
-            isMobile: false,
-            isLandscape: false
+            height: fullHeight || 1080
         });
 
         let buffer: Buffer;
@@ -104,12 +105,13 @@ export class TbWebReportPage {
         if (type === 'pdf') {
             buffer = await this.page.pdf({printBackground: true, width: '1920px', height: fullHeight + 'px'});
         } else {
-            const options: ScreenshotOptions = {omitBackground: false, fullPage: true, type: type};
+            const options: PageScreenshotOptions = {omitBackground: false, fullPage: true, type: type};
             if (type === 'jpeg') {
                 options.quality = 100;
             }
-            buffer = await this.page.screenshot(options) as Buffer;
+            buffer = await this.page.screenshot(options);
         }
+        await this.page.setContent('<body></body>');
         const endTime = performance.now();
         this.logger.info('Dashboard report generated in %sms.', endTime - startTime);
         return buffer;

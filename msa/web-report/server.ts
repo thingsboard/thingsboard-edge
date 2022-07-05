@@ -32,10 +32,10 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import config from 'config';
-import { _logger}  from './config/logger';
-import * as puppeteer from 'puppeteer';
+import { _logger } from './config/logger';
+import { chromium } from 'playwright-chromium';
+import { Browser, LaunchOptions } from 'playwright-core';
 import { route } from './api/routes/tbWebReportRoutes';
-import { Browser, BrowserConnectOptions, BrowserLaunchArgumentOptions, LaunchOptions } from 'puppeteer';
 import { TbWebReportPageQueue } from './api/controllers/tbWebReportPageQueue';
 
 const logger = _logger('main');
@@ -58,17 +58,17 @@ let pagesQueue: TbWebReportPageQueue;
     try {
         logger.info('Starting chrome headless browser...');
 
-        const browserOptions: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions  = {
+        const browserOptions: LaunchOptions  = {
             headless: true,
-            ignoreHTTPSErrors: true,
             args: ['--no-sandbox'],
-            timeout: Number(config.get('browser.launchTimeout'))
+            timeout: Number(config.get('browser.launchTimeout')),
+            channel: 'chrome'
         };
         if (typeof process.env.CHROME_EXECUTABLE !== 'undefined') {
             logger.info('Chrome headless browser executable: %s', process.env.CHROME_EXECUTABLE);
             browserOptions.executablePath = process.env.CHROME_EXECUTABLE;
         }
-        browser = await puppeteer.launch(browserOptions);
+        browser = await chromium.launch(browserOptions);
 
         logger.info('Started chrome headless browser.');
 
