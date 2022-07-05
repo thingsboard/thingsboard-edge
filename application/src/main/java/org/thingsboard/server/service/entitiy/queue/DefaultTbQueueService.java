@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -90,6 +91,8 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
         } else {
             onQueueUpdated(savedQueue, oldQueue);
         }
+
+        notificationEntityService.notifySendMsgToEdgeService(queue.getTenantId(), savedQueue.getId(), create ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
         return savedQueue;
     }
@@ -163,6 +166,8 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
                 }
             }
         }, DELETE_DELAY, TimeUnit.SECONDS);
+
+        notificationEntityService.notifySendMsgToEdgeService(queue.getTenantId(), queue.getId(), EdgeEventActionType.DELETED);
     }
 
     @Override

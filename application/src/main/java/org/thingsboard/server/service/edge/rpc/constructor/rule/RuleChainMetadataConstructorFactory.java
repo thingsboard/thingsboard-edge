@@ -28,34 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.edge;
+package org.thingsboard.server.service.edge.rpc.constructor.rule;
 
-public enum EdgeEventType {
-    DASHBOARD,
-    ASSET,
-    DEVICE,
-    DEVICE_PROFILE,
-    ENTITY_VIEW,
-    ALARM,
-    RULE_CHAIN,
-    RULE_CHAIN_METADATA,
-    EDGE,
-    USER,
-    CUSTOMER,
-    RELATION,
-    TENANT,
-    WIDGETS_BUNDLE,
-    WIDGET_TYPE,
-    ADMIN_SETTINGS,
-    OTA_PACKAGE,
-    QUEUE,
-    ENTITY_GROUP,
-    SCHEDULER_EVENT,
-    WHITE_LABELING,
-    LOGIN_WHITE_LABELING,
-    CUSTOM_TRANSLATION,
-    ROLE,
-    GROUP_PERMISSION,
-    CONVERTER,
-    INTEGRATION
+import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+
+public final class RuleChainMetadataConstructorFactory {
+
+    public static RuleChainMetadataConstructor getByEdgeVersion(EdgeVersion edgeVersion,
+                                                                QueueService queueService) {
+        switch (edgeVersion) {
+            case V_3_3_0:
+                return new RuleChainMetadataConstructorV330(queueService);
+            case V_3_3_3:
+                return new RuleChainMetadataConstructorV333(queueService);
+            case V_3_4_0:
+            default:
+                return new RuleChainMetadataConstructorV340(queueService);
+        }
+    }
 }
