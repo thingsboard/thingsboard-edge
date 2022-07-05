@@ -37,7 +37,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -233,12 +232,11 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
                                                                                                TenantId tenantId, CustomerId customerId, UserId userId, String userName,
                                                                                                ActionType actionType, Object... additionalInfo) {
         int cntTime = 1;
-        ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
-        testBroadcastEntityStateChangeEventTime(entityId, tenantId, cntTime);
-        cntTime = (EntityView.class.equals(entity.getClass()) && ActionType.ADDED.equals(actionType)) ? 2 : 1;
         testNotificationMsgToEdgeServiceNeverWithActionType(entityId, actionType);
         testLogEntityAction(entity, originatorId, tenantId, customerId, userId, userName, actionType, cntTime, additionalInfo);
+        ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
         testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, cntTime);
+        testBroadcastEntityStateChangeEventTime(entityId, tenantId, cntTime);
         Mockito.reset(tbClusterService, auditLogService);
     }
 

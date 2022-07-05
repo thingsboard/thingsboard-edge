@@ -159,7 +159,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testBroadcastEntityStateChangeEventTime(foundEntityView.getId(), tenantId, 1);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 0, 1);
+                ActionType.ADDED, ActionType.ADDED, 2, 0, 2);
 
         savedView.setName("New test entity view");
 
