@@ -248,7 +248,7 @@ public class SignUpController extends BaseController {
             notificationEntityService.notifyCreateOrUpdateEntity(tenantId, savedCustomer.getId(), savedCustomer,
                     savedCustomer.getId(), ActionType.ADDED, null);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, savedUser.getCustomerId(), savedUser.getId(),
-                    savedUser, null, ActionType.ADDED, true, null);
+                    savedUser, null, ActionType.ADDED, true, false, null);
             notificationEntityService.notifyAddToEntityGroup(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
                     usersEntityGroup.getId(), null, usersEntityGroup.toString(), usersEntityGroup.getName());
 
