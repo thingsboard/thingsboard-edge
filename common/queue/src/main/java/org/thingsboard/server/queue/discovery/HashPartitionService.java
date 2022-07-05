@@ -50,6 +50,7 @@ import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -281,12 +282,8 @@ public class HashPartitionService implements PartitionService {
         ConcurrentMap<QueueKey, List<Integer>> oldPartitions = myPartitions;
         myPartitions = new ConcurrentHashMap<>();
         partitionSizesMap.forEach((queueKey, size) -> {
-            TenantId tenantId = queueKey.getTenantId();
-            String topic = partitionTopicsMap.get(queueKey);
-
             for (int i = 0; i < size; i++) {
-                TopicPartitionInfo tpi = new TopicPartitionInfo(topic, tenantId, i, false);
-                ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), tpi);
+                ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), queueKey, i);
                 if (currentService.equals(serviceInfo)) {
                     myPartitions.computeIfAbsent(queueKey, key -> new ArrayList<>()).add(i);
                 }
@@ -483,14 +480,21 @@ public class HashPartitionService implements PartitionService {
         }
     }
 
-    protected ServiceInfo resolveByPartitionIdx(List<ServiceInfo> servers, TopicPartitionInfo tpi) {
+    protected ServiceInfo resolveByPartitionIdx(List<ServiceInfo> servers, QueueKey queueKey, int partition) {
         if (servers == null || servers.isEmpty()) {
             return null;
         }
 
-        int hash = hashFunction.newHasher().putInt(tpi.hashCode()).hash().asInt();
+        if (!ServiceType.TB_RULE_ENGINE.equals(queueKey.getType()) || TenantId.SYS_TENANT_ID.equals(queueKey.getTenantId())) {
+            return servers.get(partition % servers.size());
+        } else {
+            int hash = hashFunction.newHasher().putLong(queueKey.getTenantId().getId().getMostSignificantBits())
+                    .putLong(queueKey.getTenantId().getId().getLeastSignificantBits())
+                    .putString(queueKey.getQueueName(), StandardCharsets.UTF_8)
+                    .hash().asInt();
 
-        return servers.get(Math.abs(hash % servers.size()));
+            return servers.get(Math.abs((hash + partition) % servers.size()));
+        }
     }
 
     public static HashFunction forName(String name) {
