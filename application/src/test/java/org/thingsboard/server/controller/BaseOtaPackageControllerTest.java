@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -230,7 +230,7 @@ public abstract class BaseOtaPackageControllerTest extends AbstractControllerTes
         Assert.assertEquals(CHECKSUM_ALGORITHM, savedFirmware.getChecksumAlgorithm().name());
         Assert.assertEquals(CHECKSUM, savedFirmware.getChecksum());
 
-        testNotifyEntityAllOneTime(savedFirmware, savedFirmware.getId(), savedFirmware.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedFirmware, savedFirmware.getId(), savedFirmware.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.UPDATED);
     }
@@ -253,7 +253,7 @@ public abstract class BaseOtaPackageControllerTest extends AbstractControllerTes
         doPost("/api/otaPackage",
                 new SaveOtaPackageInfoRequest(savedFirmwareInfo, false))
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermission)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "OTA_PACKAGE" + " '" + firmwareInfo.getTitle() +"'!")));
 
         testNotifyEntityNever(savedFirmwareInfo.getId(), savedFirmwareInfo);
 
@@ -314,7 +314,7 @@ public abstract class BaseOtaPackageControllerTest extends AbstractControllerTes
         doDelete("/api/otaPackage/" + savedFirmwareInfo.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityAllOneTime(savedFirmwareInfo, savedFirmwareInfo.getId(), savedFirmwareInfo.getId(),
+        testNotifyEntityEntityGroupNullAllOneTime(savedFirmwareInfo, savedFirmwareInfo.getId(), savedFirmwareInfo.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, savedFirmwareInfo.getId().getId().toString());
 
