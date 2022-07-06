@@ -81,6 +81,7 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     protected final String msgErrorPermissionDelete = "You don't have permission to perform 'DELETE' operation with ";
     protected final String msgErrorPermissionCreate = "You don't have permission to perform 'CREATE' operation with ";
     protected final String msgErrorShouldBeSpecified = "should be specified";
+    protected final String msgErrorNotFound = "Requested item wasn't found!";
 
 
     protected void testNotifyEntityEntityGroupNullAllOneTime(HasName entity, EntityId entityId, EntityId originatorId,

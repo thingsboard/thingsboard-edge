@@ -369,7 +369,7 @@ public abstract class BaseEntityRelationControllerTest extends AbstractControlle
 
         doDelete(url)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString("Requested item wasn't found!")));
+                .andExpect(statusReason(containsString(msgErrorNotFound)));
 
         testNotifyEntityNever(mainDevice.getId(), null);
     }
@@ -391,7 +391,7 @@ public abstract class BaseEntityRelationControllerTest extends AbstractControlle
 
         doDelete(url)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString("Requested item wasn't found!")));
+                .andExpect(statusReason(containsString(msgErrorNotFound)));
 
         testNotifyEntityNever(mainDevice.getId(), null);
     }
