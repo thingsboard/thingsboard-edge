@@ -230,7 +230,8 @@ public enum Resource {
                 Resource.EDGE_GROUP,
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
-                Resource.AUDIT_LOG)));
+                Resource.AUDIT_LOG,
+                Resource.DEVICE_PROFILE)));
 
     }
 
