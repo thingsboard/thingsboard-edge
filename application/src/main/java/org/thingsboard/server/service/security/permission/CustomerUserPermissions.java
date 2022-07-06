@@ -91,6 +91,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.WHITE_LABELING, customerWhiteLabelingPermissionChecker);
         put(Resource.GROUP_PERMISSION, customerGroupPermissionEntityChecker);
         put(Resource.AUDIT_LOG, TenantAdminPermissions.genericPermissionChecker);
+        put(Resource.DEVICE_PROFILE, deviceProfilePermissionChecker);
     }
 
     private final PermissionChecker customerAlarmPermissionChecker = new PermissionChecker() {
@@ -309,4 +310,29 @@ public class CustomerUserPermissions extends AbstractPermissions {
 
     };
 
+    private static final PermissionChecker deviceProfilePermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            if (!super.hasPermission(user, resource, operation)) {
+                return false;
+            }
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+            if (!super.hasPermission(user, operation, entityId, entity)) {
+                return false;
+            }
+            if (entity.getTenantId() != null && !entity.getTenantId().isNullUid() &&
+                    !user.getTenantId().equals(entity.getTenantId())) {
+                return false;
+            }
+            Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
+            // This entity does not have groups, so we are checking only generic level permissions
+            return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+    };
 }
