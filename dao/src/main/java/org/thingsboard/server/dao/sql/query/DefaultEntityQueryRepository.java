@@ -747,8 +747,6 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 case ENTITY_TYPE:
                     EntityTypeFilter etFilter = (EntityTypeFilter) entityFilter;
                     return isSystemOrTenantEntity(etFilter.getEntityType());
-                case API_USAGE_STATE:
-                    return !ctx.isTenantUser();
                 default:
                     return false;
             }
@@ -1518,6 +1516,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (ctx.getEntityType() == EntityType.CUSTOMER && entityFilter.getType() != EntityFilterType.ENTITY_GROUP_LIST
                     && entityFilter.getType() != EntityFilterType.ENTITY_GROUP_NAME) {
                 return "e.tenant_id=:permissions_tenant_id and e.id in " + HIERARCHICAL_SUB_CUSTOMERS_QUERY;
+            } else if (ctx.getEntityType() == EntityType.API_USAGE_STATE) {
+                return "e.tenant_id=:permissions_tenant_id and e.entity_id in " + HIERARCHICAL_SUB_CUSTOMERS_QUERY;
             } else {
                 return "e.tenant_id=:permissions_tenant_id and e.customer_id in " + HIERARCHICAL_SUB_CUSTOMERS_QUERY;
             }
