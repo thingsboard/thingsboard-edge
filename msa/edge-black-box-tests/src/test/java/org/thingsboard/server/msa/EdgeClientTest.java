@@ -32,7 +32,6 @@ package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +98,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -1635,15 +1635,15 @@ public class EdgeClientTest extends AbstractContainerTest {
 
     private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {
         ObjectNode downlinkConverterConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode()
-                .put("encoder", "return {contentType: 'JSON', data: '\"{\"pin\": 1}\"'};");
+                .put("encoder", "return {contentType: 'JSON', data: '{\"pin\": 3}'};");
         Converter converter = new Converter();
         converter.setName("My downlink converter");
         converter.setType(ConverterType.DOWNLINK);
         converter.setConfiguration(downlinkConverterConfiguration);
         converter.setEdgeTemplate(true);
-        Converter downlinkSavedConverter = cloudRestClient.saveConverter(converter);
+        Converter savedDownlinkConverter = cloudRestClient.saveConverter(converter);
 
-        savedIntegration.setDownlinkConverterId(downlinkSavedConverter.getId());
+        savedIntegration.setDownlinkConverterId(savedDownlinkConverter.getId());
         cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
@@ -1651,12 +1651,18 @@ public class EdgeClientTest extends AbstractContainerTest {
                 until(() -> {
                     PageData<Integration> integrations = edgeRestClient.getIntegrations(new PageLink(100));
                     Integration integration = integrations.getData().get(0);
-                    return downlinkSavedConverter.getId().equals(integration.getDownlinkConverterId());
+                    return savedDownlinkConverter.getId().equals(integration.getDownlinkConverterId());
                 });
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 2);
+
+        addIntegrationDownlinkRuleNodeToEdgeRootRuleChain(savedIntegration);
+
+        sendRpcRequestToDevice();
+
+        sendHttpUplinkAndVerifyDownlink(savedIntegration);
 
         savedIntegration.setDownlinkConverterId(null);
         cloudRestClient.saveIntegration(savedIntegration);
@@ -1664,6 +1670,111 @@ public class EdgeClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
+    }
+
+    private void sendHttpUplinkAndVerifyDownlink(Integration savedIntegration) {
+        ObjectNode values = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        values.put("result", "ok");
+        ResponseEntity<JsonNode> responseEntityResponseEntity =
+                edgeRestClient.getRestTemplate().postForEntity(
+                        edgeUrl + "/api/v1/integrations/http/" + savedIntegration.getRoutingKey(),
+                        values,
+                        JsonNode.class);
+        Assert.assertNotNull(responseEntityResponseEntity.getBody());
+        Assert.assertEquals(3, responseEntityResponseEntity.getBody().get("pin").asInt());
+    }
+
+    private void sendRpcRequestToDevice() {
+        Optional<Device> tenantDeviceOpt = edgeRestClient.getTenantDevice("Device Converter val5");
+        Assert.assertTrue(tenantDeviceOpt.isPresent());
+        Device device = tenantDeviceOpt.get();
+
+        ObjectNode rpcRequest = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        rpcRequest.put("method", "rpcCommand");
+        rpcRequest.set("params", JacksonUtil.OBJECT_MAPPER.createObjectNode());
+        rpcRequest.put("persistent", false);
+        rpcRequest.put("timeout", 5000);
+        edgeRestClient.handleOneWayDeviceRPCRequest(device.getId(), rpcRequest);
+
+        try {
+            SECONDS.sleep(1); // wait for rpc request to be stored in downlink cache
+        } catch (Throwable ignored) {}
+    }
+
+    private void addIntegrationDownlinkRuleNodeToEdgeRootRuleChain(Integration savedIntegration) {
+        RuleChain rootRuleChain = getEdgeRootRuleChain();
+        Assert.assertNotNull(rootRuleChain);
+
+        addIntegrationDownlinkRuleNode(rootRuleChain, savedIntegration);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> {
+                    Optional<RuleChainMetaData> ruleChainMetaDataOpt = edgeRestClient.getRuleChainMetaData(rootRuleChain.getId());
+                    if (ruleChainMetaDataOpt.isPresent()) {
+                        RuleChainMetaData ruleChainMetaData = ruleChainMetaDataOpt.get();
+                        for (RuleNode node : ruleChainMetaData.getNodes()) {
+                            if (node.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                });
+
+        try {
+            SECONDS.sleep(1); // wait for edge root rule chain to be restarted with updated config
+        } catch (Throwable ignored) {}
+    }
+
+    private void addIntegrationDownlinkRuleNode(RuleChain rootRuleChain, Integration savedIntegration) {
+        Optional<RuleChainMetaData> ruleChainMetaDataOpt = cloudRestClient.getRuleChainMetaData(rootRuleChain.getId());
+        if (ruleChainMetaDataOpt.isPresent()) {
+            RuleChainMetaData ruleChainMetaData = ruleChainMetaDataOpt.get();
+
+            int msgTypeSwitchIdx = 0;
+            for (RuleNode node : ruleChainMetaData.getNodes()) {
+                if (node.getType().equals("org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode")) {
+                    break;
+                }
+                msgTypeSwitchIdx = msgTypeSwitchIdx + 1;
+            }
+
+            RuleNode ruleNode = new RuleNode();
+            ruleNode.setName("Integration Downlink");
+            ruleNode.setType("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode");
+            ruleNode.setDebugMode(true);
+            ObjectNode configuration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            configuration.put("integrationId", savedIntegration.getId().getId().toString());
+            ruleNode.setConfiguration(configuration);
+
+            ObjectNode additionalInfo = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            additionalInfo.put("layoutX", 514);
+            additionalInfo.put("layoutY", 511);
+            additionalInfo.put("additionalInfo", "");
+            ruleNode.setAdditionalInfo(additionalInfo);
+
+            ruleNode.setRuleChainId(rootRuleChain.getId());
+            ruleChainMetaData.getNodes().add(ruleNode);
+
+            NodeConnectionInfo e = new NodeConnectionInfo();
+            e.setType("RPC Request to Device");
+            e.setFromIndex(msgTypeSwitchIdx);
+            e.setToIndex(ruleChainMetaData.getNodes().size() - 1);
+            ruleChainMetaData.getConnections().add(e);
+
+            cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+        }
+    }
+
+    private RuleChain getEdgeRootRuleChain() {
+        PageData<RuleChain> edgeRuleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new PageLink(1024));
+        for (RuleChain edgeRuleChain : edgeRuleChains.getData()) {
+            if (edgeRuleChain.isRoot()) {
+                return edgeRuleChain;
+            }
+        }
+        return null;
     }
 
     private void validateIntegrationUnassignFromEdge(Integration savedIntegration) {
