@@ -50,6 +50,7 @@ import org.thingsboard.server.queue.discovery.event.ServiceListChangedEvent;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
 import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -282,7 +283,7 @@ public class HashPartitionService implements PartitionService {
         myPartitions = new ConcurrentHashMap<>();
         partitionSizesMap.forEach((queueKey, size) -> {
             for (int i = 0; i < size; i++) {
-                ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), i);
+                ServiceInfo serviceInfo = resolveByPartitionIdx(queueServicesMap.get(queueKey), queueKey, i);
                 if (currentService.equals(serviceInfo)) {
                     myPartitions.computeIfAbsent(queueKey, key -> new ArrayList<>()).add(i);
                 }
@@ -479,11 +480,21 @@ public class HashPartitionService implements PartitionService {
         }
     }
 
-    private ServiceInfo resolveByPartitionIdx(List<ServiceInfo> servers, Integer partitionIdx) {
+    protected ServiceInfo resolveByPartitionIdx(List<ServiceInfo> servers, QueueKey queueKey, int partition) {
         if (servers == null || servers.isEmpty()) {
             return null;
         }
-        return servers.get(partitionIdx % servers.size());
+
+        if (!ServiceType.TB_RULE_ENGINE.equals(queueKey.getType()) || TenantId.SYS_TENANT_ID.equals(queueKey.getTenantId())) {
+            return servers.get(partition % servers.size());
+        } else {
+            int hash = hashFunction.newHasher().putLong(queueKey.getTenantId().getId().getMostSignificantBits())
+                    .putLong(queueKey.getTenantId().getId().getLeastSignificantBits())
+                    .putString(queueKey.getQueueName(), StandardCharsets.UTF_8)
+                    .hash().asInt();
+
+            return servers.get(Math.abs((hash + partition) % servers.size()));
+        }
     }
 
     public static HashFunction forName(String name) {
