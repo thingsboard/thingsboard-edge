@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -188,7 +188,21 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         testLogEntityActionAdditionalInfo(matcherEntityClassEquals, matcherOriginatorId, tenantId, customerId, userId, userName, actionType, cntTime,
                 extractMatcherAdditionalInfoClass(additionalInfo));
         testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, cntTimeRuleEngine);
-        Mockito.reset(tbClusterService, auditLogService);
+    }
+
+    protected void testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(HasName entity, HasName originator,
+                                                                                    TenantId tenantId, CustomerId customerId, UserId userId, String userName,
+                                                                                    ActionType actionType, ActionType actionTypeEdge,
+                                                                                    int cntTime, int cntTimeEdge, int cntTimeRuleEngine,
+                                                                                    EntityType entityGroupType, EntityGroupId entityGroupId,
+                                                                                    Object... additionalInfo) {
+        EntityId originatorId = createEntityId_NULL_UUID(originator);
+        testSendNotificationMsgToEdgeServiceTimeEntityEqAnyWithEntityGroup(tenantId, actionTypeEdge, cntTimeEdge, entityGroupType, entityGroupId);
+        ArgumentMatcher<HasName> matcherEntityClassEquals = argument -> argument.getClass().equals(entity.getClass());
+        ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.getClass().equals(originatorId.getClass());
+        testLogEntityActionAdditionalInfo(matcherEntityClassEquals, matcherOriginatorId, tenantId, customerId, userId, userName, actionType, cntTime,
+                extractMatcherAdditionalInfoClass(additionalInfo));
+        testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, cntTimeRuleEngine);
     }
 
     protected void testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(HasName entity, HasName originator,
@@ -205,8 +219,8 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     }
 
     protected void testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAnyWithGroup(HasName entity, HasName originator,
-                                                                                            TenantId tenantId, CustomerId customerId, UserId userId, String userName,
-                                                                                            ActionType actionType, ActionType actionTypeEdge, int cntTime, int cntTimeEdge, int cntAdditionalInfo,
+                                                                                                     TenantId tenantId, CustomerId customerId, UserId userId, String userName,
+                                                                                                     ActionType actionType, ActionType actionTypeEdge, int cntTime, int cntTimeEdge, int cntAdditionalInfo,
                                                                                                      EntityType entityGroupType, EntityGroupId entityGroupId) {
         EntityId originatorId = createEntityId_NULL_UUID(originator);
         testSendNotificationMsgToEdgeServiceTimeEntityEqAnyWithEntityGroup(tenantId, actionTypeEdge, cntTimeEdge, entityGroupType, entityGroupId);
@@ -661,8 +675,8 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
     }
 
     private String entityClassToEntityTypeName(HasName entity) {
-        String entityType =  entityClassToString(entity);
-        return "SAVE_OTA_PACKAGE_INFO_REQUEST".equals(entityType) || "OTA_PACKAGE_INFO".equals(entityType)?
+        String entityType = entityClassToString(entity);
+        return "SAVE_OTA_PACKAGE_INFO_REQUEST".equals(entityType) || "OTA_PACKAGE_INFO".equals(entityType) ?
                 EntityType.OTA_PACKAGE.name().toUpperCase(Locale.ENGLISH) : entityType;
     }
 

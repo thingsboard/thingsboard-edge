@@ -156,7 +156,7 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
         doDelete("/api/ruleChain/" + savedRuleChain.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedRuleChain, savedRuleChain.getId(), savedRuleChain.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedRuleChain, savedRuleChain.getId(), savedRuleChain.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, savedRuleChain.getId().getId().toString());
 
@@ -169,6 +169,7 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
     public void testFindEdgeRuleChainsByEdgeId() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+
 
         List<RuleChain> edgeRuleChains = new ArrayList<>();
         PageLink pageLink = new PageLink(17);
@@ -195,6 +196,10 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new RuleChain(), new RuleChain(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity * 2);
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(new RuleChain(), new RuleChain(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ASSIGNED_TO_EDGE, ActionType.ASSIGNED_TO_EDGE, cntEntity, cntEntity, cntEntity * 2,
+                null, null, new String(), new String(), new String());
 
         List<RuleChain> loadedEdgeRuleChains = new ArrayList<>();
         pageLink = new PageLink(17);
