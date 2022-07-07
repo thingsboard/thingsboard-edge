@@ -159,6 +159,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
                 ActionType.ADDED, ActionType.ADDED, 2, 0, 2);
+        Mockito.reset(tbClusterService, auditLogService);
 
         savedView.setName("New test entity view");
 

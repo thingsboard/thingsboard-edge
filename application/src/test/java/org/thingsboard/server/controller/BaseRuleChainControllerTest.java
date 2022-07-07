@@ -200,6 +200,7 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ASSIGNED_TO_EDGE, ActionType.ASSIGNED_TO_EDGE, cntEntity, cntEntity, cntEntity * 2,
                 null, null, new String(), new String(), new String());
+        Mockito.reset(tbClusterService, auditLogService);
 
         List<RuleChain> loadedEdgeRuleChains = new ArrayList<>();
         pageLink = new PageLink(17);
@@ -217,8 +218,6 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
         Collections.sort(loadedEdgeRuleChains, idComparator);
 
         Assert.assertEquals(edgeRuleChains, loadedEdgeRuleChains);
-
-        Mockito.reset(tbClusterService, auditLogService);
 
         for (RuleChain ruleChain : loadedEdgeRuleChains) {
             if (!ruleChain.isRoot()) {
