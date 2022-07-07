@@ -82,7 +82,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "js.evaluator=mock",
 })
-@Slf4j
 public abstract class BaseTenantControllerTest extends AbstractControllerTest {
 
     static final TypeReference<PageData<Tenant>> PAGE_DATA_TENANT_TYPE_REF = new TypeReference<>() {
