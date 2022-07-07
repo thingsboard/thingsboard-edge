@@ -35,12 +35,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
+import org.mockito.Mockito;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -48,8 +49,10 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantInfo;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
 import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
@@ -71,12 +74,13 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @TestPropertySource(properties = {
         "js.evaluator=mock",
 })
-@Slf4j
 public abstract class BaseTenantControllerTest extends AbstractControllerTest {
 
     static final TypeReference<PageData<Tenant>> PAGE_DATA_TENANT_TYPE_REF = new TypeReference<>() {
@@ -101,17 +105,28 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
         Assert.assertNotNull(savedTenant);
         Assert.assertNotNull(savedTenant.getId());
         Assert.assertTrue(savedTenant.getCreatedTime() > 0);
         Assert.assertEquals(tenant.getTitle(), savedTenant.getTitle());
+
+        testBroadcastEntityStateChangeEventTimeManyTimeTenant(savedTenant, ComponentLifecycleEvent.CREATED, 1);
+
         savedTenant.setTitle("My new tenant");
         doPost("/api/tenant", savedTenant, Tenant.class);
         Tenant foundTenant = doGet("/api/tenant/" + savedTenant.getId().getId().toString(), Tenant.class);
         Assert.assertEquals(foundTenant.getTitle(), savedTenant.getTitle());
+
+        testBroadcastEntityStateChangeEventTimeManyTimeTenant(savedTenant, ComponentLifecycleEvent.UPDATED, 1);
+
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
+
+        testBroadcastEntityStateChangeEventTimeManyTimeTenant(savedTenant, ComponentLifecycleEvent.DELETED, 1);
     }
 
     @Test
@@ -119,7 +134,14 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle(RandomStringUtils.randomAlphanumeric(300));
-        doPost("/api/tenant", tenant).andExpect(statusReason(containsString("length of title must be equal or less than 255")));
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        doPost("/api/tenant", tenant)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgErrorFieldLength("title"))));
+
+        testBroadcastEntityStateChangeEventNeverTenant();
     }
 
     @Test
@@ -151,21 +173,31 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveTenantWithEmptyTitle() throws Exception {
         loginSysAdmin();
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         Tenant tenant = new Tenant();
         doPost("/api/tenant", tenant)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Tenant title should be specified")));
+                .andExpect(statusReason(containsString("Tenant title " + msgErrorShouldBeSpecified)));
+
+        testBroadcastEntityStateChangeEventNeverTenant();
     }
 
     @Test
     public void testSaveTenantWithInvalidEmail() throws Exception {
         loginSysAdmin();
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
         tenant.setEmail("invalid@mail");
         doPost("/api/tenant", tenant)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Invalid email address format")));
+
+        testBroadcastEntityStateChangeEventNeverTenant();
     }
 
     @Test
@@ -174,10 +206,13 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
         Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
+
+        String tenantIdStr = savedTenant.getId().getId().toString();
+        doDelete("/api/tenant/" + tenantIdStr)
                 .andExpect(status().isOk());
-        doGet("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        doGet("/api/tenant/" + tenantIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Tenant", tenantIdStr))));
     }
 
     @Test
@@ -190,14 +225,19 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         Assert.assertEquals(1, pageData.getData().size());
         tenants.addAll(pageData.getData());
 
+        Mockito.reset(tbClusterService, auditLogService);
+
+        int cntEntity = 56;
         List<ListenableFuture<Tenant>> createFutures = new ArrayList<>(56);
-        for (int i = 0; i < 56; i++) {
+        for (int i = 0; i < cntEntity; i++) {
             Tenant tenant = new Tenant();
             tenant.setTitle("Tenant" + i);
             createFutures.add(executor.submit(() ->
                     doPost("/api/tenant", tenant, Tenant.class)));
         }
         tenants.addAll(Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS));
+
+        testBroadcastEntityStateChangeEventTimeManyTimeTenant(new Tenant(), ComponentLifecycleEvent.CREATED, cntEntity);
 
         List<Tenant> loadedTenants = new ArrayList<>();
         pageLink = new PageLink(17);
@@ -215,6 +255,8 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
                 .filter((t) -> !TEST_TENANT_NAME.equals(t.getTitle()))
                 .collect(Collectors.toList()), executor).get(TIMEOUT, TimeUnit.SECONDS);
 
+        testBroadcastEntityStateChangeEventTimeManyTimeTenant(new Tenant(), ComponentLifecycleEvent.DELETED, cntEntity);
+
         pageLink = new PageLink(17);
         pageData = doGetTypedWithPageLink("/api/tenants?", PAGE_DATA_TENANT_TYPE_REF, pageLink);
         Assert.assertFalse(pageData.hasNext());
@@ -223,9 +265,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantsByTitle() throws Exception {
-        log.debug("login sys admin");
         loginSysAdmin();
-        log.debug("test started");
         String title1 = "Tenant title 1";
         List<ListenableFuture<Tenant>> createFutures = new ArrayList<>(134);
         for (int i = 0; i < 134; i++) {
@@ -239,7 +279,6 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         }
 
         List<Tenant> tenantsTitle1 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
-        log.debug("saved '{}', qty {}", title1, tenantsTitle1.size());
 
         String title2 = "Tenant title 2";
         createFutures = new ArrayList<>(127);
@@ -254,7 +293,6 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
         }
 
         List<Tenant> tenantsTitle2 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
-        log.debug("saved '{}', qty {}", title2, tenantsTitle2.size());
 
         List<Tenant> loadedTenantsTitle1 = new ArrayList<>(134);
         PageLink pageLink = new PageLink(15, 0, title1);
@@ -267,10 +305,7 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        log.debug("found by name '{}', step 15 {}", title1, loadedTenantsTitle1.size());
-
         assertThat(tenantsTitle1).as(title1).containsExactlyInAnyOrderElementsOf(loadedTenantsTitle1);
-        log.debug("asserted");
 
         List<Tenant> loadedTenantsTitle2 = new ArrayList<>(127);
         pageLink = new PageLink(4, 0, title2);
@@ -282,29 +317,21 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        log.debug("found by name '{}', step 4 {}", title1, loadedTenantsTitle2.size());
         assertThat(tenantsTitle2).as(title2).containsExactlyInAnyOrderElementsOf(loadedTenantsTitle2);
-        log.debug("asserted");
-
 
         deleteEntitiesAsync("/api/tenant/", loadedTenantsTitle1, executor).get(TIMEOUT, TimeUnit.SECONDS);
-        log.debug("deleted '{}', size {}", title1, loadedTenantsTitle1.size());
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenants?", PAGE_DATA_TENANT_TYPE_REF, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
 
-        log.debug("tried to search another '{}', step 4", title1);
-
         deleteEntitiesAsync("/api/tenant/", loadedTenantsTitle2, executor).get(TIMEOUT, TimeUnit.SECONDS);
-        log.debug("deleted '{}', size {}", title2, loadedTenantsTitle2.size());
 
         pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/tenants?", PAGE_DATA_TENANT_TYPE_REF, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
-        log.debug("tried to search another '{}', step 4", title2);
     }
 
     @Test
@@ -479,7 +506,9 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
 
         login(username, password);
         for (Queue queue : foundTenantQueues) {
-            doGet("/api/queues/" + queue.getId()).andExpect(status().isNotFound());
+            doGet("/api/queues/" + queue.getId())
+                    .andExpect(status().isNotFound())
+                    .andExpect(statusReason(containsString(msgErrorNotFound)));
         }
 
         loginSysAdmin();
@@ -533,5 +562,27 @@ public abstract class BaseTenantControllerTest extends AbstractControllerTest {
             }
         }
         return result;
+    }
+
+    private void testBroadcastEntityStateChangeEventTimeManyTimeTenant(Tenant tenant, ComponentLifecycleEvent event, int cntTime) {
+        ArgumentMatcher<Tenant> matcherTenant = cntTime == 1 ? argument -> argument.equals(tenant) :
+                argument -> argument.getClass().equals(Tenant.class);
+        if (ComponentLifecycleEvent.DELETED.equals(event)) {
+            Mockito.verify(tbClusterService, times( cntTime)).onTenantDelete(Mockito.argThat(matcherTenant),
+                    Mockito.isNull());
+        } else {
+            Mockito.verify(tbClusterService, times( cntTime)).onTenantChange(Mockito.argThat(matcherTenant),
+                    Mockito.isNull());
+        }
+        TenantId tenantId = cntTime == 1 ? tenant.getId() : (TenantId) createEntityId_NULL_UUID(tenant);
+        testBroadcastEntityStateChangeEventTime(tenantId, tenantId,  cntTime);
+        Mockito.reset(tbClusterService, auditLogService);
+    }
+
+    private void testBroadcastEntityStateChangeEventNeverTenant() {
+        Mockito.verify(tbClusterService, never()).onTenantChange(Mockito.any(Tenant.class),
+                    Mockito.isNull());
+        testBroadcastEntityStateChangeEventNever(createEntityId_NULL_UUID(new Tenant()));
+        Mockito.reset(tbClusterService, auditLogService);
     }
 }

@@ -226,56 +226,23 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         Assert.assertEquals(savedDeviceProfile.getId(), foundDeviceProfileInfo.getId());
         Assert.assertEquals(savedDeviceProfile.getName(), foundDeviceProfileInfo.getName());
         Assert.assertEquals(savedDeviceProfile.getType(), foundDeviceProfileInfo.getType());
+    }
 
-        Customer customer = new Customer();
-        customer.setTitle("Customer");
-        customer.setTenantId(savedTenant.getId());
-        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+    @Test
+    public void testFindDeviceProfileInfoById_NewCustomerNewUser() throws Exception {
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        DeviceProfile savedDeviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
 
-        Role role = new Role();
-        role.setTenantId(savedTenant.getId());
-        role.setCustomerId(savedCustomer.getId());
-        role.setType(RoleType.GENERIC);
-        role.setName("Test customer administrator");
-        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+        loginNewCustomerNewUser();
 
-        role = doPost("/api/role", role, Role.class);
-
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName("Test customer administrators");
-        entityGroup.setType(EntityType.USER);
-        entityGroup.setOwnerId(savedCustomer.getId());
-        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
-
-        GroupPermission groupPermission = new GroupPermission(
-                tenantId,
-                entityGroup.getId(),
-                role.getId(),
-                null,
-                null,
-                false
-        );
-
-        doPost("/api/groupPermission", groupPermission, GroupPermission.class);
-
-        User customerUser = new User();
-        customerUser.setAuthority(Authority.CUSTOMER_USER);
-        customerUser.setTenantId(savedTenant.getId());
-        customerUser.setCustomerId(savedCustomer.getId());
-        customerUser.setEmail("customer2@thingsboard.org");
-
-        createUser(customerUser, "customer", entityGroup.getId());
-
-        login("customer2@thingsboard.org", "customer");
-
-        foundDeviceProfileInfo = doGet("/api/deviceProfileInfo/" + savedDeviceProfile.getId().getId().toString(), DeviceProfileInfo.class);
+        DeviceProfileInfo foundDeviceProfileInfo = doGet("/api/deviceProfileInfo/" + savedDeviceProfile.getId().getId().toString(), DeviceProfileInfo.class);
         Assert.assertNotNull(foundDeviceProfileInfo);
         Assert.assertEquals(savedDeviceProfile.getId(), foundDeviceProfileInfo.getId());
         Assert.assertEquals(savedDeviceProfile.getName(), foundDeviceProfileInfo.getName());
         Assert.assertEquals(savedDeviceProfile.getType(), foundDeviceProfileInfo.getType());
     }
 
-    @Test
+        @Test
     public void whenGetDeviceProfileInfoById_thenPermissionsAreChecked() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfile("Device profile 1", null);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -470,6 +437,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new DeviceProfile(), new DeviceProfile(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+        Mockito.reset(tbClusterService, auditLogService);
 
         List<DeviceProfile> loadedDeviceProfiles = new ArrayList<>();
         pageLink = new PageLink(17);
@@ -1156,4 +1124,48 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
                 .getMergedPermissions(argThat(user -> user.getId().equals(userId)), anyBoolean());
     }
 
+
+    private void loginNewCustomerNewUser()  throws Exception {
+
+        Customer customer = new Customer();
+        customer.setTitle("Customer");
+        customer.setTenantId(savedTenant.getId());
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Role role = new Role();
+        role.setTenantId(savedTenant.getId());
+        role.setCustomerId(savedCustomer.getId());
+        role.setType(RoleType.GENERIC);
+        role.setName("Test customer administrator");
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+
+        role = doPost("/api/role", role, Role.class);
+
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Test customer administrators");
+        entityGroup.setType(EntityType.USER);
+        entityGroup.setOwnerId(savedCustomer.getId());
+        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        GroupPermission groupPermission = new GroupPermission(
+                tenantId,
+                entityGroup.getId(),
+                role.getId(),
+                null,
+                null,
+                false
+        );
+
+        doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+
+        User customerUser = new User();
+        customerUser.setAuthority(Authority.CUSTOMER_USER);
+        customerUser.setTenantId(savedTenant.getId());
+        customerUser.setCustomerId(savedCustomer.getId());
+        customerUser.setEmail("customer2@thingsboard.org");
+
+        createUser(customerUser, "customer", entityGroup.getId());
+
+        login("customer2@thingsboard.org", "customer");
+    }
 }

@@ -36,14 +36,17 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,6 +93,9 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
 
     @Test
     public void testSaveTbResource() throws Exception {
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         TbResource resource = new TbResource();
         resource.setResourceType(ResourceType.JKS);
         resource.setTitle("My first resource");
@@ -97,6 +103,10 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
         resource.setData("Test Data");
 
         TbResource savedResource = save(resource);
+
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedResource, savedResource.getId(), savedResource.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED);
 
         Assert.assertNotNull(savedResource);
         Assert.assertNotNull(savedResource.getId());
@@ -113,6 +123,10 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
 
         TbResource foundResource = doGet("/api/resource/" + savedResource.getId().getId().toString(), TbResource.class);
         Assert.assertEquals(foundResource.getTitle(), savedResource.getTitle());
+
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(foundResource, foundResource.getId(), foundResource.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.UPDATED);
     }
 
     @Test
@@ -122,7 +136,16 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
         resource.setTitle(RandomStringUtils.randomAlphabetic(300));
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setData("Test Data");
-        doPost("/api/resource", resource).andExpect(statusReason(containsString("length of title must be equal or less than 255")));
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = msgErrorFieldLength("title");
+        doPost("/api/resource", resource)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(resource, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
     @Test
@@ -133,10 +156,24 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
         resource.setFileName(DEFAULT_FILE_NAME);
         resource.setData("Test Data");
 
-        TbResource savedResource = save(resource);
+       TbResource savedResource = save(resource);
 
         loginDifferentTenant();
-        doPostWithTypedResponse("/api/resource", savedResource, new TypeReference<>(){}, status().isForbidden());
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        doPost("/api/resource", savedResource)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "TB_RESOURCE" + " '" + resource.getTitle() +"'!")));
+
+        testNotifyEntityNever(savedResource.getId(), savedResource);
+
+        doDelete("/api/resource/" + savedResource.getId().getId().toString())
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + "TB_RESOURCE" + " '" + resource.getTitle() +"'!")));
+
+        testNotifyEntityNever(savedResource.getId(), savedResource);
+
         deleteDifferentTenant();
     }
 
@@ -165,17 +202,29 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
 
         TbResource savedResource = save(resource);
 
-        doDelete("/api/resource/" + savedResource.getId().getId().toString())
+        Mockito.reset(tbClusterService, auditLogService);
+        String resourceIdStr = savedResource.getId().getId().toString();
+        doDelete("/api/resource/" + resourceIdStr)
                 .andExpect(status().isOk());
 
+
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedResource, savedResource.getId(), savedResource.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                                ActionType.DELETED, resourceIdStr);
+
         doGet("/api/resource/" + savedResource.getId().getId().toString())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Resource", resourceIdStr))));
     }
 
     @Test
     public void testFindTenantTbResources() throws Exception {
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         List<TbResourceInfo> resources = new ArrayList<>();
-        for (int i = 0; i < 173; i++) {
+        int cntEntity = 173;
+        for (int i = 0; i < cntEntity; i++) {
             TbResource resource = new TbResource();
             resource.setTitle("Resource" + i);
             resource.setResourceType(ResourceType.JKS);
@@ -188,13 +237,17 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
         PageData<TbResourceInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/resource?",
-                    new TypeReference<PageData<TbResourceInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedResources.addAll(pageData.getData());
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
             }
         } while (pageData.hasNext());
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new TbResource(), new TbResource(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, cntEntity);
 
         Collections.sort(resources, idComparator);
         Collections.sort(loadedResources, idComparator);
@@ -220,7 +273,7 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
         PageData<TbResourceInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/resource?",
-                    new TypeReference<PageData<TbResourceInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedResources.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -233,16 +286,23 @@ public abstract class BaseTbResourceControllerTest extends AbstractControllerTes
 
         Assert.assertEquals(resources, loadedResources);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
+        int cntEntity = resources.size();
         for (TbResourceInfo resource : resources) {
             doDelete("/api/resource/" + resource.getId().getId().toString())
                     .andExpect(status().isOk());
         }
 
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new TbResource(), new TbResource(),
+                resources.get(0).getTenantId(), null, null, SYS_ADMIN_EMAIL,
+                ActionType.DELETED, cntEntity, 1);
+
         pageLink = new PageLink(27);
         loadedResources.clear();
         do {
             pageData = doGetTypedWithPageLink("/api/resource?",
-                    new TypeReference<PageData<TbResourceInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedResources.addAll(pageData.getData());
             if (pageData.hasNext()) {
