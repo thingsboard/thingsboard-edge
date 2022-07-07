@@ -42,6 +42,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -242,6 +243,8 @@ public interface TbContext {
     EdgeEventService getEdgeEventService();
 
     QueueService getQueueService();
+
+    CloudEventService getCloudEventService();
 
     ListeningExecutor getMailExecutor();
 

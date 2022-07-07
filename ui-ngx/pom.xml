@@ -20,14 +20,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>3.4.0EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <groupId>org.thingsboard</groupId>
     <artifactId>ui-ngx</artifactId>
     <packaging>jar</packaging>
 
-    <name>ThingsBoard Server UI</name>
+    <name>ThingsBoard Edge Server UI</name>
     <url>https://thingsboard.io</url>
 
     <properties>

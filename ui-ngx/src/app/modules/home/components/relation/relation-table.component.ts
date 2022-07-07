@@ -49,6 +49,8 @@ import { RelationsDatasource } from '../../models/datasource/relation-datasource
 import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
+import { EntityType } from '@shared/models/entity-type.models';
 
 @Component({
   selector: 'tb-relation-table',
@@ -103,6 +105,16 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
         }
       }
     }
+  }
+
+  private readonlyValue: boolean;
+  get readonly(): boolean {
+    return this.readonlyValue;
+  }
+
+  @Input()
+  set readonly(value: boolean) {
+    this.readonlyValue = coerceBooleanProperty(value);
   }
 
   @ViewChild('searchInput') searchInputField: ElementRef;
@@ -232,6 +244,14 @@ export class RelationTableComponent extends PageComponent implements AfterViewIn
 
   editRelation($event: Event, relation: EntityRelationInfo) {
     this.openRelationDialog($event, relation);
+  }
+
+  isRelationEditable(relation: EntityRelationInfo): boolean {
+    if (this.readonly) {
+      return false;
+    }
+    const entityType = this.direction === EntitySearchDirection.FROM ? relation.to.entityType : relation.from.entityType;
+    return entityType === EntityType.DEVICE || entityType === EntityType.ASSET;
   }
 
   deleteRelation($event: Event, relation: EntityRelationInfo) {

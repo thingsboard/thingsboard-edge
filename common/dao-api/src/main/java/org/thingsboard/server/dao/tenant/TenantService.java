@@ -35,6 +35,8 @@ public interface TenantService {
 
     Tenant saveTenant(Tenant tenant);
 
+    Tenant saveTenant(Tenant tenant, boolean doValidate);
+    
     boolean tenantExists(TenantId tenantId);
 
     void deleteTenant(TenantId tenantId);

@@ -18,11 +18,12 @@ package org.thingsboard.server.controller;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
@@ -30,18 +31,21 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
@@ -97,9 +101,16 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testSaveEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
         Assert.assertNotNull(savedEdge);
@@ -110,25 +121,64 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(NULL_UUID, savedEdge.getCustomerId().getId());
         Assert.assertEquals(edge.getName(), savedEdge.getName());
 
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedEdge, savedEdge.getId(), savedEdge.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED);
+
         savedEdge.setName("My new edge");
         doPost("/api/edge", savedEdge, Edge.class);
 
         Edge foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(foundEdge.getName(), savedEdge.getName());
+
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(foundEdge, foundEdge.getId(), foundEdge.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.UPDATED);
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testSaveEdgeWithViolationOfLengthValidation() throws Exception {
         Edge edge = constructEdge(RandomStringUtils.randomAlphabetic(300), "default");
-        doPost("/api/edge", edge).andExpect(statusReason(containsString("length of name must be equal or less than 255")));
+        String msgError = msgErrorFieldLength("name");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        doPost("/api/edge", edge)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        Mockito.reset(tbClusterService, auditLogService);
+
+        msgError = msgErrorFieldLength("type");
         edge.setName("normal name");
         edge.setType(RandomStringUtils.randomAlphabetic(300));
-        doPost("/api/edge", edge).andExpect(statusReason(containsString("length of type must be equal or less than 255")));
+        doPost("/api/edge", edge)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        Mockito.reset(tbClusterService, auditLogService);
+
+        msgError = msgErrorFieldLength("label");
         edge.setType("normal type");
         edge.setLabel(RandomStringUtils.randomAlphabetic(300));
-        doPost("/api/edge", edge).andExpect(statusReason(containsString("length of label must be equal or less than 255")));
+        doPost("/api/edge", edge)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindEdgeById() throws Exception {
         Edge edge = constructEdge("My edge", "default");
@@ -138,13 +188,26 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedEdge, foundEdge);
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindEdgeTypesByTenantId() throws Exception {
         List<Edge> edges = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
+
+        int cntEntity = 3;
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        for (int i = 0; i < cntEntity; i++) {
             Edge edge = constructEdge("My edge B" + i, "typeB");
             edges.add(doPost("/api/edge", edge, Edge.class));
         }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Edge(), new Edge(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, cntEntity, 0);
+
         for (int i = 0; i < 7; i++) {
             Edge edge = constructEdge("My edge C" + i, "typeC");
             edges.add(doPost("/api/edge", edge, Edge.class));
@@ -154,7 +217,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
             edges.add(doPost("/api/edge", edge, Edge.class));
         }
         List<EntitySubtype> edgeTypes = doGetTyped("/api/edge/types",
-                new TypeReference<List<EntitySubtype>>() {
+                new TypeReference<>() {
                 });
 
         Assert.assertNotNull(edgeTypes);
@@ -164,34 +227,67 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals("typeC", edgeTypes.get(2).getType());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testDeleteEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         doDelete("/api/edge/" + savedEdge.getId().getId().toString())
                 .andExpect(status().isOk());
 
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedEdge, savedEdge.getId(), savedEdge.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.DELETED, savedEdge.getId().getId().toString());
+
         doGet("/api/edge/" + savedEdge.getId().getId().toString())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Edge", savedEdge.getId().getId().toString()))));
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testSaveEdgeWithEmptyType() throws Exception {
         Edge edge = constructEdge("My edge", null);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "Edge type " + msgErrorShouldBeSpecified;
         doPost("/api/edge", edge)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Edge type should be specified")));
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testSaveEdgeWithEmptyName() throws Exception {
         Edge edge = constructEdge(null, "default");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "Edge name " + msgErrorShouldBeSpecified;
         doPost("/api/edge", edge)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Edge name should be specified")));
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(edge, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testAssignUnassignEdgeToCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
@@ -201,9 +297,15 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         customer.setTitle("My customer");
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         Edge assignedEdge = doPost("/api/customer/" + savedCustomer.getId().getId().toString()
                 + "/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(savedCustomer.getId(), assignedEdge.getCustomerId());
+
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(assignedEdge, assignedEdge.getId(), assignedEdge.getId(),
+                savedTenant.getId(), savedCustomer.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ASSIGNED_TO_CUSTOMER,
+                assignedEdge.getId().getId().toString(), savedCustomer.getId().getId().toString(), savedCustomer.getTitle());
 
         Edge foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(savedCustomer.getId(), foundEdge.getCustomerId());
@@ -212,20 +314,39 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 doDelete("/api/customer/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(ModelConstants.NULL_UUID, unassignedEdge.getCustomerId().getId());
 
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(unassignedEdge, unassignedEdge.getId(), unassignedEdge.getId(),
+                savedTenant.getId(), savedCustomer.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UNASSIGNED_FROM_CUSTOMER,
+                unassignedEdge.getId().getId().toString(), savedCustomer.getId().getId().toString(), savedCustomer.getTitle());
+
         foundEdge = doGet("/api/edge/" + savedEdge.getId().getId().toString(), Edge.class);
         Assert.assertEquals(ModelConstants.NULL_UUID, foundEdge.getCustomerId().getId());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testAssignEdgeToNonExistentCustomer() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
-        doPost("/api/customer/" + Uuids.timeBased().toString()
-                + "/edge/" + savedEdge.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        Mockito.reset(tbClusterService, auditLogService);
+
+        CustomerId customerId = new CustomerId(Uuids.timeBased());
+        String customerIdStr = customerId.getId().toString();
+
+        String msgError = msgErrorNoFound("Customer", customerIdStr);
+        doPost("/api/customer/" + customerIdStr+ "/edge/" + savedEdge.getId().getId().toString())
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityNever(savedEdge.getId(), savedEdge);
+        testNotifyEntityNever(customerId, new Customer());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testAssignEdgeToCustomerFromDifferentTenant() throws Exception {
         loginSysAdmin();
@@ -242,7 +363,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         tenantAdmin2.setFirstName("Joe");
         tenantAdmin2.setLastName("Downs");
 
-        tenantAdmin2 = createUserAndLogin(tenantAdmin2, "testPassword1");
+        createUserAndLogin(tenantAdmin2, "testPassword1");
 
         Customer customer = new Customer();
         customer.setTitle("Different customer");
@@ -253,9 +374,15 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         doPost("/api/customer/" + savedCustomer.getId().getId().toString()
                 + "/edge/" + savedEdge.getId().getId().toString())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgErrorPermission)));
+
+        testNotifyEntityNever(savedEdge.getId(), savedEdge);
+        testNotifyEntityNever(savedCustomer.getId(), savedCustomer);
 
         loginSysAdmin();
 
@@ -263,6 +390,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindTenantEdges() throws Exception {
         List<Edge> edges = new ArrayList<>();
@@ -275,7 +405,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                    new TypeReference<PageData<Edge>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedEdges.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -289,6 +419,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edges, loadedEdges);
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindTenantEdgesByName() throws Exception {
         String title1 = "Edge title 1";
@@ -352,7 +485,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -364,12 +497,15 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/tenant/edges?",
-                new TypeReference<PageData<Edge>>() {
+                new TypeReference<>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindTenantEdgesByType() throws Exception {
         String title1 = "Edge title 1";
@@ -453,6 +589,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindCustomerEdges() throws Exception {
         Customer customer = new Customer();
@@ -460,13 +599,21 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         customer = doPost("/api/customer", customer, Customer.class);
         CustomerId customerId = customer.getId();
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         List<Edge> edges = new ArrayList<>();
-        for (int i = 0; i < 128; i++) {
+        int cntEntity = 128;
+        for (int i = 0; i < cntEntity; i++) {
             Edge edge = constructEdge("Edge" + i, "default");
             edge = doPost("/api/edge", edge, Edge.class);
             edges.add(doPost("/api/customer/" + customerId.getId().toString()
                     + "/edge/" + edge.getId().getId().toString(), Edge.class));
         }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Edge(), new Edge(),
+                savedTenant.getId(), customerId, tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ASSIGNED_TO_CUSTOMER, ActionType.ASSIGNED_TO_CUSTOMER, cntEntity, cntEntity, cntEntity * 2,
+                new String(), new String(), new String());
 
         List<Edge> loadedEdges = new ArrayList<>();
         PageLink pageLink = new PageLink(23);
@@ -487,6 +634,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edges, loadedEdges);
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindCustomerEdgesByName() throws Exception {
         Customer customer = new Customer();
@@ -518,7 +668,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         }
 
         List<Edge> loadedEdgesTitle1 = new ArrayList<>();
-        PageLink pageLink = new PageLink(15,0, title1);
+        PageLink pageLink = new PageLink(15, 0, title1);
         PageData<Edge> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
@@ -536,7 +686,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edgesTitle1, loadedEdgesTitle1);
 
         List<Edge> loadedEdgesTitle2 = new ArrayList<>();
-        pageLink = new PageLink(4,0, title2);
+        pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
                     new TypeReference<PageData<Edge>>() {
@@ -552,10 +702,17 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         Assert.assertEquals(edgesTitle2, loadedEdgesTitle2);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         for (Edge edge : loadedEdgesTitle1) {
             doDelete("/api/customer/edge/" + edge.getId().getId().toString())
                     .andExpect(status().isOk());
         }
+
+        int cntEntity = loadedEdgesTitle1.size();
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Edge(), new Edge(),
+                savedTenant.getId(), customerId, tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.UNASSIGNED_FROM_CUSTOMER, ActionType.UNASSIGNED_FROM_CUSTOMER, cntEntity, cntEntity, 3);
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/customer/" + customerId.getId().toString() + "/edges?",
@@ -577,6 +734,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testFindCustomerEdgesByType() throws Exception {
         Customer customer = new Customer();
@@ -669,6 +829,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testSyncEdge() throws Exception {
         Edge edge = doPost("/api/edge", constructEdge("Test Sync Edge", "test"), Edge.class);
@@ -690,10 +853,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(11);
+        edgeImitator.expectMessageAmount(12);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class)).as("one msg once device assigned to edge").hasSize(1);
@@ -701,10 +865,11 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(UserUpdateMsg.class)).as("one msg during sync process for tenant admin user").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(4);
 
-        edgeImitator.expectMessageAmount(8);
+        edgeImitator.expectMessageAmount(9);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetUpdateMsg.class)).as("asset update msg").hasSize(1);
@@ -714,7 +879,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         edgeImitator.allowIgnoredTypes();
         try {
             edgeImitator.disconnect();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         doDelete("/api/device/" + savedDevice.getId().getId().toString())
                 .andExpect(status().isOk());

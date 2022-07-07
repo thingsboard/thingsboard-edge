@@ -31,6 +31,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
@@ -652,6 +653,9 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         return loadedItems;
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testAssignEntityViewToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");

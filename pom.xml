@@ -20,10 +20,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.4.0EDGE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Thingsboard</name>
+    <name>Thingsboard Edge</name>
     <url>https://thingsboard.io</url>
     <inceptionYear>2016</inceptionYear>
 
@@ -138,6 +138,7 @@
         <opensmpp.version>3.0.0</opensmpp.version>
         <jgit.version>6.1.0.202203080745-r</jgit.version>
         <aerogear-otp.version>1.0.0</aerogear-otp.version>
+        <dotenv-java.version>2.2.0</dotenv-java.version>
     </properties>
 
     <modules>
@@ -145,7 +146,7 @@
         <module>common</module>
         <module>rule-engine</module>
         <module>dao</module>
-        <module>transport</module>
+<!--        <module>transport</module>-->
         <module>ui-ngx</module>
         <module>tools</module>
         <module>application</module>
@@ -1910,6 +1911,12 @@
                 <groupId>org.eclipse.jgit</groupId>
                 <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
                 <version>${jgit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.cdimascio</groupId>
+                <artifactId>dotenv-java</artifactId>
+                <version>${dotenv-java.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -27,6 +27,8 @@ public interface QueueService {
 
     Queue saveQueue(Queue queue);
 
+    Queue saveQueue(Queue queue, boolean doValidate);
+
     void deleteQueue(TenantId tenantId, QueueId queueId);
 
     List<Queue> findQueuesByTenantId(TenantId tenantId);

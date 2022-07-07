@@ -50,7 +50,7 @@ export SQL_DATA_FOLDER=${SQL_DATA_FOLDER:-/tmp}
 
 run_user="$USER"
 
-sudo -u "$run_user" -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardInstallApplication \
+sudo -u "$run_user" -s /bin/sh -c "java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeInstallApplication \
                     -Dinstall.data_dir=${installDir} \
                     -Dinstall.load_demo=${loadDemo} \
                     -Dspring.jpa.hibernate.ddl-auto=none \

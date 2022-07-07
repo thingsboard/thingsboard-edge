@@ -154,6 +154,13 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           this.config.componentsData.dashboardScope === 'edge_customer_user');
         this.config.entitiesDeleteEnabled = this.config.componentsData.dashboardScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.dashboardScope === 'tenant';
+
+        // edge read-only
+        this.config.detailsReadonly = () => true;
+        this.config.deleteEnabled = () => false;
+        this.config.addEnabled = false;
+        this.config.entitiesDeleteEnabled = false;
+
         return this.config;
       })
     );
@@ -213,7 +220,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        {
+       /* {
           name: this.translate.instant('dashboard.make-public'),
           icon: 'share',
           isEnabled: (entity) => !isPublicDashboard(entity),
@@ -230,7 +237,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_ind',
           isEnabled: () => true,
           onAction: ($event, entity) => this.manageAssignedCustomers($event, entity)
-        }
+        }*/
       );
     }
     if (dashboardScope === 'customer') {
@@ -241,7 +248,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           isEnabled: () => true,
           onAction: ($event, entity) => this.exportDashboard($event, entity)
         },
-        {
+       /* {
           name: this.translate.instant('dashboard.make-private'),
           icon: 'reply',
           isEnabled: (entity) => isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
@@ -252,7 +259,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           icon: 'assignment_return',
           isEnabled: (entity) => !isCurrentPublicDashboardCustomer(entity, this.config.componentsData.customerId),
           onAction: ($event, entity) => this.unassignFromCustomer($event, entity, this.config.componentsData.customerId)
-        }
+        }*/
       );
     }
     if (dashboardScope === 'edge') {
@@ -276,7 +283,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
 
   configureGroupActions(dashboardScope: string): Array<GroupActionDescriptor<DashboardInfo>> {
     const actions: Array<GroupActionDescriptor<DashboardInfo>> = [];
-    if (dashboardScope === 'tenant') {
+   /* if (dashboardScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('dashboard.assign-dashboards'),
@@ -314,13 +321,13 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
           onAction: ($event, entities) => this.unassignDashboardsFromEdge($event, entities)
         }
       );
-    }
+    }*/
     return actions;
   }
 
   configureAddActions(dashboardScope: string): Array<HeaderActionDescriptor> {
     const actions: Array<HeaderActionDescriptor> = [];
-    if (dashboardScope === 'tenant') {
+    /*if (dashboardScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('dashboard.create-new-dashboard'),
@@ -356,6 +363,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         }
       );
     }
+    */
     return actions;
   }
 

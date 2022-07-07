@@ -38,6 +38,8 @@ import { ApiUsageModule } from '@home/pages/api-usage/api-usage.module';
 import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { VcModule } from '@home/pages/vc/vc.module';
+import { CloudEventModule } from '@home/pages/cloud-event/cloud-event.module';
+import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
 
 @NgModule({
   exports: [
@@ -60,7 +62,9 @@ import { VcModule } from '@home/pages/vc/vc.module';
     ApiUsageModule,
     OtaUpdateModule,
     UserModule,
-    VcModule
+    VcModule,
+    CloudEventModule,
+    EdgeStatusModule
   ],
   providers: [
     {

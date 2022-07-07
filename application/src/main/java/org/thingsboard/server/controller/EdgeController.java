@@ -35,9 +35,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeInfo;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -46,6 +48,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -53,8 +56,8 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeBulkImportService;
 import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
-import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportRequest;
-import org.thingsboard.server.service.sync.ie.importing.csv.BulkImportResult;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
@@ -148,8 +151,8 @@ public class EdgeController extends BaseController {
     @RequestMapping(value = "/edge", method = RequestMethod.POST)
     @ResponseBody
     public Edge saveEdge(@ApiParam(value = "A JSON value representing the edge.", required = true)
-                         @RequestBody Edge edge) throws ThingsboardException {
-        TenantId tenantId = getCurrentUser().getTenantId();
+                         @RequestBody Edge edge) throws Exception {
+        TenantId tenantId = getTenantId();
         edge.setTenantId(tenantId);
         boolean created = edge.getId() == null;
 
@@ -352,7 +355,7 @@ public class EdgeController extends BaseController {
     public Edge setEdgeRootRuleChain(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                      @PathVariable(EDGE_ID) String strEdgeId,
                                      @ApiParam(value = RULE_CHAIN_ID_PARAM_DESCRIPTION, required = true)
-                                     @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
+                                     @PathVariable("ruleChainId") String strRuleChainId) throws Exception {
         checkParameter(EDGE_ID, strEdgeId);
         checkParameter("ruleChainId", strRuleChainId);
         RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
@@ -578,4 +581,38 @@ public class EdgeController extends BaseController {
 
         return edgeBulkImportService.processBulkImport(request, user);
     }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeSettings getEdgeSettings() throws ThingsboardException {
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<CloudEvent> getCloudEvents(
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 }

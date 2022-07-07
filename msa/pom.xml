@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.0-SNAPSHOT</version>
+        <version>3.4.0EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>msa</artifactId>
@@ -34,18 +34,20 @@
         <docker.repo>thingsboard</docker.repo>
         <dockerfile.skip>true</dockerfile.skip>
         <blackBoxTests.skip>true</blackBoxTests.skip>
+        <edgeBlackBoxTests.skip>true</edgeBlackBoxTests.skip>
         <dockerfile-maven.version>1.4.13</dockerfile-maven.version>
         <docker.push-arm-amd-image.phase>none</docker.push-arm-amd-image.phase>
     </properties>
 
     <modules>
-        <module>tb</module>
-        <module>vc-executor</module>
-        <module>vc-executor-docker</module>
-        <module>js-executor</module>
-        <module>web-ui</module>
-        <module>tb-node</module>
-        <module>transport</module>
+<!--        <module>tb</module>-->
+<!--        <module>vc-executor</module>-->
+<!--        <module>vc-executor-docker</module>-->
+<!--        <module>js-executor</module>-->
+<!--        <module>web-ui</module>-->
+<!--        <module>tb-node</module>-->
+<!--        <module>transport</module>-->
+        <module>tb-edge</module>
     </modules>
 
     <profiles>
@@ -59,6 +61,18 @@
             </activation>
             <modules>
                 <module>black-box-tests</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>edge-black-box-tests</id>
+            <activation>
+                <property>
+                    <name>edgeBlackBoxTests.skip</name>
+                    <value>false</value>
+                </property>
+            </activation>
+            <modules>
+                <module>edge-black-box-tests</module>
             </modules>
         </profile>
         <profile>

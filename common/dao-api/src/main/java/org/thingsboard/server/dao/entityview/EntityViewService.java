@@ -35,6 +35,8 @@ import java.util.List;
  */
 public interface EntityViewService {
 
+    EntityView saveEntityView(EntityView entityView, boolean doValidate);
+
     EntityView saveEntityView(EntityView entityView);
 
     EntityView assignEntityViewToCustomer(TenantId tenantId, EntityViewId entityViewId, CustomerId customerId);

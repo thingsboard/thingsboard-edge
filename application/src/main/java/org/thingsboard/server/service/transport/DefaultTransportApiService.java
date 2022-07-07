@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.credentials.ProvisionDeviceCredentialsData;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
@@ -48,9 +49,11 @@ import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfig
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProvisionDeviceProfileCredentials;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -67,6 +70,7 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceProvisionService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.device.provision.ProvisionFailedException;
@@ -138,6 +142,8 @@ public class DefaultTransportApiService implements TransportApiService {
     private final OtaPackageService otaPackageService;
     private final OtaPackageDataCache otaPackageDataCache;
     private final QueueService queueService;
+
+    private final DeviceProfileService deviceProfileService;
 
     private final ConcurrentMap<String, ReentrantLock> deviceCreationLocks = new ConcurrentHashMap<>();
 
@@ -287,9 +293,17 @@ public class DefaultTransportApiService implements TransportApiService {
                     device = new Device();
                     device.setTenantId(tenantId);
                     device.setName(requestMsg.getDeviceName());
-                    device.setType(requestMsg.getDeviceType());
+
+                    // TODO: @voba device profiles are not created on edge at the moment
+                    String deviceType = checkDeviceTypeExistsOrDefault(tenantId, requestMsg.getDeviceType());
+                    device.setType(deviceType);
+                    // device.setType(requestMsg.getDeviceType());
+
                     device.setCustomerId(gateway.getCustomerId());
-                    DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), requestMsg.getDeviceType());
+
+                    DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), deviceType);
+                    //DeviceProfile deviceProfile = deviceProfileCache.findOrCreateDeviceProfile(gateway.getTenantId(), requestMsg.getDeviceType());
+
                     device.setDeviceProfileId(deviceProfile.getId());
                     ObjectNode additionalInfo = JacksonUtil.newObjectNode();
                     additionalInfo.put(DataConstants.LAST_CONNECTED_GATEWAY, gatewayId.toString());
@@ -311,6 +325,7 @@ public class DefaultTransportApiService implements TransportApiService {
                     ObjectNode entityNode = mapper.valueToTree(device);
                     TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, customerId, metaData, TbMsgDataType.JSON, mapper.writeValueAsString(entityNode));
                     tbClusterService.pushMsgToRuleEngine(tenantId, deviceId, tbMsg, null);
+                    sendDeviceAddedMsgToCloud(tenantId, deviceId);
                 } else {
                     JsonNode deviceAdditionalInfo = device.getAdditionalInfo();
                     if (deviceAdditionalInfo == null) {
@@ -343,6 +358,14 @@ public class DefaultTransportApiService implements TransportApiService {
                 deviceCreationLock.unlock();
             }
         }, dbCallbackExecutorService);
+    }
+
+    private String checkDeviceTypeExistsOrDefault(TenantId tenantId, String deviceType) {
+        DeviceProfile deviceProfileByName = deviceProfileService.findDeviceProfileByName(tenantId, deviceType);
+        if (deviceProfileByName != null) {
+            return deviceType;
+        }
+        return deviceProfileService.findDefaultDeviceProfile(tenantId).getName();
     }
 
     private ListenableFuture<TransportApiResponseMsg> handle(ProvisionDeviceRequestMsg requestMsg) {
@@ -553,6 +576,20 @@ public class DefaultTransportApiService implements TransportApiService {
     private TransportApiResponseMsg getEmptyTransportApiResponse() {
         return TransportApiResponseMsg.newBuilder()
                 .setValidateCredResponseMsg(ValidateDeviceCredentialsResponseMsg.getDefaultInstance()).build();
+    }
+
+    private void sendDeviceAddedMsgToCloud(TenantId tenantId, EntityId entityId) {
+        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
+        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
+        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
+        builder.setCloudEventType(CloudEventType.DEVICE.name());
+        builder.setCloudEventAction(EdgeEventActionType.ADDED.name());
+        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
+        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
+        builder.setEntityType(entityId.getEntityType().name());
+        TransportProtos.CloudNotificationMsgProto msg = builder.build();
+        tbClusterService.pushMsgToCore(tenantId, entityId,
+                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
     }
 
     private ListenableFuture<TransportApiResponseMsg> handle(TransportProtos.LwM2MRequestMsg requestMsg) {

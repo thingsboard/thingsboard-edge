@@ -233,7 +233,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   addingLayoutCtx: DashboardPageLayoutContext;
 
   private dashboardLogoCache: SafeUrl;
-  private defaultDashboardLogo = 'assets/logo_title_white.svg';
+  private defaultDashboardLogo = 'assets/logo_title_white_edge.svg';
 
   dashboardCtx: DashboardContext = {
     instanceId: this.utils.guid(),
@@ -437,6 +437,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       () => this.dashboardCtx.stateController,
       this.dashboardConfiguration.entityAliases,
       this.dashboardConfiguration.filters);
+
+    // edge read-only
+    this.readonly = true;
 
     this.updateDashboardCss();
 

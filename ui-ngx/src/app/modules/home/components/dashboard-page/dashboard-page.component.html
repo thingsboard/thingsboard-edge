@@ -88,7 +88,7 @@
                   (click)="toggleVersionControl($event, versionControlButton)">
             <mat-icon>history</mat-icon>
           </button>
-          <button [fxShow]="currentDashboardId && !isEdit && !isMobileApp && isTenantAdmin() && displayUpdateDashboardImage()" mat-icon-button
+          <button [fxShow]="currentDashboardId && !isEdit && !isMobileApp && isTenantAdmin() && displayUpdateDashboardImage() && false" mat-icon-button
                   matTooltip="{{'dashboard.update-image' | translate}}"
                   matTooltipPosition="below"
                   (click)="updateDashboardImage($event)">

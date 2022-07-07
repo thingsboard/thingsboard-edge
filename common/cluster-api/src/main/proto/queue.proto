@@ -85,6 +85,17 @@ message KeyValueProto {
   string json_v = 7;
 }
 
+message AttributeValueProto {
+  int64 lastUpdateTs = 1;
+  KeyValueType type = 2;
+  bool has_v = 3;
+  bool bool_v = 4;
+  int64 long_v = 5;
+  double double_v = 6;
+  string string_v = 7;
+  string json_v = 8;
+}
+
 message TsKvProto {
   int64 ts = 1;
   KeyValueProto kv = 2;
@@ -454,6 +465,14 @@ message GetOtaPackageResponseMsg {
   string fileName = 8;
 }
 
+message DeviceActivityProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 deviceIdMSB = 3;
+  int64 deviceIdLSB = 4;
+  int64 lastActivityTime = 5;
+}
+
 //Used to report session state to tb-Service and persist this state in the cache on the tb-Service level.
 message SubscriptionInfoProto {
   int64 lastActivityTime = 1;
@@ -676,6 +695,19 @@ message EdgeNotificationMsgProto {
   PostAttributeMsg postAttributesMsg = 12;
 }
 
+message CloudNotificationMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string cloudEventType = 3;
+  string cloudEventAction = 4;
+  int64 entityIdMSB = 5;
+  int64 entityIdLSB = 6;
+  string entityType = 7;
+  string entityBody = 8;
+  PostTelemetryMsg postTelemetryMsg = 9;
+  PostAttributeMsg postAttributesMsg = 10;
+}
+
 /**
    TB Core to Version Control Service
  */
@@ -707,7 +739,10 @@ message PrepareMsg {
 
 message AddMsg {
   string relativePath = 1;
-  string entityDataJson = 2;
+  string entityDataJsonChunk = 2;
+  string chunkedMsgId = 3;
+  int32 chunkIndex = 4;
+  int32 chunksCount = 5;
 }
 
 message DeleteMsg {
@@ -747,9 +782,8 @@ message ListVersionsResponseMsg {
 }
 
 message ListEntitiesRequestMsg {
-  string branchName = 1;
-  string versionId = 2;
-  string entityType = 3;
+  string versionId = 1;
+  string entityType = 2;
 }
 
 message VersionedEntityInfoProto {
@@ -765,8 +799,13 @@ message ListEntitiesResponseMsg {
 message ListBranchesRequestMsg {
 }
 
+message BranchInfoProto {
+  string name = 1;
+  bool isDefault = 2;
+}
+
 message ListBranchesResponseMsg {
-  repeated string branches = 1;
+  repeated BranchInfoProto branches = 1;
 }
 
 message EntityContentRequestMsg {
@@ -778,6 +817,9 @@ message EntityContentRequestMsg {
 
 message EntityContentResponseMsg {
   string data = 1;
+  string chunkedMsgId = 2;
+  int32 chunkIndex = 3;
+  int32 chunksCount = 4;
 }
 
 message EntitiesContentRequestMsg {
@@ -788,7 +830,8 @@ message EntitiesContentRequestMsg {
 }
 
 message EntitiesContentResponseMsg {
-  repeated string data = 1;
+  EntityContentResponseMsg item = 1;
+  int32 itemsCount = 2;
 }
 
 message VersionsDiffRequestMsg {
@@ -808,15 +851,6 @@ message EntityVersionsDiff {
   string entityDataAtVersion1 = 4;
   string entityDataAtVersion2 = 5;
   string rawDiff = 6;
-}
-
-message ContentsDiffRequestMsg {
-  string content1 = 1;
-  string content2 = 2;
-}
-
-message ContentsDiffResponseMsg {
-  string diff = 1;
 }
 
 message GenericRepositoryRequestMsg {}
@@ -840,7 +874,6 @@ message ToVersionControlServiceMsg {
   EntityContentRequestMsg entityContentRequest = 14;
   EntitiesContentRequestMsg entitiesContentRequest = 15;
   VersionsDiffRequestMsg versionsDiffRequest = 16;
-  ContentsDiffRequestMsg contentsDiffRequest = 17;
 }
 
 message VersionControlResponseMsg {
@@ -855,7 +888,6 @@ message VersionControlResponseMsg {
   EntityContentResponseMsg entityContentResponse = 9;
   EntitiesContentResponseMsg entitiesContentResponse = 10;
   VersionsDiffResponseMsg versionsDiffResponse = 11;
-  ContentsDiffResponseMsg contentsDiffResponse = 12;
 }
 
 /**
@@ -902,6 +934,8 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4;
   EdgeNotificationMsgProto edgeNotificationMsg = 5;
+  CloudNotificationMsgProto cloudNotificationMsg = 6;
+  DeviceActivityProto deviceActivityMsg = 7;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */

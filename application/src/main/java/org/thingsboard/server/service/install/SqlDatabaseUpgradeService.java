@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -121,6 +122,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Autowired
     private ApiUsageStateService apiUsageStateService;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
 
@@ -136,6 +138,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
+            /* voba - merge comment
             case "1.3.0":
                 log.info("Updating schema ...");
                 Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "1.3.1", SCHEMA_UPDATE_SQL);
@@ -543,6 +546,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed updating schema!!!", e);
                 }
                 break;
+             */
             case "3.3.3":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
@@ -553,7 +557,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     }
 
                     log.info("Updating TTL cleanup procedure for the event table...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.3", "schema_event_ttl_procedure.sql");
+                    Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.3", "schema_event_ttl_procedure.sql");
                     loadSql(schemaUpdateFile, conn);
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.3", SCHEMA_UPDATE_SQL);
                     loadSql(schemaUpdateFile, conn);
@@ -568,9 +572,10 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "3.3.4":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
-                    schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", SCHEMA_UPDATE_SQL);
+                    Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", SCHEMA_UPDATE_SQL);
                     loadSql(schemaUpdateFile, conn);
 
+                    /* TODO: @voba - queues are uploaded from the cloud
                     log.info("Loading queues...");
                     try {
                         if (!CollectionUtils.isEmpty(queueConfig.getQueues())) {
@@ -586,6 +591,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         }
                     } catch (Exception e) {
                     }
+                     */
 
                     log.info("Updating device profiles...");
                     schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.3.4", "schema_update_device_profile.sql");

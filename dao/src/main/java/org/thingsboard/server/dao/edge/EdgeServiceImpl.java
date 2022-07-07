@@ -146,8 +146,18 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Override
     public Edge saveEdge(Edge edge) {
+        return saveEdge(edge, true);
+    }
+
+    @Override
+    public Edge saveEdge(Edge edge, boolean doValidate) {
         log.trace("Executing saveEdge [{}]", edge);
-        Edge oldEdge = edgeValidator.validate(edge, Edge::getTenantId);
+        Edge oldEdge = null;
+        if (doValidate) {
+            oldEdge = edgeValidator.validate(edge, Edge::getTenantId);
+        } else if (edge.getId() != null) {
+            oldEdge = findEdgeById(edge.getTenantId(), edge.getId());
+        }
         EdgeCacheEvictEvent evictEvent = new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), oldEdge != null ? oldEdge.getName() : null);
         try {
             var savedEdge = edgeDao.save(edge.getTenantId(), edge);

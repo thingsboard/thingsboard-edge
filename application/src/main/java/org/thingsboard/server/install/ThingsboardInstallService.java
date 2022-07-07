@@ -87,7 +87,7 @@ public class ThingsboardInstallService {
     public void performInstall() {
         try {
             if (isUpgrade) {
-                log.info("Starting ThingsBoard Upgrade from version {} ...", upgradeFromVersion);
+                log.info("Starting ThingsBoard Edge Upgrade from version {} ...", upgradeFromVersion);
 
                 cacheCleanupService.clearCache(upgradeFromVersion);
 
@@ -101,6 +101,7 @@ public class ThingsboardInstallService {
                     latestMigrateService.migrate();
                 } else {
                     switch (upgradeFromVersion) {
+                        /* merge comment
                         case "1.2.3": //NOSONAR, Need to execute gradual upgrade starting from upgradeFromVersion
                             log.info("Upgrading ThingsBoard from version 1.2.3 to 1.3.0 ...");
 
@@ -214,29 +215,39 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.3.2 to 3.3.3 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.2");
                             dataUpdateService.updateData("3.3.2");
+                         */
                         case "3.3.3":
-                            log.info("Upgrading ThingsBoard from version 3.3.3 to 3.3.4 ...");
+                            log.info("Upgrading ThingsBoard Edge from version 3.3.3 to 3.3.4 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.3");
                         case "3.3.4":
-                            log.info("Upgrading ThingsBoard from version 3.3.4 to 3.4.0 ...");
+                        case "3.3.4.1":
+                            log.info("Upgrading ThingsBoard Edge from version 3.3.4 to 3.4.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.3.4");
+
+                            // reset full sync required - to upload latest widgets from cloud
+                            // fromVersion must be updated per release
+                            // DefaultDataUpdateService must be updated as well
                             dataUpdateService.updateData("3.3.4");
-                            log.info("Updating system data...");
-                            systemDataLoaderService.updateSystemWidgets();
+
+                            // @voba - system widgets update is not required - uploaded from cloud
+                            // log.info("Updating system data...");
+                            // systemDataLoaderService.updateSystemWidgets();
+
                             break;
 
                         //TODO update CacheCleanupService on the next version upgrade
 
                         default:
-                            throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
+                            throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
 
                     }
                 }
+
                 log.info("Upgrade finished successfully!");
 
             } else {
 
-                log.info("Starting ThingsBoard Installation...");
+                log.info("Starting ThingsBoard Edge Installation...");
 
                 log.info("Installing DataBase schema for entities...");
 
@@ -254,26 +265,26 @@ public class ThingsboardInstallService {
 
                 componentDiscoveryService.discoverComponents();
 
-                systemDataLoaderService.createSysAdmin();
+                // systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
-                systemDataLoaderService.loadSystemWidgets();
-                systemDataLoaderService.createOAuth2Templates();
-                systemDataLoaderService.createQueues();
+                // systemDataLoaderService.loadSystemWidgets();
+                // systemDataLoaderService.createOAuth2Templates();
+                // systemDataLoaderService.createQueues();
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
 
                 if (loadDemo) {
-                    log.info("Loading demo data...");
-                    systemDataLoaderService.loadDemoData();
+                    // log.info("Loading demo data...");
+                    // systemDataLoaderService.loadDemoData();
                 }
                 log.info("Installation finished successfully!");
             }
 
 
         } catch (Exception e) {
-            log.error("Unexpected error during ThingsBoard installation!", e);
-            throw new ThingsboardInstallException("Unexpected error during ThingsBoard installation!", e);
+            log.error("Unexpected error during ThingsBoard Edge installation!", e);
+            throw new ThingsboardInstallException("Unexpected error during ThingsBoard Edge installation!", e);
         } finally {
             SpringApplication.exit(context);
         }

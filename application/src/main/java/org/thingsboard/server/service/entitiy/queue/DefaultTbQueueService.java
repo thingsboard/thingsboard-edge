@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -29,6 +30,7 @@ import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -49,6 +51,7 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
     private static final String MAIN = "Main";
     private static final long DELETE_DELAY = 30;
 
+    private final QueueService queueService;
     private final TbClusterService tbClusterService;
     private final TbQueueAdmin tbQueueAdmin;
     private final DeviceProfileService deviceProfileService;
@@ -57,6 +60,11 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
     @Override
     public Queue saveQueue(Queue queue) {
         boolean create = queue.getId() == null;
+        return saveQueue(queue, create);
+    }
+
+    @Override
+    public Queue saveQueue(Queue queue, boolean create) {
         Queue oldQueue;
 
         if (create) {
@@ -73,6 +81,9 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
         } else {
             onQueueUpdated(savedQueue, oldQueue);
         }
+
+        notificationEntityService.notifySendMsgToEdgeService(queue.getTenantId(), savedQueue.getId(),
+                create ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
         return savedQueue;
     }
@@ -146,6 +157,8 @@ public class DefaultTbQueueService extends AbstractTbEntityService implements Tb
                 }
             }
         }, DELETE_DELAY, TimeUnit.SECONDS);
+
+        notificationEntityService.notifySendMsgToEdgeService(queue.getTenantId(), queue.getId(), EdgeEventActionType.DELETED);
     }
 
     @Override

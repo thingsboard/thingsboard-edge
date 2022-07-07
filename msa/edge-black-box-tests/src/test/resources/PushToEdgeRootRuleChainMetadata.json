@@ -1,0 +1,168 @@
+{
+  "firstNodeIndex": 1,
+  "nodes": [
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1101,
+        "layoutY": 68
+      },
+      "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
+      "name": "Push to Edge",
+      "debugMode": true,
+      "configuration": {
+        "scope": "CLIENT_SCOPE"
+      }
+    },
+    {
+      "additionalInfo": {
+        "description": "Process incoming messages from devices with the alarm rules defined in the device profile. Dispatch all incoming messages with \"Success\" relation type.",
+        "layoutX": 204,
+        "layoutY": 240
+      },
+      "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+      "name": "Device Profile Node",
+      "debugMode": true,
+      "configuration": {
+        "persistAlarmRulesState": false,
+        "fetchAlarmRulesStateOnStart": false
+      }
+    },
+    {
+      "additionalInfo": {
+        "description": null,
+        "layoutX": 824,
+        "layoutY": 156
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save Timeseries",
+      "debugMode": true,
+      "configuration": {
+        "defaultTTL": 7776000
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 825,
+        "layoutY": 52
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save Client Attributes",
+      "debugMode": false,
+      "configuration": {
+        "scope": "CLIENT_SCOPE"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 347,
+        "layoutY": 149
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+      "name": "Message Type Switch",
+      "debugMode": true,
+      "configuration": {
+        "version": 0
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 825,
+        "layoutY": 266
+      },
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log RPC from Device",
+      "debugMode": false,
+      "configuration": {
+        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 825,
+        "layoutY": 379
+      },
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log Other",
+      "debugMode": true,
+      "configuration": {
+        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 825,
+        "layoutY": 468
+      },
+      "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+      "name": "RPC Call Request",
+      "debugMode": false,
+      "configuration": {
+        "timeoutInSeconds": 60
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromIndex": 1,
+      "toIndex": 4,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 0,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 3,
+      "toIndex": 0,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Attributes Deleted"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Attributes Updated"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 6,
+      "type": "Other"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 3,
+      "type": "Post attributes"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 2,
+      "type": "Post telemetry"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 5,
+      "type": "RPC Request from Device"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 7,
+      "type": "RPC Request to Device"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Timeseries Deleted"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 0,
+      "type": "Timeseries Updated"
+    }
+  ],
+  "ruleChainConnections": null
+}

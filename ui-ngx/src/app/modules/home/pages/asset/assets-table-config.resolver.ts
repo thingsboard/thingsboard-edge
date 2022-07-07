@@ -155,6 +155,12 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         this.config.addEnabled = !(this.config.componentsData.assetScope === 'customer_user' || this.config.componentsData.assetScope === 'edge_customer_user');
         this.config.entitiesDeleteEnabled = this.config.componentsData.assetScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.assetScope === 'tenant';
+
+        // edge read-only
+        this.config.detailsReadonly = () => true;
+        this.config.deleteEnabled = () => false;
+        this.config.addEnabled = false;
+        this.config.entitiesDeleteEnabled = false;
         return this.config;
       })
     );
@@ -196,7 +202,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
 
   configureCellActions(assetScope: string): Array<CellActionDescriptor<AssetInfo>> {
     const actions: Array<CellActionDescriptor<AssetInfo>> = [];
-    if (assetScope === 'tenant') {
+    /*if (assetScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('asset.make-public'),
@@ -250,12 +256,13 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
+    */
     return actions;
   }
 
   configureGroupActions(assetScope: string): Array<GroupActionDescriptor<AssetInfo>> {
     const actions: Array<GroupActionDescriptor<AssetInfo>> = [];
-    if (assetScope === 'tenant') {
+    /*if (assetScope === 'tenant') {
       actions.push(
         {
           name: this.translate.instant('asset.assign-assets'),
@@ -285,6 +292,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
+    */
     return actions;
   }
 
@@ -306,7 +314,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
-    if (assetScope === 'customer') {
+    /*if (assetScope === 'customer') {
       actions.push(
         {
           name: this.translate.instant('asset.assign-new-asset'),
@@ -326,6 +334,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         }
       );
     }
+    */
     return actions;
   }
 

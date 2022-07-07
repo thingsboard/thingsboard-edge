@@ -101,7 +101,7 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
         device.setFirmwareId(createFirmware().getId());
         final Device savedDevice = doPost("/api/device", device, Device.class);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         assertThat(savedDevice).as("saved device").isNotNull();
         assertThat(getDeviceFromAPI(device.getId().getId())).as("fetched device").isEqualTo(savedDevice);
@@ -121,10 +121,14 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsNoSec(createNoSecClientCredentials(this.CLIENT_ENDPOINT_OTA5));
         final Device device = createDevice(deviceCredentials, this.CLIENT_ENDPOINT_OTA5);
         createNewClient(SECURITY_NO_SEC, COAP_CONFIG, false, this.CLIENT_ENDPOINT_OTA5, false, null);
+
+        // TODO: @voba - attempt to fix test
+        Thread.sleep(1000);
+
         device.setFirmwareId(createFirmware().getId());
         final Device savedDevice = doPost("/api/device", device, Device.class);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         assertThat(savedDevice).as("saved device").isNotNull();
         assertThat(getDeviceFromAPI(device.getId().getId())).as("fetched device").isEqualTo(savedDevice);
@@ -157,12 +161,12 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
         final Device device = createDevice(deviceCredentials, this.CLIENT_ENDPOINT_OTA9);
         createNewClient(SECURITY_NO_SEC, COAP_CONFIG, false, this.CLIENT_ENDPOINT_OTA9, false, null);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         device.setSoftwareId(createSoftware().getId());
         final Device savedDevice = doPost("/api/device", device, Device.class); //sync call
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         assertThat(savedDevice).as("saved device").isNotNull();
         assertThat(getDeviceFromAPI(device.getId().getId())).as("fetched device").isEqualTo(savedDevice);

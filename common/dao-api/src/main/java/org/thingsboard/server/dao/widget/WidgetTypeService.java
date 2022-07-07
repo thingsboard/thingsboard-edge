@@ -29,6 +29,8 @@ public interface WidgetTypeService {
 
     WidgetTypeDetails findWidgetTypeDetailsById(TenantId tenantId, WidgetTypeId widgetTypeId);
 
+    WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetType, boolean doValidate);
+
     WidgetTypeDetails saveWidgetType(WidgetTypeDetails widgetType);
 
     void deleteWidgetType(TenantId tenantId, WidgetTypeId widgetTypeId);

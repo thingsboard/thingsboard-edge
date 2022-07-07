@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.QueueId;
@@ -43,6 +44,7 @@ public class BaseQueueService extends AbstractEntityService implements QueueServ
     @Autowired
     private QueueDao queueDao;
 
+    @Lazy
     @Autowired
     private TbTenantProfileCache tenantProfileCache;
 
@@ -54,8 +56,15 @@ public class BaseQueueService extends AbstractEntityService implements QueueServ
 
     @Override
     public Queue saveQueue(Queue queue) {
+        return saveQueue(queue, true);
+    }
+
+    @Override
+    public Queue saveQueue(Queue queue, boolean doValidate) {
         log.trace("Executing createOrUpdateQueue [{}]", queue);
-        queueValidator.validate(queue, Queue::getTenantId);
+        if (doValidate) {
+            queueValidator.validate(queue, Queue::getTenantId);
+        }
         return queueDao.save(queue.getTenantId(), queue);
     }
 

@@ -22,6 +22,7 @@
           [fxShow]="!isEdit && !isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
+  <!--
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePublic')"
@@ -46,6 +47,7 @@
           [fxShow]="!isEdit && assetScope === 'edge'">
     {{ 'edge.unassign-from-edge' | translate }}
   </button>
+  -->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"

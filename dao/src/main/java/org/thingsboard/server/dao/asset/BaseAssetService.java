@@ -116,9 +116,23 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
+    public Asset saveAsset(Asset asset, boolean doValidate) {
+        return doSaveAsset(asset, doValidate);
+    }
+
+    @Override
     public Asset saveAsset(Asset asset) {
+        return doSaveAsset(asset, true);
+    }
+
+    private Asset doSaveAsset(Asset asset, boolean doValidate) {
         log.trace("Executing saveAsset [{}]", asset);
-        Asset oldAsset = assetValidator.validate(asset, Asset::getTenantId);
+        Asset oldAsset = null;
+        if (doValidate) {
+            oldAsset = assetValidator.validate(asset, Asset::getTenantId);
+        } else if (asset.getId() != null) {
+            oldAsset = findAssetById(asset.getTenantId(), asset.getId());
+        }
         Asset savedAsset;
         AssetCacheEvictEvent evictEvent = new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), oldAsset != null ? oldAsset.getName() : null);
         try {

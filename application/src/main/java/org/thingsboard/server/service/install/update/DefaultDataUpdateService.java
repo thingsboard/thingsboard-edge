@@ -22,7 +22,9 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
@@ -36,7 +38,12 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.QueueId;
+import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
@@ -45,7 +52,11 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
-import org.thingsboard.server.common.data.queue.*;
+import org.thingsboard.server.common.data.queue.ProcessingStrategy;
+import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
+import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.queue.SubmitStrategy;
+import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -53,8 +64,15 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
+import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
@@ -65,6 +83,7 @@ import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
@@ -115,8 +134,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private RateLimitsUpdater rateLimitsUpdater;
 
     @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    @Autowired
+    private CloudEventService cloudEventService;
+
+    @Autowired
     private TenantProfileService tenantProfileService;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
 
@@ -154,9 +180,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.3.4":
                 log.info("Updating data from version 3.3.4 to 3.4.0 ...");
-                rateLimitsUpdater.updateEntities();
                 tenantsProfileQueueConfigurationUpdater.updateEntities();
+                rateLimitsUpdater.updateEntities();
                 checkPointRuleNodesUpdater.updateEntities();
+
+                // remove this line in 4+ release
+                fixDuplicateSystemWidgetsBundles();
+
+                // reset full sync required - to upload latest widgets from cloud
+                tenantsFullSyncRequiredUpdater.updateEntities(null);
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -309,6 +341,56 @@ public class DefaultDataUpdateService implements DataUpdateService {
             log.error("Unable to update Tenant", e);
         }
     }
+
+    private void fixDuplicateSystemWidgetsBundles() {
+        try {
+            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+            for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
+                try {
+                    widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
+                } catch (IncorrectResultSizeDataAccessException e) {
+                    // fix for duplicate entries of system widgets
+                    for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+                        if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
+                            widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Unable to fix duplicate system widgets bundles", e);
+        }
+    }
+
+    private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants edge full sync required updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
+                        edgeSettings.setFullSyncRequired(true);
+                        cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
             new PaginatedUpdater<>() {

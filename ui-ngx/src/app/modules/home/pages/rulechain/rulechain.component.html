@@ -28,7 +28,7 @@
           [fxShow]="!isEdit">
     {{'rulechain.export' | translate }}
   </button>
-  <button mat-raised-button color="primary"
+  <!--<button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'setRoot')"
           [fxShow]="!isEdit && ((!entity?.root && ruleChainScope === 'tenant') || (!isEdgeRootRuleChain() && ruleChainScope === 'edge'))">
@@ -57,7 +57,7 @@
           (click)="onEntityAction($event, 'unassignFromEdge')"
           [fxShow]="!isEdit && !isEdgeRootRuleChain() && ruleChainScope === 'edge'">
     {{'edge.unassign-from-edge' | translate }}
-  </button>
+  </button>-->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"

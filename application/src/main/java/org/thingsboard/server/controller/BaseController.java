@@ -15,7 +15,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -33,6 +32,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EntityViewInfo;
-import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
@@ -59,6 +58,7 @@ import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -93,7 +93,6 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -103,6 +102,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
@@ -131,10 +131,10 @@ import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.resource.TbResourceService;
@@ -249,6 +249,9 @@ public abstract class BaseController {
     protected ClaimDevicesService claimDevicesService;
 
     @Autowired
+    protected CloudEventService cloudEventService;
+
+    @Autowired
     protected PartitionService partitionService;
 
     @Autowired
@@ -282,7 +285,7 @@ public abstract class BaseController {
     protected EdgeRpcService edgeGrpcService;
 
     @Autowired
-    protected EntityActionService entityActionService;
+    protected TbNotificationEntityService notificationEntityService;
 
     @Autowired
     protected QueueService queueService;
@@ -350,6 +353,8 @@ public abstract class BaseController {
             return new ThingsboardException(exception.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } else if (exception instanceof MessagingException) {
             return new ThingsboardException("Unable to send mail: " + exception.getMessage(), ThingsboardErrorCode.GENERAL);
+        } else if (exception instanceof AsyncRequestTimeoutException) {
+            return new ThingsboardException("Request timeout", ThingsboardErrorCode.GENERAL);
         } else {
             return new ThingsboardException(exception.getMessage(), exception, ThingsboardErrorCode.GENERAL);
         }
@@ -891,36 +896,8 @@ public abstract class BaseController {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
 
-    protected <E extends HasName, I extends EntityId> void logEntityAction(I entityId, E entity, CustomerId customerId,
-                                                                           ActionType actionType, Exception e, Object... additionalInfo) throws ThingsboardException {
-        logEntityAction(getCurrentUser(), entityId, entity, customerId, actionType, e, additionalInfo);
-    }
-
-    protected <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
-                                                                           ActionType actionType, Exception e, Object... additionalInfo) throws ThingsboardException {
-        entityActionService.logEntityAction(user, entityId, entity, customerId, actionType, e, additionalInfo);
-    }
-
-
     public static Exception toException(Throwable error) {
         return error != null ? (Exception.class.isInstance(error) ? (Exception) error : new Exception(error)) : null;
-    }
-
-    protected <E extends HasName> String entityToStr(E entity) {
-        try {
-            return json.writeValueAsString(json.valueToTree(entity));
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert entity to string!", entity, e);
-        }
-        return null;
-    }
-
-    protected void sendDeleteNotificationMsg(TenantId tenantId, EntityId entityId, List<EdgeId> edgeIds) {
-        if (edgeIds != null && !edgeIds.isEmpty()) {
-            for (EdgeId edgeId : edgeIds) {
-                sendNotificationMsgToEdge(tenantId, edgeId, entityId, null, null, EdgeEventActionType.DELETED);
-            }
-        }
     }
 
     protected void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action) {
@@ -933,22 +910,6 @@ public abstract class BaseController {
 
     private void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type, EdgeEventActionType action) {
         tbClusterService.sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, type, action);
-    }
-
-    protected List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
-        if (!edgesEnabled) {
-            return null;
-        }
-        if (EntityType.EDGE.equals(entityId.getEntityType())) {
-            return Collections.singletonList(new EdgeId(entityId.getId()));
-        }
-        PageDataIterableByTenantIdEntityId<EdgeId> relatedEdgeIdsIterator =
-                new PageDataIterableByTenantIdEntityId<>(edgeService::findRelatedEdgeIdsByEntityId, tenantId, entityId, DEFAULT_PAGE_SIZE);
-        List<EdgeId> result = new ArrayList<>();
-        for (EdgeId edgeId : relatedEdgeIdsIterator) {
-            result.add(edgeId);
-        }
-        return result;
     }
 
     protected void processDashboardIdFromAdditionalInfo(ObjectNode additionalInfo, String requiredFields) throws ThingsboardException {
