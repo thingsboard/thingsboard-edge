@@ -120,6 +120,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -306,14 +307,16 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private List<CustomerId> addCustomerHierarchyToCommit(EntitiesExportCtx<?> ctx, EntityId entityId, HasOwnerId entity) throws ThingsboardException {
-        List<CustomerId> customerIds = getCustomerExternalIds(ctx.getTenantId(), entityId, entity);
+        Map<CustomerId, CustomerId> customerIds = getOrderedCustomerIdsMap(ctx.getTenantId(), entityId, entity);
         List<CustomerId> hierarchy = new ArrayList<>(customerIds.size());
-        for (CustomerId ownerId : customerIds) {
+        for (var idPair : customerIds.entrySet()) {
+            var internalId = idPair.getKey();
+            var externalId = idPair.getValue();
             if (ctx.isExportRelatedCustomers()) {
-                EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(ctx, ownerId);
+                EntityExportData<ExportableEntity<EntityId>> ownerData = exportImportService.exportEntity(ctx, internalId);
                 ctx.add(gitServiceQueue.addToCommit(ctx.getCommit(), new ArrayList<>(hierarchy), ownerData));
             }
-            hierarchy.add(ownerId);
+            hierarchy.add(externalId);
         }
         return hierarchy;
     }
@@ -503,6 +506,16 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private List<CustomerId> getCustomerExternalIds(TenantId tenantId, EntityId entityId, HasOwnerId entity) {
+        var map = getOrderedCustomerIdsMap(tenantId, entityId, entity);
+        if (map.isEmpty()) {
+            return Collections.emptyList();
+        } else {
+            return new ArrayList<>(map.values());
+        }
+    }
+
+    // Ordered Map<InternalId, ExternalId> from parent customer to sub-customer.
+    private Map<CustomerId, CustomerId> getOrderedCustomerIdsMap(TenantId tenantId, EntityId entityId, HasOwnerId entity) {
         Set<EntityId> ownersSet;
         if (entity != null) {
             ownersSet = ownersService.getOwners(tenantId, entityId, entity);
@@ -511,10 +524,10 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         }
         List<EntityId> owners = new ArrayList<>(ownersSet);
         if (owners.size() == 1) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         } else {
             Collections.reverse(owners);
-            List<CustomerId> result = new ArrayList<>(Math.max(1, owners.size() - 1));
+            LinkedHashMap<CustomerId, CustomerId> result = new LinkedHashMap<>(Math.max(1, owners.size() - 1));
             for (EntityId ownerId : owners) {
                 if (EntityType.TENANT.equals(ownerId.getEntityType())) {
                     continue;
@@ -524,7 +537,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 if (customer == null) {
                     throw new RuntimeException("Failed to fetch customer with id: " + internalId);
                 }
-                result.add(customer.getExternalId() != null ? customer.getExternalId() : internalId);
+                result.put(internalId, customer.getExternalId() != null ? customer.getExternalId() : internalId);
             }
             return result;
         }
@@ -702,9 +715,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private void removeOtherEntities(EntitiesImportCtx ctx, EntityType entityType) {
-        DaoUtil.processInBatches(pageLink -> {
-            return exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink);
-        }, 1024, entity -> {
+        DaoUtil.processInBatches(pageLink ->
+                exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
@@ -715,9 +727,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 ctx.registerDeleted(entityType, false);
             }
         });
-        DaoUtil.processInBatches(pageLink -> {
-            return groupService.findEntityGroupsByTypeAndPageLink(ctx.getTenantId(), entityType, pageLink);
-        }, 1024, entity -> {
+        DaoUtil.processInBatches(pageLink ->
+                groupService.findEntityGroupsByTypeAndPageLink(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
+            //Skip reserved groups (All) even if they are not part of the restored commit.
+            if (entity.isGroupAll()) {
+                return;
+            }
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
