@@ -38,7 +38,7 @@ import { WidgetActionsData } from '@home/components/widget/action/manage-widget-
 import { PageLink } from '@shared/models/page/page-link';
 import { EntityGroupsTableConfig } from '@home/components/group/entity-groups-table-config';
 import { exportableEntityTypes } from '@shared/models/vc.models';
-import { groupResourceByGroupType, Operation, Resource, resourceByEntityType } from '@shared/models/security.models';
+import { groupResourceByGroupType, Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
@@ -71,7 +71,7 @@ export class EntityGroupTabsComponent extends EntityTabsComponent<EntityGroupInf
   }
 
   hasVersionControl(): boolean {
-    if (this.entity && exportableEntityTypes.includes(this.entity.type)) {
+    if (this.authUser.authority === this.authorities.TENANT_ADMIN && this.entity && exportableEntityTypes.includes(this.entity.type)) {
       const entityResource = groupResourceByGroupType.get(this.entity.type);
       return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.WRITE);
     } else {
