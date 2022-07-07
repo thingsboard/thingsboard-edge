@@ -29,27 +29,53 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import Long from 'long';
+import uuidParse from 'uuid-parse';
 
-import L from 'leaflet';
-import LeafletMap from '../leaflet-map';
-import { DEFAULT_ZOOM_LEVEL, WidgetUnitedMapSettings } from '../map-models';
-import { WidgetContext } from '@home/models/widget-component.models';
+export function toUUIDString(mostSigBits: string, leastSigBits: string): string {
+    const msbBytes = Long.fromValue(mostSigBits, false).toBytes(false);
+    const lsbBytes = Long.fromValue(leastSigBits, false).toBytes(false);
+    const uuidBytes = msbBytes.concat(lsbBytes);
+    return uuidParse.unparse(uuidBytes as any);
+}
 
-export class TencentMap extends LeafletMap {
-  constructor(ctx: WidgetContext, $container, options: WidgetUnitedMapSettings) {
-    super(ctx, $container, options);
-    const txUrl = 'http://rt{s}.map.gtimg.com/realtimerender?z={z}&x={x}&y={y}&type=vector&style=0';
-    const map = L.map($container, {
-      doubleClickZoom: !this.options.disableDoubleClickZooming,
-      zoomControl: !this.options.disableZoomControl,
-      tap: L.Browser.safari && L.Browser.mobile
-    }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
-    const txLayer = L.tileLayer(txUrl, {
-      subdomains: '0123',
-      tms: true,
-      attribution: '&copy;2021 Tencent - GS(2020)2236号- Data&copy; NavInfo'
-    }).addTo(map);
-    txLayer.addTo(map);
-    super.setMap(map);
-  }
+export function UUIDFromBuffer(buf: Buffer): string {
+    return uuidParse.unparse(buf);
+}
+
+export function UUIDToBits(uuidString: string): [string, string] {
+    const bytes = Array.from(uuidParse.parse(uuidString));
+    const msb = Long.fromBytes(bytes.slice(0, 8), false, false).toString();
+    const lsb = Long.fromBytes(bytes.slice(-8), false, false).toString();
+    return [msb, lsb];
+}
+
+export function isString(value: any): boolean {
+    return typeof value === 'string';
+}
+
+export function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+export function parseJsErrorDetails(err: any): string | undefined {
+    if (!err) {
+        return undefined;
+    }
+    let details = err.name + ': ' + err.message;
+    if (err.stack) {
+        const lines = err.stack.split('\n');
+        if (lines && lines.length) {
+            const line = lines[0];
+            const split = line.split(':');
+            if (split && split.length === 2) {
+                if (!isNaN(split[1])) {
+                    details += ' in at line number ' + split[1];
+                }
+            }
+        }
+    }
+    return details;
 }

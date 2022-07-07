@@ -30,26 +30,55 @@
 ///
 
 
-import L from 'leaflet';
-import LeafletMap from '../leaflet-map';
-import { DEFAULT_ZOOM_LEVEL, WidgetUnitedMapSettings } from '../map-models';
-import { WidgetContext } from '@home/models/widget-component.models';
+export interface TbMessage {
+    scriptIdMSB: string;
+    scriptIdLSB: string;
+}
 
-export class TencentMap extends LeafletMap {
-  constructor(ctx: WidgetContext, $container, options: WidgetUnitedMapSettings) {
-    super(ctx, $container, options);
-    const txUrl = 'http://rt{s}.map.gtimg.com/realtimerender?z={z}&x={x}&y={y}&type=vector&style=0';
-    const map = L.map($container, {
-      doubleClickZoom: !this.options.disableDoubleClickZooming,
-      zoomControl: !this.options.disableZoomControl,
-      tap: L.Browser.safari && L.Browser.mobile
-    }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
-    const txLayer = L.tileLayer(txUrl, {
-      subdomains: '0123',
-      tms: true,
-      attribution: '&copy;2021 Tencent - GS(2020)2236号- Data&copy; NavInfo'
-    }).addTo(map);
-    txLayer.addTo(map);
-    super.setMap(map);
-  }
+export interface RemoteJsRequest {
+    compileRequest?: JsCompileRequest;
+    invokeRequest?: JsInvokeRequest;
+    releaseRequest?: JsReleaseRequest;
+}
+
+export interface JsReleaseRequest extends TbMessage {
+    functionName: string;
+}
+
+export interface JsInvokeRequest extends TbMessage {
+    functionName: string;
+    scriptBody: string;
+    timeout: number;
+    args: string[];
+}
+
+export interface JsCompileRequest extends TbMessage {
+    functionName: string;
+    scriptBody: string;
+}
+
+
+export interface  JsReleaseResponse extends TbMessage {
+    success: boolean;
+}
+
+export interface JsCompileResponse extends TbMessage {
+    success: boolean;
+    errorCode?: number;
+    errorDetails?: string;
+}
+
+export interface JsInvokeResponse {
+    success: boolean;
+    result: string;
+    errorCode?: number;
+    errorDetails?: string;
+}
+
+export interface RemoteJsResponse {
+    requestIdMSB: string;
+    requestIdLSB: string;
+    compileResponse?: JsCompileResponse;
+    invokeResponse?: JsInvokeResponse;
+    releaseResponse?: JsReleaseResponse;
 }
