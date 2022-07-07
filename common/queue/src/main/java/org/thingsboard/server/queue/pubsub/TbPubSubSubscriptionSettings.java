@@ -34,6 +34,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -42,7 +43,7 @@ import java.util.Map;
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='pubsub'")
 public class TbPubSubSubscriptionSettings {
-    @Value("${queue.pubsub.queue-properties.core}")
+    @Value("${queue.pubsub.queue-properties.core:}")
     private String coreProperties;
     @Value("${queue.pubsub.queue-properties.rule-engine}")
     private String ruleEngineProperties;
@@ -85,11 +86,13 @@ public class TbPubSubSubscriptionSettings {
 
     private Map<String, String> getSettings(String properties) {
         Map<String, String> configs = new HashMap<>();
-        for (String property : properties.split(";")) {
-            int delimiterPosition = property.indexOf(":");
-            String key = property.substring(0, delimiterPosition);
-            String value = property.substring(delimiterPosition + 1);
-            configs.put(key, value);
+        if (StringUtils.isNotEmpty(properties)) {
+            for (String property : properties.split(";")) {
+                int delimiterPosition = property.indexOf(":");
+                String key = property.substring(0, delimiterPosition);
+                String value = property.substring(delimiterPosition + 1);
+                configs.put(key, value);
+            }
         }
         return configs;
     }

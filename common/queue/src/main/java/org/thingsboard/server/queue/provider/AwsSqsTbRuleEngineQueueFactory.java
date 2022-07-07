@@ -57,6 +57,7 @@ import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSetti
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
+import org.thingsboard.server.queue.settings.TbQueueVersionControlSettings;
 import org.thingsboard.server.queue.sqs.TbAwsSqsAdmin;
 import org.thingsboard.server.queue.sqs.TbAwsSqsConsumerTemplate;
 import org.thingsboard.server.queue.sqs.TbAwsSqsProducerTemplate;
@@ -83,6 +84,7 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
     private final TbQueueAdmin ruleEngineAdmin;
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin notificationAdmin;
+    private final TbQueueAdmin otaAdmin;
 
     public AwsSqsTbRuleEngineQueueFactory(NotificationsTopicService notificationsTopicService, TbQueueCoreSettings coreSettings,
                                           TbQueueRuleEngineSettings ruleEngineSettings,
@@ -105,6 +107,7 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
         this.ruleEngineAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getRuleEngineAttributes());
         this.jsExecutorAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getJsExecutorAttributes());
         this.notificationAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getNotificationsAttributes());
+        this.otaAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getOtaAttributes());
     }
 
     @Override
@@ -175,7 +178,7 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, coreSettings.getOtaPackageTopic());
+        return new TbAwsSqsProducerTemplate<>(otaAdmin, sqsSettings, coreSettings.getOtaPackageTopic());
     }
 
     @Override
@@ -202,6 +205,9 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (otaAdmin != null) {
+            otaAdmin.destroy();
         }
     }
 

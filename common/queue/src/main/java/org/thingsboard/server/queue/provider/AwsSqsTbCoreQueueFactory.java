@@ -69,6 +69,7 @@ import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportNotificationSettings;
+import org.thingsboard.server.queue.settings.TbQueueVersionControlSettings;
 import org.thingsboard.server.queue.sqs.TbAwsSqsAdmin;
 import org.thingsboard.server.queue.sqs.TbAwsSqsConsumerTemplate;
 import org.thingsboard.server.queue.sqs.TbAwsSqsProducerTemplate;
@@ -90,6 +91,7 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbServiceInfoProvider serviceInfoProvider;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
+    private final TbQueueVersionControlSettings vcSettings;
     private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueIntegrationNotificationSettings integrationNotificationSettings;
 
@@ -98,6 +100,8 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin transportApiAdmin;
     private final TbQueueAdmin notificationAdmin;
+    private final TbQueueAdmin otaAdmin;
+    private final TbQueueAdmin vcAdmin;
     private final TbQueueAdmin integrationApiAdmin;
 
     public AwsSqsTbCoreQueueFactory(TbAwsSqsSettings sqsSettings,
@@ -105,6 +109,7 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
                                     TbQueueTransportApiSettings transportApiSettings,
                                     TbQueueRuleEngineSettings ruleEngineSettings,
                                     NotificationsTopicService notificationsTopicService,
+                                    TbQueueVersionControlSettings vcSettings,
                                     TbServiceInfoProvider serviceInfoProvider,
                                     TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                     TbAwsSqsQueueAttributes sqsQueueAttributes,
@@ -119,6 +124,7 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
         this.serviceInfoProvider = serviceInfoProvider;
         this.jsInvokeSettings = jsInvokeSettings;
         this.transportNotificationSettings = transportNotificationSettings;
+        this.vcSettings = vcSettings;
         this.integrationApiSettings = integrationApiSettings;
         this.integrationNotificationSettings = integrationNotificationSettings;
 
@@ -127,6 +133,8 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
         this.jsExecutorAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getJsExecutorAttributes());
         this.transportApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getTransportApiAttributes());
         this.notificationAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getNotificationsAttributes());
+        this.otaAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getOtaAttributes());
+        this.vcAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getVcAttributes());
         this.integrationApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getIntegrationSettings());
     }
 
@@ -215,13 +223,13 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgConsumer() {
-        return new TbAwsSqsConsumerTemplate<>(coreAdmin, sqsSettings, coreSettings.getOtaPackageTopic(),
+        return new TbAwsSqsConsumerTemplate<>(otaAdmin, sqsSettings, coreSettings.getOtaPackageTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToOtaPackageStateServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, coreSettings.getOtaPackageTopic());
+        return new TbAwsSqsProducerTemplate<>(otaAdmin, sqsSettings, coreSettings.getOtaPackageTopic());
     }
 
     @Override
@@ -271,8 +279,7 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
-        //TODO: version-control
-        return null;
+        return new TbAwsSqsProducerTemplate<>(vcAdmin, sqsSettings, vcSettings.getTopic());
     }
 
     @PreDestroy
@@ -291,6 +298,12 @@ public class AwsSqsTbCoreQueueFactory implements TbCoreQueueFactory {
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (otaAdmin != null) {
+            otaAdmin.destroy();
+        }
+        if (vcAdmin != null) {
+            vcAdmin.destroy();
         }
         if (integrationApiAdmin != null) {
             integrationApiAdmin.destroy();
