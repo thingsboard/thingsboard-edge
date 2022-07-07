@@ -74,6 +74,12 @@ export class TbWebReportPage {
         await this.page.emulateMedia({media: 'screen'});
     }
 
+    async destroy(): Promise<void> {
+        if (this.page) {
+            await this.page.close();
+        }
+    }
+
     async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'pdf', timezone = 'Europe/London'): Promise<Buffer> {
         this.logger.info('Generating dashboard report');
         try {
