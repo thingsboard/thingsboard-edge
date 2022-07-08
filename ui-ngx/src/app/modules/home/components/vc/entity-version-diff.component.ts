@@ -90,6 +90,9 @@ export class EntityVersionDiffComponent extends PageComponent implements OnInit,
   @Input()
   externalEntityId: EntityId;
 
+  @Input()
+  readonly: boolean;
+
   @Output()
   versionRestored = new EventEmitter<void>();
 
