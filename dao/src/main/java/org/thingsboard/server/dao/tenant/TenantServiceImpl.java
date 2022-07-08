@@ -146,6 +146,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private ResourceService resourceService;
 
     @Autowired
+    @Lazy
     private OtaPackageService otaPackageService;
 
     @Autowired
