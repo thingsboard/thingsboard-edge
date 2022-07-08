@@ -47,7 +47,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +71,8 @@ public class ContainerTestSuite {
     private static final String TRANSPORTS_LOG_REGEXP = ".*Going to recalculate partitions.*";
     private static final String TB_VC_LOG_REGEXP = TRANSPORTS_LOG_REGEXP;
     private static final String INTEGRATION_LOG_REGEXP = ".*Sending a connect request to the TB!.*";
-    private static final Duration CONTAINER_STARTUP_TIMEOUT = Duration.ofSeconds(120);
+    private static final String TB_JS_EXECUTOR_LOG_REGEXP = ".*template started.*";
+    private static final Duration CONTAINER_STARTUP_TIMEOUT = Duration.ofSeconds(400);
 
     private static DockerComposeContainer<?> testContainer;
 
@@ -91,8 +91,7 @@ public class ContainerTestSuite {
                 FileUtils.copyDirectory(new File(SOURCE_DIR), new File(targetDir));
                 replaceInFile(targetDir + "advanced/docker-compose.yml", "    container_name: \"${LOAD_BALANCER_NAME}\"", "", "container_name");
 
-                final String httpIntegrationDir = "src/test/resources";
-                FileUtils.copyDirectory(new File(httpIntegrationDir), new File(targetDir));
+                FileUtils.copyDirectory(new File("src/test/resources"), new File(targetDir));
 
                 class DockerComposeContainerImpl<SELF extends DockerComposeContainer<SELF>> extends DockerComposeContainer<SELF> {
                     public DockerComposeContainerImpl(List<File> composeFiles) {
@@ -164,7 +163,8 @@ public class ContainerTestSuite {
                         .waitingFor("tb-integration-executor1", Wait.forLogMessage(TB_IE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-integration-executor2", Wait.forLogMessage(TB_IE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-vc-executor1", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
-                        .waitingFor("tb-vc-executor2", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
+                        .waitingFor("tb-vc-executor2", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                        .waitingFor("tb-js-executor", Wait.forLogMessage(TB_JS_EXECUTOR_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT));
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 fail("Failed to create test container");
