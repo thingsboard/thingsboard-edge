@@ -111,16 +111,16 @@ UPDATE integration SET downlink_converter_id = NULL WHERE downlink_converter_id 
 
 DO $$
 BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_converter') THEN
-ALTER TABLE integration
-    ADD CONSTRAINT fk_integration_converter
-        FOREIGN KEY (converter_id) REFERENCES converter(id);
-END IF;
+    IF NOT EXISTS (SELECT id FROM integration WHERE converter_id IS NULL) THEN
+        ALTER TABLE integration ALTER COLUMN converter_id SET NOT NULL;
+    END IF;
 
-        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_downlink_converter') THEN
-ALTER TABLE integration
-    ADD CONSTRAINT fk_integration_downlink_converter
-        FOREIGN KEY (downlink_converter_id) REFERENCES converter(id);
-END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_converter') THEN
+        ALTER TABLE integration ADD CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_downlink_converter') THEN
+        ALTER TABLE integration ADD CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id);
+    END IF;
 END;
 $$;
