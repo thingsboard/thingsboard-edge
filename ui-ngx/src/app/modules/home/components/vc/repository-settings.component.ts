@@ -49,6 +49,8 @@ import { selectHasRepository } from '@core/auth/auth.selectors';
 import { catchError, mergeMap, take } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { TbPopoverComponent } from '@shared/components/popover.component';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-repository-settings',
@@ -76,10 +78,14 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
   showChangePrivateKeyPassword = false;
   changePrivateKeyPassword = false;
 
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE);
+  allowDelete = this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.DELETE);
+
   constructor(protected store: Store<AppState>,
               private adminService: AdminService,
               private dialogService: DialogService,
               private translate: TranslateService,
+              private userPermissionsService: UserPermissionsService,
               private cd: ChangeDetectorRef,
               public fb: FormBuilder) {
     super(store);
@@ -128,6 +134,9 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
           this.updateValidators(false);
         }
     });
+    if (this.readonly) {
+      this.repositorySettingsForm.disable({emitEvent: false});
+    }
   }
 
   checkAccess(): void {
@@ -198,6 +207,9 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
   }
 
   updateValidators(emitEvent?: boolean): void {
+    if (this.readonly) {
+      return;
+    }
     const authMethod: RepositoryAuthMethod = this.repositorySettingsForm.get('authMethod').value;
     const privateKeyFileName: string = this.repositorySettingsForm.get('privateKeyFileName').value;
     if (authMethod === RepositoryAuthMethod.USERNAME_PASSWORD) {

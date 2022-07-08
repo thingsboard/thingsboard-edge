@@ -695,7 +695,7 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       sections.push(
         {
           id: guid(),
@@ -790,7 +790,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('resources_library') > -1
         });
       }
-      if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
         pages.push({
           id: guid(),
           name: 'admin.repository-settings',
@@ -1136,7 +1136,7 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       homeSections.push(
         {
           name: 'version-control.management',
@@ -1236,7 +1236,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('resources_library') > -1
         });
       }
-      if (this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE)) {
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
         settings.places.push({
           name: 'admin.repository-settings',
           path: '/settings/repository',

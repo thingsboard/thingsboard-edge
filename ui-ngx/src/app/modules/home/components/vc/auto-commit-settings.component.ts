@@ -47,6 +47,8 @@ import {
 } from '@shared/models/vc.models';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-auto-commit-settings',
@@ -62,11 +64,15 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.WRITE);
+  allowDelete = this.userPermissionsService.hasGenericPermission(Resource.VERSION_CONTROL, Operation.DELETE);
+
   constructor(protected store: Store<AppState>,
               private adminService: AdminService,
               private dialogService: DialogService,
               private sanitizer: DomSanitizer,
               private translate: TranslateService,
+              private userPermissionsService: UserPermissionsService,
               public fb: FormBuilder) {
     super(store);
   }
@@ -91,6 +97,9 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
         this.settings = settings;
         this.autoCommitSettingsForm.setControl('entityTypes',
           this.prepareEntityTypesFormArray(settings), {emitEvent: false});
+        if (this.readonly) {
+          this.autoCommitSettingsForm.disable({emitEvent: false});
+        }
       });
   }
 

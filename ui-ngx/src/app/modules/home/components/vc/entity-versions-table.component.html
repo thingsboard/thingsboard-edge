@@ -47,14 +47,14 @@
         </div>
         <span fxFlex></span>
         <div fxLayout="row" fxLayout.xs="column" fxLayoutAlign="center end">
-          <button *ngIf="singleEntityMode" mat-stroked-button color="primary"
+          <button *ngIf="singleEntityMode && !readonly" mat-stroked-button color="primary"
                   #createVersionButton
                   [disabled]="(isLoading$ | async)"
                   (click)="toggleCreateVersion($event, createVersionButton)">
             <mat-icon>update</mat-icon>
             {{'version-control.create-version' | translate }}
           </button>
-          <button *ngIf="!singleEntityMode" mat-stroked-button color="primary"
+          <button *ngIf="!singleEntityMode && !readonly" mat-stroked-button color="primary"
                   #complexCreateVersionButton
                   [disabled]="(isLoading$ | async)"
                   (click)="toggleComplexCreateVersion($event, complexCreateVersionButton)">
@@ -149,14 +149,14 @@
                       (click)="toggleShowVersionDiff($event, diffVersionButton, entityVersion)">
                 <mat-icon>difference</mat-icon>
               </button>
-              <button *ngIf="singleEntityMode" mat-icon-button [disabled]="isLoading$ | async"
+              <button *ngIf="singleEntityMode && !readonly" mat-icon-button [disabled]="isLoading$ | async"
                       matTooltip="{{ 'version-control.restore-version' | translate }}"
                       matTooltipPosition="above"
                       #restoreVersionButton
                       (click)="toggleRestoreEntityVersion($event, restoreVersionButton, entityVersion)">
                 <mat-icon>restore</mat-icon>
               </button>
-              <button *ngIf="!singleEntityMode" mat-icon-button [disabled]="isLoading$ | async"
+              <button *ngIf="!singleEntityMode && !readonly" mat-icon-button [disabled]="isLoading$ | async"
                       matTooltip="{{ 'version-control.restore-version' | translate }}"
                       matTooltipPosition="above"
                       #restoreEntitiesVersionButton
