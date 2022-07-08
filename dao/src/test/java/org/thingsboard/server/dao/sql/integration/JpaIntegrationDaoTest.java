@@ -35,6 +35,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,6 +45,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
+import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 
 import java.util.ArrayList;
@@ -57,21 +60,27 @@ import static org.junit.Assert.assertTrue;
 public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     List<Integration> savedIntegrations = new ArrayList<>();
+    List<Converter> savedConverters = new ArrayList<>();
+
     @Autowired
     private IntegrationDao integrationDao;
 
+    @Autowired
+    private ConverterDao converterDao;
+
     @After
     public void tearDown() {
-        for (Integration integration : savedIntegrations) {
-            integrationDao.removeById(integration.getTenantId(), integration.getUuidId());
-        }
+        savedIntegrations.forEach(integration -> integrationDao.removeById(integration.getTenantId(), integration.getUuidId()));
         savedIntegrations.clear();
+        savedConverters.forEach(converter -> converterDao.removeById(converter.getTenantId(), converter.getUuidId()));
+        savedConverters.clear();
     }
 
     @Test
     public void testFindIntegrationsByTenantId() {
         UUID tenantId1 = Uuids.timeBased();
         UUID converterId1 = Uuids.timeBased();
+        saveConverter(converterId1, tenantId1, "TEST_CONVERTER", ConverterType.UPLINK).getUuidId();
         saveTernary(tenantId1, converterId1);
         assertEquals(60, integrationDao.find(TenantId.SYS_TENANT_ID).size());
 
@@ -96,6 +105,9 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         UUID tenantId2 = Uuids.timeBased();
         UUID converterId1 = Uuids.timeBased();
         UUID converterId2 = Uuids.timeBased();
+        saveConverter(converterId1, tenantId1, "TEST_CONVERTER_1", ConverterType.UPLINK).getUuidId();
+        saveConverter(converterId2, tenantId1, "TEST_CONVERTER_2", ConverterType.UPLINK).getUuidId();
+
         String routingKey = RandomStringUtils.randomAlphanumeric(15);
         String routingKey2 = RandomStringUtils.randomAlphanumeric(15);
         savedIntegrations.add(saveIntegration(integrationId1, tenantId1, converterId1, "TEST_INTEGRATION", routingKey, IntegrationType.OCEANCONNECT));
@@ -115,11 +127,10 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
 
     private void saveTernary(UUID tenantId1, UUID converterId1) {
         UUID tenantId2 = Uuids.timeBased();
-        UUID converterId2 = Uuids.timeBased();
         for (int i = 0; i < 60; i++) {
             UUID integrationId = Uuids.timeBased();
             UUID tenantId = i % 2 == 0 ? tenantId1 : tenantId2;
-            UUID converterId = i % 2 == 0 ? converterId1 : converterId2;
+            UUID converterId = i % 2 == 0 ? converterId1 : saveConverter(Uuids.timeBased(), tenantId1, "TEST_CONVERTER_" + i, ConverterType.UPLINK).getUuidId();
             savedIntegrations.add(saveIntegration(integrationId, tenantId, converterId, "INTEGRATION_" + i, RandomStringUtils.randomAlphanumeric(15),
                     IntegrationType.OCEANCONNECT));
         }
@@ -134,5 +145,16 @@ public class JpaIntegrationDaoTest extends AbstractJpaDaoTest {
         integration.setRoutingKey(routingKey);
         integration.setType(type);
         return integrationDao.save(new TenantId(tenantId), integration);
+    }
+
+    private Converter saveConverter(UUID id, UUID tenantId, String name, ConverterType type) {
+        Converter converter = new Converter();
+        converter.setId(new ConverterId(id));
+        converter.setTenantId(new TenantId(tenantId));
+        converter.setName(name);
+        converter.setType(type);
+        Converter savedConverter = converterDao.save(new TenantId(tenantId), converter);
+        savedConverters.add(savedConverter);
+        return savedConverter;
     }
 }
