@@ -257,9 +257,14 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         logEntityAction(tenantId, entityId, entity, customerId, actionType, user, e, additionalInfo);
         // TODO: @voba - in next release make sync between EDGE and CE notification services
         // move sendNotifyMsgToEdge variable into sendEntityNotificationMsg method
-        //if (sendNotifyMsgToEdge) {
+        // remove sendNotificationMsgToCloud duplicate
+        if (sendNotifyMsgToEdge) {
             sendEntityNotificationMsg(tenantId, entityId, edgeTypeByActionType(actionType), notifyCloud);
-        //}
+        } else {
+            if (notifyCloud) {
+                sendNotificationMsgToCloud(tenantId, entityId, edgeTypeByActionType(actionType));
+            }
+        }
     }
 
     @Override
