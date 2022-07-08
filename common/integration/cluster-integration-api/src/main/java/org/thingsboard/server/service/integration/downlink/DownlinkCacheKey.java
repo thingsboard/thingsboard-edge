@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration.downlink;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -39,6 +40,7 @@ import java.io.Serializable;
 
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode
 public class DownlinkCacheKey implements Serializable {
 
     private final IntegrationId integrationId;

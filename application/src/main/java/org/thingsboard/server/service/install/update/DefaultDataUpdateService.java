@@ -238,8 +238,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.3.4":
                 log.info("Updating data from version 3.3.4 to 3.4.0 ...");
-                rateLimitsUpdater.updateEntities();
                 tenantsProfileQueueConfigurationUpdater.updateEntities();
+                rateLimitsUpdater.updateEntities();
                 String[] nodeTypes = {
                         "org.thingsboard.rule.engine.flow.TbCheckpointNode",
                         "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
