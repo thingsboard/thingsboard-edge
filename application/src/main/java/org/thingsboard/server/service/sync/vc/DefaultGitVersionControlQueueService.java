@@ -157,8 +157,6 @@ public class DefaultGitVersionControlQueueService implements GitVersionControlQu
 
     @Override
     public ListenableFuture<Void> addToCommit(CommitGitRequest commit, List<CustomerId> parents, EntityExportData<? extends ExportableEntity<? extends EntityId>> entityData) {
-        SettableFuture<Void> future = SettableFuture.create();
-
         String path;
         if (EntityType.ENTITY_GROUP.equals(entityData.getEntityType())) {
             EntityGroup group = (EntityGroup) entityData.getEntity();
