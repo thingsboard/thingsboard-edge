@@ -95,7 +95,7 @@ public class JpaIntegrationDao extends JpaAbstractSearchTextDao<IntegrationEntit
 
     @Override
     public List<Integration> findByConverterId(UUID tenantId, UUID converterId) {
-        return DaoUtil.convertDataList(integrationRepository.findByConverterId(converterId));
+        return DaoUtil.convertDataList(integrationRepository.findByConverterId(tenantId, converterId));
     }
 
     @Override
