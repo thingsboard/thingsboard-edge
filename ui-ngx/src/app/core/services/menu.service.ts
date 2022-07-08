@@ -383,6 +383,7 @@ export class MenuService {
         path: '/dashboards',
         icon: 'dashboards'
       },
+      /* @voba - merge comment - these sections should not be visible on edge
       {
         id: guid(),
         name: 'version-control.version-control',
@@ -390,6 +391,7 @@ export class MenuService {
         path: '/vc',
         icon: 'history'
       },
+      */
       {
         id: guid(),
         name: 'audit-log.audit-logs',
@@ -426,6 +428,7 @@ export class MenuService {
             path: '/settings/resources-library',
             icon: 'folder'
           },
+          /* @voba - merge comment - these sections should not be visible on edge
           {
             id: guid(),
             name: 'admin.repository-settings',
@@ -440,6 +443,7 @@ export class MenuService {
             path: '/settings/auto-commit',
             icon: 'settings_backup_restore'
           }
+          */
         ]
       }
     );
@@ -565,6 +569,7 @@ export class MenuService {
           }
         ]
       },
+      /* @voba - merge comment - these sections should not be visible on edge
       {
         name: 'version-control.management',
         places: [
@@ -575,6 +580,7 @@ export class MenuService {
           }
         ]
       },
+      */
       {
         name: 'audit-log.audit',
         places: [
@@ -603,6 +609,7 @@ export class MenuService {
             icon: 'folder',
             path: '/settings/resources-library'
           },
+          /* @voba - merge comment - these sections should not be visible on edge
           {
             name: 'admin.repository-settings',
             icon: 'manage_history',
@@ -613,6 +620,7 @@ export class MenuService {
             icon: 'settings_backup_restore',
             path: '/settings/auto-commit'
           }
+          */
         ]
       }
     );
