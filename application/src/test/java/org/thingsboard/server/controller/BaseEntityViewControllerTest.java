@@ -158,7 +158,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testBroadcastEntityStateChangeEventTime(foundEntityView.getId(), tenantId, 1);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 2, 0, 2);
+                ActionType.ADDED, ActionType.ADDED, 1, 0, 1);
         Mockito.reset(tbClusterService, auditLogService);
 
         savedView.setName("New test entity view");
@@ -171,7 +171,7 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
         testBroadcastEntityStateChangeEventTime(foundEntityView.getId(), tenantId, 1);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundEntityView, foundEntityView,
                 tenantId, tenantAdminCustomerId, tenantAdminUserId, TENANT_ADMIN_EMAIL,
-                ActionType.UPDATED, ActionType.UPDATED, 2, 2, 6);
+                ActionType.UPDATED, ActionType.UPDATED, 1, 1, 5);
 
         doGet("/api/tenant/entityViews?entityViewName=" + name)
                 .andExpect(status().isNotFound())
