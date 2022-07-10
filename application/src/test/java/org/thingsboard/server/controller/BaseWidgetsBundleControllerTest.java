@@ -148,7 +148,7 @@ public abstract class BaseWidgetsBundleControllerTest extends AbstractController
 
         doPost("/api/widgetsBundle", savedWidgetsBundle)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermission)));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "WIDGETS_BUNDLE" + " '" + widgetsBundle.getTitle() +"'!")));
 
         testNotifyEntityNever(savedWidgetsBundle.getId(), savedWidgetsBundle);
 
