@@ -42,6 +42,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -65,6 +66,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,14 +74,15 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
-    static final TypeReference<PageData<Device>> PAGE_DATA_DEVICE_TYPE_REF = new TypeReference<>() {
-    };
+    static final TypeReference<PageData<Device>> PAGE_DATA_DEVICE_TYPE_REF = new TypeReference<>() {};
 
     ListeningExecutorService executor;
 
@@ -88,6 +91,9 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    @SpyBean
+    private GatewayNotificationsService gatewayNotificationsService;
 
     @Before
     public void beforeTest() throws Exception {
@@ -826,5 +832,21 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         doDelete("/api/tenant/" + savedDifferentTenant.getId().getId())
                 .andExpect(status().isOk());
+    }
+
+    protected void testNotificationUpdateGatewayOneTime(Device device, Device oldDevice) {
+        Mockito.verify(gatewayNotificationsService, times(1)).onDeviceUpdated(Mockito.eq(device), Mockito.eq(oldDevice));
+    }
+
+    protected void testNotificationUpdateGatewayNever() {
+        Mockito.verify(gatewayNotificationsService, never()).onDeviceUpdated(Mockito.any(Device.class), Mockito.any(Device.class));
+    }
+
+    protected void testNotificationDeleteGatewayOneTime(Device device) {
+        Mockito.verify(gatewayNotificationsService, times(1)).onDeviceDeleted(device);
+    }
+
+    protected void testNotificationDeleteGatewayNever() {
+        Mockito.verify(gatewayNotificationsService, never()).onDeviceDeleted(Mockito.any(Device.class));
     }
 }
