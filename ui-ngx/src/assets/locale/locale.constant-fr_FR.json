@@ -45,7 +45,7 @@
         "save": "Enregistrer",
         "saveAs": "Enregistrer sous",
         "search": "Rechercher",
-        "select": "Selectionner",
+        "select": "Sélectionner",
         "share": "Partager",
         "share-via": "Partager via {{provider}}",
         "sign-in": "Connectez-vous!",
@@ -58,7 +58,8 @@
         "download": "Télécharger",
         "next-with-label": "Suivant: {{label}}",
         "read-more": "En savoir plus",
-        "hide": "Masquer"
+        "hide": "Masquer",
+        "open": "Ouvrir"
     },
     "admin": {
         "base-url": "URL de base",
@@ -72,17 +73,21 @@
         "mail-from-required": "Courriel de est requis.",
         "mail-subject": "Sujet du message",
         "mail-template": {
-            "account-activated": "Message activé par le compte",
+            "account-activated": "Message de compte activé",
             "activation": "Message d'activation du compte",
-            "mail-template": "Modèle de courrier",
+            "mail-template": "Modèle de courriel",
             "password-was-reset": "Message - Le mot de passe a été réinitialisé",
             "reset-password": "Réinitialiser le mot de passe",
-            "test": "E-mail de test",
-            "user-activated": "User activated message",
-            "user-registered": "User registered message"
+            "test": "Courriel test",
+            "user-activated": "Message activé par l'utilisateur",
+            "user-registered": "Message enregistré par l'utilisateur",
+            "account-lockout": "Message de compte verrouillé",
+            "api-usage-state-enabled": "État d'utilisation de l'API activé",
+            "api-usage-state-warning": "Avertissement d'état d'utilisation de l'API",
+            "api-usage-state-disabled": "État d'utilisation de l'API désactivé"
         },
-        "mail-template-settings": "Paramètres des modèles de messagerie",
-        "mail-templates": "Modèles de courrier",
+        "mail-template-settings": "Paramètres des modèles de courriels",
+        "mail-templates": "Modèles de courriels",
         "outgoing-mail": "courrier sortant",
         "outgoing-mail-settings": "Paramètres de courrier sortant",
         "send-test-mail": "Envoyer un courriel de test",
@@ -98,7 +103,7 @@
         "timeout-msec": "Délai (msec)",
         "timeout-required": "Le délai est requis.",
         "use-system-mail-settings": "Utiliser les paramètres du serveur de messagerie système ",
-        "use-system-mail-template-settings": "Utiliser les modèles de messagerie système",
+        "use-system-mail-template-settings": "Utiliser les modèles de courriels système",
         "security-settings": "Les paramètres de sécurité",
         "password-policy": "Politique de mot de passe",
         "minimum-password-length": "Longueur minimale du mot de passe",
@@ -242,8 +247,11 @@
             "delete-mobile-app": "Supprimer les informations sur l'application",
             "providers": "Fournisseurs",
             "all-platforms": "Toutes les plateformes",
-            "allowed-platforms": "Plates-formes autorisées"
-        }
+            "allowed-platforms": "Plates-formes autorisées",
+            "parent-customer-name-pattern": "Modèle de nom de client parent",
+            "user-groups-name-pattern": "Modèle de nom des groupes d'utilisateurs"
+        },
+        "use-system-sms-settings": "Utiliser les paramètres du fournisseur SMS du système"
     },
     "aggregation": {
         "aggregation": "agrégation",
@@ -384,7 +392,11 @@
         "filter-type-entity-type": "Type d'entité",
         "filter-type-edge-type-and-name-description": "Edges de type '{{edgeType}}' et dont le nom commence par '{{prefix}}'",
         "filter-type-apiUsageState": "État d'utilisation de l'API",
-        "last-level-relation": "Récupérer uniquement la relation de dernier niveau"
+        "last-level-relation": "Récupérer uniquement la relation de dernier niveau",
+        "filter-type-entities-by-group-name": "Entités par nom de groupe",
+        "filter-type-state-entity-owner": "Propriétaire de l'entité à partir de l'état du tableau de bord",
+        "filter-type-state-entity-owner-description": "Propriétaire de l'entité issue des paramètres d'état du tableau de bord",
+        "group-state-entity-owner": "Utiliser l'entité d'état du tableau de bord en tant que propriétaire du groupe d'entités"
     },
     "asset": {
         "add": "Ajouter un actif",
@@ -586,8 +598,8 @@
         "type-credentials-read": "Lecture des informations d'identification",
         "type-credentials-updated": "Informations d'identification actualisées",
         "type-deleted": "Supprimé",
-        "type-made-private": "Made private",
-        "type-made-public": "Made public",
+        "type-made-private": "Rendu privé",
+        "type-made-public": "Rendu public",
         "type-login": "Connexion",
         "type-logout": "Déconnexion",
         "type-lockout": "Verrouillage",
@@ -606,7 +618,8 @@
         "type-provision-success": "Dispositif mis en service",
         "type-provision-failure": "La mise en service du dispositif a échoué",
         "type-timeseries-updated": "Telemetrie mise à jour",
-        "type-timeseries-deleted": "Telemetrie supprimée"
+        "type-timeseries-deleted": "Telemetrie supprimée",
+        "type-owner-changed": "Changement de propriétaire"
     },
     "blob-entity": {
         "blob-entity": "Entité Blob",
@@ -709,14 +722,17 @@
         "payload-content": "Contenu du payload",
         "payload-content-type": "Type de contenu de payload",
         "select-converter": "Sélectionnez un convertisseur de données",
-        "selected-converters": "{ count, plural, 1 {1 data converter} other {# data converters} } sélectionnée",
+        "selected-converters": "{ count, plural, 1 {1 data converter} other {# data converters} } sélectionné",
         "test": "Test",
         "test-decoder-fuction": "Fonction de test du décodeur",
         "test-encoder-fuction": "Fonction de test de l'encodeur",
         "type": "Type",
         "type-downlink": "Liaison descendante",
         "type-required": "Le type est requis.",
-        "type-uplink": "Liaison montante"
+        "type-uplink": "Liaison montante",
+        "search": "Rechercher un convertisseur de données",
+        "created-time": "Heure de création",
+        "name-max-length": "La longueur du nom doit être moins que 256"
     },
     "custom": {
         "widget-action": {
