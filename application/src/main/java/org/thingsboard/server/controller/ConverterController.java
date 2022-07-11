@@ -37,8 +37,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,11 +58,8 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,11 +67,11 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.converter.TbConverterService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -105,15 +102,14 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 @Slf4j
 public class ConverterController extends AutoCommitController {
 
-    @Autowired
-    private EventService eventService;
-
-    @Autowired
-    private JsInvokeService jsSandboxService;
+    private final EventService eventService;
+    private final JsInvokeService jsSandboxService;
+    private final TbConverterService tbConverterService;
 
     public static final String CONVERTER_ID = "converterId";
 
@@ -146,35 +142,9 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
     public Converter saveConverter(@ApiParam(required = true, value = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
-        SecurityUser currentUser = getCurrentUser();
-        try {
-            converter.setTenantId(currentUser.getTenantId());
-            boolean created = converter.getId() == null;
-
-            checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
-
-            Converter result = checkNotNull(converterService.saveConverter(converter));
-
-            autoCommit(currentUser, result.getId());
-
-            if (!converter.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            }
-
-            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
-                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
-
-            if (converter.isEdgeTemplate() && !created) {
-                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
-            }
-
-            return result;
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER), converter,
-                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
-            throw e;
-        }
+        converter.setTenantId(getCurrentUser().getTenantId());
+        checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
+        return tbConverterService.save(converter, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Converters (getConverters)",
@@ -215,26 +185,10 @@ public class ConverterController extends AutoCommitController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteConverter(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION) @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
-        try {
-            ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            Converter converter = checkConverterId(converterId, Operation.DELETE);
-            converterService.deleteConverter(getTenantId(), converterId);
-
-            if (!converter.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
-            }
-
-            notificationEntityService.logEntityAction(getTenantId(), converterId, converter,
-                    null,
-                    ActionType.DELETED, getCurrentUser(), strConverterId);
-
-        } catch (ThingsboardException e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER),
-                    ActionType.DELETED, getCurrentUser(), e, strConverterId);
-
-            throw e;
-        }
-    }
+        ConverterId converterId = new ConverterId(toUUID(strConverterId));
+        Converter converter = checkConverterId(converterId, Operation.DELETE);
+        tbConverterService.delete(converter, getCurrentUser());
+     }
 
     @ApiOperation(value = "Get latest debug input event (getLatestConverterDebugInput)",
             notes = "Returns a JSON object of the latest debug event representing the input message the converter processed. " + NEW_LINE +
