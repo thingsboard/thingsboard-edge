@@ -68,7 +68,6 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 
 import javax.activation.DataSource;
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayInputStream;
@@ -111,8 +110,6 @@ public class DefaultMailService implements MailService {
 
     @Autowired
     private PasswordResetExecutorService passwordResetExecutorService;
-
-    private long timeout;
 
     public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
         this.adminSettingsService = adminSettingsService;
