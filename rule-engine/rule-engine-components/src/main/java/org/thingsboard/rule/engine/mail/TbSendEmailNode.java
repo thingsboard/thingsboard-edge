@@ -103,7 +103,7 @@ public class TbSendEmailNode implements TbNode {
         if (this.config.isUseSystemSmtpSettings()) {
             ctx.getMailService().send(ctx.getTenantId(), msg.getCustomerId(), email);
         } else {
-            ctx.getMailService().send(ctx.getTenantId(), msg.getCustomerId(), email, this.mailSender);
+            ctx.getMailService().send(ctx.getTenantId(), msg.getCustomerId(), email, config.getTimeout(), this.mailSender);
         }
     }
 

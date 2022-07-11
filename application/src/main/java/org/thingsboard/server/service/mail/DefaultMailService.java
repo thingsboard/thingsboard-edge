@@ -33,6 +33,7 @@ package org.thingsboard.server.service.mail;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +77,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -94,6 +97,8 @@ public class DefaultMailService implements MailService {
     private final BlobEntityService blobEntityService;
     private final TbApiUsageReportClient apiUsageClient;
 
+    private static final long DEFAULT_TIMEOUT = 10_000;
+
     @Lazy
     @Autowired
     private TbApiUsageStateService apiUsageStateService;
@@ -103,6 +108,11 @@ public class DefaultMailService implements MailService {
 
     @Autowired
     private MailExecutorService mailExecutorService;
+
+    @Autowired
+    private PasswordResetExecutorService passwordResetExecutorService;
+
+    private long timeout;
 
     public DefaultMailService(AdminSettingsService adminSettingsService, AttributesService attributesService, BlobEntityService blobEntityService, TbApiUsageReportClient apiUsageClient) {
         this.adminSettingsService = adminSettingsService;
@@ -129,7 +139,7 @@ public class DefaultMailService implements MailService {
 
         String message = body(mailTemplates, MailTemplates.TEST, model);
 
-        sendMail(testMailSender, mailFrom, email, subject, message);
+        sendMail(testMailSender, mailFrom, email, subject, message, getTimeout(jsonConfig));
     }
 
     @Override
@@ -179,7 +189,7 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendResetPasswordEmailAsync(TenantId tenantId, String passwordResetLink, String email) {
-        mailExecutorService.execute(() -> {
+        passwordResetExecutorService.execute(() -> {
             try {
                 this.sendResetPasswordEmail(tenantId, passwordResetLink, email);
             } catch (ThingsboardException e) {
@@ -238,7 +248,7 @@ public class DefaultMailService implements MailService {
         JsonNode jsonConfig = getConfig(tenantId, "mail");
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
         String mailFrom = getStringValue(jsonConfig, "mailFrom");
-        sendMail(mailSender, mailFrom, email, subject, message);
+        sendMail(mailSender, mailFrom, email, subject, message, getTimeout(jsonConfig));
     }
 
     @Override
@@ -246,15 +256,15 @@ public class DefaultMailService implements MailService {
         ConfigEntry configEntry = getConfig(tenantId, "mail", allowSystemMailService);
         JsonNode jsonConfig = configEntry.jsonConfig;
         JavaMailSenderImpl mailSender = createMailSender(jsonConfig);
-        sendMail(tenantId, customerId, tbEmail, mailSender, false);
+        sendMail(tenantId, customerId, tbEmail, mailSender, false, getTimeout(jsonConfig));
     }
 
     @Override
-    public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender) throws ThingsboardException {
-        sendMail(tenantId, customerId, tbEmail, javaMailSender, true);
+    public void send(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, long timeout, JavaMailSender javaMailSender) throws ThingsboardException {
+        sendMail(tenantId, customerId, tbEmail, javaMailSender, true, timeout);
     }
 
-    private void sendMail(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender, boolean externalMailSender) throws ThingsboardException {
+    private void sendMail(TenantId tenantId, CustomerId customerId, TbEmail tbEmail, JavaMailSender javaMailSender, boolean externalMailSender, long timeout) throws ThingsboardException {
         ConfigEntry configEntry = getConfig(tenantId, "mail", true);
         JsonNode jsonConfig = configEntry.jsonConfig;
         if (externalMailSender || !configEntry.isSystem || apiUsageStateService.getApiUsageState(tenantId).isEmailSendEnabled()) {
@@ -295,7 +305,7 @@ public class DefaultMailService implements MailService {
                         helper.addInline(imgId, iss, contentType);
                     }
                 }
-                javaMailSender.send(helper.getMimeMessage());
+                sendMailWithTimeout(javaMailSender, helper.getMimeMessage(), timeout);
                 if (!externalMailSender && configEntry.isSystem) {
                     apiUsageClient.report(tenantId, customerId, ApiUsageRecordKey.EMAIL_EXEC_COUNT, 1);
                 }
@@ -470,7 +480,8 @@ public class DefaultMailService implements MailService {
 
     private void sendMail(JavaMailSenderImpl mailSender,
                           String mailFrom, String email,
-                          String subject, String message) throws ThingsboardException {
+                          String subject, String message,
+                          long timeout) throws ThingsboardException {
         try {
             MimeMessage mimeMsg = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMsg, UTF_8);
@@ -478,9 +489,21 @@ public class DefaultMailService implements MailService {
             helper.setTo(email);
             helper.setSubject(subject);
             helper.setText(message, true);
-            mailSender.send(helper.getMimeMessage());
+            sendMailWithTimeout(mailSender, helper.getMimeMessage(), timeout);
         } catch (Exception e) {
             throw handleException(e);
+        }
+    }
+
+    private void sendMailWithTimeout(JavaMailSender mailSender, MimeMessage msg, long timeout) {
+        var submittedMail = mailExecutorService.submit(() -> mailSender.send(msg));
+        try {
+            submittedMail.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            log.debug("Error during mail submission", e);
+            throw new RuntimeException("Timeout!");
+        } catch (Exception e) {
+            throw new RuntimeException(ExceptionUtils.getRootCause(e));
         }
     }
 
@@ -551,6 +574,15 @@ public class DefaultMailService implements MailService {
             return "";
         }
     }
+
+    private long getTimeout(JsonNode jsonConfig) {
+        if (jsonConfig.has("timeout")) {
+            return jsonConfig.get("timeout").asLong(DEFAULT_TIMEOUT);
+        } else {
+            return DEFAULT_TIMEOUT;
+        }
+    }
+
 
     private JsonNode getConfig(TenantId tenantId, String key) throws ThingsboardException {
         return getConfig(tenantId, key, true).jsonConfig;
