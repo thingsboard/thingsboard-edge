@@ -4202,9 +4202,7 @@
         "search": "Search tenants",
         "allow-white-labeling": "Allow White Labeling",
         "allow-customer-white-labeling": "Allow Customer White Labeling",
-        "isolated-tb-core": "Processing in isolated ThingsBoard Core container",
         "isolated-tb-rule-engine": "Processing in isolated ThingsBoard Rule Engine container",
-        "isolated-tb-core-details": "Requires separate microservice(s) per isolated Tenant",
         "isolated-tb-rule-engine-details": "Requires separate microservice(s) per isolated Tenant"
     },
     "tenant-profile": {
