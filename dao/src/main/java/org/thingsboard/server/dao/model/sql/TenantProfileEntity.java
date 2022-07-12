@@ -68,9 +68,6 @@ public final class TenantProfileEntity extends BaseSqlEntity<TenantProfile> impl
     @Column(name = ModelConstants.TENANT_PROFILE_IS_DEFAULT_PROPERTY)
     private boolean isDefault;
 
-    @Column(name = ModelConstants.TENANT_PROFILE_ISOLATED_TB_CORE)
-    private boolean isolatedTbCore;
-
     @Column(name = ModelConstants.TENANT_PROFILE_ISOLATED_TB_RULE_ENGINE)
     private boolean isolatedTbRuleEngine;
 
@@ -90,7 +87,6 @@ public final class TenantProfileEntity extends BaseSqlEntity<TenantProfile> impl
         this.name = tenantProfile.getName();
         this.description = tenantProfile.getDescription();
         this.isDefault = tenantProfile.isDefault();
-        this.isolatedTbCore = tenantProfile.isIsolatedTbCore();
         this.isolatedTbRuleEngine = tenantProfile.isIsolatedTbRuleEngine();
         this.profileData = JacksonUtil.convertValue(tenantProfile.getProfileData(), ObjectNode.class);
     }
@@ -116,7 +112,6 @@ public final class TenantProfileEntity extends BaseSqlEntity<TenantProfile> impl
         tenantProfile.setName(name);
         tenantProfile.setDescription(description);
         tenantProfile.setDefault(isDefault);
-        tenantProfile.setIsolatedTbCore(isolatedTbCore);
         tenantProfile.setIsolatedTbRuleEngine(isolatedTbRuleEngine);
         tenantProfile.setProfileData(JacksonUtil.convertValue(profileData, TenantProfileData.class));
         return tenantProfile;

@@ -143,7 +143,6 @@ public class TenantProfileController extends BaseController {
                     "{\n" +
                     "  \"name\": \"Default\",\n" +
                     "  \"description\": \"Default tenant profile\",\n" +
-                    "  \"isolatedTbCore\": false,\n" +
                     "  \"isolatedTbRuleEngine\": false,\n" +
                     "  \"profileData\": {\n" +
                     "    \"configuration\": {\n" +

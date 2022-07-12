@@ -40,6 +40,6 @@ public class IntegrationTenantRoutingInfoService implements TenantRoutingInfoSer
 
     @Override
     public TenantRoutingInfo getRoutingInfo(TenantId tenantId) {
-        return new TenantRoutingInfo(tenantId, false, false);
+        return new TenantRoutingInfo(tenantId, false);
     }
 }
