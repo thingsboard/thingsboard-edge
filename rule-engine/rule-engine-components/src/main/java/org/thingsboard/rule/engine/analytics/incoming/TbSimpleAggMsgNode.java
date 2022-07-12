@@ -102,12 +102,12 @@ public class TbSimpleAggMsgNode implements TbNode {
     private long intervalReportCheckPeriod;
     private long statePersistCheckPeriod;
     private long entitiesCheckPeriod;
-    private QueueId queueId;
+    private String queueName;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbSimpleAggMsgNodeConfiguration.class);
-        this.queueId = StringUtils.isNotEmpty(config.getQueueId()) ? new QueueId(UUID.fromString(config.getQueueId())) : null;
+        this.queueName = config.getQueueName();
         this.statePersistPolicy = StatePersistPolicy.valueOf(config.getStatePersistencePolicy());
         this.intervalPersistPolicy = IntervalPersistPolicy.valueOf(config.getIntervalPersistencePolicy());
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
@@ -202,7 +202,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         log.trace("Reporting interval: [{}][{}]", ts, interval);
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
+        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(), entityId, metaData,
                 interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
     }
 
@@ -256,21 +256,21 @@ public class TbSimpleAggMsgNode implements TbNode {
     }
 
     void scheduleReportTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(queueId, TB_REPORT_TICK_MSG, ctx.getSelfId(),
+        TbMsg tickMsg = ctx.newMsg(queueName, TB_REPORT_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextReportTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, intervalReportCheckPeriod);
     }
 
     private void scheduleStatePersistTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(queueId, TB_PERSIST_TICK_MSG, ctx.getSelfId(),
+        TbMsg tickMsg = ctx.newMsg(queueName, TB_PERSIST_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextPersistTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, statePersistCheckPeriod);
     }
 
     private void scheduleEntitiesTickMsg(TbContext ctx, TbMsg msg) {
-        TbMsg tickMsg = ctx.newMsg(queueId, TB_ENTITIES_TICK_MSG, ctx.getSelfId(),
+        TbMsg tickMsg = ctx.newMsg(queueName, TB_ENTITIES_TICK_MSG, ctx.getSelfId(),
                 msg != null ? msg.getCustomerId() : null, new TbMsgMetaData(), "");
         nextEntitiesTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, entitiesCheckPeriod);

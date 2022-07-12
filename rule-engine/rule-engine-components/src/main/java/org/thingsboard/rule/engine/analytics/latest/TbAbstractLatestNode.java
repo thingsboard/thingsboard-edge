@@ -66,12 +66,12 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     private long delay;
     private long lastScheduledTs;
     private UUID nextTickId;
-    protected QueueId queueId;
+    protected String queueName;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = loadMapperNodeConfig(configuration);
-        this.queueId = StringUtils.isNotEmpty(config.getQueueId()) ? new QueueId(UUID.fromString(config.getQueueId())) : null;
+        this.queueName = config.getQueueName();
         this.delay = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
         scheduleTickMsg(ctx);
     }
@@ -95,7 +95,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         }
         lastScheduledTs = lastScheduledTs + delay;
         long curDelay = Math.max(0L, (lastScheduledTs - curTs));
-        TbMsg tickMsg = ctx.newMsg(queueId, tickMessageType(), ctx.getSelfId(), new TbMsgMetaData(), "");
+        TbMsg tickMsg = ctx.newMsg(queueName, tickMessageType(), ctx.getSelfId(), new TbMsgMetaData(), "");
         nextTickId = tickMsg.getId();
         ctx.tellSelf(tickMsg, curDelay);
     }
@@ -110,7 +110,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                 aggregateFuturesMap.forEach((originatorId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
-                        TbMsg msg = TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                        TbMsg msg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                                 originatorId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
                         ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
@@ -120,7 +120,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             TbMsgMetaData metaData = new TbMsgMetaData();
                             metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
-                            TbMsg msg = TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                            TbMsg msg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                                     originatorId, metaData, gson.toJson(messageData));
                             ctx.enqueueForTellNext(msg, SUCCESS);
                             return msg;
