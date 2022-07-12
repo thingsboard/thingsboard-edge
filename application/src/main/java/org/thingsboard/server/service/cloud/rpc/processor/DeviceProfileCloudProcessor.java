@@ -27,6 +27,7 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
@@ -104,12 +105,8 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                                 new UUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB()));
                         deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
                     }
-                    if (deviceProfileUpdateMsg.getDefaultQueueIdMSB() != 0 &&
-                            deviceProfileUpdateMsg.getDefaultQueueIdLSB() != 0) {
-                        QueueId defaultQueueId = new QueueId(
-                                new UUID(deviceProfileUpdateMsg.getDefaultQueueIdMSB(), deviceProfileUpdateMsg.getDefaultQueueIdLSB()));
-                        deviceProfile.setDefaultQueueId(defaultQueueId);
-                    }
+                    String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName()) ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
+                    deviceProfile.setDefaultQueueName(defaultQueueName);
                     DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
                     // TODO: @voba - move this part to device profile notification service
