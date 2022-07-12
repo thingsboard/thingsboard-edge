@@ -134,12 +134,6 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         }
         DeviceProfile savedDeviceProfile;
         try {
-            if (deviceProfile.getDefaultQueueId() == null && StringUtils.isNotEmpty(deviceProfile.getDefaultQueueName())) {
-                Queue existing = queueService.findQueueByTenantIdAndName(deviceProfile.getTenantId(), deviceProfile.getDefaultQueueName());
-                if (existing != null) {
-                    deviceProfile.setDefaultQueueId(existing.getId());
-                }
-            }
             savedDeviceProfile = deviceProfileDao.saveAndFlush(deviceProfile.getTenantId(), deviceProfile);
             publishEvictEvent(new DeviceProfileEvictEvent(savedDeviceProfile.getTenantId(), savedDeviceProfile.getName(),
                     oldDeviceProfile != null ? oldDeviceProfile.getName() : null, savedDeviceProfile.getId(), savedDeviceProfile.isDefault()));
