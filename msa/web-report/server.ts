@@ -32,10 +32,10 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import config from 'config';
-import { _logger}  from './config/logger';
-import * as puppeteer from 'puppeteer';
+import { _logger } from './config/logger';
+import { chromium } from 'playwright-chromium';
+import { Browser, LaunchOptions } from 'playwright-core';
 import { route } from './api/routes/tbWebReportRoutes';
-import { Browser, BrowserConnectOptions, BrowserLaunchArgumentOptions, LaunchOptions } from 'puppeteer';
 import { TbWebReportPageQueue } from './api/controllers/tbWebReportPageQueue';
 
 const logger = _logger('main');
@@ -56,65 +56,77 @@ let pagesQueue: TbWebReportPageQueue;
 
 (async() => {
     try {
-        logger.info('Starting chrome headless browser...');
+        logger.info('Starting ThingsBoard Web Report Microservice...');
 
-        const browserOptions: LaunchOptions & BrowserLaunchArgumentOptions & BrowserConnectOptions  = {
+        const browserOptions: LaunchOptions  = {
             headless: true,
-            ignoreHTTPSErrors: true,
+            handleSIGHUP: false,
+            handleSIGINT: false,
+            handleSIGTERM: false,
             args: ['--no-sandbox'],
-            timeout: Number(config.get('browser.launchTimeout'))
+            timeout: Number(config.get('browser.launchTimeout')),
+            channel: 'chrome'
         };
         if (typeof process.env.CHROME_EXECUTABLE !== 'undefined') {
             logger.info('Chrome headless browser executable: %s', process.env.CHROME_EXECUTABLE);
             browserOptions.executablePath = process.env.CHROME_EXECUTABLE;
         }
-        browser = await puppeteer.launch(browserOptions);
+        browser = await chromium.launch(browserOptions);
 
         logger.info('Started chrome headless browser.');
 
-        const ver = await browser.version();
+        const ver = browser.version();
 
         logger.info('Headless chrome browser version: %s', ver);
-
-        logger.info('Initializing pages queue with size: %s', maxPages);
 
         pagesQueue = new TbWebReportPageQueue(browser, maxPages);
         await pagesQueue.init();
 
-        logger.info('Pages queue initialized.');
-
+        // @ts-ignore
+        route(app, pagesQueue); //register the route
+        app.use((req, res) => {
+            res.statusMessage = req.originalUrl + ' not found';
+            res.status(404).end();
+        });
+        app.listen(port, address, () => {
+            logger.info('==> 🌎  ThingsBoard Web Report Service listening on http://%s:%s/.', address, port);
+            logger.info('Started ThingsBoard Web Report Microservice.');
+        }).on('error', async (error) => {
+            logger.error('Failed to start ThingsBoard Web Report Microservice: %s', error.message);
+            logger.error(error);
+            await exit(-1);
+        });
     } catch (e: any) {
-        logger.error('Failed to start headless browser: %s', e.message);
+        logger.error('Failed to start ThingsBoard Web Report Microservice: %s', e.message);
         logger.error(e);
-        exit(-1);
+        await exit(-1);
     }
-    // @ts-ignore
-    route(app, pagesQueue); //register the route
-    app.use((req, res) => {
-        res.statusMessage = req.originalUrl + ' not found';
-        res.status(404).end();
-    });
-    app.listen(port, address, () => {
-        logger.info('==> 🌎  ThingsBoard Web Reporting Service listening on http://%s:%s/.', address, port);
-    }).on('error', (error) => {
-        logger.error(error);
-        exit(-1);
-    });
 })();
 
-process.on('exit', () => {
-    exit(0);
+[`SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
+    process.once(eventType, async () => {
+        logger.info(`${eventType} signal received`);
+        await exit(0);
+    });
+})
+
+process.on('exit', async (code: number) => {
+    logger.info(`ThingsBoard Web Reporting Microservice has been stopped. Exit code: ${code}.`);
 });
 
-function exit(status: number) {
+async function exit(status: number) {
     logger.info('Exiting with status: %d ...', status);
-    if (browser) {
-        browser.close().then(
-            () => {
-                process.exit(status);
-            }
-        );
-    } else {
-        process.exit(status);
+    if (pagesQueue) {
+        await pagesQueue.destroy();
     }
+    if (browser) {
+        logger.info('Closing browser...');
+        try {
+            await browser.close();
+        } catch (e) {
+            logger.error(e);
+        }
+        logger.info('Browser closed.');
+    }
+    process.exit(status);
 }

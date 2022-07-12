@@ -44,12 +44,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -59,12 +65,17 @@ import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransp
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
@@ -84,6 +95,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 public abstract class BaseDeviceProfileControllerTest extends AbstractControllerTest {
 
@@ -222,6 +235,20 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
     }
 
     @Test
+    public void testFindDeviceProfileInfoById_NewCustomerNewUser() throws Exception {
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        DeviceProfile savedDeviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+
+        loginNewCustomerNewUser();
+
+        DeviceProfileInfo foundDeviceProfileInfo = doGet("/api/deviceProfileInfo/" + savedDeviceProfile.getId().getId().toString(), DeviceProfileInfo.class);
+        Assert.assertNotNull(foundDeviceProfileInfo);
+        Assert.assertEquals(savedDeviceProfile.getId(), foundDeviceProfileInfo.getId());
+        Assert.assertEquals(savedDeviceProfile.getName(), foundDeviceProfileInfo.getName());
+        Assert.assertEquals(savedDeviceProfile.getType(), foundDeviceProfileInfo.getType());
+    }
+
+        @Test
     public void whenGetDeviceProfileInfoById_thenPermissionsAreChecked() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfile("Device profile 1", null);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -375,6 +402,80 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
     }
 
     @Test
+    public void testSaveDeviceProfileWithRuleChainFromDifferentTenant() throws Exception {
+        loginDifferentTenant();
+        RuleChain ruleChain = new RuleChain();
+        ruleChain.setName("Different rule chain");
+        RuleChain savedRuleChain = doPost("/api/ruleChain", ruleChain, RuleChain.class);
+
+        loginTenantAdmin();
+
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        deviceProfile.setDefaultRuleChainId(savedRuleChain.getId());
+        doPost("/api/deviceProfile", deviceProfile).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Can't assign rule chain from different tenant!")));
+    }
+
+    @Test
+    public void testSaveDeviceProfileWithDashboardFromDifferentTenant() throws Exception {
+        loginDifferentTenant();
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle("Different dashboard");
+        Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
+
+        loginTenantAdmin();
+
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        deviceProfile.setDefaultDashboardId(savedDashboard.getId());
+        doPost("/api/deviceProfile", deviceProfile).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Can't assign dashboard from different tenant!")));
+    }
+
+    @Test
+    public void testSaveDeviceProfileWithFirmwareFromDifferentTenant() throws Exception {
+        loginDifferentTenant();
+        DeviceProfile differentProfile = createDeviceProfile("Different profile");
+        differentProfile = doPost("/api/deviceProfile", differentProfile, DeviceProfile.class);
+        SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
+        firmwareInfo.setDeviceProfileId(differentProfile.getId());
+        firmwareInfo.setType(FIRMWARE);
+        firmwareInfo.setTitle("title");
+        firmwareInfo.setVersion("1.0");
+        firmwareInfo.setUrl("test.url");
+        firmwareInfo.setUsesUrl(true);
+        OtaPackageInfo savedFw = doPost("/api/otaPackage", firmwareInfo, OtaPackageInfo.class);
+
+        loginTenantAdmin();
+
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        deviceProfile.setFirmwareId(savedFw.getId());
+        doPost("/api/deviceProfile", deviceProfile).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Can't assign firmware from different tenant!")));
+    }
+
+    @Test
+    public void testSaveDeviceProfileWithSoftwareFromDifferentTenant() throws Exception {
+        loginDifferentTenant();
+        DeviceProfile differentProfile = createDeviceProfile("Different profile");
+        differentProfile = doPost("/api/deviceProfile", differentProfile, DeviceProfile.class);
+        SaveOtaPackageInfoRequest softwareInfo = new SaveOtaPackageInfoRequest();
+        softwareInfo.setDeviceProfileId(differentProfile.getId());
+        softwareInfo.setType(SOFTWARE);
+        softwareInfo.setTitle("title");
+        softwareInfo.setVersion("1.0");
+        softwareInfo.setUrl("test.url");
+        softwareInfo.setUsesUrl(true);
+        OtaPackageInfo savedSw = doPost("/api/otaPackage", softwareInfo, OtaPackageInfo.class);
+
+        loginTenantAdmin();
+
+        DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
+        deviceProfile.setSoftwareId(savedSw.getId());
+        doPost("/api/deviceProfile", deviceProfile).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Can't assign software from different tenant!")));
+    }
+
+    @Test
     public void testDeleteDeviceProfile() throws Exception {
         DeviceProfile deviceProfile = this.createDeviceProfile("Device Profile");
         DeviceProfile savedDeviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -416,6 +517,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new DeviceProfile(), new DeviceProfile(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+        Mockito.reset(tbClusterService, auditLogService);
 
         List<DeviceProfile> loadedDeviceProfiles = new ArrayList<>();
         pageLink = new PageLink(17);
@@ -1102,4 +1204,48 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
                 .getMergedPermissions(argThat(user -> user.getId().equals(userId)), anyBoolean());
     }
 
+
+    private void loginNewCustomerNewUser()  throws Exception {
+
+        Customer customer = new Customer();
+        customer.setTitle("Customer");
+        customer.setTenantId(savedTenant.getId());
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
+
+        Role role = new Role();
+        role.setTenantId(savedTenant.getId());
+        role.setCustomerId(savedCustomer.getId());
+        role.setType(RoleType.GENERIC);
+        role.setName("Test customer administrator");
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+
+        role = doPost("/api/role", role, Role.class);
+
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Test customer administrators");
+        entityGroup.setType(EntityType.USER);
+        entityGroup.setOwnerId(savedCustomer.getId());
+        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        GroupPermission groupPermission = new GroupPermission(
+                tenantId,
+                entityGroup.getId(),
+                role.getId(),
+                null,
+                null,
+                false
+        );
+
+        doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+
+        User customerUser = new User();
+        customerUser.setAuthority(Authority.CUSTOMER_USER);
+        customerUser.setTenantId(savedTenant.getId());
+        customerUser.setCustomerId(savedCustomer.getId());
+        customerUser.setEmail("customer2@thingsboard.org");
+
+        createUser(customerUser, "customer", entityGroup.getId());
+
+        login("customer2@thingsboard.org", "customer");
+    }
 }

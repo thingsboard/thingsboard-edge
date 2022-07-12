@@ -40,4 +40,7 @@ source "${CONF_FOLDER}/${configfile}"
 
 cd ${pkg.installFolder}
 
-exec /bin/sh -c "node server.js"
+export CHROME_EXECUTABLE=$(node -e "console.log(require('playwright-core/lib/server').registry.findExecutable('chromium').executablePath());")
+
+# This will forward this PID 1 to the node.js and forward SIGTERM for graceful shutdown as well
+exec node server.js

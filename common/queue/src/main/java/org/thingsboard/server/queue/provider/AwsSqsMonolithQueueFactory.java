@@ -102,8 +102,9 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
     private final TbQueueAdmin jsExecutorAdmin;
     private final TbQueueAdmin transportApiAdmin;
     private final TbQueueAdmin notificationAdmin;
-    private final TbQueueAdmin integrationApiAdmin;
+    private final TbQueueAdmin otaAdmin;
     private final TbQueueAdmin vcAdmin;
+    private final TbQueueAdmin integrationApiAdmin;
 
     public AwsSqsMonolithQueueFactory(NotificationsTopicService notificationsTopicService, TbQueueCoreSettings coreSettings,
                                       TbQueueRuleEngineSettings ruleEngineSettings,
@@ -133,8 +134,9 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         this.jsExecutorAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getJsExecutorAttributes());
         this.transportApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getTransportApiAttributes());
         this.notificationAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getNotificationsAttributes());
-        this.integrationApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getIntegrationSettings());
+        this.otaAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getOtaAttributes());
         this.vcAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getVcAttributes());
+        this.integrationApiAdmin = new TbAwsSqsAdmin(sqsSettings, sqsQueueAttributes.getIntegrationSettings());
     }
 
     @Override
@@ -242,13 +244,13 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
 
     @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgConsumer() {
-        return new TbAwsSqsConsumerTemplate<>(coreAdmin, sqsSettings, coreSettings.getOtaPackageTopic(),
+        return new TbAwsSqsConsumerTemplate<>(otaAdmin, sqsSettings, coreSettings.getOtaPackageTopic(),
                 msg -> new TbProtoQueueMsg<>(msg.getKey(), ToOtaPackageStateServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
     }
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> createToOtaPackageStateServiceMsgProducer() {
-        return new TbAwsSqsProducerTemplate<>(coreAdmin, sqsSettings, coreSettings.getOtaPackageTopic());
+        return new TbAwsSqsProducerTemplate<>(otaAdmin, sqsSettings, coreSettings.getOtaPackageTopic());
     }
 
     @Override
@@ -317,6 +319,9 @@ public class AwsSqsMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEng
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
+        }
+        if (otaAdmin != null) {
+            otaAdmin.destroy();
         }
         if (vcAdmin != null) {
             vcAdmin.destroy();

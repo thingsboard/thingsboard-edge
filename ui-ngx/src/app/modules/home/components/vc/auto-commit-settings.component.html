@@ -61,6 +61,7 @@
                     <span fxFlex></span>
                     <button mat-icon-button style="min-width: 40px;"
                             type="button"
+                            *ngIf="!readonly"
                             (click)="removeEntityType($index)"
                             matTooltip="{{ 'action.remove' | translate }}"
                             matTooltipPosition="above">
@@ -115,6 +116,7 @@
             <div style="padding-top: 16px;" fxLayout="row">
               <button mat-raised-button color="primary"
                       type="button"
+                      *ngIf="!readonly"
                       [disabled]="!addEnabled()"
                       (click)="addEntityType()">
                 <span translate>version-control.add-entity-type</span>
@@ -122,6 +124,7 @@
               <span fxFlex></span>
               <button mat-raised-button color="primary"
                       type="button"
+                      *ngIf="!readonly"
                       [disabled]="!entityTypesFormGroupArray().length"
                       (click)="removeAll()">
                 <span translate>version-control.remove-all</span>
@@ -130,12 +133,13 @@
           </div>
         </fieldset>
         <div fxLayout="row" fxLayoutAlign="end center" fxLayout.xs="column" fxLayoutAlign.xs="end" fxLayoutGap="16px">
-          <button mat-raised-button color="warn" type="button" [fxShow]="settings !== null"
+          <button mat-raised-button color="warn" type="button" [fxShow]="settings !== null && allowDelete"
                   [disabled]="(isLoading$ | async)" (click)="delete(formDirective)">
             {{'action.delete' | translate}}
           </button>
           <span fxFlex></span>
           <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || autoCommitSettingsForm.invalid || !autoCommitSettingsForm.dirty"
+                  *ngIf="!readonly"
                   type="submit">{{'action.save' | translate}}
           </button>
         </div>

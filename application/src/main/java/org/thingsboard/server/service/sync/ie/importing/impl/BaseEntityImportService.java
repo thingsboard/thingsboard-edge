@@ -43,6 +43,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -67,6 +68,7 @@ import org.thingsboard.server.dao.relation.RelationDao;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.sync.ie.importing.EntityImportService;
 import org.thingsboard.server.service.sync.ie.importing.MissingEntityException;
@@ -90,6 +92,9 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
     @Autowired
     @Lazy
     protected ExportableEntitiesService exportableEntitiesService;
+    @Autowired
+    @Lazy
+    protected OwnersCacheService ownersCacheService;
     @Autowired
     private RelationService relationService;
     @Autowired
@@ -130,7 +135,21 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
         boolean saveOrUpdate = existingEntity == null || compare(ctx, exportData, prepared, existingEntity);
 
         if (saveOrUpdate) {
+            boolean changeOwner = false;
+            if (existingEntity != null && prepared instanceof HasOwnerId) {
+                EntityId newOwnerId = ((HasOwnerId) prepared).getOwnerId();
+                EntityId oldOwnerId = ((HasOwnerId) existingEntity).getOwnerId();
+                changeOwner = !newOwnerId.equals(oldOwnerId);
+                if (changeOwner) {
+                    ownersCacheService.changeEntityOwner(ctx.getTenantId(), existingEntity.getId(), newOwnerId, oldOwnerId);
+                }
+            }
             E savedEntity = saveOrUpdate(ctx, prepared, exportData, idProvider);
+            if (changeOwner) {
+                importResult.addSendEventsCallback(() -> {
+                    entityNotificationService.logEntityAction(ctx.getTenantId(), savedEntity.getId(), entity, ActionType.CHANGE_OWNER, ctx.getUser(), ((HasOwnerId) savedEntity).getOwnerId());
+                });
+            }
             boolean created = existingEntity == null;
             importResult.setCreated(created);
             importResult.setUpdated(!created);

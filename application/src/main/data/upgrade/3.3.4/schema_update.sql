@@ -97,6 +97,8 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     two_fa_settings varchar
 );
 
+CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(entity_id);
+
 DELETE FROM relation WHERE relation_type_group = 'TO_ENTITY_GROUP';
 
 ALTER TABLE converter
@@ -104,3 +106,25 @@ ALTER TABLE converter
 
 ALTER TABLE integration
     ADD COLUMN IF NOT EXISTS is_edge_template boolean DEFAULT false;
+
+UPDATE integration SET converter_id = NULL WHERE converter_id IS NOT NULL AND NOT EXISTS (SELECT id FROM converter where converter.id = converter_id);
+
+UPDATE integration SET downlink_converter_id = NULL WHERE downlink_converter_id IS NOT NULL AND NOT EXISTS (SELECT id FROM converter where converter.id = downlink_converter_id);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT id FROM integration WHERE converter_id IS NULL) THEN
+        ALTER TABLE integration ALTER COLUMN converter_id SET NOT NULL;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_converter') THEN
+        ALTER TABLE integration ADD CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id);
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_integration_downlink_converter') THEN
+        ALTER TABLE integration ADD CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id);
+    END IF;
+END;
+$$;
+
+ALTER TABLE tenant_profile DROP COLUMN IF EXISTS isolated_tb_core;

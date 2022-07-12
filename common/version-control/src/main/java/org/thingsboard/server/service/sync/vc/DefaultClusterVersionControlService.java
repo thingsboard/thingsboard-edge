@@ -302,7 +302,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
         } else {
             for (EntityIdProto idProto : request.getIdsList()) {
                 UUID uuid = new UUID(idProto.getEntityIdMSB(), idProto.getEntityIdLSB());
-                var entityPath = getRelativePath(request.getPath(), EntityType.valueOf(request.getEntityType()), uuid.toString());
+                var entityPath = getRelativePath(EntityType.valueOf(request.getEntityType()), uuid.toString());
                 sendData(entityPath, request, ctx, request.getIdsCount());
             }
         }
@@ -559,7 +559,8 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                 .setRequestIdLSB(ctx.getRequestId().getLeastSignificantBits());
         if (e.isPresent()) {
             log.debug("[{}][{}] Failed to process task", ctx.getTenantId(), ctx.getRequestId(), e.get());
-            builder.setError(e.get().getMessage());
+            var message = e.get().getMessage();
+            builder.setError(message != null ? message : e.get().getClass().getSimpleName());
         } else {
             if (enrichFunction != null) {
                 builder = enrichFunction.apply(builder);
@@ -585,11 +586,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
     }
 
     private String getRelativePath(EntityType entityType, String entityId) {
-        return getRelativePath(null, entityType, entityId);
-    }
-
-    private String getRelativePath(String folder, EntityType entityType, String entityId) {
-        String path = StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
+        String path = entityType.name().toLowerCase();
         if (entityId != null) {
             path += "/" + entityId + ".json";
         }

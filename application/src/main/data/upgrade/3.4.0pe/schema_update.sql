@@ -68,14 +68,16 @@ CREATE TABLE IF NOT EXISTS integration (
     allow_create_devices_or_assets boolean,
     name varchar(255),
     secret varchar(255),
-    converter_id uuid,
+    converter_id uuid not null,
     downlink_converter_id uuid,
     routing_key varchar(255),
     search_text varchar(255),
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
-    is_edge_template boolean DEFAULT false
+    is_edge_template boolean DEFAULT false,
+    CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
+    CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
 );
 
 ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);

@@ -103,26 +103,6 @@ CREATE TABLE IF NOT EXISTS asset (
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name)
 );
 
-CREATE TABLE IF NOT EXISTS integration (
-    id uuid NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
-    created_time bigint NOT NULL,
-    additional_info varchar,
-    configuration varchar(10000000),
-    debug_mode boolean,
-    enabled boolean,
-    is_remote boolean,
-    allow_create_devices_or_assets boolean,
-    name varchar(255),
-    secret varchar(255),
-    converter_id uuid,
-    downlink_converter_id uuid,
-    routing_key varchar(255),
-    search_text varchar(255),
-    tenant_id uuid,
-    type varchar(255),
-    external_id uuid,
-    is_edge_template boolean DEFAULT false
-);
 
 CREATE TABLE IF NOT EXISTS converter (
     id uuid NOT NULL CONSTRAINT converter_pkey PRIMARY KEY,
@@ -136,6 +116,29 @@ CREATE TABLE IF NOT EXISTS converter (
     type varchar(255),
     external_id uuid,
     is_edge_template boolean DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS integration (
+    id uuid NOT NULL CONSTRAINT integration_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    additional_info varchar,
+    configuration varchar(10000000),
+    debug_mode boolean,
+    enabled boolean,
+    is_remote boolean,
+    allow_create_devices_or_assets boolean,
+    name varchar(255),
+    secret varchar(255),
+    converter_id uuid not null,
+    downlink_converter_id uuid,
+    routing_key varchar(255),
+    search_text varchar(255),
+    tenant_id uuid,
+    type varchar(255),
+    external_id uuid,
+    is_edge_template boolean DEFAULT false,
+    CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
+    CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -308,14 +311,13 @@ CREATE TABLE IF NOT EXISTS device_profile (
     software_id uuid,
     default_rule_chain_id uuid,
     default_dashboard_id uuid,
-    default_queue_id uuid,
+    default_queue_name varchar(255),
     provision_device_key varchar,
     external_id uuid,
     CONSTRAINT device_profile_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT device_provision_key_unq_key UNIQUE (provision_device_key),
     CONSTRAINT fk_default_rule_chain_device_profile FOREIGN KEY (default_rule_chain_id) REFERENCES rule_chain(id),
     CONSTRAINT fk_default_dashboard_device_profile FOREIGN KEY (default_dashboard_id) REFERENCES dashboard(id),
-    CONSTRAINT fk_default_queue_device_profile FOREIGN KEY (default_queue_id) REFERENCES queue(id),
     CONSTRAINT fk_firmware_device_profile FOREIGN KEY (firmware_id) REFERENCES ota_package(id),
     CONSTRAINT fk_software_device_profile FOREIGN KEY (software_id) REFERENCES ota_package(id)
 );

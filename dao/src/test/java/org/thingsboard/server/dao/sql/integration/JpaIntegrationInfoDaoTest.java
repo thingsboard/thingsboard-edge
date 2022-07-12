@@ -36,6 +36,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,11 +45,15 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
+import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
@@ -56,15 +62,21 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
     List<Integration> savedIntegrations = new LinkedList<>();
 
+    List<Converter> savedConverters = new ArrayList<>();
+
     @Autowired
     private IntegrationInfoDao integrationInfoDao;
 
     @Autowired
     private IntegrationDao integrationDao;
 
+    @Autowired
+    private ConverterDao converterDao;
+
     @After
     public void tearDown() {
         clearSavedIntegrations();
+        clearSavedConverters();
     }
 
     @Test
@@ -72,6 +84,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -109,6 +122,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -154,6 +168,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -181,6 +196,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -247,6 +263,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -310,6 +327,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -358,6 +376,15 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         return integrationDao.save(new TenantId(tenantId), integration);
     }
 
+    private void saveConverter(UUID id, UUID tenantId) {
+        Converter converter = new Converter();
+        converter.setId(new ConverterId(id));
+        converter.setTenantId(new TenantId(tenantId));
+        converter.setName("CONVERTER");
+        converter.setType(ConverterType.UPLINK);
+        savedConverters.add(converterDao.save(new TenantId(tenantId), converter));
+    }
+
     private void clearSavedIntegrations() {
         if (!savedIntegrations.isEmpty()) {
             savedIntegrations.forEach(integration ->
@@ -368,5 +395,10 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             );
             savedIntegrations.clear();
         }
+    }
+
+    private void clearSavedConverters() {
+        savedConverters.forEach(converter -> converterDao.removeById(converter.getTenantId(), converter.getUuidId()));
+        savedIntegrations.clear();
     }
 }

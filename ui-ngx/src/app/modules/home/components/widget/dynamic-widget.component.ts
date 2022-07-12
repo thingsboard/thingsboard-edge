@@ -51,6 +51,7 @@ import { UserService } from '@core/http/user.service';
 import { AttributeService } from '@core/http/attribute.service';
 import { EntityRelationService } from '@core/http/entity-relation.service';
 import { EntityService } from '@core/http/entity.service';
+import { AuthService } from '@core/auth/auth.service';
 import { DialogService } from '@core/services/dialog.service';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
 import { ResourceService } from '@core/http/resource.service';
@@ -92,6 +93,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.entityRelationService = $injector.get(EntityRelationService);
     this.ctx.entityService = $injector.get(EntityService);
     this.ctx.entityGroupService = $injector.get(EntityGroupService);
+    this.ctx.authService = $injector.get(AuthService);
     this.ctx.dialogs = $injector.get(DialogService);
     this.ctx.customDialog = $injector.get(CustomDialogService);
     this.ctx.resourceService = $injector.get(ResourceService);

@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
 import java.util.List;
@@ -79,7 +80,7 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CU
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
-public class OwnerController extends BaseController {
+public class OwnerController extends AutoCommitController {
 
     public static final String OWNER_ID = "ownerId";
     public static final String ENTITY_TYPE = "entityType";
@@ -107,14 +108,10 @@ public class OwnerController extends BaseController {
         if (!getCurrentUser().getTenantId().equals(targetOwnerId)) {
             throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
-        try {
-            checkEntityId(entityId, Operation.CHANGE_OWNER);
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
-            EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        checkEntityId(entityId, Operation.CHANGE_OWNER);
+        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
+        EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
+        sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
     }
 
     @ApiOperation(value = "Change owner to tenant (changeOwnerToCustomer)",
@@ -128,17 +125,18 @@ public class OwnerController extends BaseController {
                                       @ApiParam(value = ENTITY_TYPE_PARAM_DESCRIPTION)
                                       @PathVariable(ENTITY_TYPE) String entityType,
                                       @ApiParam(value = ENTITY_ID_PARAM_DESCRIPTION)
-                                      @PathVariable(ENTITY_ID) String entityIdStr) throws ThingsboardException {
+                                      @PathVariable(ENTITY_ID) String entityIdStr) throws Exception {
         checkParameter(OWNER_ID, ownerIdStr);
         checkParameter(ENTITY_TYPE, entityType);
         checkParameter(ENTITY_ID, entityIdStr);
-        EntityId currentUserOwnerId = getCurrentUser().getOwnerId();
+        SecurityUser currentUser = getCurrentUser();
+        EntityId currentUserOwnerId = currentUser.getOwnerId();
         CustomerId targetOwnerId = new CustomerId(UUID.fromString(ownerIdStr));
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
 
         if (!currentUserOwnerId.equals(targetOwnerId)) {
-            Customer targetOwner = customerService.findCustomerById(getCurrentUser().getTenantId(), targetOwnerId);
-            Set<EntityId> targetOwnerOwners = ownersCacheService.getOwners(getCurrentUser().getTenantId(), targetOwnerId, targetOwner);
+            Customer targetOwner = customerService.findCustomerById(currentUser.getTenantId(), targetOwnerId);
+            Set<EntityId> targetOwnerOwners = ownersCacheService.getOwners(currentUser.getTenantId(), targetOwnerId, targetOwner);
             if (!targetOwnerOwners.contains(currentUserOwnerId)) {
                 // Customer/Tenant Changes Owner from Customer to Sub-Customer - OK.
                 // Customer/Tenant Changes Owner from Sub-Customer to Customer - OK.
@@ -146,13 +144,10 @@ public class OwnerController extends BaseController {
                 throw new ThingsboardException("You aren't authorized to perform this operation!", ThingsboardErrorCode.PERMISSION_DENIED);
             }
         }
-        try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
-            EntityId previousOwnerId = changeOwner(getCurrentUser().getTenantId(), targetOwnerId, entityId);
-            sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityId);
+        EntityId previousOwnerId = changeOwner(currentUser.getTenantId(), targetOwnerId, entityId);
+
+        sendChangeOwnerNotificationMsg(getTenantId(), entityId, relatedEdgeIds, previousOwnerId);
     }
 
     private EntityId changeOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {

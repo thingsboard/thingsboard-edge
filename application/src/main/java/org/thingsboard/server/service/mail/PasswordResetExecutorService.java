@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
@@ -28,18 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-const config = require('config'),
-      logger = require('../config/logger')._logger('httpServer'),
-      express = require('express');
+package org.thingsboard.server.service.mail;
 
-const httpPort = Number(config.get('http_port'));
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
-const app = express();
+@Component
+public class PasswordResetExecutorService extends AbstractListeningExecutor {
 
-app.get('/livenessProbe', async (req, res) => {
-  const date = new Date();
-  const message = { now: date.toISOString() };
-  res.send(message);
-})
+    @Value("${actors.rule.mail_password_reset_thread_pool_size:10}")
+    private int mailExecutorThreadPoolSize;
 
-app.listen(httpPort, () => logger.info(`Started http endpoint on port ${httpPort}. Please, use /livenessProbe !`))
+    @Override
+    protected int getThreadPollSize() {
+        return mailExecutorThreadPoolSize;
+    }
+
+}

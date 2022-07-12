@@ -29,9 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Browser } from 'puppeteer';
+import { Browser } from 'playwright-core';
 import { TbWebReportPage } from './tbWebReportPage';
 import { RequestState } from './tbWebReportController';
+import { _logger } from '../../config/logger';
+
+const logger = _logger('TbWebReportPageQueue');
 
 export class TbWebReportPageQueue {
 
@@ -42,14 +45,24 @@ export class TbWebReportPageQueue {
     }
 
     async init(): Promise<void> {
+        logger.info('Initializing pages queue with size: %s', this.maxPageCount);
         for (let i = 0; i < this.maxPageCount; i++) {
             const page = new TbWebReportPage(this.browser, i+1);
             await page.init();
             this.pages.push(page);
         }
+        logger.info('Pages queue initialized.');
     }
 
-    async generateDashboardReport(requestState: RequestState, url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
+    async destroy(): Promise<void> {
+        logger.info('Closing pages queue...');
+        for (let page of this.pages) {
+            await page.destroy();
+        }
+        logger.info('Pages queue closed.');
+    }
+
+    async generateDashboardReport(requestState: RequestState, url: string, type: 'png' | 'jpeg' | 'pdf', timezone: string): Promise<Buffer> {
         const page = this.pages.pop();
         if (page) {
             return await this.doGenerateDashboardReport(page, url, type, timezone);
@@ -80,7 +93,7 @@ export class TbWebReportPageQueue {
         }
     }
 
-    private async doGenerateDashboardReport(page: TbWebReportPage, url: string, type: 'png' | 'jpeg' | 'webp' | 'pdf', timezone: string): Promise<Buffer> {
+    private async doGenerateDashboardReport(page: TbWebReportPage, url: string, type: 'png' | 'jpeg' | 'pdf', timezone: string): Promise<Buffer> {
         try {
             return await page.generateDashboardReport(url, type, timezone);
         } finally {

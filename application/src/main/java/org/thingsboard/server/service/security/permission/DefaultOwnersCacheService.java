@@ -370,13 +370,32 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         }
     }
 
+    @Override
+    public void changeEntityOwner(TenantId tenantId, EntityId entityId, EntityId targetOwnerId, EntityId currentOwnerId) throws ThingsboardException {
+        if (targetOwnerId.equals(currentOwnerId)) {
+            throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
+
+        deleteFromGroupsAndAddToGroupAll(tenantId, entityId, targetOwnerId);
+
+        clearOwners(entityId);
+    }
+
     private <T extends HasOwnerId> void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, T entity, Consumer<T> saveFunction)
             throws ThingsboardException {
         if (entity.getOwnerId().equals(targetOwnerId)) {
             throw new ThingsboardException("Entity already belongs to this owner!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
 
-        List<EntityGroupId> entityGroupList = null;
+        deleteFromGroupsAndAddToGroupAll(tenantId, entityId, targetOwnerId);
+
+        entity.setOwnerId(targetOwnerId);
+        saveFunction.accept(entity);
+        clearOwners(entityId);
+    }
+
+    private void deleteFromGroupsAndAddToGroupAll(TenantId tenantId, EntityId entityId, EntityId targetOwnerId) throws ThingsboardException {
+        List<EntityGroupId> entityGroupList;
         try {
             entityGroupList = entityGroupService.findEntityGroupsForEntity(tenantId, entityId).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -387,9 +406,5 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
         }
 
         entityGroupService.addEntityToEntityGroupAll(tenantId, targetOwnerId, entityId);
-
-        entity.setOwnerId(targetOwnerId);
-        saveFunction.accept(entity);
-        clearOwners(entityId);
     }
 }

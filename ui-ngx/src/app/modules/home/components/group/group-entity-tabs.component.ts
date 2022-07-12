@@ -66,7 +66,7 @@ export class GroupEntityTabsComponent<T extends BaseData<HasId>>
     if (this.authUser.authority === this.authorities.TENANT_ADMIN && this.entityType &&
       exportableEntityTypes.includes(this.entityType) && EntityType.USER !== this.entityType) {
       const entityResource = resourceByEntityType.get(this.entityType);
-      return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.WRITE);
+      return this.userPermissionsService.hasResourcesGenericPermission([Resource.VERSION_CONTROL, entityResource], Operation.READ);
     } else {
       return false;
     }

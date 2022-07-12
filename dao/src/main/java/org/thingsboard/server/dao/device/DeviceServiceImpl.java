@@ -244,6 +244,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                 if (deviceProfile == null) {
                     throw new DataValidationException("Device is referencing non existing device profile!");
                 }
+                if (!deviceProfile.getTenantId().equals(device.getTenantId())) {
+                    throw new DataValidationException("Device can`t be referencing to device profile from different tenant!");
+                }
             }
             device.setType(deviceProfile.getName());
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
@@ -483,6 +486,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
         device.setTenantId(tenantId);
         device.setCustomerId(null);
+        device.setDeviceProfileId(null);
 
         Device savedDevice = doSaveDevice(device, null, true);
         entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
