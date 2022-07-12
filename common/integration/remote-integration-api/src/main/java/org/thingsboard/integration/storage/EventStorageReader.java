@@ -97,7 +97,7 @@ class EventStorageReader {
                     }
                 }
 
-                if (currentLineInFile == settings.getMaxRecordsPerFile()) {
+                if (currentLineInFile >= settings.getMaxRecordsPerFile()) {
                     File nextFile = getNextFile(files, newPos);
                     if (nextFile != null) {
                         if (bufferedReader != null) {
