@@ -70,8 +70,8 @@ class EventStorageWriter {
                 log.debug("File [{}] is full with [{}] records", currentFile.getName(), currentFileRecordsCount);
             }
             try {
-                log.debug("Created new data file: {}", currentFile.getName());
                 currentFile = createDataFile(Long.toString(System.currentTimeMillis()));
+                log.debug("Created new data file: {}", currentFile.getName());
             } catch (IOException e) {
                 log.error("Failed to create a new file!", e);
                 if (callback != null) {
