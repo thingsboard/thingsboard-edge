@@ -153,7 +153,7 @@ public class TbAlarmsCountNodeTest {
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.nullable(QueueId.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+        }).when(ctx).newMsg(ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
                 ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;

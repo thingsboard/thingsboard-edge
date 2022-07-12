@@ -327,7 +327,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 pendingValidationTasks.put(task.getUuid(), task);
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getTenantId(), configuration.getId(), configuration.getType().name())
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
                         .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(configuration.getType()));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
@@ -608,7 +608,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         var type = integration.getType();
         if (supportedIntegrationTypes.contains(type)) {
             return !type.isSingleton()
-                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getTenantId(), integration.getId(), type.name()).isMyPartition();
+                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, type.name(), integration.getTenantId(), integration.getId()).isMyPartition();
         } else {
             return false;
         }
