@@ -98,7 +98,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
                         callbackCoap.getObserve() != null &&
                         0 == callbackCoap.getObserve().intValue());
         validateCurrentStateNotification(callbackCoap);
-        int expectedObserveBeforeGpioRequestCnt = callbackCoap.getObserve().intValue() + 1;
+        int expectedObserveCountAfterGpioRequest = callbackCoap.getObserve().intValue() + 1;
         String setGpioRequest = "{\"method\":\"setGpio\",\"params\":{\"pin\": \"23\",\"value\": 1}}";
         String deviceId = savedDevice.getId().getId().toString();
         String result = doPostAsync("/api/rpc/oneway/" + deviceId, setGpioRequest, String.class, status().isOk());
@@ -107,7 +107,7 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
-                        expectedObserveBeforeGpioRequestCnt == callbackCoap.getObserve().intValue());
+                        expectedObserveCountAfterGpioRequest == callbackCoap.getObserve().intValue());
         validateOneWayStateChangedNotification(callbackCoap, result);
 
         observeRelation.proactiveCancel();
@@ -137,8 +137,6 @@ public abstract class AbstractCoapServerSideRpcIntegrationTest extends AbstractC
                 .until(() -> CoAP.ResponseCode.CONTENT.equals(callbackCoap.getResponseCode()) &&
                         callbackCoap.getObserve() != null &&
                         expectedObserveBeforeGpioRequestAddCnt1 == callbackCoap.getObserve().intValue());
-        validateTwoWayStateChangedNotification(callbackCoap, expectedResponseResult, actualResult);
-
         validateTwoWayStateChangedNotification(callbackCoap, expectedResponseResult, actualResult);
 
         int expectedObserveBeforeGpioRequestAddCnt2 = callbackCoap.getObserve().intValue() + 1;
