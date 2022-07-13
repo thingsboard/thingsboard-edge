@@ -74,7 +74,8 @@ public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
-    private final TbQueueAdmin transportApiAdmin;
+    private final TbQueueAdmin transportApiRequestAdmin;
+    private final TbQueueAdmin transportApiResponseAdmin;
     private final TbQueueAdmin notificationAdmin;
 
     public KafkaTbTransportQueueFactory(TbKafkaSettings kafkaSettings,
@@ -95,7 +96,8 @@ public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
-        this.transportApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiConfigs());
+        this.transportApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiRequestConfigs());
+        this.transportApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiResponseConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
     }
 
@@ -105,7 +107,7 @@ public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("transport-api-request-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(transportApiSettings.getRequestsTopic());
-        requestBuilder.admin(transportApiAdmin);
+        requestBuilder.admin(transportApiRequestAdmin);
 
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<TransportApiResponseMsg>> responseBuilder = TbKafkaConsumerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
@@ -113,12 +115,12 @@ public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
         responseBuilder.clientId("transport-api-response-" + serviceInfoProvider.getServiceId());
         responseBuilder.groupId("transport-node-" + serviceInfoProvider.getServiceId());
         responseBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), TransportApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
-        responseBuilder.admin(transportApiAdmin);
+        responseBuilder.admin(transportApiResponseAdmin);
         responseBuilder.statsService(consumerStatsService);
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoQueueMsg<TransportApiRequestMsg>, TbProtoQueueMsg<TransportApiResponseMsg>> templateBuilder = DefaultTbQueueRequestTemplate.builder();
-        templateBuilder.queueAdmin(transportApiAdmin);
+        templateBuilder.queueAdmin(transportApiResponseAdmin);
         templateBuilder.requestTemplate(requestBuilder.build());
         templateBuilder.responseTemplate(responseBuilder.build());
         templateBuilder.maxPendingRequests(transportApiSettings.getMaxPendingRequests());
@@ -178,8 +180,11 @@ public class KafkaTbTransportQueueFactory implements TbTransportQueueFactory {
         if (ruleEngineAdmin != null) {
             ruleEngineAdmin.destroy();
         }
-        if (transportApiAdmin != null) {
-            transportApiAdmin.destroy();
+        if (transportApiRequestAdmin != null) {
+            transportApiRequestAdmin.destroy();
+        }
+        if (transportApiResponseAdmin != null) {
+            transportApiResponseAdmin.destroy();
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();

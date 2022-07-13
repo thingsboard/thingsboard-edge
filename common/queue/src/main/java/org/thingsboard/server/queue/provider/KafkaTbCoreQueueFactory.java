@@ -100,9 +100,12 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
-    private final TbQueueAdmin jsExecutorAdmin;
-    private final TbQueueAdmin transportApiAdmin;
-    private final TbQueueAdmin integrationApiAdmin;
+    private final TbQueueAdmin jsExecutorRequestAdmin;
+    private final TbQueueAdmin jsExecutorResponseAdmin;
+    private final TbQueueAdmin transportApiRequestAdmin;
+    private final TbQueueAdmin transportApiResponseAdmin;
+    private final TbQueueAdmin integrationApiRequestAdmin;
+    private final TbQueueAdmin integrationApiResponseAdmin;
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin fwUpdatesAdmin;
     private final TbQueueAdmin vcAdmin;
@@ -137,9 +140,12 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
-        this.jsExecutorAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorConfigs());
-        this.transportApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiConfigs());
-        this.integrationApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiConfigs());
+        this.jsExecutorRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorRequestConfigs());
+        this.jsExecutorResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorResponseConfigs());
+        this.transportApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiRequestConfigs());
+        this.transportApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiResponseConfigs());
+        this.integrationApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiRequestConfigs());
+        this.integrationApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiResponseConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
         this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
         this.vcAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getVcConfigs());
@@ -284,7 +290,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         consumerBuilder.clientId("tb-core-transport-api-consumer-" + serviceInfoProvider.getServiceId());
         consumerBuilder.groupId("tb-core-transport-api-consumer");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), TransportApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders()));
-        consumerBuilder.admin(transportApiAdmin);
+        consumerBuilder.admin(transportApiRequestAdmin);
         consumerBuilder.statsService(consumerStatsService);
         return consumerBuilder.build();
     }
@@ -295,7 +301,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-core-transport-api-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(transportApiSettings.getResponsesTopic());
-        requestBuilder.admin(transportApiAdmin);
+        requestBuilder.admin(transportApiResponseAdmin);
         return requestBuilder.build();
     }
 
@@ -307,7 +313,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         consumerBuilder.clientId("tb-core-integration-api-consumer-" + serviceInfoProvider.getServiceId());
         consumerBuilder.groupId("tb-core-integration-api-consumer");
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders()));
-        consumerBuilder.admin(integrationApiAdmin);
+        consumerBuilder.admin(integrationApiRequestAdmin);
         consumerBuilder.statsService(consumerStatsService);
         return consumerBuilder.build();
     }
@@ -318,7 +324,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("tb-core-integration-api-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(integrationApiSettings.getResponsesTopic());
-        requestBuilder.admin(integrationApiAdmin);
+        requestBuilder.admin(integrationApiResponseAdmin);
         return requestBuilder.build();
     }
 
@@ -329,7 +335,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("producer-js-invoke-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(jsInvokeSettings.getRequestTopic());
-        requestBuilder.admin(jsExecutorAdmin);
+        requestBuilder.admin(jsExecutorRequestAdmin);
 
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> responseBuilder = TbKafkaConsumerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
@@ -342,12 +348,12 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
                     return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
                 }
         );
-        responseBuilder.admin(jsExecutorAdmin);
+        responseBuilder.admin(jsExecutorResponseAdmin);
         responseBuilder.statsService(consumerStatsService);
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> builder = DefaultTbQueueRequestTemplate.builder();
-        builder.queueAdmin(jsExecutorAdmin);
+        builder.queueAdmin(jsExecutorResponseAdmin);
         builder.requestTemplate(requestBuilder.build());
         builder.responseTemplate(responseBuilder.build());
         builder.maxPendingRequests(jsInvokeSettings.getMaxPendingRequests());
@@ -434,11 +440,17 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         if (ruleEngineAdmin != null) {
             ruleEngineAdmin.destroy();
         }
-        if (jsExecutorAdmin != null) {
-            jsExecutorAdmin.destroy();
+        if (jsExecutorRequestAdmin != null) {
+            jsExecutorRequestAdmin.destroy();
         }
-        if (transportApiAdmin != null) {
-            transportApiAdmin.destroy();
+        if (jsExecutorResponseAdmin != null) {
+            jsExecutorResponseAdmin.destroy();
+        }
+        if (transportApiRequestAdmin != null) {
+            transportApiRequestAdmin.destroy();
+        }
+        if (transportApiResponseAdmin != null) {
+            transportApiResponseAdmin.destroy();
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
@@ -449,8 +461,11 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory {
         if (vcAdmin != null) {
             vcAdmin.destroy();
         }
-        if (integrationApiAdmin != null) {
-            integrationApiAdmin.destroy();
+        if (integrationApiRequestAdmin != null) {
+            integrationApiRequestAdmin.destroy();
+        }
+        if (integrationApiResponseAdmin != null) {
+            integrationApiResponseAdmin.destroy();
         }
     }
 }
