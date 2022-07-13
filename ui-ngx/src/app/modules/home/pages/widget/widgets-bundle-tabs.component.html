@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-tab *ngIf="isTenantWidgetsBundle() && ([resource.VERSION_CONTROL, resource.WIDGETS_BUNDLE] | hasGenericPermission: operation.WRITE)"
+<mat-tab *ngIf="isTenantWidgetsBundle() && ([resource.VERSION_CONTROL, resource.WIDGETS_BUNDLE] | hasGenericPermission: operation.READ)"
          label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
   <tb-version-control detailsMode="true" singleEntityMode="true"
                       (versionRestored)="entitiesTableConfig.updateData()"
