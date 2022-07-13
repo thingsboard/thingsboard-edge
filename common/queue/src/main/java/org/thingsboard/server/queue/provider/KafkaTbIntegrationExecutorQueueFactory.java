@@ -83,10 +83,11 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
-    private final TbQueueAdmin jsExecutorAdmin;
-    private final TbQueueAdmin integrationApiAdmin;
+    private final TbQueueAdmin jsExecutorRequestAdmin;
+    private final TbQueueAdmin jsExecutorResponseAdmin;
+    private final TbQueueAdmin integrationApiRequestAdmin;
+    private final TbQueueAdmin integrationApiResponseAdmin;
     private final TbQueueAdmin notificationAdmin;
-    private final TbQueueAdmin fwUpdatesAdmin;
 
     private final AtomicLong integrationConsumerCount = new AtomicLong();
 
@@ -108,10 +109,11 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
-        this.jsExecutorAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorConfigs());
-        this.integrationApiAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiConfigs());
+        this.jsExecutorRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorRequestConfigs());
+        this.jsExecutorResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorResponseConfigs());
+        this.integrationApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiRequestConfigs());
+        this.integrationApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiResponseConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
-        this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
     }
 
     @Override
@@ -168,7 +170,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("producer-js-invoke-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(jsInvokeSettings.getRequestTopic());
-        requestBuilder.admin(jsExecutorAdmin);
+        requestBuilder.admin(jsExecutorRequestAdmin);
 
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> responseBuilder = TbKafkaConsumerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
@@ -181,12 +183,12 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
                     return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
                 }
         );
-        responseBuilder.admin(jsExecutorAdmin);
+        responseBuilder.admin(jsExecutorResponseAdmin);
         responseBuilder.statsService(consumerStatsService);
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> builder = DefaultTbQueueRequestTemplate.builder();
-        builder.queueAdmin(jsExecutorAdmin);
+        builder.queueAdmin(jsExecutorResponseAdmin);
         builder.requestTemplate(requestBuilder.build());
         builder.responseTemplate(responseBuilder.build());
         builder.maxPendingRequests(jsInvokeSettings.getMaxPendingRequests());
@@ -202,7 +204,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("integration-api-request-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(integrationApiSettings.getRequestsTopic());
-        requestBuilder.admin(integrationApiAdmin);
+        requestBuilder.admin(integrationApiRequestAdmin);
 
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<IntegrationApiResponseMsg>> responseBuilder = TbKafkaConsumerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
@@ -210,12 +212,12 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         responseBuilder.clientId("integration-api-response-" + serviceInfoProvider.getServiceId());
         responseBuilder.groupId("integration-node-" + serviceInfoProvider.getServiceId());
         responseBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
-        responseBuilder.admin(integrationApiAdmin);
+        responseBuilder.admin(integrationApiResponseAdmin);
         responseBuilder.statsService(consumerStatsService);
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> templateBuilder = DefaultTbQueueRequestTemplate.builder();
-        templateBuilder.queueAdmin(integrationApiAdmin);
+        templateBuilder.queueAdmin(integrationApiResponseAdmin);
         templateBuilder.requestTemplate(requestBuilder.build());
         templateBuilder.responseTemplate(responseBuilder.build());
         templateBuilder.maxPendingRequests(integrationApiSettings.getMaxPendingRequests());
@@ -232,17 +234,20 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         if (ruleEngineAdmin != null) {
             ruleEngineAdmin.destroy();
         }
-        if (jsExecutorAdmin != null) {
-            jsExecutorAdmin.destroy();
+        if (jsExecutorRequestAdmin != null) {
+            jsExecutorRequestAdmin.destroy();
         }
-        if (integrationApiAdmin != null) {
-            integrationApiAdmin.destroy();
+        if (jsExecutorResponseAdmin != null) {
+            jsExecutorResponseAdmin.destroy();
+        }
+        if (integrationApiRequestAdmin != null) {
+            integrationApiRequestAdmin.destroy();
+        }
+        if (integrationApiResponseAdmin != null) {
+            integrationApiResponseAdmin.destroy();
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
-        }
-        if (fwUpdatesAdmin != null) {
-            fwUpdatesAdmin.destroy();
         }
     }
 
