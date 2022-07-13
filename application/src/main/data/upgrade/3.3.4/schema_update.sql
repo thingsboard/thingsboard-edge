@@ -126,3 +126,5 @@ BEGIN
     END IF;
 END;
 $$;
+
+ALTER TABLE tenant_profile DROP COLUMN IF EXISTS isolated_tb_core;

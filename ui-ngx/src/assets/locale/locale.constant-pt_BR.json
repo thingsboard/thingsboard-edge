@@ -2636,9 +2636,7 @@
     "search": "Pesquisar locatários",
     "allow-white-labeling": "Permitir personalização",
     "allow-customer-white-labeling": "Permitir personalização de cliente",
-    "isolated-tb-core": "Processamento em contêiner isolado do ThingsBoard Core",
     "isolated-tb-rule-engine": "Processamento em contêiner isolado do ThingsBoard Rule Engine",
-    "isolated-tb-core-details": "Exige microsserviço(s) separado(s) para cada locatário isolado",
     "isolated-tb-rule-engine-details": "Exige microsserviço(s) separado(s) para cada locatário isolado"
   },
   "timeinterval": {
