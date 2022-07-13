@@ -35,7 +35,6 @@ import com.google.common.base.Splitter;
 import static org.apache.commons.lang3.StringUtils.repeat;
 
 public class StringUtils {
-
     public static final String EMPTY = "";
 
     public static final int INDEX_NOT_FOUND = -1;
@@ -117,4 +116,51 @@ public class StringUtils {
         return Splitter.fixedLength(maxPartSize).split(value);
     }
 
+    public static boolean equalsIgnoreCase(String str1, String str2) {
+        return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
+    }
+
+    public static String join(String[] keyArray, String lwm2mSeparatorPath) {
+        return org.apache.commons.lang3.StringUtils.join(keyArray, lwm2mSeparatorPath);
+    }
+
+    public static String trimToNull(String toString) {
+        return org.apache.commons.lang3.StringUtils.trimToNull(toString);
+    }
+
+    public static boolean isNoneEmpty(String str) {
+        return org.apache.commons.lang3.StringUtils.isNoneEmpty(str);
+    }
+
+    public static boolean endsWith(String str, String suffix) {
+        return org.apache.commons.lang3.StringUtils.endsWith(str, suffix);
+    }
+
+    public static boolean hasLength(String str) {
+        return org.springframework.util.StringUtils.hasLength(str);
+    }
+
+    public static boolean isNoneBlank(String str) {
+        return org.apache.commons.lang3.StringUtils.isNoneBlank(str);
+    }
+
+    public static boolean hasText(String str) {
+        return org.springframework.util.StringUtils.hasText(str);
+    }
+
+    public static String defaultString(String s, String defaultValue) {
+        return org.apache.commons.lang3.StringUtils.defaultString(s, defaultValue);
+    }
+
+    public static boolean isNumeric(String str) {
+        return org.apache.commons.lang3.StringUtils.isNumeric(str);
+    }
+
+    public static boolean equals(String str1, String str2) {
+        return org.apache.commons.lang3.StringUtils.equals(str1, str2);
+    }
+
+    public static String substringAfterLast(String str, String sep) {
+        return org.apache.commons.lang3.StringUtils.substringAfterLast(str, sep);
+    }
 }
