@@ -58,7 +58,7 @@ public class TbAwsSqsQueueAttributes {
     private String otaProperties;
     @Value("${queue.aws-sqs.queue-properties.version-control:}")
     private String vcProperties;
-    @Value("${queue.aws-sqs.queue-properties.integration-api}")
+    @Value("${queue.aws-sqs.queue-properties.integration-api:}")
     private String integrationApiProperties;
 
     @Getter
