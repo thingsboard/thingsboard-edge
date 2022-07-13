@@ -81,7 +81,7 @@ public abstract class AbstractContainerTest {
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
 
-    protected static boolean slowQueue;
+    protected static long timeoutMultiplier = 1;
 
     protected ObjectMapper mapper = new ObjectMapper();
     protected JsonParser jsonParser = new JsonParser();
@@ -100,8 +100,9 @@ public abstract class AbstractContainerTest {
         restClient = new RestClient(HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
 
-        String QUEUE_TYPE = System.getProperty("blackBoxTests.queue", "kafka");
-        slowQueue = !"kafka".equals(QUEUE_TYPE);
+        if (!"kafka".equals(System.getProperty("blackBoxTests.queue", "kafka"))) {
+            timeoutMultiplier = 10;
+        }
     }
 
     @Rule
