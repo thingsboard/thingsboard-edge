@@ -55,7 +55,7 @@ public class TbPubSubSubscriptionSettings {
     private String jsExecutorProperties;
     @Value("${queue.pubsub.queue-properties.version-control:}")
     private String vcProperties;
-    @Value("${queue.pubsub.queue-properties.integration-api}")
+    @Value("${queue.pubsub.queue-properties.integration-api:}")
     private String integrationApiProperties;
 
     @Getter
