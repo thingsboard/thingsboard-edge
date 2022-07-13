@@ -80,6 +80,9 @@ public abstract class AbstractContainerTest {
     protected static String TB_TOKEN;
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
+
+    protected static boolean slowQueue;
+
     protected ObjectMapper mapper = new ObjectMapper();
     protected JsonParser jsonParser = new JsonParser();
     protected static final String TELEMETRY_KEY = "temperature";
@@ -96,6 +99,9 @@ public abstract class AbstractContainerTest {
 
         restClient = new RestClient(HTTPS_URL);
         restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+
+        String QUEUE_TYPE = System.getProperty("blackBoxTests.queue", "kafka");
+        slowQueue = !"kafka".equals(QUEUE_TYPE);
     }
 
     @Rule
