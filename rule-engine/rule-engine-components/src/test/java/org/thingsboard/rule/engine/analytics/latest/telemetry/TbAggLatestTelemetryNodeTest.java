@@ -79,7 +79,6 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
-import javax.script.ScriptException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -148,7 +147,7 @@ public class TbAggLatestTelemetryNodeTest {
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.nullable(QueueId.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+        }).when(ctx).newMsg(ArgumentMatchers.any(String.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
                 ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;

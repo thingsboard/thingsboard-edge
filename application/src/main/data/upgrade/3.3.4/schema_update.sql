@@ -97,6 +97,8 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     two_fa_settings varchar
 );
 
+CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(entity_id);
+
 DELETE FROM relation WHERE relation_type_group = 'TO_ENTITY_GROUP';
 
 ALTER TABLE converter
@@ -124,3 +126,5 @@ BEGIN
     END IF;
 END;
 $$;
+
+ALTER TABLE tenant_profile DROP COLUMN IF EXISTS isolated_tb_core;

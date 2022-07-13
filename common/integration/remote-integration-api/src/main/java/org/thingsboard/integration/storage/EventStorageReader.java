@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.gen.integration.UplinkMsg;
 
 import java.io.BufferedReader;
@@ -70,7 +71,7 @@ class EventStorageReader {
 
     List<UplinkMsg> read() {
         log.debug("[{}:{}] Check for new messages in storage", newPos.getFile(), newPos.getLine());
-        if (currentBatch != null && !currentPos.equals(newPos)) {
+        if (!CollectionUtils.isEmpty(currentBatch) && !currentPos.equals(newPos)) {
             log.debug("The previous batch was not discarded!");
             return currentBatch;
         }
@@ -97,7 +98,7 @@ class EventStorageReader {
                     }
                 }
 
-                if (currentLineInFile == settings.getMaxRecordsPerFile()) {
+                if (currentLineInFile >= settings.getMaxRecordsPerFile()) {
                     File nextFile = getNextFile(files, newPos);
                     if (nextFile != null) {
                         if (bufferedReader != null) {

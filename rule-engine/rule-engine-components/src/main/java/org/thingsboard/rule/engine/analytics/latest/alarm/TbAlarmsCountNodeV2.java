@@ -79,12 +79,12 @@ import java.util.UUID;
 public class TbAlarmsCountNodeV2 implements TbNode {
 
     private TbAlarmsCountNodeV2Configuration config;
-    private QueueId queueId;
+    private String queueName;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
-        this.queueId = StringUtils.isNotEmpty(config.getQueueId()) ? new QueueId(UUID.fromString(config.getQueueId())) : null;
+        this.queueName = config.getQueueName();
     }
 
     @Override
@@ -112,7 +112,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(queueId, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+            TbMsg newMsg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
                     entityId, metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
         });

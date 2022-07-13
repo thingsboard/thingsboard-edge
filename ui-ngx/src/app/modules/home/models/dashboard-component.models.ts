@@ -450,7 +450,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
 
     this.hasAggregation = this.widget.type === widgetType.timeseries;
 
-    this.style = {cursor: 'pointer',
+    this.style = {
       color: this.color,
       backgroundColor: this.backgroundColor,
       padding: this.padding,

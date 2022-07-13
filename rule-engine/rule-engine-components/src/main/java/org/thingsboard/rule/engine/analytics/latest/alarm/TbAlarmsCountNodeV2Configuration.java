@@ -45,7 +45,7 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
     private List<AlarmsCountMapping> alarmsCountMappings;
     private boolean countAlarmsForPropagationEntities;
     private List<EntityType> propagationEntityTypes;
-    private String queueId;
+    private String queueName;
 
     @Override
     public TbAlarmsCountNodeV2Configuration defaultConfiguration() {
