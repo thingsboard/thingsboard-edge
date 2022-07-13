@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 import java.util.Calendar;
 import java.util.TimeZone;

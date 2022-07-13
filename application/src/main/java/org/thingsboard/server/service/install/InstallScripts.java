@@ -37,7 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;

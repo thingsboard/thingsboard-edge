@@ -163,4 +163,8 @@ public class StringUtils {
     public static String substringAfterLast(String str, String sep) {
         return org.apache.commons.lang3.StringUtils.substringAfterLast(str, sep);
     }
+
+    public static String removeEnd(String str, String suffix) {
+        return org.apache.commons.lang3.StringUtils.removeEnd(str, suffix);
+    }
 }

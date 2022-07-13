@@ -38,7 +38,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;

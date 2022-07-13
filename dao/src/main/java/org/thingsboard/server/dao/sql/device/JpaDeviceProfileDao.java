@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.device;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;

@@ -34,7 +34,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 @ApiModel
 @Data

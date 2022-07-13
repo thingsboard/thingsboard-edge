@@ -33,7 +33,7 @@ package org.thingsboard.server.common.data.wl;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 @ApiModel
 @Data
