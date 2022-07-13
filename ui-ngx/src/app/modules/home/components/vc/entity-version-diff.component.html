@@ -57,6 +57,7 @@
     <button mat-stroked-button color="primary"
             #restoreVersionButton
             *ngIf="!readonly"
+            style="min-width: 150px"
             [disabled]="(isLoading$ | async)"
             (click)="toggleRestoreEntityVersion($event, restoreVersionButton)">
       <mat-icon>restore</mat-icon>
