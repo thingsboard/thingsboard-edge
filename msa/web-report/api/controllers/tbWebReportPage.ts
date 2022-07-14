@@ -99,10 +99,17 @@ export class TbWebReportPage {
                 const hasOnReportResult = await this.page.evaluate<boolean>('typeof window.onReportResult === \'function\'');
                 if (!hasOnReportResult) {
                     try {
+                        await this.page.evaluate('delete window.onReportResult');
+                    } catch (e) {
+                        this.logger.warn('Failed to delete onReportResult function: ' + e);
+                    }
+                    try {
                         await this.page.exposeFunction('onReportResult', (result: ReportResultMessage) => {
                             this.lastReportResult = result;
                         });
-                    } catch (e) {}
+                    } catch (e) {
+                        this.logger.warn('Failed to expose onReportResult function: ' + e);
+                    }
                 }
                 const result = await this.waitForReportResult('init page');
                 if (result.success) {
