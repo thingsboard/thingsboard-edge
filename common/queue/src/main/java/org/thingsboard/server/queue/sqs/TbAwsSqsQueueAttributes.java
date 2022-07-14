@@ -58,7 +58,7 @@ public class TbAwsSqsQueueAttributes {
     private String otaProperties;
     @Value("${queue.aws-sqs.queue-properties.version-control:}")
     private String vcProperties;
-    @Value("${queue.aws-sqs.queue-properties.integration-api}")
+    @Value("${queue.aws-sqs.queue-properties.integration-api:}")
     private String integrationApiProperties;
 
     @Getter
@@ -76,7 +76,7 @@ public class TbAwsSqsQueueAttributes {
     @Getter
     private Map<String, String> vcAttributes;
     @Getter
-    private Map<String, String> integrationSettings;
+    private Map<String, String> integrationAttributes;
 
     private final Map<String, String> defaultAttributes = new HashMap<>();
 
@@ -91,7 +91,7 @@ public class TbAwsSqsQueueAttributes {
         jsExecutorAttributes = getConfigs(jsExecutorProperties);
         otaAttributes = getConfigs(otaProperties);
         vcAttributes = getConfigs(vcProperties);
-        integrationSettings = getConfigs(integrationApiProperties);
+        integrationAttributes = getConfigs(integrationApiProperties);
     }
 
     private Map<String, String> getConfigs(String properties) {
