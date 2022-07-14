@@ -62,6 +62,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 
@@ -98,6 +99,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
                                                   TbQueueIntegrationApiSettings integrationApiSettings,
                                                   TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                                   TbKafkaConsumerStatsService consumerStatsService,
+                                                  TbQueueIntegrationNotificationSettings integrationNotificationSettings,
                                                   TbKafkaTopicConfigs kafkaTopicConfigs) {
         this.notificationsTopicService = notificationsTopicService;
         this.kafkaSettings = kafkaSettings;
