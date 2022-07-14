@@ -87,7 +87,8 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
 
     private final TbQueueAdmin coreAdmin;
     private final TbQueueAdmin ruleEngineAdmin;
-    private final TbQueueAdmin jsExecutorAdmin;
+    private final TbQueueAdmin jsExecutorRequestAdmin;
+    private final TbQueueAdmin jsExecutorResponseAdmin;
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin fwUpdatesAdmin;
     private final AtomicLong consumerCount = new AtomicLong();
@@ -113,7 +114,8 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
         this.ruleEngineAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getRuleEngineConfigs());
-        this.jsExecutorAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorConfigs());
+        this.jsExecutorRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorRequestConfigs());
+        this.jsExecutorResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorResponseConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
         this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
     }
@@ -232,7 +234,7 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("producer-js-invoke-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(jsInvokeSettings.getRequestTopic());
-        requestBuilder.admin(jsExecutorAdmin);
+        requestBuilder.admin(jsExecutorRequestAdmin);
 
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> responseBuilder = TbKafkaConsumerTemplate.builder();
         responseBuilder.settings(kafkaSettings);
@@ -245,12 +247,12 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
                     return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
                 }
         );
-        responseBuilder.admin(jsExecutorAdmin);
+        responseBuilder.admin(jsExecutorResponseAdmin);
         responseBuilder.statsService(consumerStatsService);
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoJsQueueMsg<JsInvokeProtos.RemoteJsRequest>, TbProtoQueueMsg<JsInvokeProtos.RemoteJsResponse>> builder = DefaultTbQueueRequestTemplate.builder();
-        builder.queueAdmin(jsExecutorAdmin);
+        builder.queueAdmin(jsExecutorResponseAdmin);
         builder.requestTemplate(requestBuilder.build());
         builder.responseTemplate(responseBuilder.build());
         builder.maxPendingRequests(jsInvokeSettings.getMaxPendingRequests());
@@ -277,8 +279,11 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory {
         if (ruleEngineAdmin != null) {
             ruleEngineAdmin.destroy();
         }
-        if (jsExecutorAdmin != null) {
-            jsExecutorAdmin.destroy();
+        if (jsExecutorRequestAdmin != null) {
+            jsExecutorRequestAdmin.destroy();
+        }
+        if (jsExecutorResponseAdmin != null) {
+            jsExecutorResponseAdmin.destroy();
         }
         if (notificationAdmin != null) {
             notificationAdmin.destroy();
