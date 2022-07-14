@@ -98,9 +98,11 @@ export class TbWebReportPage {
             if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
                 const hasOnReportResult = await this.page.evaluate<boolean>('typeof window.onReportResult === \'function\'');
                 if (!hasOnReportResult) {
-                    await this.page.exposeFunction('onReportResult', (result: ReportResultMessage) => {
-                        this.lastReportResult = result;
-                    });
+                    try {
+                        await this.page.exposeFunction('onReportResult', (result: ReportResultMessage) => {
+                            this.lastReportResult = result;
+                        });
+                    } catch (e) {}
                 }
                 const result = await this.waitForReportResult('init page');
                 if (result.success) {
