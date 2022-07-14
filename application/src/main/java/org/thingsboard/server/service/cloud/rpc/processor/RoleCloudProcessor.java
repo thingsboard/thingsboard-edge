@@ -180,6 +180,10 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
                                     .collect(Collectors.toList());
                         }
                         break;
+                    case VERSION_CONTROL:
+                    case TB_RESOURCE:
+                        newOperations = new ArrayList<>();
+                        break;
                     default:
                         if (originOperations.contains(Operation.ALL)) {
                             newOperations = new ArrayList<>(allowedGenericOperations);

@@ -90,6 +90,9 @@ public abstract class BaseRuleChainControllerTest extends AbstractControllerTest
                 .andExpect(status().isOk());
     }
 
+    // @voba - merge comment
+    // edge entities support available in CE/PE
+    @Ignore
     @Test
     public void testSaveRuleChain() throws Exception {
         RuleChain ruleChain = new RuleChain();

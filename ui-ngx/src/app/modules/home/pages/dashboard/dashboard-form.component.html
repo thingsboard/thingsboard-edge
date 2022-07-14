@@ -44,7 +44,8 @@
           [fxShow]="!isEdit">
     {{'dashboard.export' | translate }}
   </button>
-  <!--button mat-raised-button color="primary"
+  <!-- @voba - merge comment
+  <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePublic')"
           [fxShow]="!isEdit && dashboardScope === 'tenant' && !isPublic(entity)">
@@ -74,7 +75,8 @@
           (click)="onEntityAction($event, 'unassignFromEdge')"
           [fxShow]="!isEdit && dashboardScope === 'edge'">
     {{ 'edge.unassign-from-edge' | translate }}
-  </button-->
+  </button>
+  -->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"

@@ -726,6 +726,7 @@ export class MenuService {
         }
       );
     }
+    /* @voba - merge comment - these sections should not be visible on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       sections.push(
         {
@@ -738,6 +739,7 @@ export class MenuService {
         }
       );
     }
+     */
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)) {
       sections.push(
         {
@@ -792,7 +794,7 @@ export class MenuService {
             icon: 'sms',
             disabled: disabledItems.indexOf('sms_provider') > -1
           },
-          /* @voba - merge comment - hide this on edge
+          /* @voba - merge comment - these sections should not be visible on edge
           {
             id: guid(),
             name: 'self-registration.self-registration',
@@ -824,7 +826,6 @@ export class MenuService {
           disabled: disabledItems.indexOf('resources_library') > -1
         });
       }
-      */
       if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
         pages.push({
           id: guid(),
@@ -843,6 +844,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('auto_commit_settings') > -1
         });
       }
+      */
       sections.push(
         {
           id: guid(),
@@ -1200,6 +1202,7 @@ export class MenuService {
         }
       );
     }
+    /* @voba - merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       homeSections.push(
         {
@@ -1215,6 +1218,7 @@ export class MenuService {
         }
       );
     }
+    */
     if (this.userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG) ||
       (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
       this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY))) {
@@ -1271,13 +1275,13 @@ export class MenuService {
             icon: 'mail',
             disabled: disabledItems.indexOf('mail_server') > -1
           },
+          /* @voba - merge comment - these sections should not be visible on edge
           {
             name: 'admin.sms-provider',
             path: '/settings/sms-provider',
             icon: 'sms',
             disabled: disabledItems.indexOf('sms_provider') > -1
           },
-          /* @voba - merge comment - hide this on edge
           {
             name: 'self-registration.self-registration',
             path: '/settings/selfRegistration',
@@ -1303,7 +1307,6 @@ export class MenuService {
           disabled: disabledItems.indexOf('resources_library') > -1
         });
       }
-      */
       if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
         settings.places.push({
           name: 'admin.repository-settings',
@@ -1318,6 +1321,7 @@ export class MenuService {
           disabled: disabledItems.indexOf('auto_commit_settings') > -1
         });
       }
+      */
     }
     return homeSections;
   }
