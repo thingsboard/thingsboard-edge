@@ -77,6 +77,9 @@ export class TbWebReportPage {
         this.session = await context.newCDPSession(this.page);
         this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
         await this.page.emulateMedia({media: 'screen'});
+        await this.page.exposeFunction('postWebReportResult', (result: ReportResultMessage) => {
+            this.lastReportResult = result;
+        });
     }
 
     async destroy(): Promise<void> {
@@ -92,26 +95,12 @@ export class TbWebReportPage {
         } catch (e) {
             await this.session.send('Emulation.setTimezoneOverride', {timezoneId: 'Europe/London'});
         }
+        this.lastReportResult = null;
         const startTime = performance.now();
         if (this.currentBaseUrl !== request.baseUrl) {
             const dashboardLoadResponse = await this.page.goto(request.baseUrl+'?reportView=true', {waitUntil: 'networkidle'});
             if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
-                const hasOnReportResult = await this.page.evaluate<boolean>('typeof window.onReportResult === \'function\'');
-                if (!hasOnReportResult) {
-                    try {
-                        await this.page.evaluate('delete window.onReportResult');
-                    } catch (e) {
-                        this.logger.warn('Failed to delete onReportResult function: ' + e);
-                    }
-                    try {
-                        await this.page.exposeFunction('onReportResult', (result: ReportResultMessage) => {
-                            this.lastReportResult = result;
-                        });
-                    } catch (e) {
-                        this.logger.warn('Failed to expose onReportResult function: ' + e);
-                    }
-                }
-                const result = await this.waitForReportResult('init page');
+                const result = await this.waitForReportResult('init page', loadDashboardResourcesTimeout);
                 if (result.success) {
                     this.currentBaseUrl = request.baseUrl;
                 } else {
@@ -184,24 +173,29 @@ export class TbWebReportPage {
     }
 
     async waitForReportResult(operation: string, timeout = 3000): Promise<ReportResultMessage> {
-        this.lastReportResult = null;
         return new Promise<ReportResultMessage>(
             (resolve, reject) => {
-                let waitTime = 0;
-                const waitInterval = setInterval(() => {
-                    if (this.lastReportResult) {
-                        clearInterval(waitInterval);
-                        const result = this.lastReportResult;
-                        this.lastReportResult = null;
-                        resolve(result);
-                    } else {
-                        waitTime += 10;
-                        if (waitTime >= timeout) {
+                if (this.lastReportResult) {
+                    const result = this.lastReportResult;
+                    this.lastReportResult = null;
+                    resolve(result);
+                } else {
+                    let waitTime = 0;
+                    const waitInterval = setInterval(() => {
+                        if (this.lastReportResult) {
                             clearInterval(waitInterval);
-                            reject(`Operation '${operation}' timed out!`);
+                            const result = this.lastReportResult;
+                            this.lastReportResult = null;
+                            resolve(result);
+                        } else {
+                            waitTime += 10;
+                            if (waitTime >= timeout) {
+                                clearInterval(waitInterval);
+                                reject(`Operation '${operation}' timed out!`);
+                            }
                         }
-                    }
-                }, 10);
+                    }, 10);
+                }
             }
         );
     }

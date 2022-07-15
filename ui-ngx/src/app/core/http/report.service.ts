@@ -82,12 +82,16 @@ export class ReportService {
       this.authService.loadUserFromAccessToken(null).subscribe(
         () => {
           window.addEventListener('message', this.onWindowMessageListener);
-          const interval = setInterval(() => {
-            if ((this.window as any).onReportResult) {
-              clearInterval(interval);
-              this.postReportResult({success: true});
-            }
-          }, 20);
+          if ((this.window as any).postWebReportResult) {
+            this.postReportResult({success: true});
+          } else {
+            const interval = setInterval(() => {
+              if ((this.window as any).postWebReportResult) {
+                clearInterval(interval);
+                this.postReportResult({success: true});
+              }
+            }, 20);
+          }
         }
       );
     }
@@ -188,8 +192,8 @@ export class ReportService {
   }
 
   private postReportResult(result: ReportResultMessage) {
-    if ((this.window as any).onReportResult) {
-      (this.window as any).onReportResult(result);
+    if ((this.window as any).postWebReportResult) {
+      (this.window as any).postWebReportResult(result);
     } else {
       this.window.postMessage(JSON.stringify({ type: 'reportResult', data: result}), '*');
     }
@@ -259,7 +263,7 @@ export class ReportService {
         let waitTime = 0;
         const waitInterval = setInterval(() => {
           if (this.lastWaitWidgetsTimeMs && this.isReportPageDomReady()
-            && (this.utils.currentPerfTime() - this.lastWaitWidgetsTimeMs >= 100)) {
+            && (this.utils.currentPerfTime() - this.lastWaitWidgetsTimeMs >= 300)) {
             clearInterval(waitInterval);
             resolve();
           } else {
