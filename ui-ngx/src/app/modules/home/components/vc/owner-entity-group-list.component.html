@@ -36,8 +36,13 @@
     <div class="tb-control-list">
       <div *ngFor="let ownerEntityGroupsFormGroup of ownerEntityGroupsArray(); trackBy: trackByOwnerEntityGroups;
                    let $index = index; last as isLast;"
-           fxLayout="row" fxLayoutAlign="start center" [formGroup]="ownerEntityGroupsFormGroup" fxLayoutGap="16px" [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
+           fxLayout="row" fxLayout.xs="column"
+           fxLayoutAlign.gt-xs="start center"
+           [formGroup]="ownerEntityGroupsFormGroup"
+           fxLayoutGap.gt-xs="16px"
+           [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}">
         <tb-owner-autocomplete
+          fxFlex
           required
           placeholderText="group-permission.group-owner"
           notFoundText="group-permission.no-owners-matching"
