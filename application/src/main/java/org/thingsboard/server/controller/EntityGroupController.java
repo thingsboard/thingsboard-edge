@@ -209,6 +209,7 @@ public class EntityGroupController extends AutoCommitController {
                     "The newly created Entity Group Id will be present in the response. " +
                     "Specify existing Entity Group Id to update the group. " +
                     "Referencing non-existing Entity Group Id will cause 'Not Found' error." +
+                    "Remove 'id', 'tenantId' and optionally 'ownerId' from the request body example (below) to create new Entity Group entity. " +
                     "\n\n" + ENTITY_GROUP_UNIQUE_KEY + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup", method = RequestMethod.POST)

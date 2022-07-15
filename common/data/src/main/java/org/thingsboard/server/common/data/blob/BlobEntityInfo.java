@@ -53,18 +53,18 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
 
     private static final long serialVersionUID = 2807223040519549363L;
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @Length(fieldName = "name")
-    @ApiModelProperty(position = 6, value = "blob entity name", readOnly = true, example = "report-2021-10-29_14:00:00.pdf")
+    @ApiModelProperty(position = 6, value = "blob entity name", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "report-2021-10-29_14:00:00.pdf")
     private String name;
     @Length(fieldName = "type")
-    @ApiModelProperty(position = 7, value = "blob entity type", readOnly = true, example = "report")
+    @ApiModelProperty(position = 7, value = "blob entity type", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "report")
     private String type;
     @Length(fieldName = "contentType")
-    @ApiModelProperty(position = 8, value = "blob content type", readOnly = true, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
+    @ApiModelProperty(position = 8, value = "blob content type", accessMode = ApiModelProperty.AccessMode.READ_ONLY, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
     private String contentType;
 
     public BlobEntityInfo() {
@@ -91,7 +91,7 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the blob entity creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the blob entity creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
@@ -120,7 +120,7 @@ public class BlobEntityInfo extends SearchTextBasedWithAdditionalInfo<BlobEntity
         return EntityType.BLOB_ENTITY;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

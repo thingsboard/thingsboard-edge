@@ -150,6 +150,7 @@ public class SchedulerEventController extends BaseController {
                     "When creating scheduler event, platform generates scheduler event Id as " + UUID_WIKI_LINK +
                     "The newly created scheduler event id will be present in the response. Specify existing scheduler event id to update the scheduler event. " +
                     "Referencing non-existing scheduler event Id will cause 'Not Found' error. " +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Scheduler Event entity. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
