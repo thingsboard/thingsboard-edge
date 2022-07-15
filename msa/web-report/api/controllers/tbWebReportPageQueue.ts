@@ -31,8 +31,8 @@
 
 import { Browser } from 'playwright-core';
 import { TbWebReportPage } from './tbWebReportPage';
-import { RequestState } from './tbWebReportController';
 import { _logger } from '../../config/logger';
+import { GenerateReportRequest, RequestState } from './tbWebReportModels';
 
 const logger = _logger('TbWebReportPageQueue');
 
@@ -62,10 +62,10 @@ export class TbWebReportPageQueue {
         logger.info('Pages queue closed.');
     }
 
-    async generateDashboardReport(requestState: RequestState, url: string, type: 'png' | 'jpeg' | 'pdf', timezone: string): Promise<Buffer> {
+    async generateDashboardReport(requestState: RequestState, request: GenerateReportRequest): Promise<Buffer> {
         const page = this.pages.pop();
         if (page) {
-            return await this.doGenerateDashboardReport(page, url, type, timezone);
+            return await this.doGenerateDashboardReport(page, request);
         } else {
             return new Promise<Buffer>(
                 (resolve, reject) => {
@@ -77,7 +77,7 @@ export class TbWebReportPageQueue {
                             const page = this.pages.pop();
                             if (page) {
                                 clearInterval(waitInterval);
-                                this.doGenerateDashboardReport(page, url, type, timezone).then(
+                                this.doGenerateDashboardReport(page, request).then(
                                     (buffer) => {
                                         resolve(buffer);
                                     },
@@ -93,9 +93,9 @@ export class TbWebReportPageQueue {
         }
     }
 
-    private async doGenerateDashboardReport(page: TbWebReportPage, url: string, type: 'png' | 'jpeg' | 'pdf', timezone: string): Promise<Buffer> {
+    private async doGenerateDashboardReport(page: TbWebReportPage, request: GenerateReportRequest): Promise<Buffer> {
         try {
-            return await page.generateDashboardReport(url, type, timezone);
+            return await page.generateDashboardReport(request);
         } finally {
             this.pages.push(page);
         }

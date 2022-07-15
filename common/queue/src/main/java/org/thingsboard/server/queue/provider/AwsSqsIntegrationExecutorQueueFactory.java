@@ -154,14 +154,12 @@ public class AwsSqsIntegrationExecutorQueueFactory implements TbIntegrationExecu
     @Override
     @Bean
     public TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate() {
-        TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbAwsSqsProducerTemplate<>(integrationAdmin, sqsSettings, integrationApiSettings.getRequestsTopic());
-        TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer = new TbAwsSqsConsumerTemplate<>(integrationAdmin, sqsSettings,
+        TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer =
+                new TbAwsSqsProducerTemplate<>(integrationAdmin, sqsSettings, integrationApiSettings.getRequestsTopic());
+        TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer =
+                new TbAwsSqsConsumerTemplate<>(integrationAdmin, sqsSettings,
                 integrationApiSettings.getResponsesTopic() + "_" + serviceInfoProvider.getServiceId(),
-                msg -> {
-                    IntegrationApiResponseMsg.Builder builder = IntegrationApiResponseMsg.newBuilder();
-                    JsonFormat.parser().ignoringUnknownFields().merge(new String(msg.getData(), StandardCharsets.UTF_8), builder);
-                    return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
-                });
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> builder = DefaultTbQueueRequestTemplate.builder();

@@ -947,32 +947,39 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   public openDashboardState(state: string, openRightLayout?: boolean) {
     const layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, state);
+    let widgetsCount = 0;
     if (layoutsData) {
       this.dashboardCtx.state = state;
       this.dashboardCtx.aliasController.dashboardStateChanged();
       this.isRightLayoutOpened = openRightLayout ? true : false;
-      this.updateLayouts(layoutsData);
+      widgetsCount = this.updateLayouts(layoutsData);
     }
     setTimeout(() => {
       this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
+      if (this.reportView) {
+        this.reportService.onDashboardLoaded(widgetsCount);
+      }
     });
   }
 
-  private updateLayouts(layoutsData?: DashboardLayoutsInfo) {
+  private updateLayouts(layoutsData?: DashboardLayoutsInfo): number {
     if (!layoutsData) {
       layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, this.dashboardCtx.state);
     }
+    let widgetsCount = 0;
     for (const l of Object.keys(this.layouts)) {
       const layout: DashboardPageLayout = this.layouts[l];
       if (layoutsData[l]) {
         layout.show = true;
         const layoutInfo: DashboardLayoutInfo = layoutsData[l];
         this.updateLayout(layout, layoutInfo);
+        widgetsCount += layoutInfo.widgetIds ? layoutInfo.widgetIds.length : 0;
       } else {
         layout.show = false;
         this.updateLayout(layout, {widgetIds: [], widgetLayouts: {}, gridSettings: null});
       }
     }
+    return widgetsCount;
   }
 
   private updateLayout(layout: DashboardPageLayout, layoutInfo: DashboardLayoutInfo) {

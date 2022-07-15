@@ -33,8 +33,11 @@ import { Browser, BrowserContextOptions, CDPSession, Page, PageScreenshotOptions
 import { performance } from 'perf_hooks';
 import { _logger } from '../../config/logger';
 import config from 'config';
+import { GenerateReportRequest, OpenReportMessage, ReportResultMessage } from './tbWebReportModels';
 
 const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
+const loadDashboardResourcesTimeout = Number(config.get('browser.loadDashboardResourcesTimeout'));
+const dashboardIdleWaitTime = Number(config.get('browser.dashboardIdleWaitTime'));
 
 const heightCalculationScript = "var height = 0;\n" +
     "     var gridsterChild = document.getElementById('gridster-child');\n" +
@@ -52,6 +55,8 @@ export class TbWebReportPage {
     private logger = _logger(`TbWebReportPage-${this.id}`);
     private page: Page;
     private session: CDPSession;
+    private currentBaseUrl: string;
+    private lastReportResult: ReportResultMessage | null;
 
     constructor(private browser: Browser,
                 private id: number) {
@@ -72,6 +77,9 @@ export class TbWebReportPage {
         this.session = await context.newCDPSession(this.page);
         this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
         await this.page.emulateMedia({media: 'screen'});
+        await this.page.exposeFunction('postWebReportResult', (result: ReportResultMessage) => {
+            this.lastReportResult = result;
+        });
     }
 
     async destroy(): Promise<void> {
@@ -80,47 +88,116 @@ export class TbWebReportPage {
         }
     }
 
-    async generateDashboardReport(url: string, type: 'png' | 'jpeg' | 'pdf', timezone = 'Europe/London'): Promise<Buffer> {
+    async generateDashboardReport(request: GenerateReportRequest): Promise<Buffer> {
         this.logger.info('Generating dashboard report');
         try {
-            await this.session.send('Emulation.setTimezoneOverride', {timezoneId: timezone});
+            await this.session.send('Emulation.setTimezoneOverride', {timezoneId: request.timezone});
         } catch (e) {
             await this.session.send('Emulation.setTimezoneOverride', {timezoneId: 'Europe/London'});
         }
+        this.lastReportResult = null;
         const startTime = performance.now();
-        const dashboardLoadResponse = await this.page.goto(url, {waitUntil: 'networkidle'});
-        if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
-            await this.page.waitForSelector('section.tb-dashboard-container');
-            await this.page.waitForFunction('Array.from(document.querySelectorAll(\'tb-widget>div.tb-widget-loading\')).every(item => item.style.display === \'none\')', {polling: 100});
-            const endTime = performance.now();
-            this.logger.debug(`Open page time: ${endTime - startTime}ms`);
-        } else {
-            const status = dashboardLoadResponse && dashboardLoadResponse.status() || 'null';
-            throw new Error(`Dashboard page load returned error status: ${status}`);
-        }
-
-        const fullHeight: number = await this.page.evaluate(heightCalculationScript);
-
-        await this.page.setViewportSize({
-            width: 1920,
-            height: fullHeight || 1080
-        });
-
-        let buffer: Buffer;
-
-        if (type === 'pdf') {
-            buffer = await this.page.pdf({printBackground: true, width: '1920px', height: fullHeight + 'px'});
-        } else {
-            const options: PageScreenshotOptions = {omitBackground: false, fullPage: true, type: type};
-            if (type === 'jpeg') {
-                options.quality = 100;
+        if (this.currentBaseUrl !== request.baseUrl) {
+            const dashboardLoadResponse = await this.page.goto(request.baseUrl+'?reportView=true', {waitUntil: 'networkidle'});
+            if (dashboardLoadResponse && dashboardLoadResponse.status() < 400) {
+                const result = await this.waitForReportResult('init page', loadDashboardResourcesTimeout);
+                if (result.success) {
+                    this.currentBaseUrl = request.baseUrl;
+                } else {
+                    throw new Error(`Failed to init page for base url: ${request.baseUrl}!`);
+                }
+            } else {
+                const status = dashboardLoadResponse && dashboardLoadResponse.status() || 'null';
+                throw new Error(`Dashboard page load returned error status: ${status}`);
             }
-            buffer = await this.page.screenshot(options);
         }
-        await this.page.setContent('<body></body>');
+        let buffer: Buffer;
+        try {
+            await this.openReport(request);
+            if (dashboardIdleWaitTime > 0) {
+                await this.page.waitForTimeout(dashboardIdleWaitTime);
+            }
+            const fullHeight: number = await this.page.evaluate(heightCalculationScript);
+
+            await this.page.setViewportSize({
+                width: 1920,
+                height: fullHeight || 1080
+            });
+
+            if (request.type === 'pdf') {
+                buffer = await this.page.pdf({printBackground: true, width: '1920px', height: fullHeight + 'px'});
+            } else {
+                const options: PageScreenshotOptions = {omitBackground: false, fullPage: true, type: request.type};
+                if (request.type === 'jpeg') {
+                    options.quality = 100;
+                }
+                buffer = await this.page.screenshot(options);
+            }
+        } finally {
+            try {
+                await this.clearReport();
+            } catch (e) {}
+        }
         const endTime = performance.now();
         this.logger.info('Dashboard report generated in %sms.', endTime - startTime);
         return buffer;
+    }
+
+    async openReport(request: GenerateReportRequest): Promise<void> {
+        const openReportMessage: OpenReportMessage = {
+            timeout: loadDashboardResourcesTimeout,
+            dashboardId: request.dashboardId,
+            accessToken: request.accessToken,
+            publicId: request.publicId,
+            state: request.state,
+            reportTimewindow: request.reportTimewindow ? JSON.parse(request.reportTimewindow) : undefined
+        };
+        await this.postWindowMessage({type: 'openReport', data: openReportMessage});
+        const result = await this.waitForReportResult('open report', loadDashboardResourcesTimeout * 3);
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+    }
+
+    async clearReport(): Promise<void> {
+        await this.postWindowMessage({type: 'clearReport'});
+        const result = await this.waitForReportResult('clear report');
+        if (!result.success) {
+            throw new Error(result.error);
+        }
+    }
+
+    async postWindowMessage(message: object): Promise<void> {
+        const messageStr = JSON.stringify(message);
+        return this.page.evaluate(`window.postMessage('${messageStr}', '*');`);
+    }
+
+    async waitForReportResult(operation: string, timeout = 3000): Promise<ReportResultMessage> {
+        return new Promise<ReportResultMessage>(
+            (resolve, reject) => {
+                if (this.lastReportResult) {
+                    const result = this.lastReportResult;
+                    this.lastReportResult = null;
+                    resolve(result);
+                } else {
+                    let waitTime = 0;
+                    const waitInterval = setInterval(() => {
+                        if (this.lastReportResult) {
+                            clearInterval(waitInterval);
+                            const result = this.lastReportResult;
+                            this.lastReportResult = null;
+                            resolve(result);
+                        } else {
+                            waitTime += 10;
+                            if (waitTime >= timeout) {
+                                clearInterval(waitInterval);
+                                reject(`Operation '${operation}' timed out!`);
+                            }
+                        }
+                    }, 10);
+                }
+            }
+        );
     }
 
 }
