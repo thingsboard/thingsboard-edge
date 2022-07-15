@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
@@ -72,46 +73,44 @@ public class OtaPackageCloudProcessor extends BaseCloudProcessor {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 otaPackageCreationLock.lock();
                 try {
-                    OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
-                    if (otaPackage == null) {
-                        otaPackage = new OtaPackage();
-                        otaPackage.setId(otaPackageId);
-                        otaPackage.setCreatedTime(Uuids.unixTimestamp(otaPackageId.getId()));
-                        otaPackage.setTenantId(tenantId);
+                    OtaPackageInfo otaPackageInfo = otaPackageService.findOtaPackageInfoById(tenantId, otaPackageId);
+                    if (otaPackageInfo == null) {
+                        otaPackageInfo = new OtaPackageInfo();
+                        otaPackageInfo.setId(otaPackageId);
+                        otaPackageInfo.setCreatedTime(Uuids.unixTimestamp(otaPackageId.getId()));
+                        otaPackageInfo.setTenantId(tenantId);
                     }
-                    otaPackage.setDeviceProfileId(new DeviceProfileId(new UUID(otaPackageUpdateMsg.getDeviceProfileIdMSB(), otaPackageUpdateMsg.getDeviceProfileIdLSB())));
-                    otaPackage.setType(OtaPackageType.valueOf(otaPackageUpdateMsg.getType()));
-                    otaPackage.setTitle(otaPackageUpdateMsg.getTitle());
-                    otaPackage.setVersion(otaPackageUpdateMsg.getVersion());
-                    otaPackage.setTag(otaPackageUpdateMsg.getTag());
+                    otaPackageInfo.setDeviceProfileId(new DeviceProfileId(new UUID(otaPackageUpdateMsg.getDeviceProfileIdMSB(), otaPackageUpdateMsg.getDeviceProfileIdLSB())));
+                    otaPackageInfo.setType(OtaPackageType.valueOf(otaPackageUpdateMsg.getType()));
+                    otaPackageInfo.setTitle(otaPackageUpdateMsg.getTitle());
+                    otaPackageInfo.setVersion(otaPackageUpdateMsg.getVersion());
+                    otaPackageInfo.setTag(otaPackageUpdateMsg.getTag());
                     if (otaPackageUpdateMsg.hasUrl()) {
-                        otaPackage.setUrl(otaPackageUpdateMsg.getUrl());
+                        otaPackageInfo.setUrl(otaPackageUpdateMsg.getUrl());
                     }
                     if (otaPackageUpdateMsg.hasFileName()) {
-                        otaPackage.setFileName(otaPackageUpdateMsg.getFileName());
+                        otaPackageInfo.setFileName(otaPackageUpdateMsg.getFileName());
                     }
                     if (otaPackageUpdateMsg.hasContentType()) {
-                        otaPackage.setContentType(otaPackageUpdateMsg.getContentType());
+                        otaPackageInfo.setContentType(otaPackageUpdateMsg.getContentType());
                     }
                     if (otaPackageUpdateMsg.hasChecksumAlgorithm()) {
-                        otaPackage.setChecksumAlgorithm(ChecksumAlgorithm.valueOf(otaPackageUpdateMsg.getChecksumAlgorithm()));
+                        otaPackageInfo.setChecksumAlgorithm(ChecksumAlgorithm.valueOf(otaPackageUpdateMsg.getChecksumAlgorithm()));
                     }
                     if (otaPackageUpdateMsg.hasChecksum()) {
-                        otaPackage.setChecksum(otaPackageUpdateMsg.getChecksum());
+                        otaPackageInfo.setChecksum(otaPackageUpdateMsg.getChecksum());
                     }
                     if (otaPackageUpdateMsg.hasDataSize()) {
-                        otaPackage.setDataSize(otaPackageUpdateMsg.getDataSize());
-                    }
-                    if (otaPackageUpdateMsg.hasData()) {
-                        otaPackage.setData(ByteBuffer.wrap(otaPackageUpdateMsg.getData().toByteArray()));
+                        otaPackageInfo.setDataSize(otaPackageUpdateMsg.getDataSize());
                     }
                     if (otaPackageUpdateMsg.hasAdditionalInfo()) {
-                        otaPackage.setAdditionalInfo(JacksonUtil.toJsonNode(otaPackageUpdateMsg.getAdditionalInfo()));
+                        otaPackageInfo.setAdditionalInfo(JacksonUtil.toJsonNode(otaPackageUpdateMsg.getAdditionalInfo()));
                     }
+                    otaPackageService.saveOtaPackageInfo(otaPackageInfo, otaPackageUpdateMsg.hasUrl());
                     if (otaPackageUpdateMsg.hasData()) {
+                        OtaPackage otaPackage = otaPackageService.findOtaPackageById(tenantId, otaPackageId);
+                        otaPackage.setData(ByteBuffer.wrap(otaPackageUpdateMsg.getData().toByteArray()));
                         otaPackageService.saveOtaPackage(otaPackage, false);
-                    } else {
-                        otaPackageService.saveOtaPackageInfo(otaPackage, otaPackageUpdateMsg.hasUrl());
                     }
                 } finally {
                     otaPackageCreationLock.unlock();
