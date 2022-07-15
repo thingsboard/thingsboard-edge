@@ -285,9 +285,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
 
                     for (Long partition : partitionsToDelete) {
                         CassandraPartitionCacheKey key = new CassandraPartitionCacheKey(entityId, query.getKey(), partition);
-                        if (cassandraTsPartitionsCache.has(key)) {
-                            cassandraTsPartitionsCache.invalidate(key);
-                        }
+                        cassandraTsPartitionsCache.invalidate(key);
                     }
                 }
 
