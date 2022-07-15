@@ -89,11 +89,18 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
 
     @Override
     public OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl) {
+        return saveOtaPackageInfo(otaPackageInfo, isUrl, true);
+    }
+
+    @Override
+    public OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl, boolean doValidate) {
         log.trace("Executing saveOtaPackageInfo [{}]", otaPackageInfo);
         if (isUrl && (StringUtils.isEmpty(otaPackageInfo.getUrl()) || otaPackageInfo.getUrl().trim().length() == 0)) {
             throw new DataValidationException("Ota package URL should be specified!");
         }
-        otaPackageInfoValidator.validate(otaPackageInfo, OtaPackageInfo::getTenantId);
+        if (doValidate) {
+            otaPackageInfoValidator.validate(otaPackageInfo, OtaPackageInfo::getTenantId);
+        }
         OtaPackageId otaPackageId = otaPackageInfo.getId();
         try {
             var result = otaPackageInfoDao.save(otaPackageInfo.getTenantId(), otaPackageInfo);
