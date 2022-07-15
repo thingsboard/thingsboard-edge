@@ -25,6 +25,7 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -76,6 +77,12 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
                     entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
+                    if (entityViewUpdateMsg.hasCustomerIdMSB() && entityViewUpdateMsg.hasCustomerIdLSB()) {
+                        CustomerId customerId = new CustomerId(new UUID(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB()));
+                        entityView.setCustomerId(customerId);
+                    } else {
+                        entityView.setCustomerId(null);
+                    }
                     EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
 
                     tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),
