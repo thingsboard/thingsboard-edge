@@ -138,11 +138,16 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public Dashboard saveDashboard(Dashboard dashboard) {
         log.trace("Executing saveDashboard [{}]", dashboard);
         dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
-        Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
-        if (dashboard.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+        try {
+            Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
+            if (dashboard.getId() == null) {
+                entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+            }
+            return savedDashboard;
+        } catch (Exception e) {
+            checkConstraintViolation(e, "dashboard_external_id_unq_key", "Dashboard with such external id already exists!");
+            throw e;
         }
-        return savedDashboard;
     }
 
     @Override
