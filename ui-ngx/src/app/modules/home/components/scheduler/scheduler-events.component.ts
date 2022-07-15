@@ -172,7 +172,7 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
   defaultSortOrder = 'createdTime';
   defaultEventType: string;
   hidePageSize = false;
-  noDataDisplayMessageText: string;
+  noDataDisplayMessageText = this.translate.instant('scheduler.no-scheduler-events');
 
   displayedColumns: string[];
   pageLink: PageLink;
@@ -330,8 +330,6 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     const noDataDisplayMessage = this.settings.noDataDisplayMessage;
     if (isNotEmptyStr(noDataDisplayMessage)) {
       this.noDataDisplayMessageText = this.utils.customTranslation(noDataDisplayMessage, noDataDisplayMessage);
-    } else {
-      this.noDataDisplayMessageText = this.translate.instant('scheduler.no-scheduler-events');
     }
 
     const sortOrder: SortOrder = sortOrderFromString(this.defaultSortOrder);
