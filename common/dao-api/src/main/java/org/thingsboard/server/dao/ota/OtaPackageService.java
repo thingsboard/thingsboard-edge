@@ -32,6 +32,8 @@ public interface OtaPackageService {
 
     OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl);
 
+    OtaPackageInfo saveOtaPackageInfo(OtaPackageInfo otaPackageInfo, boolean isUrl, boolean doValidate);
+
     OtaPackage saveOtaPackage(OtaPackage otaPackage);
 
     OtaPackage saveOtaPackage(OtaPackage otaPackage, boolean doValidate);

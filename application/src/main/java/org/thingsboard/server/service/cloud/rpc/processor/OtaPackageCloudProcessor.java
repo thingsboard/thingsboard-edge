@@ -108,7 +108,11 @@ public class OtaPackageCloudProcessor extends BaseCloudProcessor {
                     if (otaPackageUpdateMsg.hasAdditionalInfo()) {
                         otaPackage.setAdditionalInfo(JacksonUtil.toJsonNode(otaPackageUpdateMsg.getAdditionalInfo()));
                     }
-                    otaPackageService.saveOtaPackage(otaPackage, false);
+                    if (otaPackageUpdateMsg.hasData()) {
+                        otaPackageService.saveOtaPackage(otaPackage, false);
+                    } else {
+                        otaPackageService.saveOtaPackageInfo(otaPackage, otaPackageUpdateMsg.hasUrl());
+                    }
                 } finally {
                     otaPackageCreationLock.unlock();
                 }
