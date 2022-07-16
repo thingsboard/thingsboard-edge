@@ -68,7 +68,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                         CustomerId customerId = new CustomerId(new UUID(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB()));
                         dashboardService.assignDashboardToCustomer(tenantId, dashboardId, customerId);
                     } else {
-                        if (!dashboard.getAssignedCustomers().isEmpty()) {
+                        if (dashboard.getAssignedCustomers() != null && !dashboard.getAssignedCustomers().isEmpty()) {
                             for (ShortCustomerInfo assignedCustomer : dashboard.getAssignedCustomers()) {
                                 dashboardService.unassignDashboardFromCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
                             }
