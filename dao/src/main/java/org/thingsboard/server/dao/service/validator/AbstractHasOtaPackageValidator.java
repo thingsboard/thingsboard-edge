@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.service.validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.HasOtaPackage;
 import org.thingsboard.server.common.data.OtaPackage;
@@ -44,6 +45,7 @@ import org.thingsboard.server.exception.DataValidationException;
 public abstract class AbstractHasOtaPackageValidator<D extends BaseData<?>> extends DataValidator<D> {
 
     @Autowired
+    @Lazy
     private OtaPackageService otaPackageService;
 
     protected <T extends HasOtaPackage> void validateOtaPackage(TenantId tenantId, T entity, DeviceProfileId deviceProfileId) {
