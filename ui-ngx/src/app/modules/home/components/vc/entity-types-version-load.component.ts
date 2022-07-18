@@ -87,6 +87,8 @@ export class EntityTypesVersionLoadComponent extends PageComponent implements On
 
   entityTypes = EntityType;
 
+  loading = true;
+
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
   constructor(protected store: Store<AppState>,
