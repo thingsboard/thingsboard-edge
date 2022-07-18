@@ -702,8 +702,8 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         return "length of " + fieldName + " must be equal or less than 255";
     }
 
-    protected String msgErrorNoFound(String entityClassName, String assetIdStr) {
-        return entityClassName + " with id [" + assetIdStr + "] is not found";
+    protected String msgErrorNoFound(String entityClassName, String entityIdStr) {
+        return entityClassName + " with id [" + entityIdStr + "] is not found";
     }
 
     private String entityClassToEntityTypeName(HasName entity) {
