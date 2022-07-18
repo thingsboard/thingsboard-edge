@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -39,12 +40,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.blob.BaseBlobEntityService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
+
+import java.util.Collections;
+import java.util.List;
 
 @Profile("test")
 @Configuration
@@ -53,6 +63,9 @@ public class BlobEntityServiceTest {
     @Autowired
     BaseBlobEntityService baseBlobEntityService;
 
+    @Autowired
+    protected JpaExecutorService service;
+
     @Bean
     @Primary
     public BlobEntityService blobEntityService() throws ThingsboardException {
@@ -60,14 +73,43 @@ public class BlobEntityServiceTest {
 
         Mockito.doAnswer(new Answer<BlobEntityWithCustomerInfo>() {
             public BlobEntityWithCustomerInfo answer(InvocationOnMock invocationOnMock) {
-                var tenantId = (TenantId) invocationOnMock.getArgument(0);
-                var blobEntityId = (BlobEntityId) invocationOnMock.getArgument(1);
-                BlobEntityWithCustomerInfo blobEntityWithCustomerInfo = new BlobEntityWithCustomerInfo();
-                blobEntityWithCustomerInfo.setTenantId(tenantId);
-                blobEntityWithCustomerInfo.setId(blobEntityId);
-                return blobEntityWithCustomerInfo;
+                return new BlobEntityWithCustomerInfo();
             }
         }).when(blobEntityService).findBlobEntityWithCustomerInfoById(Mockito.any(TenantId.class), Mockito.any(BlobEntityId.class));
+        Mockito.doAnswer(new Answer<BlobEntity>() {
+            public BlobEntity answer(InvocationOnMock invocationOnMock) {
+                return new BlobEntity();
+            }
+        }).when(blobEntityService).findBlobEntityById(Mockito.any(TenantId.class), Mockito.any(BlobEntityId.class));
+        Mockito.doAnswer(new Answer<PageData<BlobEntityWithCustomerInfo>>() {
+            public PageData<BlobEntityWithCustomerInfo> answer(InvocationOnMock invocationOnMock) {
+                return new PageData<>();
+            }
+        }).when(blobEntityService).findBlobEntitiesByTenantIdAndType(Mockito.any(TenantId.class), Mockito.anyString(), Mockito.any(TimePageLink.class));
+        Mockito.doAnswer(new Answer<PageData<BlobEntityWithCustomerInfo>>() {
+            public PageData<BlobEntityWithCustomerInfo> answer(InvocationOnMock invocationOnMock) {
+                return new PageData<>();
+            }
+        }).when(blobEntityService).findBlobEntitiesByTenantId(Mockito.any(TenantId.class), Mockito.any(TimePageLink.class));
+        Mockito.doAnswer(new Answer<PageData<BlobEntityWithCustomerInfo>>() {
+            public PageData<BlobEntityWithCustomerInfo> answer(InvocationOnMock invocationOnMock) {
+                return new PageData<>();
+            }
+        }).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerIdAndType(
+                Mockito.any(TenantId.class), Mockito.any(CustomerId.class), Mockito.anyString(), Mockito.any(TimePageLink.class));
+        Mockito.doAnswer(new Answer<PageData<BlobEntityWithCustomerInfo>>() {
+            public PageData<BlobEntityWithCustomerInfo> answer(InvocationOnMock invocationOnMock) {
+                return new PageData<>();
+            }
+        }).when(blobEntityService).findBlobEntitiesByTenantIdAndCustomerId(
+                Mockito.any(TenantId.class), Mockito.any(CustomerId.class), Mockito.any(TimePageLink.class));
+        Mockito.doAnswer(new Answer<ListenableFuture<List<BlobEntityInfo>>>() {
+            public ListenableFuture<List<BlobEntityInfo>> answer(InvocationOnMock invocationOnMock) {
+                List<BlobEntityInfo> list = Collections.emptyList();
+                return service.submit(() -> list);
+            }
+        }).when(blobEntityService).findBlobEntityInfoByIdsAsync(
+                Mockito.any(TenantId.class), Mockito.any(List.class));
         Mockito.doAnswer(new Answer<Void>() {
             public Void answer(InvocationOnMock invocationOnMock) {
                 return null;
