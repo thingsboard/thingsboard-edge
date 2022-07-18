@@ -51,13 +51,13 @@ import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalIn
 @ApiModel
 public class Event extends BaseData<EventId> {
 
-    @ApiModelProperty(position = 1, value = "JSON object with Tenant Id.", readOnly = true)
+    @ApiModelProperty(position = 1, value = "JSON object with Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
     @ApiModelProperty(position = 2, value = "Event type", example = "STATS")
     private String type;
     @ApiModelProperty(position = 3, value = "string", example = "784f394c-42b6-435a-983c-b7beff2784f9")
     private String uid;
-    @ApiModelProperty(position = 4, value = "JSON object with Entity Id for which event is created.", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Entity Id for which event is created.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private EntityId entityId;
     @ApiModelProperty(position = 5, value = "Event body.", dataType = "com.fasterxml.jackson.databind.JsonNode")
     private transient JsonNode body;
@@ -85,7 +85,7 @@ public class Event extends BaseData<EventId> {
         setJson(body, json -> this.body = json, bytes -> this.bodyBytes = bytes);
     }
 
-    @ApiModelProperty(position = 6, value = "Timestamp of the event creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 6, value = "Timestamp of the event creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();

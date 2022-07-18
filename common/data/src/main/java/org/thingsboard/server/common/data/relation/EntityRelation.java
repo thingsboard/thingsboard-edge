@@ -89,7 +89,7 @@ public class EntityRelation implements Serializable {
         this.additionalInfo = entityRelation.getAdditionalInfo();
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with [from] Entity Id.", readOnly = true)
+    @ApiModelProperty(position = 1, value = "JSON object with [from] Entity Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public EntityId getFrom() {
         return from;
     }
@@ -98,7 +98,7 @@ public class EntityRelation implements Serializable {
         this.from = from;
     }
 
-    @ApiModelProperty(position = 2, value = "JSON object with [to] Entity Id.", readOnly = true)
+    @ApiModelProperty(position = 2, value = "JSON object with [to] Entity Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public EntityId getTo() {
         return to;
     }

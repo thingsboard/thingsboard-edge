@@ -197,6 +197,7 @@ public class DashboardController extends BaseController {
                     "Specify existing Dashboard id to update the dashboard. " +
                     "Referencing non-existing dashboard Id will cause 'Not Found' error. " +
                     "Only users with 'TENANT_ADMIN') authority may create the dashboards." +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Dashboard entity. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
