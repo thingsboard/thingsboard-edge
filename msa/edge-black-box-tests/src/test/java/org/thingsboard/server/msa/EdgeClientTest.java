@@ -1194,7 +1194,14 @@ public class EdgeClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 1);
+                until(() ->  {
+                    PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));
+                    if (otaPackages.getData().size() < 1) {
+                        return false;
+                    }
+                    OtaPackage otaPackageById = edgeRestClient.getOtaPackageById(otaPackages.getData().get(0).getId());
+                    return otaPackageById.isHasData();
+                });
 
         PageData<OtaPackageInfo> pageData = edgeRestClient.getOtaPackages(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.OTA_PACKAGE);
