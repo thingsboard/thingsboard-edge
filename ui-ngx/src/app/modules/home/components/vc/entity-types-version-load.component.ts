@@ -60,7 +60,7 @@ import { entityGroupTypes } from '@shared/models/entity-group.models';
 @Component({
   selector: 'tb-entity-types-version-load',
   templateUrl: './entity-types-version-load.component.html',
-  styleUrls: ['./entity-types-version-load.component.scss'],
+  styleUrls: ['./entity-types-version.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
