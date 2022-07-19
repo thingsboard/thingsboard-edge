@@ -35,8 +35,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.CoapDeviceType;
-import org.thingsboard.server.common.data.DeviceProfileProvisionType;
-import org.thingsboard.server.common.data.DynamicProtoUtils;
 import org.thingsboard.server.common.data.TransportPayloadType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
