@@ -61,6 +61,7 @@ import { EntityGroupService } from '@core/http/entity-group.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { TbInject } from '@shared/decorators/tb-inject';
+import { ReportService } from '@core/http/report.service';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -102,6 +103,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.http = $injector.get(HttpClient);
     this.ctx.sanitizer = $injector.get(DomSanitizer);
     this.ctx.router = $injector.get(Router);
+    this.ctx.reportService = $injector.get(ReportService);
 
     this.ctx.$scope = this;
     if (this.ctx.defaultSubscription) {

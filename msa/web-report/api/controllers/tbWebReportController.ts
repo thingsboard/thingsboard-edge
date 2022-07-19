@@ -33,6 +33,7 @@ import { _logger } from '../../config/logger';
 import { TbWebReportPageQueue } from './tbWebReportPageQueue';
 import { Request, Response } from 'express';
 import config from 'config';
+import { GenerateReportRequest, parseGenerateReportRequest, RequestState } from './tbWebReportModels';
 
 const logger = _logger('ReportController');
 const generateReportTimeout = Number(config.get('browser.generateReportTimeout'));
@@ -40,106 +41,46 @@ const generateReportTimeout = Number(config.get('browser.generateReportTimeout')
 let activeRequestsCount = 0;
 
 export function genDashboardReport(req: Request, res: Response, queue: TbWebReportPageQueue) {
-    const body = req.body;
-    if (body.baseUrl && body.dashboardId) {
-        let baseUrl = body.baseUrl;
-        if (!baseUrl.endsWith("/")) {
-            baseUrl += "/";
-        }
-        let dashboardUrl = baseUrl;
-        dashboardUrl += "dashboard/" + body.dashboardId;
-        let url = dashboardUrl;
-        const token = body.token;
-        const name = body.name;
-        let timewindow = null;
-        let type = 'pdf'; // 'jpeg', 'png';
-        let timezone = null;
-
-        const reportParams = body.reportParams;
-        if (reportParams) {
-            if (reportParams.type && reportParams.type.length) {
-                type = reportParams.type;
-            }
-            const urlParams = [];
-            urlParams.push("reportView=true");
-            urlParams.push("accessToken="+token);
-
-            if (reportParams.state && reportParams.state.length) {
-                urlParams.push("state="+reportParams.state);
-            }
-            if (reportParams.publicId && reportParams.publicId.length) {
-                urlParams.push("publicId="+reportParams.publicId);
-            }
-            if (reportParams.timewindow) {
-                timewindow = reportParams.timewindow;
-                const timewindowStr = JSON.stringify(timewindow);
-                urlParams.push("reportTimewindow="+encodeURIComponent(timewindowStr));
-            }
-            if (typeof reportParams.timezone === 'string') {
-                timezone = reportParams.timezone;
-            }
-
-            if (urlParams.length) {
-                url += "?" + urlParams.join('&');
-            }
-        }
-
-        let contentType: string, ext: string;
-        if (type === 'pdf') {
-            contentType = 'application/pdf';
-            ext = '.pdf';
-        } else if (type === 'jpeg') {
-            contentType = 'image/jpeg';
-            ext = '.jpg';
-        } else if (type === 'png') {
-            contentType = 'image/png';
-            ext = '.png';
-        } else {
-            res.statusMessage = 'Unsupported report type format: ' + type;
-            res.status(400).end();
-            return;
-        }
-        activeRequestsCount++;
-        logger.info('Generating dashboard report: %s. Active requests count: %s', dashboardUrl, activeRequestsCount);
-        const requestState: RequestState = {
-            closed: false,
-            timeout: false
-        };
-        req.socket.on('close', () => {
-            requestState.closed = true;
-        });
-        const timeoutTimer = setTimeout(() => {
-            requestState.timeout = true;
-        }, generateReportTimeout);
-        queue.generateDashboardReport(requestState, url, type, timezone).then(
-            (reportBuffer) => {
-                clearTimeout(timeoutTimer);
-                res.attachment(name + ext);
-                res.contentType(contentType);
-                res.send(reportBuffer);
-                activeRequestsCount--;
-                logger.info('Report data sent. Active requests count: %s', activeRequestsCount);
-            },
-            (e) => {
-                clearTimeout(timeoutTimer);
-                logger.error(e);
-                if (requestState.timeout) {
-                    res.statusMessage = 'Generate report timeout!';
-                    res.status(503).end();
-                } else {
-                    res.statusMessage = 'Failed to load dashboard page: ' + e;
-                    res.status(500).end();
-                }
-                activeRequestsCount--;
-            }
-        );
-    } else {
-        res.statusMessage = 'Base url or Dashboard Id parameters are missing';
-        res.status(400).end()
+    let request: GenerateReportRequest;
+    try {
+        request = parseGenerateReportRequest(req);
+    } catch (e: any) {
+        res.statusMessage = e.message;
+        res.status(400).end();
+        return;
     }
-}
-
-export interface RequestState {
-    closed: boolean;
-    timeout: boolean;
+    activeRequestsCount++;
+    logger.info('Generating dashboard report: baseUrl %s, dashboardId: %s. Active requests count: %s', request.baseUrl, request.dashboardId, activeRequestsCount);
+    const requestState: RequestState = {
+        closed: false,
+        timeout: false
+    };
+    req.socket.on('close', () => {
+        requestState.closed = true;
+    });
+    const timeoutTimer = setTimeout(() => {
+        requestState.timeout = true;
+    }, generateReportTimeout);
+    queue.generateDashboardReport(requestState, request).then(
+        (reportBuffer) => {
+            clearTimeout(timeoutTimer);
+            res.attachment(request.name + request.reportContentType.ext);
+            res.contentType(request.reportContentType.contentType);
+            res.send(reportBuffer);
+            activeRequestsCount--;
+            logger.info('Report data sent. Active requests count: %s', activeRequestsCount);
+        },
+        (e) => {
+            clearTimeout(timeoutTimer);
+            logger.error(e);
+            if (requestState.timeout) {
+                res.statusMessage = 'Generate report timeout!';
+                res.status(503).end();
+            } else {
+                res.statusMessage = 'Failed to load dashboard page: ' + e;
+                res.status(500).end();
+            }
+            activeRequestsCount--;
+        }
+    );
 }

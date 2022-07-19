@@ -59,7 +59,7 @@ import { entityGroupTypes } from '@shared/models/entity-group.models';
 @Component({
   selector: 'tb-entity-types-version-create',
   templateUrl: './entity-types-version-create.component.html',
-  styleUrls: ['./entity-types-version-create.component.scss'],
+  styleUrls: ['./entity-types-version.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -89,6 +89,8 @@ export class EntityTypesVersionCreateComponent extends PageComponent implements 
   syncStrategyTranslations = syncStrategyTranslationMap;
 
   entityTypes = EntityType;
+
+  loading = true;
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 

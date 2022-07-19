@@ -160,11 +160,7 @@ public class PubSubIntegrationExecutorQueueFactory implements TbIntegrationExecu
         TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbPubSubProducerTemplate<>(integrationApiAdmin, pubSubSettings, integrationApiSettings.getRequestsTopic());
         TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer = new TbPubSubConsumerTemplate<>(integrationApiAdmin, pubSubSettings,
                 integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId(),
-                msg -> {
-                    IntegrationApiResponseMsg.Builder builder = IntegrationApiResponseMsg.newBuilder();
-                    JsonFormat.parser().ignoringUnknownFields().merge(new String(msg.getData(), StandardCharsets.UTF_8), builder);
-                    return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
-                });
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> builder = DefaultTbQueueRequestTemplate.builder();
