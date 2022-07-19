@@ -83,10 +83,10 @@ import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.device.claim.ReclaimResult;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.device.DeviceBulkImportService;
-import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
+import org.thingsboard.server.service.entitiy.device.TbDeviceService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import javax.annotation.Nullable;
@@ -164,8 +164,9 @@ public class DeviceController extends BaseController {
                     "The newly created device id will be present in the response. " +
                     "Specify existing Device id to update the device. " +
                     "Referencing non-existing device Id will cause 'Not Found' error." +
-                    "\n\nDevice name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the device names and non-unique 'label' field for user-friendly visualization purposes."
-                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
+                    "\n\nDevice name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the device names and non-unique 'label' field for user-friendly visualization purposes." +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Device entity. " +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device", method = RequestMethod.POST)
     @ResponseBody
@@ -175,7 +176,13 @@ public class DeviceController extends BaseController {
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(device, strEntityGroupId,
-                (device1, entityGroup) -> tbDeviceService.save(device1, accessToken, entityGroup, user));
+                (device1, entityGroup) -> {
+                    try {
+                        return tbDeviceService.save(device1, accessToken, entityGroup, user);
+                    } catch (Exception e) {
+                        throw handleException(e);
+                    }
+                });
     }
 
     @ApiOperation(value = "Create Device (saveDevice) with credentials ",
@@ -183,6 +190,7 @@ public class DeviceController extends BaseController {
                     "Requires to provide the Device Credentials object as well. Useful to create device and credentials in one request. " +
                     "You may find the example of LwM2M device and RPK credentials below: \n\n" +
                     DEVICE_WITH_DEVICE_CREDENTIALS_PARAM_DESCRIPTION_MARKDOWN +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Device entity. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/device-with-credentials", method = RequestMethod.POST)
@@ -204,15 +212,11 @@ public class DeviceController extends BaseController {
     @RequestMapping(value = "/device/{deviceId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteDevice(@ApiParam(value = DEVICE_ID_PARAM_DESCRIPTION)
-                             @PathVariable(DEVICE_ID) String strDeviceId) throws ThingsboardException {
+                             @PathVariable(DEVICE_ID) String strDeviceId) throws Exception {
         checkParameter(DEVICE_ID, strDeviceId);
         DeviceId deviceId = new DeviceId(toUUID(strDeviceId));
         Device device = checkDeviceId(deviceId, Operation.DELETE);
-        try {
-            tbDeviceService.delete(device, getCurrentUser()).get();
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        tbDeviceService.delete(device, getCurrentUser()).get();
     }
 
     @ApiOperation(value = "Get Device Credentials (getDeviceCredentialsByDeviceId)",
@@ -593,7 +597,6 @@ public class DeviceController extends BaseController {
         if (newTenant == null) {
             throw new ThingsboardException("Could not find the specified Tenant!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-
         return tbDeviceService.assignDeviceToTenant(device, newTenant, getCurrentUser());
     }
 

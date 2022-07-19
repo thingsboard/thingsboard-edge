@@ -31,6 +31,7 @@
 
 import { InjectionToken } from '@angular/core';
 import { IModulesMap } from '@modules/common/modules-map.models';
+import { EntityType } from '@shared/models/entity-type.models';
 
 export const Constants = {
   serverErrorCode: {
@@ -52,6 +53,20 @@ export const Constants = {
     nonTokenBased: '/api/noauth'
   }
 };
+
+export const serverErrorCodesTranslations = new Map<number, string>([
+  [Constants.serverErrorCode.general, 'server-error.general'],
+  [Constants.serverErrorCode.authentication, 'server-error.authentication'],
+  [Constants.serverErrorCode.jwtTokenExpired, 'server-error.jwt-token-expired'],
+  [Constants.serverErrorCode.tenantTrialExpired, 'server-error.tenant-trial-expired'],
+  [Constants.serverErrorCode.credentialsExpired, 'server-error.credentials-expired'],
+  [Constants.serverErrorCode.permissionDenied, 'server-error.permission-denied'],
+  [Constants.serverErrorCode.invalidArguments, 'server-error.invalid-arguments'],
+  [Constants.serverErrorCode.badRequestParams, 'server-error.bad-request-params'],
+  [Constants.serverErrorCode.itemNotFound, 'server-error.item-not-found'],
+  [Constants.serverErrorCode.tooManyRequests, 'server-error.too-many-requests'],
+  [Constants.serverErrorCode.tooManyUpdates, 'server-error.too-many-updates'],
+]);
 
 export const MediaBreakpoints = {
   xs: 'screen and (max-width: 599px)',
@@ -200,7 +215,10 @@ export const HelpLinks = {
     customMenu: helpBaseUrl +  '/docs/pe/user-guide/custom-menu',
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
     selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
-    queue: helpBaseUrl + '/docs/user-guide/queue'
+    queue: helpBaseUrl + '/docs/pe/user-guide/queue',
+    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#git-settings-configuration',
+    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#auto-commit',
+    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication'
   }
 };
 

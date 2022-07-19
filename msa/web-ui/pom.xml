@@ -111,6 +111,7 @@
                         <goals>
                             <goal>yarn</goal>
                         </goals>
+                        <phase>compile</phase>
                         <configuration>
                             <arguments>run pkg</arguments>
                         </configuration>
@@ -175,7 +176,6 @@
                                 <resource>
                                     <directory>${basedir}</directory>
                                     <includes>
-                                        <include>server.js</include>
                                         <include>package.json</include>
                                         <include>yarn.lock</include>
                                     </includes>

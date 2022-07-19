@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Event;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -106,8 +107,7 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
-public class ConverterController extends BaseController {
-
+public class ConverterController extends AutoCommitController {
 
     @Autowired
     private EventService eventService;
@@ -130,12 +130,8 @@ public class ConverterController extends BaseController {
     public Converter getConverterById(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
                                       @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
-        try {
-            ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            return checkConverterId(converterId, Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        ConverterId converterId = new ConverterId(toUUID(strConverterId));
+        return checkConverterId(converterId, Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update Converter (saveConverter)",
@@ -144,31 +140,41 @@ public class ConverterController extends BaseController {
                     "Specify existing Converter id to update the converter. " +
                     "Referencing non-existing converter Id will cause 'Not Found' error. " +
                     "Converter name is unique in the scope of tenant. " + NEW_LINE +
-                    CONVERTER_CONFIGURATION_DESCRIPTION
-                    + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
+                    CONVERTER_CONFIGURATION_DESCRIPTION +
+                    "Remove 'id', 'tenantId' from the request body example (below) to create new converter entity. " +
+                    TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
-    public Converter saveConverter(@ApiParam(required = true, value = "A JSON value representing the converter.") @RequestBody Converter converter) throws ThingsboardException {
+    public Converter saveConverter(@ApiParam(required = true, value = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
+        SecurityUser currentUser = getCurrentUser();
         try {
-            converter.setTenantId(getCurrentUser().getTenantId());
+            converter.setTenantId(currentUser.getTenantId());
             boolean created = converter.getId() == null;
 
             checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
 
             Converter result = checkNotNull(converterService.saveConverter(converter));
-            tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                    created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
 
-            logEntityAction(result.getId(), result,
-                    null,
-                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            autoCommit(currentUser, result.getId());
+
+            if (!converter.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
+                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+            }
+
+            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
+                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
+
+            if (converter.isEdgeTemplate() && !created) {
+                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
+            }
 
             return result;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.CONVERTER), converter,
-                    null, converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER), converter,
+                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
+            throw e;
         }
     }
 
@@ -179,6 +185,8 @@ public class ConverterController extends BaseController {
     @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Converter> getConverters(
+            @ApiParam(value = "Fetch edge template converters")
+            @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
             @RequestParam int pageSize,
             @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
@@ -189,13 +197,13 @@ public class ConverterController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        accessControlService.checkPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        if (isEdgeTemplate) {
+            return checkNotNull(converterService.findTenantEdgeTemplateConverters(tenantId, pageLink));
+        } else {
             return checkNotNull(converterService.findTenantConverters(tenantId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
         }
     }
 
@@ -212,20 +220,20 @@ public class ConverterController extends BaseController {
             ConverterId converterId = new ConverterId(toUUID(strConverterId));
             Converter converter = checkConverterId(converterId, Operation.DELETE);
             converterService.deleteConverter(getTenantId(), converterId);
-            tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
 
-            logEntityAction(converterId, converter,
+            if (!converter.isEdgeTemplate()) {
+                tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
+            }
+
+            notificationEntityService.logEntityAction(getTenantId(), converterId, converter,
                     null,
-                    ActionType.DELETED, null, strConverterId);
+                    ActionType.DELETED, getCurrentUser(), strConverterId);
 
-        } catch (Exception e) {
+        } catch (ThingsboardException e) {
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER),
+                    ActionType.DELETED, getCurrentUser(), e, strConverterId);
 
-            logEntityAction(emptyId(EntityType.CONVERTER),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strConverterId);
-
-            throw handleException(e);
+            throw e;
         }
     }
 
@@ -237,58 +245,54 @@ public class ConverterController extends BaseController {
     @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
     public JsonNode getLatestConverterDebugInput(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION)
-                                                 @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
+                                                 @PathVariable(CONVERTER_ID) String strConverterId) throws Exception {
         checkParameter(CONVERTER_ID, strConverterId);
-        try {
-            ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            checkConverterId(converterId, Operation.READ);
-            List<Event> events = eventService.findLatestEvents(getTenantId(), converterId, DataConstants.DEBUG_CONVERTER, 1);
-            JsonNode result = null;
-            if (events != null && !events.isEmpty()) {
-                Event event = events.get(0);
-                JsonNode body = event.getBody();
-                if (body.has("type")) {
-                    String type = body.get("type").asText();
-                    if (type.equals("Uplink") || type.equals("Downlink")) {
-                        ObjectNode debugIn = objectMapper.createObjectNode();
-                        String inContentType = body.get("inMessageType").asText();
-                        debugIn.put("inContentType", inContentType);
-                        if (type.equals("Uplink")) {
-                            String inContent = body.get("in").asText();
-                            debugIn.put("inContent", inContent);
-                            String inMetadata = body.get("metadata").asText();
-                            debugIn.put("inMetadata", inMetadata);
-                        } else { //Downlink
-                            String inContent = "";
-                            String inMsgType = "";
-                            String inMetadata = "";
-                            String in = body.get("in").asText();
-                            JsonNode inJson = objectMapper.readTree(in);
-                            if (inJson.isArray() && inJson.size() > 0) {
-                                JsonNode msgJson = inJson.get(inJson.size() - 1);
-                                JsonNode msg = msgJson.get("msg");
-                                if (msg.isTextual()) {
-                                    inContent = "";
-                                } else if (msg.isObject()) {
-                                    inContent = objectMapper.writeValueAsString(msg);
-                                }
-                                inMsgType = msgJson.get("msgType").asText();
-                                inMetadata = objectMapper.writeValueAsString(msgJson.get("metadata"));
+        ConverterId converterId = new ConverterId(toUUID(strConverterId));
+        checkConverterId(converterId, Operation.READ);
+        List<Event> events = eventService.findLatestEvents(getTenantId(), converterId, DataConstants.DEBUG_CONVERTER, 1);
+        JsonNode result = null;
+        if (events != null && !events.isEmpty()) {
+            Event event = events.get(0);
+            JsonNode body = event.getBody();
+            if (body.has("type")) {
+                String type = body.get("type").asText();
+                if (type.equals("Uplink") || type.equals("Downlink")) {
+                    ObjectNode debugIn = objectMapper.createObjectNode();
+                    String inContentType = body.get("inMessageType").asText();
+                    debugIn.put("inContentType", inContentType);
+                    if (type.equals("Uplink")) {
+                        String inContent = body.get("in").asText();
+                        debugIn.put("inContent", inContent);
+                        String inMetadata = body.get("metadata").asText();
+                        debugIn.put("inMetadata", inMetadata);
+                    } else { //Downlink
+                        String inContent = "";
+                        String inMsgType = "";
+                        String inMetadata = "";
+                        String in = body.get("in").asText();
+                        JsonNode inJson = objectMapper.readTree(in);
+                        if (inJson.isArray() && inJson.size() > 0) {
+                            JsonNode msgJson = inJson.get(inJson.size() - 1);
+                            JsonNode msg = msgJson.get("msg");
+                            if (msg.isTextual()) {
+                                inContent = "";
+                            } else if (msg.isObject()) {
+                                inContent = objectMapper.writeValueAsString(msg);
                             }
-                            debugIn.put("inContent", inContent);
-                            debugIn.put("inMsgType", inMsgType);
-                            debugIn.put("inMetadata", inMetadata);
-                            String inIntegrationMetadata = body.get("metadata").asText();
-                            debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
+                            inMsgType = msgJson.get("msgType").asText();
+                            inMetadata = objectMapper.writeValueAsString(msgJson.get("metadata"));
                         }
-                        result = debugIn;
+                        debugIn.put("inContent", inContent);
+                        debugIn.put("inMsgType", inMsgType);
+                        debugIn.put("inMetadata", inMetadata);
+                        String inIntegrationMetadata = body.get("metadata").asText();
+                        debugIn.put("inIntegrationMetadata", inIntegrationMetadata);
                     }
+                    result = debugIn;
                 }
             }
-            return result;
-        } catch (Exception e) {
-            throw handleException(e);
         }
+        return result;
     }
 
     @ApiOperation(value = "Test converter function (testUpLinkConverter)",
@@ -300,37 +304,33 @@ public class ConverterController extends BaseController {
     @ResponseBody
     public JsonNode testUpLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
                                         @RequestBody JsonNode inputParams) throws ThingsboardException {
+        String payloadBase64 = inputParams.get("payload").asText();
+        byte[] payload = Base64.getDecoder().decode(payloadBase64);
+        JsonNode metadata = inputParams.get("metadata");
+        String decoder = inputParams.get("decoder").asText();
+
+        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+        });
+        UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
+
+        String output = "";
+        String errorText = "";
+        JSUplinkEvaluator jsUplinkEvaluator = null;
         try {
-            String payloadBase64 = inputParams.get("payload").asText();
-            byte[] payload = Base64.getDecoder().decode(payloadBase64);
-            JsonNode metadata = inputParams.get("metadata");
-            String decoder = inputParams.get("decoder").asText();
-
-            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
-            });
-            UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
-
-            String output = "";
-            String errorText = "";
-            JSUplinkEvaluator jsUplinkEvaluator = null;
-            try {
-                jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
-                output = jsUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
-            } catch (Exception e) {
-                log.error("Error evaluating JS UpLink Converter function", e);
-                errorText = e.getMessage();
-            } finally {
-                if (jsUplinkEvaluator != null) {
-                    jsUplinkEvaluator.destroy();
-                }
-            }
-            ObjectNode result = objectMapper.createObjectNode();
-            result.put("output", output);
-            result.put("error", errorText);
-            return result;
+            jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
+            output = jsUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
         } catch (Exception e) {
-            throw handleException(e);
+            log.error("Error evaluating JS UpLink Converter function", e);
+            errorText = e.getMessage();
+        } finally {
+            if (jsUplinkEvaluator != null) {
+                jsUplinkEvaluator.destroy();
+            }
         }
+        ObjectNode result = objectMapper.createObjectNode();
+        result.put("output", output);
+        result.put("error", errorText);
+        return result;
     }
 
     @ApiOperation(value = "Test converter function (testDownLinkConverter)",
@@ -341,44 +341,40 @@ public class ConverterController extends BaseController {
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testDownLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
-                                          @RequestBody JsonNode inputParams) throws ThingsboardException {
+                                          @RequestBody JsonNode inputParams) throws Exception {
+        String data = inputParams.get("msg").asText();
+        JsonNode metadata = inputParams.get("metadata");
+        String msgType = inputParams.get("msgType").asText();
+        JsonNode integrationMetadata = inputParams.get("integrationMetadata");
+        String encoder = inputParams.get("encoder").asText();
+
+        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+        });
+
+        Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
+        });
+        IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
+
+        JsonNode output = null;
+        String errorText = "";
+        JSDownlinkEvaluator jsDownlinkEvaluator = null;
         try {
-            String data = inputParams.get("msg").asText();
-            JsonNode metadata = inputParams.get("metadata");
-            String msgType = inputParams.get("msgType").asText();
-            JsonNode integrationMetadata = inputParams.get("integrationMetadata");
-            String encoder = inputParams.get("encoder").asText();
-
-            Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
-            });
-
-            Map<String, String> integrationMetadataMap = objectMapper.convertValue(integrationMetadata, new TypeReference<Map<String, String>>() {
-            });
-            IntegrationMetaData integrationMetaData = new IntegrationMetaData(integrationMetadataMap);
-
-            JsonNode output = null;
-            String errorText = "";
-            JSDownlinkEvaluator jsDownlinkEvaluator = null;
-            try {
-                TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
-                jsDownlinkEvaluator = new JSDownlinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), encoder);
-                output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
-                validateDownLinkOutput(output);
-            } catch (Exception e) {
-                log.error("Error evaluating JS Downlink Converter function", e);
-                errorText = e.getMessage();
-            } finally {
-                if (jsDownlinkEvaluator != null) {
-                    jsDownlinkEvaluator.destroy();
-                }
-            }
-            ObjectNode result = objectMapper.createObjectNode();
-            result.put("output", objectMapper.writeValueAsString(output));
-            result.put("error", errorText);
-            return result;
+            TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
+            jsDownlinkEvaluator = new JSDownlinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), encoder);
+            output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
+            validateDownLinkOutput(output);
         } catch (Exception e) {
-            throw handleException(e);
+            log.error("Error evaluating JS Downlink Converter function", e);
+            errorText = e.getMessage();
+        } finally {
+            if (jsDownlinkEvaluator != null) {
+                jsDownlinkEvaluator.destroy();
+            }
         }
+        ObjectNode result = objectMapper.createObjectNode();
+        result.put("output", objectMapper.writeValueAsString(output));
+        result.put("error", errorText);
+        return result;
     }
 
     private void validateDownLinkOutput(JsonNode output) throws Exception {
@@ -409,23 +405,19 @@ public class ConverterController extends BaseController {
     @ResponseBody
     public List<Converter> getConvertersByIds(
             @ApiParam(value = "A list of converter ids, separated by comma ','", required = true)
-            @RequestParam("converterIds") String[] strConverterIds) throws ThingsboardException {
+            @RequestParam("converterIds") String[] strConverterIds) throws Exception {
         checkArrayParameter("converterIds", strConverterIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<ConverterId> converterIds = new ArrayList<>();
-            for (String strConverterId : strConverterIds) {
-                converterIds.add(new ConverterId(toUUID(strConverterId)));
-            }
-            List<Converter> converters = checkNotNull(converterService.findConvertersByIdsAsync(tenantId, converterIds).get());
-            return filterConvertersByReadPermission(converters);
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {
+            return Collections.emptyList();
         }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<ConverterId> converterIds = new ArrayList<>();
+        for (String strConverterId : strConverterIds) {
+            converterIds.add(new ConverterId(toUUID(strConverterId)));
+        }
+        List<Converter> converters = checkNotNull(converterService.findConvertersByIdsAsync(tenantId, converterIds).get());
+        return filterConvertersByReadPermission(converters);
     }
 
     private List<Converter> filterConvertersByReadPermission(List<Converter> converters) {

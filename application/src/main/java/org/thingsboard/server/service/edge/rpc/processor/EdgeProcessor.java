@@ -30,10 +30,14 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -42,7 +46,9 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
@@ -51,7 +57,9 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -92,8 +100,51 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                     }
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
+            case ATTRIBUTES_UPDATED:
+                return processAttributesUpdated(tenantId, edgeId, edgeNotificationMsg);
             default:
                 return Futures.immediateFuture(null);
+        }
+    }
+
+    private ListenableFuture<Void> processAttributesUpdated(TenantId tenantId, EdgeId edgeId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        List<String> attributeKeys = new ArrayList<>();
+        try {
+            ArrayNode attributes = (ArrayNode) JacksonUtil.OBJECT_MAPPER.readTree(edgeNotificationMsg.getBody());
+            for (JsonNode attribute : attributes) {
+                attributeKeys.add(attribute.get("key").asText());
+            }
+        } catch (Exception e) {
+            String errMsg = String.format("Can't process attributes updated event %s", edgeNotificationMsg);
+            log.warn(errMsg, e);
+            return Futures.immediateFailedFuture(e);
+        }
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<Integration> pageData;
+        Set<IntegrationId> integrationIds = new HashSet<>();
+        do {
+            pageData = integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (Integration integration : pageData.getData()) {
+                    for (String attributeKey : attributeKeys) {
+                        if (integration.getConfiguration().toString().contains(EdgeUtils.formatAttributeKeyToPlaceholderFormat(attributeKey))) {
+                            integrationIds.add(integration.getId());
+                        }
+                    }
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
+        if (integrationIds.isEmpty()) {
+            return Futures.immediateFuture(null);
+        } else {
+            List<ListenableFuture<Void>> futures = new ArrayList<>();
+            for (IntegrationId integrationId : integrationIds) {
+                futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.INTEGRATION, EdgeEventActionType.UPDATED, integrationId, null));
+            }
+            return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
         }
     }
 

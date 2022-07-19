@@ -49,7 +49,12 @@ export class IntegrationService {
   ) { }
 
   public getIntegrations(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Integration>> {
-    return this.http.get<PageData<Integration>>(`/api/integrations${pageLink.toQuery()}`,
+    return this.getIntegrationsByEdgeTemplate(pageLink, false, config);
+  }
+
+  public getIntegrationsByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean,
+                                       config?: RequestConfig): Observable<PageData<Integration>> {
+    return this.http.get<PageData<Integration>>(`/api/integrations${pageLink.toQuery()}&isEdgeTemplate=${isEdgeTemplate}`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -80,8 +85,22 @@ export class IntegrationService {
     return url;
   }
 
-  public checkIntegrationConnection(value: Integration, config?: RequestConfig) : Observable<string>{
+  public checkIntegrationConnection(value: Integration, config?: RequestConfig): Observable<string>{
     return this.http.post<string>('/api/integration/check', value, defaultHttpOptionsFromConfig(config));
   }
 
+  public assignIntegrationToEdge(edgeId: string, integrationId: string, config?: RequestConfig): Observable<Integration> {
+    return this.http.post<Integration>(`/api/edge/${edgeId}/integration/${integrationId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public unassignIntegrationFromEdge(edgeId: string, integrationId: string, config?: RequestConfig) {
+    return this.http.delete(`/api/edge/${edgeId}/integration/${integrationId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public getEdgeIntegrations(edgeId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<Integration>> {
+    return this.http.get<PageData<Integration>>(`/api/edge/${edgeId}/integrations${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
+  }
 }

@@ -39,8 +39,14 @@ browser:
   launchTimeout: "BROWSER_LAUNCH_TIMEOUT"
   # Default page navigation timeout (ms)
   defaultPageNavigationTimeout: "DEFAULT_PAGE_NAVIGATION_TIMEOUT"
-  # Dashboard load wait time (ms)
-  dashboardLoadWaitTime: "DASHBOARD_LOAD_WAIT_TIME"
+  # Generate report request timeout (ms)
+  generateReportTimeout: "GENERATE_REPORT_TIMEOUT"
+  # Load dashboard resources timeout (ms)
+  loadDashboardResourcesTimeout: "LOAD_DASHBOARD_RESOURCES_TIMEOUT"
+  # Dashboard idle wait time (ms)
+  dashboardIdleWaitTime: "DASHBOARD_IDLE_WAIT_TIME"
+  # Max browser pages
+  maxPages: "BROWSER_MAX_PAGES"
 logger:
   level: "LOGGER_LEVEL"
   path: "LOG_FOLDER"

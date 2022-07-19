@@ -32,8 +32,9 @@
 -->
 <form [formGroup]="phoneFormGroup">
   <div class="phone-input-container">
-    <div class="flags-select-container" *ngIf="enableFlagsSelect">
-      <span class="flag-container">{{ flagIcon }}</span>
+    <div class="flags-select-container" *ngIf="showFlagSelect">
+      <span class="flag-container" *ngIf="!isLoad">{{ flagIcon }}</span>
+      <mat-spinner diameter="20" class="flag-loader" *ngIf="isLoad"></mat-spinner>
       <mat-select class="country-select" formControlName="country">
         <mat-option *ngFor="let country of allCountries" [value]="country.iso2">
           <span style="font-size: 20px;">{{country.flag}}</span>
@@ -48,7 +49,6 @@
         type="tel"
         matInput
         placeholder="{{ placeholder | translate }}"
-        [pattern]="phoneNumberPattern"
         (focus)="focus()"
         autocomplete="off"
         [required]="required">

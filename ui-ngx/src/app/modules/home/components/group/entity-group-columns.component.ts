@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, ViewEncapsulation } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -50,8 +50,7 @@ import {
   EntityGroupSortOrder
 } from '@shared/models/entity-group.models';
 import { Subscription } from 'rxjs';
-import { DndDropEvent } from 'ngx-drag-drop/dnd-dropzone.directive';
-import { isUndefined } from '@core/utils';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'tb-entity-group-columns',
@@ -63,7 +62,8 @@ import { isUndefined } from '@core/utils';
       useExisting: forwardRef(() => EntityGroupColumnsComponent),
       multi: true
     }
-  ]
+  ],
+  encapsulation: ViewEncapsulation.None
 })
 export class EntityGroupColumnsComponent extends PageComponent implements ControlValueAccessor, OnInit {
 
@@ -164,18 +164,15 @@ export class EntityGroupColumnsComponent extends PageComponent implements Contro
     this.defaultSortOrderChanged(index, column.sortOrder);
   }
 
-  public dndMoved(index: number) {
-    this.columnsFormArray().removeAt(index)
+  public trackByColumnControl(index: number, columnControl: AbstractControl): any {
+    return columnControl;
   }
 
-  public onDrop(event: DndDropEvent) {
-    let index = event.index;
-    if(isUndefined(index)) {
-      index = this.columnsFormArray().length;
-    }
-    this.columnsFormArray().insert(index,
-      this.fb.control(event.data, [Validators.required])
-    );
+  public onDrop(event: CdkDragDrop<string[]>) {
+    const columnsFormArray = this.columnsFormArray();
+    const columnForm = columnsFormArray.at(event.previousIndex);
+    columnsFormArray.removeAt(event.previousIndex);
+    columnsFormArray.insert(event.currentIndex, columnForm);
   }
 
   private updateModel() {

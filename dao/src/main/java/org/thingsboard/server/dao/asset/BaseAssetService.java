@@ -37,9 +37,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
@@ -66,7 +65,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
@@ -135,16 +133,14 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         Asset savedAsset;
         AssetCacheEvictEvent evictEvent = new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), oldAsset != null ? oldAsset.getName() : null);
         try {
-            savedAsset = assetDao.save(asset.getTenantId(), asset);
+            savedAsset = assetDao.saveAndFlush(asset.getTenantId(), asset);
             publishEvictEvent(evictEvent);
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
-            ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
-            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("asset_name_unq_key")) {
-                throw new DataValidationException("Asset with such name already exists!");
-            } else {
-                throw t;
-            }
+            checkConstraintViolation(t,
+                    "asset_name_unq_key", "Asset with such name already exists!",
+                    "asset_external_id_unq_key", "Asset with such external id already exists!");
+            throw t;
         }
         if (asset.getId() == null) {
             entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
@@ -159,14 +155,9 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         deleteEntityRelations(tenantId, assetId);
 
         Asset asset = assetDao.findById(tenantId, assetId.getId());
-        try {
-            List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityIdAsync(asset.getTenantId(), assetId).get();
-            if (entityViews != null && !entityViews.isEmpty()) {
-                throw new DataValidationException("Can't delete asset that has entity views!");
-            }
-        } catch (ExecutionException | InterruptedException e) {
-            log.error("Exception while finding entity views for assetId [{}]", assetId, e);
-            throw new RuntimeException("Exception while finding entity views for assetId [" + assetId + "]", e);
+        List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityId(asset.getTenantId(), assetId);
+        if (entityViews != null && !entityViews.isEmpty()) {
+            throw new DataValidationException("Can't delete asset that has entity views!");
         }
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));

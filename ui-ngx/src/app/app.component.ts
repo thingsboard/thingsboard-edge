@@ -45,6 +45,7 @@ import { combineLatest } from 'rxjs';
 import { selectIsAuthenticated, selectIsUserLoaded } from '@core/auth/auth.selectors';
 import { distinctUntilChanged, filter, map, skip } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
+import { ReportService } from '@core/http/report.service';
 
 @Component({
   selector: 'tb-root',
@@ -58,7 +59,8 @@ export class AppComponent implements OnInit {
               private translate: TranslateService,
               private matIconRegistry: MatIconRegistry,
               private domSanitizer: DomSanitizer,
-              private authService: AuthService) {
+              private authService: AuthService,
+              private reportService: ReportService) {
 
     if (!env.production) {
       console.log(`ThingsBoard Version: ${env.tbVersion}`);
@@ -137,12 +139,14 @@ export class AppComponent implements OnInit {
     ).pipe(
       map(results => ({isAuthenticated: results[0], isUserLoaded: results[1]})),
       distinctUntilChanged(),
-      filter((data) => data.isUserLoaded ),
+      filter((data) => data.isUserLoaded),
       skip(1),
     ).subscribe((data) => {
       this.authService.gotoDefaultPlace(data.isAuthenticated);
     });
-    this.authService.reloadUser();
+    if (!this.reportService.loadReportParams()) {
+      this.authService.reloadUser();
+    }
   }
 
   ngOnInit() {

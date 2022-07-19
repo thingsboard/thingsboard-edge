@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.dao.device;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -63,10 +63,11 @@ import org.thingsboard.server.dao.service.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Map;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
@@ -89,10 +90,9 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
     @Autowired
     private DataValidator<DeviceProfile> deviceProfileValidator;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
-
-    private final Lock findOrCreateLock = new ReentrantLock();
 
     @TransactionalEventListener(classes = DeviceProfileEvictEvent.class)
     @Override
@@ -140,27 +140,17 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         DeviceProfile oldDeviceProfile = deviceProfileValidator.validate(deviceProfile, DeviceProfile::getTenantId);
         DeviceProfile savedDeviceProfile;
         try {
-            if (deviceProfile.getDefaultQueueId() == null && StringUtils.isNotEmpty(deviceProfile.getDefaultQueueName())) {
-                Queue existing = queueService.findQueueByTenantIdAndName(deviceProfile.getTenantId(), deviceProfile.getDefaultQueueName());
-                if (existing != null) {
-                    deviceProfile.setDefaultQueueId(existing.getId());
-                }
-            }
             savedDeviceProfile = deviceProfileDao.saveAndFlush(deviceProfile.getTenantId(), deviceProfile);
             publishEvictEvent(new DeviceProfileEvictEvent(savedDeviceProfile.getTenantId(), savedDeviceProfile.getName(),
                     oldDeviceProfile != null ? oldDeviceProfile.getName() : null, savedDeviceProfile.getId(), savedDeviceProfile.isDefault()));
         } catch (Exception t) {
             handleEvictEvent(new DeviceProfileEvictEvent(deviceProfile.getTenantId(), deviceProfile.getName(),
                     oldDeviceProfile != null ? oldDeviceProfile.getName() : null, null, deviceProfile.isDefault()));
-            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
-            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_profile_name_unq_key")) {
-                //TODO: refactor this to return existing device profile. If they are equal - no need to throw exception. Then we can make this call @Transactional and tests will not fail.
-                throw new DataValidationException(DEVICE_PROFILE_WITH_SUCH_NAME_ALREADY_EXISTS);
-            } else if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("device_provision_key_unq_key")) {
-                throw new DataValidationException("Device profile with such provision device key already exists!");
-            } else {
-                throw t;
-            }
+            checkConstraintViolation(t,
+                    Map.of("device_profile_name_unq_key", DEVICE_PROFILE_WITH_SUCH_NAME_ALREADY_EXISTS,
+                            "device_provision_key_unq_key", "Device profile with such provision device key already exists!",
+                            "device_profile_external_id_unq_key", "Device profile with such external id already exists!"));
+            throw t;
         }
         if (oldDeviceProfile != null && !oldDeviceProfile.getName().equals(deviceProfile.getName())) {
             PageLink pageLink = new PageLink(100);
@@ -219,6 +209,14 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         Validator.validatePageLink(pageLink);
         return deviceProfileDao.findDeviceProfileInfos(tenantId, pageLink, transportType);
+    }
+
+    @Override
+    public ListenableFuture<List<DeviceProfileInfo>> findDeviceProfilesByIdsAsync(TenantId tenantId, List<DeviceProfileId> deviceProfileIds) {
+        log.trace("Executing findDeviceProfilesByIdsAsync, tenantId [{}], deviceProfileIds [{}]", tenantId, deviceProfileIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(deviceProfileIds, "Incorrect deviceProfileIds " + deviceProfileIds);
+        return deviceProfileDao.findDeviceProfilesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(deviceProfileIds));
     }
 
     @Override

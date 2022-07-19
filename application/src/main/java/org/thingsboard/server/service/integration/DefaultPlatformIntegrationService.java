@@ -222,7 +222,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Value("${integrations.rate_limits.tenant}")
     private String perTenantLimitsConf;
 
-    @Value("${integrations.rate_limits.tenant}")
+    @Value("${integrations.rate_limits.device}")
     private String perDevicesLimitsConf;
 
     @Value("${integrations.reinit.enabled:false}")
@@ -632,18 +632,18 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         try {
             DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
             RuleChainId ruleChainId;
-            QueueId queueId;
+            String queueName;
 
             if (deviceProfile == null) {
                 ruleChainId = null;
-                queueId = null;
+                queueName = null;
             } else {
                 ruleChainId = deviceProfile.getDefaultRuleChainId();
-                queueId = deviceProfile.getDefaultQueueId();
+                queueName = deviceProfile.getDefaultQueueName();
             }
 
             ObjectNode entityNode = mapper.valueToTree(device);
-            TbMsg tbMsg = TbMsg.newMsg(queueId, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
+            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, device.getId(), deviceActionTbMsgMetaData(integration, device),
                     mapper.writeValueAsString(entityNode), ruleChainId, null);
 
             process(device.getTenantId(), tbMsg, null);
@@ -723,24 +723,24 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
         DeviceProfile deviceProfile = deviceProfileCache.get(tenantId, deviceProfileId);
         RuleChainId ruleChainId;
-        QueueId queueId;
+        String queueName;
 
         if (deviceProfile == null) {
             log.warn("[{}] Device profile is null!", deviceProfileId);
             ruleChainId = null;
-            queueId = null;
+            queueName = null;
         } else {
             ruleChainId = deviceProfile.getDefaultRuleChainId();
-            queueId = deviceProfile.getDefaultQueueId();
+            queueName = deviceProfile.getDefaultQueueName();
         }
 
-        TbMsg tbMsg = TbMsg.newMsg(queueId, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
+        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
     private void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueId(), tenantId, tbMsg.getOriginator());
+        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, tbMsg.getOriginator());
         TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();

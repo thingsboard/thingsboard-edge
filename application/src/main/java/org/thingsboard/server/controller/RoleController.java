@@ -66,10 +66,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_SORT_PROPERTY_ALLOWABLE_VALUES;
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.DEVICE_TYPE_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.GROUP_PERMISSION_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_DATA_PARAMETERS;
@@ -90,7 +86,7 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
-public class RoleController extends BaseController {
+public class RoleController extends AutoCommitController {
 
     public static final String ROLE_ID = "roleId";
     public static final String ROLE_SHORT_DESCRIPTION = "Role Contains a set of permissions. Role has two types. " +
@@ -152,11 +148,7 @@ public class RoleController extends BaseController {
             @ApiParam(value = ROLE_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
         checkParameter(ROLE_ID, strRoleId);
-        try {
-            return checkRoleId(new RoleId(toUUID(strRoleId)), Operation.READ);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        return checkRoleId(new RoleId(toUUID(strRoleId)), Operation.READ);
     }
 
     @ApiOperation(value = "Create Or Update Role (saveRole)",
@@ -171,29 +163,32 @@ public class RoleController extends BaseController {
     @ResponseBody
     public Role saveRole(
             @ApiParam(value = "A JSON value representing the role.", required = true)
-            @RequestBody Role role) throws ThingsboardException {
+            @RequestBody Role role) throws Exception {
+        SecurityUser currentUser = getCurrentUser();
         try {
-            role.setTenantId(getCurrentUser().getTenantId());
-            if (Authority.CUSTOMER_USER.equals(getCurrentUser().getAuthority())) {
-                role.setCustomerId(getCurrentUser().getCustomerId());
+            role.setTenantId(currentUser.getTenantId());
+            if (Authority.CUSTOMER_USER.equals(currentUser.getAuthority())) {
+                role.setCustomerId(currentUser.getCustomerId());
             }
             checkEntity(role.getId(), role, Resource.ROLE, null);
 
             Role savedRole = checkNotNull(roleService.saveRole(getTenantId(), role));
 
+            autoCommit(currentUser, savedRole.getId());
+
             userPermissionsService.onRoleUpdated(savedRole);
 
-            logEntityAction(savedRole.getId(), savedRole, null,
-                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+            notificationEntityService.logEntityAction(getTenantId(), savedRole.getId(), savedRole,
+                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
 
             sendEntityNotificationMsg(getTenantId(), savedRole.getId(),
                     role.getId() == null ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED);
 
             return savedRole;
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ROLE), role, null,
-                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
-            throw handleException(e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), role,
+                    role.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
+            throw e;
         }
     }
 
@@ -204,7 +199,7 @@ public class RoleController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteRole(
             @ApiParam(value = ROLE_ID_PARAM_DESCRIPTION, required = true)
-            @PathVariable(ROLE_ID) String strRoleId) throws ThingsboardException {
+            @PathVariable(ROLE_ID) String strRoleId) throws Exception {
         checkParameter(ROLE_ID, strRoleId);
         try {
             RoleId roleId = new RoleId(toUUID(strRoleId));
@@ -214,16 +209,13 @@ public class RoleController extends BaseController {
                 throw new ThingsboardException("Role can't be deleted because it used by user group permissions!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
             roleService.deleteRole(getTenantId(), roleId);
-            logEntityAction(roleId, role, null, ActionType.DELETED, null, strRoleId);
+            notificationEntityService.logEntityAction(getTenantId(), roleId, role, ActionType.DELETED, getCurrentUser(), strRoleId);
 
             sendEntityNotificationMsg(getTenantId(), roleId, EdgeEventActionType.DELETED);
 
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.ROLE),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strRoleId);
-            throw handleException(e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ROLE), ActionType.DELETED, getCurrentUser(), e, strRoleId);
+            throw e;
         }
     }
 
@@ -250,26 +242,22 @@ public class RoleController extends BaseController {
             @RequestParam(required = false) String sortProperty,
             @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        try {
-            accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ);
-            TenantId tenantId = getCurrentUser().getTenantId();
-            PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        accessControlService.checkPermission(getCurrentUser(), Resource.ROLE, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
 
-            if (type != null && type.trim().length() > 0) {
-                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                    return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, RoleType.valueOf(type)));
-                } else {
-                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), checkStrRoleType("type", type), pageLink));
-                }
+        if (type != null && type.trim().length() > 0) {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                return checkNotNull(roleService.findRolesByTenantIdAndType(tenantId, pageLink, RoleType.valueOf(type)));
             } else {
-                if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
-                    return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
-                } else {
-                    return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
-                }
+                return checkNotNull(roleService.findRolesByTenantIdAndCustomerIdAndType(tenantId, getCurrentUser().getCustomerId(), checkStrRoleType("type", type), pageLink));
             }
-        } catch (Exception e) {
-            throw handleException(e);
+        } else {
+            if (Authority.TENANT_ADMIN.equals(getCurrentUser().getAuthority())) {
+                return checkNotNull(roleService.findRolesByTenantId(tenantId, pageLink));
+            } else {
+                return checkNotNull(roleService.findRolesByTenantIdAndCustomerId(tenantId, getCurrentUser().getCustomerId(), pageLink));
+            }
         }
     }
 
@@ -280,23 +268,19 @@ public class RoleController extends BaseController {
     @ResponseBody
     public List<Role> getRolesByIds(
             @ApiParam(value = "A list of role ids, separated by comma ','")
-            @RequestParam("roleIds") String[] strRoleIds) throws ThingsboardException {
+            @RequestParam("roleIds") String[] strRoleIds) throws Exception {
         checkArrayParameter("roleIds", strRoleIds);
-        try {
-            if (!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ)) {
-                return Collections.emptyList();
-            }
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            List<RoleId> roleIds = new ArrayList<>();
-            for (String strRoleId : strRoleIds) {
-                roleIds.add(new RoleId(toUUID(strRoleId)));
-            }
-            List<Role> roles = checkNotNull(roleService.findRolesByIdsAsync(tenantId, roleIds).get());
-            return filterRolesByReadPermission(roles);
-        } catch (Exception e) {
-            throw handleException(e);
+        if (!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ)) {
+            return Collections.emptyList();
         }
+        SecurityUser user = getCurrentUser();
+        TenantId tenantId = user.getTenantId();
+        List<RoleId> roleIds = new ArrayList<>();
+        for (String strRoleId : strRoleIds) {
+            roleIds.add(new RoleId(toUUID(strRoleId)));
+        }
+        List<Role> roles = checkNotNull(roleService.findRolesByIdsAsync(tenantId, roleIds).get());
+        return filterRolesByReadPermission(roles);
     }
 
     private List<Role> filterRolesByReadPermission(List<Role> roles) {

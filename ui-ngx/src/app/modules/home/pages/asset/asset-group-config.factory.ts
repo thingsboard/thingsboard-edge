@@ -129,8 +129,8 @@ export class AssetGroupConfigFactory implements EntityGroupStateConfigFactory<As
     if (params.hierarchyView) {
       let url: UrlTree;
       if (params.groupType === EntityType.EDGE) {
-        url = this.router.createUrlTree(['customerGroups', params.customerGroupId, params.customerId,
-          'edgeGroups', params.entityGroupId, params.edgeId, 'assetGroups', params.childEntityGroupId, asset.id.id]);
+        url = this.router.createUrlTree(['customerGroups', params.entityGroupId, params.customerId,
+          'edgeGroups', params.childEntityGroupId, params.edgeId, 'assetGroups', params.edgeEntitiesGroupId, asset.id.id]);
       } else {
         url = this.router.createUrlTree(['customerGroups', params.entityGroupId,
           params.customerId, 'assetGroups', params.childEntityGroupId, asset.id.id]);

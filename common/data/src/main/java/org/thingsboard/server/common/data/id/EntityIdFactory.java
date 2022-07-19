@@ -140,6 +140,10 @@ public class EntityIdFactory {
                 return new WidgetsBundleId(uuid);
             case WIDGET_TYPE:
                 return new WidgetTypeId(uuid);
+            case OTA_PACKAGE:
+                return new OtaPackageId(uuid);
+            case QUEUE:
+                return new QueueId(uuid);
             case EDGE:
                 return new EdgeId(uuid);
             case SCHEDULER_EVENT:
@@ -150,6 +154,10 @@ public class EntityIdFactory {
                 return new RoleId(uuid);
             case GROUP_PERMISSION:
                 return new GroupPermissionId(uuid);
+            case INTEGRATION:
+                return new IntegrationId(uuid);
+            case CONVERTER:
+                return new ConverterId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }

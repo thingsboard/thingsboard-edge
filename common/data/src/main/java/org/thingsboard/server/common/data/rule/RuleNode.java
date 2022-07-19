@@ -52,7 +52,7 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
 
     private static final long serialVersionUID = -5656679015121235465L;
 
-    @ApiModelProperty(position = 3, value = "JSON object with the Rule Chain Id. ", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with the Rule Chain Id. ", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private RuleChainId ruleChainId;
     @Length(fieldName = "type")
     @ApiModelProperty(position = 4, value = "Full Java Class Name of the rule node implementation. ", example = "com.mycompany.iot.rule.engine.ProcessingNode")
@@ -67,6 +67,8 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
     private transient JsonNode configuration;
     @JsonIgnore
     private byte[] configurationBytes;
+
+    private RuleNodeId externalId;
 
     public RuleNode() {
         super();
@@ -83,6 +85,7 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
         this.name = ruleNode.getName();
         this.debugMode = ruleNode.isDebugMode();
         this.setConfiguration(ruleNode.getConfiguration());
+        this.externalId = ruleNode.getExternalId();
     }
 
     @Override
@@ -112,7 +115,7 @@ public class RuleNode extends SearchTextBasedWithAdditionalInfo<RuleNodeId> impl
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the rule node creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the rule node creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();

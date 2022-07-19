@@ -55,6 +55,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
@@ -72,6 +73,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -210,8 +212,9 @@ public class TbHttpClient {
             entity = new HttpEntity<>(getData(ctx, msg), headers);
         }
 
+        URI uri = buildEncodedUri(endpointUrl);
         ListenableFuture<ResponseEntity<String>> future = httpClient.exchange(
-                endpointUrl, method, entity, String.class);
+                uri, method, entity, String.class);
         future.addCallback(new ListenableFutureCallback<ResponseEntity<String>>() {
             @Override
             public void onFailure(Throwable throwable) {
@@ -233,6 +236,28 @@ public class TbHttpClient {
         if (pendingFutures != null) {
             processParallelRequests(future);
         }
+    }
+
+    public URI buildEncodedUri(String endpointUrl) {
+        if (endpointUrl == null) {
+            throw new RuntimeException("Url string cannot be null!");
+        }
+        if (endpointUrl.isEmpty()) {
+            throw new RuntimeException("Url string cannot be empty!");
+        }
+
+        URI uri = UriComponentsBuilder.fromUriString(endpointUrl).build().encode().toUri();
+        if (uri.getScheme() == null || uri.getScheme().isEmpty()) {
+            throw new RuntimeException("Transport scheme(protocol) must be provided!");
+        }
+
+        boolean authorityNotValid = uri.getAuthority() == null || uri.getAuthority().isEmpty();
+        boolean hostNotValid = uri.getHost() == null || uri.getHost().isEmpty();
+        if (authorityNotValid || hostNotValid) {
+            throw new RuntimeException("Url string is invalid!");
+        }
+
+        return uri;
     }
 
     String getData(TbContext ctx, TbMsg msg) {

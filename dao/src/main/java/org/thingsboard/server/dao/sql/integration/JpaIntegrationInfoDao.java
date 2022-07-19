@@ -30,28 +30,18 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
-import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.sql.dashboard.DashboardInfoRepository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 
@@ -76,7 +66,7 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
     }
 
     @Override
-    public List<IntegrationInfo> findAllIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
-        return DaoUtil.convertDataList(integrationInfoRepository.findAllIntegrationInfos(integrationType, remote, enabled));
+    public List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
+        return DaoUtil.convertDataList(integrationInfoRepository.findAllCoreIntegrationInfos(integrationType, remote, enabled));
     }
 }

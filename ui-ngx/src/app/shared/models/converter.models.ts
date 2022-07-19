@@ -29,10 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
+import { ActivatedRouteSnapshot } from '@angular/router';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -46,13 +47,14 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
   ]
 );
 
-export interface Converter extends BaseData<ConverterId> {
+export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId> {
   tenantId?: TenantId;
   name: string;
   type: ConverterType;
   debugMode: boolean;
   configuration: any;
   additionalInfo?: any;
+  edgeTemplate: boolean;
 }
 
 export interface TestUpLinkInputParams {
@@ -94,4 +96,14 @@ export function getConverterHelpLink (converter: Converter) {
     }
   }
   return link;
+}
+
+export interface ConverterParams {
+  converterScope: string;
+}
+
+export function resolveConverterParams(route: ActivatedRouteSnapshot): ConverterParams {
+  return {
+    converterScope: route.data.convertersType ? route.data.convertersType : 'tenant'
+  };
 }

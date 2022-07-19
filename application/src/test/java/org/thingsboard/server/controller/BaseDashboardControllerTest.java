@@ -38,12 +38,16 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -51,6 +55,7 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -97,7 +102,13 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     public void testSaveDashboard() throws Exception {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
+
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDashboard, savedDashboard.getId(), savedDashboard.getId(), savedTenant.getId(),
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
 
         Assert.assertNotNull(savedDashboard);
         Assert.assertNotNull(savedDashboard.getId());
@@ -106,7 +117,13 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         Assert.assertEquals(dashboard.getTitle(), savedDashboard.getTitle());
 
         savedDashboard.setTitle("My new dashboard");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         doPost("/api/dashboard", savedDashboard, Dashboard.class);
+
+        testNotifyEntityEntityGroupNullAllOneTime(savedDashboard, savedDashboard.getId(), savedDashboard.getId(), savedTenant.getId(),
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.UPDATED);
 
         Dashboard foundDashboard = doGet("/api/dashboard/" + savedDashboard.getId().getId().toString(), Dashboard.class);
         Assert.assertEquals(foundDashboard.getTitle(), savedDashboard.getTitle());
@@ -116,7 +133,18 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     public void testSaveDashboardInfoWithViolationOfValidation() throws Exception {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(RandomStringUtils.randomAlphabetic(300));
-        doPost("/api/dashboard", dashboard).andExpect(statusReason(containsString("length of title must be equal or less than 255")));
+        String msgError = msgErrorFieldLength("title");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        doPost("/api/dashboard", dashboard)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        dashboard.setTenantId(savedTenant.getId());
+        testNotifyEntityEqualsOneTimeServiceNeverError(dashboard, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        Mockito.reset(tbClusterService, auditLogService);
     }
 
     @Test
@@ -126,10 +154,20 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
 
         loginDifferentTenant();
-        doPost("/api/dashboard", savedDashboard, Dashboard.class, status().isForbidden());
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "You don't have permission to perform 'WRITE' operation with DASHBOARD 'My dashboard'";
+        doPost("/api/dashboard", savedDashboard)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(dashboard, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
+                DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
+
         deleteDifferentTenant();
     }
-    
+
     @Test
     public void testFindDashboardById() throws Exception {
         Dashboard dashboard = new Dashboard();
@@ -146,35 +184,59 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         dashboard.setTitle("My dashboard");
         Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         doDelete("/api/dashboard/" + savedDashboard.getId().getId().toString())
                 .andExpect(status().isOk());
 
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedDashboard, savedDashboard.getId(), savedDashboard.getId(),
+                savedDashboard.getTenantId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.DELETED,
+                savedDashboard.getId().getId().toString());
+
+        String dashboardIdStr = savedDashboard.getId().getId().toString();
         doGet("/api/dashboard/" + savedDashboard.getId().getId().toString())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Dashboard", dashboardIdStr))));
     }
 
     @Test
     public void testSaveDashboardWithEmptyTitle() throws Exception {
         Dashboard dashboard = new Dashboard();
+        String msgError = "Dashboard title " + msgErrorShouldBeSpecified;;
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         doPost("/api/dashboard", dashboard)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Dashboard title should be specified")));
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityEqualsOneTimeServiceNeverError(dashboard, savedTenant.getId(),
+                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
     @Test
     public void testFindTenantDashboards() throws Exception {
         List<DashboardInfo> dashboards = new ArrayList<>();
-        for (int i = 0; i < 173; i++) {
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        int cntEntity = 173;
+        for (int i = 0; i < cntEntity; i++) {
             Dashboard dashboard = new Dashboard();
             dashboard.setTitle("Dashboard" + i);
             dashboards.add(new DashboardInfo(doPost("/api/dashboard", dashboard, Dashboard.class)));
         }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Dashboard(), new Dashboard(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, cntEntity);
+
         List<DashboardInfo> loadedDashboards = new ArrayList<>();
         PageLink pageLink = new PageLink(24);
         PageData<DashboardInfo> pageData = null;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
-                    new TypeReference<PageData<DashboardInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedDashboards.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -192,7 +254,8 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     public void testFindTenantDashboardsByTitle() throws Exception {
         String title1 = "Dashboard title 1";
         List<DashboardInfo> dashboardsTitle1 = new ArrayList<>();
-        for (int i = 0; i < 134; i++) {
+        int cntEntity = 134;
+        for (int i = 0; i < cntEntity; i++) {
             Dashboard dashboard = new Dashboard();
             String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String title = title1 + suffix;
@@ -246,10 +309,16 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         Assert.assertEquals(dashboardsTitle2, loadedDashboardsTitle2);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
         for (DashboardInfo dashboard : loadedDashboardsTitle1) {
             doDelete("/api/dashboard/" + dashboard.getId().getId().toString())
                     .andExpect(status().isOk());
         }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Dashboard(), new Dashboard(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.DELETED, cntEntity, 1);
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
@@ -282,7 +351,13 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         customerUserGroup.setType(EntityType.USER);
         customerUserGroup.setName("Customer User Group");
         customerUserGroup.setOwnerId(savedCustomer.getOwnerId());
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         customerUserGroup = doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
+
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(customerUserGroup, customerUserGroup.getId(), customerUserGroup.getId(), savedTenant.getId(),
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
 
         EntityGroup tenantDashboardGroup = new EntityGroup();
         tenantDashboardGroup.setType(EntityType.DASHBOARD);
@@ -296,14 +371,28 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         ArrayNode readPermissions = mapper.createArrayNode();
         readPermissions.add("READ");
         groupRole.setPermissions(readPermissions);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         groupRole = doPost("/api/role", groupRole, Role.class);
+
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(groupRole, groupRole.getId(), groupRole.getId(), savedTenant.getId(),
+                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
 
         GroupPermission readTenantDashboardGroupPermission = new GroupPermission();
         readTenantDashboardGroupPermission.setRoleId(groupRole.getId());
         readTenantDashboardGroupPermission.setUserGroupId(customerUserGroup.getId());
         readTenantDashboardGroupPermission.setEntityGroupId(tenantDashboardGroup.getId());
         readTenantDashboardGroupPermission.setEntityGroupType(tenantDashboardGroup.getType());
-        doPost("/api/groupPermission", readTenantDashboardGroupPermission, GroupPermission.class);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        GroupPermission savedReadTenantDashboardGroupPermission =
+                doPost("/api/groupPermission", readTenantDashboardGroupPermission, GroupPermission.class);
+
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedReadTenantDashboardGroupPermission,
+                savedReadTenantDashboardGroupPermission.getId(), savedReadTenantDashboardGroupPermission.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
 
         Role genericRole = new Role();
         genericRole.setTenantId(savedTenant.getId());

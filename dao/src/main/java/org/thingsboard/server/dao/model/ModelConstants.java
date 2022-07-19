@@ -108,6 +108,8 @@ public class ModelConstants {
      * Cassandra admin_settings constants.
      */
     public static final String ADMIN_SETTINGS_COLUMN_FAMILY_NAME = "admin_settings";
+
+    public static final String ADMIN_SETTINGS_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String ADMIN_SETTINGS_KEY_PROPERTY = "key";
     public static final String ADMIN_SETTINGS_JSON_VALUE_PROPERTY = "json_value";
 
@@ -198,6 +200,7 @@ public class ModelConstants {
     public static final String DEVICE_PROFILE_DEFAULT_RULE_CHAIN_ID_PROPERTY = "default_rule_chain_id";
     public static final String DEVICE_PROFILE_DEFAULT_DASHBOARD_ID_PROPERTY = "default_dashboard_id";
     public static final String DEVICE_PROFILE_DEFAULT_QUEUE_ID_PROPERTY = "default_queue_id";
+    public static final String DEVICE_PROFILE_DEFAULT_QUEUE_NAME_PROPERTY = "default_queue_name";
     public static final String DEVICE_PROFILE_PROVISION_DEVICE_KEY = "provision_device_key";
     public static final String DEVICE_PROFILE_FIRMWARE_ID_PROPERTY = "firmware_id";
     public static final String DEVICE_PROFILE_SOFTWARE_ID_PROPERTY = "software_id";
@@ -275,6 +278,7 @@ public class ModelConstants {
     public static final String CONVERTER_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String CONVERTER_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "converter_by_tenant_and_search_text";
     public static final String CONVERTER_BY_TENANT_AND_NAME_VIEW_NAME = "converter_by_tenant_and_name";
@@ -296,6 +300,7 @@ public class ModelConstants {
     public static final String INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS = "allow_create_devices_or_assets";
     public static final String INTEGRATION_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String INTEGRATION_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
 
     public static final String INTEGRATION_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "integration_by_tenant_and_search_text";
     public static final String INTEGRATION_BY_ROUTING_KEY_VIEW_NAME = "integration_by_routing_key";
@@ -708,6 +713,8 @@ public class ModelConstants {
     public static final String EDGE_EVENT_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
 
     public static final String EDGE_EVENT_BY_ID_VIEW_NAME = "edge_event_by_id";
+
+    public static final String EXTERNAL_ID_PROPERTY = "external_id";
 
     /**
      * User auth settings constants.

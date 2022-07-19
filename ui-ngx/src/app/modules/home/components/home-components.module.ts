@@ -193,6 +193,19 @@ import { TenantProfileQueuesComponent } from '@home/components/profile/queue/ten
 import { QueueFormComponent } from '@home/components/queue/queue-form.component';
 import { WidgetSettingsModule } from '@home/components/widget/lib/settings/widget-settings.module';
 import { WidgetSettingsComponent } from '@home/components/widget/widget-settings.component';
+import { RepositorySettingsComponent } from '@home/components/vc/repository-settings.component';
+import { VersionControlComponent } from '@home/components/vc/version-control.component';
+import { EntityVersionsTableComponent } from '@home/components/vc/entity-versions-table.component';
+import { EntityVersionCreateComponent } from '@home/components/vc/entity-version-create.component';
+import { EntityVersionRestoreComponent } from '@home/components/vc/entity-version-restore.component';
+import { EntityVersionDiffComponent } from '@home/components/vc/entity-version-diff.component';
+import { ComplexVersionCreateComponent } from '@home/components/vc/complex-version-create.component';
+import { EntityTypesVersionCreateComponent } from '@home/components/vc/entity-types-version-create.component';
+import { EntityTypesVersionLoadComponent } from '@home/components/vc/entity-types-version-load.component';
+import { ComplexVersionLoadComponent } from '@home/components/vc/complex-version-load.component';
+import { RemoveOtherEntitiesConfirmComponent } from '@home/components/vc/remove-other-entities-confirm.component';
+import { AutoCommitSettingsComponent } from '@home/components/vc/auto-commit-settings.component';
+import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-group-list.component';
 
 @NgModule({
   declarations:
@@ -337,7 +350,20 @@ import { WidgetSettingsComponent } from '@home/components/widget/widget-settings
       DisplayWidgetTypesPanelComponent,
       SolutionInstallDialogComponent,
       TenantProfileQueuesComponent,
-      QueueFormComponent
+      QueueFormComponent,
+      RepositorySettingsComponent,
+      VersionControlComponent,
+      EntityVersionsTableComponent,
+      EntityVersionCreateComponent,
+      EntityVersionRestoreComponent,
+      EntityVersionDiffComponent,
+      ComplexVersionCreateComponent,
+      EntityTypesVersionCreateComponent,
+      EntityTypesVersionLoadComponent,
+      ComplexVersionLoadComponent,
+      RemoveOtherEntitiesConfirmComponent,
+      AutoCommitSettingsComponent,
+      OwnerEntityGroupListComponent
     ],
   imports: [
     CommonModule,
@@ -477,7 +503,20 @@ import { WidgetSettingsComponent } from '@home/components/widget/widget-settings
     DisplayWidgetTypesPanelComponent,
     SolutionInstallDialogComponent,
     TenantProfileQueuesComponent,
-    QueueFormComponent
+    QueueFormComponent,
+    RepositorySettingsComponent,
+    VersionControlComponent,
+    EntityVersionsTableComponent,
+    EntityVersionCreateComponent,
+    EntityVersionRestoreComponent,
+    EntityVersionDiffComponent,
+    ComplexVersionCreateComponent,
+    EntityTypesVersionCreateComponent,
+    EntityTypesVersionLoadComponent,
+    ComplexVersionLoadComponent,
+    RemoveOtherEntitiesConfirmComponent,
+    AutoCommitSettingsComponent,
+    OwnerEntityGroupListComponent
   ],
   providers: [
     WidgetComponentService,

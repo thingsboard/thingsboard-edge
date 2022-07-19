@@ -36,6 +36,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -43,11 +45,15 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
+import org.thingsboard.server.dao.converter.ConverterDao;
 import org.thingsboard.server.dao.integration.IntegrationDao;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
@@ -56,15 +62,21 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
     List<Integration> savedIntegrations = new LinkedList<>();
 
+    List<Converter> savedConverters = new ArrayList<>();
+
     @Autowired
     private IntegrationInfoDao integrationInfoDao;
 
     @Autowired
     private IntegrationDao integrationDao;
 
+    @Autowired
+    private ConverterDao converterDao;
+
     @After
     public void tearDown() {
         clearSavedIntegrations();
+        clearSavedConverters();
     }
 
     @Test
@@ -72,6 +84,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -88,7 +101,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -109,6 +122,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -125,7 +139,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -143,7 +157,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> emptyIntegrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", emptyIntegrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, emptyIntegrationInfos.size());
 
@@ -154,6 +168,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -171,7 +186,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(null, false, false);
+                .findAllCoreIntegrationInfos(null, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -181,6 +196,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -197,7 +213,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -218,7 +234,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.MQTT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.MQTT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -237,7 +253,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.HTTP, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.HTTP, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -247,6 +263,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -265,7 +282,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfosRemote = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfosRemote);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfosRemote.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -283,7 +300,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> integrationInfosEnabled = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, true);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, true);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfosRemote);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfosRemote.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -300,7 +317,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
 
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, false, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertEquals("List with integration infos expected to be empty, but it's not!", 0, integrationInfos.size());
     }
@@ -310,6 +327,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         final int numIntegrations = 60;
         UUID tenantId = Uuids.timeBased();
         UUID convId = Uuids.timeBased();
+        saveConverter(convId, tenantId);
 
         for (int i = 0; i < numIntegrations; i++) {
             UUID id = Uuids.timeBased();
@@ -328,7 +346,7 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         }
 
         List<IntegrationInfo> integrationInfos = integrationInfoDao
-                .findAllIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
+                .findAllCoreIntegrationInfos(IntegrationType.OCEANCONNECT, true, false);
         Assert.assertNotNull("List of found integration infos is null!", integrationInfos);
         Assert.assertNotEquals("List with integration infos expected, but list is empty!", 0, integrationInfos.size());
         Assert.assertEquals("List of found integration infos doesn't correspond the size of previously saved integrations!",
@@ -358,6 +376,15 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
         return integrationDao.save(new TenantId(tenantId), integration);
     }
 
+    private void saveConverter(UUID id, UUID tenantId) {
+        Converter converter = new Converter();
+        converter.setId(new ConverterId(id));
+        converter.setTenantId(new TenantId(tenantId));
+        converter.setName("CONVERTER");
+        converter.setType(ConverterType.UPLINK);
+        savedConverters.add(converterDao.save(new TenantId(tenantId), converter));
+    }
+
     private void clearSavedIntegrations() {
         if (!savedIntegrations.isEmpty()) {
             savedIntegrations.forEach(integration ->
@@ -368,5 +395,10 @@ public class JpaIntegrationInfoDaoTest extends AbstractJpaDaoTest {
             );
             savedIntegrations.clear();
         }
+    }
+
+    private void clearSavedConverters() {
+        savedConverters.forEach(converter -> converterDao.removeById(converter.getTenantId(), converter.getUuidId()));
+        savedIntegrations.clear();
     }
 }

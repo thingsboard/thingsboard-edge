@@ -52,6 +52,7 @@
 <div class="mat-padding" fxLayout="column">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
+      <div translate class="tb-hint" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.name</mat-label>
         <input matInput formControlName="name" required>
@@ -88,13 +89,15 @@
         labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
         [converterType]="converterType.UPLINK"
         [showDetailsPageLink]="true"
-        [useFullEntityId]="true">
+        [useFullEntityId]="true"
+        [isEdgeTemplate]="integrationScope === 'edges'">
       </tb-converter-autocomplete>
       <tb-converter-autocomplete formControlName="downlinkConverterId"
         labelText="integration.downlink-converter"
         [converterType]="converterType.DOWNLINK"
         [showDetailsPageLink]="true"
-        [useFullEntityId]="true">
+        [useFullEntityId]="true"
+        [isEdgeTemplate]="integrationScope === 'edges'">
       </tb-converter-autocomplete>
       <mat-slide-toggle formControlName="remote" style="padding-bottom: 48px;">
         {{'integration.execute-remotely' | translate}}
@@ -137,7 +140,7 @@
           [topicFilters]="integrationForm.get('topicFilters')"
           [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
         </tb-mqtt-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -171,7 +174,7 @@
                                  [topicFilters]="integrationForm.get('topicFilters')"
                                  [integrationType]="integrationType">
         </tb-ttn-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -179,7 +182,7 @@
         <tb-azure-event-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
         [downlinkConverterIdControl]="entityForm.get('downlinkConverterId')">
         </tb-azure-event-hub-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
@@ -203,7 +206,7 @@
       <section *ngIf="integrationType === integrationTypes.RABBITMQ">
         <tb-rabbitmq-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
         </tb-rabbitmq-integration-form>
-        <button *ngIf="!isRemoteIntegration" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
+        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>

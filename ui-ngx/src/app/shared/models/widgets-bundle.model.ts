@@ -29,11 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
+import { BaseData, ExportableEntity } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetsBundleId } from '@shared/models/id/widgets-bundle-id';
 
-export interface WidgetsBundle extends BaseData<WidgetsBundleId> {
+export interface WidgetsBundle extends BaseData<WidgetsBundleId>, ExportableEntity<WidgetsBundleId> {
   tenantId: TenantId;
   alias: string;
   title: string;

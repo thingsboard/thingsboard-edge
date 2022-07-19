@@ -150,6 +150,7 @@ public class SchedulerEventController extends BaseController {
                     "When creating scheduler event, platform generates scheduler event Id as " + UUID_WIKI_LINK +
                     "The newly created scheduler event id will be present in the response. Specify existing scheduler event id to update the scheduler event. " +
                     "Referencing non-existing scheduler event Id will cause 'Not Found' error. " +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Scheduler Event entity. " +
                     TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -169,9 +170,9 @@ public class SchedulerEventController extends BaseController {
 
             SchedulerEvent savedSchedulerEvent = checkNotNull(schedulerEventService.saveSchedulerEvent(schedulerEvent));
 
-            logEntityAction(savedSchedulerEvent.getId(), savedSchedulerEvent,
+            notificationEntityService.logEntityAction(getTenantId(), savedSchedulerEvent.getId(), savedSchedulerEvent,
                     savedSchedulerEvent.getCustomerId(),
-                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, null);
+                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser());
 
             if (schedulerEvent.getId() != null) {
                 sendEntityNotificationMsg(getTenantId(), savedSchedulerEvent.getId(),
@@ -187,8 +188,8 @@ public class SchedulerEventController extends BaseController {
             return savedSchedulerEvent;
         } catch (Exception e) {
             log.warn("Failed to save or update schedulerEvent " + schedulerEvent, e);
-            logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
-                    null, schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, e);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT), schedulerEvent,
+                    schedulerEvent.getId() == null ? ActionType.ADDED : ActionType.UPDATED, getCurrentUser(), e);
 
             throw handleException(e);
         }
@@ -208,18 +209,15 @@ public class SchedulerEventController extends BaseController {
             SchedulerEvent schedulerEvent = checkSchedulerEventId(schedulerEventId, Operation.DELETE);
             schedulerEventService.deleteSchedulerEvent(getTenantId(), schedulerEventId);
 
-            logEntityAction(schedulerEventId, schedulerEvent,
-                    schedulerEvent.getCustomerId(),
-                    ActionType.DELETED, null, strSchedulerEventId);
+            notificationEntityService.logEntityAction(getTenantId(), schedulerEventId, schedulerEvent,
+                    schedulerEvent.getCustomerId(), ActionType.DELETED, getCurrentUser(), strSchedulerEventId);
 
             sendEntityNotificationMsg(getTenantId(), schedulerEventId, EdgeEventActionType.DELETED);
 
             schedulerService.onSchedulerEventDeleted(schedulerEvent);
         } catch (Exception e) {
-            logEntityAction(emptyId(EntityType.SCHEDULER_EVENT),
-                    null,
-                    null,
-                    ActionType.DELETED, e, strSchedulerEventId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
+                    ActionType.DELETED, getCurrentUser(), e, strSchedulerEventId);
 
             throw handleException(e);
         }
@@ -322,18 +320,15 @@ public class SchedulerEventController extends BaseController {
 
             SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.assignSchedulerEventToEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
 
-            logEntityAction(schedulerEventId, savedSchedulerEvent,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
+            notificationEntityService.logEntityAction(getTenantId(), schedulerEventId, savedSchedulerEvent,
+                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.ASSIGNED_TO_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), null,
-                    null,
-                    ActionType.ASSIGNED_TO_EDGE, e, strSchedulerEventId, strEdgeId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
+                    ActionType.ASSIGNED_TO_EDGE, getCurrentUser(), e, strSchedulerEventId, strEdgeId);
 
             throw handleException(e);
         }
@@ -364,18 +359,15 @@ public class SchedulerEventController extends BaseController {
 
             SchedulerEventInfo savedSchedulerEvent = checkNotNull(schedulerEventService.unassignSchedulerEventFromEdge(getCurrentUser().getTenantId(), schedulerEventId, edgeId));
 
-            logEntityAction(schedulerEventId, schedulerEvent,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, null, strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
+            notificationEntityService.logEntityAction(getTenantId(), schedulerEventId, schedulerEvent, ActionType.UNASSIGNED_FROM_EDGE,
+                    getCurrentUser(), strSchedulerEventId, savedSchedulerEvent.getName(), strEdgeId, edge.getName());
 
             sendEntityAssignToEdgeNotificationMsg(getTenantId(), edgeId, schedulerEventId, EdgeEventActionType.UNASSIGNED_FROM_EDGE);
 
             return savedSchedulerEvent;
         } catch (Exception e) {
-
-            logEntityAction(emptyId(EntityType.SCHEDULER_EVENT), null,
-                    null,
-                    ActionType.UNASSIGNED_FROM_EDGE, e, strSchedulerEventId);
+            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.SCHEDULER_EVENT),
+                    ActionType.UNASSIGNED_FROM_EDGE, getCurrentUser(), e, strSchedulerEventId);
 
             throw handleException(e);
         }

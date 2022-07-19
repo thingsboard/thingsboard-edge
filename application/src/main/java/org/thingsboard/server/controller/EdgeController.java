@@ -49,6 +49,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -72,8 +74,8 @@ import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeBulkImportService;
 import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
-import org.thingsboard.server.service.importing.BulkImportRequest;
-import org.thingsboard.server.service.importing.BulkImportResult;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
+import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -149,7 +151,8 @@ public class EdgeController extends BaseController {
                     "The newly created edge id will be present in the response. " +
                     "Specify existing Edge id to update the edge. " +
                     "Referencing non-existing Edge Id will cause 'Not Found' error." +
-                    "\n\nEdge name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the edge names and non-unique 'label' field for user-friendly visualization purposes.",
+                    "\n\nEdge name is unique in the scope of tenant. Use unique identifiers like MAC or IMEI for the edge names and non-unique 'label' field for user-friendly visualization purposes." +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Edge entity. ",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge", method = RequestMethod.POST)
@@ -157,36 +160,32 @@ public class EdgeController extends BaseController {
     public Edge saveEdge(
             @ApiParam(value = "A JSON value representing the edge.", required = true)
             @RequestBody Edge edge,
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        try {
-            TenantId tenantId = getCurrentUser().getTenantId();
-            edge.setTenantId(tenantId);
-            boolean created = edge.getId() == null;
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        edge.setTenantId(tenantId);
+        boolean created = edge.getId() == null;
 
-            RuleChain edgeTemplateRootRuleChain = null;
-            if (created) {
-                edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);
-                if (edgeTemplateRootRuleChain == null) {
-                    throw new DataValidationException("Root edge rule chain is not available!");
-                }
+        RuleChain edgeTemplateRootRuleChain = null;
+        if (created) {
+            edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(tenantId);
+            if (edgeTemplateRootRuleChain == null) {
+                throw new DataValidationException("Root edge rule chain is not available!");
             }
-
-            EntityGroupId entityGroupId = null;
-            EntityGroup entityGroup = null;
-            if (!StringUtils.isEmpty(strEntityGroupId)) {
-                entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-                entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
-            }
-
-            Operation operation = created ? Operation.CREATE : Operation.WRITE;
-
-            accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
-                    edge.getId(), edge, entityGroupId);
-
-            return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
-        } catch (Exception e) {
-            throw handleException(e);
         }
+
+        EntityGroupId entityGroupId = null;
+        EntityGroup entityGroup = null;
+        if (!StringUtils.isEmpty(strEntityGroupId)) {
+            entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+            entityGroup = checkEntityGroupId(entityGroupId, Operation.READ);
+        }
+
+        Operation operation = created ? Operation.CREATE : Operation.WRITE;
+
+        accessControlService.checkPermission(getCurrentUser(), Resource.EDGE, operation,
+                edge.getId(), edge, entityGroupId);
+
+        return tbEdgeService.save(edge, edgeTemplateRootRuleChain, entityGroup, getCurrentUser());
     }
 
     @ApiOperation(value = "Delete edge (deleteEdge)",
@@ -289,7 +288,7 @@ public class EdgeController extends BaseController {
     public Edge setEdgeRootRuleChain(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                      @PathVariable(EDGE_ID) String strEdgeId,
                                      @ApiParam(value = RULE_CHAIN_ID_PARAM_DESCRIPTION, required = true)
-                                     @PathVariable("ruleChainId") String strRuleChainId) throws ThingsboardException {
+                                     @PathVariable("ruleChainId") String strRuleChainId) throws Exception {
         checkParameter(EDGE_ID, strEdgeId);
         checkParameter("ruleChainId", strRuleChainId);
         RuleChainId ruleChainId = new RuleChainId(toUUID(strRuleChainId));
@@ -533,7 +532,7 @@ public class EdgeController extends BaseController {
             edgeId = checkNotNull(edgeId);
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            return edgeService.findMissingToRelatedRuleChains(tenantId, edgeId);
+            return edgeService.findMissingToRelatedRuleChains(tenantId, edgeId, TbRuleChainInputNode.class.getName());
         } catch (Exception e) {
             throw handleException(e);
         }

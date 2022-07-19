@@ -38,7 +38,9 @@ CREATE TABLE IF NOT EXISTS entity_group (
     owner_id uuid,
     owner_type varchar(255),
     additional_info varchar,
-    configuration varchar(10000000)
+    configuration varchar(10000000),
+    external_id uuid,
+    CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)
 );
 
 CREATE TABLE IF NOT EXISTS converter (
@@ -50,7 +52,9 @@ CREATE TABLE IF NOT EXISTS converter (
     name varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    external_id uuid,
+    is_edge_template boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS integration (
@@ -61,14 +65,19 @@ CREATE TABLE IF NOT EXISTS integration (
     debug_mode boolean,
     enabled boolean,
     is_remote boolean,
+    allow_create_devices_or_assets boolean,
     name varchar(255),
     secret varchar(255),
-    converter_id uuid,
+    converter_id uuid not null,
     downlink_converter_id uuid,
     routing_key varchar(255),
     search_text varchar(255),
     tenant_id uuid,
-    type varchar(255)
+    type varchar(255),
+    external_id uuid,
+    is_edge_template boolean DEFAULT false,
+    CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
+    CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
 );
 
 ALTER TABLE admin_settings ALTER COLUMN json_value SET DATA TYPE varchar(10000000);
@@ -96,7 +105,7 @@ CREATE TABLE IF NOT EXISTS blob_entity (
     content_type varchar(255),
     search_text varchar(255),
     data varchar(10485760),
-        additional_info varchar
+    additional_info varchar
 );
 
 CREATE TABLE IF NOT EXISTS role (
@@ -108,7 +117,8 @@ CREATE TABLE IF NOT EXISTS role (
     type varchar(255),
     search_text varchar(255),
     permissions varchar(10000000),
-    additional_info varchar
+    additional_info varchar,
+    external_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS group_permission (
@@ -164,3 +174,15 @@ BEGIN
     deleted := ttl_deleted_count + debug_ttl_deleted_count;
 END
 $$;
+
+CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
+
+CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);
+
+CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
+
+CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);

@@ -91,4 +91,6 @@ public interface OwnersCacheService {
     <E extends SearchTextBased<? extends UUIDBased>> PageData<E>
     getGroupEntities(TenantId tenantId, SecurityUser securityUser, EntityType entityType, Operation operation, PageLink pageLink,
                      Function<List<EntityGroupId>, PageData<E>> getEntitiesFunction) throws Exception;
+
+    void changeEntityOwner(TenantId tenantId, EntityId entityId, EntityId targetOwnerId, EntityId currentOwnerId) throws ThingsboardException;
 }

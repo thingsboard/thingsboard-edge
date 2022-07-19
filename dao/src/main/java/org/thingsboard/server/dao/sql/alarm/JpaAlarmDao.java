@@ -236,4 +236,10 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
         log.trace("[{}] Try to delete entity alarm records using [{}]", tenantId, entityId);
         entityAlarmRepository.deleteByEntityId(entityId.getId());
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ALARM;
+    }
+
 }

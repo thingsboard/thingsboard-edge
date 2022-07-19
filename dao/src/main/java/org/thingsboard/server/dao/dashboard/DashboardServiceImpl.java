@@ -138,11 +138,16 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public Dashboard saveDashboard(Dashboard dashboard) {
         log.trace("Executing saveDashboard [{}]", dashboard);
         dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
-        Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
-        if (dashboard.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+        try {
+            Dashboard savedDashboard = dashboardDao.save(dashboard.getTenantId(), dashboard);
+            if (dashboard.getId() == null) {
+                entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());
+            }
+            return savedDashboard;
+        } catch (Exception e) {
+            checkConstraintViolation(e, "dashboard_external_id_unq_key", "Dashboard with such external id already exists!");
+            throw e;
         }
-        return savedDashboard;
     }
 
     @Override
@@ -283,6 +288,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         return dashboardInfoDao.findFirstByTenantIdAndName(tenantId.getId(), name);
     }
 
+    @Override
+    public List<Dashboard> findTenantDashboardsByTitle(TenantId tenantId, String title) {
+        return dashboardDao.findByTenantIdAndTitle(tenantId.getId(), title);
+    }
+
     private PaginatedRemover<TenantId, DashboardInfo> tenantDashboardsRemover =
             new PaginatedRemover<TenantId, DashboardInfo>() {
 
@@ -295,7 +305,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
                     deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
                 }
-    };
+            };
 
     private PaginatedRemover<CustomerId, DashboardInfo> customerDashboardsRemover =
             new PaginatedRemover<CustomerId, DashboardInfo>() {

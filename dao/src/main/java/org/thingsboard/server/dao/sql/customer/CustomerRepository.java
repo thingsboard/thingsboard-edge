@@ -35,6 +35,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 
 import java.util.List;
@@ -43,7 +44,7 @@ import java.util.UUID;
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
-public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> {
+public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>, ExportableEntityRepository<CustomerEntity> {
 
     @Query("SELECT c FROM CustomerEntity c WHERE c.tenantId = :tenantId " +
             "AND LOWER(c.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
@@ -79,5 +80,17 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID> 
 
     List<CustomerEntity> findCustomersByTenantIdAndIdIn(UUID tenantId, List<UUID> customerIds);
 
+    @Query("SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId AND (c.parentCustomerId is null OR c.parentCustomerId = '13814000-1dd2-11b2-8080-808080808080')")
+    Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
+
+    @Query("SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId AND c.parentCustomerId = :customerId")
+    Page<UUID> findIdsByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                              @Param("customerId") UUID customerId,
+                                              Pageable pageable);
+
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT externalId FROM CustomerEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

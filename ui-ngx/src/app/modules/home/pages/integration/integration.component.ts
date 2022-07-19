@@ -78,6 +78,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationInfo: IntegrationTypeInfo;
 
+  integrationScope: 'tenant' | 'edges' | 'edge';
+
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Integration,
@@ -89,6 +91,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   ngOnInit() {
+    this.integrationScope = this.entitiesTableConfig.componentsData.integrationScope
+      ? this.entitiesTableConfig.componentsData.integrationScope : 'tenant';
     super.ngOnInit();
   }
 
@@ -144,7 +148,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
       delete formTemplate.fieldValidators;
       this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, configuration), ignoreNonPrimitiveFields);
       updateIntegrationFormDefaultFields(this.integrationType, this.integrationForm);
-      updateIntegrationFormValidators(this.integrationForm, fieldValidators);
+      updateIntegrationFormValidators(this.integrationForm, fieldValidators, this.integrationType, this.integrationScope);
       updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
       configurationForm.push(this.integrationForm);
     } else {
@@ -190,8 +194,16 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     }
   }
 
+  get isCheckConnectionAvailable(): boolean {
+    return this.integrationScope === 'tenant' && !this.isRemoteIntegration;
+  }
+
   get isRemoteIntegration(): boolean {
     return this.entityForm ? this.entityForm.value.remote : false;
+  }
+
+  get isEdgeTemplate(): boolean {
+    return this.integrationScope === 'edge' || this.integrationScope === 'edges';
   }
 
   updateForm(entity: Integration) {

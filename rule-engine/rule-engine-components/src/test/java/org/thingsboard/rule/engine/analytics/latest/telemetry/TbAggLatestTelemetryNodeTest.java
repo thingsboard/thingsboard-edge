@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -62,7 +61,6 @@ import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
@@ -80,7 +78,6 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
-import javax.script.ScriptException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -143,13 +140,12 @@ public class TbAggLatestTelemetryNodeTest {
         node = new TbAggLatestTelemetryNode();
 
         doAnswer((Answer<TbMsg>) invocationOnMock -> {
-            String queueName = (String) (invocationOnMock.getArguments())[0];
             String type = (String) (invocationOnMock.getArguments())[1];
             EntityId originator = (EntityId) (invocationOnMock.getArguments())[2];
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[3];
             String data = (String) (invocationOnMock.getArguments())[4];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.nullable(QueueId.class), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
+        }).when(ctx).newMsg(ArgumentMatchers.isNull(), ArgumentMatchers.any(String.class), ArgumentMatchers.nullable(EntityId.class),
                 ArgumentMatchers.any(TbMsgMetaData.class), ArgumentMatchers.any(String.class));
 
         scheduleCount = 0;

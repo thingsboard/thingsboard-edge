@@ -57,9 +57,9 @@ public class TbAvgIntervalState extends TbBaseIntervalState {
 
     @Override
     protected boolean doUpdate(JsonElement data) {
-        double value = data.getAsDouble();
-        if (value != 0.0) {
-            sum = sum.add(BigDecimal.valueOf(value));
+        BigDecimal value = data.getAsBigDecimal();
+        if (value.compareTo(BigDecimal.ZERO) != 0) {
+            sum = sum.add(value);
         }
         this.count++;
         return true;
@@ -68,7 +68,7 @@ public class TbAvgIntervalState extends TbBaseIntervalState {
     @Override
     public String toValueJson(Gson gson, String outputValueKey) {
         JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP).doubleValue());
+        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP));
         return gson.toJson(json);
     }
 

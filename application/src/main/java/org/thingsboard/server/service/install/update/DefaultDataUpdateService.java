@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -78,7 +79,6 @@ import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -91,7 +91,6 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
-import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -102,7 +101,6 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
@@ -190,9 +188,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private TimeseriesService tsService;
 
     @Autowired
-    private AlarmService alarmService;
-
-    @Autowired
     private EntityService entityService;
 
     @Autowired
@@ -202,11 +197,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private DeviceProfileRepository deviceProfileRepository;
 
     @Autowired
-    private OAuth2Service oAuth2Service;
+    private RateLimitsUpdater rateLimitsUpdater;
 
     @Autowired
     private TenantProfileService tenantProfileService;
 
+    @Lazy
     @Autowired
     private QueueService queueService;
 
@@ -242,24 +238,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.3.4":
                 log.info("Updating data from version 3.3.4 to 3.4.0 ...");
-                tenantsProfileQueueConfigurationUpdater.updateEntities(null);
-                String[] nodeTypes = {
-                        "org.thingsboard.rule.engine.flow.TbCheckpointNode",
-                        "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
-                        "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode",
-                        "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode",
-                        "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2"
-                };
-                for (String type : nodeTypes) {
-                    log.info("Updating rule nodes with type [{}]...", type);
-                    queueNameToIdRuleNodesUpdater.updateEntities(type);
-                }
+                tenantsProfileQueueConfigurationUpdater.updateEntities();
+                rateLimitsUpdater.updateEntities();
                 break;
             case "3.4.0":
                 log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
-                tenantsCustomersGroupAllUpdater.updateEntities(null);
-                tenantEntitiesGroupAllUpdater.updateEntities(null);
-                tenantIntegrationUpdater.updateEntities(null);
+                tenantsCustomersGroupAllUpdater.updateEntities();
+                tenantEntitiesGroupAllUpdater.updateEntities();
+                tenantIntegrationUpdater.updateEntities();
                 //for 2.4.0
                 AdminSettings mailTemplateSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mailTemplates");
                 if (mailTemplateSettings == null) {
@@ -1384,49 +1370,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
         mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
         return mainQueueConfiguration;
-    }
-
-    private final PaginatedUpdater<String, RuleNode> queueNameToIdRuleNodesUpdater =
-            new PaginatedUpdater<>() {
-
-                @Override
-                protected String getName() {
-                    return "Queue name to id rule nodes updater";
-                }
-
-                @Override
-                protected boolean forceReportTotal() {
-                    return true;
-                }
-
-                @Override
-                protected PageData<RuleNode> findEntities(String type, PageLink pageLink) {
-                    return ruleChainService.findAllRuleNodesByType(type, pageLink);
-                }
-
-                @Override
-                protected void updateEntity(RuleNode ruleNode) {
-                    updateQueueNameToIdRuleNodeConfiguration(ruleNode);
-                }
-            };
-
-    private void updateQueueNameToIdRuleNodeConfiguration(RuleNode node) {
-        try {
-            ObjectNode configuration = (ObjectNode) node.getConfiguration();
-            JsonNode queueNameNode = configuration.remove("queueName");
-            if (queueNameNode != null) {
-                RuleChain ruleChain = this.ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, node.getRuleChainId());
-                TenantId tenantId = ruleChain.getTenantId();
-                Map<String, QueueId> queues =
-                        queueService.findQueuesByTenantId(tenantId).stream().collect(Collectors.toMap(Queue::getName, Queue::getId));
-                String queueName = queueNameNode.asText();
-                QueueId queueId = queues.get(queueName);
-                configuration.put("queueId", queueId != null ? queueId.toString() : "");
-                ruleChainService.saveRuleNode(tenantId, node);
-            }
-        } catch (Exception e) {
-            log.error("Failed to update checkpoint rule node configuration name=["+node.getName()+"], id=["+ node.getId().getId() +"]", e);
-        }
     }
 
 }

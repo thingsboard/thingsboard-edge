@@ -85,6 +85,7 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
@@ -158,7 +159,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected UserId tenantAdminUserId;
     protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
-    protected TenantId differentTenantId;
     protected CustomerId differentCustomerId;
     protected UserId customerUserId;
     protected UserId customerAdminUserId;
@@ -255,6 +255,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         doDelete("/api/tenant/" + tenantId.getId().toString())
                 .andExpect(status().isOk());
+        deleteDifferentTenant();
 
         verifyNoTenantsLeft();
 
@@ -295,26 +296,25 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         login(userName, password);
     }
 
-    private Tenant savedDifferentTenant;
+    protected Tenant savedDifferentTenant;
+    protected User savedDifferentTenantUser;
     private Customer savedDifferentCustomer;
 
     protected void loginDifferentTenant() throws Exception {
         if (savedDifferentTenant != null) {
-            login(savedDifferentTenant.getEmail(), TENANT_ADMIN_PASSWORD);
+            login(DIFFERENT_TENANT_ADMIN_EMAIL, DIFFERENT_TENANT_ADMIN_PASSWORD);
         } else {
             loginSysAdmin();
 
             Tenant tenant = new Tenant();
             tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
             savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
-            differentTenantId = savedDifferentTenant.getId();
             Assert.assertNotNull(savedDifferentTenant);
             User differentTenantAdmin = new User();
             differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
             differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
             differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
-
-            createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
+            savedDifferentTenantUser = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
         }
     }
 
@@ -352,6 +352,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
             loginSysAdmin();
             doDelete("/api/tenant/" + savedDifferentTenant.getId().getId().toString())
                     .andExpect(status().isOk());
+            savedDifferentTenant = null;
         }
     }
 
@@ -682,7 +683,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected <T> T readResponse(ResultActions result, TypeReference<T> type) throws Exception {
         byte[] content = result.andReturn().getResponse().getContentAsByteArray();
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readerFor(type).readValue(content);
     }
 

@@ -228,7 +228,7 @@ public class DefaultTbCoreIntegrationApiService implements TbCoreIntegrationApiS
 
     private ListenableFuture<IntegrationApiResponseMsg> handleListRequest(IntegrationInfoListRequestProto request) {
         IntegrationType integrationType = IntegrationType.valueOf(request.getType());
-        List<IntegrationInfo> data = integrationService.findAllIntegrationInfos(integrationType, false, request.getEnabled());
+        List<IntegrationInfo> data = integrationService.findAllCoreIntegrationInfos(integrationType, false, request.getEnabled());
 
         List<IntegrationInfoProto> integrationInfoList = data.stream().map(IntegrationProtoUtil::toProto).collect(Collectors.toList());
 

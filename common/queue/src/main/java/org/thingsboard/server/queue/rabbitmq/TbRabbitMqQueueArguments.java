@@ -34,6 +34,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -43,17 +44,19 @@ import java.util.regex.Pattern;
 @Component
 @ConditionalOnExpression("'${queue.type:null}'=='rabbitmq'")
 public class TbRabbitMqQueueArguments {
-    @Value("${queue.rabbitmq.queue-properties.core}")
+    @Value("${queue.rabbitmq.queue-properties.core:}")
     private String coreProperties;
-    @Value("${queue.rabbitmq.queue-properties.rule-engine}")
+    @Value("${queue.rabbitmq.queue-properties.rule-engine:}")
     private String ruleEngineProperties;
-    @Value("${queue.rabbitmq.queue-properties.transport-api}")
+    @Value("${queue.rabbitmq.queue-properties.transport-api:}")
     private String transportApiProperties;
-    @Value("${queue.rabbitmq.queue-properties.notifications}")
+    @Value("${queue.rabbitmq.queue-properties.notifications:}")
     private String notificationsProperties;
-    @Value("${queue.rabbitmq.queue-properties.js-executor}")
+    @Value("${queue.rabbitmq.queue-properties.js-executor:}")
     private String jsExecutorProperties;
-    @Value("${queue.rabbitmq.queue-properties.integration-api}")
+    @Value("${queue.rabbitmq.queue-properties.version-control:}")
+    private String vcProperties;
+    @Value("${queue.rabbitmq.queue-properties.integration-api:}")
     private String integrationApiProperties;
 
     @Getter
@@ -67,6 +70,8 @@ public class TbRabbitMqQueueArguments {
     @Getter
     private Map<String, Object> jsExecutorArgs;
     @Getter
+    private Map<String, Object> vcArgs;
+    @Getter
     private Map<String, Object> integrationArgs;
 
     @PostConstruct
@@ -76,16 +81,19 @@ public class TbRabbitMqQueueArguments {
         transportApiArgs = getArgs(transportApiProperties);
         notificationsArgs = getArgs(notificationsProperties);
         jsExecutorArgs = getArgs(jsExecutorProperties);
+        vcArgs = getArgs(vcProperties);
         integrationArgs = getArgs(integrationApiProperties);
     }
 
     private Map<String, Object> getArgs(String properties) {
         Map<String, Object> configs = new HashMap<>();
-        for (String property : properties.split(";")) {
-            int delimiterPosition = property.indexOf(":");
-            String key = property.substring(0, delimiterPosition);
-            String strValue = property.substring(delimiterPosition + 1);
-            configs.put(key, getObjectValue(strValue));
+        if (StringUtils.isNotEmpty(properties)) {
+            for (String property : properties.split(";")) {
+                int delimiterPosition = property.indexOf(":");
+                String key = property.substring(0, delimiterPosition);
+                String strValue = property.substring(delimiterPosition + 1);
+                configs.put(key, getObjectValue(strValue));
+            }
         }
         return configs;
     }

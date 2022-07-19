@@ -38,7 +38,6 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityId } from '@shared/models/id/entity-id';
-import { EntityType } from '@shared/models/entity-type.models';
 import { BaseData } from '@shared/models/base-data';
 import { EntityService } from '@core/http/entity.service';
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
@@ -102,7 +101,7 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
               private queueService: QueueService,
               private fb: FormBuilder) {
     this.selectQueueFormGroup = this.fb.group({
-      queueId: [null]
+      queueName: [null]
     });
   }
 
@@ -114,7 +113,7 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
   }
 
   ngOnInit() {
-    this.filteredQueues = this.selectQueueFormGroup.get('queueId').valueChanges
+    this.filteredQueues = this.selectQueueFormGroup.get('queueName').valueChanges
       .pipe(
         debounceTime(150),
         tap(value => {
@@ -122,7 +121,7 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
           if (typeof value === 'string' || !value) {
             modelValue = null;
           } else {
-            modelValue = value.id.id;
+            modelValue = value.name;
           }
           this.updateView(modelValue);
           if (value === null) {
@@ -137,15 +136,6 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
   }
 
   ngAfterViewInit(): void {}
-
-  getCurrentEntity(): BaseData<EntityId> | null {
-    const currentRuleChain = this.selectQueueFormGroup.get('queueId').value;
-    if (currentRuleChain && typeof currentRuleChain !== 'string') {
-      return currentRuleChain as BaseData<EntityId>;
-    } else {
-      return null;
-    }
-  }
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
@@ -163,15 +153,14 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
   writeValue(value: string | null): void {
     this.searchText = '';
     if (value != null) {
-      const targetEntityType = EntityType.QUEUE;
-      this.entityService.getEntity(targetEntityType, value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
+      this.queueService.getQueueByName(value, {ignoreLoading: true, ignoreErrors: true}).subscribe(
         (entity) => {
-          this.modelValue = entity.id.id;
-          this.selectQueueFormGroup.get('queueId').patchValue(entity, {emitEvent: false});
+          this.modelValue = entity.name;
+          this.selectQueueFormGroup.get('queueName').patchValue(entity, {emitEvent: false});
         },
         () => {
           this.modelValue = null;
-          this.selectQueueFormGroup.get('queueId').patchValue('', {emitEvent: false});
+          this.selectQueueFormGroup.get('queueName').patchValue('', {emitEvent: false});
           if (value !== null) {
             this.propagateChange(this.modelValue);
           }
@@ -179,20 +168,20 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
       );
     } else {
       this.modelValue = null;
-      this.selectQueueFormGroup.get('queueId').patchValue('', {emitEvent: false});
+      this.selectQueueFormGroup.get('queueName').patchValue('', {emitEvent: false});
     }
     this.dirty = true;
   }
 
   onFocus() {
     if (this.dirty) {
-      this.selectQueueFormGroup.get('queueId').updateValueAndValidity({onlySelf: true, emitEvent: true});
+      this.selectQueueFormGroup.get('queueName').updateValueAndValidity({onlySelf: true, emitEvent: true});
       this.dirty = false;
     }
   }
 
   reset() {
-    this.selectQueueFormGroup.get('queueId').patchValue('', {emitEvent: false});
+    this.selectQueueFormGroup.get('queueName').patchValue('', {emitEvent: false});
   }
 
   updateView(value: string | null) {
@@ -229,7 +218,7 @@ export class QueueAutocompleteComponent implements ControlValueAccessor, OnInit 
   }
 
   clear() {
-    this.selectQueueFormGroup.get('queueId').patchValue('', {emitEvent: true});
+    this.selectQueueFormGroup.get('queueName').patchValue('', {emitEvent: true});
     setTimeout(() => {
       this.queueInput.nativeElement.blur();
       this.queueInput.nativeElement.focus();

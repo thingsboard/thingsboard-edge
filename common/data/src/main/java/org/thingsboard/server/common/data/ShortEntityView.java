@@ -46,9 +46,9 @@ import java.util.Map;
 @ApiModel
 public class ShortEntityView implements HasId<EntityId>, HasName {
 
-    @ApiModelProperty(position = 1, value = "Entity Id object", required = true, readOnly = true)
+    @ApiModelProperty(position = 1, value = "Entity Id object", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private final EntityId id;
-    @ApiModelProperty(position = 2, value = "Map of entity fields that is configurable in the Entity Group", required = true, readOnly = true)
+    @ApiModelProperty(position = 2, value = "Map of entity fields that is configurable in the Entity Group", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private Map<String, String> properties = new HashMap<>();
 
     @JsonIgnore
@@ -74,7 +74,7 @@ public class ShortEntityView implements HasId<EntityId>, HasName {
         this.properties.put(name, value);
     }
 
-    @ApiModelProperty(position = 3, value = "Name of the entity", required = true, readOnly = true)
+    @ApiModelProperty(position = 3, value = "Name of the entity", required = true, accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

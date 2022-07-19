@@ -43,9 +43,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.*;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -196,14 +193,14 @@ public class MqttClientTest extends AbstractContainerTest {
         mqttClient.on("v1/devices/me/attributes/response/+", listener, MqttQoS.AT_LEAST_ONCE).get();
 
         // Wait until subscription is processed
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(3 * timeoutMultiplier);
 
         // Request attributes
         JsonObject request = new JsonObject();
         request.addProperty("clientKeys", "clientAttr");
         request.addProperty("sharedKeys", "sharedAttr");
         mqttClient.publish("v1/devices/me/attributes/request/" + new Random().nextInt(100), Unpooled.wrappedBuffer(request.toString().getBytes())).get();
-        MqttEvent event = listener.getEvents().poll(10, TimeUnit.SECONDS);
+        MqttEvent event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
         AttributesResponse attributes = mapper.readValue(Objects.requireNonNull(event).getMessage(), AttributesResponse.class);
         log.info("Received telemetry: {}", attributes);
 
@@ -227,7 +224,7 @@ public class MqttClientTest extends AbstractContainerTest {
         mqttClient.on("v1/devices/me/attributes", listener, MqttQoS.AT_LEAST_ONCE).get();
 
         // Wait until subscription is processed
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(3 * timeoutMultiplier);
 
         String sharedAttributeName = "sharedAttr";
 
@@ -241,7 +238,7 @@ public class MqttClientTest extends AbstractContainerTest {
                         device.getId());
         Assert.assertTrue(sharedAttributesResponse.getStatusCode().is2xxSuccessful());
 
-        MqttEvent event = listener.getEvents().poll(10, TimeUnit.SECONDS);
+        MqttEvent event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
         Assert.assertEquals(sharedAttributeValue,
                 mapper.readValue(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText());
 
@@ -255,7 +252,7 @@ public class MqttClientTest extends AbstractContainerTest {
                         device.getId());
         Assert.assertTrue(updatedSharedAttributesResponse.getStatusCode().is2xxSuccessful());
 
-        event = listener.getEvents().poll(10, TimeUnit.SECONDS);
+        event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
         Assert.assertEquals(updatedSharedAttributeValue,
                 mapper.readValue(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText());
 
@@ -273,7 +270,7 @@ public class MqttClientTest extends AbstractContainerTest {
         mqttClient.on("v1/devices/me/rpc/request/+", listener, MqttQoS.AT_LEAST_ONCE).get();
 
         // Wait until subscription is processed
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(3 * timeoutMultiplier);
 
         // Send an RPC from the server
         JsonObject serverRpcPayload = new JsonObject();
@@ -292,7 +289,7 @@ public class MqttClientTest extends AbstractContainerTest {
         });
 
         // Wait for RPC call from the server and send the response
-        MqttEvent requestFromServer = listener.getEvents().poll(10, TimeUnit.SECONDS);
+        MqttEvent requestFromServer = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
 
         Assert.assertEquals("{\"method\":\"getValue\",\"params\":true}", Objects.requireNonNull(requestFromServer).getMessage());
 
@@ -302,7 +299,7 @@ public class MqttClientTest extends AbstractContainerTest {
         // Send a response to the server's RPC request
         mqttClient.publish("v1/devices/me/rpc/response/" + requestId, Unpooled.wrappedBuffer(clientResponse.toString().getBytes())).get();
 
-        ResponseEntity serverResponse = future.get(5, TimeUnit.SECONDS);
+        ResponseEntity serverResponse = future.get(5 * timeoutMultiplier, TimeUnit.SECONDS);
         service.shutdownNow();
         Assert.assertTrue(serverResponse.getStatusCode().is2xxSuccessful());
         Assert.assertEquals(clientResponse.toString(), serverResponse.getBody());
@@ -326,7 +323,7 @@ public class MqttClientTest extends AbstractContainerTest {
         // Create a new root rule chain
         RuleChainId ruleChainId = createRootRuleChainForRpcResponse();
 
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(3 * timeoutMultiplier);
         // Send the request to the server
         JsonObject clientRequest = new JsonObject();
         clientRequest.addProperty("method", "getResponse");
@@ -335,8 +332,8 @@ public class MqttClientTest extends AbstractContainerTest {
         mqttClient.publish("v1/devices/me/rpc/request/" + requestId, Unpooled.wrappedBuffer(clientRequest.toString().getBytes())).get();
 
         // Check the response from the server
-        TimeUnit.SECONDS.sleep(1);
-        MqttEvent responseFromServer = listener.getEvents().poll(1, TimeUnit.SECONDS);
+        TimeUnit.SECONDS.sleep(1 * timeoutMultiplier);
+        MqttEvent responseFromServer = listener.getEvents().poll(1 * timeoutMultiplier, TimeUnit.SECONDS);
         Integer responseId = Integer.valueOf(Objects.requireNonNull(responseFromServer).getTopic().substring("v1/devices/me/rpc/response/".length()));
         Assert.assertEquals(requestId, responseId);
         Assert.assertEquals("requestReceived", mapper.readTree(responseFromServer.getMessage()).get("response").asText());
@@ -365,7 +362,7 @@ public class MqttClientTest extends AbstractContainerTest {
         MqttClient mqttClient = getMqttClient(deviceCredentials, listener);
 
         restClient.deleteDevice(device.getId());
-        TimeUnit.SECONDS.sleep(3);
+        TimeUnit.SECONDS.sleep(3 * timeoutMultiplier);
         Assert.assertFalse(mqttClient.isConnected());
     }
 

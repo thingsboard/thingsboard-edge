@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export type WindowMessageType = 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected' | 'openDashboardMessage' | 'reloadUserMessage' | 'toggleDashboardLayout' | 'resetRecaptcha';
+export type WindowMessageType = 'openReport' | 'clearReport' | 'reportResult' | 'widgetException' | 'widgetEditModeInited' | 'widgetEditUpdated' | 'dashboardStateSelected' | 'openDashboardMessage' | 'reloadUserMessage' | 'toggleDashboardLayout' | 'resetRecaptcha';
 
 export interface WindowMessage {
   type: WindowMessageType;
@@ -47,3 +47,18 @@ export interface ReloadUserMessage {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface OpenReportMessage {
+  dashboardId: string;
+  timeout: number;
+  accessToken?: string;
+  publicId?: string;
+  state?: string;
+  reportTimewindow?: object;
+}
+
+export interface ReportResultMessage {
+  success: boolean;
+  error?: string;
+}
+

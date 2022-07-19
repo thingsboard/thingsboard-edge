@@ -204,6 +204,18 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       );
     }
 
+    if (this.userPermissionsService.hasGenericPermission(Resource.INTEGRATION, Operation.READ) &&
+      authUser.authority === Authority.TENANT_ADMIN) {
+      config.cellActionDescriptors.push(
+        {
+          name: this.translate.instant('edge.manage-edge-integrations'),
+          icon: 'input',
+          isEnabled: () => true,
+          onAction: ($event, entity) => this.manageIntegrations($event, entity, config, params)
+        }
+      );
+    }
+
     return of(this.groupConfigTableConfigService.prepareConfiguration(params, config));
   }
 
@@ -247,6 +259,9 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
         return true;
       case 'manageRuleChains':
         this.manageRuleChains(action.event, action.entity, config, params);
+        return true;
+      case 'manageIntegrations':
+        this.manageIntegrations(action.event, action.entity, config, params);
         return true;
       case 'syncEdge':
         this.syncEdge(action.event, action.entity);
@@ -364,6 +379,20 @@ export class EdgeGroupConfigFactory implements EntityGroupStateConfigFactory<Edg
       this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/ruleChains`);
     } else {
       this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/ruleChains`);
+    }
+  }
+
+  manageIntegrations($event: Event, edge: Edge | ShortEntityView, config: GroupEntityTableConfig<Edge>,
+                     params: EntityGroupParams) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    if (params.hierarchyView) {
+      params.hierarchyCallbacks.edgeGroupsSelected(params.nodeId, edge.id.id, EntityType.INTEGRATION);
+    } else if (this.isCustomerScope(params)) {
+      this.router.navigateByUrl(`customerGroups/${params.entityGroupId}/${params.customerId}/edgeGroups/${params.childEntityGroupId}/${edge.id.id}/integrations`);
+    } else {
+      this.router.navigateByUrl(`edgeGroups/${config.entityGroup.id.id}/${edge.id.id}/integrations`);
     }
   }
 

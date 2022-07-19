@@ -53,7 +53,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.widgetsBundle.TbWidgetsBundleService;
+import org.thingsboard.server.service.entitiy.widgets.bundle.TbWidgetsBundleService;
 
 import java.util.List;
 
@@ -104,24 +104,24 @@ public class WidgetsBundleController extends BaseController {
                     "Specify existing Widget Bundle id to update the Widget Bundle. " +
                     "Referencing non-existing Widget Bundle Id will cause 'Not Found' error." +
                     "\n\nWidget Bundle alias is unique in the scope of tenant. " +
-                    "Special Tenant Id '13814000-1dd2-11b2-8080-808080808080' is automatically used if the create bundle request is sent by user with 'SYS_ADMIN' authority."
-                    + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+                    "Special Tenant Id '13814000-1dd2-11b2-8080-808080808080' is automatically used if the create bundle request is sent by user with 'SYS_ADMIN' authority." +
+                    "Remove 'id', 'tenantId' from the request body example (below) to create new Widgets Bundle entity." +
+                    SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/widgetsBundle", method = RequestMethod.POST)
     @ResponseBody
     public WidgetsBundle saveWidgetsBundle(
             @ApiParam(value = "A JSON value representing the Widget Bundle.", required = true)
-            @RequestBody WidgetsBundle widgetsBundle) throws ThingsboardException {
+            @RequestBody WidgetsBundle widgetsBundle) throws Exception {
+        var currentUser = getCurrentUser();
+        if (Authority.SYS_ADMIN.equals(currentUser.getAuthority())) {
+            widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
+        } else {
+            widgetsBundle.setTenantId(currentUser.getTenantId());
+        }
 
-            if (Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
-                widgetsBundle.setTenantId(TenantId.SYS_TENANT_ID);
-            } else {
-                widgetsBundle.setTenantId(getCurrentUser().getTenantId());
-            }
-
-            checkEntity(widgetsBundle.getId(), widgetsBundle, Resource.WIDGETS_BUNDLE, null);
-
-            return tbWidgetsBundleService.save(widgetsBundle, null, getCurrentUser());
+        checkEntity(widgetsBundle.getId(), widgetsBundle, Resource.WIDGETS_BUNDLE, null);
+        return tbWidgetsBundleService.save(widgetsBundle, currentUser);
     }
 
     @ApiOperation(value = "Delete widgets bundle (deleteWidgetsBundle)",
@@ -135,7 +135,7 @@ public class WidgetsBundleController extends BaseController {
         checkParameter("widgetsBundleId", strWidgetsBundleId);
         WidgetsBundleId widgetsBundleId = new WidgetsBundleId(toUUID(strWidgetsBundleId));
         WidgetsBundle widgetsBundle = checkWidgetsBundleId(widgetsBundleId, Operation.DELETE);
-        tbWidgetsBundleService.delete(widgetsBundle, getCurrentUser());
+        tbWidgetsBundleService.delete(widgetsBundle);
     }
 
     @ApiOperation(value = "Get Widget Bundles (getWidgetsBundles)",

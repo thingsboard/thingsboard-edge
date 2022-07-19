@@ -35,6 +35,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
@@ -49,7 +52,7 @@ import java.util.Optional;
 
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements GroupEntity<AssetId> {
+public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements GroupEntity<AssetId>, ExportableEntity<AssetId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -64,6 +67,9 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     @NoXss
     @Length(fieldName = "label")
     private String label;
+
+    @Getter @Setter
+    private AssetId externalId;
 
     public Asset() {
         super();
@@ -80,6 +86,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
+        this.externalId = asset.getExternalId();
     }
 
     public void update(Asset asset) {
@@ -89,6 +96,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.type = asset.getType();
         this.label = asset.getLabel();
         Optional.ofNullable(asset.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
+        this.externalId = asset.getExternalId();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the asset Id. " +
@@ -100,13 +108,13 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the asset creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the asset creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id.", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -115,7 +123,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.tenantId = tenantId;
     }
 
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignAssetToCustomer' to change the Customer Id.", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignAssetToCustomer' to change the Customer Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public CustomerId getCustomerId() {
         return customerId;
     }
@@ -124,7 +132,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 9, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 9, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

@@ -29,6 +29,9 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
+  .mat-form-field {
+    width: 100%;
+  }
 }
 
 :host ::ng-deep {

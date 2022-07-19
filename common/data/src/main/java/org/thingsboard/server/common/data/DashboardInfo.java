@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -43,6 +44,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 import javax.validation.Valid;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @ApiModel
@@ -84,19 +86,19 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     @ApiModelProperty(position = 1, value = "JSON object with the dashboard Id. " +
             "Specify existing dashboard Id to update the dashboard. " +
             "Referencing non-existing dashboard id will cause error. " +
-            "Omit this field to create new dashboard." )
+            "Omit this field to create new dashboard.")
     @Override
     public DashboardId getId() {
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -114,7 +116,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -138,7 +140,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.title = title;
     }
 
-    @ApiModelProperty(position = 7, value = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", readOnly = true)
+    @ApiModelProperty(position = 7, value = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public String getImage() {
         return image;
     }
@@ -147,7 +149,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.image = image;
     }
 
-    @ApiModelProperty(position = 8, value = "List of assigned customers with their info.", readOnly = true)
+    @ApiModelProperty(position = 8, value = "List of assigned customers with their info.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public Set<ShortCustomerInfo> getAssignedCustomers() {
         return assignedCustomers;
     }
@@ -156,7 +158,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.assignedCustomers = assignedCustomers;
     }
 
-    @ApiModelProperty(position = 9, value = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", readOnly = true)
+    @ApiModelProperty(position = 9, value = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public boolean isMobileHide() {
         return mobileHide;
     }
@@ -165,7 +167,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.mobileHide = mobileHide;
     }
 
-    @ApiModelProperty(position = 10, value = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", readOnly = true)
+    @ApiModelProperty(position = 10, value = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public Integer getMobileOrder() {
         return mobileOrder;
     }
@@ -232,7 +234,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         }
     }
 
-    @ApiModelProperty(position = 11, value = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", readOnly = true)
+    @ApiModelProperty(position = 11, value = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
@@ -255,30 +257,18 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        DashboardInfo other = (DashboardInfo) obj;
-        if (tenantId == null) {
-            if (other.tenantId != null)
-                return false;
-        } else if (!tenantId.equals(other.tenantId))
-            return false;
-        if (customerId == null) {
-            if (other.customerId != null)
-                return false;
-        } else if (!customerId.equals(other.customerId))
-            return false;
-        if (title == null) {
-            if (other.title != null)
-                return false;
-        } else if (!title.equals(other.title))
-            return false;
-        return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        DashboardInfo that = (DashboardInfo) o;
+        return mobileHide == that.mobileHide
+                && Objects.equals(tenantId, that.tenantId)
+                && Objects.equals(customerId, that.customerId)
+                && Objects.equals(title, that.title)
+                && Objects.equals(image, that.image)
+                && Objects.equals(assignedCustomers, that.assignedCustomers)
+                && Objects.equals(mobileOrder, that.mobileOrder);
     }
 
     @Override

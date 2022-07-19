@@ -80,9 +80,7 @@ public abstract class BaseData<I extends UUIDBased> extends IdBased<I> implement
         if (getClass() != obj.getClass())
             return false;
         BaseData other = (BaseData) obj;
-        if (createdTime != other.createdTime)
-            return false;
-        return true;
+        return createdTime == other.createdTime;
     }
 
     @Override

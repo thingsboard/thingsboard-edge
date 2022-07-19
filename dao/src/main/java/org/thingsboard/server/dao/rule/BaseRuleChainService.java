@@ -66,14 +66,16 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeUpdateResult;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.ConstraintValidator;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,7 +86,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.DataConstants.TENANT;
-import static org.thingsboard.server.dao.service.Validator.*;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validatePageLink;
+import static org.thingsboard.server.dao.service.Validator.validateString;
 
 /**
  * Created by igor on 3/12/18.
@@ -96,7 +100,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     private static final int DEFAULT_PAGE_SIZE = 1000;
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-
+    public static final String TB_RULE_CHAIN_INPUT_NODE = "org.thingsboard.rule.engine.flow.TbRuleChainInputNode";
     @Autowired
     private RuleChainDao ruleChainDao;
 
@@ -110,7 +114,12 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     @Transactional
     public RuleChain saveRuleChain(RuleChain ruleChain) {
         ruleChainValidator.validate(ruleChain, RuleChain::getTenantId);
-        return ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
+        try {
+            return ruleChainDao.save(ruleChain.getTenantId(), ruleChain);
+        } catch (Exception e) {
+            checkConstraintViolation(e, "rule_chain_external_id_unq_key", "Rule Chain with such external id already exists!");
+            throw e;
+        }
     }
 
     @Override
@@ -155,6 +164,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         List<RuleNode> nodes = ruleChainMetaData.getNodes();
         List<RuleNode> toAddOrUpdate = new ArrayList<>();
         List<RuleNode> toDelete = new ArrayList<>();
+        List<EntityRelation> relations = new ArrayList<>();
 
         Map<RuleNodeId, Integer> ruleNodeIndexMap = new HashMap<>();
         if (nodes != null) {
@@ -185,15 +195,15 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             for (RuleNode node : toAddOrUpdate) {
                 node.setRuleChainId(ruleChain.getId());
                 RuleNode savedNode = ruleNodeDao.save(tenantId, node);
-                createRelation(tenantId, new EntityRelation(ruleChainMetaData.getRuleChainId(), savedNode.getId(),
+                relations.add(new EntityRelation(ruleChainMetaData.getRuleChainId(), savedNode.getId(),
                         EntityRelation.CONTAINS_TYPE, RelationTypeGroup.RULE_CHAIN));
                 int index = nodes.indexOf(node);
                 nodes.set(index, savedNode);
                 ruleNodeIndexMap.put(savedNode.getId(), index);
             }
         }
-        for (RuleNode node : toDelete) {
-            deleteRuleNode(tenantId, node.getId());
+        if (!toDelete.isEmpty()) {
+            deleteRuleNodes(tenantId, toDelete);
         }
         RuleNodeId firstRuleNodeId = null;
         if (nodes != null) {
@@ -210,7 +220,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     EntityId from = nodes.get(nodeConnection.getFromIndex()).getId();
                     EntityId to = nodes.get(nodeConnection.getToIndex()).getId();
                     String type = nodeConnection.getType();
-                    createRelation(tenantId, new EntityRelation(from, to, type, RelationTypeGroup.RULE_NODE));
+                    relations.add(new EntityRelation(from, to, type, RelationTypeGroup.RULE_NODE));
                 }
             }
             if (ruleChainMetaData.getRuleChainConnections() != null) {
@@ -236,7 +246,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     sourceRuleChainToRuleNode.setTo(targetNode.getId());
                     sourceRuleChainToRuleNode.setType(EntityRelation.CONTAINS_TYPE);
                     sourceRuleChainToRuleNode.setTypeGroup(RelationTypeGroup.RULE_CHAIN);
-                    relationService.saveRelation(tenantId, sourceRuleChainToRuleNode);
+                    relations.add(sourceRuleChainToRuleNode);
 
                     EntityRelation sourceRuleNodeToTargetRuleNode = new EntityRelation();
                     EntityId from = nodes.get(nodeToRuleChainConnection.getFromIndex()).getId();
@@ -244,9 +254,13 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     sourceRuleNodeToTargetRuleNode.setTo(targetNode.getId());
                     sourceRuleNodeToTargetRuleNode.setType(nodeToRuleChainConnection.getType());
                     sourceRuleNodeToTargetRuleNode.setTypeGroup(RelationTypeGroup.RULE_NODE);
-                    relationService.saveRelation(tenantId, sourceRuleNodeToTargetRuleNode);
-                 }
+                    relations.add(sourceRuleNodeToTargetRuleNode);
+                }
             }
+        }
+
+        if (!relations.isEmpty()) {
+            relationService.saveRelations(tenantId, relations);
         }
 
         return RuleChainUpdateResult.successful(updatedRuleNodes);
@@ -287,6 +301,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChainId);
         List<RuleNode> ruleNodes = getRuleChainNodes(tenantId, ruleChainId);
+        Collections.sort(ruleNodes, Comparator.comparingLong(RuleNode::getCreatedTime).thenComparing(RuleNode::getId, Comparator.comparing(RuleNodeId::getId)));
         Map<RuleNodeId, Integer> ruleNodeIndexMap = new HashMap<>();
         for (RuleNode node : ruleNodes) {
             ruleNodeIndexMap.put(node.getId(), ruleNodes.indexOf(node));
@@ -308,6 +323,10 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                     log.warn("[{}][{}] Unsupported node relation: {}", tenantId, ruleChainId, nodeRelation.getTo());
                 }
             }
+        }
+        if (ruleChainMetaData.getConnections() != null) {
+            Collections.sort(ruleChainMetaData.getConnections(), Comparator.comparingInt(NodeConnectionInfo::getFromIndex)
+                    .thenComparing(NodeConnectionInfo::getToIndex).thenComparing(NodeConnectionInfo::getType));
         }
         return ruleChainMetaData;
     }
@@ -407,6 +426,11 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
     }
 
     @Override
+    public Collection<RuleChain> findTenantRuleChainsByTypeAndName(TenantId tenantId, RuleChainType type, String name) {
+        return ruleChainDao.findByTenantIdAndTypeAndName(tenantId, type, name);
+    }
+
+    @Override
     @Transactional
     public void deleteRuleChainById(TenantId tenantId, RuleChainId ruleChainId) {
         Validator.validateId(ruleChainId, "Incorrect rule chain id for delete request.");
@@ -472,7 +496,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             ruleChain.setRoot(false);
 
             if (overwrite) {
-                Collection<RuleChain> existingRuleChains = ruleChainDao.findByTenantIdAndTypeAndName(tenantId,
+                Collection<RuleChain> existingRuleChains = findTenantRuleChainsByTypeAndName(tenantId,
                         Optional.ofNullable(ruleChain.getType()).orElse(RuleChainType.CORE), ruleChain.getName());
                 Optional<RuleChain> existingRuleChain = existingRuleChains.stream().findFirst();
                 if (existingRuleChain.isPresent()) {
@@ -562,6 +586,19 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
                         rcConnInfo.setTargetRuleChainId(newRuleChainId);
                     }
                 }
+            }
+            if (!CollectionUtils.isEmpty(metaData.getNodes())) {
+                metaData.getNodes().stream()
+                        .filter(ruleNode -> ruleNode.getType().equals(TB_RULE_CHAIN_INPUT_NODE))
+                        .forEach(ruleNode -> {
+                            ObjectNode configuration = (ObjectNode) ruleNode.getConfiguration();
+                            if (configuration.has("ruleChainId")) {
+                                if (configuration.get("ruleChainId").asText().equals(oldRuleChainId.toString())) {
+                                    configuration.put("ruleChainId", newRuleChainId.toString());
+                                    ruleNode.setConfiguration(configuration);
+                                }
+                            }
+                        });
             }
         }
     }
@@ -708,13 +745,26 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
         try {
             ruleChainDao.removeById(tenantId, ruleChainId.getId());
         } catch (Exception t) {
-            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t) .orElse(null);
+            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_default_rule_chain_device_profile")) {
                 throw new DataValidationException("The rule chain referenced by the device profiles cannot be deleted!");
             } else {
                 throw t;
             }
         }
+        deleteRuleNodes(tenantId, ruleChainId);
+    }
+
+    private void deleteRuleNodes(TenantId tenantId, List<RuleNode> ruleNodes) {
+        List<RuleNodeId> ruleNodeIds = ruleNodes.stream().map(RuleNode::getId).collect(Collectors.toList());
+        for (var node : ruleNodes) {
+            deleteEntityRelations(tenantId, node.getId());
+        }
+        ruleNodeDao.deleteByIdIn(ruleNodeIds);
+    }
+
+    @Override
+    public void deleteRuleNodes(TenantId tenantId, RuleChainId ruleChainId) {
         List<EntityRelation> nodeRelations = getRuleChainToNodeRelations(tenantId, ruleChainId);
         for (EntityRelation relation : nodeRelations) {
             deleteRuleNode(tenantId, relation.getTo());

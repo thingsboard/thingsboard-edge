@@ -569,6 +569,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getWidgetTypeProcessor().processWidgetTypeToEdge(edgeEvent, msgType, action);
             case ADMIN_SETTINGS:
                 return ctx.getAdminSettingsProcessor().processAdminSettingsToEdge(edgeEvent);
+            case OTA_PACKAGE:
+                return ctx.getOtaPackageEdgeProcessor().processOtaPackageToEdge(edgeEvent, msgType, action);
+            case QUEUE:
+                return ctx.getQueueEdgeProcessor().processQueueToEdge(edgeEvent, msgType, action);
             case SCHEDULER_EVENT:
                 return ctx.getSchedulerEventProcessor().processSchedulerEventToEdge(edgeEvent, msgType);
             case ENTITY_GROUP:
@@ -583,6 +587,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getRoleProcessor().processRoleToEdge(edgeEvent, msgType);
             case GROUP_PERMISSION:
                 return ctx.getGroupPermissionsProcessor().processGroupPermissionToEdge(edgeEvent, msgType);
+            case INTEGRATION:
+                return ctx.getIntegrationProcessor().processIntegrationToEdge(edgeEvent, msgType);
+            case CONVERTER:
+                return ctx.getConverterProcessor().processConverterToEdge(edgeEvent, msgType);
             default:
                 log.warn("Unsupported edge event type [{}]", edgeEvent);
                 return null;

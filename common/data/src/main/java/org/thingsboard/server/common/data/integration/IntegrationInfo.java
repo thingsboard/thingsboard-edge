@@ -31,7 +31,6 @@
 package org.thingsboard.server.common.data.integration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
@@ -39,7 +38,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.SearchTextBased;
 import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -59,6 +57,7 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
     private Boolean enabled;
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
+    private boolean isEdgeTemplate;
 
     public IntegrationInfo() {
         super();
@@ -76,6 +75,7 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
+        this.isEdgeTemplate = integration.isEdgeTemplate();
     }
 
     @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +
@@ -87,13 +87,13 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the integration creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the integration creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -149,6 +149,15 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         this.name = name;
     }
 
+    @ApiModelProperty(position = 16, value = "Boolean flag that specifies that is regular or edge template integration")
+    public boolean isEdgeTemplate() {
+        return isEdgeTemplate;
+    }
+
+    public void setEdgeTemplate(boolean edgeTemplate) {
+        this.isEdgeTemplate = edgeTemplate;
+    }
+
     @Override
     public String getSearchText() {
         return getName();
@@ -167,6 +176,8 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
         builder.append(isRemote);
         builder.append(", allowCreateDevicesOrAssets=");
         builder.append(allowCreateDevicesOrAssets);
+        builder.append(", isEdgeTemplate=");
+        builder.append(isEdgeTemplate);
         builder.append(", createdTime=");
         builder.append(createdTime);
         builder.append(", id=");

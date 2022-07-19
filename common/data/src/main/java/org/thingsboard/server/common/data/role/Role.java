@@ -37,6 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
@@ -52,7 +53,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, ExportableEntity<RoleId> {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -65,9 +66,9 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public static final String ROLE_READ_ONLY_ENTITY_GROUP_NAME = "Entity Group Read-only User";
     public static final String ROLE_WRITE_ENTITY_GROUP_NAME = "Entity Group Write User";
 
-    @ApiModelProperty(position = 3, required = true, value = "JSON object with Tenant Id.", readOnly = true)
+    @ApiModelProperty(position = 3, required = true, value = "JSON object with Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. ", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @NoXss
     @Length(fieldName = "name")
@@ -75,10 +76,12 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     private String name;
     @ApiModelProperty(position = 7, required = true, value = "Type of the role: generic or group", example = "GROUP")
     private RoleType type;
-    @ApiModelProperty(position = 8, value = "JSON object with the set of permissions. Structure is specific for role type", readOnly = true)
+    @ApiModelProperty(position = 8, value = "JSON object with the set of permissions. Structure is specific for role type", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private transient JsonNode permissions;
     @JsonIgnore
     private byte[] permissionsBytes;
+
+    private RoleId externalId;
 
     public Role() {
         super();
@@ -91,6 +94,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
     public Role(Role role) {
         super(role);
         setPermissions(role.getPermissions());
+        externalId = role.getExternalId();
     }
 
     @Override
@@ -98,7 +102,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
         return getName();
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -136,7 +140,7 @@ public class Role extends SearchTextBasedWithAdditionalInfo<RoleId> implements H
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the role creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the role creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();

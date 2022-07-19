@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -54,7 +56,7 @@ import java.util.Optional;
 @ApiModel
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage {
+public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasOtaPackage, ExportableEntity<DeviceId> {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -77,6 +79,9 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
     private OtaPackageId firmwareId;
     private OtaPackageId softwareId;
 
+    @Getter @Setter
+    private DeviceId externalId;
+
     public Device() {
         super();
     }
@@ -96,6 +101,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.setDeviceData(device.getDeviceData());
         this.firmwareId = device.getFirmwareId();
         this.softwareId = device.getSoftwareId();
+        this.externalId = device.getExternalId();
     }
 
     public Device updateDevice(Device device) {
@@ -109,6 +115,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.setFirmwareId(device.getFirmwareId());
         this.setSoftwareId(device.getSoftwareId());
         Optional.ofNullable(device.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
+        this.setExternalId(device.getExternalId());
         return this;
     }
 
@@ -121,13 +128,13 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the device creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the device creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Use 'assignDeviceToTenant' to change the Tenant Id.", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Use 'assignDeviceToTenant' to change the Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -136,7 +143,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.tenantId = tenantId;
     }
 
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignDeviceToCustomer' to change the Customer Id.", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignDeviceToCustomer' to change the Customer Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public CustomerId getCustomerId() {
         return customerId;
     }
@@ -145,7 +152,7 @@ public class Device extends SearchTextBasedWithAdditionalInfo<DeviceId> implemen
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

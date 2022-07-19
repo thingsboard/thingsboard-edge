@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.common.data.queue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
@@ -39,11 +40,17 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 public class Queue extends SearchTextBasedWithAdditionalInfo<QueueId> implements HasName, TenantEntity {
     private TenantId tenantId;
+    @NoXss
+    @Length(fieldName = "name")
     private String name;
+    @NoXss
+    @Length(fieldName = "topic")
     private String topic;
     private int pollInterval;
     private int partitions;
@@ -78,6 +85,7 @@ public class Queue extends SearchTextBasedWithAdditionalInfo<QueueId> implements
     }
 
     @Override
+    @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.QUEUE;
     }

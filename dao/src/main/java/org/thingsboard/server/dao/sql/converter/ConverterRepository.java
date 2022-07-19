@@ -35,12 +35,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.ConverterEntity;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID> {
+public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID>, ExportableEntityRepository<ConverterEntity> {
 
     @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
@@ -48,9 +49,21 @@ public interface ConverterRepository extends JpaRepository<ConverterEntity, UUID
                                          @Param("searchText") String searchText,
                                          Pageable pageable);
 
+    @Query("SELECT a FROM ConverterEntity a WHERE a.tenantId = :tenantId " +
+            "AND a.edgeTemplate = :isEdgeTemplate " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<ConverterEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
+                                                          @Param("searchText") String searchText,
+                                                          @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                          Pageable pageable);
+
     ConverterEntity findByTenantIdAndName(UUID tenantId, String name);
 
     List<ConverterEntity> findConvertersByTenantIdAndIdIn(UUID tenantId, List<UUID> converterIds);
 
     Long countByTenantId(UUID tenantId);
+
+    @Query("SELECT externalId FROM ConverterEntity WHERE id = :id")
+    UUID getExternalIdById(@Param("id") UUID id);
+
 }

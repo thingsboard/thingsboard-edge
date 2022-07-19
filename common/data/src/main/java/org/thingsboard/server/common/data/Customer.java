@@ -35,13 +35,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-public class Customer extends ContactBased<CustomerId> implements GroupEntity<CustomerId> {
+@EqualsAndHashCode(callSuper = true)
+public class Customer extends ContactBased<CustomerId> implements GroupEntity<CustomerId>, ExportableEntity<CustomerId> {
 
     private static final long serialVersionUID = -1599722990298929275L;
 
@@ -53,6 +57,9 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
     private TenantId tenantId;
     @ApiModelProperty(position = 6, value = "JSON object with parent Customer Id")
     private CustomerId parentCustomerId;
+
+    @Getter @Setter
+    private CustomerId externalId;
 
     public Customer() {
         super();
@@ -66,6 +73,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
         super(customer);
         this.tenantId = customer.getTenantId();
         this.title = customer.getTitle();
+        this.externalId = customer.getExternalId();
     }
 
     public TenantId getTenantId() {
@@ -86,12 +94,12 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
 
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @ApiModelProperty(position = 7, readOnly = true, value = "JSON object with parent Customer Id")
+    @ApiModelProperty(position = 7, accessMode = ApiModelProperty.AccessMode.READ_ONLY, value = "JSON object with parent Customer Id")
     public CustomerId getCustomerId() {
         return parentCustomerId;
     }
 
-    @ApiModelProperty(position = 8, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 8, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return parentCustomerId != null && !parentCustomerId.isNullUid() ? parentCustomerId : tenantId;
@@ -128,7 +136,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the customer creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the customer creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
@@ -204,7 +212,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
 
     @Override
     @JsonProperty(access = Access.READ_ONLY)
-    @ApiModelProperty(position = 4, value = "Name of the customer. Read-only, duplicated from title for backward compatibility", example = "Company A", readOnly = true)
+    @ApiModelProperty(position = 4, value = "Name of the customer. Read-only, duplicated from title for backward compatibility", example = "Company A", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public String getName() {
         return title;
     }
@@ -212,37 +220,6 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
     @Override
     public String getSearchText() {
         return getTitle();
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + ((tenantId == null) ? 0 : tenantId.hashCode());
-        result = prime * result + ((title == null) ? 0 : title.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Customer other = (Customer) obj;
-        if (tenantId == null) {
-            if (other.tenantId != null)
-                return false;
-        } else if (!tenantId.equals(other.tenantId))
-            return false;
-        if (title == null) {
-            if (other.title != null)
-                return false;
-        } else if (!title.equals(other.title))
-            return false;
-        return true;
     }
 
     @Override

@@ -31,15 +31,18 @@
 package org.thingsboard.server.common.data.group;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ExportableNoTenantIdEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -50,7 +53,9 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ApiModel
 @Data
 @NoArgsConstructor
-public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId {
+@EqualsAndHashCode(callSuper = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId, ExportableNoTenantIdEntity<EntityGroupId> {
 
     private static final long serialVersionUID = 2807349040519543363L;
 
@@ -96,6 +101,8 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     @JsonDeserialize(using = ConfigurationDeserializer.class)
     private JsonNode configuration;
 
+    private EntityGroupId externalId;
+
     public EntityGroup(EntityGroupId id) {
         super(id);
     }
@@ -107,6 +114,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         this.ownerId = entityGroup.getOwnerId();
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
+        this.externalId = entityGroup.getExternalId();
     }
 
     @Override
@@ -138,7 +146,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         return false;
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the entity group creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the entity group creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();

@@ -72,6 +72,7 @@ import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
@@ -89,7 +90,6 @@ import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_D
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
@@ -173,7 +173,8 @@ public class CustomerController extends BaseController {
             notes = "Creates or Updates the Customer. When creating customer, platform generates Customer Id as " + UUID_WIKI_LINK +
                     "The newly created Customer Id will be present in the response. " +
                     "Specify existing Customer Id to update the Customer. " +
-                    "Referencing non-existing Customer Id will cause 'Not Found' error." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
+                    "Referencing non-existing Customer Id will cause 'Not Found' error." + "Remove 'id', 'tenantId' from the request body example (below) to create new Customer entity. " +
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
@@ -202,7 +203,13 @@ public class CustomerController extends BaseController {
             ((ObjectNode) additionalInfo).put(HOME_DASHBOARD_HIDE_TOOLBAR, prevHideDashboardToolbar);
         }
         SecurityUser user = getCurrentUser();
-        return saveGroupEntity(customer, strEntityGroupId, (customer1, entityGroup) -> tbCustomerService.save(customer, entityGroup, user));
+        return saveGroupEntity(customer, strEntityGroupId, (customer1, entityGroup) -> {
+            try {
+                return tbCustomerService.save(customer, entityGroup, user);
+            } catch (Exception e) {
+                throw handleException(e);
+            }
+        });
     }
 
     @ApiOperation(value = "Delete Customer (deleteCustomer)",
@@ -217,11 +224,7 @@ public class CustomerController extends BaseController {
         checkParameter(CUSTOMER_ID, strCustomerId);
         CustomerId customerId = new CustomerId(toUUID(strCustomerId));
         Customer customer = checkCustomerId(customerId, Operation.DELETE);
-        try {
-            tbCustomerService.delete(customer, getCurrentUser());
-        } catch (Exception e) {
-            throw (handleException(e));
-        }
+        tbCustomerService.delete(customer, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Tenant Customers (getCustomers)",

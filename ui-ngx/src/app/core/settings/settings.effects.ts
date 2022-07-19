@@ -50,6 +50,7 @@ import { ActionAuthUpdateLastPublicDashboardId } from '../auth/auth.actions';
 import { FaviconService } from '@core/services/favicon.service';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { Authority } from '@shared/models/authority.enum';
+import { ReportService } from '@core/http/report.service';
 
 export const SETTINGS_KEY = 'SETTINGS';
 
@@ -65,7 +66,8 @@ export class SettingsEffects {
     private titleService: TitleService,
     private faviconService: FaviconService,
     private translate: TranslateService,
-    private customTranslationService: CustomTranslationService
+    private customTranslationService: CustomTranslationService,
+    private reportService: ReportService
   ) {
   }
 
@@ -124,7 +126,7 @@ export class SettingsEffects {
     tap((event) => {
       const authUser = getCurrentAuthUser(this.store);
       const snapshot = (event as ActivationEnd).snapshot;
-      if (authUser && authUser.isPublic && snapshot.url && snapshot.url.length
+      if (!this.reportService.reportView && authUser && authUser.isPublic && snapshot.url && snapshot.url.length
           && snapshot.url[0].path === 'dashboard') {
         this.utils.updateQueryParam('publicId', authUser.sub);
         this.store.dispatch(new ActionAuthUpdateLastPublicDashboardId(

@@ -81,7 +81,6 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityViewCacheKey, EntityViewCacheValue, EntityViewEvictEvent> implements EntityViewService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ENTITY_VIEW_ID = "Incorrect entityViewId ";
 
@@ -114,12 +113,18 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     public EntityView saveEntityView(EntityView entityView) {
         log.trace("Executing save entity view [{}]", entityView);
         EntityView old = entityViewValidator.validate(entityView, EntityView::getTenantId);
-        EntityView saved = entityViewDao.save(entityView.getTenantId(), entityView);
-        publishEvictEvent(new EntityViewEvictEvent(saved.getTenantId(), saved.getId(), saved.getEntityId(), old != null ? old.getEntityId() : null, saved.getName(), old != null ? old.getName() : null));
-        if (entityView.getId() == null) {
-            entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
+        try {
+            EntityView saved = entityViewDao.save(entityView.getTenantId(), entityView);
+            publishEvictEvent(new EntityViewEvictEvent(saved.getTenantId(), saved.getId(), saved.getEntityId(), old != null ? old.getEntityId() : null, saved.getName(), old != null ? old.getName() : null));
+            if (entityView.getId() == null) {
+                entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
+            }
+            return saved;
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "entity_view_external_id_unq_key", "Entity View with such external id already exists!");
+            throw t;
         }
-        return saved;
     }
 
     @Override
@@ -232,6 +237,17 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         return service.submit(() -> cache.getAndPutInTransaction(EntityViewCacheKey.byEntityId(tenantId, entityId),
                 () -> entityViewDao.findEntityViewsByTenantIdAndEntityId(tenantId.getId(), entityId.getId()),
                 EntityViewCacheValue::getEntityViews, v -> new EntityViewCacheValue(null, v), true));
+    }
+
+    @Override
+    public List<EntityView> findEntityViewsByTenantIdAndEntityId(TenantId tenantId, EntityId entityId) {
+        log.trace("Executing findEntityViewsByTenantIdAndEntityId, tenantId [{}], entityId [{}]", tenantId, entityId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(entityId.getId(), "Incorrect entityId" + entityId);
+
+        return cache.getAndPutInTransaction(EntityViewCacheKey.byEntityId(tenantId, entityId),
+                () -> entityViewDao.findEntityViewsByTenantIdAndEntityId(tenantId.getId(), entityId.getId()),
+                EntityViewCacheValue::getEntityViews, v -> new EntityViewCacheValue(null, v), true);
     }
 
     @Override

@@ -42,6 +42,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -103,7 +104,10 @@ import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -116,6 +120,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
+@TbCoreComponent
 @Slf4j
 public class DefaultEdgeRequestsService implements EdgeRequestsService {
 
@@ -133,6 +138,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     @Autowired
     private DeviceService deviceService;
 
+    @Lazy
     @Autowired
     private AssetService assetService;
 
@@ -143,7 +149,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     private DashboardService dashboardService;
 
     @Autowired
-    private EntityViewService entityViewService;
+    private TbEntityViewService entityViewService;
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
@@ -222,6 +228,9 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                     Map<String, Object> entityData = new HashMap<>();
                     ObjectNode attributes = mapper.createObjectNode();
                     for (AttributeKvEntry attr : ssAttributes) {
+                        if (DefaultDeviceStateService.PERSISTENT_ATTRIBUTES.contains(attr.getKey())) {
+                            continue;
+                        }
                         if (attr.getDataType() == DataType.BOOLEAN && attr.getBooleanValue().isPresent()) {
                             attributes.put(attr.getKey(), attr.getBooleanValue().get());
                         } else if (attr.getDataType() == DataType.DOUBLE && attr.getDoubleValue().isPresent()) {
@@ -402,7 +411,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                 }
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 for (EntityView entityView : entityViews) {
-                    ListenableFuture<Boolean> future = relationService.checkRelation(tenantId, edge.getId(), entityView.getId(),
+                    ListenableFuture<Boolean> future = relationService.checkRelationAsync(tenantId, edge.getId(), entityView.getId(),
                             EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE);
                     futures.add(Futures.transformAsync(future, result -> {
                         if (Boolean.TRUE.equals(result)) {

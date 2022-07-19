@@ -32,13 +32,13 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, ElementRef, HostBinding,
+  Component, ElementRef, EventEmitter, HostBinding,
   Inject,
   Injector,
   Input,
   NgZone,
   OnDestroy,
-  OnInit, Optional,
+  OnInit, Optional, Renderer2,
   StaticProvider,
   ViewChild,
   ViewContainerRef,
@@ -162,6 +162,10 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import cssjs from '@core/css/css';
 import { DOCUMENT } from '@angular/common';
 import { IAliasController } from '@core/api/widget-api.models';
+import { MatButton } from '@angular/material/button';
+import { VersionControlComponent } from '@home/components/vc/version-control.component';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { tap } from 'rxjs/operators';
 
 // @dynamic
 @Component({
@@ -320,6 +324,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     ]
   };
 
+  updateBreadcrumbs = new EventEmitter();
+
   private rxSubscriptions = new Array<Subscription>();
 
   get toolbarOpened(): boolean {
@@ -363,6 +369,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private fb: FormBuilder,
               private dialog: MatDialog,
               private translate: TranslateService,
+              private popoverService: TbPopoverService,
+              private renderer: Renderer2,
               private ngZone: NgZone,
               @Optional() @Inject('embeddedValue') private embeddedValue,
               private overlay: Overlay,
@@ -939,32 +947,39 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   public openDashboardState(state: string, openRightLayout?: boolean) {
     const layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, state);
+    let widgetsCount = 0;
     if (layoutsData) {
       this.dashboardCtx.state = state;
       this.dashboardCtx.aliasController.dashboardStateChanged();
       this.isRightLayoutOpened = openRightLayout ? true : false;
-      this.updateLayouts(layoutsData);
+      widgetsCount = this.updateLayouts(layoutsData);
     }
     setTimeout(() => {
       this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
+      if (this.reportView) {
+        this.reportService.onDashboardLoaded(widgetsCount);
+      }
     });
   }
 
-  private updateLayouts(layoutsData?: DashboardLayoutsInfo) {
+  private updateLayouts(layoutsData?: DashboardLayoutsInfo): number {
     if (!layoutsData) {
       layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, this.dashboardCtx.state);
     }
+    let widgetsCount = 0;
     for (const l of Object.keys(this.layouts)) {
       const layout: DashboardPageLayout = this.layouts[l];
       if (layoutsData[l]) {
         layout.show = true;
         const layoutInfo: DashboardLayoutInfo = layoutsData[l];
         this.updateLayout(layout, layoutInfo);
+        widgetsCount += layoutInfo.widgetIds ? layoutInfo.widgetIds.length : 0;
       } else {
         layout.show = false;
         this.updateLayout(layout, {widgetIds: [], widgetLayouts: {}, gridSettings: null});
       }
     }
+    return widgetsCount;
   }
 
   private updateLayout(layout: DashboardPageLayout, layoutInfo: DashboardLayoutInfo) {
@@ -1467,5 +1482,55 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         this.dashboard.image = result.image;
       }
     });
+  }
+
+  toggleVersionControl($event: Event, versionControlButton: MatButton) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = versionControlButton._elementRef.nativeElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const versionControlPopover = this.popoverService.displayPopover(trigger, this.renderer,
+        this.viewContainerRef, VersionControlComponent, 'leftTop', true, null,
+        {
+          detailsMode: true,
+          active: true,
+          singleEntityMode: true,
+          externalEntityId: this.dashboard.externalId || this.dashboard.id,
+          entityId: this.dashboard.id,
+          entityName: this.dashboard.name,
+          onBeforeCreateVersion: () => {
+            return this.dashboardService.saveDashboard(this.dashboard).pipe(
+              tap((dashboard) => {
+                this.dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
+                this.prevDashboard = deepClone(this.dashboard);
+              })
+            );
+          }
+        }, {}, {}, {}, true);
+      versionControlPopover.tbComponentRef.instance.popoverComponent = versionControlPopover;
+      versionControlPopover.tbComponentRef.instance.versionRestored.subscribe(() => {
+        const entityGroup = this.entityGroup;
+        this.dashboardService.getDashboard(this.currentDashboardId).subscribe((dashboard) => {
+          dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
+          const data = {
+            dashboard,
+            entityGroup,
+            widgetEditMode: false,
+            currentDashboardId: this.currentDashboardId
+          } as any;
+          this.init(data);
+          this.dashboardCtx.stateController.cleanupPreservedStates();
+          this.dashboardCtx.stateController.resetState();
+          this.setEditMode(true, false);
+          this.updateBreadcrumbs.emit();
+          this.ngZone.run(() => {
+            this.cd.detectChanges();
+          });
+        });
+      });
+    }
   }
 }
