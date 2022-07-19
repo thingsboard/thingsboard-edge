@@ -216,8 +216,9 @@ export const HelpLinks = {
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
     selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
     queue: helpBaseUrl + '/docs/pe/user-guide/queue',
-    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/ui/repository-settings',
-    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/ui/auto-commit-settings',
+    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#git-settings-configuration',
+    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#auto-commit',
+    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication'
   }
 };
 
