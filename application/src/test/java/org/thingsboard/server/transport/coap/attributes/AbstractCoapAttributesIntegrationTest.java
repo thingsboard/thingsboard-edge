@@ -140,7 +140,6 @@ public abstract class AbstractCoapAttributesIntegrationTest extends AbstractCoap
     }
 
     private byte[] getAttributesProtoPayloadBytes() {
-
         DeviceProfileTransportConfiguration transportConfiguration = deviceProfile.getProfileData().getTransportConfiguration();
         assertTrue(transportConfiguration instanceof CoapDeviceProfileTransportConfiguration);
         CoapDeviceProfileTransportConfiguration coapTransportConfiguration = (CoapDeviceProfileTransportConfiguration) transportConfiguration;
