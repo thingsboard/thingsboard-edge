@@ -108,7 +108,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         if (doValidate) {
             dashboardValidator.validate(dashboard, DashboardInfo::getTenantId);
         }
-        return dashboardDao.save(dashboard.getTenantId(), dashboard);
+        try {
+            return dashboardDao.save(dashboard.getTenantId(), dashboard);
+        } catch (Exception e) {
+            checkConstraintViolation(e, "dashboard_external_id_unq_key", "Dashboard with such external id already exists!");
+            throw e;
+        }
     }
 
     @Override

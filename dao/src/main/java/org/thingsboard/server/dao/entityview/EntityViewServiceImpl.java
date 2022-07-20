@@ -108,9 +108,15 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         } else if (entityView.getId() != null) {
             old = findEntityViewById(entityView.getTenantId(), entityView.getId());
         }
-        EntityView saved = entityViewDao.save(entityView.getTenantId(), entityView);
-        publishEvictEvent(new EntityViewEvictEvent(saved.getTenantId(), saved.getId(), saved.getEntityId(), old != null ? old.getEntityId() : null, saved.getName(), old != null ? old.getName() : null));
-        return saved;
+        try {
+            EntityView saved = entityViewDao.save(entityView.getTenantId(), entityView);
+            publishEvictEvent(new EntityViewEvictEvent(saved.getTenantId(), saved.getId(), saved.getEntityId(), old != null ? old.getEntityId() : null, saved.getName(), old != null ? old.getName() : null));
+            return saved;
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "entity_view_external_id_unq_key", "Entity View with such external id already exists!");
+            throw t;
+        }
     }
 
     @Override
