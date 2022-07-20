@@ -76,7 +76,8 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
         log.trace("Executing saveWidgetsBundle [{}]", widgetsBundle);
         if (doValidate) {
             widgetsBundleValidator.validate(widgetsBundle, WidgetsBundle::getTenantId);
-        }        try {
+        }
+        try {
             return widgetsBundleDao.save(widgetsBundle.getTenantId(), widgetsBundle);
         } catch (Exception e) {
             AbstractCachedEntityService.checkConstraintViolation(e, "widgets_bundle_external_id_unq_key", "Widget Bundle with such external id already exists!");
