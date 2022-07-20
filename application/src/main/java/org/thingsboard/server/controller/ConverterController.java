@@ -140,8 +140,9 @@ public class ConverterController extends AutoCommitController {
                     "Specify existing Converter id to update the converter. " +
                     "Referencing non-existing converter Id will cause 'Not Found' error. " +
                     "Converter name is unique in the scope of tenant. " + NEW_LINE +
-                    CONVERTER_CONFIGURATION_DESCRIPTION
-                    + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
+                    CONVERTER_CONFIGURATION_DESCRIPTION +
+                    "Remove 'id', 'tenantId' from the request body example (below) to create new converter entity. " +
+                    TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody

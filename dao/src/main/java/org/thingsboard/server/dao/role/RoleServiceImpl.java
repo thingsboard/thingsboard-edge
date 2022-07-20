@@ -94,9 +94,15 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         if (doValidate) {
             roleValidator.validate(role, Role::getTenantId);
         }
-        Role savedRole = roleDao.save(tenantId, role);
-        publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
-        return savedRole;
+        try {
+            Role savedRole = roleDao.save(tenantId, role);
+            publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
+            return savedRole;
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "role_external_id_unq_key", "Role with such external id already exists!");
+            throw t;
+        }
     }
 
     @Override

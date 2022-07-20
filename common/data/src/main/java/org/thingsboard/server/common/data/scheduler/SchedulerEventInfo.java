@@ -58,9 +58,9 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
 
     private static final long serialVersionUID = 2807343040519549363L;
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @NoXss
     @Length(fieldName = "name")
@@ -106,7 +106,7 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the scheduler event creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the scheduler event creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
@@ -123,7 +123,7 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
         return name;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;

@@ -142,8 +142,9 @@ public class IntegrationController extends AutoCommitController {
                     "Specify existing Integration id to update the integration. " +
                     "Referencing non-existing integration Id will cause 'Not Found' error. " +
                     "Integration configuration is validated for each type of the integration before it can be created. " +
-                    INTEGRATION_CONFIGURATION_DEFINITION
-                    + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
+                    INTEGRATION_CONFIGURATION_DEFINITION +
+                    "Remove 'id', 'tenantId' from the request body example (below) to create new Integration entity. " +
+                    TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration", method = RequestMethod.POST)
     @ResponseBody

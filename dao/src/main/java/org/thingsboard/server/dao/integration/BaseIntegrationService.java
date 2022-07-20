@@ -96,9 +96,15 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         if (doValidate) {
             integrationValidator.validate(integration, Integration::getTenantId);
         }
-        var result = integrationDao.save(integration.getTenantId(), integration);
-        publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
-        return result;
+        try {
+            var result = integrationDao.save(integration.getTenantId(), integration);
+            publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+            return result;
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "integration_external_id_unq_key", "Integration with such external id already exists!");
+            throw t;
+        }
     }
 
     @Override
