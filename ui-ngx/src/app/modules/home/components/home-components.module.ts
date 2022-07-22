@@ -208,6 +208,7 @@ import { AutoCommitSettingsComponent } from '@home/components/vc/auto-commit-set
 import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-group-list.component';
 import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits/rate-limits.component';
 import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
+import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
 import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
 
 @NgModule({
@@ -367,9 +368,10 @@ import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenan
       RemoveOtherEntitiesConfirmComponent,
       AutoCommitSettingsComponent,
       OwnerEntityGroupListComponent,
+      RateLimitsDetailsDialogComponent,
       RateLimitsComponent,
-      RateLimitsTextComponent,
-      RateLimitsDetailsDialogComponent
+      RateLimitsListComponent,
+      RateLimitsTextComponent
     ],
   imports: [
     CommonModule,
@@ -523,9 +525,10 @@ import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenan
     RemoveOtherEntitiesConfirmComponent,
     AutoCommitSettingsComponent,
     OwnerEntityGroupListComponent,
+    RateLimitsDetailsDialogComponent,
     RateLimitsComponent,
-    RateLimitsTextComponent,
-    RateLimitsDetailsDialogComponent
+    RateLimitsListComponent,
+    RateLimitsTextComponent
   ],
   providers: [
     WidgetComponentService,
