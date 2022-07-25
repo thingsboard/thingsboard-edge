@@ -96,6 +96,7 @@
                   (click)="isFullscreen = !isFullscreen">
             <mat-icon>{{ isFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
           </button>
+          <!-- @voba - merge comment
           <button [fxShow]="currentDashboardId && isEdit && ([resource.VERSION_CONTROL, resource.DASHBOARD] | hasGenericPermission: operation.WRITE)" mat-icon-button
                   #versionControlButton
                   matTooltip="{{'version-control.version-control' | translate}}"
@@ -103,6 +104,7 @@
                   (click)="toggleVersionControl($event, versionControlButton)">
             <mat-icon>history</mat-icon>
           </button>
+          -->
           <button [fxShow]="currentDashboardId && !isEdit && !isMobileApp && canEdit() && !readonly && displayUpdateDashboardImage()" mat-icon-button
                   matTooltip="{{'dashboard.update-image' | translate}}"
                   matTooltipPosition="below"

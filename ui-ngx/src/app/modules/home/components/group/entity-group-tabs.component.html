@@ -95,6 +95,7 @@
          label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">
   <tb-audit-log-table detailsMode="true" [active]="auditLogsTab.isActive" [auditLogMode]="auditLogModes.ENTITY" [entityId]="entity.id"></tb-audit-log-table>
 </mat-tab>
+<!-- @voba - merge comment
 <mat-tab *ngIf="entity && !isEdit && hasVersionControl()"
          label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
   <tb-version-control detailsMode="true" singleEntityMode="true"
@@ -102,3 +103,4 @@
                       [active]="versionControlTab.isActive" [entityId]="entity.id" [groupType]="entity.type"
                       [entityName]="entity.name" [externalEntityId]="entity.externalId || entity.id"></tb-version-control>
 </mat-tab>
+-->
