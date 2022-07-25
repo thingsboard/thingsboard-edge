@@ -121,7 +121,7 @@ public abstract class AbstractMqttIntegrationTest extends AbstractTransportInteg
                 mqttDeviceProfileTransportConfiguration.setDeviceTelemetryTopic(config.getTelemetryTopicFilter());
             }
             if (StringUtils.hasLength(config.getAttributesTopicFilter())) {
-                mqttDeviceProfileTransportConfiguration.setDeviceAttributesTopic(config.getAttributesTopicFilter());
+                mqttDeviceProfileTransportConfiguration.setDeviceAttributesPublishTopic(config.getAttributesTopicFilter());
             }
             mqttDeviceProfileTransportConfiguration.setSendAckOnValidationException(config.isSendAckOnValidationException());
             TransportPayloadTypeConfiguration transportPayloadTypeConfiguration;
