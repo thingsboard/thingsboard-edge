@@ -96,10 +96,10 @@ public class UserCloudProcessor extends BaseCloudProcessor {
             case UNRECOGNIZED:
                 return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
         }
-        ListenableFuture<Void> aDRF = Futures.transform(
-                requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs), future -> null, dbCallbackExecutor);
 
-        ListenableFuture<ListenableFuture<Void>> t = Futures.transform(aDRF, aDR -> {
+        ListenableFuture<Boolean> requestFuture = requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs);
+
+        return Futures.transformAsync(requestFuture, ignored -> {
             if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
                     UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
                 return saveCloudEvent(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST, userId, null);
@@ -107,8 +107,6 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFuture(null);
             }
         }, dbCallbackExecutor);
-
-        return Futures.transform(t, tt -> null, dbCallbackExecutor);
     }
 
     private void safeSetCustomerId(UserUpdateMsg userUpdateMsg, User user) {
