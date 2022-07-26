@@ -66,15 +66,15 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
 
             if (actionType.equals(ActionType.UPDATED)) {
                 notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
-                        savedEntityGroup, user, actionType, true, null);
+                        savedEntityGroup, user, actionType, true, false, null);
             } else {
                 notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
-                        savedEntityGroup, user, actionType, false, null);
+                        savedEntityGroup, user, actionType, false, false,null);
             }
             return savedEntityGroup;
         } catch (Exception e) {
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
-                    entityGroup, user, actionType, false, e);
+                    entityGroup, user, actionType, false, false, e);
             throw e;
         }
     }
@@ -85,10 +85,10 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
         try {
             entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, entityGroupId,
-                    entityGroup, user,  ActionType.DELETED, true, null, entityGroupId.getId().toString());
+                    entityGroup, user,  ActionType.DELETED, true, false, null, entityGroupId.getId().toString());
         } catch (Exception e) {
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
-                    entityGroup, user,  ActionType.DELETED, false, e, entityGroupId.getId().toString());
+                    entityGroup, user,  ActionType.DELETED, false, false, e, entityGroupId.getId().toString());
             throw e;
         }
     }

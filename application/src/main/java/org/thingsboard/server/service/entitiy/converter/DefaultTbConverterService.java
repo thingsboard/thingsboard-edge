@@ -63,7 +63,7 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
             }
 
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedConverter.getId(), savedConverter,
-                    user, actionType, (converter.isEdgeTemplate() && ActionType.UPDATED.equals(actionType)), null);
+                    user, actionType, (converter.isEdgeTemplate() && ActionType.UPDATED.equals(actionType)), false, null);
             return savedConverter;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER), converter,
@@ -85,7 +85,7 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
             }
 
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, converter.getId(), converter,
-                    user, ActionType.DELETED, false, null, converterId.getId().toString());
+                    user, ActionType.DELETED, false, false, null, converterId.getId().toString());
 
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER),
