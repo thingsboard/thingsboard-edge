@@ -237,24 +237,6 @@ public abstract class BaseCloudProcessor {
         }
     }
 
-    protected void updateEvents(TenantId tenantId, Device origin, Device destination) {
-        TimePageLink pageLink = new TimePageLink(100);
-        PageData<Event> pageData;
-        do {
-            pageData = eventService.findEvents(tenantId, origin.getId(), pageLink);
-            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                for (Event event : pageData.getData()) {
-                    event.setEntityId(destination.getId());
-                    eventService.saveAsync(event);
-                }
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
-                }
-            }
-        } while (pageData != null && pageData.hasNext());
-        log.debug("Related events updated, origin [{}], destination [{}]", origin.getId(), destination.getId());
-    }
-
     protected UUID safeGetUUID(long mSB, long lSB) {
         return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
     }
