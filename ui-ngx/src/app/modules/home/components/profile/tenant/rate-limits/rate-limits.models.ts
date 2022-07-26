@@ -88,15 +88,13 @@ export const rateLimitsDialogTitleTranslationMap = new Map<RateLimitsType, strin
 export function stringToRateLimitsArray(rateLimits: string): Array<RateLimits> {
   const result: Array<RateLimits> = [];
   if (rateLimits?.length > 0) {
-    let rateLimitsArrays = rateLimits.split(',');
+    const rateLimitsArrays = rateLimits.split(',');
     for (let i = 0; i < rateLimitsArrays.length; i++) {
-      let valueTime = rateLimitsArrays[i].split(':');
-      let value = valueTime[0];
-      let time = valueTime[1];
+      const [value, time] = rateLimitsArrays[i].split(':');
       const rateLimitControl = {
         value,
         time
-      }
+      };
       result.push(rateLimitControl);
     }
   }
@@ -116,7 +114,7 @@ export function rateLimitsArrayToString(rateLimits: Array<RateLimits>): string {
 
 export function rateLimitsArrayToHtml(translate: TranslateService, rateLimitsArray: Array<RateLimits>): string {
   const rateLimitsHtml = rateLimitsArray.map((rateLimits, index) => {
-    const isLast: boolean = index === rateLimitsArray.length-1;
+    const isLast: boolean = index === rateLimitsArray.length - 1;
     return rateLimitsToHtml(translate, rateLimits, isLast);
   });
   let result: string;
@@ -135,9 +133,8 @@ function rateLimitsToHtml(translate: TranslateService, rateLimit: RateLimits, is
   const operation = translate.instant('tenant-profile.rate-limits.messages-per');
   const seconds = translate.instant('tenant-profile.rate-limits.sec');
   const comma = isLast ? '' : ',';
-  const result = `<span class="tb-rate-limits-value">${value}</span>
-                  <span>${operation}</span>
-                  <span class="tb-rate-limits-value"> ${time}</span>
-                  <span>${seconds}${comma}</span><br>`;
-  return result;
+  return `<span class="tb-rate-limits-value">${value}</span>
+          <span>${operation}</span>
+          <span class="tb-rate-limits-value"> ${time}</span>
+          <span>${seconds}${comma}</span><br>`;
 }
