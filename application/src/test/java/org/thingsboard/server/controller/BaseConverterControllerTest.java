@@ -39,9 +39,11 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -49,12 +51,12 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,6 +103,9 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         converter.setName("My converter");
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
         Assert.assertNotNull(savedConverter);
@@ -109,11 +114,19 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         Assert.assertEquals(savedTenant.getId(), savedConverter.getTenantId());
         Assert.assertEquals(converter.getName(), savedConverter.getName());
 
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED);
+
         savedConverter.setName("My new converter");
         doPost("/api/converter", savedConverter, Converter.class);
 
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertEquals(foundConverter.getName(), savedConverter.getName());
+
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.UPDATED);
     }
 
     @Test
@@ -136,41 +149,97 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
         Converter savedConverter = doPost("/api/converter", converter, Converter.class);
 
-        doDelete("/api/converter/" + savedConverter.getId().getId().toString())
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String converterIdStr = savedConverter.getId().getId().toString();
+        doDelete("/api/converter/" + converterIdStr)
                 .andExpect(status().isOk());
 
-        doGet("/api/converter/" + savedConverter.getId().getId().toString())
-                .andExpect(status().isNotFound());
+        doGet("/api/converter/" + converterIdStr)
+                .andExpect(status().isNotFound())
+                .andExpect(statusReason(containsString(msgErrorNoFound("Converter", converterIdStr))));
+
+        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.DELETED, converterIdStr);
+
     }
 
     @Test
     public void testSaveConverterWithEmptyType() throws Exception {
         Converter converter = new Converter();
         converter.setName("My converter");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "Converter type " + msgErrorShouldBeSpecified;
         doPost("/api/converter", converter)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Converter type should be specified")));
+                .andExpect(statusReason(containsString(msgError)));
+
+        converter.setTenantId(savedTenant.getId());
+        testNotifyEntityEqualsOneTimeServiceNeverError(converter,
+                savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
+                new DataValidationException(msgError));
     }
 
     @Test
     public void testSaveConverterWithEmptyName() throws Exception {
         Converter converter = new Converter();
         converter.setType(ConverterType.UPLINK);
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "Converter name " + msgErrorShouldBeSpecified;
         doPost("/api/converter", converter)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Converter name should be specified")));
+                .andExpect(statusReason(containsString(msgError)));
+
+        converter.setTenantId(savedTenant.getId());
+        testNotifyEntityEqualsOneTimeServiceNeverError(converter,
+                savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED,
+                new DataValidationException(msgError));
+    }
+
+
+    @Test
+    public void testSaveConverterWithEmptyConfiguration() throws Exception {
+        Converter converter = new Converter();
+        converter.setType(ConverterType.UPLINK);
+        converter.setName("My converter");
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        String msgError = "Converter configuration " + msgErrorShouldBeSpecified;
+        doPost("/api/converter", converter)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        converter.setTenantId(savedTenant.getId());
+        testNotifyEntityEqualsOneTimeServiceNeverError(converter,
+                savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, new DataValidationException(msgError));
     }
 
     @Test
     public void testFindTenantConverters() throws Exception {
         List<Converter> converters = new ArrayList<>();
-        for (int i = 0; i < 178; i++) {
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        int cntEntity = 178;
+        for (int i = 0; i < cntEntity; i++) {
             Converter converter = new Converter();
             converter.setName("Converter" + i);
             converter.setType(ConverterType.UPLINK);
             converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
             converters.add(doPost("/api/converter", converter, Converter.class));
         }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(new Converter(), new Converter(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, cntEntity);
+
         List<Converter> loadedConverters = new ArrayList<>();
         PageLink pageLink = new PageLink(23);
         PageData<Converter> pageData;
@@ -252,10 +321,17 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
 
         Assert.assertEquals(converters1, loadedConverters1);
 
+        Mockito.reset(tbClusterService, auditLogService);
+
+        int cntEntity = loadedConverters.size();
         for (Converter converter : loadedConverters) {
             doDelete("/api/converter/" + converter.getId().getId().toString())
                     .andExpect(status().isOk());
         }
+
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNeverAdditionalInfoAny(new Converter(), new Converter(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.DELETED, cntEntity, 1);
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/converters?",
@@ -268,7 +344,6 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
             doDelete("/api/converter/" + converter.getId().getId().toString())
                     .andExpect(status().isOk());
         }
-
         pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/converters?",
                 new TypeReference<PageData<Converter>>() {
@@ -300,13 +375,26 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
         integration.setEnabled(false);
         doPost("/api/integration", integration, Integration.class);
 
-        String error = readResponse(doDelete("/api/converter/" + uplinkConverter.getId())
-                .andExpect(status().isBadRequest()), String.class);
-        assertThat(error).containsIgnoringCase("The converter referenced by the integration cannot be deleted!");
+        Mockito.reset(tbClusterService, auditLogService);
 
-        error = readResponse(doDelete("/api/converter/" + downlinkConverter.getId())
-                .andExpect(status().isBadRequest()), String.class);
-        assertThat(error).containsIgnoringCase("The downlink converter referenced by the integration cannot be deleted!");
+        String msgError = "The converter referenced by the integration cannot be deleted!";
+        doDelete("/api/converter/" + uplinkConverter.getId())
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityIsNullOneTimeEdgeServiceNeverError(uplinkConverter,
+                savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.DELETED, new DataValidationException(msgError), uplinkConverter.getId().getId().toString());
+
+        Mockito.reset(tbClusterService, auditLogService);
+
+        msgError = "The downlink converter referenced by the integration cannot be deleted!";
+        doDelete("/api/converter/" + downlinkConverter.getId())
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString(msgError)));
+
+        testNotifyEntityIsNullOneTimeEdgeServiceNeverError(downlinkConverter,
+                savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.DELETED, new DataValidationException(msgError), downlinkConverter.getId().getId().toString());
     }
-
 }

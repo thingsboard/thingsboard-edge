@@ -233,7 +233,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         List<DashboardInfo> loadedDashboards = new ArrayList<>();
         PageLink pageLink = new PageLink(24);
-        PageData<DashboardInfo> pageData = null;
+        PageData<DashboardInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
                     new TypeReference<>() {
@@ -276,10 +276,10 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         List<DashboardInfo> loadedDashboardsTitle1 = new ArrayList<>();
         PageLink pageLink = new PageLink(15, 0, title1);
-        PageData<DashboardInfo> pageData = null;
+        PageData<DashboardInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
-                    new TypeReference<PageData<DashboardInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedDashboardsTitle1.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -296,7 +296,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         pageLink = new PageLink(4, 0, title2);
         do {
             pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
-                    new TypeReference<PageData<DashboardInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             loadedDashboardsTitle2.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -322,7 +322,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         pageLink = new PageLink(4, 0, title1);
         pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
-                new TypeReference<PageData<DashboardInfo>>() {
+                new TypeReference<>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -334,7 +334,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         pageLink = new PageLink(4, 0, title2);
         pageData = doGetTypedWithPageLink("/api/tenant/dashboards?",
-                new TypeReference<PageData<DashboardInfo>>() {
+                new TypeReference<>() {
                 }, pageLink);
         Assert.assertFalse(pageData.hasNext());
         Assert.assertEquals(0, pageData.getData().size());
@@ -356,8 +356,10 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         customerUserGroup = doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(customerUserGroup, customerUserGroup.getId(), customerUserGroup.getId(), savedTenant.getId(),
-                tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED);
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(customerUserGroup, customerUserGroup,
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, ActionType.ADDED, 2, 0 , 2,
+                customerUserGroup.getType(), customerUserGroup.getId());
 
         EntityGroup tenantDashboardGroup = new EntityGroup();
         tenantDashboardGroup.setType(EntityType.DASHBOARD);
@@ -418,10 +420,10 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         List<DashboardInfo> tenantAdminDashboards = new ArrayList<>();
         PageLink pageLink = new PageLink(100);
-        PageData<DashboardInfo> pageData = null;
+        PageData<DashboardInfo> pageData;
         do {
             pageData = doGetTypedWithPageLink("/api/user/dashboards?",
-                    new TypeReference<PageData<DashboardInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink);
             tenantAdminDashboards.addAll(pageData.getData());
             if (pageData.hasNext()) {
@@ -443,7 +445,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         List<DashboardInfo> customerUserDashboards = new ArrayList<>();
         do {
             pageData = doGetTypedWithPageLink("/api/user/dashboards?userId={userId}&",
-                    new TypeReference<PageData<DashboardInfo>>() {
+                    new TypeReference<>() {
                     }, pageLink, savedUser.getId().getId().toString());
             customerUserDashboards.addAll(pageData.getData());
             if (pageData.hasNext()) {

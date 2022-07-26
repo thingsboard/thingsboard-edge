@@ -85,7 +85,6 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
@@ -157,6 +156,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected TenantId tenantId;
     protected UserId tenantAdminUserId;
+    protected User tenantAdminUser;
     protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected CustomerId differentCustomerId;
@@ -219,14 +219,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
 
-        User tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(tenantId);
-        tenantAdmin.setEmail(TENANT_ADMIN_EMAIL);
+        tenantAdminUser = new User();
+        tenantAdminUser.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdminUser.setTenantId(tenantId);
+        tenantAdminUser.setEmail(TENANT_ADMIN_EMAIL);
 
-        tenantAdmin = createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
-        tenantAdminUserId = tenantAdmin.getId();
-        tenantAdminCustomerId = tenantAdmin.getCustomerId();
+        tenantAdminUser = createUserAndLogin(tenantAdminUser, TENANT_ADMIN_PASSWORD);
+        tenantAdminUserId = tenantAdminUser.getId();
+        tenantAdminCustomerId = tenantAdminUser.getCustomerId();
 
         Customer customer = new Customer();
         customer.setTitle("Customer");

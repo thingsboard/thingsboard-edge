@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -86,6 +86,7 @@ import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
@@ -130,8 +131,12 @@ import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class EntityGroupController extends AutoCommitController {
+
+    private final TbEntityGroupService tbEntityGroupService;
+    private final OwnersCacheService ownersCacheService;
 
     public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
@@ -144,9 +149,6 @@ public class EntityGroupController extends AutoCommitController {
     private static final String ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION = "Entity Group type";
     private static final String SHORT_ENTITY_VIEW_DESCRIPTION = "Short Entity View object contains the entity id and number of fields (attributes, telemetry, etc). " +
             "List of those fields is configurable and defined in the group configuration.";
-
-    @Autowired
-    private OwnersCacheService ownersCacheService;
 
     @ApiOperation(value = "Get Entity Group Info (getEntityGroupById)",
             notes = "Fetch the Entity Group object based on the provided Entity Group Id. "
@@ -217,47 +219,27 @@ public class EntityGroupController extends AutoCommitController {
     @ResponseBody
     public EntityGroupInfo saveEntityGroup(
             @ApiParam(value = "A JSON value representing the entity group.", required = true)
-            @RequestBody EntityGroup entityGroup) throws ThingsboardException {
+            @RequestBody EntityGroup entityGroup) throws Exception {
         SecurityUser currentUser = getCurrentUser();
-        try {
-            checkEntityGroupType(entityGroup.getType());
-
-            Operation operation = entityGroup.getId() == null ? Operation.CREATE : Operation.WRITE;
-
-            EntityId parentEntityId = entityGroup.getOwnerId();
-            if (operation == Operation.CREATE) {
-                if (parentEntityId == null || parentEntityId.isNullUid()) {
-                    parentEntityId = currentUser.getOwnerId();
-                } else {
-                    if (!ownersCacheService.fetchOwnersHierarchy(getTenantId(), parentEntityId).contains(currentUser.getOwnerId())) {
-                        throw new ThingsboardException("Unable to create entity group: " +
-                                "Invalid entity group ownerId!", ThingsboardErrorCode.PERMISSION_DENIED);
-                    }
-                }
+        checkEntityGroupType(entityGroup.getType());
+        Operation operation = entityGroup.getId() == null ? Operation.CREATE : Operation.WRITE;
+        EntityId parentEntityId = entityGroup.getOwnerId();
+        if (operation == Operation.CREATE) {
+            if (parentEntityId == null || parentEntityId.isNullUid()) {
+                parentEntityId = currentUser.getOwnerId();
             } else {
-                validateEntityId(parentEntityId, "Incorrect entity group ownerId " + parentEntityId);
+                if (!ownersCacheService.fetchOwnersHierarchy(getTenantId(), parentEntityId).contains(currentUser.getOwnerId())) {
+                    throw new ThingsboardException("Unable to create entity group: " +
+                            "Invalid entity group ownerId!", ThingsboardErrorCode.PERMISSION_DENIED);
+                }
             }
-
-            accessControlService.checkEntityGroupPermission(currentUser, operation, entityGroup);
-
-            EntityGroup savedEntityGroup = checkNotNull(entityGroupService.saveEntityGroup(getTenantId(), parentEntityId, entityGroup));
-
-            autoCommit(currentUser, savedEntityGroup.getType(), savedEntityGroup.getId());
-
-            notificationEntityService.logEntityAction(getTenantId(), savedEntityGroup.getId(), savedEntityGroup,
-                    entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
-
-            if (entityGroup.getId() != null) {
-                sendEntityNotificationMsg(getTenantId(), savedEntityGroup.getId(),
-                        EdgeEventActionType.UPDATED);
-            }
-
-            return toEntityGroupInfo(savedEntityGroup);
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP), entityGroup,
-                    null, entityGroup.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
-            throw handleException(e);
+        } else {
+            validateEntityId(parentEntityId, "Incorrect entity group ownerId " + parentEntityId);
         }
+
+        accessControlService.checkEntityGroupPermission(currentUser, operation, entityGroup);
+
+        return toEntityGroupInfo(tbEntityGroupService.save(getTenantId(), parentEntityId, entityGroup, getCurrentUser()));
     }
 
     @ApiOperation(value = "Delete Entity Group (deleteEntityGroup)",
@@ -268,40 +250,27 @@ public class EntityGroupController extends AutoCommitController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteEntityGroup(
             @ApiParam(value = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
-            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws ThingsboardException {
+            @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId) throws Exception {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
-        try {
-            EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
-            EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.DELETE);
-            if (entityGroup.isGroupAll()) {
-                throw new ThingsboardException("Unable to remove entity group: " +
-                        "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
-            }
-
-            List<GroupPermissionInfo> groupPermissions = new ArrayList<>();
-            groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get());
-            if (entityGroup.getType() == EntityType.USER) {
-                groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(getTenantId(), entityGroupId).get());
-            }
-
-            for (GroupPermission groupPermission : groupPermissions) {
-                userPermissionsService.onGroupPermissionDeleted(groupPermission);
-            }
-
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId);
-
-            entityGroupService.deleteEntityGroup(getTenantId(), entityGroupId);
-
-            notificationEntityService.logEntityAction(getTenantId(), entityGroupId, entityGroup,
-                    ActionType.DELETED, getCurrentUser(), strEntityGroupId);
-
-            sendDeleteNotificationMsg(getTenantId(), entityGroupId, relatedEdgeIds);
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.ENTITY_GROUP),
-                    ActionType.DELETED, getCurrentUser(), e, strEntityGroupId);
-
-            throw handleException(e);
+        EntityGroupId entityGroupId = new EntityGroupId(toUUID(strEntityGroupId));
+        EntityGroup entityGroup = checkEntityGroupId(entityGroupId, Operation.DELETE);
+        if (entityGroup.isGroupAll()) {
+            throw new ThingsboardException("Unable to remove entity group: " +
+                    "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
+
+        List<GroupPermissionInfo> groupPermissions = new ArrayList<>();
+        groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(getTenantId(), entityGroupId).get());
+        if (entityGroup.getType() == EntityType.USER) {
+            groupPermissions.addAll(groupPermissionService.findGroupPermissionInfoListByTenantIdAndUserGroupIdAsync(getTenantId(), entityGroupId).get());
+        }
+
+        for (GroupPermission groupPermission : groupPermissions) {
+            userPermissionsService.onGroupPermissionDeleted(groupPermission);
+        }
+
+        List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(getTenantId(), entityGroupId);
+        tbEntityGroupService.delete(getTenantId(), relatedEdgeIds, entityGroup, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Entity Groups by entity type (getEntityGroupsByType)",
