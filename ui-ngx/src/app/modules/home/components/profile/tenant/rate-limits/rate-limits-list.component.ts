@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormArray,
@@ -42,13 +42,14 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import {
   RateLimits,
   rateLimitsArrayToString,
   stringToRateLimitsArray
-} from '@shared/models/rate-limits.models';
+} from './rate-limits.models';
 import { isDefinedAndNotNull } from '@core/utils';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-rate-limits-list',
@@ -67,7 +68,7 @@ import { isDefinedAndNotNull } from '@core/utils';
     }
   ]
 })
-export class RateLimitsListComponent implements ControlValueAccessor, Validator, OnInit {
+export class RateLimitsListComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
@@ -76,25 +77,41 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
   rateLimitsControl: FormControl;
 
   private propagateChange = (v: any) => { };
-
   private valueChangeSubscription: Subscription = null;
+  private destroy$ = new Subject();
 
-  constructor(private fb: FormBuilder) {
-  }
+  constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
-    this.rateLimitsListFormGroup = this.fb.group({});
-    this.rateLimitsListFormGroup.addControl('rateLimits',
-      this.fb.array([]));
+    this.rateLimitsListFormGroup = this.fb.group({
+      rateLimits: this.fb.array([])
+    });
     this.rateLimitsControl = this.fb.control(null);
-    this.rateLimitsListFormGroup.valueChanges.subscribe((value) => {
+    this.valueChangeSubscription = this.rateLimitsListFormGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
         this.updateView(value?.rateLimits);
       }
     );
   }
 
-  rateLimitsFormArray(): FormArray {
+  public removeRateLimits(index: number) {
+    (this.rateLimitsListFormGroup.get('rateLimits') as FormArray).removeAt(index);
+  }
+
+  public addRateLimits() {
+    this.rateLimitsFormArray.push(this.fb.group({
+      value: [null, [Validators.required]],
+      time: [null, [Validators.required]]
+    }));
+  }
+
+  get rateLimitsFormArray(): FormArray {
     return this.rateLimitsListFormGroup.get('rateLimits') as FormArray;
+  }
+
+  get rateLimitsArray(): Array<RateLimits> {
+    return this.rateLimitsControl.value;
   }
 
   registerOnChange(fn: any): void {
@@ -122,16 +139,11 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
   }
 
   writeValue(value: string) {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const rateLimitsControls: Array<FormGroup> = [];
     if (value) {
       let rateLimitsArray = value.split(',');
       for (let i = 0; i < rateLimitsArray.length; i++) {
-        let valueTime = rateLimitsArray[i].split(':');
-        let value = valueTime[0];
-        let time = valueTime[1];
+        const [value, time] = rateLimitsArray[i].split(':');
         const rateLimitsControl = this.fb.group({
           value: [value, [Validators.required]],
           time: [time, [Validators.required]]
@@ -142,29 +154,15 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
         rateLimitsControls.push(rateLimitsControl);
       }
     }
-    this.rateLimitsListFormGroup.setControl('rateLimits', this.fb.array(rateLimitsControls));
+    this.rateLimitsListFormGroup.setControl('rateLimits', this.fb.array(rateLimitsControls), {emitEvent: false});
     this.rateLimitsControl.patchValue(stringToRateLimitsArray(value), {emitEvent: false});
-    this.valueChangeSubscription = this.rateLimitsListFormGroup.valueChanges.subscribe((value) => {
-      this.updateView(value?.rateLimits);
-    });
-  }
-
-  public removeRateLimits(index: number) {
-    (this.rateLimitsListFormGroup.get('rateLimits') as FormArray).removeAt(index);
-  }
-
-  public addRateLimits() {
-    const rateLimitsArray = this.rateLimitsListFormGroup.get('rateLimits') as FormArray;
-    rateLimitsArray.push(this.fb.group({
-      value: [null, [Validators.required]],
-      time: [null, [Validators.required]]
-    }));
-    this.rateLimitsListFormGroup.updateValueAndValidity();
   }
 
   updateView(rateLimitsArray: Array<RateLimits>) {
     if (rateLimitsArray.length > 0) {
-      const notNullRateLimits = rateLimitsArray.filter(rateLimits => isDefinedAndNotNull(rateLimits.value) && isDefinedAndNotNull(rateLimits.time));
+      const notNullRateLimits = rateLimitsArray.filter(rateLimits =>
+        isDefinedAndNotNull(rateLimits.value) && isDefinedAndNotNull(rateLimits.time)
+      );
       const rateLimitsString = rateLimitsArrayToString(notNullRateLimits);
       this.propagateChange(rateLimitsString);
       this.rateLimitsControl.patchValue(stringToRateLimitsArray(rateLimitsString), {emitEvent: false});
@@ -172,5 +170,10 @@ export class RateLimitsListComponent implements ControlValueAccessor, Validator,
       this.propagateChange(null);
       this.rateLimitsControl.patchValue(null, {emitEvent: false});
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

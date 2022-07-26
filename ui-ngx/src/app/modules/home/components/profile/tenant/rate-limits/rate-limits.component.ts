@@ -49,7 +49,7 @@ import {
   rateLimitsLabelTranslationMap,
   RateLimitsType,
   stringToRateLimitsArray
-} from '@shared/models/rate-limits.models';
+} from './rate-limits.models';
 
 @Component({
   selector: 'tb-rate-limits',

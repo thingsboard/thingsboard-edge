@@ -29,85 +29,41 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { RateLimits, rateLimitsArrayToHtml } from '@shared/models/rate-limits.models';
+import { RateLimits, rateLimitsArrayToHtml } from './rate-limits.models';
 
 @Component({
   selector: 'tb-rate-limits-text',
   templateUrl: './rate-limits-text.component.html',
-  styleUrls: ['./rate-limits-text.component.scss'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => RateLimitsTextComponent),
-      multi: true
-    }
-  ]
+  styleUrls: ['./rate-limits-text.component.scss']
 })
-export class RateLimitsTextComponent implements ControlValueAccessor, OnInit {
+export class RateLimitsTextComponent implements OnChanges {
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  rateLimitsArray: Array<RateLimits>;
 
   @Input()
   disabled: boolean;
 
-  @Input()
-  noRateLimitsText = this.translate.instant('tenant-profile.rate-limits.not-set');
+  rateLimitsText: string;
 
-  @Input()
-  nowrap = false;
+  constructor(private translate: TranslateService) {}
 
-  requiredClass = false;
-
-  public rateLimitsText: string;
-
-  private propagateChange = (v: any) => { };
-
-  constructor(private dialog: MatDialog,
-              private fb: FormBuilder,
-              private translate: TranslateService) {
-  }
-
-  registerOnChange(fn: any): void {
-    this.propagateChange = fn;
-  }
-
-  registerOnTouched(fn: any): void {
-  }
-
-  ngOnInit() {
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-  }
-
-  writeValue(value: Array<RateLimits>): void {
-    this.updateText(value);
-  }
-
-  private updateText(value: Array<RateLimits>) {
-    this.requiredClass = false;
-    if (value && value.length) {
-      this.rateLimitsText = rateLimitsArrayToHtml(this.translate, value);
-    } else {
-      if (this.required && !this.disabled) {
-        this.requiredClass = true;
-      } else {
-        this.rateLimitsText = this.noRateLimitsText;
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      if (propName === 'rateLimitsArray') {
+        const change = changes[propName];
+        this.updateView(change.currentValue);
       }
     }
   }
 
+  private updateView(value: Array<RateLimits>): void {
+    if (value?.length) {
+      this.rateLimitsText = rateLimitsArrayToHtml(this.translate, value);
+    } else {
+      this.rateLimitsText = this.translate.instant('tenant-profile.rate-limits.not-set');
+    }
+  }
 }

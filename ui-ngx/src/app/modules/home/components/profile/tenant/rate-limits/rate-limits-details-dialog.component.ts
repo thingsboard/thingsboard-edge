@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, Inject, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { FormBuilder, FormControl, FormGroup, FormGroupDirective, NgForm } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
 import { TranslateService } from '@ngx-translate/core';
@@ -46,15 +46,11 @@ export interface RateLimitsDetailsDialogData {
 }
 
 @Component({
-  templateUrl: './rate-limits-details-dialog.component.html',
-  providers: [{provide: ErrorStateMatcher, useExisting: RateLimitsDetailsDialogComponent}]
+  templateUrl: './rate-limits-details-dialog.component.html'
 })
-export class RateLimitsDetailsDialogComponent extends DialogComponent<RateLimitsDetailsDialogComponent, any>
-  implements OnInit, ErrorStateMatcher {
+export class RateLimitsDetailsDialogComponent extends DialogComponent<RateLimitsDetailsDialogComponent> {
 
   editDetailsFormGroup: FormGroup;
-
-  submitted: boolean = false;
 
   rateLimits: string = this.data.rateLimits;
 
@@ -64,11 +60,10 @@ export class RateLimitsDetailsDialogComponent extends DialogComponent<RateLimits
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: RateLimitsDetailsDialogData,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher,
-              public dialogRef: MatDialogRef<RateLimitsDetailsDialogComponent, any>,
+              public dialogRef: MatDialogRef<RateLimitsDetailsDialogComponent>,
               private fb: FormBuilder,
               public translate: TranslateService) {
     super(store, router, dialogRef);
-
     this.editDetailsFormGroup = this.fb.group({
       rateLimits: [this.rateLimits, []]
     });
@@ -77,22 +72,7 @@ export class RateLimitsDetailsDialogComponent extends DialogComponent<RateLimits
     }
   }
 
-  ngOnInit(): void {
-  }
-
-  isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
-    const originalErrorState = this.errorStateMatcher.isErrorState(control, form);
-    const customErrorState = !!(control && control.invalid && this.submitted);
-    return originalErrorState || customErrorState;
-  }
-
-  cancel(): void {
-    this.dialogRef.close(false);
-  }
-
   save(): void {
-    this.submitted = true;
     this.dialogRef.close(this.editDetailsFormGroup.get('rateLimits').value);
   }
-
 }
