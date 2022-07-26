@@ -45,11 +45,13 @@ import {
   RateLimitsDetailsDialogData
 } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
 import {
+  RateLimits,
   rateLimitsDialogTitleTranslationMap,
   rateLimitsLabelTranslationMap,
   RateLimitsType,
   stringToRateLimitsArray
 } from './rate-limits.models';
+import { isDefined } from '@core/utils';
 
 @Component({
   selector: 'tb-rate-limits',
@@ -79,6 +81,10 @@ export class RateLimitsComponent implements ControlValueAccessor, OnInit, Valida
   label: string;
 
   rateLimitsFormGroup: FormGroup;
+
+  get rateLimitsArray(): Array<RateLimits> {
+    return this.rateLimitsFormGroup.get('rateLimits').value;
+  }
 
   private modelValue: string;
 
@@ -135,7 +141,7 @@ export class RateLimitsComponent implements ControlValueAccessor, OnInit, Valida
         readonly: this.disabled
       }
     }).afterClosed().subscribe((result) => {
-      if (result || result === null) {
+      if (isDefined(result)) {
         this.modelValue = result;
         this.updateModel();
       }
