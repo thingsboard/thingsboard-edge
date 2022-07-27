@@ -14,24 +14,7 @@
 # limitations under the License.
 #
 
-FROM thingsboard/openjdk11
-
-RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-11-openjdk/security/java.security
-
-COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
-
-RUN chmod a+x /tmp/*.sh \
-    && mv /tmp/start-tb-edge.sh /usr/bin \
-    && mv /tmp/upgrade-tb-edge.sh /usr/bin \
-    && mv /tmp/install-tb-edge.sh /usr/bin
-
-RUN dpkg -i /tmp/${pkg.name}.deb
-RUN rm /tmp/${pkg.name}.deb
-
-RUN systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :
-
-RUN mv /tmp/logback.xml ${pkg.installFolder}/conf \
-    && mv /tmp/${pkg.name}.conf ${pkg.installFolder}/conf
+FROM thingsboard/openjdk11:bullseye-slim
 
 ENV DATA_FOLDER=/data
 
@@ -42,11 +25,22 @@ ENV SPRING_DRIVER_CLASS_NAME=org.postgresql.Driver
 ENV SPRING_DATASOURCE_USERNAME=postgres
 ENV SPRING_DATASOURCE_PASSWORD=postgres
 
-RUN mkdir -p /data
-RUN chown -R ${pkg.user}:${pkg.user} /data
+COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
-RUN chown -R ${pkg.user}:${pkg.user} /var/log/${pkg.name}
-RUN chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
+RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-11-openjdk/security/java.security \
+    && chmod a+x /tmp/*.sh \
+    && mv /tmp/start-tb-edge.sh /usr/bin \
+    && mv /tmp/upgrade-tb-edge.sh /usr/bin \
+    && mv /tmp/install-tb-edge.sh /usr/bin \
+    && dpkg -i /tmp/${pkg.name}.deb \
+    && rm /tmp/${pkg.name}.deb \
+    && (systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :) \
+    && mv /tmp/logback.xml ${pkg.installFolder}/conf \
+    && mv /tmp/${pkg.name}.conf ${pkg.installFolder}/conf \
+    && mkdir -p /data \
+    && chown -R ${pkg.user}:${pkg.user} /data \
+    && chown -R ${pkg.user}:${pkg.user} /var/log/${pkg.name} \
+    && chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
 
 USER ${pkg.user}
 
