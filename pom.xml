@@ -169,7 +169,7 @@
         <module>rule-engine</module>
         <module>rule-engine-pe</module>
         <module>dao</module>
-        <!--<module>transport</module>-->
+        <module>transport</module>
         <module>integration</module>
         <module>ui-ngx</module>
         <module>tools</module>
