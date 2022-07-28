@@ -34,10 +34,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
+import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.util.ExceptionUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.ConverterDebugEvent;
 
 import java.nio.charset.StandardCharsets;
 
@@ -68,19 +70,20 @@ public abstract class AbstractDataConverter implements TBDataConverter {
 
     protected void persistDebug(ConverterContext context, String type, String inMessageType, byte[] inMessage,
                                 String outMessageType, byte[] outMessage, String metadata, Exception exception) {
-        ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServiceId())
-                .put("type", type)
-                .put("inMessageType", inMessageType)
-                .put("in", toDebugMessage(inMessageType, inMessage))
-                .put("outMessageType", outMessageType)
-                .put("out", toDebugMessage(outMessageType, outMessage))
-                .put("metadata", metadata);
-
+        var event = ConverterDebugEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(configuration.getId().getId())
+                .serviceId(context.getServiceId())
+                .eventType(type)
+                .inMsgType(inMessageType)
+                .inMsg(toDebugMessage(inMessageType, inMessage))
+                .outMsgType(outMessageType)
+                .outMsg(toDebugMessage(outMessageType, outMessage))
+                .metadata(metadata);
         if (exception != null) {
-            node = node.put("error", toString(exception));
+            event.error(toString(exception));
         }
-        context.saveEvent(DataConstants.DEBUG_CONVERTER, node, new DebugEventCallback());
+        context.saveEvent(event.build(), new DebugEventCallback());
     }
 
     private static class DebugEventCallback implements IntegrationCallback<Void> {

@@ -52,7 +52,7 @@ public class ErrorEventFilter implements EventFilter {
     }
 
     @Override
-    public boolean hasFilterForJsonBody() {
+    public boolean isNotEmpty() {
         return !StringUtils.isEmpty(server) || !StringUtils.isEmpty(method) || !StringUtils.isEmpty(errorStr);
     }
 }

@@ -57,9 +57,9 @@ import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -203,10 +203,10 @@ public class ConverterController extends AutoCommitController {
         checkParameter(CONVERTER_ID, strConverterId);
         ConverterId converterId = new ConverterId(toUUID(strConverterId));
         checkConverterId(converterId, Operation.READ);
-        List<Event> events = eventService.findLatestEvents(getTenantId(), converterId, DataConstants.DEBUG_CONVERTER, 1);
+        List<EventInfo> events = eventService.findLatestEvents(getTenantId(), converterId, EventType.DEBUG_CONVERTER, 1);
         JsonNode result = null;
         if (events != null && !events.isEmpty()) {
-            Event event = events.get(0);
+            EventInfo event = events.get(0);
             JsonNode body = event.getBody();
             if (body.has("type")) {
                 String type = body.get("type").asText();

@@ -41,7 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -283,15 +283,15 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                 .setData(TbMsg.toByteString(tbMsg)).build();
     }
 
-    private List<Event> getIntegrationDebugConnectionMessages(int eventsCount, long timeout) throws Exception {
+    private List<EventInfo> getIntegrationDebugConnectionMessages(int eventsCount, long timeout) throws Exception {
         long startTs = System.currentTimeMillis();
         long endTs = startTs + timeout;
-        List<Event> connectionMsgs;
+        List<EventInfo> connectionMsgs;
         do {
             SortOrder sortOrder = new SortOrder("createdTime", SortOrder.Direction.DESC);
             TimePageLink pageLink = new TimePageLink(100, 0, null, sortOrder, startTs, endTs);
-            PageData<Event> events = doGetTypedWithTimePageLink("/api/events/INTEGRATION/{entityId}/DEBUG_INTEGRATION?tenantId={tenantId}&",
-                    new TypeReference<PageData<Event>>() {
+            PageData<EventInfo> events = doGetTypedWithTimePageLink("/api/events/INTEGRATION/{entityId}/DEBUG_INTEGRATION?tenantId={tenantId}&",
+                    new TypeReference<PageData<EventInfo>>() {
                     },
                     pageLink, integration.getId(), integration.getTenantId());
             connectionMsgs = events.getData().stream().filter(event -> !"Uplink".equals(event.getBody().get("type").asText())).collect(Collectors.toList());
@@ -305,11 +305,11 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     }
 
     private Boolean isIntegrationConnected(int eventsCount, long timeout) throws Exception {
-        List<Event> eventsList = getIntegrationDebugConnectionMessages(eventsCount, timeout);
+        List<EventInfo> eventsList = getIntegrationDebugConnectionMessages(eventsCount, timeout);
         if (eventsList.isEmpty()) {
             return false;
         }
-        Event event = eventsList.get(0);
+        EventInfo event = eventsList.get(0);
         ObjectNode eventBody = (ObjectNode) event.getBody();
         return "CONNECT".equals(eventBody.get("type").asText()) && "SUCCESS".equals(eventBody.get("status").asText());
     }
