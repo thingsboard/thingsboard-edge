@@ -176,7 +176,7 @@ public class DeviceSessionCtx extends MqttDeviceAwareSessionContext {
             TransportPayloadTypeConfiguration transportPayloadTypeConfiguration = mqttConfig.getTransportPayloadTypeConfiguration();
             payloadType = transportPayloadTypeConfiguration.getTransportPayloadType();
             telemetryTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceTelemetryTopic());
-            attributesPublishTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesPublishTopic());
+            attributesPublishTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesTopic());
             attributesSubscribeTopicFilter = MqttTopicFilterFactory.toFilter(mqttConfig.getDeviceAttributesSubscribeTopic());
             sendAckOnValidationException = mqttConfig.isSendAckOnValidationException();
             if (TransportPayloadType.PROTOBUF.equals(payloadType)) {
