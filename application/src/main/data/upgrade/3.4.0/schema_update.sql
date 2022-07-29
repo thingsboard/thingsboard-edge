@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS converter_debug_event (
     e_out_message_type varchar,
     e_out varchar,
     e_metadata varchar,
-    e_error
+    e_error varchar
 ) PARTITION BY RANGE (ts);
 
 CREATE TABLE IF NOT EXISTS integration_debug_event (
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS integration_debug_event (
     e_message_type varchar,
     e_message varchar,
     e_status varchar,
-    e_error
+    e_error varchar
 ) PARTITION BY RANGE (ts);
 
 CREATE TABLE IF NOT EXISTS raw_data_event (
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
     service_id varchar NOT NULL,
     e_uuid varchar,
     e_message_type varchar,
-    e_message varchar,
+    e_message varchar
 ) PARTITION BY RANGE (ts);
 
 CREATE INDEX IF NOT EXISTS idx_rule_node_debug_event_main
@@ -151,6 +151,17 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
+CREATE OR REPLACE FUNCTION to_safe_json(p_json text) RETURNS json
+LANGUAGE plpgsql AS
+$$
+BEGIN
+  return REPLACE(p_json, '\u0000', '' )::json;
+EXCEPTION
+  WHEN OTHERS THEN
+  return '{}'::json;
+END;
+$$;
+
 -- Useful to migrate old events to the new table structure;
 CREATE OR REPLACE PROCEDURE migrate_regular_events(IN start_ts_in_ms bigint, IN partition_size_in_hours int)
     LANGUAGE plpgsql AS
@@ -162,7 +173,7 @@ DECLARE
 BEGIN
     partition_size_in_ms = partition_size_in_hours * 3600 * 1000;
 
-    FOR p IN SELECT DISTINCT event_type as event_type, (created_time - created_time % partition_size_in_ms) as partition_ts FROM event e WHERE e.event_type in ('STATS', 'LC_EVENT', 'ERROR') and ts > start_ts_in_ms
+    FOR p IN SELECT DISTINCT event_type as event_type, (created_time - created_time % partition_size_in_ms) as partition_ts FROM event e WHERE e.event_type in ('STATS', 'LC_EVENT', 'ERROR', 'RAW_DATA') and ts > start_ts_in_ms
     LOOP
         IF p.event_type = 'STATS' THEN
             table_name := 'stats_event';
@@ -170,6 +181,8 @@ BEGIN
             table_name := 'lc_event';
         ELSEIF p.event_type = 'ERROR' THEN
             table_name := 'error_event';
+        ELSEIF p.event_type = 'RAW_DATA' THEN
+            table_name := 'raw_data_event';
         END IF;
         RAISE NOTICE '[%] Partition to create : [%-%]', table_name, p.partition_ts, (p.partition_ts + partition_size_in_ms);
         EXECUTE format('CREATE TABLE IF NOT EXISTS %s_%s PARTITION OF %s FOR VALUES FROM ( %s ) TO ( %s )', table_name, p.partition_ts, table_name, p.partition_ts, (p.partition_ts + partition_size_in_ms));
@@ -215,6 +228,20 @@ BEGIN
       AND event_type = 'ERROR'
     ON CONFLICT DO NOTHING;
 
+    INSERT INTO raw_data_event
+    SELECT id,
+           tenant_id,
+           ts,
+           entity_id,
+           body ->> 'uuid',
+           body ->> 'messageType',
+           body ->> 'message'
+    FROM
+    (select id, tenant_id, ts, entity_id, to_safe_json(body) as body
+     FROM event WHERE ts > start_ts_in_ms AND event_type = 'RAW_DATA' AND to_safe_json(body) ->> 'server' IS NOT NULL
+    ) safe_event
+    ON CONFLICT DO NOTHING;
+
 END
 $$;
 
@@ -229,12 +256,17 @@ DECLARE
 BEGIN
     partition_size_in_ms = partition_size_in_hours * 3600 * 1000;
 
-    FOR p IN SELECT DISTINCT event_type as event_type, (created_time - created_time % partition_size_in_ms) as partition_ts FROM event e WHERE e.event_type in ('DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN') and ts > start_ts_in_ms
+    FOR p IN SELECT DISTINCT event_type as event_type, (created_time - created_time % partition_size_in_ms) as partition_ts
+    FROM event e WHERE e.event_type in ('DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN', 'DEBUG_CONVERTER', 'DEBUG_INTEGRATION') and ts > start_ts_in_ms
     LOOP
         IF p.event_type = 'DEBUG_RULE_NODE' THEN
             table_name := 'rule_node_debug_event';
         ELSEIF p.event_type = 'DEBUG_RULE_CHAIN' THEN
             table_name := 'rule_chain_debug_event';
+        ELSEIF p.event_type = 'DEBUG_CONVERTER' THEN
+            table_name := 'converter_debug_event';
+        ELSEIF p.event_type = 'DEBUG_INTEGRATION' THEN
+            table_name := 'integration_debug_event';
         END IF;
         RAISE NOTICE '[%] Partition to create : [%-%]', table_name, p.partition_ts, (p.partition_ts + partition_size_in_ms);
         EXECUTE format('CREATE TABLE IF NOT EXISTS %s_%s PARTITION OF %s FOR VALUES FROM ( %s ) TO ( %s )', table_name, p.partition_ts, table_name, p.partition_ts, (p.partition_ts + partition_size_in_ms));
@@ -245,20 +277,21 @@ BEGIN
            tenant_id,
            ts,
            entity_id,
-           body::json ->> 'server',
-           body::json ->> 'type',
-           (body::json ->> 'entityId')::uuid,
-           body::json ->> 'entityName',
-           (body::json ->> 'msgId')::uuid,
-           body::json ->> 'msgType',
-           body::json ->> 'dataType',
-           body::json ->> 'relationType',
-           body::json ->> 'data',
-           body::json ->> 'metadata',
-           body::json ->> 'error'
-    FROM event
-    WHERE ts > start_ts_in_ms
-      AND event_type = 'DEBUG_RULE_NODE'
+           body ->> 'server',
+           body ->> 'type',
+           (body ->> 'entityId')::uuid,
+           body ->> 'entityName',
+           (body ->> 'msgId')::uuid,
+           body ->> 'msgType',
+           body ->> 'dataType',
+           body ->> 'relationType',
+           body ->> 'data',
+           body ->> 'metadata',
+           body ->> 'error'
+    FROM
+    (select id, tenant_id, ts, entity_id, to_safe_json(body) as body
+     FROM event WHERE ts > start_ts_in_ms AND event_type = 'DEBUG_RULE_NODE'
+    ) safe_event
     ON CONFLICT DO NOTHING;
 
     INSERT INTO rule_chain_debug_event
@@ -266,12 +299,48 @@ BEGIN
            tenant_id,
            ts,
            entity_id,
-           body::json ->> 'server',
-           body::json ->> 'message',
-           body::json ->> 'error'
-    FROM event
-    WHERE ts > start_ts_in_ms
-      AND event_type = 'DEBUG_RULE_CHAIN'
+           body ->> 'server',
+           body ->> 'message',
+           body ->> 'error'
+    FROM
+    (select id, tenant_id, ts, entity_id, to_safe_json(body) as body
+     FROM event WHERE ts > start_ts_in_ms AND event_type = 'DEBUG_RULE_CHAIN'
+    ) safe_event
+    ON CONFLICT DO NOTHING;
+
+    INSERT INTO converter_debug_event
+    SELECT id,
+           tenant_id,
+           ts,
+           entity_id,
+           body ->> 'server',
+           body ->> 'type',
+           body ->> 'inMessageType',
+           body ->> 'in',
+           body ->> 'outMessageType',
+           body ->> 'out',
+           body ->> 'metadata',
+           body ->> 'error'
+    FROM
+    (select id, tenant_id, ts, entity_id, to_safe_json(body) as body
+     FROM event WHERE ts > start_ts_in_ms AND event_type = 'DEBUG_CONVERTER' AND to_safe_json(body) ->> 'server' IS NOT NULL
+    ) safe_event
+    ON CONFLICT DO NOTHING;
+
+    INSERT INTO integration_debug_event
+    SELECT id,
+           tenant_id,
+           ts,
+           entity_id,
+           body ->> 'server',
+           body ->> 'messageType',
+           body ->> 'message',
+           body ->> 'status',
+           body ->> 'error'
+    FROM
+    (select id, tenant_id, ts, entity_id, to_safe_json(body) as body
+     FROM event WHERE ts > start_ts_in_ms AND event_type = 'DEBUG_INTEGRATION' AND to_safe_json(body) ->> 'server' IS NOT NULL
+    ) safe_event
     ON CONFLICT DO NOTHING;
 END
 $$;
