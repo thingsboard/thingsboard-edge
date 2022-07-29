@@ -87,6 +87,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -209,6 +210,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private TbRuleEngineQueueConfigService queueConfig;
 
+    @Autowired
+    private EventService eventService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -242,7 +246,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 rateLimitsUpdater.updateEntities();
                 break;
             case "3.4.0":
-                log.info("Updating data from version 3.4.0 to 3.4.0PE ...");
+                String skipEventsMigration = System.getenv("TB_SKIP_EVENTS_MIGRATION");
+                if (skipEventsMigration == null || skipEventsMigration.equalsIgnoreCase("false")) {
+                    log.info("Updating data from version 3.4.0 to 3.4.1 ...");
+                    eventService.migrateEvents();
+                }
+                break;
+            case "3.4.1":
+                log.info("Updating data from version 3.4.1 to 3.4.1PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 tenantIntegrationUpdater.updateEntities();
@@ -1346,7 +1357,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 });
             }
         } catch (Exception e) {
-            log.error("Failed to update tenant profile queue configuration name=["+profile.getName()+"], id=["+ profile.getId().getId() +"]", e);
+            log.error("Failed to update tenant profile queue configuration name=[" + profile.getName() + "], id=[" + profile.getId().getId() + "]", e);
         }
     }
 

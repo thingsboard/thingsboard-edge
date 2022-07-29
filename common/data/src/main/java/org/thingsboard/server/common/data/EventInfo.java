@@ -49,7 +49,7 @@ import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalIn
 @Data
 @Slf4j
 @ApiModel
-public class Event extends BaseData<EventId> {
+public class EventInfo extends BaseData<EventId> {
 
     @ApiModelProperty(position = 1, value = "JSON object with Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private TenantId tenantId;
@@ -64,15 +64,15 @@ public class Event extends BaseData<EventId> {
     @JsonIgnore
     private byte[] bodyBytes;
 
-    public Event() {
+    public EventInfo() {
         super();
     }
 
-    public Event(EventId id) {
+    public EventInfo(EventId id) {
         super(id);
     }
 
-    public Event(Event event) {
+    public EventInfo(EventInfo event) {
         super(event);
         this.setBody(event.getBody());
     }
