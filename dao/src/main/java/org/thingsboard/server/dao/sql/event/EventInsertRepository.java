@@ -101,7 +101,7 @@ public class EventInsertRepository {
                 " (id, tenant_id, ts, entity_id, service_id, e_message, e_error) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;");
         insertStmtMap.put(EventType.DEBUG_CONVERTER, "INSERT INTO " + EventType.DEBUG_CONVERTER.getTable() +
-                " (id, tenant_id, ts, entity_id, service_id, e_type, e_in_message_type, e_in, e_out_message_type, e_out, e_metadata, e_error) " +
+                " (id, tenant_id, ts, entity_id, service_id, e_type, e_in_message_type, e_in_message, e_out_message_type, e_out_message, e_metadata, e_error) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;");
         insertStmtMap.put(EventType.DEBUG_INTEGRATION, "INSERT INTO " + EventType.DEBUG_INTEGRATION.getTable() +
                 " (id, tenant_id, ts, entity_id, service_id, e_type, e_message, e_status, e_error) " +
