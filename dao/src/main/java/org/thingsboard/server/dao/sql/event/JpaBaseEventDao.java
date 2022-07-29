@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.event.EventDao;
+import org.thingsboard.server.dao.model.sql.AssetInfoEntity;
 import org.thingsboard.server.dao.model.sql.EventEntity;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
@@ -232,7 +233,7 @@ public class JpaBaseEventDao implements EventDao {
 
     @Override
     public PageData<? extends Event> findEvents(UUID tenantId, UUID entityId, EventType eventType, TimePageLink pageLink) {
-        return DaoUtil.toPageData(getEventRepository(eventType).findEvents(tenantId, entityId, pageLink.getStartTime(), pageLink.getEndTime(), DaoUtil.toPageable(pageLink)));
+        return DaoUtil.toPageData(getEventRepository(eventType).findEvents(tenantId, entityId, pageLink.getStartTime(), pageLink.getEndTime(), DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));
     }
 
     @Override
@@ -323,7 +324,7 @@ public class JpaBaseEventDao implements EventDao {
                         eventFilter.getMessage(),
                         eventFilter.isError(),
                         eventFilter.getErrorStr(),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));
     }
 
     private PageData<? extends Event> findEventByFilter(UUID tenantId, UUID entityId, RuleNodeDebugEventFilter eventFilter, TimePageLink pageLink) {
@@ -346,7 +347,7 @@ public class JpaBaseEventDao implements EventDao {
                         eventFilter.getMetadataSearch(),
                         eventFilter.isError(),
                         eventFilter.getErrorStr(),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));
     }
 
     private PageData<? extends Event> findEventByFilter(UUID tenantId, UUID entityId, DebugIntegrationEventFilter eventFilter, TimePageLink pageLink) {
@@ -392,7 +393,7 @@ public class JpaBaseEventDao implements EventDao {
                         eventFilter.getServer(),
                         eventFilter.getMethod(),
                         eventFilter.getErrorStr(),
-                        DaoUtil.toPageable(pageLink))
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap))
         );
     }
 
@@ -410,7 +411,7 @@ public class JpaBaseEventDao implements EventDao {
                         statusFilterEnabled,
                         statusFilter,
                         eventFilter.getErrorStr(),
-                        DaoUtil.toPageable(pageLink))
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap))
         );
     }
 
@@ -426,7 +427,7 @@ public class JpaBaseEventDao implements EventDao {
                         eventFilter.getMaxMessagesProcessed(),
                         eventFilter.getMinErrorsOccurred(),
                         eventFilter.getMaxErrorsOccurred(),
-                        DaoUtil.toPageable(pageLink))
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap))
         );
     }
 

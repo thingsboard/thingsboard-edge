@@ -39,6 +39,8 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ENTITY_ID_PROPERTY;
@@ -50,6 +52,12 @@ import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
 @NoArgsConstructor
 @MappedSuperclass
 public abstract class EventEntity<T extends Event> implements BaseEntity<T> {
+
+    public static final Map<String, String> eventColumnMap = new HashMap<>();
+
+    static {
+        eventColumnMap.put("createdTime", "ts");
+    }
 
     @Id
     @Column(name = ModelConstants.ID_PROPERTY, columnDefinition = "uuid")
