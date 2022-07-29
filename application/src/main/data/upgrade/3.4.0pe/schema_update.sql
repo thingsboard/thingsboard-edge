@@ -151,11 +151,11 @@ CREATE TABLE IF NOT EXISTS converter_debug_event (
     service_id varchar NOT NULL,
     e_type varchar,
     e_in_message_type varchar,
-    e_in varchar,
+    e_in_message varchar,
     e_out_message_type varchar,
-    e_out varchar,
+    e_out_message varchar,
     e_metadata varchar,
-    e_error
+    e_error varchar
 ) PARTITION BY RANGE (ts);
 
 CREATE TABLE IF NOT EXISTS integration_debug_event (
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS integration_debug_event (
     e_message_type varchar,
     e_message varchar,
     e_status varchar,
-    e_error
+    e_error varchar
 ) PARTITION BY RANGE (ts);
 
 CREATE TABLE IF NOT EXISTS raw_data_event (
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
     service_id varchar NOT NULL,
     e_uuid varchar,
     e_message_type varchar,
-    e_message varchar,
+    e_message varchar
 ) PARTITION BY RANGE (ts);
 
 
