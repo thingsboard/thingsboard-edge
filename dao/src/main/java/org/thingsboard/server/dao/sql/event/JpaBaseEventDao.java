@@ -362,7 +362,7 @@ public class JpaBaseEventDao implements EventDao {
                         eventFilter.getStatus(),
                         eventFilter.isError(),
                         eventFilter.getErrorStr(),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));
     }
 
     private PageData<? extends Event> findEventByFilter(UUID tenantId, UUID entityId, DebugConverterEventFilter eventFilter, TimePageLink pageLink) {
@@ -379,7 +379,7 @@ public class JpaBaseEventDao implements EventDao {
                         eventFilter.getMetadata(),
                         eventFilter.isError(),
                         eventFilter.getErrorStr(),
-                        DaoUtil.toPageable(pageLink)));
+                        DaoUtil.toPageable(pageLink, EventEntity.eventColumnMap)));
     }
 
     private PageData<? extends Event> findEventByFilter(UUID tenantId, UUID entityId, ErrorEventFilter eventFilter, TimePageLink pageLink) {
