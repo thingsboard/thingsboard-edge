@@ -71,7 +71,13 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public Converter saveConverter(Converter converter) {
         log.trace("Executing saveConverter [{}]", converter);
         converterValidator.validate(converter, Converter::getTenantId);
-        return converterDao.save(converter.getTenantId(), converter);
+        try {
+            return converterDao.save(converter.getTenantId(), converter);
+        } catch (Exception t) {
+            checkConstraintViolation(t,
+                    "converter_external_id_unq_key", "Converter with such external id already exists!");
+            throw t;
+        }
     }
 
     @Override

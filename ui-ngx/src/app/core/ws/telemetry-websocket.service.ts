@@ -34,7 +34,7 @@ import {
   AlarmDataCmd,
   AlarmDataUnsubscribeCmd,
   AlarmDataUpdate,
-  AttributesSubscriptionCmd,
+  AttributesSubscriptionCmd, CmdUpdateMsg,
   EntityCountCmd, EntityCountUnsubscribeCmd,
   EntityCountUpdate,
   EntityDataCmd,
@@ -61,6 +61,7 @@ import { WINDOW } from '@core/services/window.service';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import Timeout = NodeJS.Timeout;
+import { ReportService } from '@core/http/report.service';
 
 const RECONNECT_INTERVAL = 2000;
 const WS_IDLE_TIMEOUT = 90000;
@@ -94,6 +95,7 @@ export class TelemetryWebsocketService implements TelemetryService {
   constructor(private store: Store<AppState>,
               private authService: AuthService,
               private ngZone: NgZone,
+              private reportService: ReportService,
               @Inject(WINDOW) private window: Window) {
     this.store.pipe(select(selectIsAuthenticated)).subscribe(
       () => {
@@ -217,7 +219,11 @@ export class TelemetryWebsocketService implements TelemetryService {
 
   public publishCommands() {
     while (this.isOpened && this.cmdsWrapper.hasCommands()) {
-      this.dataStream.next(this.cmdsWrapper.preparePublishCommands(MAX_PUBLISH_COMMANDS));
+      const cmds = this.cmdsWrapper.preparePublishCommands(MAX_PUBLISH_COMMANDS);
+      if (this.reportService.reportView) {
+        this.reportService.onSendWsCommands(cmds);
+      }
+      this.dataStream.next(cmds);
       this.checkToClose();
     }
     this.tryOpenSocket();
@@ -327,6 +333,9 @@ export class TelemetryWebsocketService implements TelemetryService {
   }
 
   private onMessage(message: WebsocketDataMsg) {
+    if (this.reportService.reportView) {
+      this.reportService.onWsCmdUpdateMessage(message as CmdUpdateMsg);
+    }
     if (message.errorCode) {
       this.showWsError(message.errorCode, message.errorMsg);
     } else {

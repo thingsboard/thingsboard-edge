@@ -49,7 +49,7 @@ public abstract class DebugEventFilter implements EventFilter {
     }
 
     @Override
-    public boolean hasFilterForJsonBody() {
+    public boolean isNotEmpty() {
         return !StringUtils.isEmpty(server) || !StringUtils.isEmpty(errorStr) || isError;
     }
 

@@ -925,6 +925,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
         @Override
         protected void validateCreate(TenantId tenantId, EntityGroup entityGroup) {
+            if (entityGroup.getExternalId() != null) {
+                EntityGroup other = entityGroupDao.findByTenantIdAndExternalId(tenantId.getId(), entityGroup.getExternalId().getId());
+                if (other != null) {
+                    throw new DataValidationException("Entity group with such external id already exists!");
+                }
+            }
         }
 
         @Override

@@ -38,6 +38,7 @@ import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -240,21 +241,54 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     @Override
     public Stream<VersionedEntityInfo> listEntitiesAtVersion(TenantId tenantId, String versionId, String folder, EntityType entityType, boolean isGroup, boolean recursive) throws Exception {
         GitRepository repository = checkRepository(tenantId);
-        String path = recursive ? folder : StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
-        Pattern typePattern = buildPattern(entityType, false);
-        Pattern groupPattern = buildPattern(entityType, true);
-        return repository.listFilesAtCommit(versionId, path).stream()
-                .filter(filePath -> typePattern.matcher(filePath).matches())
-                .filter(filePath -> groupPattern.matcher(filePath).matches() == isGroup)
-                .map(filePath -> {
-                    var parts = filePath.split("/");
-                    var uuidStr = parts[parts.length - 1];
-                    EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, uuidStr.substring(0, 36));
-                    return new VersionedEntityInfo(entityId, filePath);
-                })
-                .sorted(Comparator.comparing(VersionedEntityInfo::getPath, Comparator.comparingInt(String::length))
-                        .thenComparing(VersionedEntityInfo::getPath, String::compareTo));
+        if (entityType != null) {
+            String path = recursive ? folder : StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
+            Pattern typePattern = buildPattern(entityType, false);
+            Pattern groupPattern = buildPattern(entityType, true);
+            return repository.listFilesAtCommit(versionId, path).stream()
+                    .filter(filePath -> typePattern.matcher(filePath).matches())
+                    .filter(filePath -> groupPattern.matcher(filePath).matches() == isGroup)
+                    .map(filePath -> {
+                        var parts = filePath.split("/");
+                        var uuidStr = parts[parts.length - 1];
+                        EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, uuidStr.substring(0, 36));
+                        return new VersionedEntityInfo(entityId, filePath);
+                    })
+                    .sorted(Comparator.comparing(VersionedEntityInfo::getPath, Comparator.comparingInt(String::length))
+                            .thenComparing(VersionedEntityInfo::getPath, String::compareTo));
+        } else {
+            // Used to list all entities.
+            Map<EntityType, Pattern> typePatterns = new HashMap<>();
+            Map<EntityType, Pattern> groupPatterns = new HashMap<>();
+            //TODO: we need only specific (the ones that we export) entity types but all other should not be present in the repository
+            for (EntityType et : EntityType.values()) {
+                groupPatterns.put(et, buildPattern(et, true));
+                typePatterns.put(et, buildPattern(et, false));
+            }
+            return repository.listFilesAtCommit(versionId, folder).stream()
+                    .map(filePath -> {
+                        for (var pair : groupPatterns.entrySet()) {
+                            if (pair.getValue().matcher(filePath).matches()) {
+                                return Pair.of(EntityType.ENTITY_GROUP, filePath);
+                            }
+                        }
+                        for (var pair : typePatterns.entrySet()) {
+                            if (pair.getValue().matcher(filePath).matches()) {
+                                return Pair.of(pair.getKey(), filePath);
+                            }
+                        }
+                        return null;
+                    }).filter(Objects::nonNull)
+                    .map(pair -> {
+                        var parts = pair.getSecond().split("/");
+                        var uuidStr = parts[parts.length - 1];
+                        EntityId entityId = EntityIdFactory.getByTypeAndUuid(pair.getFirst(), uuidStr.substring(0, 36));
+                        return new VersionedEntityInfo(entityId, pair.getSecond());
+                    })
+                    .sorted(Comparator.comparing(VersionedEntityInfo::getPath, Comparator.comparingInt(String::length))
+                            .thenComparing(VersionedEntityInfo::getPath, String::compareTo));
 
+        }
     }
 
     @Override

@@ -51,8 +51,11 @@ public class WsClient extends WebSocketClient {
     private CountDownLatch firstReply = new CountDownLatch(1);
     private CountDownLatch latch = new CountDownLatch(1);
 
-    WsClient(URI serverUri) {
+    private final long timeoutMultiplier;
+
+    WsClient(URI serverUri, long timeoutMultiplier) {
         super(serverUri);
+        this.timeoutMultiplier = timeoutMultiplier;
     }
 
     @Override
@@ -89,8 +92,13 @@ public class WsClient extends WebSocketClient {
 
     public WsTelemetryResponse getLastMessage() {
         try {
-            latch.await(10, TimeUnit.SECONDS);
-            return this.message;
+            boolean result = latch.await(10 * timeoutMultiplier, TimeUnit.SECONDS);
+            if (result) {
+                return this.message;
+            } else {
+                log.error("Timeout, ws message wasn't received");
+                throw new RuntimeException("Timeout, ws message wasn't received");
+            }
         } catch (InterruptedException e) {
             log.error("Timeout, ws message wasn't received");
         }
@@ -99,7 +107,11 @@ public class WsClient extends WebSocketClient {
 
     void waitForFirstReply() {
         try {
-            firstReply.await(10, TimeUnit.SECONDS);
+            boolean result = firstReply.await(10 * timeoutMultiplier, TimeUnit.SECONDS);
+            if (!result) {
+                log.error("Timeout, ws message wasn't received");
+                throw new RuntimeException("Timeout, ws message wasn't received");
+            }
         } catch (InterruptedException e) {
             log.error("Timeout, ws message wasn't received");
             throw new RuntimeException(e);

@@ -28,47 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .entity-types-version-create {
-    .fields-group {
-      padding: 0 16px 8px;
-      margin-bottom: 10px;
-      border: 1px groove rgba(0, 0, 0, .25);
-      border-radius: 4px;
+package org.thingsboard.server.service.entitiy.converter;
 
-      legend {
-        color: rgba(0, 0, 0, .7);
-        width: fit-content;
-      }
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.converter.Converter;
 
-      legend + * {
-        display: block;
-        margin-top: 16px;
-      }
-    }
+public interface TbConverterService {
 
-    .tb-prompt {
-      margin: 30px 0;
-    }
+    Converter save(Converter entity, User user) throws Exception;
 
-    mat-expansion-panel.entity-type-config {
-      box-shadow: none;
-      border: 1px groove rgba(0, 0, 0, .25);
-      .mat-expansion-panel-header {
-        padding: 0 24px 0 8px;
-        height: 48px;
-      }
-      .entity-type-config-content {
-        padding: 0 8px 8px;
-      }
-    }
-  }
-}
-
-:host ::ng-deep {
-  .mat-expansion-panel.entity-type-config {
-    .mat-expansion-panel-body {
-      padding: 0;
-    }
-  }
+    void delete(Converter entity, User user);
 }

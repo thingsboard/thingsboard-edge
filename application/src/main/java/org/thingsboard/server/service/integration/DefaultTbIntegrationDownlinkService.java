@@ -76,7 +76,7 @@ public class DefaultTbIntegrationDownlinkService implements TbIntegrationDownlin
             callback.onSuccess();
         } else {
             var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
-            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, tenantId, integrationId, integration.getType().name())
+            TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getType().name(), tenantId, integrationId)
                     .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(integration.getType()));
             producer.send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), ToIntegrationExecutorDownlinkMsg.newBuilder().setDownlinkMsg(downlinkMsg).build()), new TbQueueCallback() {
                 @Override

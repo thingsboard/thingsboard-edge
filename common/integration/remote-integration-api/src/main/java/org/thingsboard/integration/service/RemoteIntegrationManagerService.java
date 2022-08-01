@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -59,8 +61,11 @@ import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.event.StatisticsEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -391,14 +396,17 @@ public class RemoteIntegrationManagerService {
         long ts = System.currentTimeMillis();
         IntegrationStatistics statistics = integration.popStatistics();
         try {
-            String eventData = mapper.writeValueAsString(toBodyJson(statistics.getMessagesProcessed(), statistics.getErrorsOccurred()));
+            var statsEvent = StatisticsEvent.builder()
+                    .tenantId(integration.getConfiguration().getTenantId())
+                    .entityId(integration.getConfiguration().getId().getId())
+                    .serviceId(getServiceId())
+                    .messagesProcessed(statistics.getMessagesProcessed())
+                    .errorsOccurred(statistics.getErrorsOccurred())
+                    .build();
             eventStorage.write(UplinkMsg.newBuilder()
                     .addEventsData(TbEventProto.newBuilder()
                             .setSource(TbEventSource.INTEGRATION)
-                            .setType(DataConstants.STATS)
-                            .setUid(UUID.randomUUID().toString())
-                            .setData(eventData)
-                            .setDeviceName("")
+                            .setEvent(ByteString.copyFrom(FSTUtils.encode(statsEvent)))
                             .build())
                     .build(), null);
 
@@ -428,40 +436,23 @@ public class RemoteIntegrationManagerService {
     }
 
     private void persistLifecycleEvent(ComponentLifecycleEvent event, Exception e) {
-        try {
-            String eventData = mapper.writeValueAsString(toBodyJson(event, Optional.ofNullable(e)));
-            eventStorage.write(UplinkMsg.newBuilder()
-                    .addEventsData(TbEventProto.newBuilder()
-                            .setSource(TbEventSource.INTEGRATION)
-                            .setType(DataConstants.LC_EVENT)
-                            .setUid(UUID.randomUUID().toString())
-                            .setData(eventData)
-                            .setDeviceName("")
-                            .build())
-                    .build(), null);
-        } catch (JsonProcessingException ex) {
-            log.warn("[{}] Failed to persist lifecycle event!", integration.getConfiguration().getId(), e);
-        }
-    }
-
-    private JsonNode toBodyJson(long messagesProcessed, long errorsOccurred) {
-        return mapper.createObjectNode().put("server", serviceId).put("messagesProcessed", messagesProcessed).put("errorsOccurred", errorsOccurred);
-    }
-
-    private JsonNode toBodyJson(ComponentLifecycleEvent event, Optional<Exception> e) {
-        ObjectNode node = mapper.createObjectNode().put("server", serviceId).put("event", event.name());
-        if (e.isPresent()) {
-            node = node.put("success", false);
-            node = node.put("error", toString(e.get()));
+        var lcEvent = LifecycleEvent.builder()
+                .tenantId(integration.getConfiguration().getTenantId())
+                .entityId(integration.getConfiguration().getId().getId())
+                .serviceId(getServiceId())
+                .lcEventType(event.name());
+        if (e != null) {
+            lcEvent.success(false).error(EventUtil.toString(e));
         } else {
-            node = node.put("success", true);
+            lcEvent.success(true);
         }
-        return node;
+
+        eventStorage.write(UplinkMsg.newBuilder()
+                .addEventsData(TbEventProto.newBuilder()
+                        .setSource(TbEventSource.INTEGRATION)
+                        .setEvent(ByteString.copyFrom(FSTUtils.encode(lcEvent.build())))
+                        .build())
+                .build(), null);
     }
 
-    private String toString(Throwable e) {
-        StringWriter sw = new StringWriter();
-        e.printStackTrace(new PrintWriter(sw));
-        return sw.toString();
-    }
 }

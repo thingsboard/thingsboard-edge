@@ -291,8 +291,9 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
             var ids = vcService.listEntitiesAtVersion(ctx.getTenantId(), request.getVersionId(), request.getPath(), entityType, request.getGroups(), request.getRecursive())
                     .skip(request.getOffset()).limit(request.getLimit()).collect(Collectors.toList());
             if (!ids.isEmpty()) {
-                for (VersionedEntityInfo info : ids) {
-                    sendData(info.getPath(), request, ctx, ids.size());
+                for (int i = 0; i < ids.size(); i++) {
+                    var info = ids.get(i);
+                    sendData(info.getPath(), request, ctx, i, ids.size());
                 }
             } else {
                 reply(ctx, Optional.empty(), builder -> builder.setEntitiesContentResponse(
@@ -300,15 +301,16 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                                 .setItemsCount(0)));
             }
         } else {
-            for (EntityIdProto idProto : request.getIdsList()) {
+            for (int i = 0; i < request.getIdsList().size(); i++) {
+                var idProto = request.getIdsList().get(i);
                 UUID uuid = new UUID(idProto.getEntityIdMSB(), idProto.getEntityIdLSB());
                 var entityPath = getRelativePath(EntityType.valueOf(request.getEntityType()), uuid.toString());
-                sendData(entityPath, request, ctx, request.getIdsCount());
+                sendData(entityPath, request, ctx, i, request.getIdsCount());
             }
         }
     }
 
-    private void sendData(String entityPath, EntitiesContentRequestMsg request, VersionControlRequestCtx ctx, int totalItemsCount) throws IOException {
+    private void sendData(String entityPath, EntitiesContentRequestMsg request, VersionControlRequestCtx ctx, int itemIdx, int totalItemsCount) throws IOException {
         entityPath = StringUtils.isNotEmpty(request.getPath()) ? request.getPath() + entityPath : entityPath;
         var data = vcService.getFileContentAtCommit(ctx.getTenantId(), entityPath, request.getVersionId());
 
@@ -319,9 +321,9 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
         dataChunks.forEach(chunk -> {
             EntitiesContentResponseMsg.Builder response = EntitiesContentResponseMsg.newBuilder()
                     .setItemsCount(totalItemsCount)
+                    .setItemIdx(itemIdx)
                     .setItem(EntityContentResponseMsg.newBuilder()
                             .setData(chunk)
-                            .setChunkedMsgId(chunkedMsgId)
                             .setChunksCount(chunksCount)
                             .setChunkIndex(chunkIndex.getAndIncrement())
                             .build());
@@ -331,7 +333,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
 
     private void handleEntityContentRequest(VersionControlRequestCtx ctx, EntityContentRequestMsg request) throws IOException {
         String path = StringUtils.isNotEmpty(request.getPath()) ? request.getPath() : "";
-        if(StringUtils.isNotEmpty(request.getEntityType())) {
+        if (StringUtils.isNotEmpty(request.getEntityType())) {
             path = path + getRelativePath(EntityType.valueOf(request.getEntityType()), new UUID(request.getEntityIdMSB(), request.getEntityIdLSB()).toString());
         }
         String data = vcService.getFileContentAtCommit(ctx.getTenantId(), path, request.getVersionId());
@@ -344,7 +346,7 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
         dataChunks.forEach(chunk -> {
             log.trace("[{}] sending chunk {} for 'getEntity'", chunkedMsgId, chunkIndex.get());
             reply(ctx, Optional.empty(), builder -> builder.setEntityContentResponse(EntityContentResponseMsg.newBuilder()
-                    .setData(chunk).setChunkedMsgId(chunkedMsgId).setChunksCount(chunksCount)
+                    .setData(chunk).setChunksCount(chunksCount)
                     .setChunkIndex(chunkIndex.getAndIncrement())));
         });
     }
@@ -559,7 +561,8 @@ public class DefaultClusterVersionControlService extends TbApplicationEventListe
                 .setRequestIdLSB(ctx.getRequestId().getLeastSignificantBits());
         if (e.isPresent()) {
             log.debug("[{}][{}] Failed to process task", ctx.getTenantId(), ctx.getRequestId(), e.get());
-            builder.setError(e.get().getMessage());
+            var message = e.get().getMessage();
+            builder.setError(message != null ? message : e.get().getClass().getSimpleName());
         } else {
             if (enrichFunction != null) {
                 builder = enrichFunction.apply(builder);

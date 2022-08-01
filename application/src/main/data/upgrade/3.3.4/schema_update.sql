@@ -56,20 +56,8 @@ ALTER TABLE integration
 ALTER TABLE role
     ADD COLUMN IF NOT EXISTS external_id UUID;
 
-CREATE INDEX IF NOT EXISTS idx_device_external_id ON device(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_device_profile_external_id ON device_profile(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_asset_external_id ON asset(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_rule_chain_external_id ON rule_chain(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_rule_node_external_id ON rule_node(rule_chain_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_dashboard_external_id ON dashboard(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_customer_external_id ON customer(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_widgets_bundle_external_id ON widgets_bundle(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
-CREATE INDEX IF NOT EXISTS idx_entity_view_external_id ON entity_view(tenant_id, external_id);
-
 CREATE INDEX IF NOT EXISTS idx_rule_node_type ON rule_node(type);
 
 ALTER TABLE admin_settings
@@ -97,6 +85,8 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     two_fa_settings varchar
 );
 
+CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(entity_id);
+
 DELETE FROM relation WHERE relation_type_group = 'TO_ENTITY_GROUP';
 
 ALTER TABLE converter
@@ -123,4 +113,106 @@ BEGIN
         ALTER TABLE integration ADD CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id);
     END IF;
 END;
+$$;
+
+ALTER TABLE tenant_profile DROP COLUMN IF EXISTS isolated_tb_core;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'device_external_id_unq_key') THEN
+            ALTER TABLE device ADD CONSTRAINT device_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'device_profile_external_id_unq_key') THEN
+            ALTER TABLE device_profile ADD CONSTRAINT device_profile_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'asset_external_id_unq_key') THEN
+            ALTER TABLE asset ADD CONSTRAINT asset_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'rule_chain_external_id_unq_key') THEN
+            ALTER TABLE rule_chain ADD CONSTRAINT rule_chain_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'dashboard_external_id_unq_key') THEN
+            ALTER TABLE dashboard ADD CONSTRAINT dashboard_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'customer_external_id_unq_key') THEN
+            ALTER TABLE customer ADD CONSTRAINT customer_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'widgets_bundle_external_id_unq_key') THEN
+            ALTER TABLE widgets_bundle ADD CONSTRAINT widgets_bundle_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'entity_view_external_id_unq_key') THEN
+            ALTER TABLE entity_view ADD CONSTRAINT entity_view_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'converter_external_id_unq_key') THEN
+            ALTER TABLE converter ADD CONSTRAINT converter_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'integration_external_id_unq_key') THEN
+            ALTER TABLE integration ADD CONSTRAINT integration_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
+$$;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'role_external_id_unq_key') THEN
+            ALTER TABLE role ADD CONSTRAINT role_external_id_unq_key UNIQUE (tenant_id, external_id);
+        END IF;
+    END;
 $$;

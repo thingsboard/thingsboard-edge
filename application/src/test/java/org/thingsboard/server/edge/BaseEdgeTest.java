@@ -196,7 +196,6 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private Tenant savedTenant;
     private TenantId tenantId;
     private User tenantAdmin;
-    private QueueId defaultQueueId;
 
     private DeviceProfile thermostatDeviceProfile;
 
@@ -228,8 +227,6 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
         loginWhiteLabelingParams.setDomainName("sysadmin.org");
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
-
-        defaultQueueId = getRandomQueueId();
 
         tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
@@ -433,7 +430,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     @Test
     public void testDeviceProfiles() throws Exception {
         // 1
-        DeviceProfile deviceProfile = this.createDeviceProfile("ONE_MORE_DEVICE_PROFILE", null, defaultQueueId);
+        DeviceProfile deviceProfile = this.createDeviceProfile("ONE_MORE_DEVICE_PROFILE", null);
         extendDeviceProfileData(deviceProfile);
         edgeImitator.expectMessageAmount(1);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -444,8 +441,6 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
         Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
-        Assert.assertEquals(defaultQueueId.getId().getMostSignificantBits(), deviceProfileUpdateMsg.getDefaultQueueIdMSB());
-        Assert.assertEquals(defaultQueueId.getId().getLeastSignificantBits(), deviceProfileUpdateMsg.getDefaultQueueIdLSB());
 
         // 2
         edgeImitator.expectMessageAmount(1);

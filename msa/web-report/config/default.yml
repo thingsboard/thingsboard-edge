@@ -42,6 +42,10 @@ browser:
   defaultPageNavigationTimeout: "120000"
   # Generate report request timeout (ms)
   generateReportTimeout: "30000"
+  # Load dashboard resources timeout (ms)
+  loadDashboardResourcesTimeout: "10000"
+  # Dashboard idle wait time (ms)
+  dashboardIdleWaitTime: "0"
   # Max browser pages
   maxPages: "5"
 

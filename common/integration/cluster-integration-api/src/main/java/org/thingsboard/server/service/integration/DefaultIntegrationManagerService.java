@@ -103,6 +103,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 
@@ -190,9 +191,21 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             case CONVERTER:
                 processConverterUpdate(componentLifecycleMsg);
                 break;
+            case TENANT:
+                processTenantUpdate(componentLifecycleMsg);
+                break;
             default:
                 log.info("[{}][{}] Ignore update due to not supported entity type: {}",
                         componentLifecycleMsg.getTenantId(), componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
+        }
+    }
+
+    private void processTenantUpdate(ComponentLifecycleMsg componentLifecycleMsg) {
+        TenantId tenantId = new TenantId(componentLifecycleMsg.getEntityId().getId());
+        if (ComponentLifecycleEvent.DELETED.equals(componentLifecycleMsg.getEvent())) {
+            integrations.values().stream().filter(state -> state.getTenantId().equals(tenantId)).forEach(state -> {
+                scheduleIntegrationEvent(state.getTenantId(), state.getId(), DELETED);
+            });
         }
     }
 
@@ -327,7 +340,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 pendingValidationTasks.put(task.getUuid(), task);
 
                 var producer = producerProvider.getTbIntegrationExecutorDownlinkMsgProducer();
-                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getTenantId(), configuration.getId(), configuration.getType().name())
+                TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, configuration.getType().name(), configuration.getTenantId(), configuration.getId())
                         .newByTopic(HashPartitionService.getIntegrationDownlinkTopic(configuration.getType()));
                 IntegrationValidationRequestProto requestProto = IntegrationValidationRequestProto.newBuilder()
                         .setIdMSB(task.getUuid().getMostSignificantBits())
@@ -400,7 +413,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.STOPPED);
             }
         }
-        List<IntegrationInfo> allIntegrations = configurationService.getActiveIntegrationList(integrationType, false);
+        createIntegrations(configurationService.getActiveIntegrationList(integrationType, false));
+    }
+
+    private void createIntegrations(List<IntegrationInfo> allIntegrations) {
         try {
             for (IntegrationInfo integration : allIntegrations) {
                 try {
@@ -608,7 +624,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         var type = integration.getType();
         if (supportedIntegrationTypes.contains(type)) {
             return !type.isSingleton()
-                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, integration.getTenantId(), integration.getId(), type.name()).isMyPartition();
+                    || partitionService.resolve(ServiceType.TB_INTEGRATION_EXECUTOR, type.name(), integration.getTenantId(), integration.getId()).isMyPartition();
         } else {
             return false;
         }

@@ -28,38 +28,57 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.rule;
+package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.dao.queue.QueueService;
-import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
+import org.thingsboard.server.dao.model.BaseEntity;
 
-import java.util.List;
-import java.util.TreeSet;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
-@Slf4j
-public class RuleChainMetadataConstructorV333 extends AbstractRuleChainMetadataConstructor {
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_ERROR_COLUMN_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_SUCCESS_COLUMN_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.EVENT_TYPE_COLUMN_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.LC_EVENT_TABLE_NAME;
 
-    public RuleChainMetadataConstructorV333(QueueService queueService) {
-        super(queueService);
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = LC_EVENT_TABLE_NAME)
+@NoArgsConstructor
+public class LifecycleEventEntity extends EventEntity<LifecycleEvent> implements BaseEntity<LifecycleEvent> {
+
+    @Column(name = EVENT_TYPE_COLUMN_NAME)
+    private String eventType;
+    @Column(name = EVENT_SUCCESS_COLUMN_NAME)
+    private boolean success;
+    @Column(name = EVENT_ERROR_COLUMN_NAME)
+    private String error;
+
+    public LifecycleEventEntity(LifecycleEvent event) {
+        super(event);
+        this.eventType = event.getLcEventType();
+        this.success = event.isSuccess();
+        this.error = event.getError();
     }
 
     @Override
-    protected void constructRuleChainMetadataUpdatedMsg(TenantId tenantId,
-                                                        RuleChainMetadataUpdateMsg.Builder builder,
-                                                        RuleChainMetaData ruleChainMetaData) throws JsonProcessingException {
-        List<RuleNode> nodes = updateQueueIdToQueueNameNodeConfiguration(tenantId, ruleChainMetaData.getNodes());
-        builder.addAllNodes(constructNodes(nodes))
-                .addAllConnections(constructConnections(ruleChainMetaData.getConnections()))
-                .addAllRuleChainConnections(constructRuleChainConnections(ruleChainMetaData.getRuleChainConnections(), new TreeSet<>()));
-        if (ruleChainMetaData.getFirstNodeIndex() != null) {
-            builder.setFirstNodeIndex(ruleChainMetaData.getFirstNodeIndex());
-        } else {
-            builder.setFirstNodeIndex(-1);
-        }
+    public LifecycleEvent toData() {
+        return LifecycleEvent.builder()
+                .tenantId(TenantId.fromUUID(tenantId))
+                .entityId(entityId)
+                .serviceId(serviceId)
+                .id(id)
+                .ts(ts)
+                .lcEventType(eventType)
+                .success(success)
+                .error(error)
+                .build();
     }
+
 }

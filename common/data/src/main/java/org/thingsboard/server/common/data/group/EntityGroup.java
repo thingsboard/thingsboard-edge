@@ -146,7 +146,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         return false;
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the entity group creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the entity group creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();

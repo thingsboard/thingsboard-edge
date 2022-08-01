@@ -57,6 +57,7 @@ public class AssetDataValidator extends DataValidator<Asset> {
     private AssetDao assetDao;
 
     @Autowired
+    @Lazy
     private TenantService tenantService;
 
     @Autowired

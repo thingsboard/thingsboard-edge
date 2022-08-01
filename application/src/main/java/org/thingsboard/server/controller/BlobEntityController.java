@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -46,8 +47,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
@@ -60,6 +59,7 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.blob.TbBlobService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -83,6 +83,7 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CU
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 public class BlobEntityController extends BaseController {
 
@@ -97,6 +98,8 @@ public class BlobEntityController extends BaseController {
             "and info about the customer(customerTitle, customerIsPublic) of the user that scheduled generation of the dashboard report. ";
     public static final String BLOB_ENTITY_QUERY_START_TIME_DESCRIPTION = "The start timestamp in milliseconds of the search time range over the BlobEntityWithCustomerInfo class field: 'createdTime'.";
     public static final String BLOB_ENTITY_QUERY_END_TIME_DESCRIPTION = "The end timestamp in milliseconds of the search time range over the BlobEntityWithCustomerInfo class field: 'createdTime'.";
+
+    private final TbBlobService tbBlobService;
 
     @ApiOperation(value = "Get Blob Entity With Customer Info (getBlobEntityInfoById)",
             notes = "Fetch the BlobEntityWithCustomerInfo object based on the provided Blob entity Id. " +
@@ -153,20 +156,9 @@ public class BlobEntityController extends BaseController {
             @ApiParam(value = BLOB_ENTITY_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(BLOB_ENTITY_ID) String strBlobEntityId) throws ThingsboardException {
         checkParameter(BLOB_ENTITY_ID, strBlobEntityId);
-        try {
-            BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
-            BlobEntityInfo blobEntityInfo = checkBlobEntityInfoId(blobEntityId, Operation.DELETE);
-            blobEntityService.deleteBlobEntity(getTenantId(), blobEntityId);
-
-            notificationEntityService.logEntityAction(getTenantId(), blobEntityId, blobEntityInfo,
-                    blobEntityInfo.getCustomerId(), ActionType.DELETED, getCurrentUser(), strBlobEntityId);
-
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.BLOB_ENTITY),
-                    ActionType.DELETED, getCurrentUser(), e, strBlobEntityId);
-
-            throw handleException(e);
-        }
+        BlobEntityId blobEntityId = new BlobEntityId(toUUID(strBlobEntityId));
+        BlobEntityInfo blobEntityInfo = checkBlobEntityInfoId(blobEntityId, Operation.DELETE);
+        tbBlobService.delete(blobEntityInfo, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Blob Entities (getBlobEntities)",

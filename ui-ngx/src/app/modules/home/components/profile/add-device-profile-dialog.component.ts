@@ -65,7 +65,6 @@ import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { deepTrim } from '@core/utils';
 import { ServiceType } from '@shared/models/queue.models';
 import { DashboardId } from '@shared/models/id/dashboard-id';
-import { QueueId } from '@shared/models/id/queue-id';
 
 export interface AddDeviceProfileDialogData {
   deviceProfileName: string;
@@ -126,7 +125,7 @@ export class AddDeviceProfileDialogComponent extends
         image: [null, []],
         defaultRuleChainId: [null, []],
         defaultDashboardId: [null, []],
-        defaultQueueId: [null, []],
+        defaultQueueName: [null, []],
         description: ['', []]
       }
     );
@@ -203,6 +202,7 @@ export class AddDeviceProfileDialogComponent extends
         name: this.deviceProfileDetailsFormGroup.get('name').value,
         type: this.deviceProfileDetailsFormGroup.get('type').value,
         image: this.deviceProfileDetailsFormGroup.get('image').value,
+        defaultQueueName: this.deviceProfileDetailsFormGroup.get('defaultQueueName').value,
         transportType: this.transportConfigFormGroup.get('transportType').value,
         provisionType: deviceProvisionConfiguration.type,
         provisionDeviceKey,
@@ -219,9 +219,6 @@ export class AddDeviceProfileDialogComponent extends
       }
       if (this.deviceProfileDetailsFormGroup.get('defaultDashboardId').value) {
         deviceProfile.defaultDashboardId = new DashboardId(this.deviceProfileDetailsFormGroup.get('defaultDashboardId').value);
-      }
-      if (this.deviceProfileDetailsFormGroup.get('defaultQueueId').value) {
-        deviceProfile.defaultQueueId = new QueueId(this.deviceProfileDetailsFormGroup.get('defaultQueueId').value);
       }
       this.deviceProfileService.saveDeviceProfile(deepTrim(deviceProfile)).subscribe(
         (savedDeviceProfile) => {
