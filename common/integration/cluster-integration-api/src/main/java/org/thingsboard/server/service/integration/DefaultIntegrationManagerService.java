@@ -103,6 +103,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 
@@ -190,9 +191,21 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             case CONVERTER:
                 processConverterUpdate(componentLifecycleMsg);
                 break;
+            case TENANT:
+                processTenantUpdate(componentLifecycleMsg);
+                break;
             default:
                 log.info("[{}][{}] Ignore update due to not supported entity type: {}",
                         componentLifecycleMsg.getTenantId(), componentLifecycleMsg.getEntityId(), componentLifecycleMsg.getEvent());
+        }
+    }
+
+    private void processTenantUpdate(ComponentLifecycleMsg componentLifecycleMsg) {
+        TenantId tenantId = new TenantId(componentLifecycleMsg.getEntityId().getId());
+        if (ComponentLifecycleEvent.DELETED.equals(componentLifecycleMsg.getEvent())) {
+            integrations.values().stream().filter(state -> state.getTenantId().equals(tenantId)).forEach(state -> {
+                scheduleIntegrationEvent(state.getTenantId(), state.getId(), DELETED);
+            });
         }
     }
 
