@@ -413,7 +413,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.STOPPED);
             }
         }
-        List<IntegrationInfo> allIntegrations = configurationService.getActiveIntegrationList(integrationType, false);
+        createIntegrations(configurationService.getActiveIntegrationList(integrationType, false));
+    }
+
+    private void createIntegrations(List<IntegrationInfo> allIntegrations) {
         try {
             for (IntegrationInfo integration : allIntegrations) {
                 try {
