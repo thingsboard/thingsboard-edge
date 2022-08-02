@@ -465,7 +465,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
           {key: 'out', title: 'event.out'},
           {key: 'metadataSearch', title: 'event.metadata'},
           {key: 'isError', title: 'event.error'},
-          {key: 'error', title: 'event.error'}
+          {key: 'errorStr', title: 'event.error'}
         );
         break;
       case DebugEventType.DEBUG_INTEGRATION:
@@ -474,7 +474,7 @@ export class EventTableConfig extends EntityTableConfig<Event, TimePageLink> {
           {key: 'message', title: 'event.message'},
           {key: 'statusIntegration', title: 'event.status'},
           {key: 'isError', title: 'event.error'},
-          {key: 'error', title: 'event.error'}
+          {key: 'errorStr', title: 'event.error'}
         );
         break;
       case DebugEventType.DEBUG_RULE_NODE:
