@@ -48,7 +48,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -179,7 +179,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         boolean isConnected = false;
         for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
             Thread.sleep(CONNECT_TIMEOUT_MS);
-            PageData<Event> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
+            PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             isConnected = true;
             break;
