@@ -28,32 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.query;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.EntityType;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.permission.MergedUserPermissions;
-import org.thingsboard.server.common.data.query.EntityCountQuery;
-import org.thingsboard.server.common.data.query.EntityData;
-import org.thingsboard.server.common.data.query.EntityDataQuery;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.io.Serializable;
+import java.util.UUID;
 
-public interface EntityQueryRepository {
+@Data
+@Slf4j
+public class DeviceIdInfo implements Serializable {
 
-    long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query);
+    private static final long serialVersionUID = 2233745129677581815L;
 
-    PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query);
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final DeviceId deviceId;
 
-    <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType,
-                                                                              String type, List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile);
-
-    PageData<EntityData> findEntityDataByQueryInternal(EntityDataQuery query);
-
+    public DeviceIdInfo(UUID tenantId, UUID customerId, UUID deviceId) {
+        this.tenantId = new TenantId(tenantId);
+        this.customerId = customerId != null ? new CustomerId(customerId) : null;
+        this.deviceId = new DeviceId(deviceId);
+    }
 }

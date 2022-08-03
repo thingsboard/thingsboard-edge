@@ -478,7 +478,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     @Override
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
-        QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter());
+        QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), false);
         if (query.getKeyFilters() == null || query.getKeyFilters().isEmpty()) {
             ctx.append("select count(e.id) from ");
             ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
@@ -586,8 +586,17 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     }
 
     @Override
+    public PageData<EntityData> findEntityDataByQueryInternal(EntityDataQuery query) {
+        return findEntityDataByQuery(null, null, null, query, true);
+    }
+
+    @Override
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query) {
-        QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter());
+        return findEntityDataByQuery(tenantId, customerId, userPermissions, query, false);
+    }
+
+    public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck) {
+        QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
         if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
             if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
@@ -770,12 +779,12 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         }
     }
 
-    private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter) {
+    private QueryContext buildQueryContext(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityFilter filter, boolean ignorePermissionCheck) {
         QuerySecurityContext securityContext;
         switch (filter.getType()) {
             case STATE_ENTITY_OWNER:
                 EntityId ownerId = getOwnerId(tenantId, filter);
-                securityContext = new QuerySecurityContext(tenantId, customerId, ownerId.getEntityType(), userPermissions, filter, ownerId);
+                securityContext = new QuerySecurityContext(tenantId, customerId, ownerId.getEntityType(), userPermissions, filter, ownerId, ignorePermissionCheck);
                 break;
             case SINGLE_ENTITY:
                 SingleEntityFilter seFilter = (SingleEntityFilter) filter;
@@ -783,16 +792,16 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 if (entityId != null && entityId.getEntityType().equals(EntityType.ENTITY_GROUP)) {
                     EntityGroupEntity entityGroupEntity = getEntityGroup(tenantId, entityId);
                     if (entityGroupEntity != null) {
-                        securityContext = new QuerySecurityContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupEntity.getType());
+                        securityContext = new QuerySecurityContext(tenantId, customerId, EntityType.ENTITY_GROUP, userPermissions, filter, entityGroupEntity.getType(), ignorePermissionCheck);
                     } else {
-                        securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter);
+                        securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
                     }
                 } else {
-                    securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter);
+                    securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
                 }
                 break;
             default:
-                securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter);
+                securityContext = new QuerySecurityContext(tenantId, customerId, resolveEntityType(filter), userPermissions, filter, ignorePermissionCheck);
         }
         return new QueryContext(securityContext);
     }
@@ -1472,6 +1481,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     }
 
     private String buildPermissionQuery(QueryContext ctx, EntityFilter entityFilter) {
+        if (ctx.isIgnorePermissionCheck()) {
+            return "1=1";
+        }
         switch (entityFilter.getType()) {
             case RELATIONS_QUERY:
                 return "";

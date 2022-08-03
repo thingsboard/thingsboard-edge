@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -136,6 +137,11 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public ListenableFuture<List<Device>> findDevicesByIdsAsync(List<UUID> deviceIds) {
+        return service.submit(() -> DaoUtil.convertDataList(deviceRepository.findDevicesByIdIn(deviceIds)));
     }
 
     @Override
@@ -282,6 +288,13 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                 () -> deviceRepository.countByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId),
                 () -> deviceRepository.countByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId),
                 type);
+    }
+
+    @Override
+    public PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink) {
+        log.debug("Try to find tenant device id infos by pageLink [{}]", pageLink);
+        var page = deviceRepository.findDeviceIdInfos(DaoUtil.toPageable(pageLink));
+        return new PageData<>(page.getContent(), page.getTotalPages(), page.getTotalElements(), page.hasNext());
     }
 
     @Override
