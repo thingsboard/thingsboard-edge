@@ -38,12 +38,15 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ConverterService {
 
     Converter saveConverter(Converter converter);
 
     Converter findConverterById(TenantId tenantId, ConverterId converterId);
+
+    Optional<Converter> findConverterByName(TenantId tenantId, String converterName);
 
     ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
 

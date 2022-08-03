@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -59,6 +60,8 @@ public interface TbPeContext {
     IntegrationService getIntegrationService();
 
     EntityGroupService getEntityGroupService();
+
+    ConverterService getConverterService();
 
     ReportService getReportService();
 

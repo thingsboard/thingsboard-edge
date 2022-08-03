@@ -89,6 +89,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -630,6 +631,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public EntityGroupService getEntityGroupService() {
         return mainCtx.getEntityGroupService();
+    }
+
+    @Override
+    public ConverterService getConverterService() {
+        return mainCtx.getConverterService();
     }
 
     @Override

@@ -47,6 +47,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -87,6 +88,11 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         return converterDao.findById(tenantId, converterId.getId());
     }
 
+    @Override
+    public Optional<Converter> findConverterByName(TenantId tenantId, String converterName) {
+        log.trace("Executing findConverterByName [{}]", converterName);
+        return converterDao.findConverterByTenantIdAndName(tenantId.getId(), converterName);
+    }
     @Override
     public ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
