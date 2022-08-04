@@ -105,6 +105,14 @@ public interface DeviceDao extends Dao<Device>, TenantEntityDao, ExportableCusto
      * @param deviceIds the device Ids
      * @return the list of device objects
      */
+    List<Device> findDevicesByIds(List<UUID> deviceIds);
+
+    /**
+     * Find devices by devices Ids.
+     *
+     * @param deviceIds the device Ids
+     * @return the list of device objects
+     */
     ListenableFuture<List<Device>> findDevicesByIdsAsync(List<UUID> deviceIds);
 
     PageData<Device> findDevicesByEntityGroupId(UUID groupId, PageLink pageLink);

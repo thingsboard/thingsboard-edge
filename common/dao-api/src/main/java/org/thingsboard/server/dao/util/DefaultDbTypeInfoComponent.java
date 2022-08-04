@@ -28,26 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.integration;
+package org.thingsboard.server.dao.util;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-@TbCoreComponent
-@RequiredArgsConstructor
-@Service
-public class TbCoreIntegrationContextProvider implements IntegrationContextProvider {
+@Component
+public class DefaultDbTypeInfoComponent implements DbTypeInfoComponent {
 
-    private final DbCallbackExecutorService callbackExecutorService;
-    private final IntegrationContextComponent contextComponent;
+    @Value("${database.ts_latest.type:sql}")
+    @Getter
+    private String latestTsDbType;
 
     @Override
-    public IntegrationContext buildIntegrationContext(Integration configuration) {
-        return new LocalIntegrationContext(contextComponent, configuration);
+    public boolean isLatestTsDaoStoredToSql() {
+        return !latestTsDbType.equalsIgnoreCase("cassandra");
     }
-
 }
