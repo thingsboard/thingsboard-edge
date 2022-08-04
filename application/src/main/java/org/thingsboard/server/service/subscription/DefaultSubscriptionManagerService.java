@@ -312,7 +312,15 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     private void updateDeviceInactivityTimeout(TenantId tenantId, EntityId entityId, List<? extends KvEntry> kvEntries) {
         for (KvEntry kvEntry : kvEntries) {
             if (kvEntry.getKey().equals(DefaultDeviceStateService.INACTIVITY_TIMEOUT)) {
-                deviceStateService.onDeviceInactivityTimeoutUpdate(tenantId, new DeviceId(entityId.getId()), kvEntry.getLongValue().orElse(0L));
+                deviceStateService.onDeviceInactivityTimeoutUpdate(tenantId, new DeviceId(entityId.getId()), getLongValue(kvEntry));
+            }
+        }
+    }
+
+    private void deleteDeviceInactivityTimeout(TenantId tenantId, EntityId entityId, List<String> keys) {
+        for (String key : keys) {
+            if (key.equals(DefaultDeviceStateService.INACTIVITY_TIMEOUT)) {
+                deviceStateService.onDeviceInactivityTimeoutUpdate(tenantId, new DeviceId(entityId.getId()), 0);
             }
         }
     }
@@ -374,6 +382,9 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                     }
                     return subscriptionUpdate;
                 }, false);
+        if (entityId.getEntityType() == EntityType.DEVICE) {
+            deleteDeviceInactivityTimeout(tenantId, entityId, keys);
+        }
         callback.onSuccess();
     }
 
@@ -398,6 +409,9 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                     }
                     return subscriptionUpdate;
                 }, false);
+        if (entityId.getEntityType() == EntityType.DEVICE) {
+            deleteDeviceInactivityTimeout(tenantId, entityId, keys);
+        }
         callback.onSuccess();
     }
 
@@ -589,6 +603,29 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                                 .setAlarmSubUpdate(builder.build()).build())
                 .build();
         return new TbProtoQueueMsg<>(subscription.getEntityId().getId(), toCoreMsg);
+    }
+
+    private static long getLongValue(KvEntry kve) {
+        switch (kve.getDataType()) {
+            case LONG:
+                return kve.getLongValue().orElse(0L);
+            case DOUBLE:
+                return kve.getDoubleValue().orElse(0.0).longValue();
+            case STRING:
+                try {
+                    return Long.parseLong(kve.getStrValue().orElse("0"));
+                } catch (NumberFormatException e) {
+                    return 0L;
+                }
+            case JSON:
+                try {
+                    return Long.parseLong(kve.getJsonValue().orElse("0"));
+                } catch (NumberFormatException e) {
+                    return 0L;
+                }
+            default:
+                return 0L;
+        }
     }
 
 }
