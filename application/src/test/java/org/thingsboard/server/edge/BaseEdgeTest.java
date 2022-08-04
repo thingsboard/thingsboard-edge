@@ -2209,8 +2209,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     // Utility methods
 
     private Device saveDeviceOnCloudAndVerifyDeliveryToEdge() throws Exception {
-        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(thermostatDeviceProfile.getId());
         edgeImitator.expectMessageAmount(1);
+        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(thermostatDeviceProfile.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         edgeImitator.expectMessageAmount(1);
@@ -2320,7 +2320,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
         firmwareInfo.setDeviceProfileId(deviceProfileId);
         firmwareInfo.setType(FIRMWARE);
-        firmwareInfo.setTitle("Firmware Edge");
+        firmwareInfo.setTitle("Firmware Edge " + RandomStringUtils.randomAlphanumeric(3));
         firmwareInfo.setVersion("v1.0");
         firmwareInfo.setTag("My firmware #1 v1.0");
         firmwareInfo.setUsesUrl(true);
