@@ -167,7 +167,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 2, 1);
+                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
 
         Device foundDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
