@@ -84,6 +84,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_DEREGISTRATION_STARTED;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_DEREGISTRATION_SUCCESS;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_SUCCESS;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_SUCCESS;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.OBJECT_ID_1;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID_9;
 
@@ -212,10 +213,10 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
         device.getId().getId().toString();
         lwM2MTestClient.start(isStartLw);
         await(awaitAlias)
-                .atMost(40, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     log.warn("basicTestConnection -> finishState: [{}] states: {}", finishState, lwM2MTestClient.getClientStates());
-                    return lwM2MTestClient.getClientStates().contains(finishState);
+                    return lwM2MTestClient.getClientStates().contains(finishState) || lwM2MTestClient.getClientStates().contains(ON_UPDATE_SUCCESS);
                 });
         Assert.assertTrue(lwM2MTestClient.getClientStates().containsAll(expectedStatuses));
     }
@@ -253,10 +254,10 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
         String deviceId = device.getId().getId().toString();
         lwM2MTestClient.start(true);
         await(awaitAlias)
-                .atMost(40, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     log.warn("basicTestConnection -> finishState: [{}] states: {}", ON_REGISTRATION_SUCCESS, lwM2MTestClient.getClientStates());
-                    return lwM2MTestClient.getClientStates().contains(ON_REGISTRATION_SUCCESS);
+                    return lwM2MTestClient.getClientStates().contains(ON_REGISTRATION_SUCCESS) || lwM2MTestClient.getClientStates().contains(ON_UPDATE_SUCCESS);
                 });
         Assert.assertTrue(lwM2MTestClient.getClientStates().containsAll(expectedStatusesLwm2m));
 
@@ -273,10 +274,10 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
         expectedStatusesBs.add(ON_DEREGISTRATION_STARTED);
         expectedStatusesBs.add(ON_DEREGISTRATION_SUCCESS);
         await(awaitAlias)
-                .atMost(40, TimeUnit.SECONDS)
+                .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     log.warn("basicTestConnection -> finishState: [{}] states: {}", ON_REGISTRATION_SUCCESS, lwM2MTestClient.getClientStates());
-                    return lwM2MTestClient.getClientStates().contains(ON_REGISTRATION_SUCCESS);
+                    return lwM2MTestClient.getClientStates().contains(ON_REGISTRATION_SUCCESS) || lwM2MTestClient.getClientStates().contains(ON_UPDATE_SUCCESS);
                 });
         Assert.assertTrue(lwM2MTestClient.getClientStates().containsAll(expectedStatusesBs));
     }
