@@ -67,7 +67,7 @@ public class LwM2mServerListener {
         @Override
         public void registered(Registration registration, Registration previousReg,
                                Collection<Observation> previousObservations) {
-            log.warn("Client: registered: [{}]", registration.getEndpoint());
+            log.debug("Client: registered: [{}]", registration.getEndpoint());
             service.onRegistered(registration, previousObservations);
         }
 
