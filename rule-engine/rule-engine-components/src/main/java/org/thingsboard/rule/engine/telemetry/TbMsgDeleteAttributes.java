@@ -1,44 +1,27 @@
 /**
- * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ * Copyright © 2016-2022 The Thingsboard Authors
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * NOTICE: All information contained herein is, and remains
- * the property of ThingsBoard, Inc. and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to ThingsBoard, Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Dissemination of this information or reproduction of this material is strictly forbidden
- * unless prior written permission is obtained from COMPANY.
- *
- * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
- * managers or contractors who have executed Confidentiality and Non-disclosure agreements
- * explicitly covering such access.
- *
- * The copyright notice above does not evidence any actual or intended publication
- * or disclosure  of  this source code, which includes
- * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
- * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
- * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
- * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
- * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
- * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
- * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
- * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.thingsboard.rule.engine.telemetry;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -53,9 +36,8 @@ import java.util.stream.Collectors;
         name = "delete attributes",
         configClazz = TbMsgDeleteAttributesConfiguration.class,
         nodeDescription = "Delete attributes for Message Originator.",
-        nodeDetails = "Allowed scope parameter values: <b>SERVER/CLIENT/SHARED</b>. If no attributes are selected - " +
-                "message send via <b>Failure</b> chain. If selected attributes successfully deleted - message send via " +
-                "<b>Success</b> chain, otherwise <b>Failure</b> chain will be used.",
+        nodeDetails = "Attempt to remove attributes by selected keys. If msg originator doesn't have an attribute with " +
+                " a key selected in the configuration, it will be ignored.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeDeleteAttributesConfig",
         icon = "remove_circle"
@@ -67,29 +49,19 @@ public class TbMsgDeleteAttributes implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbMsgDeleteAttributesConfiguration.class);
-        if (CollectionUtils.isEmpty(config.getKeys())) {
-            throw new IllegalArgumentException("Attribute keys list is empty!");
-        }
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        List<String> keysPatterns = config.getKeys();
-        String scope = TbNodeUtils.processPattern(config.getScope(), msg);
-        if (DataConstants.SERVER_SCOPE.equals(scope) ||
-                DataConstants.CLIENT_SCOPE.equals(scope) ||
-                DataConstants.SHARED_SCOPE.equals(scope)) {
-            List<String> keysToDelete = keysPatterns.stream()
-                    .map(keyPattern -> TbNodeUtils.processPattern(keyPattern, msg))
-                    .distinct()
-                    .filter(StringUtils::isNotBlank)
-                    .collect(Collectors.toList());
-            if (keysToDelete.isEmpty()) {
-                throw new RuntimeException("Selected keys patterns have invalid values!");
-            }
-            ctx.getTelemetryService().deleteAndNotify(ctx.getTenantId(), msg.getOriginator(), scope, keysToDelete, new TelemetryNodeCallback(ctx, msg));
+        List<String> keysToDelete = config.getKeys().stream()
+                .map(keyPattern -> TbNodeUtils.processPattern(keyPattern, msg))
+                .distinct()
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
+        if (keysToDelete.isEmpty()) {
+            ctx.tellSuccess(msg);
         } else {
-            ctx.tellFailure(msg, new IllegalArgumentException("Unsupported attributes scope '" + scope + "'! Only 'SERVER_SCOPE', 'CLIENT_SCOPE' or 'SHARED_SCOPE' are allowed!"));
+            ctx.getTelemetryService().deleteAndNotify(ctx.getTenantId(), msg.getOriginator(), config.getScope(), keysToDelete, new TelemetryNodeCallback(ctx, msg));
         }
     }
 
