@@ -35,6 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
@@ -59,6 +60,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.thingsboard.server.common.data.security.DeviceCredentialsType.ACCESS_TOKEN;
 
 public class TbFetchDeviceCredentialsNodeTest {
     final ObjectMapper mapper = new ObjectMapper();
@@ -85,8 +87,13 @@ public class TbFetchDeviceCredentialsNodeTest {
 
         willReturn(deviceCredentialsService).given(ctx).getDeviceCredentialsService();
         willAnswer(invocation -> {
-            return new DeviceCredentials();
+            DeviceCredentials deviceCredentials = new DeviceCredentials();
+            deviceCredentials.setCredentialsType(ACCESS_TOKEN);
+            return deviceCredentials;
         }).given(deviceCredentialsService).findDeviceCredentialsByDeviceId(any(), any());
+        willAnswer(invocation -> {
+            return JacksonUtil.newObjectNode();
+        }).given(deviceCredentialsService).credentialsInfo(any());
     }
 
     @AfterEach
@@ -118,7 +125,8 @@ public class TbFetchDeviceCredentialsNodeTest {
         TbMsg newMsg = newMsgCaptor.getValue();
         assertThat(newMsg).isNotNull();
 
-        assertThat(newMsg.getMetaData().getData().containsKey("deviceCredentials")).isEqualTo(true);
+        assertThat(newMsg.getMetaData().getData().containsKey("credentials")).isEqualTo(true);
+        assertThat(newMsg.getMetaData().getData().containsKey("credentialsType")).isEqualTo(true);
     }
 
     @Test
