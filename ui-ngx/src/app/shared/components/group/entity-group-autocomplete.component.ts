@@ -74,7 +74,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   @Input()
   groupType: EntityType;
 
-  private ownerIdValue: EntityId | null = null;
+  private ownerIdValue: EntityId | null = undefined;
   get ownerId(): EntityId {
     return this.ownerIdValue;
   }
