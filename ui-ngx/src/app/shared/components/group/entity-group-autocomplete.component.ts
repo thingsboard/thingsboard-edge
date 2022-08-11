@@ -54,7 +54,6 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { isEqual, isString } from '@core/utils';
-import { isNotNullOrUndefined } from 'codelyzer/util/isNotNullOrUndefined';
 
 @Component({
   selector: 'tb-entity-group-autocomplete',
@@ -81,15 +80,11 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   @Input()
-  set ownerId(value: EntityId) {
+  set ownerId(value: EntityId | null) {
     if (!isEqual(this.ownerIdValue, value)) {
-      if (isNotNullOrUndefined(this.ownerIdValue)) {
-        const currentEntityGroup = this.getCurrentEntityGroup();
-        const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value?.id;
-        this.reset(keepEntityGroup);
-      } else {
-        this.resetCasheAndStatus();
-      }
+      const currentEntityGroup = this.getCurrentEntityGroup();
+      const keepEntityGroup = currentEntityGroup?.ownerId?.id === value?.id || currentEntityGroup === null;
+      this.reset(keepEntityGroup);
     }
     this.ownerIdValue = value;
   }
@@ -247,14 +242,10 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  resetCasheAndStatus() {
+  reset(keepEntityGroup = false) {
     this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
     this.pristine = true;
-  }
-
-  reset(keepEntityGroup = false) {
-    this.resetCasheAndStatus();
     if (!keepEntityGroup) {
       this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
       setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
