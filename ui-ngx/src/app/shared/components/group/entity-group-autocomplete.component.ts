@@ -82,10 +82,14 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
 
   @Input()
   set ownerId(value: EntityId) {
-    if (isNotNullOrUndefined(this.ownerIdValue) && !isEqual(this.ownerIdValue, value)) {
-      const currentEntityGroup = this.getCurrentEntityGroup();
-      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
-      this.reset(keepEntityGroup);
+    if (!isEqual(this.ownerIdValue, value)) {
+      if (isNotNullOrUndefined(this.ownerIdValue)) {
+        const currentEntityGroup = this.getCurrentEntityGroup();
+        const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value?.id;
+        this.reset(keepEntityGroup);
+      } else {
+        this.resetCasheAndStatus();
+      }
     }
     this.ownerIdValue = value;
   }
@@ -243,10 +247,14 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
     }
   }
 
-  reset(keepEntityGroup = false) {
+  resetCasheAndStatus() {
     this.cleanFilteredEntityGroups.next([]);
     this.allEntityGroups = null;
     this.pristine = true;
+  }
+
+  reset(keepEntityGroup = false) {
+    this.resetCasheAndStatus();
     if (!keepEntityGroup) {
       this.selectEntityGroupFormGroup.get('entityGroup').patchValue('', {emitEvent: false});
       setTimeout(() => this.updateView(null, this.getCurrentEntityGroup()));
