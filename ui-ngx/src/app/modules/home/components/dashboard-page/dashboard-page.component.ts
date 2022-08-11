@@ -947,39 +947,41 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   public openDashboardState(state: string, openRightLayout?: boolean) {
     const layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, state);
-    let widgetsCount = 0;
+    let widgetIds = [];
     if (layoutsData) {
       this.dashboardCtx.state = state;
       this.dashboardCtx.aliasController.dashboardStateChanged();
       this.isRightLayoutOpened = openRightLayout ? true : false;
-      widgetsCount = this.updateLayouts(layoutsData);
+      widgetIds = this.updateLayouts(layoutsData);
     }
     setTimeout(() => {
       this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
       if (this.reportView) {
-        this.reportService.onDashboardLoaded(widgetsCount);
+        this.reportService.onDashboardLoaded(widgetIds);
       }
     });
   }
 
-  private updateLayouts(layoutsData?: DashboardLayoutsInfo): number {
+  private updateLayouts(layoutsData?: DashboardLayoutsInfo): Array<string> {
     if (!layoutsData) {
       layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, this.dashboardCtx.state);
     }
-    let widgetsCount = 0;
+    const widgetsIds = [];
     for (const l of Object.keys(this.layouts)) {
       const layout: DashboardPageLayout = this.layouts[l];
       if (layoutsData[l]) {
         layout.show = true;
         const layoutInfo: DashboardLayoutInfo = layoutsData[l];
         this.updateLayout(layout, layoutInfo);
-        widgetsCount += layoutInfo.widgetIds ? layoutInfo.widgetIds.length : 0;
+        if (layoutInfo.widgetIds && layoutInfo.widgetIds.length) {
+          widgetsIds.push(...layoutInfo.widgetIds);
+        }
       } else {
         layout.show = false;
         this.updateLayout(layout, {widgetIds: [], widgetLayouts: {}, gridSettings: null});
       }
     }
-    return widgetsCount;
+    return widgetsIds;
   }
 
   private updateLayout(layout: DashboardPageLayout, layoutInfo: DashboardLayoutInfo) {

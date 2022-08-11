@@ -62,7 +62,7 @@ export class ReportService {
   private lastWsCommandTimeMs = 0;
   private waitForMaps: Set<string> = new Set();
   private lastWaitMapTimeMs = 0;
-  private waitForWidgets = 0;
+  private waitForWidgets: Set<string> = new Set();
   private lastWaitWidgetsTimeMs = 0;
 
   constructor(
@@ -119,8 +119,8 @@ export class ReportService {
     }
   }
 
-  public onDashboardLoaded(widgetsCount: number) {
-    this.waitForWidgets += widgetsCount;
+  public onDashboardLoaded(widgetsIds: Array<string>) {
+    widgetsIds.forEach(id => this.waitForWidgets.add(id));
     this.lastWaitWidgetsTimeMs = this.utils.currentPerfTime();
   }
 
@@ -218,7 +218,7 @@ export class ReportService {
             if (params.length) {
               url += `?${params.join('&')}`;
             }
-            this.waitForWidgets = 0;
+            this.waitForWidgets.clear();
             this.receiveWsData.clear();
             this.waitForMaps.clear();
             this.lastWaitWidgetsTimeMs = 0;
@@ -322,7 +322,7 @@ export class ReportService {
   private isReportPageDomReady(): boolean {
     if ($('section.tb-dashboard-container gridster#gridster-child').not('tb-widget-container gridster#gridster-child').length) {
       const widgets = Array.from($('tb-widget>div.tb-widget-loading'));
-      if (widgets.length >= this.waitForWidgets && widgets.every(item => item.style.display === 'none')) {
+      if (widgets.length >= this.waitForWidgets.size && widgets.every(item => item.style.display === 'none')) {
         return true;
       }
     }
