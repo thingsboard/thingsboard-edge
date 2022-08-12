@@ -352,3 +352,7 @@ $$;
 UPDATE tb_user
     SET additional_info = REPLACE(additional_info, '"lang":"ja_JA"', '"lang":"ja_JP"')
     WHERE additional_info LIKE '%"lang":"ja_JA"%';
+
+UPDATE attribute_kv
+    SET str_v = REPLACE(str_v, '"ja_JA"', '"ja_JP"')
+    WHERE attribute_type='SERVER_SCOPE' AND attribute_key='customTranslation' AND str_v LIKE '%"ja_JA"%';
