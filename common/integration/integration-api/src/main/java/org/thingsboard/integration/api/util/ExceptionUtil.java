@@ -42,6 +42,16 @@ import java.io.StringWriter;
 @Slf4j
 public class ExceptionUtil {
 
+    @SuppressWarnings("unchecked")
+    public static <T extends Exception> T lookupException(Throwable source, Class<T> clazz) {
+        Exception e = lookupExceptionInCause(source, clazz);
+        if (e != null) {
+            return (T) e;
+        } else {
+            return null;
+        }
+    }
+
     public static Exception lookupExceptionInCause(Throwable source, Class<? extends Exception>... clazzes) {
         if (source == null) {
             return null;
