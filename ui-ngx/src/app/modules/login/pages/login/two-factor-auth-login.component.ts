@@ -45,6 +45,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { interval, Subscription } from 'rxjs';
 import { isEqual } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-two-factor-auth-login',
@@ -87,7 +88,8 @@ export class TwoFactorAuthLoginComponent extends PageComponent implements OnInit
               private twoFactorAuthService: TwoFactorAuthenticationService,
               private authService: AuthService,
               private translate: TranslateService,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              public wl: WhiteLabelingService) {
     super(store);
   }
 
