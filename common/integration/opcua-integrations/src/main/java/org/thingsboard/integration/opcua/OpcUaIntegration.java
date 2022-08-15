@@ -265,15 +265,14 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         taskQueue.add(task);
         log.info("[{}] queue size: {}", configuration.getId(), taskQueue.size());
         if (delayInSec > 0) {
-            nextPollFuture = context.getScheduledExecutorService().schedule(this::pollTask, delayInSec, TimeUnit.SECONDS);
+            nextPollFuture = context.getScheduledExecutorService().schedule(this::submitPoll, delayInSec, TimeUnit.SECONDS);
         } else {
             submitPoll();
         }
     }
 
     private void submitPoll() {
-        //TODO: replace this with other executor dedicated to OPC-UA integrations to avoid consuming the main scheduled executor
-        context.getScheduledExecutorService().execute(this::pollTask);
+        context.getExecutorService().execute(this::pollTask);
     }
 
     private void pollTask() {
