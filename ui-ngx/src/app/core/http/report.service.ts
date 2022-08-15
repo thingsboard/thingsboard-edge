@@ -121,7 +121,7 @@ export class ReportService {
   }
 
   public onDashboardLoaded(widgetsCount: number) {
-    this.waitForWidgets += widgetsCount;
+    this.waitForWidgets = widgetsCount;
     this.lastWaitWidgetsTimeMs = this.utils.currentPerfTime();
   }
 
