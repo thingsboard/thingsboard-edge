@@ -268,7 +268,6 @@ export class ImageMap extends LeafletMap {
           zoom: 1,
           crs: L.CRS.Simple,
           attributionControl: false,
-          tap: L.Browser.safari && L.Browser.mobile,
           fadeAnimation: !this.ctx.reportService.reportView
         });
         this.updateBounds(updateImage);

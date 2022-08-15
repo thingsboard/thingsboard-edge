@@ -44,7 +44,6 @@ export class OpenStreetMap extends LeafletMap {
         const map =  L.map($container, {
           doubleClickZoom: !this.options.disableDoubleClickZooming,
           zoomControl: !this.options.disableZoomControl,
-          tap: L.Browser.safari && L.Browser.mobile,
           fadeAnimation: !ctx.reportService.reportView
         }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
         let tileLayer;
