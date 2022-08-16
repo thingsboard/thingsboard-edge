@@ -33,6 +33,11 @@ package org.thingsboard.server.service.edge.rpc;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
+import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
+
+import java.util.UUID;
+import java.util.function.Consumer;
 
 public interface EdgeRpcService {
 
@@ -42,5 +47,9 @@ public interface EdgeRpcService {
 
     void onEdgeEvent(TenantId tenantId, EdgeId edgeId);
 
-    void startSyncProcess(TenantId tenantId, EdgeId edgeId);
+    void startSyncProcess(TenantId tenantId, EdgeId edgeId, UUID requestId);
+
+    void processSyncRequest(ToEdgeSyncRequest request, Consumer<FromEdgeSyncResponse> responseConsumer);
+
+    void processSyncResponse(FromEdgeSyncResponse response);
 }

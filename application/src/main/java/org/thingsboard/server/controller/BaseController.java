@@ -373,10 +373,7 @@ public abstract class BaseController {
     protected EdgeService edgeService;
 
     @Autowired(required = false)
-    protected EdgeNotificationService edgeNotificationService;
-
-    @Autowired(required = false)
-    protected EdgeRpcService edgeGrpcService;
+    protected EdgeRpcService edgeRpcService;
 
     @Autowired(required = false)
     protected EdgeLicenseService edgeLicenseService;
