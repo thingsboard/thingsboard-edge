@@ -107,6 +107,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.integration.opcua.OpcUaIntegrationTask.CONNECT;
+import static org.thingsboard.integration.opcua.OpcUaIntegrationTask.DISCONNECT;
 
 /**
  * Created by Valerii Sosliuk on 3/17/2018.
@@ -252,18 +253,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
 
     private void submit(OpcUaIntegrationTask task, int delayInSec) {
         if (delayInSec > 0) {
-            log.info("[{}] Adding task to queue: {} with delay {}", configuration.getId(), task, delayInSec);
+            log.debug("[{}] Adding task to queue: {} with delay {}", configuration.getId(), task, delayInSec);
         } else {
-            log.info("[{}] Adding task to queue: {}", configuration.getId(), task);
+            log.debug("[{}] Adding task to queue: {}", configuration.getId(), task);
         }
-        if (OpcUaIntegrationTask.DISCONNECT.equals(task)) {
-            if (nextPollFuture != null) {
-                nextPollFuture.cancel(true);
-            }
+        if (nextPollFuture != null) {
+            nextPollFuture.cancel(true);
+        }
+        if (DISCONNECT.equals(task)) {
             taskQueue.removeIf(Objects::nonNull);
         }
         taskQueue.add(task);
-        log.info("[{}] queue size: {}", configuration.getId(), taskQueue.size());
+        log.debug("[{}] queue size: {}", configuration.getId(), taskQueue.size());
         if (delayInSec > 0) {
             nextPollFuture = context.getScheduledExecutorService().schedule(this::submitPoll, delayInSec, TimeUnit.SECONDS);
         } else {
@@ -281,7 +282,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
             OpcUaIntegrationTask task = taskQueue.poll();
             if (task != null) {
                 deduplicate(task);
-                log.info("[{}] Going to process task: {}", configuration.getId(), task);
+                log.debug("[{}] Going to process task: {}", configuration.getId(), task);
                 processTask(task);
             }
         } catch (Exception e) {
@@ -295,7 +296,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         while (true) {
             OpcUaIntegrationTask next = taskQueue.peek();
             if (task.equals(next)) {
-                log.info("[{}] Remove duplicated task from queue: {}", getConfigurationId(), next);
+                log.debug("[{}] Remove duplicated task from queue: {}", getConfigurationId(), next);
                 taskQueue.poll();
             } else {
                 break;
