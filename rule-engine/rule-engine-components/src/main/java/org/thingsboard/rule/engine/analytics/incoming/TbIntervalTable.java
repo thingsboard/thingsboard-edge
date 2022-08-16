@@ -37,7 +37,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.springframework.data.util.Pair;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbAvgIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountIntervalState;
 import org.thingsboard.rule.engine.analytics.incoming.state.TbCountUniqueIntervalState;
