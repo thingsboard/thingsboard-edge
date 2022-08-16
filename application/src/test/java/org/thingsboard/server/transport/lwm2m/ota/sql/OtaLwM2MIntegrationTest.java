@@ -140,6 +140,7 @@ public class OtaLwM2MIntegrationTest extends AbstractOtaLwM2MIntegrationTest {
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsNoSec(createNoSecClientCredentials(this.CLIENT_ENDPOINT_OTA5));
         final Device device = createDevice(deviceCredentials, this.CLIENT_ENDPOINT_OTA5);
         createNewClient(SECURITY_NO_SEC, COAP_CONFIG, false, this.CLIENT_ENDPOINT_OTA5, false, null);
+
         awaitObserveReadAll(9, false, device.getId().getId().toString());
 
         device.setFirmwareId(createFirmware().getId());

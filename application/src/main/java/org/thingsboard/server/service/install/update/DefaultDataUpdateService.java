@@ -293,6 +293,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
                 }
+
+                // remove this line in 4+ release
+                fixDuplicateSystemWidgetsBundles();
+
+                // reset full sync required - to upload latest widgets from cloud
+                tenantsFullSyncRequiredUpdater.updateEntities(null);
                 break;
             case "3.4.1":
                 log.info("Updating data from version 3.4.1 to 3.4.1PE ...");
