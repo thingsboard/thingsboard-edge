@@ -34,7 +34,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,6 +41,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -120,7 +120,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testSaveIntegration() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
@@ -144,7 +144,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testFindIntegrationById() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
@@ -158,7 +158,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testDeleteIntegration() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
@@ -175,7 +175,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testSaveIntegrationWithEmptyType() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         doPost("/api/integration", integration)
                 .andExpect(status().isBadRequest())
@@ -198,7 +198,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testSaveIntegrationWithEmptyConverterId() throws Exception {
         Integration integration = new Integration();
         integration.setName("My integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setType(IntegrationType.OCEANCONNECT);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
         doPost("/api/integration", integration)
@@ -212,7 +212,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         for (int i = 0; i < 178; i++) {
             Integration integration = new Integration();
             integration.setName("Integration" + i);
-            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+            integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setDefaultConverterId(savedConverter.getId());
@@ -243,11 +243,11 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         List<Integration> integrations1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Integration integration = new Integration();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             integration.setName(name);
-            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+            integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setDefaultConverterId(savedConverter.getId());
@@ -257,11 +257,11 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         List<Integration> integrations2 = new ArrayList<>();
         for (int i = 0; i < 75; i++) {
             Integration integration = new Integration();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             integration.setName(name);
-            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+            integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
             integration.setType(IntegrationType.OCEANCONNECT);
             integration.setConfiguration(INTEGRATION_CONFIGURATION);
             integration.setDefaultConverterId(savedConverter.getId());
@@ -332,7 +332,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testUpdateIntegrationFromLocalToRemoteIsCorrect() throws Exception {
         Integration integration = new Integration();
         integration.setName("Local integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
@@ -384,7 +384,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     public void testUpdateIntegrationFromRemoteToLocalIsCorrect() throws Exception {
         Integration integration = new Integration();
         integration.setName("Local integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
         integration.setConfiguration(INTEGRATION_CONFIGURATION);
@@ -449,7 +449,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         for (int i = 0; i < 27; i++) {
             Integration integration = new Integration();
             integration.setName("Edge integration " + i);
-            integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+            integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
             integration.setDefaultConverterId(edgeConverter.getId());
             integration.setType(IntegrationType.HTTP);
             integration.setConfiguration(INTEGRATION_CONFIGURATION);
@@ -502,7 +502,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Integration integration = new Integration();
         integration.setName("Edge integration #1");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(edgeConverter.getId());
         integration.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
@@ -541,7 +541,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Integration integration2 = new Integration();
         integration2.setName("Edge integration #2");
-        integration2.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration2.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration2.setDefaultConverterId(edgeConverter.getId());
         integration2.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration2 = JacksonUtil.OBJECT_MAPPER.createObjectNode();

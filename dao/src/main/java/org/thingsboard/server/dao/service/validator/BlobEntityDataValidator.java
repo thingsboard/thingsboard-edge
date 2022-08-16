@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.service.validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -57,13 +58,13 @@ public class BlobEntityDataValidator extends DataValidator<BlobEntity> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, BlobEntity blobEntity) {
-        if (org.springframework.util.StringUtils.isEmpty(blobEntity.getType())) {
+        if (StringUtils.isEmpty(blobEntity.getType())) {
             throw new DataValidationException("BlobEntity type should be specified!");
         }
-        if (org.springframework.util.StringUtils.isEmpty(blobEntity.getName())) {
+        if (StringUtils.isEmpty(blobEntity.getName())) {
             throw new DataValidationException("BlobEntity name should be specified!");
         }
-        if (org.springframework.util.StringUtils.isEmpty(blobEntity.getContentType())) {
+        if (StringUtils.isEmpty(blobEntity.getContentType())) {
             throw new DataValidationException("BlobEntity content type should be specified!");
         }
         if (blobEntity.getData() == null) {

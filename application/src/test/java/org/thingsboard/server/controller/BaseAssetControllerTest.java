@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,6 +38,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -131,7 +131,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
     @Test
     public void testSaveAssetWithViolationOfLengthValidation() throws Exception {
         Asset asset = new Asset();
-        asset.setName(RandomStringUtils.randomAlphabetic(300));
+        asset.setName(StringUtils.randomAlphabetic(300));
         asset.setType("default");
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -148,7 +148,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         Mockito.reset(tbClusterService, auditLogService);
 
         asset.setName("Normal name");
-        asset.setType(RandomStringUtils.randomAlphabetic(300));
+        asset.setType(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("type");
         doPost("/api/asset", asset)
                 .andExpect(status().isBadRequest())
@@ -161,7 +161,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         Mockito.reset(tbClusterService, auditLogService);
 
         asset.setType("default");
-        asset.setLabel(RandomStringUtils.randomAlphabetic(300));
+        asset.setLabel(StringUtils.randomAlphabetic(300));
         msgError = msgErrorFieldLength("label");
         doPost("/api/asset", asset)
                 .andExpect(status().isBadRequest())
@@ -403,7 +403,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         List<Asset> assetsTitle1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -414,7 +414,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         List<Asset> assetsTitle2 = new ArrayList<>();
         for (int i = 0; i < 75; i++) {
             Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -489,7 +489,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         List<Asset> assetsType1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
             Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -501,7 +501,7 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
         List<Asset> assetsType2 = new ArrayList<>();
         for (int i = 0; i < 75; i++) {
             Asset asset = new Asset();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);

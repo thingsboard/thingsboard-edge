@@ -50,7 +50,7 @@ import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 
 @Service
 @TbCoreComponent

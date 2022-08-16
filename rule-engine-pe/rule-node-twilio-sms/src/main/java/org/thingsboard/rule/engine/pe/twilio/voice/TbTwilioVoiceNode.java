@@ -39,7 +39,7 @@ import com.twilio.twiml.voice.SsmlProsody;
 import com.twilio.type.PhoneNumber;
 import com.twilio.type.Twiml;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;

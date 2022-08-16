@@ -54,7 +54,7 @@ server:
         key_password: "${SSL_PEM_KEY_PASSWORD:server_key_password}"
       # Keystore server credentials
       keystore:
-        # Type of the key store
+        # Type of the key store (JKS or PKCS12)
         type: "${SSL_KEY_STORE_TYPE:PKCS12}"
         # Path to the key store that holds the SSL certificate
         store_file: "${SSL_KEY_STORE:classpath:keystore/keystore.p12}"
@@ -764,7 +764,7 @@ transport:
           key_password: "${MQTT_SSL_PEM_KEY_PASSWORD:server_key_password}"
         # Keystore server credentials
         keystore:
-          # Type of the key store
+          # Type of the key store (JKS or PKCS12)
           type: "${MQTT_SSL_KEY_STORE_TYPE:JKS}"
           # Path to the key store that holds the SSL certificate
           store_file: "${MQTT_SSL_KEY_STORE:mqttserver.jks}"
@@ -811,7 +811,7 @@ transport:
             key_password: "${LWM2M_SERVER_PEM_KEY_PASSWORD:server_key_password}"
           # Keystore server credentials
           keystore:
-            # Type of the key store
+            # Type of the key store (JKS or PKCS12)
             type: "${LWM2M_SERVER_KEY_STORE_TYPE:JKS}"
             # Path to the key store that holds the SSL certificate
             store_file: "${LWM2M_SERVER_KEY_STORE:lwm2mserver.jks}"
@@ -847,7 +847,7 @@ transport:
             key_password: "${LWM2M_BS_PEM_KEY_PASSWORD:server_key_password}"
           # Keystore server credentials
           keystore:
-            # Type of the key store
+            # Type of the key store (JKS or PKCS12)
             type: "${LWM2M_BS_KEY_STORE_TYPE:JKS}"
             # Path to the key store that holds the SSL certificate
             store_file: "${LWM2M_BS_KEY_STORE:lwm2mserver.jks}"
@@ -870,7 +870,7 @@ transport:
           cert_file: "${LWM2M_TRUST_PEM_CERT:lwm2mtruststorechain.pem}"
         # Keystore with trust certificates
         keystore:
-          # Type of the key store
+          # Type of the key store (JKS or PKCS12)
           type: "${LWM2M_TRUST_KEY_STORE_TYPE:JKS}"
           # Path to the key store that holds the X509 certificates
           store_file: "${LWM2M_TRUST_KEY_STORE:lwm2mtruststorechain.jks}"
@@ -927,7 +927,7 @@ coap:
         key_password: "${COAP_DTLS_PEM_KEY_PASSWORD:server_key_password}"
       # Keystore server credentials
       keystore:
-        # Type of the key store
+        # Type of the key store (JKS or PKCS12)
         type: "${COAP_DTLS_KEY_STORE_TYPE:JKS}"
         # Path to the key store that holds the SSL certificate
         store_file: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
