@@ -46,6 +46,8 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.ColumnConfiguration;
 import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityField;
@@ -394,7 +396,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         List<EntityGroup> entityGroupsName1 = new ArrayList<>();
         for (int i = 0; i < 123; i++) {
             EntityGroup entityGroup = new EntityGroup();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = name1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             entityGroup.setName(name);
@@ -408,7 +410,7 @@ public abstract class BaseEntityGroupServiceTest extends AbstractBeforeTest {
         List<EntityGroup> entityGroupsName2 = new ArrayList<>();
         for (int i = 0; i < 193; i++) {
             EntityGroup entityGroup = new EntityGroup();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = name2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             entityGroup.setName(name);

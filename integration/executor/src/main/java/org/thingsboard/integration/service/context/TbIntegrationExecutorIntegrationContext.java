@@ -31,6 +31,7 @@
 package org.thingsboard.integration.service.context;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +44,16 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
+import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -119,13 +127,19 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     }
 
     @Override
-    public void saveEvent(String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(TbEventSource.INTEGRATION, configuration.getId(), null, type, uid, body, callback);
+    public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
+        doSaveEvent(TbEventSource.INTEGRATION, configuration.getId(), event, null, callback);
     }
 
     @Override
     public void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        saveEvent(TbEventSource.DEVICE, null, deviceName, type, uid, body, callback);
+        doSaveEvent(TbEventSource.DEVICE, configuration.getTenantId(), RawDataEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .serviceId(getServiceId())
+                .uuid(uid)
+                .messageType(type)
+                .message(body.toString())
+                .build(), deviceName, callback);
     }
 
     @Override
@@ -176,20 +190,16 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         return logSettingsComponent.isExceptionStackTraceEnabled();
     }
 
-    private void saveEvent(TbEventSource tbEventSource, EntityId entityId, String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback) {
-        String eventData = JacksonUtil.toString(body);
+    private void doSaveEvent(TbEventSource tbEventSource, EntityId entityId, Event event, String deviceName, IntegrationCallback<Void> callback) {
         var builder = TbIntegrationEventProto.newBuilder()
                 .setSource(tbEventSource)
-                .setType(type)
-                .setData(eventData);
+                .setEvent(ByteString.copyFrom(FSTUtils.encode(event)));
         builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
         builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
-        if (entityId != null) {
-            builder.setEventSourceIdMSB(entityId.getId().getMostSignificantBits());
-            builder.setEventSourceIdLSB(entityId.getId().getLeastSignificantBits());
-        }
-        if (StringUtils.isNotBlank(uid)) {
-            builder.setUid(uid);
+        if (event.getEntityId() != null) {
+            builder.setEventSourceIdMSB(event.getEntityId().getMostSignificantBits());
+            builder.setEventSourceIdLSB(event.getEntityId().getLeastSignificantBits());
+
         }
         if (StringUtils.isNotEmpty(deviceName)) {
             builder.setDeviceName(deviceName);
@@ -209,8 +219,8 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         }
 
         @Override
-        public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
-            TbIntegrationExecutorIntegrationContext.this.saveEvent(eventSource, converterId, null, type, null, body, callback);
+        public void saveEvent(Event event, IntegrationCallback<Void> callback) {
+            TbIntegrationExecutorIntegrationContext.this.doSaveEvent(eventSource, converterId, event, null, callback);
         }
     }
 }

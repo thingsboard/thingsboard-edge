@@ -38,7 +38,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -58,6 +57,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -145,7 +145,7 @@ public abstract class AbstractContainerTest {
 
     protected Device createDevice(String name) {
         Device device = new Device();
-        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        device.setName(name + StringUtils.randomAlphanumeric(7));
         device.setType("DEFAULT");
         return restClient.saveDevice(device);
     }
@@ -232,7 +232,7 @@ public abstract class AbstractContainerTest {
 
     protected Converter createUplink(JsonNode config) {
         Converter converter = new Converter();
-        converter.setName("My converter" + RandomStringUtils.randomAlphanumeric(7));
+        converter.setName("My converter" + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(config);
         return restClient.saveConverter(converter);

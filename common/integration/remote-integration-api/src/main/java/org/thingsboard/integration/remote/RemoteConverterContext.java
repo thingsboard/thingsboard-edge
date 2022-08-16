@@ -30,14 +30,15 @@
  */
 package org.thingsboard.integration.remote;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.ByteString;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.storage.EventStorage;
+import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.gen.integration.TbEventProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.UplinkMsg;
@@ -58,24 +59,17 @@ public class RemoteConverterContext implements ConverterContext {
     }
 
     @Override
-    public void saveEvent(String type, JsonNode body, IntegrationCallback<Void> callback) {
+    public void saveEvent(Event event, IntegrationCallback<Void> callback) {
         TbEventSource source;
         if (isUplink) {
             source = TbEventSource.UPLINK_CONVERTER;
         } else {
             source = TbEventSource.DOWNLINK_CONVERTER;
         }
-        String eventData = "";
-        try {
-            eventData = mapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            log.warn("[{}] Failed to convert event body!", body, e);
-        }
         eventStorage.write(UplinkMsg.newBuilder()
                 .addEventsData(TbEventProto.newBuilder()
                         .setSource(source)
-                        .setType(type)
-                        .setData(eventData)
+                        .setEvent(ByteString.copyFrom(FSTUtils.encode(event)))
                         .build()
                 ).build(), callback);
     }

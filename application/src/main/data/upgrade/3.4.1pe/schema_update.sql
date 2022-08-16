@@ -143,37 +143,45 @@ CREATE TABLE IF NOT EXISTS device_group_ota_package (
     CONSTRAINT fk_entity_group_device_group_ota_package FOREIGN KEY (group_id) REFERENCES entity_group(id) ON DELETE CASCADE
 );
 
-CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(
-    IN regular_events_start_ts bigint,
-    IN regular_events_end_ts bigint,
-    IN debug_events_start_ts bigint,
-    IN debug_events_end_ts bigint,
-    INOUT deleted bigint)
-    LANGUAGE plpgsql AS
-$$
-DECLARE
-    ttl_deleted_count bigint DEFAULT 0;
-    debug_ttl_deleted_count bigint DEFAULT 0;
-BEGIN
-    IF regular_events_start_ts > 0 AND regular_events_end_ts > 0 THEN
-        EXECUTE format(
-                'WITH deleted AS (DELETE FROM event WHERE id in (SELECT id from event WHERE ts > %L::bigint AND ts < %L::bigint AND ' ||
-                '(event_type != %L::varchar AND event_type != %L::varchar AND event_type != %L::varchar AND event_type != %L::varchar)) RETURNING *) ' ||
-                'SELECT count(*) FROM deleted', regular_events_start_ts, regular_events_end_ts,
-                'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN', 'DEBUG_CONVERTER', 'DEBUG_INTEGRATION') into ttl_deleted_count;
-    END IF;
-    IF debug_events_start_ts > 0 AND debug_events_end_ts > 0 THEN
-        EXECUTE format(
-                'WITH deleted AS (DELETE FROM event WHERE id in (SELECT id from event WHERE ts > %L::bigint AND ts < %L::bigint AND ' ||
-                '(event_type = %L::varchar OR event_type = %L::varchar OR event_type = %L::varchar OR event_type = %L::varchar)) RETURNING *) ' ||
-                'SELECT count(*) FROM deleted', debug_events_start_ts, debug_events_end_ts,
-                'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN', 'DEBUG_CONVERTER', 'DEBUG_INTEGRATION') into debug_ttl_deleted_count;
-    END IF;
-    RAISE NOTICE 'Events removed by ttl: %', ttl_deleted_count;
-    RAISE NOTICE 'Debug Events removed by ttl: %', debug_ttl_deleted_count;
-    deleted := ttl_deleted_count + debug_ttl_deleted_count;
-END
-$$;
+CREATE TABLE IF NOT EXISTS converter_debug_event (
+    id uuid NOT NULL,
+    tenant_id uuid NOT NULL,
+    ts bigint NOT NULL,
+    entity_id uuid NOT NULL,
+    service_id varchar NOT NULL,
+    e_type varchar,
+    e_in_message_type varchar,
+    e_in_message varchar,
+    e_out_message_type varchar,
+    e_out_message varchar,
+    e_metadata varchar,
+    e_error varchar
+) PARTITION BY RANGE (ts);
+
+CREATE TABLE IF NOT EXISTS integration_debug_event (
+    id uuid NOT NULL,
+    tenant_id uuid NOT NULL,
+    ts bigint NOT NULL,
+    entity_id uuid NOT NULL,
+    service_id varchar NOT NULL,
+    e_type varchar,
+    e_message_type varchar,
+    e_message varchar,
+    e_status varchar,
+    e_error varchar
+) PARTITION BY RANGE (ts);
+
+CREATE TABLE IF NOT EXISTS raw_data_event (
+    id uuid NOT NULL,
+    tenant_id uuid NOT NULL,
+    ts bigint NOT NULL,
+    entity_id uuid NOT NULL,
+    service_id varchar NOT NULL,
+    e_uuid varchar,
+    e_message_type varchar,
+    e_message varchar
+) PARTITION BY RANGE (ts);
+
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 
@@ -186,3 +194,15 @@ CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id,
 CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
+
+CREATE INDEX IF NOT EXISTS idx_converter_debug_event_main
+    ON converter_debug_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
+
+CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
+    ON integration_debug_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
+
+CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
+    ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
+
+
+

@@ -422,7 +422,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
         boolean toIntegrationExecutor = entityType.equals(EntityType.CONVERTER) || entityType.equals(EntityType.INTEGRATION);
 
-        if (toIntegrationExecutor) {
+        if (entityType.equals(EntityType.TENANT) || toIntegrationExecutor) {
             TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIeNfProducer = producerProvider.getTbIntegrationExecutorNotificationsMsgProducer();
             Set<String> tbIeServices = partitionService.getAllServiceIds(ServiceType.TB_INTEGRATION_EXECUTOR);
             for (String serviceId : tbIeServices) {

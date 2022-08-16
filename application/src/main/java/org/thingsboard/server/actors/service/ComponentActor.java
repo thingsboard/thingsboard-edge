@@ -122,9 +122,6 @@ public abstract class ComponentActor<T extends EntityId, P extends ComponentMsgP
                 case UPDATED:
                     processor.onUpdate(ctx);
                     break;
-                case ACTIVATED:
-                    processor.onActivate(ctx);
-                    break;
                 case SUSPENDED:
                     processor.onSuspend(ctx);
                     break;
