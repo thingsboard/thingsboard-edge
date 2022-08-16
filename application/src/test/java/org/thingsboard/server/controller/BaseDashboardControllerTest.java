@@ -17,7 +17,6 @@ package org.thingsboard.server.controller;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,6 +26,7 @@ import org.mockito.Mockito;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -112,7 +112,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     @Test
     public void testSaveDashboardInfoWithViolationOfValidation() throws Exception {
         Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(RandomStringUtils.randomAlphabetic(300));
+        dashboard.setTitle(StringUtils.randomAlphabetic(300));
         String msgError = msgErrorFieldLength("title");
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -336,7 +336,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         int cntEntity = 134;
         for (int i = 0; i < cntEntity; i++) {
             Dashboard dashboard = new Dashboard();
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String title = title1 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             dashboard.setTitle(title);
@@ -347,7 +347,7 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         for (int i = 0; i < 112; i++) {
             Dashboard dashboard = new Dashboard();
-            String suffix = RandomStringUtils.randomAlphanumeric((int) (Math.random() * 15));
+            String suffix = StringUtils.randomAlphanumeric((int) (Math.random() * 15));
             String title = title2 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             dashboard.setTitle(title);

@@ -17,7 +17,6 @@ package org.thingsboard.server.controller;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +27,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -141,7 +141,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     @Ignore
     @Test
     public void testSaveEdgeWithViolationOfLengthValidation() throws Exception {
-        Edge edge = constructEdge(RandomStringUtils.randomAlphabetic(300), "default");
+        Edge edge = constructEdge(StringUtils.randomAlphabetic(300), "default");
         String msgError = msgErrorFieldLength("name");
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -156,7 +156,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         msgError = msgErrorFieldLength("type");
         edge.setName("normal name");
-        edge.setType(RandomStringUtils.randomAlphabetic(300));
+        edge.setType(StringUtils.randomAlphabetic(300));
         doPost("/api/edge", edge)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -167,7 +167,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
         msgError = msgErrorFieldLength("label");
         edge.setType("normal type");
-        edge.setLabel(RandomStringUtils.randomAlphabetic(300));
+        edge.setLabel(StringUtils.randomAlphabetic(300));
         doPost("/api/edge", edge)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -427,7 +427,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String title1 = "Edge title 1";
         List<Edge> edgesTitle1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, "default");
@@ -436,7 +436,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String title2 = "Edge title 2";
         List<Edge> edgesTitle2 = new ArrayList<>();
         for (int i = 0; i < 75; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, "default");
@@ -512,7 +512,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String type1 = "typeA";
         List<Edge> edgesType1 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, type1);
@@ -522,7 +522,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String type2 = "typeB";
         List<Edge> edgesType2 = new ArrayList<>();
         for (int i = 0; i < 75; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, type2);
@@ -647,7 +647,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String title1 = "Edge title 1";
         List<Edge> edgesTitle1 = new ArrayList<>();
         for (int i = 0; i < 125; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, "default");
@@ -658,7 +658,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String title2 = "Edge title 2";
         List<Edge> edgesTitle2 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, "default");
@@ -748,7 +748,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String type1 = "typeC";
         List<Edge> edgesType1 = new ArrayList<>();
         for (int i = 0; i < 125; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, type1);
@@ -760,7 +760,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String type2 = "typeD";
         List<Edge> edgesType2 = new ArrayList<>();
         for (int i = 0; i < 143; i++) {
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             Edge edge = constructEdge(name, type2);

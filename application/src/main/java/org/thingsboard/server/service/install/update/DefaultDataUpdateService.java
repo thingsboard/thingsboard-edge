@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -67,14 +66,10 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfi
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
-import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
-import org.thingsboard.server.dao.oauth2.OAuth2Service;
-import org.thingsboard.server.dao.entity.EntityService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -91,12 +86,11 @@ import org.thingsboard.server.service.install.TbRuleEngineQueueConfigService;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.thingsboard.server.common.data.StringUtils.isBlank;
 
 @Service
 @Profile("install")
@@ -152,6 +146,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private SystemDataLoaderService systemDataLoaderService;
 
+    @Autowired
+    private EventService eventService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
         switch (fromVersion) {
@@ -182,6 +179,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 log.info("Updating data from version 3.3.4 to 3.4.0 ...");
                 tenantsProfileQueueConfigurationUpdater.updateEntities();
                 rateLimitsUpdater.updateEntities();
+
+                break;
+            case "3.4.0":
+                String skipEventsMigration = System.getenv("TB_SKIP_EVENTS_MIGRATION");
+                if (skipEventsMigration == null || skipEventsMigration.equalsIgnoreCase("false")) {
+                    log.info("Updating data from version 3.4.0 to 3.4.1 ...");
+                    eventService.migrateEvents();
+                }
 
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
@@ -682,7 +687,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 });
             }
         } catch (Exception e) {
-            log.error("Failed to update tenant profile queue configuration name=["+profile.getName()+"], id=["+ profile.getId().getId() +"]", e);
+            log.error("Failed to update tenant profile queue configuration name=[" + profile.getName() + "], id=[" + profile.getId().getId() + "]", e);
         }
     }
 
