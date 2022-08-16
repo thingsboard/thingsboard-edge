@@ -33,8 +33,8 @@ package org.thingsboard.server.dao.service.validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -90,7 +90,7 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, Integration integration) {
-        if (org.springframework.util.StringUtils.isEmpty(integration.getName())) {
+        if (StringUtils.isEmpty(integration.getName())) {
             throw new DataValidationException("Integration name should be specified!");
         }
         if (integration.getType() == null) {

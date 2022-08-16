@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -49,6 +48,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -223,7 +223,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         int qos = 0;
 
         String broker = "tcp://" + host + ":" + port;
-        String subClientId = RandomStringUtils.randomAlphanumeric(10);
+        String subClientId = StringUtils.randomAlphanumeric(10);
         MemoryPersistence persistence = new MemoryPersistence();
 
         MqttClient sampleClientSubs = new MqttClient(broker, subClientId, persistence);
@@ -256,7 +256,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         sampleClientSubs.subscribe(TOPIC);
 
         try {
-            String prodClientId = RandomStringUtils.randomAlphanumeric(10);
+            String prodClientId = StringUtils.randomAlphanumeric(10);
             MqttClient sampleClient = new MqttClient(broker, prodClientId, persistence);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);

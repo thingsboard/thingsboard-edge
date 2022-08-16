@@ -84,7 +84,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
             try {
                 serviceId = InetAddress.getLocalHost().getHostName();
             } catch (UnknownHostException e) {
-                serviceId = org.apache.commons.lang3.RandomStringUtils.randomAlphabetic(10);
+                serviceId = StringUtils.randomAlphabetic(10);
             }
         }
         log.info("Current Service ID: {}", serviceId);

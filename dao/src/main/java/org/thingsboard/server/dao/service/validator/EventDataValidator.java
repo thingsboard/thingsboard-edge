@@ -30,12 +30,12 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 public class EventDataValidator extends DataValidator<Event> {

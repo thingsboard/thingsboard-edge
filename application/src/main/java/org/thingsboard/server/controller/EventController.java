@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.event.EventFilter;
 import org.thingsboard.server.common.data.event.EventType;
@@ -57,10 +56,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.dao.event.EventService;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-
-import java.util.Locale;
 
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_ID_PARAM_DESCRIPTION;
@@ -163,8 +159,11 @@ public class EventController extends BaseController {
         return checkNotNull(eventService.findEvents(tenantId, entityId, resolveEventType(eventType), pageLink));
     }
 
-    @ApiOperation(value = "Get Events (getEvents)",
-            notes = "Returns a page of events for specified entity. " +
+    @ApiOperation(value = "Get Events (Deprecated)",
+            notes = "Returns a page of events for specified entity. Deprecated and will be removed in next minor release. " +
+                    "The call was deprecated to improve the performance of the system. " +
+                    "Current implementation will return 'Lifecycle' events only. " +
+                    "Use 'Get events by type' or 'Get events by filter' instead. " +
                     PAGE_DATA_PARAMETERS, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/events/{entityType}/{entityId}", method = RequestMethod.GET)

@@ -31,8 +31,8 @@
 package org.thingsboard.server.service.apiusage;
 
 import lombok.RequiredArgsConstructor;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;

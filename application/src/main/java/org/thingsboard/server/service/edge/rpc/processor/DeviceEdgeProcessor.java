@@ -38,14 +38,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -106,7 +105,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                     } else {
                         log.info("[{}] Device with name '{}' already exists on the cloud, but not related to this edge [{}]. deviceUpdateMsg [{}]." +
                                 "Creating a new device with random prefix and relate to this edge", tenantId, deviceName, edge.getId(), deviceUpdateMsg);
-                        String newDeviceName = deviceUpdateMsg.getName() + "_" + RandomStringUtils.randomAlphabetic(15);
+                        String newDeviceName = deviceUpdateMsg.getName() + "_" + StringUtils.randomAlphabetic(15);
                         Device newDevice;
                         try {
                             newDevice = createDevice(tenantId, edge, deviceUpdateMsg, newDeviceName);
@@ -263,7 +262,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();
                 deviceCredentials.setDeviceId(new DeviceId(savedDevice.getUuidId()));
                 deviceCredentials.setCredentialsType(DeviceCredentialsType.ACCESS_TOKEN);
-                deviceCredentials.setCredentialsId(org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(20));
+                deviceCredentials.setCredentialsId(StringUtils.randomAlphanumeric(20));
                 deviceCredentialsService.createDeviceCredentials(device.getTenantId(), deviceCredentials);
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
             }

@@ -30,14 +30,14 @@
  */
 package org.thingsboard.server.dao.service.validator;
 
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantDao;
+import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 public class TenantDataValidator extends DataValidator<Tenant> {

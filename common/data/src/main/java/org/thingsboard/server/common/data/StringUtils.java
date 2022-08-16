@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import static org.apache.commons.lang3.StringUtils.repeat;
 
@@ -59,7 +60,7 @@ public class StringUtils {
         if (isEmpty(str) || isEmpty(remove)) {
             return str;
         }
-        if (str.startsWith(remove)){
+        if (str.startsWith(remove)) {
             return str.substring(remove.length());
         }
         return str;
@@ -167,4 +168,25 @@ public class StringUtils {
     public static String removeEnd(String str, String suffix) {
         return org.apache.commons.lang3.StringUtils.removeEnd(str, suffix);
     }
+
+    public static String randomNumeric(int length) {
+        return RandomStringUtils.randomNumeric(length);
+    }
+
+    public static String random(int length) {
+        return RandomStringUtils.random(length);
+    }
+
+    public static String random(int length, String chars) {
+        return RandomStringUtils.random(length, chars);
+    }
+
+    public static String randomAlphanumeric(int count) {
+        return RandomStringUtils.randomAlphanumeric(count);
+    }
+
+    public static String randomAlphabetic(int count) {
+        return RandomStringUtils.randomAlphabetic(count);
+    }
+
 }

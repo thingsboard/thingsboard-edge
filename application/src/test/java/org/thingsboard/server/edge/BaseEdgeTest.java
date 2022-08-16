@@ -41,7 +41,6 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
@@ -63,6 +62,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
@@ -98,7 +98,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -154,7 +153,6 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
@@ -1243,7 +1241,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.setFailureProbability(5.0);
 
         edgeImitator.expectMessageAmount(numberOfTimeseriesToSend);
-        Device device = saveDevice(RandomStringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
+        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
             JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
@@ -1318,7 +1316,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     @Test
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
-        String deviceOnCloudName = RandomStringUtils.randomAlphanumeric(15);
+        String deviceOnCloudName = StringUtils.randomAlphanumeric(15);
         Device deviceOnCloud = saveDevice(deviceOnCloudName, "Default");
 
         UUID uuid = Uuids.timeBased();
@@ -1789,7 +1787,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
         Integration integration = new Integration();
         integration.setName("Edge integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
@@ -2216,7 +2214,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.expectMessageAmount(1);
         EntityGroup deviceEntityGroup = new EntityGroup();
         deviceEntityGroup.setType(EntityType.DEVICE);
-        deviceEntityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        deviceEntityGroup.setName(StringUtils.randomAlphanumeric(15));
         deviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/entityGroup/" + deviceEntityGroup.getId().toString() + "/" + EntityType.DEVICE.name(), EntityGroup.class);
@@ -2224,7 +2222,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         verifyEntityGroupUpdateMsg(edgeImitator.getLatestMessage(), deviceEntityGroup);
 
         edgeImitator.expectMessageAmount(1);
-        Device savedDevice = saveDevice(RandomStringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME, deviceEntityGroup.getId());
+        Device savedDevice = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME, deviceEntityGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         edgeImitator.expectMessageAmount(1);
@@ -2249,7 +2247,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.expectMessageAmount(1);
         EntityGroup assetEntityGroup = new EntityGroup();
         assetEntityGroup.setType(EntityType.ASSET);
-        assetEntityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        assetEntityGroup.setName(StringUtils.randomAlphanumeric(15));
         assetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/entityGroup/" + assetEntityGroup.getId().toString() + "/" + EntityType.ASSET.name(), EntityGroup.class);
@@ -2257,7 +2255,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         verifyEntityGroupUpdateMsg(edgeImitator.getLatestMessage(), assetEntityGroup);
 
         edgeImitator.expectMessageAmount(1);
-        Asset savedAsset = saveAsset(RandomStringUtils.randomAlphanumeric(15), "Building", assetEntityGroup.getId());
+        Asset savedAsset = saveAsset(StringUtils.randomAlphanumeric(15), "Building", assetEntityGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         return savedAsset;
     }
@@ -2320,7 +2318,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
         firmwareInfo.setDeviceProfileId(deviceProfileId);
         firmwareInfo.setType(FIRMWARE);
-        firmwareInfo.setTitle("Firmware Edge " + RandomStringUtils.randomAlphanumeric(3));
+        firmwareInfo.setTitle("Firmware Edge " + StringUtils.randomAlphanumeric(3));
         firmwareInfo.setVersion("v1.0");
         firmwareInfo.setTag("My firmware #1 v1.0");
         firmwareInfo.setUsesUrl(true);
