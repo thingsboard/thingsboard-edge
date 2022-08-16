@@ -47,8 +47,8 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,12 +59,12 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class TbCopyFromMdToMsgNodeTest {
+public class TbCopyKeysNodeTest {
     final ObjectMapper mapper = new ObjectMapper();
 
     DeviceId deviceId;
-    TbCopyFromMdToMsgNode node;
-    TbCopyFromMdToMsgNodeConfiguration config;
+    TbCopyKeysNode node;
+    TbCopyKeysNodeConfiguration config;
     TbNodeConfiguration nodeConfiguration;
     TbContext ctx;
     TbMsgCallback callback;
@@ -74,10 +74,11 @@ public class TbCopyFromMdToMsgNodeTest {
         deviceId = new DeviceId(UUID.randomUUID());
         callback = mock(TbMsgCallback.class);
         ctx = mock(TbContext.class);
-        config = new TbCopyFromMdToMsgNodeConfiguration().defaultConfiguration();
-        config.setMetadataMsgKeys(List.of("TestKey_1", "TestKey_2", "TestKey_3"));
+        config = new TbCopyKeysNodeConfiguration().defaultConfiguration();
+        config.setKeys(Set.of("TestKey_1", "TestKey_2", "TestKey_3", "(\\w*)Data(\\w*)"));
+        config.setFromMetadata(true);
         nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
-        node = spy(new TbCopyFromMdToMsgNode());
+        node = spy(new TbCopyKeysNode());
         node.init(ctx, nodeConfiguration);
     }
 
@@ -93,12 +94,13 @@ public class TbCopyFromMdToMsgNodeTest {
 
     @Test
     void givenDefaultConfig_whenVerify_thenOK() {
-        TbCopyFromMdToMsgNodeConfiguration defaultConfig = new TbCopyFromMdToMsgNodeConfiguration().defaultConfiguration();
-        assertThat(defaultConfig.getMetadataMsgKeys()).isEqualTo(Collections.emptyList());
+        TbCopyKeysNodeConfiguration defaultConfig = new TbCopyKeysNodeConfiguration().defaultConfiguration();
+        assertThat(defaultConfig.getKeys()).isEqualTo(Collections.emptySet());
+        assertThat(defaultConfig.isFromMetadata()).isEqualTo(false);
     }
 
     @Test
-    void givenMsg_whenOnMsg_thenVerifyOutput() throws Exception {
+    void givenMsgFromMetadata_whenOnMsg_thenVerifyOutput() throws Exception {
         String data = "{}";
         node.onMsg(ctx, getTbMsg(deviceId, data));
 
@@ -111,15 +113,16 @@ public class TbCopyFromMdToMsgNodeTest {
 
         JsonNode dataNode = JacksonUtil.toJsonNode(newMsg.getData());
         assertThat(dataNode.has("TestKey_1")).isEqualTo(true);
+        assertThat(dataNode.has("voltageDataValue")).isEqualTo(true);
     }
 
     @Test
-    void givenEmptyKeys_whenOnMsg_thenVerifyOutput() throws Exception {
-        TbCopyFromMdToMsgNodeConfiguration defaultConfig = new TbCopyFromMdToMsgNodeConfiguration().defaultConfiguration();
-        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(defaultConfig));
+    void givenMsgFromMsg_whenOnMsg_thenVerifyOutput() throws Exception {
+        config.setFromMetadata(false);
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
         node.init(ctx, nodeConfiguration);
 
-        String data = "{}";
+        String data = "{\"DigitData\":22.5,\"TempDataValue\":10.5}";
         node.onMsg(ctx, getTbMsg(deviceId, data));
 
         ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
@@ -129,7 +132,29 @@ public class TbCopyFromMdToMsgNodeTest {
         TbMsg newMsg = newMsgCaptor.getValue();
         assertThat(newMsg).isNotNull();
 
-        assertThat(newMsg.getData()).isEqualTo(data);
+        Map<String, String> metaDataMap = newMsg.getMetaData().getData();
+        assertThat(metaDataMap.containsKey("DigitData")).isEqualTo(true);
+        assertThat(metaDataMap.containsKey("TempDataValue")).isEqualTo(true);
+    }
+
+    @Test
+    void givenEmptyKeys_whenOnMsg_thenVerifyOutput() throws Exception {
+        TbCopyKeysNodeConfiguration defaultConfig = new TbCopyKeysNodeConfiguration().defaultConfiguration();
+        nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(defaultConfig));
+        node.init(ctx, nodeConfiguration);
+
+        String data = "{\"DigitData\":22.5,\"TempDataValue\":10.5}";
+        TbMsg msg = getTbMsg(deviceId, data);
+        node.onMsg(ctx, msg);
+
+        ArgumentCaptor<TbMsg> newMsgCaptor = ArgumentCaptor.forClass(TbMsg.class);
+        verify(ctx, times(1)).tellSuccess(newMsgCaptor.capture());
+        verify(ctx, never()).tellFailure(any(), any());
+
+        TbMsg newMsg = newMsgCaptor.getValue();
+        assertThat(newMsg).isNotNull();
+
+        assertThat(newMsg.getMetaData()).isEqualTo(msg.getMetaData());
     }
 
     @Test
@@ -149,6 +174,7 @@ public class TbCopyFromMdToMsgNodeTest {
         final Map<String, String> mdMap = Map.of(
                 "TestKey_1", "Test",
                 "country", "US",
+                "voltageDataValue", "220",
                 "city", "NY"
         );
         return TbMsg.newMsg("POST_ATTRIBUTES_REQUEST", entityId, new TbMsgMetaData(mdMap), data, callback);

@@ -34,17 +34,19 @@ import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 @Data
-public class TbCopyFromMdToMsgNodeConfiguration implements NodeConfiguration<TbCopyFromMdToMsgNodeConfiguration> {
+public class TbCopyKeysNodeConfiguration implements NodeConfiguration<TbCopyKeysNodeConfiguration> {
 
-    private List<String> metadataMsgKeys;
+    private boolean fromMetadata;
+    private Set<String> keys;
 
     @Override
-    public TbCopyFromMdToMsgNodeConfiguration defaultConfiguration() {
-        TbCopyFromMdToMsgNodeConfiguration configuration = new TbCopyFromMdToMsgNodeConfiguration();
-        configuration.setMetadataMsgKeys(Collections.emptyList());
+    public TbCopyKeysNodeConfiguration defaultConfiguration() {
+        TbCopyKeysNodeConfiguration configuration = new TbCopyKeysNodeConfiguration();
+        configuration.setKeys(Collections.emptySet());
+        configuration.setFromMetadata(false);
         return configuration;
     }
 
