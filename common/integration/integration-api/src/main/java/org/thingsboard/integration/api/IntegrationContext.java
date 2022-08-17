@@ -113,6 +113,14 @@ public interface IntegrationContext {
     ScheduledExecutorService getScheduledExecutorService();
 
     /**
+     * Provides access to ExecutorService to submit tasks.
+     * Allows using N threads per M integrations instead of using N threads per integration.
+     *
+     * @return executor
+     */
+    ExecutorService getExecutorService();
+
+    /**
      * Provides access to ExecutorService to process messages after JS executor responses.
      * Allows using N threads per M integrations instead of using N threads per integration.
      *

@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -155,6 +156,7 @@ public class RemoteIntegrationManagerService {
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledExecutorService statisticsExecutorService;
     private ScheduledExecutorService schedulerService;
+    private ExecutorService generalExecutorService;
     private ScheduledFuture<?> scheduledFuture;
     private ExecutorService callBackExecutorService;
 
@@ -170,8 +172,8 @@ public class RemoteIntegrationManagerService {
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-reconnect"));
         schedulerService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-scheduler"));
-        callBackExecutorService = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("remote-integration-callback"));
+        generalExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "remote-integration-general");
+        callBackExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "remote-integration-callback");
         processHandleMessages();
         if (statisticsEnabled) {
             statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-stats"));
@@ -209,6 +211,12 @@ public class RemoteIntegrationManagerService {
         if (schedulerService != null) {
             schedulerService.shutdownNow();
         }
+        if (generalExecutorService != null) {
+            generalExecutorService.shutdownNow();
+        }
+        if (callBackExecutorService != null) {
+            callBackExecutorService.shutdownNow();
+        }
         log.info("[{}] Destroy was successful", serviceId);
     }
 
@@ -236,7 +244,7 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port, callBackExecutorService),
+                    new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService, configuration, clientId, port),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);

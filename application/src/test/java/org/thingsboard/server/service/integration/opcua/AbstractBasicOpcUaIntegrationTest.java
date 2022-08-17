@@ -102,11 +102,13 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     private void startServer() throws ExecutionException, InterruptedException {
         server.startup().get();
+        log.info("Server started");
         Assert.assertTrue(server.getStarted());
     }
 
     private void stopServer() throws ExecutionException, InterruptedException {
         server.shutdown().get();
+        log.info("Server stopped");
         Assert.assertFalse(server.getStarted());
     }
 
@@ -123,42 +125,51 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testIntegrationRegularConnect() throws Exception {
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(1, 3000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
     }
 
     @Test
     public void testIntegrationRegularDisconnect() throws Exception {
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(1, 3000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
+        startTs = System.currentTimeMillis();
         stopServer();
-        Assert.assertFalse(isIntegrationConnected(1, 6000));
+        Assert.assertFalse(isIntegrationConnected(startTs, 1, 6000));
     }
 
     @Test
     public void testIntegrationReconnectAfterServerRestart() throws Exception {
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(1, 3000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
         stopServer();
-        Assert.assertFalse(isIntegrationConnected(1, 6000));
+        startTs = System.currentTimeMillis();
+        Assert.assertFalse(isIntegrationConnected(startTs, 1, 6000));
         startServer();
+        startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(5, 20000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 5, 20000));
     }
 
     @Test
     public void testIntegrationReconnectToNotStartedServer() throws Exception {
         stopServer();
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertFalse(isIntegrationConnected(1, 15000));
+        Assert.assertFalse(isIntegrationConnected(startTs, 1, 15000));
+        startTs = System.currentTimeMillis();
         startServer();
-        Assert.assertTrue(isIntegrationConnected(1, 20000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 20000));
     }
 
     @Test
     public void testUplinkProcessing() throws Exception {
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(1, 5000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 5000));
         Thread.sleep(10000);
         Device savedDevice = doGet("/api/tenant/devices?deviceName=OPCUA_device", Device.class);
         long start = System.currentTimeMillis();
@@ -184,8 +195,9 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testDownlinkProcessing() throws Exception {
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(1, 5000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 5000));
 
 
         TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = createIntegrationDownlinkMessage();
@@ -283,8 +295,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                 .setData(TbMsg.toByteString(tbMsg)).build();
     }
 
-    private List<EventInfo> getIntegrationDebugConnectionMessages(int eventsCount, long timeout) throws Exception {
-        long startTs = System.currentTimeMillis();
+    private List<EventInfo> getIntegrationDebugConnectionMessages(long startTs, int eventsCount, long timeout) throws Exception {
         long endTs = startTs + timeout;
         List<EventInfo> connectionMsgs;
         do {
@@ -304,11 +315,12 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         return connectionMsgs;
     }
 
-    private Boolean isIntegrationConnected(int eventsCount, long timeout) throws Exception {
-        List<EventInfo> eventsList = getIntegrationDebugConnectionMessages(eventsCount, timeout);
+    private Boolean isIntegrationConnected(long startTs, int eventsCount, long timeout) throws Exception {
+        List<EventInfo> eventsList = getIntegrationDebugConnectionMessages(startTs, eventsCount, timeout);
         if (eventsList.isEmpty()) {
             return false;
         }
+        log.error("Events: {}", eventsList);
         EventInfo event = eventsList.get(0);
         ObjectNode eventBody = (ObjectNode) event.getBody();
         return "CONNECT".equals(eventBody.get("type").asText()) && "SUCCESS".equals(eventBody.get("status").asText());
