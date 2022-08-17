@@ -74,7 +74,7 @@ public class ExceptionUtil {
                 e.printStackTrace(new PrintWriter(sw));
                 return sw.toString();
             } else {
-                log.warn("[{}] Unknown error during message processing", componentId, e);
+                log.debug("[{}] Unknown error during message processing", componentId, e);
                 return "Please contact system administrator";
             }
         }
