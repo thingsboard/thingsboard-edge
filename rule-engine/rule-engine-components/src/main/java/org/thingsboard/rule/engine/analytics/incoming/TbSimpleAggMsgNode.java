@@ -305,8 +305,4 @@ public class TbSimpleAggMsgNode implements TbNode {
         return je;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

@@ -140,8 +140,4 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
         return obj;
     }
 
-    @Override
-    public void destroy() {
-    }
-
 }
