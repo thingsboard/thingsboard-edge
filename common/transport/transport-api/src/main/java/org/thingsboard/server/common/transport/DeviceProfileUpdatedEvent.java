@@ -28,30 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.opcua;
+package org.thingsboard.server.common.transport;
 
-import java.util.Optional;
+import lombok.Getter;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.queue.discovery.event.TbApplicationEvent;
 
-public class OpcUaIntegrationException extends Exception {
+public final class DeviceProfileUpdatedEvent extends TbApplicationEvent {
 
-    private final OpcUaNode node;
+    @Getter
+    private final DeviceProfile deviceProfile;
 
-    public OpcUaIntegrationException(OpcUaNode node, String message, Exception e) {
-        super(message, e.getCause());
-        this.node = node;
-    }
-
-    public OpcUaIntegrationException(String message, Exception e) {
-        super(message, e.getCause());
-        this.node = null;
-    }
-
-    public OpcUaIntegrationException(String message) {
-        super(message);
-        this.node = null;
-    }
-
-    public Optional<OpcUaNode> getNode() {
-        return Optional.ofNullable(node);
+    public DeviceProfileUpdatedEvent(DeviceProfile deviceProfile) {
+        super(new Object());
+        this.deviceProfile = deviceProfile;
     }
 }

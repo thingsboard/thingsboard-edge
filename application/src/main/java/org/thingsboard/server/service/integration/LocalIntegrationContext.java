@@ -168,6 +168,11 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
+    public ExecutorService getExecutorService() {
+        return ctx.getGeneralExecutorService();
+    }
+
+    @Override
     public ExecutorService getCallBackExecutorService() {
         return ctx.getCallBackExecutorService();
     }

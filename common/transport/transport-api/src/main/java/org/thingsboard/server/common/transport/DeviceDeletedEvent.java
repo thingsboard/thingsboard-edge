@@ -28,30 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.opcua;
+package org.thingsboard.server.common.transport;
 
-import java.util.Optional;
+import lombok.Getter;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.queue.discovery.event.TbApplicationEvent;
 
-public class OpcUaIntegrationException extends Exception {
+public final class DeviceDeletedEvent extends TbApplicationEvent {
 
-    private final OpcUaNode node;
+    private static final long serialVersionUID = -7453664970966733857L;
+    @Getter
+    private final DeviceId deviceId;
 
-    public OpcUaIntegrationException(OpcUaNode node, String message, Exception e) {
-        super(message, e.getCause());
-        this.node = node;
-    }
-
-    public OpcUaIntegrationException(String message, Exception e) {
-        super(message, e.getCause());
-        this.node = null;
-    }
-
-    public OpcUaIntegrationException(String message) {
-        super(message);
-        this.node = null;
-    }
-
-    public Optional<OpcUaNode> getNode() {
-        return Optional.ofNullable(node);
+    public DeviceDeletedEvent(DeviceId deviceId) {
+        super(new Object());
+        this.deviceId = deviceId;
     }
 }
