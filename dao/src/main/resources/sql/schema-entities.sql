@@ -907,6 +907,18 @@ CREATE TABLE IF NOT EXISTS rpc (
     status varchar(255) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS cloud_event (
+    id uuid NOT NULL CONSTRAINT cloud_event_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    entity_group_id uuid,
+    ts bigint NOT NULL
+);
+
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
 $$
 BEGIN
