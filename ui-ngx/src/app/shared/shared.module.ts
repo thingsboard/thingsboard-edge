@@ -41,6 +41,7 @@ import Flow from '@flowjs/flow.js';
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
@@ -348,6 +349,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     RouterModule,
     TranslateModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCheckboxModule,
     MatIconModule,
     MatCardModule,
@@ -466,6 +468,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     WidgetsBundleSelectComponent,
     ValueInputComponent,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCheckboxModule,
     MatIconModule,
     MatCardModule,

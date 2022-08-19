@@ -37,3 +37,9 @@ export interface ILayoutController {
   pasteWidget($event: MouseEvent);
   pasteWidgetReference($event: MouseEvent);
 }
+
+export enum LayoutWidthType {
+  PERCENTAGE = 'percentage',
+  FIXED = 'fixed'
+}
+

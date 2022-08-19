@@ -40,45 +40,154 @@
       <mat-icon class="material-icons">close</mat-icon>
     </button>
   </mat-toolbar>
-  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
-  </mat-progress-bar>
-  <div mat-dialog-content>
-    <fieldset [disabled]="isLoading$ | async" fxLayout="column" fxLayoutGap="8px">
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <mat-checkbox fxFlex formControlName="main">
-          {{ 'layout.main' | translate }}
-        </mat-checkbox>
-        <mat-checkbox fxFlex formControlName="right">
-          {{ 'layout.right' | translate }}
-        </mat-checkbox>
+  <div mat-dialog-content fxLayout="column" fxLayoutGap="20px" style="min-width: 300px; overflow: hidden;">
+    <div fxLayout="row" fxLayoutAlign="start center">
+        <mat-slide-toggle formControlName="right">
+          {{ 'layout.divider' | translate }}
+        </mat-slide-toggle>
+    </div>
+    <div fxLayout="column" fxLayoutAlign="start center" fxLayoutGap="20px">
+      <mat-button-toggle-group aria-label="Select width value type"
+                               formControlName="type"
+                               [fxShow]="layoutsFormGroup.get('right').value">
+        <mat-button-toggle fxFlex value="percentage">
+          {{ 'layout.percentage-width' | translate }}
+        </mat-button-toggle>
+        <mat-button-toggle fxFlex value="fixed">
+          {{ 'layout.fixed-width' | translate }}
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+      <div fxLayout="row" fxLayoutAlign="center center" class="tb-layout-preview">
+        <div fxLayout="row"
+             fxLayoutAlign="start center"
+             class="tb-layout-preview-container"
+             #tooltip="matTooltip"
+             matTooltip=""
+             matTooltipPosition="below">
+          <div fxLayout="column" fxLayoutAlign="start center" fxFlex="{{ buttonFlexValue() }}" class="tb-layout-preview-container-main">
+            <button mat-icon-button
+                    type="button"
+                    matTooltip="{{ 'dashboard.layout-settings' | translate }}"
+                    matTooltipPosition="above"
+                    (click)="openLayoutSettings('main')"
+                    class="tb-layout-preview-element"
+                    aria-label="Layout settings"
+                    [ngClass]="layoutButtonTextAndClass('main', false)">
+              <mat-icon>settings</mat-icon>
+            </button>
+            <button fxFlex
+                    type="button"
+                    mat-raised-button
+                    color="primary"
+                    class="tb-layout-button"
+                    [matTooltip]="layoutButtonTextAndClass('main', true)"
+                    matTooltipPosition="above"
+                    matTooltipClass="tb-layout-button-tooltip"
+                    (click)="setFixedLayout('main')"
+                    [ngClass]="layoutButtonTextAndClass('main', false)"
+                    [ngStyle]="layoutsFormGroup.get('right').value ?
+                              {'border-radius': '5px 0 0 5px;'} :
+                              {'border-radius': '5px 5px 5px 5px;'}">
+              <span>{{ (layoutsFormGroup.value.right ? 'layout.left' : 'layout.main')  | translate }}</span>
+            </button>
+            <div fxFlex class="tb-layout-preview-element tb-layout-preview-input" [fxShow]="showPreviewInputs('main')">
+              <input [fxShow]="layoutsFormGroup.get('type').value !== LayoutWidthType.FIXED"
+                     formControlName="leftWidthPercentage"
+                     type="number"
+                     step="1"
+                     min="10"
+                     max="90"
+                     required>
+              <input [fxShow]="layoutsFormGroup.get('type').value === LayoutWidthType.FIXED"
+                     *ngIf="layoutsFormGroup.get('fixedLayout').value === 'main'"
+                     formControlName="fixedWidth"
+                     type="number"
+                     step="1"
+                     min="150"
+                     max="1700"
+                     required>
+            </div>
+          </div>
+          <div fxLayout="column" fxLayoutAlign="start center" fxFlex [fxShow]="layoutsFormGroup.get('right').value" matTooltip="">
+            <button mat-icon-button
+                    type="button"
+                    matTooltip="{{ 'dashboard.layout-settings' | translate }}"
+                    matTooltipPosition="above"
+                    (click)="openLayoutSettings('right')"
+                    class="tb-layout-preview-element"
+                    aria-label="Layout settings"
+                    [ngClass]="layoutButtonTextAndClass('right', false)">
+              <mat-icon>settings</mat-icon>
+            </button>
+            <button fxFlex
+                    type="button"
+                    mat-raised-button
+                    color="primary"
+                    class="tb-layout-button"
+                    [matTooltip]="layoutButtonTextAndClass('right', true)"
+                    matTooltipPosition="above"
+                    matTooltipClass="tb-layout-button-tooltip"
+                    (click)="setFixedLayout('right')"
+                    [ngClass]="layoutButtonTextAndClass('right', false)"
+                    style="border-radius: 0 5px 5px 0;">
+              <span>{{ 'layout.right' | translate }}</span>
+            </button>
+            <div fxFlex class="tb-layout-preview-element tb-layout-preview-input" [fxShow]="showPreviewInputs('right')">
+              <input [fxShow]="layoutsFormGroup.get('type').value !== LayoutWidthType.FIXED"
+                     formControlName="rightWidthPercentage"
+                     type="number"
+                     step="1"
+                     min="10"
+                     max="90"
+                     required>
+              <input [fxShow]="layoutsFormGroup.get('type').value === LayoutWidthType.FIXED"
+                     *ngIf="layoutsFormGroup.get('fixedLayout').value === 'right'"
+                     formControlName="fixedWidth"
+                     type="number"
+                     step="1"
+                     min="150"
+                     max="1700"
+                     required>
+            </div>
+          </div>
+        </div>
       </div>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <button fxFlex
-                type="button" mat-raised-button color="primary"
-                class="tb-layout-button"
-                (click)="openLayoutSettings('main')">
-          <span translate>layout.main</span>
-        </button>
-        <button fxFlex [fxShow]="layoutsFormGroup.get('right').value"
-                type="button" mat-raised-button color="primary"
-                class="tb-layout-button"
-                (click)="openLayoutSettings('right')">
-          <span translate>layout.right</span>
-        </button>
+      <div fxLayout="column" fxLayoutAlign="center center" fxLayoutGap="8px" [fxShow]="layoutsFormGroup.get('right').value" style="width: 80%">
+        <mat-slider [fxShow]="layoutsFormGroup.get('type').value === LayoutWidthType.PERCENTAGE"
+                    min="10"
+                    step="1"
+                    max="90"
+                    style="width: 100%;"
+                    formControlName="sliderPercentage"
+                    thumbLabel
+                    [displayWith]="formatSliderTooltipLabel.bind(this)">
+        </mat-slider>
+        <mat-slider [fxShow]="layoutsFormGroup.get('type').value !== LayoutWidthType.PERCENTAGE"
+                    min="150"
+                    step="1"
+                    max="1700"
+                    style="width: 100%;"
+                    formControlName="sliderFixed"
+                    thumbLabel
+                    [displayWith]="formatSliderTooltipLabel.bind(this)">
+        </mat-slider>
+        <div fxLayout="row" fxLayoutAlign="space-between center" class="tb-hint tb-hint-group" style="width: 100%;">
+          <label>{{layoutsFormGroup.get('type').value === LayoutWidthType.PERCENTAGE ? '10 %' : '150px'}}</label>
+          <label>{{layoutsFormGroup.get('type').value === LayoutWidthType.PERCENTAGE ? '90 %' : '1700px'}}</label>
+        </div>
       </div>
-    </fieldset>
+    </div>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button
             color="primary"
             type="button"
-            [disabled]="(isLoading$ | async)"
             (click)="cancel()" cdkFocusInitial>
       {{ 'action.cancel' | translate }}
     </button>
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || layoutsFormGroup.invalid || !layoutsFormGroup.dirty">
+            [disabled]="layoutsFormGroup.invalid || !layoutsFormGroup.dirty">
       {{ 'action.save' | translate }}
     </button>
   </div>
