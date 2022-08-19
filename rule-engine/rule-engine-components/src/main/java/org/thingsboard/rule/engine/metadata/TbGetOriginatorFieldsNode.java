@@ -95,8 +95,4 @@ public class TbGetOriginatorFieldsNode implements TbNode {
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }
