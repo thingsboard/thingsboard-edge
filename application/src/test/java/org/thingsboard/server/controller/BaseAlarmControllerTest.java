@@ -755,14 +755,14 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
     @Test
     public void testDeleteAlarmWithDeleteRelationsOk() throws Exception {
-        loginCustomerUser();
+        loginCustomerAdministrator();
         AlarmId alarmId = createAlarm("Alarm for Test WithRelationsOk").getId();
         testEntityDaoWithRelationsOk(customerDevice.getId(), alarmId, "/api/alarm/" + alarmId);
     }
 
     @Test
     public void testDeleteAlarmExceptionWithRelationsTransactional() throws Exception {
-        loginCustomerUser();
+        loginCustomerAdministrator();
         AlarmId alarmId = createAlarm("Alarm for Test WithRelations Transactional Exception").getId();
         testEntityDaoWithRelationsTransactionalException(alarmDao, customerDevice.getId(), alarmId, "/api/alarm/" + alarmId);
     }
