@@ -47,6 +47,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -59,6 +60,7 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.objects.AttributesEntityView;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,6 +69,7 @@ import org.thingsboard.server.common.data.query.DeviceTypeFilter;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -103,6 +106,9 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     List<ListenableFuture<ResultActions>> deleteFutures = new ArrayList<>();
     ListeningExecutorService executor;
 
+    @SpyBean
+    private EntityViewDao entityViewDao;
+
     @Before
     public void beforeTest() throws Exception {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
@@ -124,6 +130,9 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
 
     @After
     public void afterTest() throws Exception {
+
+        afterTestEntityDaoRemoveByIdWithException (entityViewDao);
+
         executor.shutdownNow();
     }
 
@@ -588,5 +597,17 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
                 PAGE_DATA_ENTITY_VIEW_TYPE_REF, new PageLink(100));
 
         Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Test
+    public void testDeleteEntityViewWithDeleteRelationsOk() throws Exception {
+        EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(tenantId, entityViewId, "/api/entityView/" + entityViewId);
+    }
+
+    @Test
+    public void testDeleteEntityViewExceptionWithRelationsTransactional() throws Exception {
+        EntityViewId entityViewId = getNewSavedEntityView("EntityView for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(entityViewDao, tenantId, entityViewId, "/api/entityView/" + entityViewId);
     }
 }
