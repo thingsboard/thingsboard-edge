@@ -28,14 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.event;
+:host {
+  .tb-rate-limits-text {
+    overflow: hidden;
 
-import io.swagger.annotations.ApiModel;
-
-@ApiModel
-public class DebugRuleNodeEventFilter extends DebugRuleEngineEventFilter {
-    @Override
-    public EventType getEventType() {
-        return EventType.DEBUG_RULE_NODE;
+    &.disabled {
+      opacity: 0.7;
     }
+  }
+}
+
+:host ::ng-deep {
+  .tb-rate-limits-text {
+    span {
+      font-size: 14px;
+      line-height: 1.8em;
+    }
+    .tb-rate-limits-value {
+      font-weight: bold;
+      border: 1px groove rgba(0, 0, 0, .25);
+      border-radius: 4px;
+      padding-left: 4px;
+      padding-right: 4px;
+      color: #305680;
+    }
+  }
 }

@@ -42,7 +42,6 @@ export class HEREMap extends LeafletMap {
           mapUuid = this.ctx.reportService.onWaitForMap();
         }
         const map = L.map($container, {
-          tap: L.Browser.safari && L.Browser.mobile,
           doubleClickZoom: !this.options.disableDoubleClickZooming,
           zoomControl: !this.options.disableZoomControl,
           fadeAnimation: !ctx.reportService.reportView

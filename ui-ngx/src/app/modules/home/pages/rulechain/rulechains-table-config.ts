@@ -197,7 +197,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
           );
           forkJoin(tasks).subscribe(
             () => {
-              this.updateData();
+              this.checkMissingToRelatedRuleChains();
             }
           );
         }
@@ -253,6 +253,31 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     });
   }
 
+  private checkMissingToRelatedRuleChains() {
+    this.edgeService.findMissingToRelatedRuleChains(this.componentsData.edgeId).subscribe(
+      (missingRuleChains) => {
+        if (missingRuleChains && Object.keys(missingRuleChains).length > 0) {
+          const formattedMissingRuleChains: Array<string> = new Array<string>();
+          for (const missingRuleChain of Object.keys(missingRuleChains)) {
+            const arrayOfMissingRuleChains = missingRuleChains[missingRuleChain];
+            const tmp = '- \'' + missingRuleChain + '\': \'' + arrayOfMissingRuleChains.join('\', ') + '\'';
+            formattedMissingRuleChains.push(tmp);
+          }
+          const message = this.translate.instant('edge.missing-related-rule-chains-text',
+            {missingRuleChains: formattedMissingRuleChains.join('<br>')});
+          this.dialogService.alert(this.translate.instant('edge.missing-related-rule-chains-title'),
+            message, this.translate.instant('action.close'), true).subscribe(
+            () => {
+              this.updateData();
+            }
+          );
+        } else {
+          this.updateData();
+        }
+      }
+    );
+  }
+
   private assignRuleChainsToEdge($event: Event): void {
     if ($event) {
       $event.stopPropagation();
@@ -268,28 +293,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     }).afterClosed()
       .subscribe((res) => {
           if (res) {
-            this.edgeService.findMissingToRelatedRuleChains(this.componentsData.edgeId).subscribe(
-              (missingRuleChains) => {
-                if (missingRuleChains && Object.keys(missingRuleChains).length > 0) {
-                  const formattedMissingRuleChains: Array<string> = new Array<string>();
-                  for (const missingRuleChain of Object.keys(missingRuleChains)) {
-                    const arrayOfMissingRuleChains = missingRuleChains[missingRuleChain];
-                    const tmp = '- \'' + missingRuleChain + '\': \'' + arrayOfMissingRuleChains.join('\', ') + '\'';
-                    formattedMissingRuleChains.push(tmp);
-                  }
-                  const message = this.translate.instant('edge.missing-related-rule-chains-text',
-                    {missingRuleChains: formattedMissingRuleChains.join('<br>')});
-                  this.dialogService.alert(this.translate.instant('edge.missing-related-rule-chains-title'),
-                    message, this.translate.instant('action.close'), true).subscribe(
-                    () => {
-                      this.updateData();
-                    }
-                  );
-                } else {
-                  this.updateData();
-                }
-              }
-            );
+            this.checkMissingToRelatedRuleChains();
           }
         }
       );
@@ -545,7 +549,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
         if (res) {
           this.ruleChainService.unassignRuleChainFromEdge(this.componentsData.edgeId, ruleChain.id.id).subscribe(
             () => {
-              this.updateData(this.componentsData.ruleChainScope !== 'tenant');
+              this.checkMissingToRelatedRuleChains();
             }
           );
         }

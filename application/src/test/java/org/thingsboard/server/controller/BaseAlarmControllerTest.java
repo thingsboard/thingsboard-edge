@@ -32,7 +32,6 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -720,7 +719,6 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         Assert.assertTrue("Created alarm doesn't match the found one!", equals);
     }
 
-    @NotNull
     private EntityGroupInfo createSharedPublicEntityGroup(String name, EntityType entityType, EntityId ownerId) throws Exception {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName(name);

@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.solutions.data;
 
 import lombok.Data;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;

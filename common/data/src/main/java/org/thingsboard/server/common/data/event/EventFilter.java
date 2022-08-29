@@ -38,22 +38,22 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
         property = "eventType")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = DebugRuleNodeEventFilter.class, name = "DEBUG_RULE_NODE"),
-        @JsonSubTypes.Type(value = DebugRuleChainEventFilter.class, name = "DEBUG_RULE_CHAIN"),
+        @JsonSubTypes.Type(value = RuleNodeDebugEventFilter.class, name = "DEBUG_RULE_NODE"),
+        @JsonSubTypes.Type(value = RuleChainDebugEventFilter.class, name = "DEBUG_RULE_CHAIN"),
         @JsonSubTypes.Type(value = DebugIntegrationEventFilter.class, name = "DEBUG_INTEGRATION"),
         @JsonSubTypes.Type(value = DebugConverterEventFilter.class, name = "DEBUG_CONVERTER"),
         @JsonSubTypes.Type(value = ErrorEventFilter.class, name = "ERROR"),
         @JsonSubTypes.Type(value = LifeCycleEventFilter.class, name = "LC_EVENT"),
-        @JsonSubTypes.Type(value = StatisticsEventFilter.class, name = "STATS")
+        @JsonSubTypes.Type(value = StatisticsEventFilter.class, name = "STATS"),
+        @JsonSubTypes.Type(value = RawDataEventFilter.class, name = "RAW_DATA")
 })
 public interface EventFilter {
 
     @ApiModelProperty(position = 1, required = true, value = "String value representing the event type", example = "STATS")
     EventType getEventType();
 
-    boolean hasFilterForJsonBody();
+    boolean isNotEmpty();
 
 }

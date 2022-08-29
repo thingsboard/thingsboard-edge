@@ -37,8 +37,6 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
-import java.util.concurrent.Executor;
-
 @TbCoreComponent
 @RequiredArgsConstructor
 @Service
@@ -52,8 +50,4 @@ public class TbCoreIntegrationContextProvider implements IntegrationContextProvi
         return new LocalIntegrationContext(contextComponent, configuration);
     }
 
-    @Override
-    public Executor getCallbackExecutor() {
-        return callbackExecutorService;
-    }
 }
