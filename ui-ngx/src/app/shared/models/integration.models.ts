@@ -37,32 +37,32 @@ import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
 
 export enum IntegrationType {
-  HTTP = 'HTTP',
-  OCEANCONNECT = 'OCEANCONNECT',
-  SIGFOX = 'SIGFOX',
-  THINGPARK = 'THINGPARK',
-  LORIOT = 'LORIOT',
-  TPE = 'TPE',
-  TMOBILE_IOT_CDP = 'TMOBILE_IOT_CDP',
   MQTT = 'MQTT',
-  AWS_IOT = 'AWS_IOT',
-  AWS_SQS = 'AWS_SQS',
-  AWS_KINESIS = 'AWS_KINESIS',
-  IBM_WATSON_IOT = 'IBM_WATSON_IOT',
-  CHIRPSTACK = 'CHIRPSTACK',
+  HTTP = 'HTTP',
   TTN = 'TTN',
-  TTI = 'TTI',
-  AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
-  AZURE_IOT_HUB = 'AZURE_IOT_HUB',
-  OPC_UA = 'OPC_UA',
-  UDP = 'UDP',
+  AWS_IOT = 'AWS_IOT',
   TCP = 'TCP',
-  KAFKA = 'KAFKA',
-  RABBITMQ = 'RABBITMQ',
-  APACHE_PULSAR = 'APACHE_PULSAR',
-  PUB_SUB = 'PUB_SUB',
+  SIGFOX = 'SIGFOX',
+  TTI = 'TTI',
+  CHIRPSTACK = 'CHIRPSTACK',
+  AZURE_EVENT_HUB = 'AZURE_EVENT_HUB',
   COAP = 'COAP',
-  CUSTOM = 'CUSTOM'
+  OPC_UA = 'OPC_UA',
+  APACHE_PULSAR = 'APACHE_PULSAR',
+  AWS_KINESIS = 'AWS_KINESIS',
+  AWS_SQS = 'AWS_SQS',
+  AZURE_IOT_HUB = 'AZURE_IOT_HUB',
+  CUSTOM = 'CUSTOM',
+  IBM_WATSON_IOT = 'IBM_WATSON_IOT',
+  KAFKA = 'KAFKA',
+  LORIOT = 'LORIOT',
+  OCEANCONNECT = 'OCEANCONNECT',
+  PUB_SUB = 'PUB_SUB',
+  RABBITMQ = 'RABBITMQ',
+  THINGPARK = 'THINGPARK',
+  TMOBILE_IOT_CDP = 'TMOBILE_IOT_CDP',
+  TPE = 'TPE',
+  UDP = 'UDP'
 }
 
 export enum CoapSecurityMode {
@@ -262,8 +262,8 @@ export enum IntegrationSubType {
 }
 
 export function resolveIntegrationParams(route: ActivatedRouteSnapshot): IntegrationParams {
-  let routeParams = {...route.params};
-  let routeData = {...route.data};
+  const routeParams = {...route.params};
+  const routeData = {...route.data};
   let edgeId: string;
   let integrationScope: string;
   if (routeParams?.hierarchyView) {
