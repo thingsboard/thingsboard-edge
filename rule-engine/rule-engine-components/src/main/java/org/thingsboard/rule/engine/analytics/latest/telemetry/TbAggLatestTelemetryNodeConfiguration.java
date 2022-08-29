@@ -34,6 +34,7 @@ import lombok.Data;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +64,7 @@ public class TbAggLatestTelemetryNodeConfiguration extends TbAbstractLatestNodeC
 
         configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
         configuration.setPeriodValue(5);
-
+        configuration.setTypeOutMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 }

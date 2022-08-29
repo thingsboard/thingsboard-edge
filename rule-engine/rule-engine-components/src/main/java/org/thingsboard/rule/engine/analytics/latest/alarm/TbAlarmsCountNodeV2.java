@@ -71,7 +71,7 @@ import java.util.UUID;
         configClazz = TbAlarmsCountNodeV2Configuration.class,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
+                "Generates messages the type specified in the \"<b>Type Out Msg</b>\" with alarm count values for each found entity.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountV2Config",
         icon = "functions"
@@ -80,11 +80,13 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     private TbAlarmsCountNodeV2Configuration config;
     private String queueName;
+    private String typeOutMsg;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
         this.queueName = config.getQueueName();
+        this.typeOutMsg = config.getTypeOutMsg();
     }
 
     @Override
@@ -112,7 +114,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+            TbMsg newMsg = TbMsg.newMsg(queueName, typeOutMsg,
                     entityId, metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
         });

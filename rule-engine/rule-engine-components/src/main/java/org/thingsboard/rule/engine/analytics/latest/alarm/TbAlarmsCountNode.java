@@ -63,7 +63,7 @@ import java.util.Optional;
         configClazz = TbAlarmsCountNodeConfiguration.class,
         nodeDescription = "Periodically counts alarms for entities",
         nodeDetails = "Performs count of alarms for parent entities and child entities if specified with configurable period. " +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
+                "Generates messages the type specified in the \"<b>Type Out Msg</b>\" with alarm count values for each found entity.",
         inEnabled = false,
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountConfig",
@@ -94,7 +94,7 @@ public class TbAlarmsCountNode extends TbAbstractLatestNode<TbAlarmsCountNodeCon
             try {
                 entityIds.addAll(childEntityIdsFuture.get());
             } catch (Exception e) {
-                TbMsg msg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+                TbMsg msg = TbMsg.newMsg(queueName, typeOutMsg,
                         parentEntityId, new TbMsgMetaData(), "");
                 ctx.enqueueForTellFailure(msg, "Failed to fetch child entities for parent entity [" + parentEntityId + "]");
             }
