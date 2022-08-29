@@ -53,27 +53,20 @@
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <div translate class="tb-hint" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.name</mat-label>
-        <input matInput formControlName="name" required>
-        <mat-error *ngIf="entityForm.get('name').hasError('required')">
-          {{ 'integration.name-required' | translate }}
-        </mat-error>
-        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
-          {{ 'integration.name-max-length' | translate }}
-        </mat-error>
-      </mat-form-field>
-      <mat-form-field class="mat-block">
-        <mat-label translate>integration.type</mat-label>
-        <mat-select formControlName="type" required>
-          <mat-option *ngFor="let type of integrationTypeKeys" [value]="type">
-            {{integrationTypeInfos.get(type).name | translate}}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="entityForm.get('type').hasError('required')">
-          {{ 'integration.type-required' | translate }}
-        </mat-error>
-      </mat-form-field>
+      <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>integration.name</mat-label>
+          <input matInput formControlName="name" required>
+          <mat-error *ngIf="entityForm.get('name').hasError('required')">
+            {{ 'integration.name-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+            {{ 'integration.name-max-length' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <tb-integration-type-select formControlName="type" required fxFlex>
+        </tb-integration-type-select>
+      </div>
       <div fxLayout="row" fxLayout.xs="column">
         <mat-checkbox fxFlex="33" formControlName="enabled">
           {{ 'integration.enabled' | translate }}
@@ -85,20 +78,22 @@
           {{ 'integration.allow-create-devices-or-assets' | translate }}
         </mat-checkbox>
       </div>
-      <tb-converter-autocomplete formControlName="defaultConverterId" required
-        labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
-        [converterType]="converterType.UPLINK"
-        [showDetailsPageLink]="true"
-        [useFullEntityId]="true"
-        [isEdgeTemplate]="integrationScope === 'edges'">
-      </tb-converter-autocomplete>
-      <tb-converter-autocomplete formControlName="downlinkConverterId"
-        labelText="integration.downlink-converter"
-        [converterType]="converterType.DOWNLINK"
-        [showDetailsPageLink]="true"
-        [useFullEntityId]="true"
-        [isEdgeTemplate]="integrationScope === 'edges'">
-      </tb-converter-autocomplete>
+      <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+        <tb-converter-autocomplete fxFlex formControlName="defaultConverterId" required
+          labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
+          [converterType]="converterType.UPLINK"
+          [showDetailsPageLink]="true"
+          [useFullEntityId]="true"
+          [isEdgeTemplate]="integrationScope === 'edges'">
+        </tb-converter-autocomplete>
+        <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+          labelText="integration.downlink-converter"
+          [converterType]="converterType.DOWNLINK"
+          [showDetailsPageLink]="true"
+          [useFullEntityId]="true"
+          [isEdgeTemplate]="integrationScope === 'edges'">
+        </tb-converter-autocomplete>
+      </div>
       <mat-slide-toggle formControlName="remote" style="padding-bottom: 48px;">
         {{'integration.execute-remotely' | translate}}
       </mat-slide-toggle>
@@ -246,7 +241,9 @@
           <div class="tb-panel-title" translate>integration.metadata</div>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <tb-key-val-map formControlName="metadata" titleText="integration.metadata"></tb-key-val-map>
+      <ng-template matExpansionPanelContent>
+        <tb-key-val-map formControlName="metadata" titleText="integration.metadata"></tb-key-val-map>
+      </ng-template>
     </mat-expansion-panel>
   </form>
 </div>

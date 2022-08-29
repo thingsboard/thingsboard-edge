@@ -3091,6 +3091,7 @@
         "metadata": "Metadata",
         "type": "Type",
         "type-required": "Type is required.",
+        "type-not-found": "Integration type not found",
         "uplink-converter": "Uplink data converter",
         "uplink-converter-required": "Uplink data converter is required.",
         "downlink-converter": "Downlink data converter",

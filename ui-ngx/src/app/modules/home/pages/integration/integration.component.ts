@@ -70,10 +70,6 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   integrationTypes = IntegrationType;
 
-  integrationTypeKeys = Object.keys(IntegrationType);
-
-  integrationTypeInfos = integrationTypeInfoMap;
-
   integrationForm: FormGroup;
 
   integrationInfo: IntegrationTypeInfo;
@@ -109,8 +105,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
         type: [entity ? entity.type : null, [Validators.required]],
-        enabled: [entity && isDefined(entity.enabled) ? entity.enabled : true],
-        debugMode: [entity ? entity.debugMode : null],
+        enabled: [isDefined(entity?.enabled) ? entity.enabled : true],
+        debugMode: [isDefined(entity?.debugMode) ? entity.debugMode : true],
         allowCreateDevicesOrAssets: [entity && isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true],
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
@@ -140,7 +136,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     const configurationForm = this.entityForm.get('configuration') as FormArray;
     configurationForm.controls = [];
     if (this.integrationType) {
-      this.integrationInfo = this.integrationTypeInfos.get(this.integrationType);
+      this.integrationInfo = integrationTypeInfoMap.get(this.integrationType);
       const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[this.integrationType]);
       const ignoreNonPrimitiveFields: string[] = formTemplate.ignoreNonPrimitiveFields || [];
       const fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = formTemplate.fieldValidators || {};
@@ -186,7 +182,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
 
   private checkIsRemote(form: FormGroup) {
     const integrationType: IntegrationType = form.get('type').value;
-    if (integrationType && this.integrationTypeInfos.get(integrationType).remote) {
+    if (integrationType && integrationTypeInfoMap.get(integrationType).remote) {
       form.get('remote').patchValue(true, { emitEvent: false });
       form.get('remote').disable({ emitEvent: false });
     } else if (this.isEditValue) {
@@ -207,21 +203,20 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   }
 
   updateForm(entity: Integration) {
-    this.entityForm.patchValue({ name: entity.name });
     this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
-    this.entityForm.patchValue({ enabled: isDefined(entity.enabled) ? entity.enabled : true });
-    this.entityForm.patchValue({ debugMode: entity.debugMode });
-    this.entityForm.patchValue(
-      {allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true}
-    );
-    this.entityForm.patchValue({ defaultConverterId: entity.defaultConverterId });
-    this.entityForm.patchValue({ downlinkConverterId: entity.downlinkConverterId });
-    this.entityForm.patchValue({ remote: entity.remote });
-    this.entityForm.patchValue({ routingKey: entity.routingKey });
-    this.entityForm.patchValue({ secret: entity.secret });
+    this.entityForm.patchValue({
+      name: entity.name,
+      enabled: isDefined(entity.enabled) ? entity.enabled : true,
+      debugMode: isDefined(entity.debugMode) ? entity.debugMode : true,
+      allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true,
+      defaultConverterId: entity.defaultConverterId,
+      downlinkConverterId: entity.downlinkConverterId,
+      remote: entity.remote,
+      routingKey: entity.routingKey,
+      secret: entity.secret,
+      metadata: entity.configuration ? entity.configuration.metadata : {},
+      additionalInfo: { description: entity.additionalInfo ? entity.additionalInfo.description : '' }});
     // this.entityForm.patchValue({ configuration: entity.configuration });
-    this.entityForm.patchValue({ metadata: entity.configuration ? entity.configuration.metadata : {} });
-    this.entityForm.patchValue({ additionalInfo: { description: entity.additionalInfo ? entity.additionalInfo.description : '' } });
     this.checkIsNewIntegration(entity, this.entityForm);
     this.integrationType = entity.type;
     this.setConfigurationForm(entity.configuration);

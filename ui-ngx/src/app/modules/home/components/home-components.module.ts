@@ -210,6 +210,9 @@ import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits
 import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
 import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
 import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
+import {
+  IntegrationTypeSelectComponent
+} from '@home/components/integration/integration-type-select.component';
 
 @NgModule({
   declarations:
@@ -367,6 +370,7 @@ import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenan
       ComplexVersionLoadComponent,
       RemoveOtherEntitiesConfirmComponent,
       AutoCommitSettingsComponent,
+      IntegrationTypeSelectComponent,
       OwnerEntityGroupListComponent,
       RateLimitsDetailsDialogComponent,
       RateLimitsComponent,
@@ -524,6 +528,7 @@ import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenan
     ComplexVersionLoadComponent,
     RemoveOtherEntitiesConfirmComponent,
     AutoCommitSettingsComponent,
+    IntegrationTypeSelectComponent,
     OwnerEntityGroupListComponent,
     RateLimitsDetailsDialogComponent,
     RateLimitsComponent,

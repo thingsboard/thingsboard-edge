@@ -29,6 +29,18 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host ::ng-deep {
+  .mat-expansion-panel {
+    .mat-expansion-panel-header.mat-expanded {
+      height: 48px;
+    }
+    .mat-expansion-panel-body {
+      padding: 0;
+      & > * {
+        margin: 0 24px 16px;
+        display: block;
+      }
+    }
+  }
   .remote-config-panel {
     padding: 16px;
     margin: 8px 8px 16px;
