@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -45,11 +46,19 @@ public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
     private EntityId rootEntityId;
     private RelationsQuery relationsQuery;
     private RelationsQuery childRelationsQuery;
+    private boolean aggregateLatestForRootEntity;
 
     @Override
     public ListenableFuture<List<EntityId>> getParentEntitiesAsync(TbContext ctx) {
-        return EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, rootEntityId, relationsQuery,
+        ListenableFuture<List<EntityId>> parentEntities = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, rootEntityId, relationsQuery,
                 entityId -> ctx.getPeContext().isLocalEntity(entityId));
+        if (aggregateLatestForRootEntity) {
+            return Futures.transform(parentEntities, entityIds -> {
+                entityIds.add(rootEntityId);
+                return entityIds;
+            }, ctx.getDbCallbackExecutor());
+        }
+        return parentEntities;
     }
 
     @Override
