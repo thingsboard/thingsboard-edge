@@ -805,6 +805,7 @@
         "converters": "Data converters",
         "select-converter": "Select data converter",
         "no-converters-matching": "No data converters matching '{{entity}}' were found.",
+        "no-converters-found": "No data converters found.",
         "converter-required": "Data converter is required",
         "delete": "Delete converter",
         "management": "Data converters management",

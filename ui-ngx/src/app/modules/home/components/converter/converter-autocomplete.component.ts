@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
@@ -42,6 +42,14 @@ import { ConverterService } from '@core/http/converter.service';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { PageLink } from '@shared/models/page/page-link';
 import { getEntityDetailsPageURL } from '@core/utils';
+import { TruncatePipe } from '@shared/pipe/truncate.pipe';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatDialog } from '@angular/material/dialog';
+import {
+  AddConverterDialogComponent,
+  AddConverterDialogData
+} from '@home/components/converter/add-converter-dialog.component';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-converter-autocomplete',
@@ -53,13 +61,13 @@ import { getEntityDetailsPageURL } from '@core/utils';
     multi: true
   }]
 })
-export class ConverterAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit {
+export class ConverterAutocompleteComponent implements ControlValueAccessor, OnInit {
 
   selectConverterFormGroup: FormGroup;
 
-  modelValue: ConverterId | string | null;
+  private modelValue: ConverterId | string | null;
 
-  converterTypeValue: ConverterType;
+  private converterTypeValue: ConverterType;
 
   @Input()
   useFullEntityId = false;
@@ -102,6 +110,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   showDetailsPageLink = false;
 
   @ViewChild('converterInput', {static: true}) converterInput: ElementRef<HTMLElement>;
+  @ViewChild('converterInput', {read: MatAutocompleteTrigger}) converterAutocomplete: MatAutocompleteTrigger;
 
   entityText: string;
   entityRequiredText: string;
@@ -111,13 +120,18 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   searchText = '';
   converterURL: string;
 
+  resource = Resource;
+  operation = Operation;
+
   private dirty = false;
 
   private propagateChange = (v: any) => { };
 
   constructor(private store: Store<AppState>,
               public translate: TranslateService,
+              public truncate: TruncatePipe,
               private converterService: ConverterService,
+              public dialog: MatDialog,
               private fb: FormBuilder) {
     this.selectConverterFormGroup = this.fb.group({
       entity: [null]
@@ -155,9 +169,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
       );
   }
 
-  ngAfterViewInit(): void {}
-
-  load(): void {
+  private load() {
     this.entityText = 'converter.converter';
     this.entityRequiredText = 'converter.converter-required';
     if (this.labelText && this.labelText.length) {
@@ -175,7 +187,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
     }
   }
 
-  getCurrentEntity(): Converter | null {
+  private getCurrentEntity(): Converter | null {
     const currentEntity = this.selectConverterFormGroup.get('entity').value;
     if (currentEntity && typeof currentEntity !== 'string') {
       return currentEntity as Converter;
@@ -218,11 +230,11 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
     }
   }
 
-  reset() {
+  private reset() {
     this.selectConverterFormGroup.get('entity').patchValue('', {emitEvent: false});
   }
 
-  updateView(value: string | ConverterId | null) {
+  private updateView(value: string | ConverterId | null) {
     if (this.modelValue !== value) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
@@ -233,7 +245,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
     return converter ? converter.name : undefined;
   }
 
-  fetchEntities(searchText?: string): Observable<Array<Converter>> {
+  private fetchEntities(searchText?: string): Observable<Array<Converter>> {
     this.searchText = searchText;
     let limit = 50;
     if (this.excludeEntityIds && this.excludeEntityIds.length) {
@@ -269,4 +281,28 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
     }, 0);
   }
 
+  textIsNotEmpty(text: string): boolean {
+    return text?.trim().length > 0;
+  }
+
+  createConverter($event: Event, converterName: string) {
+    $event.preventDefault();
+    this.converterAutocomplete.closePanel();
+    this.dialog.open<AddConverterDialogComponent, AddConverterDialogData,
+      Converter>(AddConverterDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        name: converterName,
+        edgeTemplate: this.isEdgeTemplate,
+        type: this.converterTypeValue
+      }
+    }).afterClosed().subscribe(
+      (entity) => {
+        if (entity) {
+          this.selectConverterFormGroup.get('entity').patchValue(entity);
+        }
+      }
+    );
+  }
 }
