@@ -30,26 +30,23 @@
  */
 package org.thingsboard.integration.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
+public interface IntegrationStatisticsService {
 
-    private final IntegrationContext context;
+    void onIntegrationStart (IntegrationType type);
 
-    private final Integration configuration;
+    void onIntegrationStartFailed (IntegrationType type);
 
-    private final TBUplinkDataConverter uplinkConverter;
+    void onIntegrationMsgsUplink (IntegrationType type);
 
-    private final TBDownlinkDataConverter downlinkConverter;
+    void onIntegrationMsgsUplinkFailed (IntegrationType type);
 
-    private final IntegrationStatisticsService integrationStatisticsService;
+    void onIntegrationMsgsDownlink (IntegrationType type);
+
+    void onIntegrationMsgsDownlinkFailed (IntegrationType type);
+
+    void printStats();
+
+    void reset();
 }

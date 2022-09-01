@@ -38,11 +38,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -51,6 +51,7 @@ import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -83,7 +84,7 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
@@ -103,7 +104,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 
@@ -128,6 +128,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final Optional<RemoteIntegrationRpcService> remoteRpcService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
+    private final IntegrationStatisticsService integrationStatisticsService;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reInitEnabled;
@@ -550,11 +551,13 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             state.setIntegration(integration);
             integrationsByRoutingKeyMap.putIfAbsent(configuration.getRoutingKey(), state);
             try {
-                integration.init(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
+                integration.init(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration), integrationStatisticsService));
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                 state.setCurrentState(ComponentLifecycleEvent.STARTED);
+                integrationStatisticsService.onIntegrationStart(configuration.getType());
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
+                integrationStatisticsService.onIntegrationStartFailed(configuration.getType());
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
                 throw handleException(e);
             }
@@ -563,7 +566,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             try {
                 if (configuration.isEnabled()) {
                     state.setContext(context);
-                    state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
+                    state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration), integrationStatisticsService));
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                     state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 } else {

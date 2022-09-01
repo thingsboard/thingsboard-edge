@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.integration.EventStorageService;
 import org.thingsboard.server.service.integration.RemoteIntegrationRpcService;
 

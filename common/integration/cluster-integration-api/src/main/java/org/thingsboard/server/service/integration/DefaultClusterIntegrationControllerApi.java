@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.AbstractIntegrationControllerApi;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;

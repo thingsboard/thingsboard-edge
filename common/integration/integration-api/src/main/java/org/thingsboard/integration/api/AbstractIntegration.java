@@ -46,9 +46,7 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ExceptionUtil;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.event.ConverterDebugEvent;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -65,9 +63,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
-import static org.thingsboard.integration.api.util.ConvertUtil.toDebugMessage;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -82,6 +77,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
+    protected IntegrationStatisticsService integrationStatisticsService;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -98,6 +94,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
         this.integrationStatistics = new IntegrationStatistics();
+        this.integrationStatisticsService = params.getIntegrationStatisticsService();
     }
 
     protected UplinkContentType getDefaultUplinkContentType() {
@@ -268,8 +265,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
-            return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
+            ListenableFuture<List<UplinkData>> uplinkDataList =  this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
+            integrationStatisticsService.onIntegrationMsgsUplink(configuration.getType());
+            return uplinkDataList;
         } catch (Exception e) {
+            integrationStatisticsService.onIntegrationMsgsUplinkFailed(configuration.getType());
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
             }
@@ -282,6 +282,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
+        integrationStatisticsService.onIntegrationMsgsDownlink(configuration.getType());
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
@@ -298,6 +299,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
+        integrationStatisticsService.onIntegrationMsgsDownlinkFailed(configuration.getType());
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
             if (log.isDebugEnabled()) {

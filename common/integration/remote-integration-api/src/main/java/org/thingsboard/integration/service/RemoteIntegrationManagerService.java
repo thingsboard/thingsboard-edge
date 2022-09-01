@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.JSDownlinkDataConverter;
@@ -142,6 +143,9 @@ public class RemoteIntegrationManagerService {
     @Autowired(required = false)
     private CoapServerService coapServerService;
 
+    @Autowired(required = false)
+    private IntegrationStatisticsService integrationStatisticsService;
+
     private ThingsboardPlatformIntegration<?> integration;
     private ComponentLifecycleEvent integrationEvent;
 
@@ -239,7 +243,8 @@ public class RemoteIntegrationManagerService {
                     new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port, callBackExecutorService),
                     configuration,
                     uplinkDataConverter,
-                    downlinkDataConverter);
+                    downlinkDataConverter,
+                    integrationStatisticsService);
             integration.init(params);
             if (updatingIntegration) {
                 integrationEvent = ComponentLifecycleEvent.UPDATED;
