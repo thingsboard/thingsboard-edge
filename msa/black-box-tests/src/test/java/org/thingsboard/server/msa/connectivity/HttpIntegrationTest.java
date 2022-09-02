@@ -40,7 +40,6 @@ import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -113,7 +112,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         Integration integration = createIntegration(isRemote);
         createUplink(CUSTOM_CONVERTER_CONFIGURATION);
         integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
-        restClient.saveIntegration(integration);
+        integration = restClient.saveIntegration(integration);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity uplinkResponse = restClient.getRestTemplate().
                 postForEntity(HTTPS_URL + "/api/v1/integrations/http/" + integration.getRoutingKey(),
@@ -123,7 +122,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
         wsClient.closeBlocking();
-        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId());
+        deleteAllObject(device, integration);
     }
 
     @Test
@@ -134,14 +133,13 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         Integration integration = createIntegration(isRemote);
         createUplink(CUSTOM_CONVERTER_CONFIGURATION);
         integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
-        restClient.saveIntegration(integration);
-        IntegrationId integrationId = restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId();
+        integration = restClient.saveIntegration(integration);
 
         TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
         boolean isConnected = false;
         for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
             Thread.sleep(CONNECT_TIMEOUT_MS);
-            PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
+            PageData<EventInfo> events = restClient.getEvents(integration.getId(), tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             String event = events.getData().get(0).getBody().get("event").asText();
             String success = events.getData().get(0).getBody().get("success").asText();
@@ -160,7 +158,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
         wsClient.closeBlocking();
-        deleteAllObject(device, integration, integrationId);
+        deleteAllObject(device, integration);
     }
 
     private JsonNode createPayloadForUplink(String name, String type) throws JsonProcessingException {

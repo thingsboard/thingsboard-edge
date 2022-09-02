@@ -140,7 +140,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Converter savedConverter = createUplink(configConverter);
         Integration integration = createIntegration(isRemote);
         integration.setDefaultConverterId(savedConverter.getId());
-        restClient.saveIntegration(integration);
+        integration = restClient.saveIntegration(integration);
 
         sendMessageToBroker();
 
@@ -158,7 +158,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
 
-        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId());
+        deleteAllObject(device, integration);
     }
 
     @Test
@@ -171,15 +171,14 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Converter savedConverter = createUplink(configConverter);
         Integration integration = createIntegration(isRemote);
         integration.setDefaultConverterId(savedConverter.getId());
-        restClient.saveIntegration(integration);
+        integration = restClient.saveIntegration(integration);
         sendMessageToBroker();
 
-        IntegrationId integrationId = restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId();
         TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
         boolean isConnected = false;
         for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
             Thread.sleep(CONNECT_TIMEOUT_MS);
-            PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
+            PageData<EventInfo> events = restClient.getEvents(integration.getId(), tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             isConnected = true;
             break;
@@ -199,7 +198,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
 
-        deleteAllObject(device, integration, integrationId);
+        deleteAllObject(device, integration);
     }
 
     private Integration createIntegration(boolean isRemote) throws JsonProcessingException {
@@ -277,9 +276,4 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Assert.assertTrue("Broker doesn't get message", check.get());
     }
 
-    private JsonNode createPayloadForUplink() throws JsonProcessingException {
-        JsonObject values = new JsonObject();
-        values.addProperty(TELEMETRY_KEY, TELEMETRY_VALUE);
-        return mapper.readTree(values.toString());
-    }
 }

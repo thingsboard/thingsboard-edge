@@ -58,6 +58,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.azure.sdk.iot</groupId>
+            <artifactId>iot-service-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.hivemq</groupId>
             <artifactId>hivemq-mqtt-client-shaded</artifactId>
             <version>1.2.2</version>

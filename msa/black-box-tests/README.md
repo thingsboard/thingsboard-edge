@@ -39,5 +39,14 @@ As result, in REPOSITORY column, next images should be present:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.hybridMode=true
 
+- Run the black box tests in the [msa/black-box-tests](../black-box-tests) directory with integrations:
 
+        mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.integrations.skip=false
 
+  Note: for Azure IoT Hub integration add next VM options:
+        
+  -DblackBoxTests.azureIotHubHostName=YOUR_HOST_NAME
+  -DblackBoxTests.azureIotHubDeviceId=YOUR_DEVICE_ID
+  -DblackBoxTests.azureIotHubSasKey=YOUR_SAS_KEY
+  -DblackBoxTests.azureIotHubConnectionString=YOUR_CONNECTION_STRING
+  [connection string](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-java-java-c2d#get-the-iot-hub-connection-string)

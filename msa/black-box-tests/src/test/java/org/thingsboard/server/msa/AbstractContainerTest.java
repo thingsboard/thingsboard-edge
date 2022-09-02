@@ -33,6 +33,7 @@ package org.thingsboard.server.msa;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -54,6 +55,7 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -62,7 +64,6 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
@@ -92,7 +93,7 @@ public abstract class AbstractContainerTest {
 
     @BeforeClass
     public static void before() throws Exception {
-        String  rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
+        String rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
         Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
         rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
         rpcHTTPRestClient = new RestClient(rpcURLHttp);
@@ -109,7 +110,7 @@ public abstract class AbstractContainerTest {
     public TestRule watcher = new TestWatcher() {
         protected void starting(Description description) {
             log.info("=================================================");
-            log.info("STARTING TEST: {}" , description.getMethodName());
+            log.info("STARTING TEST: {}", description.getMethodName());
             log.info("=================================================");
         }
 
@@ -118,7 +119,7 @@ public abstract class AbstractContainerTest {
          */
         protected void succeeded(Description description) {
             log.info("=================================================");
-            log.info("SUCCEEDED TEST: {}" , description.getMethodName());
+            log.info("SUCCEEDED TEST: {}", description.getMethodName());
             log.info("=================================================");
         }
 
@@ -127,7 +128,7 @@ public abstract class AbstractContainerTest {
          */
         protected void failed(Throwable e, Description description) {
             log.info("=================================================");
-            log.info("FAILED TEST: {}" , description.getMethodName(), e);
+            log.info("FAILED TEST: {}", description.getMethodName(), e);
             log.info("=================================================");
         }
     };
@@ -191,19 +192,19 @@ public abstract class AbstractContainerTest {
         return expectedValue.equals(list.get(1));
     }
 
-    protected JsonObject createGatewayConnectPayload(String deviceName){
+    protected JsonObject createGatewayConnectPayload(String deviceName) {
         JsonObject payload = new JsonObject();
         payload.addProperty("device", deviceName);
         return payload;
     }
 
-    protected JsonObject createGatewayPayload(String deviceName, long ts){
+    protected JsonObject createGatewayPayload(String deviceName, long ts) {
         JsonObject payload = new JsonObject();
         payload.add(deviceName, createGatewayTelemetryArray(ts));
         return payload;
     }
 
-    protected JsonArray createGatewayTelemetryArray(long ts){
+    protected JsonArray createGatewayTelemetryArray(long ts) {
         JsonArray telemetryArray = new JsonArray();
         if (ts > 0)
             telemetryArray.add(createPayload(ts));
@@ -238,10 +239,10 @@ public abstract class AbstractContainerTest {
         return restClient.saveConverter(converter);
     }
 
-    protected void deleteAllObject(Device device, Integration integration, IntegrationId integrationId) {
+    protected void deleteAllObject(Device device, Integration integration) {
         restClient.deleteDevice(device.getId());
         ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integrationId);
+        restClient.deleteIntegration(integration.getId());
         restClient.deleteConverter(idForDelete);
     }
 
@@ -276,6 +277,12 @@ public abstract class AbstractContainerTest {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
         CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
         return new HttpComponentsClientHttpRequestFactory(httpClient);
+    }
+
+    protected JsonNode createPayloadForUplink() {
+        ObjectNode values = JacksonUtil.newObjectNode();
+        values.put(TELEMETRY_KEY, TELEMETRY_VALUE);
+        return values;
     }
 
 }
