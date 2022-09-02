@@ -28,26 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api;
+package org.thingsboard.integration.service.context;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
-
-    private final IntegrationContext context;
-
-    private final Integration configuration;
-
-    private final TBUplinkDataConverter uplinkConverter;
-
-    private final TBDownlinkDataConverter downlinkConverter;
+public interface TbIntegrationStatisticsContextComponent {
+    IntegrationStatisticsService getIntegrationStatisticsService();
 }

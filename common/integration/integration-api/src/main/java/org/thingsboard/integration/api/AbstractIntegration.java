@@ -77,7 +77,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected TBDownlinkDataConverter downlinkConverter;
     protected UplinkMetaData metadataTemplate;
     protected IntegrationStatistics integrationStatistics;
-    protected IntegrationStatisticsService integrationStatisticsService;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -94,7 +93,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
         this.integrationStatistics = new IntegrationStatistics();
-        this.integrationStatisticsService = params.getIntegrationStatisticsService();
     }
 
     protected UplinkContentType getDefaultUplinkContentType() {
@@ -146,6 +144,26 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         IntegrationStatistics statistics = this.integrationStatistics;
         this.integrationStatistics = new IntegrationStatistics();
         return statistics;
+    }
+
+    @Override
+    public void onIntegrationMsgsUplink () {
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplink(configuration.getType());
+    }
+
+    @Override
+    public void onIntegrationMsgsUplinkFailed() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType());
+    }
+
+    @Override
+    public void onIntegrationMsgsDownlink() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlink(configuration.getType());
+    }
+
+    @Override
+    public void onIntegrationMsgsDownlinkFailed() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType());
     }
 
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
@@ -266,10 +284,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
             ListenableFuture<List<UplinkData>> uplinkDataList =  this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
-            integrationStatisticsService.onIntegrationMsgsUplink(configuration.getType());
+            onIntegrationMsgsUplink();
             return uplinkDataList;
         } catch (Exception e) {
-            integrationStatisticsService.onIntegrationMsgsUplinkFailed(configuration.getType());
+            onIntegrationMsgsUplinkFailed();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
             }
@@ -282,7 +300,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
-        integrationStatisticsService.onIntegrationMsgsDownlink(configuration.getType());
+        onIntegrationMsgsDownlink();
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
@@ -299,8 +317,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
-        integrationStatisticsService.onIntegrationMsgsDownlinkFailed(configuration.getType());
+        onIntegrationMsgsDownlinkFailed();
         if (!status.equals("OK")) {
+            onIntegrationMsgsDownlinkFailed();
             integrationStatistics.incErrorsOccurred();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());
@@ -312,6 +331,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                     log.warn("Failed to persist debug message", e);
                 }
             }
+        } else {
+            onIntegrationMsgsDownlink();
         }
     }
 

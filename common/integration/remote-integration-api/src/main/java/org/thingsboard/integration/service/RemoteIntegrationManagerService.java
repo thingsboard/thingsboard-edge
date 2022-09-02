@@ -240,11 +240,11 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port, callBackExecutorService),
+                    new RemoteIntegrationContext(eventStorage, schedulerService, configuration, clientId, port, callBackExecutorService,
+                            integrationStatisticsService),
                     configuration,
                     uplinkDataConverter,
-                    downlinkDataConverter,
-                    integrationStatisticsService);
+                    downlinkDataConverter);
             integration.init(params);
             if (updatingIntegration) {
                 integrationEvent = ComponentLifecycleEvent.UPDATED;

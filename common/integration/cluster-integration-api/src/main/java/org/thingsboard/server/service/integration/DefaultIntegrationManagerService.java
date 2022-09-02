@@ -551,7 +551,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             state.setIntegration(integration);
             integrationsByRoutingKeyMap.putIfAbsent(configuration.getRoutingKey(), state);
             try {
-                integration.init(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration), integrationStatisticsService));
+                integration.init(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
                 eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
                 state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 integrationStatisticsService.onIntegrationStart(configuration.getType());
@@ -566,7 +566,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             try {
                 if (configuration.isEnabled()) {
                     state.setContext(context);
-                    state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration), integrationStatisticsService));
+                    state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                     state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 } else {

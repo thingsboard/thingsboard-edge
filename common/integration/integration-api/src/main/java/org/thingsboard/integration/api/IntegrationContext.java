@@ -112,6 +112,8 @@ public interface IntegrationContext {
      */
     ScheduledExecutorService getScheduledExecutorService();
 
+    IntegrationStatisticsService getIntegrationStatisticsService();
+
     /**
      * Provides access to ExecutorService to process messages after JS executor responses.
      * Allows using N threads per M integrations instead of using N threads per integration.

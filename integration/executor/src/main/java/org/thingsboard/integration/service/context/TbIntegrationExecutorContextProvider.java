@@ -48,12 +48,13 @@ public class TbIntegrationExecutorContextProvider implements IntegrationContextP
     private final TbServiceInfoProvider serviceInfoProvider;
     private final IntegrationApiService apiService;
     private final TbIntegrationExecutorContextComponent contextComponent;
+    private final TbIntegrationStatisticsContextComponent statisticsContextComponent;
     private final LogSettingsComponent logSettingsComponent;
 
     @Override
     public IntegrationContext buildIntegrationContext(Integration configuration) {
         return new TbIntegrationExecutorIntegrationContext(serviceInfoProvider.getServiceId(), apiService,
-                contextComponent, logSettingsComponent, configuration);
+                contextComponent, logSettingsComponent, configuration, statisticsContextComponent);
     }
 
 }

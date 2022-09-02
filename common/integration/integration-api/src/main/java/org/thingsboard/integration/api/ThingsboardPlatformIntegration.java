@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -57,5 +56,13 @@ public interface ThingsboardPlatformIntegration<T> {
     void onDownlinkMsg(IntegrationDownlinkMsg msg);
 
     IntegrationStatistics popStatistics();
+
+    void onIntegrationMsgsUplink();
+
+    void onIntegrationMsgsUplinkFailed();
+
+    void onIntegrationMsgsDownlink();
+
+    void onIntegrationMsgsDownlinkFailed();
 
 }

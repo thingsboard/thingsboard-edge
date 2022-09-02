@@ -30,7 +30,6 @@
  */
 package org.thingsboard.integration.remote;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
@@ -39,6 +38,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -74,9 +74,10 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ConverterContext downlinkConverterContext;
     protected final ScheduledExecutorService scheduledExecutorService;
     protected final ExecutorService callBackExecutorService;
+    protected final IntegrationStatisticsService integrationStatisticsService;
 
     public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, Integration configuration, String clientId, int port,
-                                    ExecutorService callBackExecutorService) {
+                                    ExecutorService callBackExecutorService, IntegrationStatisticsService integrationStatisticsService) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
@@ -85,6 +86,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
         this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
         this.scheduledExecutorService = scheduledExecutorService;
         this.callBackExecutorService = callBackExecutorService;
+        this.integrationStatisticsService = integrationStatisticsService;
     }
 
     @Override
