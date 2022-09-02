@@ -76,7 +76,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
             env.put("EDGE_DOCKER_REPO", "thingsboard");
             env.put("TB_EDGE_DOCKER_NAME", "tb-edge");
-            env.put("TB_EDGE_VERSION", "3.4.1EDGE-SNAPSHOT");
+            env.put("TB_EDGE_VERSION", "3.4.2EDGE-SNAPSHOT");
 
             dockerCompose.withEnv(env);
         } catch (Exception e) {
