@@ -23,6 +23,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
@@ -32,10 +33,12 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.service.stats.DefaultRuleEngineStatisticsService;
@@ -54,6 +57,9 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    @SpyBean
+    private AssetDao assetDao;
 
     @Before
     public void beforeTest() throws Exception {
@@ -77,6 +83,8 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
+
+        afterTestEntityDaoRemoveByIdWithException (assetDao);
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
@@ -908,5 +916,24 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 }, new PageLink(100));
 
         Assert.assertEquals(0, pageData.getData().size());
+    }
+
+    @Test
+    public void testDeleteAssetWithDeleteRelationsOk() throws Exception {
+        AssetId assetId = createAsset("Asset for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), assetId, "/api/asset/" + assetId);
+    }
+
+    @Test
+    public void testDeleteAssetExceptionWithRelationsTransactional() throws Exception {
+        AssetId assetId = createAsset("Asset for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(assetDao, savedTenant.getId(), assetId, "/api/asset/" + assetId);
+    }
+
+    private Asset createAsset(String name) {
+        Asset asset = new Asset();
+        asset.setName(name);
+        asset.setType("default");
+        return doPost("/api/asset", asset, Asset.class);
     }
 }
