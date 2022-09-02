@@ -165,6 +165,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
     private static final String MAIL_TEMPLATES = "mailTemplates";
     private static final int DEFAULT_LIMIT = 100;
+    public static final String USE_SYSTEM_MAIL_SETTINGS = "useSystemMailSettings";
 
     @Autowired
     private TenantService tenantService;
@@ -1176,7 +1177,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(objectMapper.readTree(mailTemplatesJsonString));
+            JsonNode oldMailTemplates = objectMapper.readTree(mailTemplatesJsonString);
+            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
+
+            if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
+                updatedMailTemplates.set(USE_SYSTEM_MAIL_SETTINGS, oldMailTemplates.get(USE_SYSTEM_MAIL_SETTINGS));
+            }
+
             return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
         }
         return Futures.immediateFuture(Collections.emptyList());

@@ -226,9 +226,13 @@ public class SignUpController extends BaseController {
                 permission.setUserGroupId(usersEntityGroup.getId());
                 if (permission.getEntityGroupId() != null) {
                     EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
-                    permission.setEntityGroupType(entityGroup.getType());
+                    if (entityGroup != null) {
+                        permission.setEntityGroupType(entityGroup.getType());
+                        groupPermissionService.saveGroupPermission(tenantId, permission);
+                    }
+                } else {
+                    groupPermissionService.saveGroupPermission(tenantId, permission);
                 }
-                groupPermissionService.saveGroupPermission(tenantId, permission);
             }
 
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());

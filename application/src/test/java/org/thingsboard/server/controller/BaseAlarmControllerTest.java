@@ -38,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
@@ -53,12 +54,14 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.alarm.AlarmDao;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -83,6 +86,10 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     protected final String SUB_SUB_CUSTOMER_ADMIN_PASSWORD = "subsubcustomer";
 
     protected Device customerDevice;
+
+
+    @SpyBean
+    private AlarmDao alarmDao;
 
     private Role role;
     private EntityGroup entityGroup;
@@ -132,6 +139,9 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
     @After
     public void teardown() throws Exception {
         loginSysAdmin();
+
+        afterTestEntityDaoRemoveByIdWithException (alarmDao);
+
         deleteDifferentTenant();
         clearCustomerAdminPermissionGroup();
     }
@@ -740,6 +750,21 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         doPost("/api/entityGroup/" + groupInfo.getId() + "/makePublic")
                 .andExpect(status().isOk());
         return doGet("/api/entityGroup/" + groupInfo.getUuidId(), EntityGroupInfo.class);
+    }
+
+
+    @Test
+    public void testDeleteAlarmWithDeleteRelationsOk() throws Exception {
+        loginCustomerAdministrator();
+        AlarmId alarmId = createAlarm("Alarm for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(customerDevice.getId(), alarmId, "/api/alarm/" + alarmId);
+    }
+
+    @Test
+    public void testDeleteAlarmExceptionWithRelationsTransactional() throws Exception {
+        loginCustomerAdministrator();
+        AlarmId alarmId = createAlarm("Alarm for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(alarmDao, customerDevice.getId(), alarmId, "/api/alarm/" + alarmId);
     }
 
     private Alarm createAlarm(String type) throws Exception {
