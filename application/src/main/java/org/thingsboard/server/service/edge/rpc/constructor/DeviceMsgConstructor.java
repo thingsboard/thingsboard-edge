@@ -31,7 +31,8 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.ByteString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -44,6 +45,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
@@ -51,6 +53,9 @@ import java.util.UUID;
 @Component
 @TbCoreComponent
 public class DeviceMsgConstructor {
+
+    @Autowired
+    private DataDecodingEncodingService dataDecodingEncodingService;
 
     public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
                                                      String conflictName) {
@@ -89,6 +94,9 @@ public class DeviceMsgConstructor {
         }
         if (conflictName != null) {
             builder.setConflictName(conflictName);
+        }
+        if (device.getDeviceData() != null) {
+            builder.setDeviceDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(device.getDeviceData())));
         }
         return builder.build();
     }
