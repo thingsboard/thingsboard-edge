@@ -39,12 +39,14 @@ import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -62,6 +64,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.Optional;
@@ -70,6 +73,9 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class DeviceCloudProcessor extends BaseCloudProcessor {
+
+    @Autowired
+    private DataDecodingEncodingService dataDecodingEncodingService;
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
@@ -201,6 +207,11 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                         new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(),
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
+            }
+            Optional<DeviceData> deviceDataOpt =
+                    dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
+            if (deviceDataOpt.isPresent()) {
+                device.setDeviceData(deviceDataOpt.get());
             }
             if (created) {
                 deviceValidator.validate(device, Device::getTenantId);
