@@ -213,11 +213,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             if (deviceDataOpt.isPresent()) {
                 device.setDeviceData(deviceDataOpt.get());
             }
-            Optional<DeviceData> deviceDataOpt =
-                    dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
-            if (deviceDataOpt.isPresent()) {
-                device.setDeviceData(deviceDataOpt.get());
-            }
             if (created) {
                 deviceValidator.validate(device, Device::getTenantId);
                 device.setId(deviceId);
