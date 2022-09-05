@@ -112,6 +112,7 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                         new File(targetDir + "docker-compose.integration.yml"),
                         new File(targetDir + "docker-compose.mosquitto.yml"),
+                        new File(targetDir + "docker-compose.opc-ua.yml"),
                         new File(targetDir + "advanced/docker-compose." + QUEUE_TYPE + ".yml"),
                         new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.yml" : "docker-compose.redis.yml")),
                         new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.volumes.yml" : "docker-compose.redis.volumes.yml"))
@@ -164,6 +165,7 @@ public class ContainerTestSuite {
                         .withExposedService("tb-pe-http-integration", 8082)
                         .withExposedService("tb-pe-mqtt-integration", 8082)
                         .withExposedService("broker", 1883)
+                        .withExposedService("opcplc", 50000)
                         .waitingFor("tb-core1", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-core2", Wait.forLogMessage(TB_CORE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-http-transport1", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
