@@ -12,6 +12,10 @@ Also, for start test for MQTT integration, you need to have an **_eclipse-mosqui
         
         docker pull eclipse-mosquitto
 
+Also, for start test for OPC UA integration, you need to have an **_opc-plc_** image. For get this image, you need use:
+
+        docker pull mcr.microsoft.com/iotedge/opc-plc:latest
+
 As result, in REPOSITORY column, next images should be present:
 
         thingsboard/tb-pe-coap-transport
@@ -50,3 +54,7 @@ As result, in REPOSITORY column, next images should be present:
   -DblackBoxTests.azureIotHubSasKey=YOUR_SAS_KEY
   -DblackBoxTests.azureIotHubConnectionString=YOUR_CONNECTION_STRING
   [connection string](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-java-java-c2d#get-the-iot-hub-connection-string)
+ 
+ Note: for Azure Event Hub integration add next VM options:
+
+  -DblackBoxTests.azureEventHubConnectionString=YOUR_CONNECTION_STRING
