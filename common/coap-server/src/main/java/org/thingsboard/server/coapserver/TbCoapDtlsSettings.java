@@ -54,6 +54,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @ConditionalOnProperty(prefix = "coap.dtls", value = "enabled", havingValue = "true")
@@ -65,6 +66,9 @@ public class TbCoapDtlsSettings {
 
     @Value("${coap.dtls.bind_port}")
     private Integer port;
+
+    @Value("${transport.coap.dtls.retransmission_timeout_in_sec}")
+    private Integer dtlsRetransmissionTimeoutInSec;
 
     @Bean
     @ConfigurationProperties(prefix = "coap.dtls.credentials")
@@ -99,6 +103,7 @@ public class TbCoapDtlsSettings {
                 new SslContextUtil.Credentials(sslCredentials.getPrivateKey(), null, sslCredentials.getCertificateChain());
         configBuilder.set(DtlsConfig.DTLS_ROLE, DtlsConfig.DtlsRole.SERVER_ONLY);
         configBuilder.set(DtlsConfig.DTLS_CLIENT_AUTHENTICATION_MODE, CertificateAuthenticationMode.WANTED);
+        configBuilder.set(DtlsConfig.DTLS_RETRANSMISSION_TIMEOUT, dtlsRetransmissionTimeoutInSec, TimeUnit.SECONDS);
         configBuilder.setAdvancedCertificateVerifier(
                 new TbCoapDtlsCertificateVerifier(
                         transportService,
