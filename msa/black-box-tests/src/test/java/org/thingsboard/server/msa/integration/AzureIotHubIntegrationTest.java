@@ -28,12 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity;
+package org.thingsboard.server.msa.integration;
 
-import com.azure.messaging.eventhubs.EventData;
-import com.azure.messaging.eventhubs.EventDataBatch;
-import com.azure.messaging.eventhubs.EventHubClientBuilder;
-import com.azure.messaging.eventhubs.EventHubProducerClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
@@ -42,40 +38,40 @@ import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
 import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class AzureEventHubIntegrationTest extends AbstractContainerTest {
-    private static final String ROUTING_KEY = "routing-key-azure-event";
-    private static final String SECRET_KEY = "secret-key-azure-event";
-    private static final String CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubConnectionString", "");
+public class AzureIotHubIntegrationTest extends AbstractIntegrationContainerTest {
+    private static final String ROUTING_KEY = "routing-key-azure-iot";
+    private static final String SECRET_KEY = "secret-key-azure-iot";
     private static final String LOGIN = "tenant@thingsboard.org";
     private static final String PASSWORD = "tenant";
+    private static final String HOST_NAME = System.getProperty("blackBoxTests.azureIotHubHostName", "");
+    private static final String SAS_KEY = System.getProperty("blackBoxTests.azureIotHubSasKey", "");
+    private static final String DEVICE_ID = System.getProperty("blackBoxTests.azureIotHubDeviceId", "");
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
+            "\"host\":\"" + HOST_NAME + ".azure-devices.net\"," +
+            "\"port\":8883," +
+            "\"cleanSession\":true," +
+            "\"ssl\":true," +
+            "\"maxBytesInMessage\":32368," +
             "\"connectTimeoutSec\":10," +
-            "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
-            "\"consumerGroup\":\"\"," +
-            "\"iotHubName\":\"\"}," +
+            "\"clientId\":\"" + DEVICE_ID + "\"," +
+            "\"credentials\":{" +
+            "\"type\":\"sas\"," +
+            "\"sasKey\":\"" + SAS_KEY + "\"}}," +
+            "\"topicFilters\":[{" +
+            "\"filter\":\"devices/" + DEVICE_ID + "/messages/devicebound/#\"," +
+            "\"qos\":0}]," +
             "\"metadata\":{}}";
     private static final String CONFIG_CONVERTER = "var payloadStr = decodeToString(payload);\n" +
             "var data = JSON.parse(payloadStr);\n" +
@@ -101,34 +97,16 @@ public class AzureEventHubIntegrationTest extends AbstractContainerTest {
             "}\n" +
             "return result;";
 
-    @BeforeClass
-    public static void setUp() {
-        org.junit.Assume.assumeFalse(Boolean.parseBoolean(System.getProperty("blackBoxTests.integrations.skip", "true")));
-    }
-
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("azure_event_");
+        Device device = createDevice("azure_iot_");
 
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         Converter savedConverter = createUplink(configConverter);
-        Integration integration = createIntegration(false);
-        integration.setDefaultConverterId(savedConverter.getId());
-        integration = restClient.saveIntegration(integration);
-
-        IntegrationId integrationId = integration.getId();
-        TenantId tenantId = integration.getTenantId();
-
-        Awaitility
-                .await()
-                .alias("Get integration events")
-                .atMost(10, TimeUnit.SECONDS)
-                .until(() -> {
-                    PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
-                    return !events.getData().isEmpty();
-                });
+        Integration integration = createIntegration(
+                IntegrationType.AZURE_IOT_HUB, CONFIG_INTEGRATION, savedConverter.getId(), ROUTING_KEY, SECRET_KEY, false);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -147,34 +125,25 @@ public class AzureEventHubIntegrationTest extends AbstractContainerTest {
         deleteAllObject(device, integration);
     }
 
-    private Integration createIntegration(boolean isRemote) {
-        Integration integration = new Integration();
-        JsonNode conf = JacksonUtil.toJsonNode(CONFIG_INTEGRATION);
-        log.info(conf.toString());
-        integration.setConfiguration(conf);
-        integration.setName("azure_event");
-        integration.setType(IntegrationType.AZURE_EVENT_HUB);
-        integration.setRoutingKey(ROUTING_KEY);
-        integration.setSecret(SECRET_KEY);
-        integration.setEnabled(true);
-        integration.setRemote(isRemote);
-        integration.setDebugMode(true);
-        integration.setAllowCreateDevicesOrAssets(true);
-        return integration;
-    }
-
-    void sendMessageToHub() {
+    void sendMessageToHub() throws Exception {
+        ServiceClient serviceClient = initServiceClient();
         String payload = createPayloadForUplink().toString();
 
-        EventHubProducerClient producer = new EventHubClientBuilder()
-                .connectionString(CONNECTION_STRING)
-                .buildProducerClient();
+        Message message = new Message(payload);
+        message.setDeliveryAcknowledgement(DeliveryAcknowledgement.Full);
+        message.setMessageId(UUID.randomUUID().toString());
+        message.getProperties().put("content-type", "JSON");
+        serviceClient.send(DEVICE_ID, message);
+        serviceClient.close();
+    }
 
-        EventData data = new EventData(payload);
+    private ServiceClient initServiceClient() throws Exception {
+        //Event Hub-compatible endpoint
+        String connectionString = System.getProperty("blackBoxTests.azureIotHubConnectionString");
 
-        EventDataBatch eventDataBatch = producer.createBatch();
-        eventDataBatch.tryAdd(data);
-        producer.send(eventDataBatch);
+        ServiceClient serviceClient = ServiceClient.createFromConnectionString(connectionString, IotHubServiceClientProtocol.AMQPS);
+        serviceClient.open();
+        return serviceClient;
     }
 
 }
