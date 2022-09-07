@@ -220,10 +220,14 @@ public abstract class AbstractContainerTest {
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
-    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
+    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
         DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, null);
         extendDeviceProfileData(deviceProfile);
         return cloudRestClient.saveDeviceProfile(deviceProfile);
+    }
+
+    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
+        return createCustomDeviceProfile(deviceProfileName, null);
     }
 
     private static void setWhiteLabelingAndCustomTranslation() throws JsonProcessingException {
