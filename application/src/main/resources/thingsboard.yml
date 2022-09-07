@@ -780,12 +780,13 @@ transport:
   coap:
     # Enable/disable coap transport protocol.
     enabled: "${COAP_ENABLED:true}"
-    # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
-    retransmission_timeout_in_sec: "${DTLS_RETRANSMISSION_TIMEOUT:9}"
     timeout: "${COAP_TIMEOUT:10000}"
     piggyback_timeout: "${COAP_PIGGYBACK_TIMEOUT:500}"
     psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
     paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
+    dtls:
+      # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
+      retransmission_timeout_in_sec: "${DTLS_RETRANSMISSION_TIMEOUT:9}"
   # Local LwM2M transport parameters
   lwm2m:
     # Enable/disable lvm2m transport protocol.
