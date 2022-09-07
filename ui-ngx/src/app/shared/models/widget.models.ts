@@ -188,7 +188,7 @@ export interface WidgetTypeParameters {
   hasAdditionalLatestDataKeys?: boolean;
   warnOnPageDataOverflow?: boolean;
   ignoreDataUpdateOnIntervalTick?: boolean;
-
+  processNoDataByWidget?: boolean;
 }
 
 export interface WidgetControllerDescriptor {
