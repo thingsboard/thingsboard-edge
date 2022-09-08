@@ -395,6 +395,8 @@ export enum MessageType {
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
   ALARM_ACKNOWLEDGED = 'ALARM_ACKNOWLEDGED',
   ALARM_CLEARED = 'ALARM_CLEARED',
+  ADDED_TO_GROUP = 'ADDED_TO_GROUP',
+  REMOVED_FROM_GROUP = 'REMOVED_FROM_GROUP',
   ENTITY_ASSIGNED_FROM_TENANT = 'ENTITY_ASSIGNED_FROM_TENANT',
   ENTITY_ASSIGNED_TO_TENANT = 'ENTITY_ASSIGNED_TO_TENANT',
   TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
@@ -405,6 +407,7 @@ export enum MessageType {
   FIRMWARE_UPDATED = 'FIRMWARE_UPDATED',
   SOFTWARE_UPDATED = 'SOFTWARE_UPDATED',
   generateReport = 'generateReport',
+  OWNER_CHANGED = 'OWNER_CHANGED',
   FAILURE = 'FAILURE'
 }
 
@@ -435,6 +438,8 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
     [MessageType.ALARM_ACKNOWLEDGED, 'Alarm Acknowledged'],
     [MessageType.ALARM_CLEARED, 'Alarm Cleared'],
+    [MessageType.ADDED_TO_GROUP, 'Added to Group'],
+    [MessageType.REMOVED_FROM_GROUP, 'Removed from Group'],
     [MessageType.ENTITY_ASSIGNED_FROM_TENANT, 'Entity Assigned From Tenant'],
     [MessageType.ENTITY_ASSIGNED_TO_TENANT, 'Entity Assigned To Tenant'],
     [MessageType.TIMESERIES_UPDATED, 'Timeseries Updated'],
@@ -445,6 +450,7 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.FIRMWARE_UPDATED, 'Firmware Update'],
     [MessageType.SOFTWARE_UPDATED, 'Software Update'],
     [MessageType.generateReport, 'Generate Report'],
+    [MessageType.OWNER_CHANGED, 'Owner Changed'],
     [MessageType.FAILURE, 'Failure']
   ]
 );
