@@ -84,8 +84,8 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
         EntityGroupId entityGroupId = entityGroup.getId();
         try {
             entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, entityGroupId,
-                    entityGroup, user,  ActionType.DELETED, true, null, entityGroupId.getId().toString());
+            notificationEntityService.notifyDeleteEntity(tenantId, entityGroupId, entityGroup, null,
+                    ActionType.DELETED, relatedEdgeIds, user, entityGroupId.getId().toString());
         } catch (Exception e) {
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),
                     entityGroup, user,  ActionType.DELETED, false, e, entityGroupId.getId().toString());

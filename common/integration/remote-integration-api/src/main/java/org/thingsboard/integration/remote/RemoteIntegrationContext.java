@@ -73,10 +73,11 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ConverterContext uplinkConverterContext;
     protected final ConverterContext downlinkConverterContext;
     protected final ScheduledExecutorService scheduledExecutorService;
+    protected final ExecutorService generalExecutorService;
     protected final ExecutorService callBackExecutorService;
     protected final IntegrationStatisticsService integrationStatisticsService;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, Integration configuration, String clientId, int port,
+    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, ExecutorService generalExecutorService, Integration configuration, String clientId, int port,
                                     ExecutorService callBackExecutorService, IntegrationStatisticsService integrationStatisticsService) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
@@ -85,6 +86,7 @@ public class RemoteIntegrationContext implements IntegrationContext {
         this.uplinkConverterContext = new RemoteConverterContext(eventStorage, true, mapper, clientId, port);
         this.downlinkConverterContext = new RemoteConverterContext(eventStorage, false, mapper, clientId, port);
         this.scheduledExecutorService = scheduledExecutorService;
+        this.generalExecutorService = generalExecutorService;
         this.callBackExecutorService = callBackExecutorService;
         this.integrationStatisticsService = integrationStatisticsService;
     }
@@ -153,6 +155,11 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
         return scheduledExecutorService;
+    }
+
+    @Override
+    public ExecutorService getExecutorService() {
+        return generalExecutorService;
     }
 
     @Override

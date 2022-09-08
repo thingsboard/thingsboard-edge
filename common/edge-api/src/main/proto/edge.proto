@@ -221,6 +221,7 @@ message DeviceUpdateMsg {
   optional int64 entityGroupIdLSB = 14;
   optional int64 firmwareIdMSB = 15;
   optional int64 firmwareIdLSB = 16;
+  optional bytes deviceDataBytes = 17;
 }
 
 message DeviceProfileUpdateMsg {

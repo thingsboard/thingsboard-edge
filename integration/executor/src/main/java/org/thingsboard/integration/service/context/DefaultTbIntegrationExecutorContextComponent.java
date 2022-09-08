@@ -35,6 +35,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.server.cache.TbCacheValueWrapper;
@@ -61,14 +62,15 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
     private final IntegrationStatisticsService integrationStatisticsService;
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
+    private ExecutorService generalExecutorService;
     private ExecutorService callBackExecutorService;
 
     @PostConstruct
     public void init() {
         eventLoopGroup = new NioEventLoopGroup();
         scheduledExecutorService = Executors.newScheduledThreadPool(3, ThingsBoardThreadFactory.forName("integration-scheduled"));
-        callBackExecutorService = Executors.newFixedThreadPool(
-                Runtime.getRuntime().availableProcessors(), ThingsBoardThreadFactory.forName("integration-callback"));
+        generalExecutorService = ThingsBoardExecutors.newWorkStealingPool(20, "integration-general");
+        callBackExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "integration-callback");
     }
 
     @PreDestroy
@@ -77,11 +79,13 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
         if (scheduledExecutorService != null) {
             scheduledExecutorService.shutdownNow();
         }
+        if (generalExecutorService != null) {
+            generalExecutorService.shutdownNow();
+        }
         if (callBackExecutorService != null) {
             callBackExecutorService.shutdownNow();
         }
     }
-
 
     @Override
     public Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName) {

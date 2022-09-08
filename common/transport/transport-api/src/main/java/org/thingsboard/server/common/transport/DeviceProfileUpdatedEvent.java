@@ -28,15 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap;
+package org.thingsboard.server.common.transport;
 
-import lombok.Data;
+import lombok.Getter;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.queue.discovery.event.TbApplicationEvent;
 
-import java.util.List;
+public final class DeviceProfileUpdatedEvent extends TbApplicationEvent {
 
-@Data
-public class LwM2MBootstrapServersConfiguration {
+    @Getter
+    private final DeviceProfile deviceProfile;
 
-    List<LwM2MBootstrapServerCredential> bootstrap;
-
+    public DeviceProfileUpdatedEvent(DeviceProfile deviceProfile) {
+        super(new Object());
+        this.deviceProfile = deviceProfile;
+    }
 }
