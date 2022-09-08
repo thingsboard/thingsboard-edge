@@ -93,7 +93,7 @@ public class TbFetchDeviceCredentialsNodeTest {
         }).given(deviceCredentialsService).findDeviceCredentialsByDeviceId(any(), any());
         willAnswer(invocation -> {
             return JacksonUtil.newObjectNode();
-        }).given(deviceCredentialsService).credentialsInfo(any());
+        }).given(deviceCredentialsService).toCredentialsInfo(any());
     }
 
     @AfterEach
@@ -169,4 +169,3 @@ public class TbFetchDeviceCredentialsNodeTest {
         return TbMsg.newMsg("POST_ATTRIBUTES_REQUEST", entityId, metaData, data, callback);
     }
 }
-

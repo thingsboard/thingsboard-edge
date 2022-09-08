@@ -33,7 +33,6 @@ package org.thingsboard.rule.engine.metadata;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.BooleanUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -76,7 +75,7 @@ public class TbFetchDeviceCredentialsNode implements TbNode {
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbFetchDeviceCredentialsNodeConfiguration.class);
-        fetchToMetadata = BooleanUtils.toBooleanDefaultIfNull(config.isFetchToMetadata(), true);
+        this.fetchToMetadata = config.isFetchToMetadata();
     }
 
     @Override
@@ -95,7 +94,7 @@ public class TbFetchDeviceCredentialsNode implements TbNode {
 
         TbMsg transformedMsg;
         String credentialsType = deviceCredentials.getCredentialsType().name();
-        JsonNode credentialsInfo = ctx.getDeviceCredentialsService().credentialsInfo(deviceCredentials);
+        JsonNode credentialsInfo = ctx.getDeviceCredentialsService().toCredentialsInfo(deviceCredentials);
         if (fetchToMetadata) {
             TbMsgMetaData metaData = msg.getMetaData();
             metaData.putValue(CREDENTIALS_TYPE, credentialsType);
