@@ -77,8 +77,10 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ExecutorService callBackExecutorService;
     protected final IntegrationStatisticsService integrationStatisticsService;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, ExecutorService generalExecutorService, Integration configuration, String clientId, int port,
-                                    ExecutorService callBackExecutorService, IntegrationStatisticsService integrationStatisticsService) {
+    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService,
+                                    ExecutorService generalExecutorService, Integration configuration, String clientId,
+                                    int port, ExecutorService callBackExecutorService,
+                                    IntegrationStatisticsService integrationStatisticsService) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
