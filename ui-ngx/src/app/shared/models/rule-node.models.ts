@@ -374,6 +374,14 @@ export enum MessageType {
   POST_TELEMETRY_REQUEST = 'POST_TELEMETRY_REQUEST',
   TO_SERVER_RPC_REQUEST = 'TO_SERVER_RPC_REQUEST',
   RPC_CALL_FROM_SERVER_TO_DEVICE = 'RPC_CALL_FROM_SERVER_TO_DEVICE',
+  RPC_QUEUED = 'RPC_QUEUED',
+  RPC_SENT = 'RPC_SENT',
+  RPC_DELIVERED = 'RPC_DELIVERED',
+  RPC_SUCCESSFUL = 'RPC_SUCCESSFUL',
+  RPC_TIMEOUT = 'RPC_TIMEOUT',
+  RPC_EXPIRED = 'RPC_EXPIRED',
+  RPC_FAILED = 'RPC_FAILED',
+  RPC_DELETED = 'RPC_DELETED',
   ACTIVITY_EVENT = 'ACTIVITY_EVENT',
   INACTIVITY_EVENT = 'INACTIVITY_EVENT',
   CONNECT_EVENT = 'CONNECT_EVENT',
@@ -385,6 +393,10 @@ export enum MessageType {
   ENTITY_UNASSIGNED = 'ENTITY_UNASSIGNED',
   ATTRIBUTES_UPDATED = 'ATTRIBUTES_UPDATED',
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
+  ALARM_ACKNOWLEDGED = 'ALARM_ACKNOWLEDGED',
+  ALARM_CLEARED = 'ALARM_CLEARED',
+  ENTITY_ASSIGNED_FROM_TENANT = 'ENTITY_ASSIGNED_FROM_TENANT',
+  ENTITY_ASSIGNED_TO_TENANT = 'ENTITY_ASSIGNED_TO_TENANT',
   TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
   TIMESERIES_DELETED = 'TIMESERIES_DELETED',
   ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
@@ -392,12 +404,8 @@ export enum MessageType {
   REST_API_REQUEST = 'REST_API_REQUEST',
   FIRMWARE_UPDATED = 'FIRMWARE_UPDATED',
   SOFTWARE_UPDATED = 'SOFTWARE_UPDATED',
-  RPC_QUEUED = 'RPC_QUEUED',
-  RPC_DELIVERED = 'RPC_DELIVERED',
-  RPC_SUCCESSFUL = 'RPC_SUCCESSFUL',
-  RPC_TIMEOUT = 'RPC_TIMEOUT',
-  RPC_FAILED = 'RPC_FAILED',
-  generateReport = 'generateReport'
+  generateReport = 'generateReport',
+  FAILURE = 'FAILURE'
 }
 
 export const messageTypeNames = new Map<MessageType, string>(
@@ -406,6 +414,14 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.POST_TELEMETRY_REQUEST, 'Post telemetry'],
     [MessageType.TO_SERVER_RPC_REQUEST, 'RPC Request from Device'],
     [MessageType.RPC_CALL_FROM_SERVER_TO_DEVICE, 'RPC Request to Device'],
+    [MessageType.RPC_QUEUED, 'RPC Queued'],
+    [MessageType.RPC_SENT, 'RPC Sent'],
+    [MessageType.RPC_DELIVERED, 'RPC Delivered'],
+    [MessageType.RPC_SUCCESSFUL, 'RPC Successful'],
+    [MessageType.RPC_TIMEOUT, 'RPC Timeout'],
+    [MessageType.RPC_EXPIRED, 'RPC Expired'],
+    [MessageType.RPC_FAILED, 'RPC Failed'],
+    [MessageType.RPC_DELETED, 'RPC Deleted'],
     [MessageType.ACTIVITY_EVENT, 'Activity Event'],
     [MessageType.INACTIVITY_EVENT, 'Inactivity Event'],
     [MessageType.CONNECT_EVENT, 'Connect Event'],
@@ -417,6 +433,10 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.ENTITY_UNASSIGNED, 'Entity Unassigned'],
     [MessageType.ATTRIBUTES_UPDATED, 'Attributes Updated'],
     [MessageType.ATTRIBUTES_DELETED, 'Attributes Deleted'],
+    [MessageType.ALARM_ACKNOWLEDGED, 'Alarm Acknowledged'],
+    [MessageType.ALARM_CLEARED, 'Alarm Cleared'],
+    [MessageType.ENTITY_ASSIGNED_FROM_TENANT, 'Entity Assigned From Tenant'],
+    [MessageType.ENTITY_ASSIGNED_TO_TENANT, 'Entity Assigned To Tenant'],
     [MessageType.TIMESERIES_UPDATED, 'Timeseries Updated'],
     [MessageType.TIMESERIES_DELETED, 'Timeseries Deleted'],
     [MessageType.ADDED_TO_ENTITY_GROUP, 'Added to Group'],
@@ -424,12 +444,8 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.REST_API_REQUEST, 'REST API request'],
     [MessageType.FIRMWARE_UPDATED, 'Firmware Update'],
     [MessageType.SOFTWARE_UPDATED, 'Software Update'],
-    [MessageType.RPC_QUEUED, 'RPC Queued'],
-    [MessageType.RPC_DELIVERED, 'RPC Delivered'],
-    [MessageType.RPC_SUCCESSFUL, 'RPC Successful'],
-    [MessageType.RPC_TIMEOUT, 'RPC Timeout'],
-    [MessageType.RPC_FAILED, 'RPC Failed'],
-    [MessageType.generateReport, 'Generate Report']
+    [MessageType.generateReport, 'Generate Report'],
+    [MessageType.FAILURE, 'Failure']
   ]
 );
 
