@@ -49,6 +49,9 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileInfo;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
+import org.thingsboard.server.common.data.DeviceProfileType;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackage;
@@ -74,8 +77,11 @@ import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfigu
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
 import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
+import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.SnmpDeviceProfileTransportConfiguration;
@@ -140,7 +146,9 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -2129,6 +2137,66 @@ public class EdgeClientTest extends AbstractContainerTest {
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
     }
 
+    @Test
+    public void testProvisionDevice() {
+        final String DEVICE_PROFILE_NAME = "Provision Device Profile";
+        final String DEVICE_NAME = "Provisioned Device";
+
+        DeviceProfile provisionDeviceProfile = new DeviceProfile();
+        provisionDeviceProfile.setName(DEVICE_PROFILE_NAME);
+        provisionDeviceProfile.setType(DeviceProfileType.DEFAULT);
+        provisionDeviceProfile.setTransportType(DeviceTransportType.DEFAULT);
+        provisionDeviceProfile.setProvisionType(DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
+        provisionDeviceProfile.setProvisionDeviceKey("testProvisionKey");
+        DeviceProfileData deviceProfileData = new DeviceProfileData();
+        deviceProfileData.setTransportConfiguration(new DefaultDeviceProfileTransportConfiguration());
+        AllowCreateNewDevicesDeviceProfileProvisionConfiguration provisionConfiguration
+                = new AllowCreateNewDevicesDeviceProfileProvisionConfiguration("testProvisionSecret");
+        deviceProfileData.setProvisionConfiguration(provisionConfiguration);
+        provisionDeviceProfile.setProfileData(deviceProfileData);
+        provisionDeviceProfile = cloudRestClient.saveDeviceProfile(provisionDeviceProfile);
+
+        DeviceProfileId provisionDeviceProfileId = provisionDeviceProfile.getId();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getDeviceProfileById(provisionDeviceProfileId).isPresent());
+
+        Map<String, String> provisionRequest = new HashMap<>();
+        provisionRequest.put("deviceName", DEVICE_NAME);
+        provisionRequest.put("provisionDeviceKey", "testProvisionKey");
+        provisionRequest.put("provisionDeviceSecret", "testProvisionSecret");
+        ResponseEntity<JsonNode> provisionResponse = edgeRestClient.getRestTemplate()
+                .postForEntity(edgeUrl + "/api/v1/provision",
+                        provisionRequest,
+                        JsonNode.class);
+
+        Assert.assertNotNull(provisionResponse.getBody());
+        Assert.assertNotNull(provisionResponse.getBody().get("status"));
+        Assert.assertEquals("SUCCESS", provisionResponse.getBody().get("status").asText());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  {
+                    PageData<Device> provisionDevices = cloudRestClient.getTenantDevices(DEVICE_PROFILE_NAME, new PageLink(100));
+                    if (provisionDevices.getData().isEmpty()) {
+                        return false;
+                    }
+                    List<Device> provisionDevicesData = provisionDevices.getData();
+                    return provisionDevicesData.size() == 1 && provisionDevicesData.get(0).getName().equals(DEVICE_NAME);
+                });
+
+        DeviceId provisionedDeviceId = getDeviceByNameAndType(DEVICE_NAME, DEVICE_PROFILE_NAME, cloudRestClient).getId();
+        cloudRestClient.deleteDevice(provisionedDeviceId);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getDeviceById(provisionedDeviceId).isEmpty());
+
+        cloudRestClient.deleteDeviceProfile(provisionDeviceProfile.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() ->  edgeRestClient.getDeviceProfileById(provisionDeviceProfileId).isEmpty());
+    }
+
     // Utility methods
     private Device saveDeviceOnEdge(String deviceName, String type) throws Exception {
         return saveDevice(deviceName, type, null, edgeRestClient);
@@ -2215,7 +2283,17 @@ public class EdgeClientTest extends AbstractContainerTest {
         return savedEntityView;
     }
 
-
+    private Device getDeviceByNameAndType(String deviceName, String type, RestClient restClient) {
+        Device result = null;
+        PageData<Device> provisionDevices = restClient.getTenantDevices(type, new PageLink(1000));
+        for (Device device : provisionDevices.getData()) {
+            if (device.getName().equals(deviceName)) {
+                result = device;
+                break;
+            }
+        }
+        return result;
+    }
 
 }
 
