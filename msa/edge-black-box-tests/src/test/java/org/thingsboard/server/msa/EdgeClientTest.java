@@ -42,8 +42,16 @@ import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
+import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.data.DeviceData;
+import org.thingsboard.server.common.data.device.data.DeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
+import org.thingsboard.server.common.data.device.data.SnmpDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
 import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
@@ -86,6 +94,8 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
+import org.thingsboard.server.common.data.transport.snmp.PrivacyProtocol;
 import org.thingsboard.server.common.data.transport.snmp.SnmpMapping;
 import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
 import org.thingsboard.server.common.data.transport.snmp.config.impl.TelemetryQueryingSnmpCommunicationConfig;
@@ -541,11 +551,103 @@ public class EdgeClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
+        validateDeviceTransportConfiguration(edgeDevice1, cloudRestClient, edgeRestClient);
+
         cloudRestClient.unassignDeviceFromEdge(edge.getId(), edgeDevice1.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getDeviceById(edgeDevice1.getId()).isEmpty());
+    }
+
+    private void validateDeviceTransportConfiguration(Device device,
+                                                      RestClient sourceRestClient,
+                                                      RestClient targetRestClient) {
+        validateDefaultDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
+        validateMqttDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
+        validateCoapDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
+        validateLwm2mDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
+        validateSnmpDeviceTransportConfiguration(device, sourceRestClient, targetRestClient);
+    }
+
+    private void validateDefaultDeviceTransportConfiguration(Device device,
+                                                             RestClient sourceRestClient,
+                                                             RestClient targetRestClient) {
+        setAndValidateDeviceTransportConfiguration(device,
+                new DefaultDeviceTransportConfiguration(),
+                sourceRestClient,
+                targetRestClient);
+    }
+
+    private void validateMqttDeviceTransportConfiguration(Device device,
+                                                          RestClient sourceRestClient,
+                                                          RestClient targetRestClient) {
+        MqttDeviceTransportConfiguration transportConfiguration = new MqttDeviceTransportConfiguration();
+        transportConfiguration.getProperties().put("topic", "tb_rule_engine.thermostat");
+        setAndValidateDeviceTransportConfiguration(device,
+                transportConfiguration,
+                sourceRestClient,
+                targetRestClient);
+    }
+    private void validateCoapDeviceTransportConfiguration(Device device,
+                                                          RestClient sourceRestClient,
+                                                          RestClient targetRestClient) {
+        CoapDeviceTransportConfiguration transportConfiguration = new CoapDeviceTransportConfiguration();
+        transportConfiguration.setEdrxCycle(1L);
+        transportConfiguration.setPagingTransmissionWindow(2L);
+        transportConfiguration.setPsmActivityTimer(3L);
+        transportConfiguration.setPowerMode(PowerMode.DRX);
+        setAndValidateDeviceTransportConfiguration(device,
+                transportConfiguration,
+                sourceRestClient,
+                targetRestClient);
+    }
+
+    private void validateLwm2mDeviceTransportConfiguration(Device device,
+                                                           RestClient sourceRestClient,
+                                                           RestClient targetRestClient) {
+        Lwm2mDeviceTransportConfiguration transportConfiguration = new Lwm2mDeviceTransportConfiguration();
+        transportConfiguration.setEdrxCycle(1L);
+        transportConfiguration.setPagingTransmissionWindow(2L);
+        transportConfiguration.setPsmActivityTimer(3L);
+        transportConfiguration.setPowerMode(PowerMode.PSM);
+        setAndValidateDeviceTransportConfiguration(device,
+                transportConfiguration,
+                sourceRestClient,
+                targetRestClient);
+    }
+
+    private void validateSnmpDeviceTransportConfiguration(Device device,
+                                                          RestClient sourceRestClient,
+                                                          RestClient targetRestClient) {
+        SnmpDeviceTransportConfiguration transportConfiguration = new SnmpDeviceTransportConfiguration();
+        transportConfiguration.setAuthenticationProtocol(AuthenticationProtocol.SHA_256);
+        transportConfiguration.setPrivacyProtocol(PrivacyProtocol.AES_256);
+        setAndValidateDeviceTransportConfiguration(device,
+                transportConfiguration,
+                sourceRestClient,
+                targetRestClient);
+    }
+
+    private void setAndValidateDeviceTransportConfiguration(Device device,
+                                                            DeviceTransportConfiguration transportConfiguration,
+                                                            RestClient sourceRestClient,
+                                                            RestClient targetRestClient) {
+        DeviceData deviceData = new DeviceData();
+        deviceData.setConfiguration(new DefaultDeviceConfiguration());
+        deviceData.setTransportConfiguration(transportConfiguration);
+        device.setDeviceData(deviceData);
+        sourceRestClient.saveDevice(device);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<Device> targetDevice = targetRestClient.getDeviceById(device.getId());
+                    Optional<Device> sourceDevice = sourceRestClient.getDeviceById(device.getId());
+                    Device expected = targetDevice.get();
+                    Device actual = sourceDevice.get();
+                    return expected.equals(actual);
+                });
     }
 
     private boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
@@ -1103,6 +1205,8 @@ public class EdgeClientTest extends AbstractContainerTest {
         edgeRestClient.saveDeviceCredentials(deviceCredentials);
 
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
+
+        validateDeviceTransportConfiguration(savedDeviceOnEdge, edgeRestClient, cloudRestClient);
 
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
 
