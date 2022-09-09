@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Data
 @RequiredArgsConstructor
-public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent, TbIntegrationStatisticsContextComponent {
+public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent {
 
     private final DownlinkCacheService downlinkCacheService;
     private final TbTransactionalCache<DeviceCacheKey, Device> deviceCache;
