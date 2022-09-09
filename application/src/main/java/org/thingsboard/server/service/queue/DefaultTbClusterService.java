@@ -501,7 +501,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void onDeviceUpdated(Device device, Device old, boolean notifyEdge) {
-        onDeviceUpdated(device, old, true, true);
+        onDeviceUpdated(device, old, notifyEdge, true);
     }
 
     @Override
