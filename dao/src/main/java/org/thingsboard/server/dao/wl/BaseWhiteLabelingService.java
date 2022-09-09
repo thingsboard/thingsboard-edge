@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.io.IOException;
+import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -146,9 +147,13 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
 
     @Override
     public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(TenantId tenantId, String domainName, String logoImageChecksum, String faviconChecksum) throws Exception {
-        AdminSettings loginWhiteLabelSettings = adminSettingsService.findAdminSettingsByKey(tenantId, constructLoginWhileLabelKey(domainName));
+        AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
+        String baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+        String sysDomainName = URI.create(baseUrl).getHost();
+        AdminSettings loginWhiteLabelSettings;
         LoginWhiteLabelingParams result;
-        if (loginWhiteLabelSettings != null) {
+        if (!sysDomainName.equalsIgnoreCase(domainName) &&
+                (loginWhiteLabelSettings = adminSettingsService.findAdminSettingsByKey(tenantId, constructLoginWhileLabelKey(domainName))) != null) {
             String strEntityType = loginWhiteLabelSettings.getJsonValue().get("entityType").asText();
             String strEntityId = loginWhiteLabelSettings.getJsonValue().get("entityId").asText();
             EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
