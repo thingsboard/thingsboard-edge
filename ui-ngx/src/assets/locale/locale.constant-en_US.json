@@ -2913,7 +2913,7 @@
         "delete-integrations-action-title": "Delete { count, plural, 1 {1 integration} other {# integrations} }",
         "delete-integrations-text": "Be careful, after the confirmation all selected integrations will be removed and all related data will become unrecoverable.",
         "events": "Events",
-        "enabled": "Enabled",
+        "enabled": "Enable integration",
         "allow-create-devices-or-assets": "Allow create devices or assets",
         "add": "Add Integration",
         "search": "Search integrations",
@@ -3185,6 +3185,7 @@
         "copy-integration-secret": "Copy integration secret",
         "integration-secret-copied-message": "Integration secret has been copied to clipboard",
         "execute-remotely": "Execute remotely",
+        "remotely": "Remotely",
         "handler-configuration": "Handler Configuration",
         "handler-configuration-type": "Handler Type",
         "so-broadcast": "Enable broadcast - integration will accepts broadcast address packets",
@@ -3277,7 +3278,17 @@
         "unassign-integrations-from-edge-title": "Are you sure you want to unassign { count, plural, 1 {1 integration} other {# integrations} }?",
         "unassign-integrations-from-edge-text": "After the confirmation all selected integrations will be unassigned and won't be accessible by the edge.",
         "unassign-integrations": "Unassign integrations",
-        "edge-placeholder-hint": "You can use placeholder ${{ATTRIBUTE_KEY}} to substitute integration field with attribute value from specific Edge entity. For example, 'Edge A' has attribute 'baseUrl' that equals to 'http://localhost:9999'. You can set ${{baseUrl}} as one of the integration fields, and it is going to be replaced to 'http://localhost:9999' during the assignment of this integration to 'Edge A'. Additionally, if 'Edge A' attribute 'baseUrl' is going to be updated - integration with new updated value is going to be automatically provisioned to 'Edge A'."
+        "edge-placeholder-hint": "You can use placeholder ${{ATTRIBUTE_KEY}} to substitute integration field with attribute value from specific Edge entity. For example, 'Edge A' has attribute 'baseUrl' that equals to 'http://localhost:9999'. You can set ${{baseUrl}} as one of the integration fields, and it is going to be replaced to 'http://localhost:9999' during the assignment of this integration to 'Edge A'. Additionally, if 'Edge A' attribute 'baseUrl' is going to be updated - integration with new updated value is going to be automatically provisioned to 'Edge A'.",
+        "status": {
+            "status": "Status",
+            "active": "Active",
+            "disabled": "Disabled",
+            "failed": "Failed"
+        },
+        "daily-rate": "Daily rate",
+        "enable-debug-mode": "Enable debug mode",
+        "disable-debug-mode": "Disable debug mode",
+        "advanced-settings": "Advanced settings"
     },
     "item": {
         "selected": "Selected"

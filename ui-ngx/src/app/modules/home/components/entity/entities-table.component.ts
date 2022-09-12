@@ -60,6 +60,7 @@ import { ActivatedRoute, QueryParamsHandling, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   CellActionDescriptorType,
+  ChartEntityTableColumn,
   EntityActionTableColumn,
   EntityColumn,
   EntityTableColumn,
@@ -582,7 +583,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
 
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
-      (column) => column instanceof EntityTableColumn)
+      (column) => column instanceof EntityTableColumn || column instanceof ChartEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)
@@ -634,7 +635,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.cellStyleCache[index] = undefined;
   }
 
-  cellContent(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
+  cellContent(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number): any {
     if (column instanceof EntityTableColumn) {
       const col = this.entitiesTableConfig.columns.indexOf(column);
       const index = row * this.entitiesTableConfig.columns.length + col;
@@ -644,9 +645,10 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
         this.cellContentCache[index] = res;
       }
       return res;
-    } else {
-      return '';
+    } else if (column instanceof ChartEntityTableColumn) {
+      return column.cellContentFunction(entity, column.key);
     }
+    return '';
   }
 
   cellTooltip(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
@@ -686,6 +688,14 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     return res;
   }
 
+  cellChartStyle(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number) {
+    let res;
+    if (column instanceof ChartEntityTableColumn) {
+      res = column.chartStyleFunction(entity, column.key);
+    }
+    return res;
+  }
+
   trackByColumnKey(index, column: EntityTableColumn<BaseData<HasId>>) {
     return column.key;
   }
@@ -707,5 +717,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     } else {
       this.updateData();
     }
+  }
+
+  detectChanges() {
+    this.cd.markForCheck();
   }
 }

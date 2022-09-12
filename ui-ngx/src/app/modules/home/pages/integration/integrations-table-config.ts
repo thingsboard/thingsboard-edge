@@ -31,6 +31,8 @@
 
 import {
   CellActionDescriptor,
+  ChartEntityTableColumn,
+  checkBoxCell,
   DateEntityTableColumn,
   defaultEntityTablePermissions,
   EntityColumn,
@@ -59,7 +61,7 @@ import { IntegrationComponent } from '@home/pages/integration/integration.compon
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { forkJoin, Observable } from 'rxjs';
-import { isUndefined } from '@core/utils';
+import { deepClone, isUndefined } from '@core/utils';
 import { map } from 'rxjs/operators';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
@@ -130,11 +132,32 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       this.utils.customTranslation(integration.name, integration.name) : '';
 
     columns.push(
-      new DateEntityTableColumn<Integration>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<Integration>('name', 'converter.name', '33%', this.entityTitle),
-      new EntityTableColumn<Integration>('type', 'converter.type', '33%', (integration) => {
+      new DateEntityTableColumn<Integration>('createdTime', 'common.created-time', this.datePipe, '15%'),
+      new EntityTableColumn<Integration>('name', 'converter.name', '15%', this.entityTitle),
+      new EntityTableColumn<Integration>('type', 'converter.type', '51%', (integration) => {
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
-      })
+      }),
+      new ChartEntityTableColumn<Integration>('dailyRate', 'integration.daily-rate', '9%',
+        () => [5, 6, 2, 9, 4, 7, 10, 12, 12, 15, 11, 12, 2, 7, 8, 16, 1, 9, 2, 10, 4, 7, 9, 3],
+        () => ({
+          chartRangeMin: '',
+          chartRangeMax: '',
+          minSpotColor: false,
+          maxSpotColor: false,
+          spotColor: false,
+          height: '36px',
+          width: '72px',
+          fillColor: false,
+          lineColor: 'rgba(0, 0, 0, 0.54)',
+          lineWidth: '2'
+        })),
+      new EntityTableColumn<Integration>('status', 'integration.status.status', '80px',
+        integration => this.integrationStatus(integration),
+        integration => this.integrationStatusStyle(integration), false),
+      new EntityTableColumn<Integration>('remote', 'integration.remotely', '60px',
+        integration => {
+            return checkBoxCell(integration.remote);
+        }, () => ({}), false)
     );
     return columns;
   }
@@ -191,6 +214,16 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
         }
       );
     }
+    actions.push(
+      {
+        name: '',
+        nameFunction: (entity) => this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
+        mdiIcon: 'mdi:bug',
+        isEnabled: () => true,
+        mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
+        onAction: ($event, entity) => this.toggleDebugMode($event, entity)
+      }
+    );
     return actions;
   }
 
@@ -206,9 +239,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       }
     }
     return this.integrationService.saveIntegration(integration).pipe(
-      map((integration) => {
+      map((integrationInfo) => {
         if (this.componentsData.integrationScope === 'edges') {
-          this.edgeService.findAllRelatedEdgesMissingAttributes(integration.id.id).subscribe(
+          this.edgeService.findAllRelatedEdgesMissingAttributes(integrationInfo.id.id).subscribe(
             (missingEdgeAttributes) => {
               if (missingEdgeAttributes && Object.keys(missingEdgeAttributes).length > 0) {
                 const formattedMissingEdgeAttributes: Array<string> = new Array<string>();
@@ -225,12 +258,12 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
             }
           );
         }
-        return integration;
+        return integrationInfo;
       })
     );
   }
 
-  openIntegration($event: Event, integration: Integration, params?:IntegrationParams) {
+  openIntegration($event: Event, integration: Integration, params?: IntegrationParams) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -400,5 +433,45 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
         }
       }
     );
+  }
+
+  private integrationStatus(integration: Integration): string {
+    let translateKey = 'integration.status.active';
+    let backgroundColor = 'rgba(25, 128, 56, 0.08)';
+    if (!integration.enabled) {
+      translateKey = 'integration.status.disabled';
+      backgroundColor = 'rgba(0, 0, 0, 0.08)';
+    } else if (false) {
+      translateKey = 'integration.status.failed';
+      backgroundColor = 'rgba(209, 39, 48, 0.08)';
+    }
+    return `<div style="border-radius: 16px; height: 32px; line-height: 32px; padding: 0 12px; width: fit-content; background-color: ${backgroundColor}">
+                ${this.translate.instant(translateKey)}
+            </div>`;
+  }
+
+  private integrationStatusStyle(integration: Integration): object {
+    const styleObj = {
+      fontSize: '14px',
+      color: '#198038'
+    };
+    if (!integration.enabled) {
+      styleObj.color = 'rgba(0, 0, 0, 0.54)';
+    } else if (false) {
+      styleObj.color = '#d12730';
+    }
+    return styleObj;
+  }
+
+  private toggleDebugMode($event: Event, integrations: Integration): void {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const newIntegration = deepClone(integrations);
+    newIntegration.debugMode = !newIntegration.debugMode;
+    this.integrationService.saveIntegration(newIntegration, {ignoreLoading: true}).subscribe((integrationData) => {
+      integrations.debugMode = integrationData.debugMode;
+      this.getTable().detectChanges();
+    });
   }
 }
