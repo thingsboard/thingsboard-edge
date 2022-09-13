@@ -270,6 +270,7 @@ export interface WidgetSubscriptionOptions {
   displayTimewindow?: boolean;
   timeWindowConfig?: Timewindow;
   dashboardTimewindow?: Timewindow;
+  onTimewindowChangeFunction?: (timewindow: Timewindow) => Timewindow;
   legendConfig?: LegendConfig;
   comparisonEnabled?: boolean;
   timeForComparison?: moment_.unitOfTime.DurationConstructor;
@@ -308,6 +309,7 @@ export interface IWidgetSubscription {
   hiddenData?: Array<{data: DataSet}>;
   timeWindowConfig?: Timewindow;
   timeWindow?: WidgetTimewindow;
+  onTimewindowChangeFunction?: (timewindow: Timewindow) => Timewindow;
   widgetTimewindowChanged$: Observable<WidgetTimewindow>;
   comparisonEnabled?: boolean;
   comparisonTimeWindow?: WidgetTimewindow;
