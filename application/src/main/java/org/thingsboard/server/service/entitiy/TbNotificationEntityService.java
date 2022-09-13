@@ -121,4 +121,6 @@ public interface TbNotificationEntityService {
 
     void notifyRelation(TenantId tenantId, CustomerId customerId, EntityRelation relation, User user,
                         ActionType actionType, Object... additionalInfo);
+
+    void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction);
 }

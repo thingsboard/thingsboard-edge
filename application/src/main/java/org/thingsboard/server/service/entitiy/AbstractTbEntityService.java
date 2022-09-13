@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -165,6 +166,10 @@ public abstract class AbstractTbEntityService {
             entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
             notificationEntityService.notifyAddToEntityGroup(tenantId, entityId, entity, customerId, entityGroupId, user,
                     entityId.toString(), entityGroupId.toString(), entityGroup.getName());
+        }
+
+        if (entityGroup == null && actionType == ActionType.ADDED) {
+            notificationEntityService.sendNotificationMsgToCloud(tenantId, entityId, EdgeEventActionType.ADDED);
         }
 
         notificationEntityService.notifyCreateOrUpdateEntity(tenantId, entityId, entity, customerId, actionType, user);

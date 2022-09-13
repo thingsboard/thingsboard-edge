@@ -367,7 +367,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         }
     }
 
-    private void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
+    @Override
+    public void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, EdgeEventActionType cloudEventAction) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType != null) {
             sendNotificationMsgToCloud(tenantId, entityId, cloudEventType, cloudEventAction);

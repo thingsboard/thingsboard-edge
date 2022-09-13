@@ -85,7 +85,7 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
         Device savedDevice = checkNotNull(deviceService.saveDeviceWithAccessToken(device, accessToken));
         autoCommit(user, savedDevice.getId());
         createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
-        tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false);
+        tbClusterService.onDeviceUpdated(savedDevice, oldDevice, false, false);
         return savedDevice;
     }
 
@@ -97,7 +97,7 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
 
             Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
             createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
-            tbClusterService.onDeviceUpdated(savedDevice, device, false);
+            tbClusterService.onDeviceUpdated(savedDevice, device, false, false);
             return savedDevice;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE), device,
