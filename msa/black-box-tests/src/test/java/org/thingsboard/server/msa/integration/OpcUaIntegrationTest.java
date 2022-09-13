@@ -34,24 +34,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EventInfo;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
-
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class OpcUaIntegrationTest extends AbstractContainerTest {
@@ -120,23 +110,8 @@ public class OpcUaIntegrationTest extends AbstractContainerTest {
 
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Converter savedConverter = createUplink(configConverter);
-        Integration integration = createIntegration(false);
-        integration.setDefaultConverterId(savedConverter.getId());
-        integration = restClient.saveIntegration(integration);
-
-        IntegrationId integrationId = integration.getId();
-        TenantId tenantId = integration.getTenantId();
-
-        Awaitility
-                .await()
-                .alias("Get integration events")
-                .atMost(10, TimeUnit.SECONDS)
-                .until(() -> {
-                    PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
-                    return !events.getData().isEmpty();
-                });
-
+        Integration integration = createIntegration(
+                IntegrationType.OPC_UA, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
@@ -146,25 +121,7 @@ public class OpcUaIntegrationTest extends AbstractContainerTest {
         Assert.assertEquals(1, actualLatestTelemetry.getData().size());
         Assert.assertEquals(Sets.newHashSet("boilerStatus"), actualLatestTelemetry.getLatestValues().keySet());
 
-//        Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
-
         deleteAllObject(device, integration);
-    }
-
-    private Integration createIntegration(boolean isRemote) {
-        Integration integration = new Integration();
-        JsonNode conf = JacksonUtil.toJsonNode(CONFIG_INTEGRATION);
-        log.info(conf.toString());
-        integration.setConfiguration(conf);
-        integration.setName("opc_ua");
-        integration.setType(IntegrationType.OPC_UA);
-        integration.setRoutingKey(ROUTING_KEY);
-        integration.setSecret(SECRET_KEY);
-        integration.setEnabled(true);
-        integration.setRemote(isRemote);
-        integration.setDebugMode(true);
-        integration.setAllowCreateDevicesOrAssets(true);
-        return integration;
     }
 
 }

@@ -49,6 +49,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.awaitility.Awaitility;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -59,19 +60,28 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLContext;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -285,4 +295,42 @@ public abstract class AbstractContainerTest {
         return values;
     }
 
+    protected Integration createIntegration(IntegrationType type, String config, JsonNode converterConfig,
+                                            String routingKey, String secretKey, boolean isRemote) {
+        Integration integration = new Integration();
+        JsonNode conf = JacksonUtil.toJsonNode(config);
+        integration.setConfiguration(conf);
+        integration.setDefaultConverterId(createUplink(converterConfig).getId());
+        integration.setName(type.name().toLowerCase());
+        integration.setType(type);
+        integration.setRoutingKey(routingKey);
+        integration.setSecret(secretKey);
+        integration.setEnabled(true);
+        integration.setRemote(isRemote);
+        integration.setDebugMode(true);
+        integration.setAllowCreateDevicesOrAssets(true);
+
+        integration = restClient.saveIntegration(integration);
+
+        IntegrationId integrationId = integration.getId();
+        TenantId tenantId = integration.getTenantId();
+
+        Awaitility
+                .await()
+                .alias("Get integration events")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = restClient.getEvents(integrationId, EventType.LC_EVENT, tenantId, new TimePageLink(1024));
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    EventInfo event = events.getData().stream().max(Comparator.comparingLong(EventInfo::getCreatedTime)).orElse(null);
+                    return event != null
+                            && "STARTED".equals(event.getBody().get("event").asText())
+                            && "true".equals(event.getBody().get("success").asText());
+                });
+
+        return integration;
+    }
 }

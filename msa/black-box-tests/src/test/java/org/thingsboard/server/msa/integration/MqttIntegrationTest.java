@@ -33,7 +33,6 @@ package org.thingsboard.server.msa.integration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -47,17 +46,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.ContainerTestSuite;
 
@@ -136,11 +128,8 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Device device = createDevice("mqtt_");
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        boolean isRemote = false;
-        Converter savedConverter = createUplink(configConverter);
-        Integration integration = createIntegration(isRemote);
-        integration.setDefaultConverterId(savedConverter.getId());
-        integration = restClient.saveIntegration(integration);
+        Integration integration = createIntegration(
+                IntegrationType.MQTT, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         sendMessageToBroker();
 
@@ -167,23 +156,9 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Device device = createDevice("mqtt_");
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        boolean isRemote = true;
-        Converter savedConverter = createUplink(configConverter);
-        Integration integration = createIntegration(isRemote);
-        integration.setDefaultConverterId(savedConverter.getId());
-        integration = restClient.saveIntegration(integration);
+        Integration integration = createIntegration(
+                IntegrationType.MQTT, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
         sendMessageToBroker();
-
-        TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
-        boolean isConnected = false;
-        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
-            Thread.sleep(CONNECT_TIMEOUT_MS);
-            PageData<EventInfo> events = restClient.getEvents(integration.getId(), tenantId, new TimePageLink(1024));
-            if (events.getData().isEmpty()) continue;
-            isConnected = true;
-            break;
-        }
-        Assert.assertTrue("RPC have not connected to TB", isConnected);
 
         boolean hasTelemetry = false;
         for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
@@ -199,22 +174,6 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
 
         deleteAllObject(device, integration);
-    }
-
-    private Integration createIntegration(boolean isRemote) throws JsonProcessingException {
-        Integration integration = new Integration();
-        JsonNode conf = mapper.readTree(CONFIG_INTEGRATION);
-        log.info(conf.toString());
-        integration.setConfiguration(conf);
-        integration.setName("mqtt");
-        integration.setType(IntegrationType.MQTT);
-        integration.setRoutingKey(ROUTING_KEY);
-        integration.setSecret(SECRET_KEY);
-        integration.setEnabled(true);
-        integration.setRemote(isRemote);
-        integration.setDebugMode(true);
-        integration.setAllowCreateDevicesOrAssets(true);
-        return integration;
     }
 
     void sendMessageToBroker() throws MqttException, InterruptedException, JsonProcessingException {

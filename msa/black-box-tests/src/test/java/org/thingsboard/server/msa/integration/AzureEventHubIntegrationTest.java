@@ -39,16 +39,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 @Slf4j
-public class AzureEventHubIntegrationTest extends AbstractIntegrationContainerTest {
+public class AzureEventHubIntegrationTest extends AbstractContainerTest {
     private static final String ROUTING_KEY = "routing-key-azure-event";
     private static final String SECRET_KEY = "secret-key-azure-event";
     private static final String CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubConnectionString", "");
@@ -84,6 +85,11 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationContainerTe
             "}\n" +
             "return result;";
 
+    @BeforeClass
+    public static void setUp() {
+        org.junit.Assume.assumeFalse(Boolean.parseBoolean(System.getProperty("blackBoxTests.integrations.skip", "true")));
+    }
+
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         restClient.login(LOGIN, PASSWORD);
@@ -91,10 +97,8 @@ public class AzureEventHubIntegrationTest extends AbstractIntegrationContainerTe
 
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Converter savedConverter = createUplink(configConverter);
         Integration integration = createIntegration(
-                IntegrationType.AZURE_EVENT_HUB, CONFIG_INTEGRATION, savedConverter.getId(), ROUTING_KEY, SECRET_KEY, false);
-        integration.setDefaultConverterId(savedConverter.getId());
+                IntegrationType.AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
