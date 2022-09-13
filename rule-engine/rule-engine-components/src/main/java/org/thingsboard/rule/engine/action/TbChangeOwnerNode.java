@@ -124,7 +124,10 @@ public class TbChangeOwnerNode implements TbNode {
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             EntityId newOwnerId = ownerIdCache.get(key);
             if (newOwnerId == null) {
-                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'.");
+//                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'.");
+                // TODO: @voba customers are not created on the edge at the moment
+                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'. " +
+                        "Please create it on the cloud first - customer creation is not supported at the edg e at the moment!");
             }
             return newOwnerId;
         });
