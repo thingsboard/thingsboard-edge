@@ -605,10 +605,15 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 .findEntityGroupByTypeAndNameAsync(tenantId, parentId, entityType, groupName);
 
         DonAsynchron.withCallback(futureEntityGroup, optionalEntityGroup -> {
-            EntityGroup entityGroup =
-                    optionalEntityGroup.orElseGet(() -> createEntityGroup(groupName, parentId, entityType, tenantId));
-            pushEntityGroupCreatedEventToRuleEngine(integration, entityGroup);
-            entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), entityId);
+            if  (optionalEntityGroup.isPresent()) {
+                EntityGroup entityGroup =
+                        optionalEntityGroup.orElseGet(() -> createEntityGroup(groupName, parentId, entityType, tenantId));
+                pushEntityGroupCreatedEventToRuleEngine(integration, entityGroup);
+                entityGroupService.addEntityToEntityGroup(tenantId, entityGroup.getId(), entityId);
+            } else {
+                // TODO: @voba entity groups are not created on the edge at the moment
+                log.warn("[{}][{}] Entity group [{}] not found! Please create group on the cloud and assign it to the edge first!", tenantId, parentId, groupName);
+            }
         }, throwable -> log.warn("[{}][{}] Failed to find entity group: {}:{}", tenantId, parentId, entityType, groupName, throwable), callbackExecutorService);
     }
 
