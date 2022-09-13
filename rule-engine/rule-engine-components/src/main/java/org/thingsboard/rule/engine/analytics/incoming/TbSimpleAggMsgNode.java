@@ -50,12 +50,10 @@ import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,7 +74,7 @@ import java.util.function.Consumer;
                 "State of the Intervals are persisted as timeseries entities based on <b>\"state persistence policy\"</b> and <b>\"state persistence value\"</b>.<br/><br/>" +
                 "In case there is no data for certain entity, it might be useful to generate default values for those entities. " +
                 "To lookup those entities one may select <b>\"Create intervals automatically\"</b> checkbox and configure <b>\"Interval entities\"</b>.<br/><br/>" +
-                "Generates messages the type specified in the \"<b>Type Out Msg</b>\" with the results of the aggregation for particular interval.",
+                "Generates messages with type specified in the \"<b>Output message type</b>\" with the results of the aggregation for particular interval.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateIncomingConfig",
         icon = "functions"
@@ -103,7 +101,7 @@ public class TbSimpleAggMsgNode implements TbNode {
     private long statePersistCheckPeriod;
     private long entitiesCheckPeriod;
     private String queueName;
-    private String typeOutMsg;
+    private String outMsgType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -114,7 +112,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
         this.intervalReportCheckPeriod = Math.max(TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue()), TimeUnit.MINUTES.toMillis(1));
         this.statePersistCheckPeriod = Math.max(TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue()), TimeUnit.MINUTES.toMillis(1));
-        this.typeOutMsg = config.getTypeOutMsg();
+        this.outMsgType = config.getOutMsgType();
         scheduleReportTickMsg(ctx, null);
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
             scheduleStatePersistTickMsg(ctx, null);
@@ -204,7 +202,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         log.trace("Reporting interval: [{}][{}]", ts, interval);
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, typeOutMsg, entityId, metaData,
+        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, outMsgType, entityId, metaData,
                 interval.toValueJson(gson, config.getOutputValueKey())), TbRelationTypes.SUCCESS);
     }
 

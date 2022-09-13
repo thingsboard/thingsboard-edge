@@ -90,7 +90,7 @@ public class TbSimpleAggMsgNodeConfiguration extends TbAbstractLatestNodeConfigu
         configuration.setStatePersistencePolicy(StatePersistPolicy.ON_EACH_CHANGE.name());
         configuration.setStatePersistenceTimeUnit(TimeUnit.MINUTES.name());
         configuration.setStatePersistenceValue(1);
-        configuration.setTypeOutMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         return configuration;
     }

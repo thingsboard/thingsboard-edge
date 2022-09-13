@@ -64,14 +64,14 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     private long lastScheduledTs;
     private UUID nextTickId;
     protected String queueName;
-    protected String typeOutMsg;
+    protected String outMsgType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = loadMapperNodeConfig(configuration);
         this.queueName = config.getQueueName();
         this.delay = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
-        this.typeOutMsg = config.getTypeOutMsg();
+        this.outMsgType = config.getOutMsgType();
         scheduleTickMsg(ctx);
     }
 
@@ -109,7 +109,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                 aggregateFuturesMap.forEach((originatorId, aggregateFutures) -> aggregateFutures.forEach(aggregateFuture -> {
                     ListenableFuture<Optional<JsonObject>>
                             aggregateFutureWithFallback = Futures.catching(aggregateFuture, Throwable.class, e -> {
-                        TbMsg msg = TbMsg.newMsg(queueName, typeOutMsg,
+                        TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
                                 originatorId, new TbMsgMetaData(), TbMsgDataType.JSON, "");
                         ctx.enqueueForTellFailure(msg, e.getMessage());
                         return Optional.empty();
@@ -119,7 +119,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
                             TbMsgMetaData metaData = new TbMsgMetaData();
                             metaData.putValue("ts", dataTs);
                             JsonObject messageData = element.get();
-                            TbMsg msg = TbMsg.newMsg(queueName, typeOutMsg,
+                            TbMsg msg = TbMsg.newMsg(queueName, outMsgType,
                                     originatorId, metaData, gson.toJson(messageData));
                             ctx.enqueueForTellNext(msg, SUCCESS);
                             return msg;

@@ -62,7 +62,7 @@ public class TbAlarmsCountNodeConfiguration extends TbAbstractLatestNodeConfigur
 
         configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
         configuration.setPeriodValue(5);
-        configuration.setTypeOutMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         return configuration;
     }

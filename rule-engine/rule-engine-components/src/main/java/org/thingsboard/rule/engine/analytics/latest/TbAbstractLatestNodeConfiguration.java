@@ -44,6 +44,6 @@ public abstract class TbAbstractLatestNodeConfiguration implements NodeConfigura
     private int periodValue;
 
     private String queueName;
-    private String typeOutMsg;
+    private String outMsgType;
 
 }

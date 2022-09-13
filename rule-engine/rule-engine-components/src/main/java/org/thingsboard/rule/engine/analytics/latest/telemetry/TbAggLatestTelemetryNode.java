@@ -49,7 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
         configClazz = TbAggLatestTelemetryNodeConfiguration.class,
         nodeDescription = "Periodically aggregates entities attributes or latest timeseries",
         nodeDetails = "Performs aggregation of attributes or latest timeseries fetched from child entities with configurable period. " +
-                "Generates messages the type specified in the \"<b>Type Out Msg</b>\" with aggregated values for each parent entity.",
+                "Generates messages with type specified in the \"<b>Output message type</b>\" with aggregated values for each parent entity.",
         inEnabled = false,
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAggregateLatestConfig",

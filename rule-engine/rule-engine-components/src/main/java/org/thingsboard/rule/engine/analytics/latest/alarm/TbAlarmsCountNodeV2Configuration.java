@@ -47,7 +47,7 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
     private boolean countAlarmsForPropagationEntities;
     private List<EntityType> propagationEntityTypes;
     private String queueName;
-    private String typeOutMsg;
+    private String outMsgType;
 
     @Override
     public TbAlarmsCountNodeV2Configuration defaultConfiguration() {
@@ -60,7 +60,7 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
         configuration.setCountAlarmsForPropagationEntities(true);
         configuration.setPropagationEntityTypes(Collections.emptyList());
         configuration.setAlarmsCountMappings(alarmsCountMappings);
-        configuration.setTypeOutMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 }

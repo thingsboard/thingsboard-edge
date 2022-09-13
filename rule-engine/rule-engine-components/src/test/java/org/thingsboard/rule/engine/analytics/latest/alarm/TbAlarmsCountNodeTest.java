@@ -235,7 +235,7 @@ public class TbAlarmsCountNodeTest {
 
         config.setPeriodTimeUnit(TimeUnit.MILLISECONDS);
         config.setPeriodValue(0);
-        config.setTypeOutMsg(SessionMsgType.POST_TELEMETRY_REQUEST.name());
+        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         ObjectMapper mapper = new ObjectMapper();
         nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
