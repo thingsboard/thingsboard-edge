@@ -52,3 +52,23 @@ services:
       INTEGRATION_SECRET: secret-key-1234567
       RPC_HOST: haproxy
       RPC_PORT: 9090
+  tb-pe-tcp-integration:
+    restart: always
+    image: "thingsboard/tb-pe-tcp-udp-integration:latest"
+    ports:
+      - "10560:10560"
+    environment:
+      INTEGRATION_ROUTING_KEY: routing-key-tcp
+      INTEGRATION_SECRET: secret-key-tcp
+      RPC_HOST: haproxy
+      RPC_PORT: 9090
+  tb-pe-udp-integration:
+    restart: always
+    image: "thingsboard/tb-pe-tcp-udp-integration:latest"
+    ports:
+      - "11560:11560/udp"
+    environment:
+      INTEGRATION_ROUTING_KEY: routing-key-udp
+      INTEGRATION_SECRET: secret-key-udp
+      RPC_HOST: haproxy
+      RPC_PORT: 9090
