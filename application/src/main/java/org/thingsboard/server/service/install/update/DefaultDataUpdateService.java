@@ -482,14 +482,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
         });
     }
 
-    private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater = new PaginatedUpdater<>() {
+    private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
+            new PaginatedUpdater<>() {
 
-        @Override
-        protected String getName() {
-            return "Tenants default edge rule chain updater";
-        }
+                @Override
+                protected String getName() {
+                    return "Tenants default edge rule chain updater";
+                }
 
-        @Override
+                @Override
                 protected boolean forceReportTotal() {
                     return true;
                 }
