@@ -67,7 +67,8 @@ import java.util.Set;
         configClazz = TbAlarmsCountNodeV2Configuration.class,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
-                "Generates messages with type specified in the \"<b>Output message type</b>\" with alarm count values for each found entity.",
+                "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
+                "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountV2Config",
         icon = "functions"
