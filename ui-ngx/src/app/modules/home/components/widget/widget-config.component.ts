@@ -187,8 +187,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
   public layoutSettings: FormGroup;
   public advancedSettings: FormGroup;
   public actionsSettings: FormGroup;
-
-  public dataError = '';
+  public openExtensionPanel = true;
+  public timeseriesKeyError = false;
 
   public datasourceError: string[] = [];
 
@@ -940,7 +940,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
   }
 
   public validate(c: FormControl) {
-    this.dataError = '';
+    this.timeseriesKeyError = false;
     this.datasourceError = [];
     if (!this.dataSettings.valid) {
       return {
@@ -995,7 +995,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
         if (this.widgetType === widgetType.timeseries && this.modelValue?.typeParameters?.hasAdditionalLatestDataKeys) {
           let valid = config.datasources.filter(datasource => datasource?.dataKeys?.length).length > 0;
           if (!valid) {
-            this.dataError = 'At least one timeseries data key should be specified';
+            this.timeseriesKeyError = true;
             return {
               timeseriesDataKeys: {
                 valid: false
@@ -1023,4 +1023,7 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
     return null;
   }
 
+  public extensionPanelIsOpen(value) {
+    this.openExtensionPanel = value;
+  }
 }
