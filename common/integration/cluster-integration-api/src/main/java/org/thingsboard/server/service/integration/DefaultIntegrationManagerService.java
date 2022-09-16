@@ -43,6 +43,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
+import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -56,6 +57,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -84,7 +86,6 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
@@ -104,8 +105,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.ACTIVATED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.CREATED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STARTED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STOPPED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.SUSPENDED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.UPDATED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -411,7 +419,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             }
             Integration integration = state.getIntegration().getConfiguration();
             if (integration != null && !isMine(integration)) {
-                scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.STOPPED);
+                scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), STOPPED);
             }
         }
         createIntegrations(configurationService.getActiveIntegrationList(integrationType, false));
@@ -423,7 +431,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 try {
                     //Initialize the integration that belongs to current node only
                     if (isMine(integration)) {
-                        scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), ComponentLifecycleEvent.CREATED);
+                        scheduleIntegrationEvent(integration.getTenantId(), integration.getId(), CREATED);
                     }
                 } catch (Exception e) {
                     log.info("[{}] Unable to initialize integration {}", integration.getId(), integration.getName(), e);
@@ -440,7 +448,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             dataConverterService.deleteConverter(converterId);
         } else {
             Converter converter = configurationService.getConverter(msg.getTenantId(), converterId);
-            if (msg.getEvent() == ComponentLifecycleEvent.CREATED) {
+            if (msg.getEvent() == CREATED) {
                 dataConverterService.createConverter(converter);
             } else {
                 dataConverterService.updateConverter(converter);
@@ -459,7 +467,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 return;
             }
             if (configuration.isRemote()) {
-                scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), ComponentLifecycleEvent.STOPPED);
+                scheduleIntegrationEvent(msg.getTenantId(), (IntegrationId) msg.getEntityId(), STOPPED);
                 remoteRpcService.ifPresent(service -> service.updateIntegration(configuration));
             } else {
                 if (isMine(configuration)) {
@@ -552,13 +560,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             integrationsByRoutingKeyMap.putIfAbsent(configuration.getRoutingKey(), state);
             try {
                 integration.init(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.STARTED, null);
-                state.setCurrentState(ComponentLifecycleEvent.STARTED);
-                integrationStatisticsService.onIntegrationStart(configuration.getType());
+                state.setCurrentState(STARTED);
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
-                integrationStatisticsService.onIntegrationStartFailed(configuration.getType());
-                eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.FAILED, e);
+                persistLifecycleEventIntegration(configuration.getTenantId(), configuration.getId(), state, e);
                 throw handleException(e);
             }
         } else {
@@ -567,17 +572,17 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 if (configuration.isEnabled()) {
                     state.setContext(context);
                     state.getIntegration().update(new TbIntegrationInitParams(context, configuration, getUplinkDataConverter(configuration), getDownlinkDataConverter(configuration)));
-                    eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
-                    state.setCurrentState(ComponentLifecycleEvent.STARTED);
+                    state.setCurrentState(STARTED);
                 } else {
-                    processStop(state, ComponentLifecycleEvent.STOPPED);
+                    processStop(state, STOPPED);
                 }
             } catch (Exception e) {
                 state.setCurrentState(ComponentLifecycleEvent.FAILED);
-                eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, e);
+                persistLifecycleEventIntegration(configuration.getTenantId(), configuration.getId(), state, e);
                 throw handleException(e);
             }
         }
+        persistLifecycleEventIntegration(configuration.getTenantId(), configuration.getId(), state, null);
         if (log.isDebugEnabled()) {
             log.debug("[{}][{}] Updated the integration successfully: {}", state.getTenantId(), configuration.getId(), configuration);
         } else {
@@ -599,14 +604,14 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 state.setCurrentState(event);
                 try {
                     integration.destroy();
-                    eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, null);
+                    persistLifecycleEventIntegration(configuration.getTenantId(), configuration.getId(), state, null);
                 } catch (Exception e) {
                     if (log.isDebugEnabled()) {
                         log.debug("[{}][{}] Failed to destroy the integration: {}", state.getTenantId(), state.getId(), state.getIntegration().getConfiguration(), e);
                     } else {
                         log.warn("[{}][{}] Failed to destroy the integration: ", state.getTenantId(), state.getId());
                     }
-                    eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), event, e);
+                    persistLifecycleEventIntegration(configuration.getTenantId(), configuration.getId(), state, e);
                     throw handleException(e);
                 }
             }
@@ -687,6 +692,31 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         } else {
             throw new RuntimeException(e);
         }
+    }
+
+    private void persistLifecycleEventIntegration(TenantId tenantId, EntityId entityId, IntegrationState state, Exception e)  {
+        if (state.getCurrentState() != null) {
+            eventStorageService.persistLifecycleEvent(tenantId, entityId, state.getCurrentState(), e);
+            updateIntegrationStatistics();
+        }
+    }
+
+    private void updateIntegrationStatistics() {
+        integrations.values().forEach(i -> log.error("Test event persistLifecycleEventIntegration: type [{}] state [{}]", i.getConfiguration().getType(), i.getCurrentState()));
+        List<IntegrationState> startSuccess = integrations.values().stream().filter(i ->
+                CREATED.equals(i.getCurrentState()) ||
+                STARTED.equals(i.getCurrentState()) ||
+                UPDATED.equals(i.getCurrentState()) ||
+                ACTIVATED.equals(i.getCurrentState())
+        ).collect(Collectors.toList());
+        startSuccess.forEach(s -> integrationStatisticsService.onIntegrationStart(s.getConfiguration().getType()));
+
+        List<IntegrationState> startFailed = integrations.values().stream().filter(i ->
+                STOPPED.equals(i.getCurrentState()) ||
+                SUSPENDED.equals(i.getCurrentState()) ||
+                DELETED.equals(i.getCurrentState())
+        ).collect(Collectors.toList());
+        startFailed.forEach(s -> integrationStatisticsService.onIntegrationStartFailed(s.getConfiguration().getType()));
     }
 
 }
