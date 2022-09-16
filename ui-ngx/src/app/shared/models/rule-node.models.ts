@@ -407,8 +407,7 @@ export enum MessageType {
   FIRMWARE_UPDATED = 'FIRMWARE_UPDATED',
   SOFTWARE_UPDATED = 'SOFTWARE_UPDATED',
   generateReport = 'generateReport',
-  OWNER_CHANGED = 'OWNER_CHANGED',
-  FAILURE = 'FAILURE'
+  OWNER_CHANGED = 'OWNER_CHANGED'
 }
 
 export const messageTypeNames = new Map<MessageType, string>(
@@ -451,7 +450,6 @@ export const messageTypeNames = new Map<MessageType, string>(
     [MessageType.SOFTWARE_UPDATED, 'Software Update'],
     [MessageType.generateReport, 'Generate Report'],
     [MessageType.OWNER_CHANGED, 'Owner Changed'],
-    [MessageType.FAILURE, 'Failure']
   ]
 );
 
