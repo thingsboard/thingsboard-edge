@@ -459,8 +459,6 @@ public class CloudManagerService extends BaseCloudEventService {
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
-            boolean updatingEdge = this.currentEdgeSettings != null;
-
             if (scheduledFuture != null) {
                 scheduledFuture.cancel(true);
                 scheduledFuture = null;
@@ -489,12 +487,8 @@ public class CloudManagerService extends BaseCloudEventService {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
-        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        CustomerId customerId = new CustomerId(customerUUID);
-
-        EntityId ownerId = !customerId.isNullUid() ? customerId : tenantId;
-
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
+
         EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
             tenantCloudProcessor.cleanUp();
@@ -509,24 +503,21 @@ public class CloudManagerService extends BaseCloudEventService {
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
-        // TODO: voba - verify storage of edge entity
-        saveEdge(edgeConfiguration);
+        saveEdge(tenantId, edgeConfiguration);
 
         updateConnectivityStatus(true);
 
         initialized = true;
     }
 
-    private void saveEdge(EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+    private void saveEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
         Edge edge = new Edge();
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         EdgeId edgeId = new EdgeId(edgeUUID);
         edge.setId(edgeId);
-        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-        edge.setTenantId(new TenantId(tenantUUID));
-        // TODO: voba - can't assign edge to non-existing customer
-        // UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        // edge.setCustomerId(new CustomerId(customerUUID));
+        edge.setTenantId(tenantId);
+        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        edge.setCustomerId(new CustomerId(customerUUID));
         edge.setName(edgeConfiguration.getName());
         edge.setType(edgeConfiguration.getType());
         edge.setRoutingKey(edgeConfiguration.getRoutingKey());
