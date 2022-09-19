@@ -30,14 +30,12 @@
  */
 package org.thingsboard.server.common.data.kv;
 
-public interface TsKvQuery {
+import lombok.Data;
 
-    int getId();
+@Data
+public class TsKvEntryAggWrapper {
 
-    String getKey();
-
-    long getStartTs();
-
-    long getEndTs();
+    private final TsKvEntry entry;
+    private final long lastEntryTs;
 
 }

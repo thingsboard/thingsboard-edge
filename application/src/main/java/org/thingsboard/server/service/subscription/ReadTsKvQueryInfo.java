@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.service.subscription;
 
-public interface TsKvQuery {
+import lombok.Data;
+import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
+import org.thingsboard.server.service.telemetry.cmd.v2.AggKey;
 
-    int getId();
+@Data
+public class ReadTsKvQueryInfo {
 
-    String getKey();
-
-    long getStartTs();
-
-    long getEndTs();
+    private final AggKey key;
+    private final ReadTsKvQuery query;
+    private final boolean previous;
 
 }

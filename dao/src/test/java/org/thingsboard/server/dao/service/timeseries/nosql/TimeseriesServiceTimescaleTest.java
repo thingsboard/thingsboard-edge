@@ -28,16 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.dao.service.timeseries.nosql;
 
-public interface TsKvQuery {
+import org.thingsboard.server.dao.service.DaoTimescaleTest;
+import org.thingsboard.server.dao.service.timeseries.BaseTimeseriesServiceTest;
 
-    int getId();
-
-    String getKey();
-
-    long getStartTs();
-
-    long getEndTs();
-
+@DaoTimescaleTest
+public class TimeseriesServiceTimescaleTest extends BaseTimeseriesServiceTest {
 }

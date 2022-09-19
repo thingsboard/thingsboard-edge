@@ -28,16 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.dao.service;
 
-public interface TsKvQuery {
+import org.springframework.test.context.TestPropertySource;
 
-    int getId();
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    String getKey();
-
-    long getStartTs();
-
-    long getEndTs();
-
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+@TestPropertySource(locations = {"classpath:application-test.properties", "classpath:timescale-test.properties"})
+public @interface DaoTimescaleTest {
 }
