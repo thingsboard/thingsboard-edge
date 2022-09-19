@@ -48,6 +48,7 @@
 <!--        <module>tb-node</module>-->
 <!--        <module>transport</module>-->
         <module>tb-edge</module>
+        <module>edge-black-box-tests</module>
     </modules>
 
     <profiles>

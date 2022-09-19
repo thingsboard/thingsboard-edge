@@ -38,7 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 @RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.EdgeClientTest"})
+@ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.*Test"})
 @Slf4j
 public class ContainerTestSuite {
 
