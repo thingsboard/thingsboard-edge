@@ -106,7 +106,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         Exception exception = null;
         try {
             doProcess(context, msg);
-            onIntegrationMsgsUplink();
+            onIntegrationMsgsUplinkSuccess();
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);

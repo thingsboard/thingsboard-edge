@@ -147,23 +147,23 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void onIntegrationMsgsUplink () {
-        context.getIntegrationStatisticsService().onIntegrationMsgsUplink(configuration.getType());
+    public void onIntegrationMsgsUplinkSuccess() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkSuccess(configuration.getType().name(), 1);
     }
 
     @Override
     public void onIntegrationMsgsUplinkFailed() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType());
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType().name(), 1);
     }
 
     @Override
-    public void onIntegrationMsgsDownlink() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsDownlink(configuration.getType());
+    public void onIntegrationMsgsDownlinkSuccess() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkSuccess(configuration.getType().name(), 1);
     }
 
     @Override
     public void onIntegrationMsgsDownlinkFailed() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType());
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType().name(), 1);
     }
 
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
@@ -284,7 +284,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
             ListenableFuture<List<UplinkData>> uplinkDataList =  this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
-            onIntegrationMsgsUplink();
+            onIntegrationMsgsUplinkSuccess();
             return uplinkDataList;
         } catch (Exception e) {
             onIntegrationMsgsUplinkFailed();
@@ -300,7 +300,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
-        onIntegrationMsgsDownlink();
+        onIntegrationMsgsDownlinkSuccess();
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
@@ -332,7 +332,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                 }
             }
         } else {
-            onIntegrationMsgsDownlink();
+            onIntegrationMsgsDownlinkSuccess();
         }
     }
 

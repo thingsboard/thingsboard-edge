@@ -57,11 +57,11 @@ public interface ThingsboardPlatformIntegration<T> {
 
     IntegrationStatistics popStatistics();
 
-    void onIntegrationMsgsUplink();
+    void onIntegrationMsgsUplinkSuccess();
 
     void onIntegrationMsgsUplinkFailed();
 
-    void onIntegrationMsgsDownlink();
+    void onIntegrationMsgsDownlinkSuccess();
 
     void onIntegrationMsgsDownlinkFailed();
 
