@@ -134,22 +134,7 @@ public abstract class AbstractContainerTest {
 
             edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
-            Awaitility.await()
-                    .pollInterval(500, TimeUnit.MILLISECONDS)
-                    .atMost(90, TimeUnit.SECONDS).
-                    until(() -> {
-                        boolean loginSuccessful = false;
-                        try {
-                            edgeRestClient.login("tenant@thingsboard.org", "tenant");
-                            loginSuccessful = true;
-                        } catch (Throwable ignored1) {
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException ignored2) {
-                            }
-                        }
-                        return loginSuccessful;
-                    });
+            loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
 
             Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
             Assert.assertTrue(tenant.isPresent());
@@ -162,6 +147,25 @@ public abstract class AbstractContainerTest {
             // This is a starting point to start other tests
             verifyWidgetBundles();
         }
+    }
+
+    protected static void loginIntoEdgeWithRetries(String userName, String password) {
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(90, TimeUnit.SECONDS)
+                .until(() -> {
+                    boolean loginSuccessful = false;
+                    try {
+                        edgeRestClient.login(userName, password);
+                        loginSuccessful = true;
+                    } catch (Exception ignored) {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ignored2) {
+                        }
+                    }
+                    return loginSuccessful;
+                });
     }
 
     private static void verifyWidgetBundles() {

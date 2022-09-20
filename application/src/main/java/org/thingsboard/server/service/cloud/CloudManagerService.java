@@ -30,19 +30,15 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -62,6 +58,7 @@ import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
@@ -132,6 +129,9 @@ public class CloudManagerService extends BaseCloudEventService {
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
+
+    @Autowired
+    private EdgeCloudProcessor edgeCloudProcessor;
 
     @Autowired
     private RelationCloudProcessor relationProcessor;
@@ -503,27 +503,17 @@ public class CloudManagerService extends BaseCloudEventService {
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
-        saveEdge(tenantId, edgeConfiguration);
+        saveOrUpdateEdge(tenantId, edgeConfiguration);
 
         updateConnectivityStatus(true);
 
         initialized = true;
     }
 
-    private void saveEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
-        Edge edge = new Edge();
+    private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+        edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         EdgeId edgeId = new EdgeId(edgeUUID);
-        edge.setId(edgeId);
-        edge.setTenantId(tenantId);
-        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        edge.setCustomerId(new CustomerId(customerUUID));
-        edge.setName(edgeConfiguration.getName());
-        edge.setType(edgeConfiguration.getType());
-        edge.setRoutingKey(edgeConfiguration.getRoutingKey());
-        edge.setSecret(edgeConfiguration.getSecret());
-        edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
-        edgeService.saveEdge(edge, false);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
     }

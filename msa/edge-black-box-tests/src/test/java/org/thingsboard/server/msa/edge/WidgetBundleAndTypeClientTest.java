@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
-    public void testWidgetsBundles() {
+    public void testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
@@ -65,34 +65,48 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
 
     @Test
     public void testWidgetsBundleAndWidgetType() {
+        // create widget bundle
         WidgetsBundle widgetsBundle = new WidgetsBundle();
         widgetsBundle.setTitle("Test Widget Bundle");
         WidgetsBundle savedWidgetsBundle = cloudRestClient.saveWidgetsBundle(widgetsBundle);
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isPresent());
 
+        // create widget type
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
         widgetType.setBundleAlias(savedWidgetsBundle.getAlias());
         ObjectNode descriptor = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         descriptor.put("key", "value");
         widgetType.setDescriptor(descriptor);
-        WidgetType savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
-
+        WidgetTypeDetails savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isPresent());
 
-        cloudRestClient.deleteWidgetType(savedWidgetType.getId());
+        // update widget bundle
+        savedWidgetsBundle.setTitle("Test Widget Bundle Updated");
+        cloudRestClient.saveWidgetsBundle(savedWidgetsBundle);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Test Widget Bundle Updated".equals(edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).get().getName()));
 
+        // update widget type
+        savedWidgetType.setName("Test Widget Type Updated");
+        cloudRestClient.saveWidgetType(savedWidgetType);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Test Widget Type Updated".equals(edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).get().getName()));
+
+        // delete widget type
+        cloudRestClient.deleteWidgetType(savedWidgetType.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isEmpty());
 
+        // delete widget bundle
         cloudRestClient.deleteWidgetsBundle(savedWidgetsBundle.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());

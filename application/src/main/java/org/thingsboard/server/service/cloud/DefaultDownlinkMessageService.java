@@ -56,6 +56,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
@@ -81,6 +82,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
 
     @Autowired
     private CloudEventService cloudEventService;
+
+    @Autowired
+    private EdgeCloudProcessor edgeCloudProcessor;
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
@@ -143,6 +147,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             log.trace("DownlinkMsg Body {}", downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, currentEdgeSettings));
+            }
+            if (downlinkMsg.hasEdgeConfiguration()) {
+                result.add(edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, downlinkMsg.getEdgeConfiguration()));
             }
             if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
