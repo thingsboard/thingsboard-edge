@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.common.data.query;
 
-public interface TsKvQuery {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-    int getId();
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ComparisonTsValue {
 
-    String getKey();
-
-    long getStartTs();
-
-    long getEndTs();
-
+    private TsValue current;
+    private TsValue previous;
 }

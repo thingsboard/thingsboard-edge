@@ -28,16 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.service.telemetry.cmd.v2;
 
-public interface TsKvQuery {
+import lombok.Data;
 
-    int getId();
+import java.util.List;
 
-    String getKey();
+@Data
+public class AggTimeSeriesCmd {
 
-    long getStartTs();
-
-    long getEndTs();
+    private List<AggKey> keys;
+    private long startTs;
+    private long timeWindow;
 
 }

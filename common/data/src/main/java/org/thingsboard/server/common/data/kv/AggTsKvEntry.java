@@ -30,14 +30,23 @@
  */
 package org.thingsboard.server.common.data.kv;
 
-public interface TsKvQuery {
+import lombok.ToString;
+import org.thingsboard.server.common.data.query.TsValue;
 
-    int getId();
+@ToString
+public class AggTsKvEntry extends BasicTsKvEntry {
 
-    String getKey();
+    private static final long serialVersionUID = -1933884317450255935L;
 
-    long getStartTs();
+    private final long count;
 
-    long getEndTs();
+    public AggTsKvEntry(long ts, KvEntry kv, long count) {
+        super(ts, kv);
+        this.count = count;
+    }
 
+    @Override
+    public TsValue toTsValue() {
+        return new TsValue(ts, getValueAsString(), count);
+    }
 }
