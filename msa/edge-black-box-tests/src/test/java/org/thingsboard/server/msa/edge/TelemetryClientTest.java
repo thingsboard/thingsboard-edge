@@ -191,8 +191,8 @@ public class TelemetryClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).isPresent());
         DeviceCredentials deviceCredentials = sourceRestClient.getDeviceCredentialsByDeviceId(device.getId()).get();
         String accessToken = deviceCredentials.getCredentialsId();
 

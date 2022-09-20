@@ -41,8 +41,8 @@ public class RuleChainClientTest extends AbstractContainerTest {
     @Test
     public void testRuleChains() throws Exception {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getRuleChains(new PageLink(100)).getTotalElements() == 1);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRuleChains(new PageLink(100)).getTotalElements() == 1);
 
         PageData<RuleChain> pageData = edgeRestClient.getRuleChains(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
@@ -56,16 +56,16 @@ public class RuleChainClientTest extends AbstractContainerTest {
         cloudRestClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
 
         assertEntitiesByIdsAndType(Collections.singletonList(savedRuleChain.getId()), EntityType.RULE_CHAIN);
 
         cloudRestClient.unassignRuleChainFromEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
 
         cloudRestClient.deleteRuleChain(savedRuleChain.getId());
     }

@@ -140,6 +140,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
     public void testDeviceProfiles() {
         verifyDeviceProfilesOnEdge(3);
 
+        // create device profile
         DeviceProfile oneMoreDeviceProfile = createCustomDeviceProfile("ONE_MORE_DEVICE_PROFILE");
 
         verifyDeviceProfilesOnEdge(4);
@@ -156,6 +157,14 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
         verifyDeviceProfilesOnEdge(7);
 
+        // update device profile
+        oneMoreDeviceProfile.setName("ONE_MORE_DEVICE_PROFILE_UPDATED");
+        cloudRestClient.saveDeviceProfile(oneMoreDeviceProfile);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "ONE_MORE_DEVICE_PROFILE_UPDATED".equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getName()));
+
+        // delete device profile
         cloudRestClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
         cloudRestClient.deleteDeviceProfile(snmpDeviceProfile.getId());
         cloudRestClient.deleteDeviceProfile(coapDeviceProfile.getId());
@@ -225,8 +234,8 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
     private void verifyDeviceProfilesOnEdge(int expectedDeviceProfilesCnt) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() ->  edgeRestClient.getDeviceProfiles(new PageLink(100)).getTotalElements() == expectedDeviceProfilesCnt);
 
         PageData<DeviceProfile> pageData = edgeRestClient.getDeviceProfiles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.DEVICE_PROFILE);

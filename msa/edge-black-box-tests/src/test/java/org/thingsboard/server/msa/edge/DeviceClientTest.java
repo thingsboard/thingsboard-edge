@@ -72,20 +72,20 @@ public class DeviceClientTest extends AbstractContainerTest {
         cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
         validateDeviceTransportConfiguration(edgeDevice1, cloudRestClient, edgeRestClient);
 
         cloudRestClient.unassignDeviceFromEdge(edge.getId(), edgeDevice1.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getDeviceById(edgeDevice1.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(edgeDevice1.getId()).isEmpty());
     }
 
     private boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
@@ -102,8 +102,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
 
@@ -121,8 +121,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     PageData<Device> edgeDevices = cloudRestClient.getEdgeDevices(edge.getId(), new PageLink(1000));
                     long count = edgeDevices.getData().stream().filter(d -> savedDeviceOnEdge.getId().equals(d.getId())).count();
                     return count == 0;
@@ -222,16 +222,16 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     private void verifyDeviceCredentialsOnCloudAndEdge(Device savedDeviceOnEdge) {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     DeviceCredentials deviceCredentialsOnEdge =
                             edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
                     DeviceCredentials deviceCredentialsOnCloud =
@@ -266,8 +266,8 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         DeviceProfileId provisionDeviceProfileId = provisionDeviceProfile.getId();
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getDeviceProfileById(provisionDeviceProfileId).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceProfileById(provisionDeviceProfileId).isPresent());
 
         Map<String, String> provisionRequest = new HashMap<>();
         provisionRequest.put("deviceName", DEVICE_NAME);
@@ -283,8 +283,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         Assert.assertEquals("SUCCESS", provisionResponse.getBody().get("status").asText());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     PageData<Device> provisionDevices = cloudRestClient.getTenantDevices(DEVICE_PROFILE_NAME, new PageLink(100));
                     if (provisionDevices.getData().isEmpty()) {
                         return false;
@@ -296,13 +296,13 @@ public class DeviceClientTest extends AbstractContainerTest {
         DeviceId provisionedDeviceId = getDeviceByNameAndType(DEVICE_NAME, DEVICE_PROFILE_NAME, cloudRestClient).getId();
         cloudRestClient.deleteDevice(provisionedDeviceId);
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getDeviceById(provisionedDeviceId).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(provisionedDeviceId).isEmpty());
 
         cloudRestClient.deleteDeviceProfile(provisionDeviceProfile.getId());
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getDeviceProfileById(provisionDeviceProfileId).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceProfileById(provisionDeviceProfileId).isEmpty());
     }
 
     private Device getDeviceByNameAndType(String deviceName, String type, RestClient restClient) {
@@ -323,8 +323,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
                     Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
                     return edgeDeviceCredentials.isPresent() &&
@@ -352,8 +352,8 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // verify that rpc request was received
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     if (rpcSubscriptionRequest[0] == null || rpcSubscriptionRequest[0].getBody() == null) {
                         return false;
                     }
@@ -373,13 +373,13 @@ public class DeviceClientTest extends AbstractContainerTest {
         Device savedDeviceOnEdge = saveDeviceOnEdge(deviceName, "default");
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         // device on edge must be renamed
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> !edgeRestClient.getDeviceById(savedDeviceOnEdge.getId()).get().getName().equals(deviceName));
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> !edgeRestClient.getDeviceById(savedDeviceOnEdge.getId()).get().getName().equals(deviceName));
 
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
         cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
@@ -392,8 +392,8 @@ public class DeviceClientTest extends AbstractContainerTest {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
                     Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
                     return edgeDeviceCredentials.isPresent() &&
@@ -425,8 +425,8 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // verify that rpc request was received
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     if (rpcSubscriptionRequest[0] == null || rpcSubscriptionRequest[0].getBody() == null) {
                         return false;
                     }
@@ -447,8 +447,8 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // verify on the cloud that rpc response was received
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     if (rpcTwoWayRequest[0] == null) {
                         return false;
                     }

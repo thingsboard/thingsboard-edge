@@ -39,7 +39,7 @@ public class QueueClientTest extends AbstractContainerTest {
     public void testQueues() {
         cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
 
-        // validate create
+        // create queue
         Queue queue = new Queue();
         queue.setName("EdgeMain");
         queue.setTopic("tb_rule_engine.EdgeMain");
@@ -59,23 +59,23 @@ public class QueueClientTest extends AbstractContainerTest {
         queue.setProcessingStrategy(processingStrategy);
         Queue savedQueue = cloudRestClient.saveQueue(queue, "TB_RULE_ENGINE");
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 4);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 4);
         PageData<Queue> pageData = edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.QUEUE);
 
-        // validate update
+        // update queue
         savedQueue.setPollInterval(50);
         cloudRestClient.saveQueue(savedQueue, "TB_RULE_ENGINE");
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getQueueById(savedQueue.getId()).getPollInterval() == 50);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getQueueById(savedQueue.getId()).getPollInterval() == 50);
 
-        // validate delete
+        // delete queue
         cloudRestClient.deleteQueue(savedQueue.getId());
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 3);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getQueuesByServiceType("TB_RULE_ENGINE", new PageLink(100)).getTotalElements() == 3);
 
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
     }

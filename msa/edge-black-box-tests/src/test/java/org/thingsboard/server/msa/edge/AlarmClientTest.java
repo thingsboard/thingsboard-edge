@@ -50,14 +50,14 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> getAlarmForEntityFromEdge(device.getId()).isPresent());
+                until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
         cloudRestClient.ackAlarm(savedAlarm.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
-                    AlarmInfo alarmData = getAlarmForEntityFromEdge(device.getId()).get();
+                    AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
                     return alarmData.getAckTs() > 0;
                 });
 
@@ -66,7 +66,7 @@ public class AlarmClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
-                    AlarmInfo alarmData = getAlarmForEntityFromEdge(device.getId()).get();
+                    AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
                     return alarmData.getClearTs() > 0;
                 });
 
@@ -74,14 +74,14 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS).
-                until(() -> getAlarmForEntityFromEdge(device.getId()).isEmpty());
+                until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
     }
 
-    private Optional<AlarmInfo> getAlarmForEntityFromEdge(EntityId entityId) {
-        return getAlarmForEntity(entityId, edgeRestClient);
+    private Optional<AlarmInfo> getLatestAlarmByEntityIdFromEdge(EntityId entityId) {
+        return getLatestAnyAlarmByEntityId(entityId, edgeRestClient);
     }
 
-    private Optional<AlarmInfo> getAlarmForEntity(EntityId entityId, RestClient restClient) {
+    private Optional<AlarmInfo> getLatestAnyAlarmByEntityId(EntityId entityId, RestClient restClient) {
         PageData<AlarmInfo> alarmDataByQuery =
                 restClient.getAlarms(entityId, AlarmSearchStatus.ANY, null, new TimePageLink(1), false);
         if (alarmDataByQuery.getData().isEmpty()) {
@@ -103,39 +103,39 @@ public class AlarmClientTest extends AbstractContainerTest {
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> getAlarmForEntityFromCloud(device.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
 
         Assert.assertEquals("Alarm on edge and cloud have different types",
-                "alarm from edge", getAlarmForEntityFromCloud(device.getId()).get().getType());
+                "alarm from edge", getLatestAlarmByEntityIdFromCloud(device.getId()).get().getType());
 
         edgeRestClient.ackAlarm(savedAlarm.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
-                    AlarmInfo alarmData = getAlarmForEntityFromCloud(device.getId()).get();
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    AlarmInfo alarmData = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
                     return alarmData.getAckTs() > 0;
                 });
 
         edgeRestClient.clearAlarm(savedAlarm.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
-                    AlarmInfo alarmData = getAlarmForEntityFromCloud(device.getId()).get();
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    AlarmInfo alarmData = getLatestAlarmByEntityIdFromCloud(device.getId()).get();
                     return alarmData.getClearTs() > 0;
                 });
 
         edgeRestClient.deleteAlarm(savedAlarm.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> getAlarmForEntityFromCloud(device.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isEmpty());
     }
 
-    private Optional<AlarmInfo> getAlarmForEntityFromCloud(EntityId entityId) {
-        return getAlarmForEntity(entityId, cloudRestClient);
+    private Optional<AlarmInfo> getLatestAlarmByEntityIdFromCloud(EntityId entityId) {
+        return getLatestAnyAlarmByEntityId(entityId, cloudRestClient);
     }
 
 }

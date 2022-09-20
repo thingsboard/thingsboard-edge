@@ -52,8 +52,8 @@ public class OtaPackageClientTest extends AbstractContainerTest {
         cloudRestClient.saveOtaPackageData(savedOtaPackageInfo.getId(), null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() ->  {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() ->  {
                     PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));
                     if (otaPackages.getData().size() < 1) {
                         return false;
@@ -68,8 +68,8 @@ public class OtaPackageClientTest extends AbstractContainerTest {
         cloudRestClient.deleteOtaPackage(savedOtaPackageInfo.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 0);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 0);
     }
 
 

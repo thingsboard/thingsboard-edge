@@ -42,14 +42,14 @@ public class RelationClientTest extends AbstractContainerTest {
         cloudRestClient.saveRelation(relation);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
         cloudRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
     }
 
     @Test
@@ -58,8 +58,8 @@ public class RelationClientTest extends AbstractContainerTest {
 
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
 
         EntityRelation relation = new EntityRelation();
         relation.setType("test");
@@ -69,14 +69,14 @@ public class RelationClientTest extends AbstractContainerTest {
         edgeRestClient.saveRelation(relation);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
         edgeRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> cloudRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isEmpty());
 
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
         cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());

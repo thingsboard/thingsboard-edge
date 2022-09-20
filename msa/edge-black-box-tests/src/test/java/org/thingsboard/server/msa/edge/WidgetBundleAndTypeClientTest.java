@@ -40,16 +40,16 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
     @Test
     public void testWidgetsBundles() {
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
 
         for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
             Awaitility.await()
-                    .atMost(30, TimeUnit.SECONDS).
-                    until(() -> {
+                    .atMost(30, TimeUnit.SECONDS)
+                    .until(() -> {
                         List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                         List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                         return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
@@ -70,8 +70,8 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         WidgetsBundle savedWidgetsBundle = cloudRestClient.saveWidgetsBundle(widgetsBundle);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isPresent());
 
         WidgetTypeDetails widgetType = new WidgetTypeDetails();
         widgetType.setName("Test Widget Type");
@@ -82,20 +82,20 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
         WidgetType savedWidgetType = cloudRestClient.saveWidgetType(widgetType);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isPresent());
 
         cloudRestClient.deleteWidgetType(savedWidgetType.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getWidgetTypeById(savedWidgetType.getId()).isEmpty());
 
         cloudRestClient.deleteWidgetsBundle(savedWidgetsBundle.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getWidgetsBundleById(savedWidgetsBundle.getId()).isEmpty());
     }
 
 }
