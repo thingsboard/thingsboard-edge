@@ -167,7 +167,7 @@ import { MatButton } from '@angular/material/button';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { tap } from 'rxjs/operators';
-import { LayoutWidthType } from '@home/components/dashboard-page/layout/layout.models';
+import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-page/layout/layout.models';
 
 // @dynamic
 @Component({
@@ -764,11 +764,20 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
           return layoutDimension.leftWidthPercentage + '%';
         }
       } else {
+        const dashboardWidth = this.dashboardContainer.nativeElement.getBoundingClientRect().width;
+        const minAvailableWidth = dashboardWidth - LayoutFixedSize.MIN;
         if (layoutDimension.fixedLayout === layout) {
-          return layoutDimension.fixedWidth + 'px';
+          if (minAvailableWidth <= layoutDimension.fixedWidth) {
+            return minAvailableWidth + 'px';
+          } else {
+            return layoutDimension.fixedWidth + 'px';
+          }
         } else {
-          const layoutWidth = this.dashboardContainer.nativeElement.getBoundingClientRect().width - layoutDimension.fixedWidth;
-          return layoutWidth + 'px';
+          if (minAvailableWidth <= layoutDimension.fixedWidth) {
+            return LayoutFixedSize.MIN + 'px';
+          } else {
+            return (dashboardWidth - layoutDimension.fixedWidth) + 'px';
+          }
         }
       }
     } else {
