@@ -301,6 +301,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 for (ListenableFuture<WhiteLabelingParams> future : futures) {
                     future.get();
                 }
+                break;
+            case "3.4.2":
+                log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
                 updateDuplicateMsgRuleNode();
                 break;
             default:

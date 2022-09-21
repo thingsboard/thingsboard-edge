@@ -248,12 +248,13 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.4.1 to 3.4.1PE ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.1");
                             dataUpdateService.updateData("3.4.1");
+                        case "3.4.2":
+                            log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.2PE ...");
+                            dataUpdateService.updateData("3.4.2");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
+                            //TODO update CacheCleanupService
                             break;
-
-                        //TODO update CacheCleanupService on the next version upgrade
-
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 
