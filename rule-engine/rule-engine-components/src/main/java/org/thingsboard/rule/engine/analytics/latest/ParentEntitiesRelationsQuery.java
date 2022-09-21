@@ -46,13 +46,13 @@ public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
     private EntityId rootEntityId;
     private RelationsQuery relationsQuery;
     private RelationsQuery childRelationsQuery;
-    private boolean aggregateLatestForRootEntity;
+    private boolean includeRootEntity;
 
     @Override
     public ListenableFuture<List<EntityId>> getParentEntitiesAsync(TbContext ctx) {
         ListenableFuture<List<EntityId>> parentEntities = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, rootEntityId, relationsQuery,
                 entityId -> ctx.getPeContext().isLocalEntity(entityId));
-        if (aggregateLatestForRootEntity) {
+        if (includeRootEntity) {
             return Futures.transform(parentEntities, entityIds -> {
                 entityIds.add(rootEntityId);
                 return entityIds;
