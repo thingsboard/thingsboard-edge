@@ -182,11 +182,8 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
 
     private void logMessagesCounterAdd(int cntIntegration, String... tags) throws Exception {
         DefaultCounter counter = getOrCreateStatsCounter(cntIntegration, tags);
-        if (counter != null) {
-            while (cntIntegration >0) {
-                counter.increment();
-                cntIntegration--;
-            }
+        if (counter != null && cntIntegration > 0) {
+            counter.add(cntIntegration);
         }
     }
 
