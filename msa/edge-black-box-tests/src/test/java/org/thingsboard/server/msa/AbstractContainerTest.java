@@ -106,6 +106,8 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
+
 @Slf4j
 public abstract class AbstractContainerTest {
 
@@ -337,11 +339,11 @@ public abstract class AbstractContainerTest {
         return cloudRestClient.saveEdge(edge);
     }
 
-    protected Device saveDeviceOnEdge(String deviceName, String type) throws Exception {
+    protected Device saveDeviceOnEdge(String deviceName, String type) {
         return saveDevice(deviceName, type, edgeRestClient);
     }
 
-    protected Device saveDeviceOnCloud(String deviceName, String type) throws Exception {
+    protected Device saveDeviceOnCloud(String deviceName, String type) {
         return saveDevice(deviceName, type, cloudRestClient);
     }
 
@@ -353,7 +355,7 @@ public abstract class AbstractContainerTest {
     }
 
     protected Asset saveAndAssignAssetToEdge() {
-        Asset asset = saveAssetOnCloud(org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric(15), "Building");
+        Asset asset = saveAssetOnCloud(randomAlphanumeric(15), "Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), asset.getId());
 
         Awaitility.await()
@@ -577,8 +579,8 @@ public abstract class AbstractContainerTest {
         return additionalInfo;
     }
 
-    protected Device saveAndAssignDeviceToEdge() throws Exception {
-        Device device = saveDeviceOnCloud(org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric(15), "default");
+    protected Device saveAndAssignDeviceToEdge() {
+        Device device = saveDeviceOnCloud(randomAlphanumeric(15), "default");
         cloudRestClient.assignDeviceToEdge(edge.getId(), device.getId());
 
         Awaitility.await()

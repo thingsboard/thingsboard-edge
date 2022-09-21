@@ -185,12 +185,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
             }
-            if (deviceUpdateMsg.hasCustomerIdMSB() && deviceUpdateMsg.hasCustomerIdLSB()) {
-                CustomerId customerId = new CustomerId(new UUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
-                device.setCustomerId(customerId);
-            } else {
-                device.setCustomerId(null);
-            }
+            device.setCustomerId(getCustomerId(deviceUpdateMsg));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
@@ -215,6 +210,14 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             deviceCreationLock.unlock();
         }
         return device;
+    }
+
+    private CustomerId getCustomerId(DeviceUpdateMsg deviceUpdateMsg) {
+        if (deviceUpdateMsg.hasCustomerIdMSB() && deviceUpdateMsg.hasCustomerIdLSB()) {
+            return new CustomerId(new UUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
+        } else {
+            return null;
+        }
     }
 
     public ListenableFuture<Void> processDeviceRpcRequestFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcRequestMsg) {
