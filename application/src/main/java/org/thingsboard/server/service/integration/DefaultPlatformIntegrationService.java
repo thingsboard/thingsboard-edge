@@ -34,7 +34,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
@@ -43,8 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.actors.ActorSystemContext;
@@ -57,8 +59,11 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -70,6 +75,9 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -85,6 +93,7 @@ import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -119,6 +128,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -179,6 +189,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private TelemetrySubscriptionService telemetrySubscriptionService;
+
+    @Autowired
+    private AttributesService attributesService;
 
     @Autowired
     private RemoteIntegrationRpcService remoteIntegrationRpcService;
@@ -400,7 +413,32 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
             Event event = FSTUtils.decode(proto.getEvent().toByteArray());
             event.setTenantId(tenantId);
             event.setEntityId(entityId.getId());
-            DonAsynchron.withCallback(eventService.saveAsync(event), callback::onSuccess, callback::onError);
+
+            ListenableFuture<Void> saveEventFuture = eventService.saveAsync(event);
+
+            if (entityId.getEntityType().equals(EntityType.INTEGRATION) || event.getType().equals(EventType.LC_EVENT)) {
+                LifecycleEvent lcEvent = (LifecycleEvent) event;
+
+                String key = "integration_status_" + event.getServiceId().toLowerCase();
+                ObjectNode value = JacksonUtil.newObjectNode();
+
+                if (lcEvent.isSuccess()) {
+                    value.put("success", true);
+                } else {
+                    value.put("success", false);
+                    value.put("serviceId", lcEvent.getServiceId());
+                    value.put("error", lcEvent.getError());
+                }
+
+                AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+
+                saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
+                    attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                    return null;
+                }, MoreExecutors.directExecutor());
+            }
+
+            DonAsynchron.withCallback(saveEventFuture, callback::onSuccess, callback::onError);
         } catch (Exception t) {
             log.error("[{}][{}][{}] Failed to save event!", tenantId, entityId, proto.getEvent(), t);
             callback.onError(t);

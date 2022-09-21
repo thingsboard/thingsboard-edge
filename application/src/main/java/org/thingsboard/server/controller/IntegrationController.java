@@ -32,9 +32,10 @@ package org.thingsboard.server.controller;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -61,6 +63,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.integration.TbIntegrationService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -98,10 +101,11 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class IntegrationController extends AutoCommitController {
 
-    @Autowired
-    private IntegrationManagerService integrationManagerService;
+    private final IntegrationManagerService integrationManagerService;
+    private final TbIntegrationService tbIntegrationService;
 
     private static final String INTEGRATION_ID = "integrationId";
 
@@ -218,6 +222,34 @@ public class IntegrationController extends AutoCommitController {
         } else {
             return checkNotNull(integrationService.findTenantIntegrations(tenantId, pageLink));
         }
+    }
+
+    @ApiOperation(value = "Get Integration Infos (getIntegrationInfos)",
+            notes = "Returns a page of integration infos owned by tenant. " +
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public DeferredResult<ResponseEntity> getIntegratioInfos(
+            @ApiParam(value = "Fetch edge template integrations")
+            @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
+            @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
+            @RequestParam int pageSize,
+            @ApiParam(required = true, value = PAGE_NUMBER_DESCRIPTION, allowableValues = "range[0, infinity]")
+            @RequestParam int page,
+            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        DeferredResult<ResponseEntity> result = new DeferredResult<>();
+        tbIntegrationService.findTenantIntegrationInfos(tenantId, pageLink, isEdgeTemplate, result);
+        return result;
+
     }
 
     @ApiOperation(value = "Check integration connectivity (checkIntegrationConnection)",

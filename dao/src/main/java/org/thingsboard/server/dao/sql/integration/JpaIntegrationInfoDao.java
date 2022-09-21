@@ -36,12 +36,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.integration.IntegrationInfoDao;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -68,5 +71,15 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
     @Override
     public List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled) {
         return DaoUtil.convertDataList(integrationInfoRepository.findAllCoreIntegrationInfos(integrationType, remote, enabled));
+    }
+
+    @Override
+    public PageData<IntegrationInfo> findByTenantIdAndIsEdgeTemplate(UUID tenantId, PageLink pageLink, boolean isEdgeTemplate) {
+        return DaoUtil.toPageData(
+                integrationInfoRepository.findByTenantIdAndIsEdgeTemplate(
+                        tenantId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        isEdgeTemplate,
+                        DaoUtil.toPageable(pageLink)));
     }
 }

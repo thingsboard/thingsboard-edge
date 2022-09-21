@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.integration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
@@ -58,6 +59,7 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
     private boolean isEdgeTemplate;
+    private transient JsonNode status;
 
     public IntegrationInfo() {
         super();
@@ -156,6 +158,15 @@ public class IntegrationInfo extends SearchTextBased<IntegrationId> implements H
 
     public void setEdgeTemplate(boolean edgeTemplate) {
         this.isEdgeTemplate = edgeTemplate;
+    }
+
+
+    public JsonNode getStatus() {
+        return status;
+    }
+
+    public void setStatus(JsonNode status) {
+        this.status = status;
     }
 
     @Override

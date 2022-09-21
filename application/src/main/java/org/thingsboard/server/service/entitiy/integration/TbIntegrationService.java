@@ -28,33 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.integration;
+package org.thingsboard.server.service.entitiy.integration;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.dao.model.sql.IntegrationEntity;
-import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageLink;
 
-import java.util.List;
-import java.util.UUID;
+public interface TbIntegrationService {
 
-/**
- * Created by Valerii Sosliuk on 5/6/2017.
- */
-public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfoEntity, UUID> {
+    void findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate, DeferredResult<ResponseEntity> response);
 
-    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.type = :type AND ii.isRemote = :isRemote AND ii.enabled = :enabled AND ii.edgeTemplate = false")
-    List<IntegrationInfoEntity> findAllCoreIntegrationInfos(@Param("type") IntegrationType type, @Param("isRemote") boolean remote, @Param("enabled") boolean enabled);
-
-    @Query("SELECT a FROM IntegrationInfoEntity a WHERE a.tenantId = :tenantId " +
-            "AND a.edgeTemplate = :isEdgeTemplate " +
-            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
-    Page<IntegrationInfoEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
-                                                            @Param("searchText") String searchText,
-                                                            @Param("isEdgeTemplate") boolean isEdgeTemplate,
-                                                            Pageable pageable);
 }
