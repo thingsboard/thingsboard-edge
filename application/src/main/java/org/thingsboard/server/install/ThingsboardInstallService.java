@@ -253,8 +253,10 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.4.2");
                             log.info("Updating system data...");
                             systemDataLoaderService.updateSystemWidgets();
-                            //TODO update CacheCleanupService
                             break;
+
+                        //TODO update CacheCleanupService on the next version upgrade
+
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
 
