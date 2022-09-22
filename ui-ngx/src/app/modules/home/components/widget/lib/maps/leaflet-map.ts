@@ -938,7 +938,6 @@ export default abstract class LeafletMap {
         if (settings.showTooltip) {
             marker.updateMarkerTooltip(data);
         }
-        marker.updateMarkerData(data);
         marker.updateMarkerIcon(settings);
         return marker;
     }

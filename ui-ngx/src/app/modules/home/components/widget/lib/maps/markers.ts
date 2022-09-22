@@ -105,8 +105,9 @@ export class Marker {
     }
 
     setDataSources(data: FormattedData, dataSources: FormattedData[]) {
-        this.data = data;
-        this.dataSources = dataSources;
+      this.data = data;
+      this.dataSources = dataSources;
+      this.leafletMarker.options.tbMarkerData = data;
     }
 
     updateMarkerTooltip(data: FormattedData) {
@@ -120,10 +121,6 @@ export class Marker {
       if (this.tooltip.isOpen() && this.tooltip.getElement()) {
         bindPopupActions(this.tooltip, this.settings, data.$datasource);
       }
-    }
-
-    updateMarkerData(data: FormattedData) {
-      this.leafletMarker.options.tbMarkerData = data;
     }
 
     updateMarkerPosition(position: L.LatLng) {
