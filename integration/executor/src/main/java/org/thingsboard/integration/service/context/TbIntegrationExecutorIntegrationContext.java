@@ -153,6 +153,11 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     }
 
     @Override
+    public ExecutorService getExecutorService() {
+        return contextComponent.getGeneralExecutorService();
+    }
+
+    @Override
     public ExecutorService getCallBackExecutorService() {
         return contextComponent.getCallBackExecutorService();
     }

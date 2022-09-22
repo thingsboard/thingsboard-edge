@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadCo
 import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeConfiguration;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -77,6 +78,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
@@ -107,6 +109,9 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
     private User tenantAdmin;
 
     @SpyBean
+    private DeviceProfileDao deviceProfileDao;
+
+    @SpyBean
     private UserPermissionsService userPermissionsService;
 
     @Before
@@ -131,6 +136,8 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
+
+        afterTestEntityDaoRemoveByIdWithException (deviceProfileDao);
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
@@ -1247,5 +1254,21 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
         createUser(customerUser, "customer", entityGroup.getId());
 
         login("customer2@thingsboard.org", "customer");
+    }
+    @Test
+    public void testDeleteDeviceProfileWithDeleteRelationsOk() throws Exception {
+        DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
+    }
+
+    @Test
+    public void testDeleteDeviceProfileExceptionWithRelationsTransactional() throws Exception {
+        DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(deviceProfileDao, savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
+    }
+
+    private DeviceProfile savedDeviceProfile(String name) {
+        DeviceProfile deviceProfile = createDeviceProfile(name);
+        return doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
     }
 }

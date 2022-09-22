@@ -51,6 +51,8 @@ import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
+import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
+import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -166,6 +168,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private static final String LOGO_IMAGE_CHECKSUM = "logoImageChecksum";
     private static final String MAIL_TEMPLATES = "mailTemplates";
     private static final int DEFAULT_LIMIT = 100;
+    public static final String USE_SYSTEM_MAIL_SETTINGS = "useSystemMailSettings";
 
     @Autowired
     private TenantService tenantService;
@@ -308,6 +311,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             case "3.4.2":
                 log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
                 updateAnalyticsRuleNode();
+                updateDuplicateMsgRuleNode();
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -482,6 +486,28 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     }
                 }
             });
+        });
+    }
+    
+    private void updateDuplicateMsgRuleNode() {
+        PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
+                link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
+        ruleNodesIterator.forEach(ruleNode -> {
+            TbDuplicateMsgToGroupNodeConfiguration configNode = JacksonUtil.convertValue(ruleNode.getConfiguration(), TbDuplicateMsgToGroupNodeConfiguration.class);
+            if (!configNode.isEntityGroupIsMessageOriginator()) {
+                if (configNode.getGroupOwnerId() == null) {
+                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
+                    if (targetRuleChain != null) {
+                        TenantId tenantId = targetRuleChain.getTenantId();
+                        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, configNode.getEntityGroupId());
+                        if (entityGroup != null) {
+                            configNode.setGroupOwnerId(entityGroup.getOwnerId());
+                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
+                            ruleChainService.saveRuleNode(tenantId, ruleNode);
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -1088,7 +1114,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private ListenableFuture<List<String>> updateTenantMailTemplates(TenantId tenantId) throws IOException {
         String mailTemplatesJsonString = getEntityAttributeValue(tenantId, MAIL_TEMPLATES);
         if (!StringUtils.isEmpty(mailTemplatesJsonString)) {
-            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(objectMapper.readTree(mailTemplatesJsonString));
+            JsonNode oldMailTemplates = objectMapper.readTree(mailTemplatesJsonString);
+            ObjectNode updatedMailTemplates = installScripts.updateMailTemplates(oldMailTemplates);
+
+            if (oldMailTemplates.has(USE_SYSTEM_MAIL_SETTINGS)) {
+                updatedMailTemplates.set(USE_SYSTEM_MAIL_SETTINGS, oldMailTemplates.get(USE_SYSTEM_MAIL_SETTINGS));
+            }
+
             return saveEntityAttribute(tenantId, MAIL_TEMPLATES, updatedMailTemplates.toString());
         }
         return Futures.immediateFuture(Collections.emptyList());
