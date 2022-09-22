@@ -551,7 +551,9 @@ public class DeviceClientTest extends AbstractContainerTest {
         edgeRestClient.claimDevice(savedDevice.getName(), new ClaimRequest("testKey"));
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId()));
+                .until(() ->
+                        savedCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId())
+                                && savedCustomer.getId().equals(cloudRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId()));
 
         // cleanup
         cloudRestClient.deleteDevice(savedDevice.getId());
