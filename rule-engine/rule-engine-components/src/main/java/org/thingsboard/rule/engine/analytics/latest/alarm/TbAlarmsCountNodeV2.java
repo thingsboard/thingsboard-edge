@@ -42,19 +42,16 @@ import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +59,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @RuleNode(
@@ -71,7 +67,8 @@ import java.util.UUID;
         configClazz = TbAlarmsCountNodeV2Configuration.class,
         nodeDescription = "Counts alarms by msg originator",
         nodeDetails = "Performs count of alarms for originator and for propagation entities if specified. " +
-                "Generates 'POST_TELEMETRY_REQUEST' messages with alarm count values for each found entity.",
+                "Generates outgoing messages with alarm count values for each found entity. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
+                "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbAnalyticsNodeAlarmsCountV2Config",
         icon = "functions"
@@ -80,11 +77,13 @@ public class TbAlarmsCountNodeV2 implements TbNode {
 
     private TbAlarmsCountNodeV2Configuration config;
     private String queueName;
+    private String outMsgType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAlarmsCountNodeV2Configuration.class);
         this.queueName = config.getQueueName();
+        this.outMsgType = config.getOutMsgType();
     }
 
     @Override
@@ -112,7 +111,7 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         result.forEach((entityId, data) -> {
             TbMsgMetaData metaData = new TbMsgMetaData();
             metaData.putValue("ts", dataTs);
-            TbMsg newMsg = TbMsg.newMsg(queueName, SessionMsgType.POST_TELEMETRY_REQUEST.name(),
+            TbMsg newMsg = TbMsg.newMsg(queueName, outMsgType,
                     entityId, metaData, JacksonUtil.toString(data));
             ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS);
         });
