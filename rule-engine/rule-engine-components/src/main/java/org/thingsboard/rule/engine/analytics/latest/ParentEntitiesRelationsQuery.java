@@ -38,6 +38,7 @@ import org.thingsboard.rule.engine.data.RelationsQuery;
 import org.thingsboard.rule.engine.util.EntitiesRelatedEntityIdAsyncLoader;
 import org.thingsboard.server.common.data.id.EntityId;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -54,8 +55,12 @@ public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
                 entityId -> ctx.getPeContext().isLocalEntity(entityId));
         if (includeRootEntity) {
             return Futures.transform(parentEntities, entityIds -> {
-                entityIds.add(rootEntityId);
-                return entityIds;
+                List<EntityId> newEntityIds = new ArrayList<>();
+                newEntityIds.addAll(entityIds);
+                if (!newEntityIds.stream().anyMatch(entityId -> entityId.equals(rootEntityId))) {
+                    newEntityIds.add(rootEntityId);
+                }
+                return newEntityIds;
             }, ctx.getDbCallbackExecutor());
         }
         return parentEntities;
