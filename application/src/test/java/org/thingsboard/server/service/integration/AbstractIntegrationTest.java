@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.MvcResult;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -85,22 +86,33 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         integrationConfiguration.set("metadata", JacksonUtil.newObjectNode());
         newIntegration.setConfiguration(integrationConfiguration);
         newIntegration.setDebugMode(true);
-        newIntegration.setEnabled(false);
+        newIntegration.setEnabled(true);
         newIntegration.setAllowCreateDevicesOrAssets(true);
         integration = doPost("/api/integration", newIntegration, Integration.class);
         Assert.assertNotNull(integration);
     }
 
     public void enableIntegration() throws Exception {
-        integration.setEnabled(true);
-        integration = doPost("/api/integration", integration, Integration.class);
+        if (!integration.isEnabled()) {
+            integration.setEnabled(true);
+            integration = doPost("/api/integration", integration, Integration.class);
+        }
         Assert.assertNotNull(integration);
     }
 
     public void disableIntegration() throws Exception {
-        integration.setEnabled(false);
-        integration = doPost("/api/integration", integration, Integration.class);
+        if (!integration.isEnabled()) {
+            integration.setEnabled(false);
+            integration = doPost("/api/integration", integration, Integration.class);
+        }
         Assert.assertNotNull(integration);
+    }
+
+    public void removeIntegration(Integration integration) throws Exception {
+        if (integration != null) {
+            MvcResult result = doDelete("/api/integration/" + integration.getId().getId().toString()).andReturn();
+            Assert.assertEquals(200, result.getResponse().getStatus());
+        }
     }
 
     protected abstract JsonNode createIntegrationClientConfiguration();

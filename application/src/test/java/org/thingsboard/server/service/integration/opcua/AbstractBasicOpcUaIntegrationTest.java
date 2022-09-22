@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -75,11 +77,27 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     private final static String OPCUA_DOWNLINK_CONVERTER_NAME = "Default test downlink converter";
 
     private final List<String> expectedNodes = Arrays.asList("Boolean", "Byte", "SByte", "Integer", "Int16", "Int32", "Int64", "UInteger", "UInt16", "UInt32", "UInt64", "Float", "Double", "String", "DateTime", "Guid", "ByteString", "XmlElement", "LocalizedText", "QualifiedName", "NodeId", "Variant", "Duration", "UtcTime");
-    protected TestServer server;
+    protected static TestServer server = new TestServer();
+
+    @AfterClass
+    public static void afterAllTests() throws Exception {
+        if (server != null && server.getStarted()) {
+            server.shutdown().get();
+        }
+
+    }
 
     @Before
     public void beforeTest() throws Exception {
+        if (server == null) {
+            server = new TestServer();
+            startServer();
+        } else if (!server.getStarted()) {
+            startServer();
+        }
+
         loginTenantAdmin();
+
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(OPCUA_UPLINK_CONVERTER_FILEPATH);
         ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
         Assert.assertNotNull(jsonFile);
@@ -94,19 +112,16 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
         createIntegration("Test OPC-UA integration", IntegrationType.OPC_UA);
         Assert.assertNotNull(integration);
-
-        server = new TestServer();
-
-        startServer();
+        disableIntegration();
     }
 
-    private void startServer() throws ExecutionException, InterruptedException {
+    private void startServer() throws ExecutionException, InterruptedException, TimeoutException {
         server.startup().get();
         log.info("Server started");
         Assert.assertTrue(server.getStarted());
     }
 
-    private void stopServer() throws ExecutionException, InterruptedException {
+    private void stopServer() throws ExecutionException, InterruptedException, TimeoutException {
         server.shutdown().get();
         log.info("Server stopped");
         Assert.assertFalse(server.getStarted());
@@ -115,9 +130,8 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     @After
     public void afterTest() throws Exception {
         try {
-            if (server != null && server.getStarted()) {
-                stopServer();
-            }
+            removeIntegration(integration);
+            logout();
         } catch (InterruptedException | ExecutionException e) {
             log.error("Error during stopping OPC-UA server", e);
         }
@@ -143,15 +157,16 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testIntegrationReconnectAfterServerRestart() throws Exception {
         long startTs = System.currentTimeMillis();
+        disableIntegration();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 20000));
         stopServer();
         startTs = System.currentTimeMillis();
-        Assert.assertFalse(isIntegrationConnected(startTs, 1, 6000));
+        Assert.assertFalse(isIntegrationConnected(startTs, 1, 20000));
         startServer();
         startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 5, 20000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 2, 20000));
     }
 
     @Test
@@ -159,10 +174,10 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         stopServer();
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertFalse(isIntegrationConnected(startTs, 1, 15000));
+        Assert.assertFalse(isIntegrationConnected(startTs, 1, 20000));
         startTs = System.currentTimeMillis();
         startServer();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 20000));
+        Assert.assertTrue(isIntegrationConnected(startTs, 1, 25000));
     }
 
     @Test
@@ -305,7 +320,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                     new TypeReference<PageData<EventInfo>>() {
                     },
                     pageLink, integration.getId(), integration.getTenantId());
-            connectionMsgs = events.getData().stream().filter(event -> !"Uplink".equals(event.getBody().get("type").asText())).collect(Collectors.toList());
+            connectionMsgs = events.getData().stream().filter(event -> "CONNECT".equals(event.getBody().get("type").asText())).collect(Collectors.toList());
             if (connectionMsgs.size() >= eventsCount) {
                 break;
             }
@@ -321,9 +336,14 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
             return false;
         }
         log.error("Events: {}", eventsList);
-        EventInfo event = eventsList.get(0);
-        ObjectNode eventBody = (ObjectNode) event.getBody();
-        return "CONNECT".equals(eventBody.get("type").asText()) && "SUCCESS".equals(eventBody.get("status").asText());
+        for (EventInfo receivedEvent : eventsList) {
+            JsonNode eventBody = receivedEvent.getBody();
+            if ("CONNECT".equals(eventBody.get("type").asText()) && "SUCCESS".equals(eventBody.get("status").asText())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
