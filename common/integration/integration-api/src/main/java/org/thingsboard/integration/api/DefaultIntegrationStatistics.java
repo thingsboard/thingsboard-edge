@@ -33,6 +33,7 @@ package org.thingsboard.integration.api;
 import io.micrometer.core.instrument.Tags;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.stats.DefaultCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
@@ -48,8 +49,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @RequiredArgsConstructor
 public class DefaultIntegrationStatistics implements IntegrationStatisticsService {
 
-    private static final String STATS_KEY_CNT = StatsType.INTEGRATION.getName() + "_stats_cnt";
-    private static final String STATS_KEY_PROCESS = StatsType.INTEGRATION.getName() + "_stats_process";
+    private static final String STATS_KEY_COUNTER = StatsType.INTEGRATION.getName() + "_stats_counter";
+    private static final String STATS_KEY_GAUGE = StatsType.INTEGRATION.getName() + "_stats_gauge";
     private static final String NAME = "name";
     private static final String START = "start";
     private static final String MSGS_UPLINK = "msgUplink";
@@ -64,13 +65,14 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
 
     private final StatsFactory statsFactory;
 
-    private boolean integrationStatisticsEnabled = true;
+    @Value("${integrations.statistics.enabled}")
+    private boolean statisticsEnabled;
 
     @Override
-    public void onIntegrationStartCounterAddSuccess(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+    public void onIntegrationStartCounterAddSuccess(String integrationTypeName) {
+        if (statisticsEnabled) {
             try {
-                logMessagesCounterAdd(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+                logMessagesCounterAdd(NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
                 log.error("onIntegrationStartCounterSuccess type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
@@ -78,10 +80,10 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationStartCounterAddFailed(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+    public void onIntegrationStartCounterAddFailed(String integrationTypeName) {
+        if (statisticsEnabled) {
             try {
-                logMessagesCounterAdd(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+                logMessagesCounterAdd(NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
                 log.error("onIntegrationStartCounterFailed type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
@@ -90,7 +92,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
 
     @Override
     public void onIntegrationStartGaugeSuccess(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+        if (statisticsEnabled) {
             try {
                 logMessagesGauge(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
@@ -101,7 +103,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
 
     @Override
     public void onIntegrationStartGaugeFailed(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+        if (statisticsEnabled) {
             try {
                 logMessagesGauge(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
@@ -111,10 +113,10 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationMsgsUplinkSuccess(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+    public void onIntegrationMsgsUplinkSuccess(String integrationTypeName) {
+        if (statisticsEnabled) {
             try {
-                logMessagesCounterAdd(cntIntegration, NAME, MSGS_UPLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+                logMessagesCounterAdd(NAME, MSGS_UPLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
                 log.error("onIntegrationMsgsUplink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
@@ -122,10 +124,10 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationMsgsUplinkFailed(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+    public void onIntegrationMsgsUplinkFailed(String integrationTypeName) {
+        if (statisticsEnabled) {
             try {
-                logMessagesCounterAdd(cntIntegration, NAME, MSGS_UPLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+                logMessagesCounterAdd(NAME, MSGS_UPLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
                 log.error("onIntegrationMsgsUplink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
@@ -133,10 +135,10 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationMsgsDownlinkSuccess(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+    public void onIntegrationMsgsDownlinkSuccess(String integrationTypeName) {
+        if (statisticsEnabled) {
             try {
-                logMessagesCounterAdd(cntIntegration, NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+                logMessagesCounterAdd(NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
                 log.error("onIntegrationMsgsDownlink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
@@ -144,10 +146,10 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationMsgsDownlinkFailed(String integrationTypeName, int cntIntegration) {
-        if (integrationStatisticsEnabled) {
+    public void onIntegrationMsgsDownlinkFailed(String integrationTypeName) {
+        if (statisticsEnabled) {
             try {
-                logMessagesCounterAdd(cntIntegration, NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+                logMessagesCounterAdd(NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
                 log.error("onIntegrationMsgsDownlink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
@@ -168,23 +170,21 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
         counters.values().forEach(DefaultCounter::clear);
     }
 
-    public void removeCounter(DefaultCounter counter) {
-        counters.values().remove(counter);
-    }
-
     private void logMessagesCounterWithClear(int cntIntegration, String... tags) throws Exception {
-        DefaultCounter counter = getOrCreateStatsCounter(cntIntegration, tags);
-        if (counter != null) {
-            counter.clear();
-            counter.add(cntIntegration);
+        String statsName = getValidateStatsName(tags);
+        Optional<Map.Entry<String, DefaultCounter>> statsCounterOpt = counters.entrySet().stream()
+                .filter(c -> c.getKey().equals(statsName)).findFirst();
+        if (statsCounterOpt.isPresent()) {
+            counters.remove(statsName);
+            statsFactory.remove(statsCounterOpt.get().getValue().getMicrometerCounter());
         }
+        DefaultCounter counter = createAndRegisterCounter(statsName, tags);
+        counter.add(cntIntegration);
     }
 
-    private void logMessagesCounterAdd(int cntIntegration, String... tags) throws Exception {
-        DefaultCounter counter = getOrCreateStatsCounter(cntIntegration, tags);
-        if (counter != null && cntIntegration > 0) {
-            counter.add(cntIntegration);
-        }
+    private void logMessagesCounterAdd(String... tags) throws Exception {
+        DefaultCounter counter = getOrCreateStatsCounter(tags);
+        counter.increment();
     }
 
     private void logMessagesGauge(int cntValue, String... tags) throws Exception {
@@ -192,16 +192,14 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
         gauge.set(cntValue);
     }
 
-    private DefaultCounter getOrCreateStatsCounter(int cntIntegration, String... tags) throws Exception {
+    private DefaultCounter getOrCreateStatsCounter(String... tags) throws Exception {
         String statsName = getValidateStatsName(tags);
         Optional<Map.Entry<String, DefaultCounter>> statsCounterOpt = counters.entrySet().stream()
                 .filter(c -> c.getKey().equals(statsName)).findFirst();
         if (statsCounterOpt.isPresent()) {
             return statsCounterOpt.get().getValue();
-        } else if (cntIntegration > 0) {
+        } else  {
             return createAndRegisterCounter(statsName, tags);
-        } else {
-            return null;
         }
     }
 
@@ -215,14 +213,14 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     private DefaultCounter createAndRegisterCounter(String statsName, String... tags) {
-        DefaultCounter counter = statsFactory.createDefaultCounter(STATS_KEY_CNT, tags);
+        DefaultCounter counter = statsFactory.createDefaultCounter(STATS_KEY_COUNTER, tags);
         counters.putIfAbsent(statsName, counter);
         return counter;
     }
 
     private AtomicLong createAndRegisterGauge(String statsName, String... tags) {
         AtomicLong gaugeValue = new AtomicLong(0);
-        statsFactory.createGauge(STATS_KEY_PROCESS, gaugeValue, tags);
+        statsFactory.createGauge(STATS_KEY_GAUGE, gaugeValue, tags);
         gauges.putIfAbsent(statsName, gaugeValue);
         return gaugeValue;
     }

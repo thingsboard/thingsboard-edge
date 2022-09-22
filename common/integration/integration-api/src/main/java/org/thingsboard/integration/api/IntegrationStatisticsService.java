@@ -32,21 +32,21 @@ package org.thingsboard.integration.api;
 
 public interface IntegrationStatisticsService {
 
-    void onIntegrationStartCounterAddSuccess(String  integrationTypeName, int cntIntegration);
+    void onIntegrationStartCounterAddSuccess(String  integrationTypeName);
 
-    void onIntegrationStartCounterAddFailed(String  integrationTypeName, int cntIntegration);
+    void onIntegrationStartCounterAddFailed(String  integrationTypeName);
 
     void onIntegrationStartGaugeSuccess(String  integrationTypeName, int cntIntegration);
 
     void onIntegrationStartGaugeFailed(String  integrationTypeName, int cntIntegration);
 
-    void onIntegrationMsgsUplinkSuccess(String  integrationTypeName, int cntIntegration);
+    void onIntegrationMsgsUplinkSuccess(String  integrationTypeName);
 
-    void onIntegrationMsgsUplinkFailed (String  integrationTypeName, int cntIntegration);
+    void onIntegrationMsgsUplinkFailed (String  integrationTypeName);
 
-    void onIntegrationMsgsDownlinkSuccess(String  integrationTypeName, int cntIntegration);
+    void onIntegrationMsgsDownlinkSuccess(String  integrationTypeName);
 
-    void onIntegrationMsgsDownlinkFailed (String  integrationTypeName, int cntIntegration);
+    void onIntegrationMsgsDownlinkFailed (String  integrationTypeName);
 
     void printStats();
 

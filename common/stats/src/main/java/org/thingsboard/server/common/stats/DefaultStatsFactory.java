@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.stats;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
@@ -136,5 +137,8 @@ public class DefaultStatsFactory implements StatsFactory {
         }
     }
 
+    public Meter remove (Counter counter) {
+        return meterRegistry.remove(counter.getId());
+    }
 
 }
