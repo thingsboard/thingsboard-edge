@@ -52,7 +52,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     protected Converter downlinkConverter;
     protected Integration integration;
 
-    protected void createConverter(String converterName, ConverterType type, JsonNode converterConfig) throws Exception {
+    protected void createConverter(String converterName, ConverterType type, JsonNode converterConfig) {
         Converter newConverter = new Converter();
         newConverter.setTenantId(tenantId);
         newConverter.setName(converterName);
@@ -70,7 +70,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         }
     }
 
-    protected void createIntegration(String integrationName, IntegrationType type) throws Exception {
+    protected void createIntegration(String integrationName, IntegrationType type) {
         Integration newIntegration = new Integration();
         newIntegration.setTenantId(tenantId);
         newIntegration.setDefaultConverterId(uplinkConverter.getId());
@@ -92,7 +92,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         Assert.assertNotNull(integration);
     }
 
-    public void enableIntegration() throws Exception {
+    public void enableIntegration() {
         if (!integration.isEnabled()) {
             integration.setEnabled(true);
             integration = doPost("/api/integration", integration, Integration.class);
@@ -100,7 +100,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         Assert.assertNotNull(integration);
     }
 
-    public void disableIntegration() throws Exception {
+    public void disableIntegration() {
         if (!integration.isEnabled()) {
             integration.setEnabled(false);
             integration = doPost("/api/integration", integration, Integration.class);

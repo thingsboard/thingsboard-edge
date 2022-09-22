@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -115,13 +114,13 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         disableIntegration();
     }
 
-    private void startServer() throws ExecutionException, InterruptedException, TimeoutException {
+    private void startServer() throws ExecutionException, InterruptedException {
         server.startup().get();
         log.info("Server started");
         Assert.assertTrue(server.getStarted());
     }
 
-    private void stopServer() throws ExecutionException, InterruptedException, TimeoutException {
+    private void stopServer() throws ExecutionException, InterruptedException {
         server.shutdown().get();
         log.info("Server stopped");
         Assert.assertFalse(server.getStarted());
