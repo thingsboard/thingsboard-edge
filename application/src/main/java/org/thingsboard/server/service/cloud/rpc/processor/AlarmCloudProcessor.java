@@ -26,7 +26,6 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -106,11 +105,12 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
         }
     }
 
-    public UplinkMsg processAlarmMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, EdgeEventActionType edgeEventAction)
+    public UplinkMsg processAlarmMsgToCloud(TenantId tenantId, CloudEvent cloudEvent)
             throws ExecutionException, InterruptedException {
         AlarmId alarmId = new AlarmId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
-        switch (edgeEventAction) {
+        UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
+        switch (cloudEvent.getAction()) {
             case ADDED:
             case UPDATED:
             case ALARM_ACK:

@@ -33,7 +33,7 @@ public class EntityCloudProcessor extends BaseCloudProcessor {
 
     public UplinkMsg processCredentialsRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
         log.trace("Executing processCredentialsRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (entityId.getEntityType()) {
             case USER:

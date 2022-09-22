@@ -40,7 +40,6 @@ import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
-import java.io.IOException;
 import java.util.UUID;
 
 @Component
@@ -111,8 +110,8 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
 
     }
 
-    public UplinkMsg processRelationRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+    public UplinkMsg processRelationRequestMsgToCloud(CloudEvent cloudEvent) {
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
@@ -124,8 +123,9 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
         return builder.build();
     }
 
-    public UplinkMsg processRelationMsgToCloud(CloudEvent cloudEvent, UpdateMsgType msgType) {
+    public UplinkMsg processRelationMsgToCloud(CloudEvent cloudEvent) {
         UplinkMsg msg = null;
+        UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
         EntityRelation entityRelation = JacksonUtil.OBJECT_MAPPER.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);
         if (entityRelation != null) {
             RelationUpdateMsg relationUpdateMsg = relationMsgConstructor.constructRelationUpdatedMsg(msgType, entityRelation);

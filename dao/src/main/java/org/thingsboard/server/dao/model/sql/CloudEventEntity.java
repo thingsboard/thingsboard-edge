@@ -23,6 +23,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CloudEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
@@ -63,8 +64,9 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
     @Column(name = CLOUD_EVENT_TYPE_PROPERTY)
     private CloudEventType cloudEventType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = CLOUD_EVENT_ACTION_PROPERTY)
-    private String cloudEventAction;
+    private EdgeEventActionType cloudEventAction;
 
     @Type(type = "json")
     @Column(name = CLOUD_EVENT_ENTITY_BODY_PROPERTY)
@@ -87,8 +89,8 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
         if (cloudEvent.getEntityId() != null) {
             this.entityId = cloudEvent.getEntityId();
         }
-        this.cloudEventType = cloudEvent.getCloudEventType();
-        this.cloudEventAction = cloudEvent.getCloudEventAction();
+        this.cloudEventType = cloudEvent.getType();
+        this.cloudEventAction = cloudEvent.getAction();
         this.entityBody = cloudEvent.getEntityBody();
     }
 
@@ -100,8 +102,8 @@ public class CloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseE
         if (entityId != null) {
             cloudEvent.setEntityId(entityId);
         }
-        cloudEvent.setCloudEventType(cloudEventType);
-        cloudEvent.setCloudEventAction(cloudEventAction);
+        cloudEvent.setType(cloudEventType);
+        cloudEvent.setAction(cloudEventAction);
         cloudEvent.setEntityBody(entityBody);
         return cloudEvent;
     }

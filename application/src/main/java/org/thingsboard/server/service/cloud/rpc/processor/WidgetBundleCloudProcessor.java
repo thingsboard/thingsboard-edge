@@ -121,7 +121,7 @@ public class WidgetBundleCloudProcessor extends BaseCloudProcessor {
     }
 
     public UplinkMsg processWidgetBundleTypesRequestMsgToCloud(CloudEvent cloudEvent) {
-        EntityId widgetBundleId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        EntityId widgetBundleId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         WidgetBundleTypesRequestMsg widgetBundleTypesRequestMsg = WidgetBundleTypesRequestMsg.newBuilder()
                 .setWidgetBundleIdMSB(widgetBundleId.getId().getMostSignificantBits())
                 .setWidgetBundleIdLSB(widgetBundleId.getId().getLeastSignificantBits())

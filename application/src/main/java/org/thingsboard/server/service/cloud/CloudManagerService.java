@@ -50,7 +50,6 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
@@ -326,8 +325,7 @@ public class CloudManagerService extends BaseCloudEventService {
             log.trace("Processing cloud event [{}]", cloudEvent);
             UplinkMsg uplinkMsg = null;
             try {
-                EdgeEventActionType edgeEventAction = EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction());
-                switch (edgeEventAction) {
+                switch (cloudEvent.getAction()) {
                     case UPDATED:
                     case ADDED:
                     case DELETED:
@@ -336,7 +334,9 @@ public class CloudManagerService extends BaseCloudEventService {
                     case CREDENTIALS_UPDATED:
                     case RELATION_ADD_OR_UPDATE:
                     case RELATION_DELETED:
-                        uplinkMsg = processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
+                    case ASSIGNED_TO_CUSTOMER:
+                    case UNASSIGNED_FROM_CUSTOMER:
+                        uplinkMsg = processEntityMessage(this.tenantId, cloudEvent);
                         break;
                     case ATTRIBUTES_UPDATED:
                     case POST_ATTRIBUTES:
@@ -379,40 +379,19 @@ public class CloudManagerService extends BaseCloudEventService {
         return result;
     }
 
-    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent, EdgeEventActionType edgeEventAction)
+    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent)
             throws ExecutionException, InterruptedException {
-        UpdateMsgType msgType = getResponseMsgType(EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction()));
-        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}], msgType [{}]", cloudEvent, edgeEventAction, msgType);
-        switch (cloudEvent.getCloudEventType()) {
+        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
+        switch (cloudEvent.getType()) {
             case DEVICE:
-                return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
+                return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent);
             case ALARM:
-                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
+                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent);
             case RELATION:
-                return relationProcessor.processRelationMsgToCloud(cloudEvent, msgType);
+                return relationProcessor.processRelationMsgToCloud(cloudEvent);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;
-        }
-    }
-
-    private UpdateMsgType getResponseMsgType(EdgeEventActionType actionType) {
-        switch (actionType) {
-            case UPDATED:
-            case CREDENTIALS_UPDATED:
-                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
-            case ADDED:
-            case RELATION_ADD_OR_UPDATE:
-                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
-            case DELETED:
-            case RELATION_DELETED:
-                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
-            case ALARM_ACK:
-                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
-            case ALARM_CLEAR:
-                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
-            default:
-                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
         }
     }
 

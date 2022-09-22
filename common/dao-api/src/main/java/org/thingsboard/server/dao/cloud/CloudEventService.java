@@ -18,6 +18,7 @@ package org.thingsboard.server.dao.cloud;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -35,7 +36,7 @@ public interface CloudEventService {
     PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(TenantId tenantId,
                                                                                        EntityId entityId,
                                                                                        CloudEventType cloudEventType,
-                                                                                       String cloudEventAction,
+                                                                                       EdgeEventActionType cloudEventAction,
                                                                                        TimePageLink pageLink);
 
     EdgeSettings findEdgeSettings(TenantId tenantId);

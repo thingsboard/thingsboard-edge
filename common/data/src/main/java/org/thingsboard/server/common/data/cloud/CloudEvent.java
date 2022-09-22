@@ -20,6 +20,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CloudEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -31,9 +32,9 @@ import java.util.UUID;
 public class CloudEvent extends BaseData<CloudEventId> {
 
     private TenantId tenantId;
-    private String cloudEventAction;
+    private EdgeEventActionType action;
     private UUID entityId;
-    private CloudEventType cloudEventType;
+    private CloudEventType type;
     private transient JsonNode entityBody;
 
     public CloudEvent() {
@@ -43,9 +44,4 @@ public class CloudEvent extends BaseData<CloudEventId> {
     public CloudEvent(CloudEventId id) {
         super(id);
     }
-
-    public CloudEvent(CloudEvent event) {
-        super(event);
-    }
-
 }

@@ -18,6 +18,7 @@ package org.thingsboard.server.dao.cloud;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.Dao;
@@ -51,7 +52,7 @@ public interface CloudEventDao extends Dao<CloudEvent> {
             UUID tenantId,
             UUID entityId,
             CloudEventType cloudEventType,
-            String cloudEventAction,
+            EdgeEventActionType cloudEventAction,
             TimePageLink pageLink);
 
     /**

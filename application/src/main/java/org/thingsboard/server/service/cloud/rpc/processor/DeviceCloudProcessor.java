@@ -278,14 +278,17 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();
     }
 
-    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, EdgeEventActionType edgeActionType) {
+    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
-        switch (edgeActionType) {
+        switch (cloudEvent.getAction()) {
             case ADDED:
             case UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     DeviceUpdateMsg deviceUpdateMsg =
                             deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null);
                     msg = UplinkMsg.newBuilder()
@@ -315,7 +318,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported edge action type [" + edgeActionType + "]");
+                throw new IllegalArgumentException("Unsupported edge action type [" + cloudEvent.getAction() + "]");
         }
         return msg;
     }

@@ -42,8 +42,8 @@ public abstract class BaseCloudEventService {
 
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(tenantId);
-        cloudEvent.setCloudEventType(cloudEventType);
-        cloudEvent.setCloudEventAction(cloudEventAction.name());
+        cloudEvent.setType(cloudEventType);
+        cloudEvent.setAction(cloudEventAction);
         if (entityId != null) {
             cloudEvent.setEntityId(entityId.getId());
         }

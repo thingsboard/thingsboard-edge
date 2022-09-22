@@ -22,6 +22,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
 import java.util.UUID;
@@ -50,7 +51,7 @@ public interface CloudEventRepository extends JpaRepository<CloudEventEntity, UU
             @Param("tenantId") UUID tenantId,
             @Param("entityId") UUID entityId,
             @Param("cloudEventType") CloudEventType cloudEventType,
-            @Param("cloudEventAction") String cloudEventAction,
+            @Param("cloudEventAction") EdgeEventActionType cloudEventAction,
             @Param("startTime") Long startTime,
             @Param("endTime") Long endTime,
             Pageable pageable);

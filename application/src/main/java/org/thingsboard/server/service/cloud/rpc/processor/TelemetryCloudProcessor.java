@@ -32,7 +32,6 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -284,7 +283,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
     public UplinkMsg processTelemetryMessageMsgToCloud(CloudEvent cloudEvent) throws Exception {
         EntityId entityId;
-        switch (cloudEvent.getCloudEventType()) {
+        switch (cloudEvent.getType()) {
             case DEVICE:
                 entityId = new DeviceId(cloudEvent.getEntityId());
                 break;
@@ -298,11 +297,13 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                 entityId = new DashboardId(cloudEvent.getEntityId());
                 break;
             default:
-                throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getCloudEventType() + "]");
+                throw new IllegalAccessException("Unsupported cloud event type [" + cloudEvent.getType() + "]");
         }
 
-        EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction());
-        return constructEntityDataProtoMsg(entityId, actionType, JsonUtils.parse(JacksonUtil.OBJECT_MAPPER.writeValueAsString(cloudEvent.getEntityBody())));
+        return constructEntityDataProtoMsg(
+                entityId,
+                cloudEvent.getAction(),
+                JsonUtils.parse(JacksonUtil.OBJECT_MAPPER.writeValueAsString(cloudEvent.getEntityBody())));
     }
 
 
@@ -318,7 +319,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
 
     public UplinkMsg processAttributesRequestMsgToCloud(CloudEvent cloudEvent) {
         log.trace("Executing processAttributesRequest, cloudEvent [{}]", cloudEvent);
-        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+        EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         try {
             List<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();
             AttributesRequestMsg serverAttributesRequestMsg = AttributesRequestMsg.newBuilder()

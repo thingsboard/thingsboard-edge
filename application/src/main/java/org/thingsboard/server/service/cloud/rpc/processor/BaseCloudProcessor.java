@@ -209,7 +209,7 @@ public abstract class BaseCloudProcessor {
 
             PageData<CloudEvent> cloudEventsByEntityIdAndCloudEventActionAndCloudEventType =
                     cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
-                            tenantId, entityId, cloudEventType, EdgeEventActionType.ATTRIBUTES_REQUEST.name(), timePageLink);
+                            tenantId, entityId, cloudEventType, EdgeEventActionType.ATTRIBUTES_REQUEST, timePageLink);
 
             if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
                 log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);
@@ -349,8 +349,8 @@ public abstract class BaseCloudProcessor {
 
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(tenantId);
-        cloudEvent.setCloudEventType(cloudEventType);
-        cloudEvent.setCloudEventAction(cloudEventAction.name());
+        cloudEvent.setType(cloudEventType);
+        cloudEvent.setAction(cloudEventAction);
         if (entityId != null) {
             cloudEvent.setEntityId(entityId.getId());
         }
@@ -362,5 +362,29 @@ public abstract class BaseCloudProcessor {
         String errMsg = String.format("Unsupported msg type %s", msgType);
         log.error(errMsg);
         return Futures.immediateFailedFuture(new RuntimeException(errMsg));
+    }
+
+    protected UpdateMsgType getUpdateMsgType(EdgeEventActionType actionType) {
+        switch (actionType) {
+            case UPDATED:
+            case CREDENTIALS_UPDATED:
+            case ASSIGNED_TO_CUSTOMER:
+            case UNASSIGNED_FROM_CUSTOMER:
+                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
+            case ADDED:
+            case ASSIGNED_TO_EDGE:
+            case RELATION_ADD_OR_UPDATE:
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
+            case DELETED:
+            case UNASSIGNED_FROM_EDGE:
+            case RELATION_DELETED:
+                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
+            case ALARM_ACK:
+                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
+            case ALARM_CLEAR:
+                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
+            default:
+                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        }
     }
 }
