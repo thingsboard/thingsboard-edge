@@ -17,6 +17,7 @@ package org.thingsboard.server.msa.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -32,6 +34,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
@@ -50,6 +53,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
 import org.thingsboard.server.common.data.transport.snmp.PrivacyProtocol;
@@ -273,22 +277,22 @@ public class DeviceClientTest extends AbstractContainerTest {
                 });
     }
 
-    private void verifyDeviceCredentialsOnCloudAndEdge(Device savedDeviceOnEdge) {
+    private void verifyDeviceCredentialsOnCloudAndEdge(Device savedDevice) {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
+                .until(() -> cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId()).isPresent());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).isPresent());
+                .until(() -> edgeRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId()).isPresent());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     DeviceCredentials deviceCredentialsOnEdge =
-                            edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
+                            edgeRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId()).get();
                     DeviceCredentials deviceCredentialsOnCloud =
-                            cloudRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId()).get();
+                            cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId()).get();
                     // TODO: @voba - potential fix for future releases
                     deviceCredentialsOnCloud.setId(null);
                     deviceCredentialsOnEdge.setId(null);
@@ -508,6 +512,52 @@ public class DeviceClientTest extends AbstractContainerTest {
         edgeRestClient.deleteDevice(savedDeviceOnEdge.getId());
         cloudRestClient.deleteDevice(savedDeviceOnEdge.getId());
         cloudRestClient.deleteDevice(savedDeviceOnCloud.getId());
+    }
+
+    @Test
+    public void testClaimDevice() throws Exception {
+        // create customer, user and device
+        Customer customer = new Customer();
+        customer.setTitle("Claim Test Customer");
+        Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        User user = new User();
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setTenantId(edge.getTenantId());
+        user.setCustomerId(savedCustomer.getId());
+        user.setEmail("claimUser@thingsboard.org");
+        user.setFirstName("Claim");
+        user.setLastName("User");
+        User savedUser = cloudRestClient.saveUser(user, false);
+        cloudRestClient.activateUser(savedUser.getId(), "customer", false);
+
+        Device savedDevice = saveAndAssignDeviceToEdge();
+        Optional<DeviceCredentials> deviceCredentialsByDeviceId =
+                cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());
+        verifyDeviceCredentialsOnCloudAndEdge(savedDevice);
+
+        // send claim device request
+        JsonObject claimRequest = new JsonObject();
+        claimRequest.addProperty("secretKey", "testKey");
+        claimRequest.addProperty("duration", 10000);
+        ResponseEntity claimDeviceRequest = edgeRestClient.getRestTemplate()
+                .postForEntity(edgeUrl + "/api/v1/{credentialsId}/claim",
+                        JacksonUtil.OBJECT_MAPPER.readTree(claimRequest.toString()),
+                        ResponseEntity.class,
+                        deviceCredentialsByDeviceId.get().getCredentialsId());
+        Assert.assertTrue(claimDeviceRequest.getStatusCode().is2xxSuccessful());
+
+        // login as customer user and claim device
+        loginIntoEdgeWithRetries("claimUser@thingsboard.org", "customer");
+        edgeRestClient.claimDevice(savedDevice.getName(), new ClaimRequest("testKey"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> savedCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId()));
+
+        // cleanup
+        cloudRestClient.deleteDevice(savedDevice.getId());
+        cloudRestClient.deleteUser(savedUser.getId());
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
+        loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
     }
 }
 
