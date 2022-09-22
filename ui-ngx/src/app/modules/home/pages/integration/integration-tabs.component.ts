@@ -33,14 +33,15 @@ import { Component } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityTabsComponent } from '../../components/entity/entity-tabs.component';
-import { Integration } from '@shared/models/integration.models';
+import { Integration, IntegrationInfo } from '@shared/models/integration.models';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Component({
   selector: 'tb-integration-tabs',
   templateUrl: './integration-tabs.component.html',
   styleUrls: []
 })
-export class IntegrationTabsComponent extends EntityTabsComponent<Integration> {
+export class IntegrationTabsComponent extends EntityTabsComponent<Integration, PageLink, IntegrationInfo> {
 
   constructor(protected store: Store<AppState>) {
     super(store);

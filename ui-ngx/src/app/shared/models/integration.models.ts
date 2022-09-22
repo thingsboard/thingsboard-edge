@@ -235,7 +235,7 @@ export function getIntegrationHelpLink(integration: Integration): string {
   return 'integrations';
 }
 
-export interface Integration extends BaseData<IntegrationId>, ExportableEntity<IntegrationId> {
+export interface IntegrationBasic extends BaseData<IntegrationId>, ExportableEntity<IntegrationId> {
   tenantId?: TenantId;
   defaultConverterId: ConverterId;
   downlinkConverterId?: ConverterId;
@@ -247,9 +247,22 @@ export interface Integration extends BaseData<IntegrationId>, ExportableEntity<I
   remote: boolean;
   allowCreateDevicesOrAssets: boolean;
   secret: string;
-  configuration: any;
   additionalInfo?: any;
   edgeTemplate: boolean;
+}
+
+export interface Integration extends IntegrationBasic {
+  configuration: any;
+}
+
+export interface IntegrationInfo extends IntegrationBasic {
+  status: IntegrationStatus;
+}
+
+export interface IntegrationStatus {
+  success: boolean;
+  serviceId?: string;
+  error?: any;
 }
 
 export interface IntegrationParams extends EntityGroupParams {

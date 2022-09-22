@@ -39,6 +39,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import {
   Integration,
+  IntegrationInfo,
   IntegrationType,
   IntegrationTypeInfo,
   integrationTypeInfoMap
@@ -48,19 +49,20 @@ import { ConverterType } from '@shared/models/converter.models';
 import {
   templates,
   updateIntegrationFormDefaultFields,
-  updateIntegrationFormValidators,
-  updateIntegrationFormState
+  updateIntegrationFormState,
+  updateIntegrationFormValidators
 } from './integration-forms-templates';
 import _ from 'lodash';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 import { IntegrationService } from '@core/http/integration.service';
+import { PageLink } from '@shared/models/page/page-link';
 
 @Component({
   selector: 'tb-integration',
   templateUrl: './integration.component.html',
   styleUrls: ['./integration.component.scss']
 })
-export class IntegrationComponent extends EntityComponent<Integration> implements OnInit {
+export class IntegrationComponent extends EntityComponent<Integration, PageLink, IntegrationInfo> implements OnInit {
 
   @ViewChild('integrationFormComponent', {static: false}) integrationFormComponent: IntegrationFormComponent;
 
@@ -79,7 +81,7 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               @Inject('entity') protected entityValue: Integration,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Integration>,
+              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Integration, PageLink, IntegrationInfo>,
               protected fb: FormBuilder,
               protected integrationService: IntegrationService,
               protected cd: ChangeDetectorRef) {

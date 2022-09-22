@@ -219,7 +219,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   entitiesFetchFunction: EntitiesFetchFunction<L, P> = () => of(emptyPageData<L>());
   onEntityAction: EntityActionFunction<T> = () => false;
   handleRowClick: EntityRowClickFunction<L> = () => false;
-  entityTitle: EntityStringFunction<T> = (entity) => entity?.name;
+  entityTitle: EntityStringFunction<T | L> = (entity) => entity?.name;
   entityAdded: EntityVoidFunction<T> = () => {};
   entityUpdated: EntityVoidFunction<T> = () => {};
   entitiesDeleted: EntityIdsVoidFunction<T> = () => {};

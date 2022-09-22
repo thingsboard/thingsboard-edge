@@ -44,6 +44,8 @@ import {
 import {
   getIntegrationHelpLink,
   Integration,
+  IntegrationBasic,
+  IntegrationInfo,
   IntegrationParams,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
@@ -61,8 +63,8 @@ import { IntegrationComponent } from '@home/pages/integration/integration.compon
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { forkJoin, Observable } from 'rxjs';
-import { deepClone, isUndefined } from '@core/utils';
-import { map } from 'rxjs/operators';
+import { isUndefined } from '@core/utils';
+import { map, mergeMap } from 'rxjs/operators';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Edge } from '@shared/models/edge.models';
@@ -70,8 +72,9 @@ import {
   AddEntitiesToEdgeDialogComponent,
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
+import { PageLink } from '@shared/models/page/page-link';
 
-export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
+export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
   constructor(private integrationService: IntegrationService,
               private userPermissionsService: UserPermissionsService,
@@ -125,19 +128,19 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
   }
 
 
-  private configureEntityTableColumns(): Array<EntityColumn<Integration>> {
-    const columns: Array<EntityColumn<Integration>> = [];
+  private configureEntityTableColumns(): Array<EntityColumn<IntegrationInfo>> {
+    const columns: Array<EntityColumn<IntegrationInfo>> = [];
 
     this.entityTitle = (integration) => integration ?
       this.utils.customTranslation(integration.name, integration.name) : '';
 
     columns.push(
-      new DateEntityTableColumn<Integration>('createdTime', 'common.created-time', this.datePipe, '15%'),
-      new EntityTableColumn<Integration>('name', 'converter.name', '15%', this.entityTitle),
-      new EntityTableColumn<Integration>('type', 'converter.type', '51%', (integration) => {
+      new DateEntityTableColumn<IntegrationInfo>('createdTime', 'common.created-time', this.datePipe, '15%'),
+      new EntityTableColumn<IntegrationInfo>('name', 'converter.name', '15%', this.entityTitle),
+      new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => {
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
       }),
-      new ChartEntityTableColumn<Integration>('dailyRate', 'integration.daily-rate', '9%',
+      new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-rate', '9%',
         () => [5, 6, 2, 9, 4, 7, 10, 12, 12, 15, 11, 12, 2, 7, 8, 16, 1, 9, 2, 10, 4, 7, 9, 3],
         () => ({
           chartRangeMin: '',
@@ -151,10 +154,10 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
           lineColor: 'rgba(0, 0, 0, 0.54)',
           lineWidth: '2'
         })),
-      new EntityTableColumn<Integration>('status', 'integration.status.status', '80px',
+      new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
         integration => this.integrationStatus(integration),
         integration => this.integrationStatusStyle(integration), false),
-      new EntityTableColumn<Integration>('remote', 'integration.remotely', '60px',
+      new EntityTableColumn<IntegrationInfo>('remote', 'integration.remotely', '60px',
         integration => {
             return checkBoxCell(integration.remote);
         }, () => ({}), false)
@@ -162,8 +165,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     return columns;
   }
 
-  private configureGroupActions(integrationScope: string): Array<GroupActionDescriptor<Integration>> {
-    const actions: Array<GroupActionDescriptor<Integration>> = [];
+  private configureGroupActions(integrationScope: string): Array<GroupActionDescriptor<IntegrationInfo>> {
+    const actions: Array<GroupActionDescriptor<IntegrationInfo>> = [];
     if (integrationScope === 'edge') {
       actions.push(
         {
@@ -202,8 +205,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     return actions;
   }
 
-  private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<Integration>> {
-    const actions: Array<CellActionDescriptor<Integration>> = [];
+  private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
+    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [];
     if (params.integrationScope === 'edge') {
       actions.push(
         {
@@ -296,11 +299,11 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     return false;
   }
 
-  private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<Integration>> {
+  private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<IntegrationInfo>> {
     if (integrationScope === 'tenant') {
-      return pageLink => this.integrationService.getIntegrations(pageLink);
+      return pageLink => this.integrationService.getIntegrationsInfo(pageLink, false);
     } else if (integrationScope === 'edges') {
-      return pageLink => this.integrationService.getIntegrationsByEdgeTemplate(pageLink, true);
+      return pageLink => this.integrationService.getIntegrationsInfo(pageLink, true);
     } else if (integrationScope === 'edge') {
       return pageLink => this.integrationService.getEdgeIntegrations(edgeId, pageLink);
     }
@@ -385,7 +388,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
       );
   }
 
-  private unassignFromEdge($event: Event, integration: Integration): void {
+  private unassignFromEdge($event: Event, integration: IntegrationBasic): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -407,7 +410,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     );
   }
 
-  private unassignIntegrationsFromEdge($event: Event, integrations: Array<Integration>): void {
+  private unassignIntegrationsFromEdge($event: Event, integrations: Array<IntegrationInfo>): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -435,13 +438,13 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
     );
   }
 
-  private integrationStatus(integration: Integration): string {
+  private integrationStatus(integration: IntegrationInfo): string {
     let translateKey = 'integration.status.active';
     let backgroundColor = 'rgba(25, 128, 56, 0.08)';
     if (!integration.enabled) {
       translateKey = 'integration.status.disabled';
       backgroundColor = 'rgba(0, 0, 0, 0.08)';
-    } else if (false) {
+    } else if (!integration.status.success) {
       translateKey = 'integration.status.failed';
       backgroundColor = 'rgba(209, 39, 48, 0.08)';
     }
@@ -450,28 +453,32 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration> {
             </div>`;
   }
 
-  private integrationStatusStyle(integration: Integration): object {
+  private integrationStatusStyle(integration: IntegrationInfo): object {
     const styleObj = {
       fontSize: '14px',
       color: '#198038'
     };
     if (!integration.enabled) {
       styleObj.color = 'rgba(0, 0, 0, 0.54)';
-    } else if (false) {
+    } else if (!integration.status.success) {
       styleObj.color = '#d12730';
     }
     return styleObj;
   }
 
-  private toggleDebugMode($event: Event, integrations: Integration): void {
+  private toggleDebugMode($event: Event, integrations: IntegrationInfo): void {
     if ($event) {
       $event.stopPropagation();
     }
-    const newIntegration = deepClone(integrations);
-    newIntegration.debugMode = !newIntegration.debugMode;
-    this.integrationService.saveIntegration(newIntegration, {ignoreLoading: true}).subscribe((integrationData) => {
-      integrations.debugMode = integrationData.debugMode;
-      this.getTable().detectChanges();
-    });
+    this.integrationService.getIntegration(integrations.id.id, {ignoreLoading: true})
+      .pipe(
+        mergeMap(integration => {
+          integration.debugMode = !integration.debugMode;
+          return this.integrationService.saveIntegration(integration, {ignoreLoading: true});
+        }))
+      .subscribe((integrationData) => {
+        integrations.debugMode = integrationData.debugMode;
+        this.getTable().detectChanges();
+      });
   }
 }
