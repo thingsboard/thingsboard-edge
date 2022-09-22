@@ -47,6 +47,8 @@ import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
+import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
+import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -84,6 +86,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.query.DynamicValue;
@@ -300,6 +303,10 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     future.get();
                 }
                 break;
+            case "3.4.2":
+                log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
+                updateDuplicateMsgRuleNode();
+                break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
         }
@@ -450,6 +457,28 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } catch (Exception e) {
             log.error("Unable to update Tenant", e);
         }
+    }
+
+    private void updateDuplicateMsgRuleNode() {
+        PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
+                link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
+        ruleNodesIterator.forEach(ruleNode -> {
+            TbDuplicateMsgToGroupNodeConfiguration configNode = JacksonUtil.convertValue(ruleNode.getConfiguration(), TbDuplicateMsgToGroupNodeConfiguration.class);
+            if (!configNode.isEntityGroupIsMessageOriginator()) {
+                if (configNode.getGroupOwnerId() == null) {
+                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
+                    if (targetRuleChain != null) {
+                        TenantId tenantId = targetRuleChain.getTenantId();
+                        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, configNode.getEntityGroupId());
+                        if (entityGroup != null) {
+                            configNode.setGroupOwnerId(entityGroup.getOwnerId());
+                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
+                            ruleChainService.saveRuleNode(tenantId, ruleNode);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
