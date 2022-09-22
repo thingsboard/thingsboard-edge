@@ -40,7 +40,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.common.util.CollectionsUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
@@ -87,6 +86,14 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
     public void findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate, DeferredResult<ResponseEntity> response) {
         PageData<IntegrationInfo> pageData = integrationService.findTenantIntegrationInfos(tenantId, pageLink, isEdgeTemplate);
         List<IntegrationInfo> integrationInfos = pageData.getData();
+
+        if (isEdgeTemplate) {
+            integrationInfos.forEach(integration -> {
+                ObjectNode status = JacksonUtil.newObjectNode();
+                status.put("success", true);
+                integration.setStatus(status);
+            });
+        }
 
         List<ListenableFuture<Void>> futures = new ArrayList<>(integrationInfos.size());
 
@@ -136,10 +143,6 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
                 attributesService.find(integration.getTenantId(), integration.getId(), "SERVER_SCOPE", keys);
 
         return Futures.transform(attributesFuture, attributes -> {
-            if (CollectionsUtil.isEmpty(attributes)) {
-                return null;
-            }
-
             Optional<AttributeKvEntry> error = attributes.stream().filter(kv -> {
                 ObjectNode json = JacksonUtil.fromString(kv.getJsonValue().get(), ObjectNode.class);
                 return json.has("error");
