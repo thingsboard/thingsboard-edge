@@ -159,8 +159,4 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         return obj;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }
