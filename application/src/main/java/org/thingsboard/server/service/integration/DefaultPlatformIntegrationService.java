@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -279,7 +280,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void processUplinkData(IntegrationInfo integration, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+    public void processUplinkData(AbstractIntegration integration, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
         Device device = getOrCreateDevice(integration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
         UUID sessionId = integration.getId().getId(); //for local integration context sessionId is exact integrationId
@@ -312,7 +313,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void processUplinkData(IntegrationInfo configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
+    public void processUplinkData(AbstractIntegration configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
         Asset asset = getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
         if (data.hasPostTelemetryMsg()) {
@@ -339,14 +340,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public void processUplinkData(IntegrationInfo integrationInfo, EntityViewDataProto data, IntegrationCallback<Void> callback) {
+    public void processUplinkData(AbstractIntegration integrationInfo, EntityViewDataProto data, IntegrationCallback<Void> callback) {
         Device device = getOrCreateDevice(integrationInfo, data.getDeviceName(), data.getDeviceType(), null, null, null);
         getOrCreateEntityView(integrationInfo, device, data);
         callback.onSuccess(null);
     }
 
     @Override
-    public void processUplinkData(IntegrationInfo info, TbMsg data, IntegrationApiCallback callback) {
+    public void processUplinkData(AbstractIntegration info, TbMsg data, IntegrationApiCallback callback) {
         process(info.getTenantId(), data, callback);
     }
 
@@ -490,7 +491,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
 
     @Override
-    public Device getOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
+    public Device getOrCreateDevice(AbstractIntegration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null) {
             entityCreationLock.lock();
@@ -504,7 +505,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public Asset getOrCreateAsset(IntegrationInfo integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
+    public Asset getOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null) {
             entityCreationLock.lock();
@@ -518,7 +519,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
     @Override
-    public EntityView getOrCreateEntityView(IntegrationInfo configuration, Device device, EntityViewDataProto proto) {
+    public EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, EntityViewDataProto proto) {
         String entityViewName = proto.getViewName();
         EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
         if (entityView == null) {
@@ -546,7 +547,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return entityView;
     }
 
-    private Device processGetOrCreateDevice(IntegrationInfo integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
+    private Device processGetOrCreateDevice(AbstractIntegration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null && integration.isAllowCreateDevicesOrAssets()) {
             device = new Device();
@@ -576,7 +577,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return device;
     }
 
-    private Asset processGetOrCreateAsset(IntegrationInfo integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
+    private Asset processGetOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null && integration.isAllowCreateDevicesOrAssets()) {
             asset = new Asset();
@@ -604,7 +605,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return asset;
     }
 
-    private Customer getOrCreateCustomer(IntegrationInfo integration, String customerName) {
+    private Customer getOrCreateCustomer(AbstractIntegration integration, String customerName) {
         Customer customer;
         Optional<Customer> customerOptional = customerService.findCustomerByTenantIdAndTitle(integration.getTenantId(), customerName);
         if (customerOptional.isPresent()) {
@@ -619,7 +620,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return customer;
     }
 
-    private void addEntityToEntityGroup(String groupName, IntegrationInfo integration, EntityId entityId, EntityId parentId, EntityType entityType) {
+    private void addEntityToEntityGroup(String groupName, AbstractIntegration integration, EntityId entityId, EntityId parentId, EntityType entityType) {
         TenantId tenantId = integration.getTenantId();
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
                 .findEntityGroupByTypeAndNameAsync(tenantId, parentId, entityType, groupName);
@@ -639,7 +640,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return entityGroupService.saveEntityGroup(tenantId, parentEntityId, entityGroup);
     }
 
-    private void createRelationFromIntegration(IntegrationInfo integration, EntityId entityId) {
+    private void createRelationFromIntegration(AbstractIntegration integration, EntityId entityId) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(integration.getId());
         relation.setTo(entityId);
@@ -648,7 +649,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         relationService.saveRelation(integration.getTenantId(), relation);
     }
 
-    private void pushDeviceCreatedEventToRuleEngine(IntegrationInfo integration, Device device) {
+    private void pushDeviceCreatedEventToRuleEngine(AbstractIntegration integration, Device device) {
         try {
             DeviceProfile deviceProfile = deviceProfileCache.find(device.getDeviceProfileId());
             RuleChainId ruleChainId;
@@ -672,7 +673,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private void pushAssetCreatedEventToRuleEngine(IntegrationInfo integration, Asset asset) {
+    private void pushAssetCreatedEventToRuleEngine(AbstractIntegration integration, Asset asset) {
         try {
             ObjectNode entityNode = mapper.valueToTree(asset);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
@@ -683,7 +684,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     }
 
 
-    private void pushEntityGroupCreatedEventToRuleEngine(IntegrationInfo integration, EntityGroup entityGroup) {
+    private void pushEntityGroupCreatedEventToRuleEngine(AbstractIntegration integration, EntityGroup entityGroup) {
         try {
             ObjectNode entityNode = mapper.valueToTree(entityGroup);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, entityGroup.getId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
@@ -693,7 +694,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private void pushCustomerCreatedEventToRuleEngine(IntegrationInfo integration, Customer customer) {
+    private void pushCustomerCreatedEventToRuleEngine(AbstractIntegration integration, Customer customer) {
         try {
             ObjectNode entityNode = mapper.valueToTree(customer);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, customer.getId(), customer.getParentCustomerId(), getTbMsgMetaData(integration), mapper.writeValueAsString(entityNode));
@@ -703,15 +704,15 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
     }
 
-    private TbMsgMetaData deviceActionTbMsgMetaData(IntegrationInfo integration, Device device) {
+    private TbMsgMetaData deviceActionTbMsgMetaData(AbstractIntegration integration, Device device) {
         return getActionTbMsgMetaData(integration, device.getCustomerId());
     }
 
-    private TbMsgMetaData assetActionTbMsgMetaData(IntegrationInfo integration, Asset asset) {
+    private TbMsgMetaData assetActionTbMsgMetaData(AbstractIntegration integration, Asset asset) {
         return getActionTbMsgMetaData(integration, asset.getCustomerId());
     }
 
-    private TbMsgMetaData getActionTbMsgMetaData(IntegrationInfo integration, CustomerId customerId) {
+    private TbMsgMetaData getActionTbMsgMetaData(AbstractIntegration integration, CustomerId customerId) {
         TbMsgMetaData metaData = getTbMsgMetaData(integration);
         if (customerId != null && !customerId.isNullUid()) {
             metaData.putValue("customerId", customerId.toString());
@@ -719,7 +720,7 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         return metaData;
     }
 
-    private TbMsgMetaData getTbMsgMetaData(IntegrationInfo integration) {
+    private TbMsgMetaData getTbMsgMetaData(AbstractIntegration integration) {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("integrationId", integration.getId().toString());
         metaData.putValue("integrationName", integration.getName());
