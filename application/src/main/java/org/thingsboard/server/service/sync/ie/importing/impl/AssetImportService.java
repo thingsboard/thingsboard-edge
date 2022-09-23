@@ -56,6 +56,7 @@ public class AssetImportService extends BaseGroupEntityImportService<AssetId, As
 
     @Override
     protected Asset prepare(EntitiesImportCtx ctx, Asset asset, Asset old, GroupEntityExportData<Asset> exportData, IdProvider idProvider) {
+        asset.setAssetProfileId(idProvider.getInternalId(asset.getAssetProfileId()));
         return asset;
     }
 

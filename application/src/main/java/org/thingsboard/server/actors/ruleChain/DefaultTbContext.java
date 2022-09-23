@@ -40,6 +40,7 @@ import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
+import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -570,6 +571,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineDeviceProfileCache getDeviceProfileCache() {
         return mainCtx.getDeviceProfileCache();
+    }
+
+    @Override
+    public RuleEngineAssetProfileCache getAssetProfileCache() {
+        return mainCtx.getAssetProfileCache();
     }
 
     @Override

@@ -60,6 +60,7 @@ public enum Resource {
     OAUTH2_CONFIGURATION_TEMPLATE(),
     TENANT_PROFILE(EntityType.TENANT_PROFILE),
     DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
+    ASSET_PROFILE(EntityType.ASSET_PROFILE),
     CONVERTER(EntityType.CONVERTER),
     INTEGRATION(EntityType.INTEGRATION),
     SCHEDULER_EVENT(EntityType.SCHEDULER_EVENT),
@@ -116,6 +117,7 @@ public enum Resource {
                 Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_TELEMETRY,
                 Operation.CLAIM_DEVICES, Operation.CHANGE_OWNER, Operation.ASSIGN_TO_TENANT)));
         operationsByResource.put(Resource.DEVICE_PROFILE, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.ASSET_PROFILE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.OTA_PACKAGE, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.ASSET, Operation.defaultEntityOperations);
         operationsByResource.put(Resource.CUSTOMER, Operation.defaultEntityOperations);
@@ -174,6 +176,7 @@ public enum Resource {
                 Resource.ALARM,
                 Resource.DEVICE,
                 Resource.DEVICE_PROFILE,
+                Resource.ASSET_PROFILE,
                 Resource.API_USAGE_STATE,
                 Resource.ASSET,
                 Resource.ENTITY_VIEW,
@@ -231,7 +234,8 @@ public enum Resource {
                 Resource.GROUP_PERMISSION,
                 Resource.WHITE_LABELING,
                 Resource.AUDIT_LOG,
-                Resource.DEVICE_PROFILE)));
+                Resource.DEVICE_PROFILE,
+                Resource.ASSET_PROFILE)));
 
     }
 
