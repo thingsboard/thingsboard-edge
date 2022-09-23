@@ -58,7 +58,6 @@ export class GoogleMap extends LeafletMap {
         attributionControl: false,
         doubleClickZoom: !this.options.disableDoubleClickZooming,
         zoomControl: !this.options.disableZoomControl,
-        tap: L.Browser.safari && L.Browser.mobile,
         fadeAnimation: !ctx.reportService.reportView
       }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
       const tileLayer = (L.gridLayer as any).googleMutant({

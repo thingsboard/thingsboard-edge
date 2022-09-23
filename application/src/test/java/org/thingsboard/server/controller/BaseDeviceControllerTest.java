@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,6 +48,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
+import org.thingsboard.server.dao.device.DeviceDao;
 import org.thingsboard.server.dao.exception.DeviceCredentialsValidationException;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.gateway_device.GatewayNotificationsService;
@@ -95,6 +96,10 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
     @SpyBean
     private GatewayNotificationsService gatewayNotificationsService;
 
+    @SpyBean
+    private DeviceDao deviceDao;
+
+
     @Before
     public void beforeTest() throws Exception {
         executor = MoreExecutors.listeningDecorator(ThingsBoardExecutors.newWorkStealingPool(8, getClass()));
@@ -121,6 +126,8 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         executor.shutdownNow();
 
         loginSysAdmin();
+
+        afterTestEntityDaoRemoveByIdWithException (deviceDao);
 
         doDelete("/api/tenant/" + savedTenant.getId().getId())
                 .andExpect(status().isOk());
@@ -167,7 +174,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, ActionType.UPDATED, 1 , 2, 1);
+                ActionType.UPDATED, ActionType.UPDATED, 1 , 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
 
         Device foundDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
@@ -177,7 +184,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
     @Test
     public void saveDeviceWithViolationOfValidation() throws Exception {
         Device device = new Device();
-        device.setName(RandomStringUtils.randomAlphabetic(300));
+        device.setName(StringUtils.randomAlphabetic(300));
         device.setType("default");
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
@@ -194,7 +201,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         device.setTenantId(savedTenant.getId());
         msgError = msgErrorFieldLength("type");
-        device.setType(RandomStringUtils.randomAlphabetic(300));
+        device.setType(StringUtils.randomAlphabetic(300));
         doPost("/api/device", device)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -206,7 +213,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         msgError = msgErrorFieldLength("label");
         device.setType("Normal type");
-        device.setLabel(RandomStringUtils.randomAlphabetic(300));
+        device.setLabel(StringUtils.randomAlphabetic(300));
         doPost("/api/device", device)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -620,7 +627,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         futures = new ArrayList<>(143);
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -634,7 +641,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         futures = new ArrayList<>(75);
         for (int i = 0; i < 75; i++) {
             Device device = new Device();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -694,7 +701,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         futures = new ArrayList<>(143);
         for (int i = 0; i < 143; i++) {
             Device device = new Device();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -712,7 +719,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
         futures = new ArrayList<>(75);
         for (int i = 0; i < 75; i++) {
             Device device = new Device();
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2 + suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             device.setName(name);
@@ -848,5 +855,24 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
     protected void testNotificationDeleteGatewayNever() {
         Mockito.verify(gatewayNotificationsService, never()).onDeviceDeleted(Mockito.any(Device.class));
+    }
+
+    @Test
+    public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
+        DeviceId deviceId = createDevice("Device for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), deviceId, "/api/device/" + deviceId);
+    }
+
+    @Test
+    public void testDeleteDeviceExceptionWithRelationsTransactional() throws Exception {
+        DeviceId deviceId = createDevice("Device for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(deviceDao, savedTenant.getId(), deviceId, "/api/device/" + deviceId);
+    }
+
+    private Device createDevice(String name) {
+        Device device = new Device();
+        device.setName(name);
+        device.setType("default");
+        return doPost("/api/device", device, Device.class);
     }
 }

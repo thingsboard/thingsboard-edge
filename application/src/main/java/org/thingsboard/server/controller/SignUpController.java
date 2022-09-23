@@ -45,7 +45,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -226,9 +226,13 @@ public class SignUpController extends BaseController {
                 permission.setUserGroupId(usersEntityGroup.getId());
                 if (permission.getEntityGroupId() != null) {
                     EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
-                    permission.setEntityGroupType(entityGroup.getType());
+                    if (entityGroup != null) {
+                        permission.setEntityGroupType(entityGroup.getType());
+                        groupPermissionService.saveGroupPermission(tenantId, permission);
+                    }
+                } else {
+                    groupPermissionService.saveGroupPermission(tenantId, permission);
                 }
-                groupPermissionService.saveGroupPermission(tenantId, permission);
             }
 
             UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());

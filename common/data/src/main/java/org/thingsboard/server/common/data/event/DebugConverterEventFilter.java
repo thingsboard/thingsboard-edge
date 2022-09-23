@@ -31,7 +31,7 @@
 package org.thingsboard.server.common.data.event;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 @Data
 public class DebugConverterEventFilter extends DebugEventFilter {

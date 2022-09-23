@@ -33,12 +33,8 @@ package org.thingsboard.server.service.integration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.server.common.data.integration.Integration;
 
-import java.util.concurrent.Executor;
-
 public interface IntegrationContextProvider {
 
     IntegrationContext buildIntegrationContext(Integration configuration);
-
-    Executor getCallbackExecutor();
 
 }

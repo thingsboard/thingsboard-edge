@@ -31,7 +31,8 @@
 
 -->
 <div class="tb-two-factor-auth-login-content mat-app-background tb-dark" fxLayout="row" fxLayoutAlign="center center"
-     style="width: 100%;">
+     [ngClass]="{'dark-foreground': wl.loginDarkForeground$ | async}"
+     [ngStyle]="{width: '100%', backgroundColor: wl.loginPageBackgroundColor$ | async}">
   <mat-card fxFlex="initial" class="tb-two-factor-auth-login-card" >
     <mat-card-title class="mat-headline" fxLayout="row" fxLayoutAlign="start center">
       <button mat-icon-button type="button" (click)="cancelLogin()">

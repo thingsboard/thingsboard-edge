@@ -36,11 +36,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -53,6 +50,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
@@ -105,14 +103,9 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
-import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.TbQueueProducer;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
@@ -151,7 +144,6 @@ import org.thingsboard.server.service.solutions.data.solution.SolutionTemplateLe
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateDetails;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInfo;
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
-import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
@@ -936,8 +928,8 @@ public class DefaultSolutionService implements SolutionService {
                 i++;
             }
         }
-        String firstName = RandomStringUtils.randomAlphanumeric(5);
-        String lastName = RandomStringUtils.randomAlphanumeric(5);
+        String firstName = StringUtils.randomAlphanumeric(5);
+        String lastName = StringUtils.randomAlphanumeric(5);
         return new RandomNameData(firstName, lastName, firstName + "." + lastName + "@thingsboard.io");
     }
 
@@ -959,7 +951,7 @@ public class DefaultSolutionService implements SolutionService {
                         .replace("$customerLastName", customer.getLastName())
                         .replace("$customerEmail", customer.getEmail());
             }
-            return result.replace("$random", RandomStringUtils.randomAlphanumeric(10).toLowerCase());
+            return result.replace("$random", StringUtils.randomAlphanumeric(10).toLowerCase());
         }
     }
 
