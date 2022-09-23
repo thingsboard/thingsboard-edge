@@ -45,9 +45,10 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processConverterToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+    public DownlinkMsg processConverterToEdge(EdgeEvent edgeEvent) {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_UPDATED_RPC_MESSAGE:
                 Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);

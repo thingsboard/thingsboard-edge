@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -53,7 +54,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg processWhiteLabelingToEdge(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
@@ -109,7 +110,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg processLoginWhiteLabelingToEdge(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
@@ -165,7 +166,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg processCustomTranslationToEdge(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {

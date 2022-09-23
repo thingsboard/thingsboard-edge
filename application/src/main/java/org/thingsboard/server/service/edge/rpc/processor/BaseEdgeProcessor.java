@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -40,12 +39,10 @@ import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -74,12 +71,13 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
@@ -91,6 +89,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructo
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceProfileMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.EdgeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityGroupMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityViewMsgConstructor;
@@ -117,9 +116,7 @@ import java.util.List;
 @Slf4j
 public abstract class BaseEdgeProcessor {
 
-    protected static final ObjectMapper mapper = new ObjectMapper();
-
-    protected static final int DEFAULT_PAGE_SIZE = 1000;
+    protected static final int DEFAULT_PAGE_SIZE = 100;
 
     @Autowired
     protected RuleChainService ruleChainService;
@@ -196,6 +193,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DataValidator<Device> deviceValidator;
+
+    @Autowired
+    protected EdgeMsgConstructor edgeMsgConstructor;
 
     @Autowired
     protected EntityDataMsgConstructor entityDataMsgConstructor;
@@ -328,14 +328,6 @@ public abstract class BaseEdgeProcessor {
         }, dbCallbackExecutorService);
     }
 
-    protected CustomerId getCustomerIdIfEdgeAssignedToCustomer(HasCustomerId hasCustomerIdEntity, Edge edge) {
-        if (!edge.getCustomerId().isNullUid() && edge.getCustomerId().equals(hasCustomerIdEntity.getCustomerId())) {
-            return edge.getCustomerId();
-        } else {
-            return null;
-        }
-    }
-
     protected ListenableFuture<Void> processActionForAllEdges(TenantId tenantId, EdgeEventType type, EdgeEventActionType actionType, EntityId entityId) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
@@ -370,5 +362,30 @@ public abstract class BaseEdgeProcessor {
             }
         } while (pageData != null && pageData.hasNext());
         return futures;
+    }
+
+    protected UpdateMsgType getUpdateMsgType(EdgeEventActionType actionType) {
+        switch (actionType) {
+            case UPDATED:
+            case CREDENTIALS_UPDATED:
+                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
+            case ADDED:
+            case ADDED_TO_ENTITY_GROUP:
+            case ASSIGNED_TO_EDGE:
+            case RELATION_ADD_OR_UPDATE:
+                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
+            case DELETED:
+            case UNASSIGNED_FROM_EDGE:
+            case RELATION_DELETED:
+            case REMOVED_FROM_ENTITY_GROUP:
+            case CHANGE_OWNER:
+                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
+            case ALARM_ACK:
+                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
+            case ALARM_CLEAR:
+                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
+            default:
+                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        }
     }
 }

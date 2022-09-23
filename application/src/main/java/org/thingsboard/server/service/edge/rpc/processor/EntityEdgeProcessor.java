@@ -73,14 +73,12 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
         if (EdgeEventType.DEVICE.equals(edgeEvent.getType())) {
             DeviceId deviceId = new DeviceId(edgeEvent.getEntityId());
             Device device = deviceService.findDeviceById(edge.getTenantId(), deviceId);
-            // TODO: voba - fix this
-            // CustomerId customerId = getCustomerIdIfEdgeAssignedToCustomer(device, edge);
             String conflictName = null;
             if (edgeEvent.getBody() != null) {
                 conflictName = edgeEvent.getBody().get("conflictName").asText();
             }
             DeviceUpdateMsg deviceUpdateMsg = deviceMsgConstructor
-                    .constructDeviceUpdatedMsg(UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE, device, null, conflictName);
+                    .constructDeviceUpdatedMsg(UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE, device, conflictName);
             downlinkMsg = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                     .addDeviceUpdateMsg(deviceUpdateMsg)
@@ -222,6 +220,7 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
             case ADDED:
             case UPDATED:
             case DELETED:
+            case CREDENTIALS_UPDATED: // used by USER entity
                 return processActionForAllEdges(tenantId, type, actionType, entityId);
             default:
                 return Futures.immediateFuture(null);

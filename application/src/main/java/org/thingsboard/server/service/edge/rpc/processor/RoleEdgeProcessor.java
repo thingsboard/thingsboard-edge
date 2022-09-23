@@ -61,9 +61,10 @@ import java.util.UUID;
 @TbCoreComponent
 public class RoleEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processRoleToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+    public DownlinkMsg processRoleToEdge(EdgeEvent edgeEvent) {
         RoleId roleId = new RoleId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:

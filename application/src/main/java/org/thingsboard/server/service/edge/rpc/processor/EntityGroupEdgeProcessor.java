@@ -46,9 +46,10 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processEntityGroupToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+    public DownlinkMsg processEntityGroupToEdge(EdgeEvent edgeEvent) {
         EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:

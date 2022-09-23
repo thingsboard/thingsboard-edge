@@ -46,9 +46,10 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processSchedulerEventToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+    public DownlinkMsg processSchedulerEventToEdge(EdgeEvent edgeEvent) {
         SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:

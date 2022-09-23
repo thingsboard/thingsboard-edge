@@ -31,16 +31,13 @@
 package org.thingsboard.server.service.edge.rpc;
 
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.CustomerEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.IntegrationEventsEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.OwnerEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.OtaPackagesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.QueuesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.RuleChainsEdgeEventFetcher;
@@ -61,15 +58,14 @@ public class EdgeSyncCursor {
 
     int currentIdx = 0;
 
-    public EdgeSyncCursor(EdgeContextComponent ctx, Edge edge) {
+    public EdgeSyncCursor(EdgeContextComponent ctx) {
         fetchers.add(new QueuesEdgeEventFetcher(ctx.getQueueService()));
         fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
         fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
         fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
-        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-            fetchers.add(new OwnerEdgeEventFetcher());
-            fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
-        }
+        fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService()));
+        // TODO: @voba
+//        fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
         fetchers.add(new SysAdminRolesEdgeEventFetcher(ctx.getRoleService()));
         fetchers.add(new TenantRolesEdgeEventFetcher(ctx.getRoleService()));
         fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));

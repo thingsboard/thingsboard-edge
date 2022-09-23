@@ -55,7 +55,6 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RelationEdgeProcessor;
@@ -80,9 +79,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private TbClusterService clusterService;
-
-    @Autowired
-    private EdgeProcessor edgeProcessor;
 
     @Autowired
     private EntityEdgeProcessor entityProcessor;
@@ -149,23 +145,21 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
             ListenableFuture<Void> future;
             switch (type) {
                 case EDGE:
-                    future = edgeProcessor.processEdgeNotification(tenantId, edgeNotificationMsg);
-                    break;
-                case USER:
                 case ASSET:
                 case DEVICE:
-                case DEVICE_PROFILE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
-                case CUSTOMER:
                 case RULE_CHAIN:
-                case OTA_PACKAGE:
                 case SCHEDULER_EVENT:
                 case ENTITY_GROUP:
                 case INTEGRATION:
                 case CONVERTER:
                     future = entityProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
+                case USER:
+                case CUSTOMER:
+                case DEVICE_PROFILE:
+                case OTA_PACKAGE:
                 case WIDGETS_BUNDLE:
                 case WIDGET_TYPE:
                 case QUEUE:

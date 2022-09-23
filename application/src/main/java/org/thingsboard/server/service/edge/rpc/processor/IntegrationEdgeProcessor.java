@@ -53,9 +53,10 @@ import java.util.Set;
 @TbCoreComponent
 public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processIntegrationToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+    public DownlinkMsg processIntegrationToEdge(EdgeEvent edgeEvent) {
         IntegrationId integrationId = new IntegrationId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:

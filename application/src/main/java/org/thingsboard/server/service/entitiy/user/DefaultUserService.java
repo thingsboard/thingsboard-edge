@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -52,7 +51,6 @@ import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 import static org.thingsboard.server.controller.UserController.ACTIVATE_URL_PATTERN;
 
@@ -117,10 +115,9 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
         UserId userId = tbUser.getId();
 
         try {
-            List<EdgeId> relatedEdgeIds = findRelatedEdgeIds(tenantId, userId);
             userService.deleteUser(tenantId, userId);
-            notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
-                    ActionType.DELETED, relatedEdgeIds, user, userId.toString());
+            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, userId, tbUser,
+                    user, ActionType.DELETED, true, null, customerId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
                     ActionType.DELETED, user, e, userId.toString());

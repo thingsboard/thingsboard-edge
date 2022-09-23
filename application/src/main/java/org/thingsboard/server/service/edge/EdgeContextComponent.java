@@ -39,6 +39,7 @@ import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
@@ -57,6 +58,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
+import org.thingsboard.server.service.edge.rpc.constructor.EdgeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
@@ -65,6 +67,7 @@ import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceProfileEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityViewEdgeProcessor;
@@ -128,6 +131,9 @@ public class EdgeContextComponent {
     private ActorService actorService;
 
     @Autowired
+    private CustomerService customerService;
+
+    @Autowired
     private WidgetsBundleService widgetsBundleService;
 
     @Autowired
@@ -144,6 +150,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private DeviceProfileEdgeProcessor deviceProfileProcessor;
+
+    @Autowired
+    private EdgeProcessor edgeProcessor;
 
     @Autowired
     private DeviceEdgeProcessor deviceProcessor;
@@ -189,6 +198,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private QueueEdgeProcessor queueEdgeProcessor;
+
+    @Autowired
+    private EdgeMsgConstructor edgeMsgConstructor;
 
     @Autowired
     private EdgeEventStorageSettings edgeEventStorageSettings;
