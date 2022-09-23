@@ -30,12 +30,14 @@
  */
 package org.thingsboard.server.service.entitiy.integration;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -69,12 +71,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @TbCoreComponent
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DefaultTbIntegrationService extends AbstractTbEntityService implements TbIntegrationService {
 
     private static final String INTEGRATION_STATUS_KEY_PREFIX = "integration_status_";
-
     private static final String MONOLITH = "monolith";
+    private static final int DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    @Value("${integrations.statistics.enabled}")
+    private boolean statisticsEnabled;
 
     private final IntegrationService integrationService;
     private final TbServiceInfoProvider serviceInfoProvider;
@@ -92,7 +97,10 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
                 ObjectNode status = JacksonUtil.newObjectNode();
                 status.put("success", true);
                 integration.setStatus(status);
+                integration.setStats(JacksonUtil.OBJECT_MAPPER.createArrayNode());
             });
+            response.setResult(new ResponseEntity<>(pageData, HttpStatus.OK));
+            return;
         }
 
         List<ListenableFuture<Void>> futures = new ArrayList<>(integrationInfos.size());
@@ -104,6 +112,14 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
                 } else {
                     futures.add(setIntegrationStatus(integrationInfo));
                 }
+            }
+
+            if (statisticsEnabled) {
+                long startTs = System.currentTimeMillis() - DAY_IN_MS;
+                ArrayNode stats = integrationService.findIntegrationStats(integrationInfo.getTenantId(), integrationInfo.getId(), startTs);
+                integrationInfo.setStats(stats);
+            } else {
+                integrationInfo.setStats(JacksonUtil.OBJECT_MAPPER.createArrayNode());
             }
         }
 

@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.dao.sql.integration;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -45,6 +47,7 @@ import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -81,5 +84,11 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
                         Objects.toString(pageLink.getTextSearch(), ""),
                         isEdgeTemplate,
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public ArrayNode getIntegrationStats(UUID tenantId, UUID integrationId, long startTs) {
+        Optional<String> optional = Optional.ofNullable(integrationInfoRepository.getIntegrationStats(tenantId, integrationId, startTs));
+        return optional.map(str -> JacksonUtil.fromString(str, ArrayNode.class)).orElse(JacksonUtil.OBJECT_MAPPER.createArrayNode());
     }
 }

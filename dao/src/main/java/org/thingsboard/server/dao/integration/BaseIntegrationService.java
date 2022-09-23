@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.integration;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,6 +157,14 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
         return integrationInfoDao.findByTenantIdAndIsEdgeTemplate(tenantId.getId(), pageLink, isEdgeTemplate);
+    }
+
+    @Override
+    public ArrayNode findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs) {
+        log.trace("Executing findIntegrationStats, tenantId [{}], integrationId [{}], startTs [{}]", tenantId, integrationId, startTs);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, INCORRECT_INTEGRATION_ID + integrationId);
+        return integrationInfoDao.getIntegrationStats(tenantId.getId(), integrationId.getId(), startTs);
     }
 
     @Override

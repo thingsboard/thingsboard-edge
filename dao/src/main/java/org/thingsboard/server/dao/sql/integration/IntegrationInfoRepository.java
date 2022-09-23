@@ -36,7 +36,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 
 import java.util.List;
@@ -54,7 +53,16 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
             "AND a.edgeTemplate = :isEdgeTemplate " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationInfoEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
-                                                            @Param("searchText") String searchText,
-                                                            @Param("isEdgeTemplate") boolean isEdgeTemplate,
-                                                            Pageable pageable);
+                                                                @Param("searchText") String searchText,
+                                                                @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                                Pageable pageable);
+
+    @Query(value = "SELECT cast(json_agg(element) as varchar) FROM " +
+            "(SELECT SUM(se.e_messages_processed + se.e_errors_occurred) element " +
+            "FROM stats_event se WHERE se.tenant_id = :tenantId " +
+            "AND se.entity_id = :integrationId AND ts >= :startTs " +
+            "GROUP BY ts / 3600000 ORDER BY ts / 3600000) stats", nativeQuery = true)
+    String getIntegrationStats(@Param("tenantId") UUID tenantId,
+                    @Param("integrationId") UUID integrationId,
+                    @Param("startTs") long startTs);
 }
