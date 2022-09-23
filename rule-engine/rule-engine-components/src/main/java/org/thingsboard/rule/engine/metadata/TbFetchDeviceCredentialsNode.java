@@ -108,10 +108,4 @@ public class TbFetchDeviceCredentialsNode implements TbNode {
         }
         ctx.tellSuccess(transformedMsg);
     }
-
-    @Override
-    public void destroy() {
-    }
-
 }
-
