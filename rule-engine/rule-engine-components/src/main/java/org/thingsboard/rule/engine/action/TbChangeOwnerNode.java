@@ -97,6 +97,9 @@ public class TbChangeOwnerNode implements TbNode {
 
     @Override
     public void destroy() {
+        if (ownerIdCache != null) {
+            ownerIdCache.invalidateAll();
+        }
     }
 
     private void processChangeOwner(TbContext ctx, TbMsg msg) {

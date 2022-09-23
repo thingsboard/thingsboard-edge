@@ -143,6 +143,7 @@ message TbEventProto {
   string uid = 3;
   string data = 4;
   string deviceName = 5;
+  bytes event = 6;
 }
 
 message IntegrationConfigurationProto {
@@ -284,10 +285,8 @@ message TbIntegrationEventProto {
   int64 tenantIdLSB = 3;
   int64 eventSourceIdMSB = 4;
   int64 eventSourceIdLSB = 5;
-  string type = 6;
-  string uid = 7;
-  string data = 8;
-  string deviceName = 9;
+  bytes event = 6;
+  string deviceName = 7;
 }
 
 message TbIntegrationTsDataProto {

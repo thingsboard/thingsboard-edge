@@ -123,8 +123,4 @@ public class TbChangeOriginatorNode extends TbAbstractTransformNode {
 
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

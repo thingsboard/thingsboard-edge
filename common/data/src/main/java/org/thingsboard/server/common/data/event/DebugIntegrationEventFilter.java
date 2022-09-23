@@ -45,7 +45,7 @@ public class DebugIntegrationEventFilter extends DebugEventFilter {
     private String status;
 
     @Override
-    public boolean hasFilterForJsonBody() {
-        return super.hasFilterForJsonBody() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(message) || !StringUtils.isEmpty(status);
+    public boolean isNotEmpty() {
+        return super.isNotEmpty() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(message) || !StringUtils.isEmpty(status);
     }
 }

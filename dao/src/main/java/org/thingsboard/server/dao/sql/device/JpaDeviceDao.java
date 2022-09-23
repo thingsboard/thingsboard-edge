@@ -37,11 +37,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -69,6 +70,9 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
 
     @Autowired
     private DeviceRepository deviceRepository;
+
+    @Autowired
+    private NativeDeviceRepository nativeDeviceRepository;
 
     @Override
     protected Class<DeviceEntity> getEntityClass() {
@@ -136,6 +140,16 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                         type,
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public List<Device> findDevicesByIds(List<UUID> deviceIds) {
+        return DaoUtil.convertDataList(deviceRepository.findDevicesByIdIn(deviceIds));
+    }
+
+    @Override
+    public ListenableFuture<List<Device>> findDevicesByIdsAsync(List<UUID> deviceIds) {
+        return service.submit(() -> findDevicesByIds(deviceIds));
     }
 
     @Override
@@ -282,6 +296,12 @@ public class JpaDeviceDao extends JpaAbstractSearchTextDao<DeviceEntity, Device>
                 () -> deviceRepository.countByDeviceProfileIdAndFirmwareIdIsNull(tenantId, deviceProfileId),
                 () -> deviceRepository.countByDeviceProfileIdAndSoftwareIdIsNull(tenantId, deviceProfileId),
                 type);
+    }
+
+    @Override
+    public PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink) {
+        log.debug("Try to find tenant device id infos by pageLink [{}]", pageLink);
+        return nativeDeviceRepository.findDeviceIdInfos(DaoUtil.toPageable(pageLink));
     }
 
     @Override

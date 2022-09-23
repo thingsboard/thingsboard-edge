@@ -62,6 +62,7 @@ import moment from 'moment';
 import { IModulesMap } from '@modules/common/modules-map.models';
 import { HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
 import { widgetSettingsComponentsMap } from '@home/components/widget/lib/settings/widget-settings.module';
+import { ReportService } from '@core/http/report.service';
 
 const tinycolor = tinycolor_;
 
@@ -88,7 +89,8 @@ export class WidgetComponentService {
               private widgetService: WidgetService,
               private utils: UtilsService,
               private resources: ResourcesService,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private reportService: ReportService) {
 
     this.cssParser.testMode = false;
 
@@ -206,6 +208,9 @@ export class WidgetComponentService {
           ];
           forkJoin(loadDefaultWidgetInfoTasks).subscribe(
             () => {
+              if (this.reportService.reportView) {
+                this.reportService.openReportSubject.subscribe(() => this.clearWidgetInfoInMemoryCache());
+              }
               initSubject.next();
             },
             (e) => {
@@ -555,6 +560,9 @@ export class WidgetComponentService {
       if (isUndefined(result.typeParameters.stateData)) {
         result.typeParameters.stateData = false;
       }
+      if (isUndefined(result.typeParameters.processNoDataByWidget)) {
+        result.typeParameters.processNoDataByWidget = false;
+      }
       if (isFunction(widgetTypeInstance.actionSources)) {
         result.actionSources = widgetTypeInstance.actionSources();
       } else {
@@ -600,6 +608,10 @@ export class WidgetComponentService {
   }
 
   // Cache functions
+
+  private clearWidgetInfoInMemoryCache() {
+    this.widgetsInfoInMemoryCache.clear();
+  }
 
   private createWidgetInfoCacheKey(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): string {
     return `${isSystem ? 'sys_' : ''}${bundleAlias}_${widgetTypeAlias}`;

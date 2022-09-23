@@ -50,7 +50,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.support.HttpRequestWrapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -69,7 +69,7 @@ import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -1483,7 +1483,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }).getBody();
     }
 
-    public PageData<Event> getEvents(EntityId entityId, String eventType, TenantId tenantId, TimePageLink pageLink) {
+    public PageData<EventInfo> getEvents(EntityId entityId, String eventType, TenantId tenantId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("entityType", entityId.getEntityType().name());
         params.put("entityId", entityId.getId().toString());
@@ -1495,12 +1495,12 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + getTimeUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<PageData<Event>>() {
+                new ParameterizedTypeReference<PageData<EventInfo>>() {
                 },
                 params).getBody();
     }
 
-    public PageData<Event> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
+    public PageData<EventInfo> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("entityType", entityId.getEntityType().name());
         params.put("entityId", entityId.getId().toString());
@@ -1511,7 +1511,7 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/events/{entityType}/{entityId}?tenantId={tenantId}&" + getTimeUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<PageData<Event>>() {
+                new ParameterizedTypeReference<PageData<EventInfo>>() {
                 }, params).getBody();
     }
 

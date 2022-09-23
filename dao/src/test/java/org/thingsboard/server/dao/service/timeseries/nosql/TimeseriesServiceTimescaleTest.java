@@ -28,14 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.event;
+package org.thingsboard.server.dao.service.timeseries.nosql;
 
-import io.swagger.annotations.ApiModel;
+import org.thingsboard.server.dao.service.DaoTimescaleTest;
+import org.thingsboard.server.dao.service.timeseries.BaseTimeseriesServiceTest;
 
-@ApiModel
-public class DebugRuleNodeEventFilter extends DebugRuleEngineEventFilter {
-    @Override
-    public EventType getEventType() {
-        return EventType.DEBUG_RULE_NODE;
-    }
+@DaoTimescaleTest
+public class TimeseriesServiceTimescaleTest extends BaseTimeseriesServiceTest {
 }

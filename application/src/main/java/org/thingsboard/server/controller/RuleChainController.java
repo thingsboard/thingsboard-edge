@@ -55,10 +55,10 @@ import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -85,7 +85,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.rule.TbRuleChainService;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -369,10 +368,10 @@ public class RuleChainController extends BaseController {
             RuleNodeId ruleNodeId = new RuleNodeId(toUUID(strRuleNodeId));
             checkRuleNode(ruleNodeId, Operation.READ);
             TenantId tenantId = getCurrentUser().getTenantId();
-            List<Event> events = eventService.findLatestEvents(tenantId, ruleNodeId, DataConstants.DEBUG_RULE_NODE, 2);
+            List<EventInfo> events = eventService.findLatestEvents(tenantId, ruleNodeId, EventType.DEBUG_RULE_NODE, 2);
             JsonNode result = null;
             if (events != null) {
-                for (Event event : events) {
+                for (EventInfo event : events) {
                     JsonNode body = event.getBody();
                     if (body.has("type") && body.get("type").asText().equals("IN")) {
                         result = body;

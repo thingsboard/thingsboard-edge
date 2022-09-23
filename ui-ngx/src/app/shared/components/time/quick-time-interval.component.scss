@@ -28,14 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.event;
+@import '../../../../scss/constants';
 
-import io.swagger.annotations.ApiModel;
+:host {
+  min-width: 355px;
 
-@ApiModel
-public class DebugRuleChainEventFilter extends DebugRuleEngineEventFilter {
-    @Override
-    public EventType getEventType() {
-        return EventType.DEBUG_RULE_CHAIN;
-    }
+  @media #{$mat-xs} {
+    min-width: 0;
+    width: 100%;
+  }
 }

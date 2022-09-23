@@ -60,7 +60,15 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -343,8 +351,8 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     public static EntityId fromRelativePath(String path) {
-        EntityType entityType = EntityType.valueOf(org.apache.commons.lang3.StringUtils.substringBefore(path, "/").toUpperCase());
-        String entityId = org.apache.commons.lang3.StringUtils.substringBetween(path, "/", ".json");
+        EntityType entityType = EntityType.valueOf(StringUtils.substringBefore(path, "/").toUpperCase());
+        String entityId = StringUtils.substringBetween(path, "/", ".json");
         return EntityIdFactory.getByTypeAndUuid(entityType, entityId);
     }
 }

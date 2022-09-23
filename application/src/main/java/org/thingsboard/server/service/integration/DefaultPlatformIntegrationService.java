@@ -39,12 +39,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
@@ -57,8 +56,9 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -67,7 +67,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
@@ -85,7 +84,6 @@ import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.common.util.KvProtoUtil;
-import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -121,7 +119,6 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -400,29 +397,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
-            Event event = new Event();
+            Event event = FSTUtils.decode(proto.getEvent().toByteArray());
             event.setTenantId(tenantId);
-            event.setEntityId(entityId);
-            event.setType(proto.getType());
-            event.setUid(proto.getUid());
-            event.setBody(mapper.readTree(proto.getData()));
+            event.setEntityId(entityId.getId());
             DonAsynchron.withCallback(eventService.saveAsync(event), callback::onSuccess, callback::onError);
-        } catch (IOException e) {
-            log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
-            callback.onError(e);
         } catch (Exception t) {
-            ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
-            if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("event_unq_key")) {
-                /* Catch exception to avoid endless loop in case:
-                ERROR o.h.e.jdbc.spi.SqlExceptionHelper - ERROR: duplicate key value violates unique constraint "event_unq_key"
-                Detail: Key (tenant_id, entity_type, entity_id, event_type, event_uid)=(XXX, INTEGRATION, YYY, LC_EVENT, ZZZ) already exists.
-                 */
-                log.error("[{}] Failed to save event!", proto.getData(), e);
-                callback.onSuccess(null);
-            } else {
-                callback.onError(t);
-                throw t;
-            }
+            log.error("[{}][{}][{}] Failed to save event!", tenantId, entityId, proto.getEvent(), t);
+            callback.onError(t);
+            throw t;
         }
     }
 

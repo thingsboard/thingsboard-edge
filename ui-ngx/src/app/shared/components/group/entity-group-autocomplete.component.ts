@@ -80,10 +80,10 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
   }
 
   @Input()
-  set ownerId(value: EntityId) {
+  set ownerId(value: EntityId | null) {
     if (!isEqual(this.ownerIdValue, value)) {
       const currentEntityGroup = this.getCurrentEntityGroup();
-      const keepEntityGroup = currentEntityGroup && currentEntityGroup.ownerId?.id === value.id;
+      const keepEntityGroup = currentEntityGroup?.ownerId?.id === value?.id || currentEntityGroup === null;
       this.reset(keepEntityGroup);
     }
     this.ownerIdValue = value;
