@@ -54,4 +54,6 @@ public interface EntityQueryRepository {
     <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(TenantId tenantId, CustomerId customerId, EntityType entityType,
                                                                               String type, List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile);
 
+    PageData<EntityData> findEntityDataByQueryInternal(EntityDataQuery query);
+
 }

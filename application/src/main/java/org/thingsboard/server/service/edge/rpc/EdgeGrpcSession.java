@@ -231,6 +231,7 @@ public final class EdgeGrpcSession implements Closeable {
                 @Override
                 public void onSuccess(Void result) {
                     syncCompleted = true;
+                    ctx.getClusterService().onEdgeEventUpdate(edge.getTenantId(), edge.getId());
                 }
 
                 @Override

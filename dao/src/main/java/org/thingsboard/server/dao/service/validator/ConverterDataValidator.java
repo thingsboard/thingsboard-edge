@@ -33,8 +33,8 @@ package org.thingsboard.server.dao.service.validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -87,7 +87,7 @@ public class ConverterDataValidator extends DataValidator<Converter> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, Converter converter) {
-        if (org.springframework.util.StringUtils.isEmpty(converter.getType())) {
+        if (converter.getType() == null) {
             throw new DataValidationException("Converter type should be specified!");
         }
         if (StringUtils.isEmpty(converter.getName())) {

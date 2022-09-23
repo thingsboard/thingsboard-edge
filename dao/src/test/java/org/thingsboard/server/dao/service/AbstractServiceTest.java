@@ -34,7 +34,6 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
@@ -54,6 +53,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
@@ -316,9 +316,9 @@ public abstract class AbstractServiceTest {
         edge.setTenantId(tenantId);
         edge.setName(name);
         edge.setType(type);
-        edge.setSecret(RandomStringUtils.randomAlphanumeric(20));
-        edge.setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
-        edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setSecret(StringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(StringUtils.randomAlphanumeric(20));
+        edge.setEdgeLicenseKey(StringUtils.randomAlphanumeric(20));
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;
     }

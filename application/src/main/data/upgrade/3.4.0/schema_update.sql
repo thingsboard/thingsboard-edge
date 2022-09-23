@@ -348,3 +348,21 @@ BEGIN
     ON CONFLICT DO NOTHING;
 END
 $$;
+
+UPDATE tb_user
+    SET additional_info = REPLACE(additional_info, '"lang":"ja_JA"', '"lang":"ja_JP"')
+    WHERE additional_info LIKE '%"lang":"ja_JA"%';
+
+UPDATE admin_settings
+    SET json_value = REPLACE(json_value, '"ja_JA"', '"ja_JP"')
+    WHERE key='customTranslation' AND json_value LIKE '%"ja_JA"%';
+
+UPDATE attribute_kv
+    SET str_v = REPLACE(str_v, '"ja_JA"', '"ja_JP"')
+    WHERE entity_type='TENANT' AND entity_id in (select id from tenant) AND
+        attribute_type='SERVER_SCOPE' AND attribute_key='customTranslation' AND str_v LIKE '%"ja_JA"%';
+
+UPDATE attribute_kv
+    SET str_v = REPLACE(str_v, '"ja_JA"', '"ja_JP"')
+    WHERE entity_type='CUSTOMER' AND entity_id in (select id from customer) AND
+        attribute_type='SERVER_SCOPE' AND attribute_key='customTranslation' AND str_v LIKE '%"ja_JA"%';

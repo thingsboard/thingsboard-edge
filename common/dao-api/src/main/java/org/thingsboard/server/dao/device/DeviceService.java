@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -75,7 +76,13 @@ public interface DeviceService {
 
     PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
+    PageData<DeviceIdInfo> findDeviceIdInfos(PageLink pageLink);
+
     ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds);
+
+    List<Device> findDevicesByIds(List<DeviceId> deviceIds);
+
+    ListenableFuture<List<Device>> findDevicesByIdsAsync(List<DeviceId> deviceIds);
 
     void deleteDevicesByTenantId(TenantId tenantId);
 

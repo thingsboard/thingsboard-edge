@@ -719,7 +719,7 @@ export class ImportExportService {
           if (item.Timestamp) {
             item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
           }
-          sheet.addRow(item).eachCell((cell) => {
+          sheet.addRow(item).eachCell({ includeEmpty: true }, cell => {
             cell.border = cellBorderStyle;
           });
         });
