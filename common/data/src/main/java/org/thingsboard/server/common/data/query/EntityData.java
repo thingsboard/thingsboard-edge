@@ -31,11 +31,13 @@
 package org.thingsboard.server.common.data.query;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.Map;
 
 @Data
+@RequiredArgsConstructor
 public class EntityData {
 
     private final EntityId entityId;
@@ -43,5 +45,9 @@ public class EntityData {
     private final boolean readTs;
     private final Map<EntityKeyType, Map<String, TsValue>> latest;
     private final Map<String, TsValue[]> timeseries;
+    private final Map<Integer, ComparisonTsValue> aggLatest;
 
+    public EntityData(EntityId entityId, boolean readAttrs, boolean readTs, Map<EntityKeyType, Map<String, TsValue>> latest, Map<String, TsValue[]> timeseries) {
+        this(entityId, readAttrs, readTs, latest, timeseries, null);
+    }
 }

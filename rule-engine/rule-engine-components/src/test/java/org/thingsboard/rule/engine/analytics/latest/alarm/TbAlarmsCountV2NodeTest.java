@@ -158,6 +158,7 @@ public class TbAlarmsCountV2NodeTest {
         configuration.setCountAlarmsForPropagationEntities(false);
         configuration.setAlarmsCountMappings(getAlarmsCountMappings());
         configuration.setPropagationEntityTypes(Collections.emptyList());
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 
