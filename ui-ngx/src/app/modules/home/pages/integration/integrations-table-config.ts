@@ -141,7 +141,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
       }),
       new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-rate', '9%',
-        () => [5, 6, 2, 9, 4, 7, 10, 12, 12, 15, 11, 12, 2, 7, 8, 16, 1, 9, 2, 10, 4, 7, 9, 3],
+        (integration) => integration.stats,
         () => ({
           chartRangeMin: '',
           chartRangeMax: '',

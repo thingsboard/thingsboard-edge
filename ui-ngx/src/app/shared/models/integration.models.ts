@@ -257,6 +257,7 @@ export interface Integration extends IntegrationBasic {
 
 export interface IntegrationInfo extends IntegrationBasic {
   status: IntegrationStatus;
+  stats: Array<number>;
 }
 
 export interface IntegrationStatus {
