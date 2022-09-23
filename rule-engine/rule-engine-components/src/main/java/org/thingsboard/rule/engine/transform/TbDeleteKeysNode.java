@@ -117,9 +117,4 @@ public class TbDeleteKeysNode implements TbNode {
     boolean checkKey(String key) {
         return patternKeys.stream().anyMatch(pattern -> pattern.matcher(key).matches());
     }
-
-    @Override
-    public void destroy() {
-
-    }
 }
