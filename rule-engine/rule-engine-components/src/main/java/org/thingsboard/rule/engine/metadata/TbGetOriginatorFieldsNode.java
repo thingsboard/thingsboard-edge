@@ -61,10 +61,12 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
 public class TbGetOriginatorFieldsNode implements TbNode {
 
     private TbGetOriginatorFieldsConfiguration config;
+    private boolean ignoreNullStrings;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         config = TbNodeUtils.convert(configuration, TbGetOriginatorFieldsConfiguration.class);
+        ignoreNullStrings = config.isIgnoreNullStrings();
     }
 
     @Override
@@ -84,7 +86,7 @@ public class TbGetOriginatorFieldsNode implements TbNode {
             return Futures.transform(EntitiesFieldsAsyncLoader.findAsync(ctx, entityId),
                     data -> {
                         config.getFieldsMapping().forEach((field, metaKey) -> {
-                            String val = data.getFieldValue(field);
+                            String val = data.getFieldValue(field, ignoreNullStrings);
                             if (val != null) {
                                 msg.getMetaData().putValue(metaKey, val);
                             }
@@ -95,8 +97,4 @@ public class TbGetOriginatorFieldsNode implements TbNode {
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

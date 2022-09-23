@@ -80,8 +80,4 @@ public class TbSendRestApiCallReplyNode implements TbNode {
         }
     }
 
-    @Override
-    public void destroy() {
-    }
-
 }
