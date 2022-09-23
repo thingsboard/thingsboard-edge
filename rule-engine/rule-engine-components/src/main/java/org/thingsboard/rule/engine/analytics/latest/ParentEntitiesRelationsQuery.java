@@ -55,9 +55,8 @@ public class ParentEntitiesRelationsQuery implements ParentEntitiesQuery {
                 entityId -> ctx.getPeContext().isLocalEntity(entityId));
         if (includeRootEntity) {
             return Futures.transform(parentEntities, entityIds -> {
-                List<EntityId> newEntityIds = new ArrayList<>();
-                newEntityIds.addAll(entityIds);
-                if (!newEntityIds.stream().anyMatch(entityId -> entityId.equals(rootEntityId))) {
+                List<EntityId> newEntityIds = new ArrayList<>(entityIds);
+                if (!newEntityIds.contains(rootEntityId)) {
                     newEntityIds.add(rootEntityId);
                 }
                 return newEntityIds;
