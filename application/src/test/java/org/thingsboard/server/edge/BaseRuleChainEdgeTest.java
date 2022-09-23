@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.edge;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Test;
@@ -151,8 +150,6 @@ abstract public class BaseRuleChainEdgeTest extends AbstractEdgeTest {
     private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
-
-        ObjectMapper mapper = new ObjectMapper();
 
         RuleNode ruleNode1 = new RuleNode();
         ruleNode1.setName("name1");
