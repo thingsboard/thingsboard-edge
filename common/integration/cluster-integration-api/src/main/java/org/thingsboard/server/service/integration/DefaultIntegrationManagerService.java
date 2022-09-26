@@ -712,41 +712,51 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         }
     }
 
-    private void updateIntegrationStateStatistics()  {
-        log.warn("State Integration Update Integration Statistics: all integrations [{}]", integrations.size());
-        List<IntegrationType> startSuccess = integrations.values().stream().filter(i ->
-                STARTED.equals(i.getCurrentState()) ||
-                        UPDATED.equals(i.getCurrentState()) ||
-                        ACTIVATED.equals(i.getCurrentState())
-        ).map(integrationState -> integrationState.getConfiguration().getType()).collect(Collectors.toList());
-        Map<String, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
+    private void updateIntegrationStateStatistics() {
+        if (statisticsEnabled) {
+            log.debug("All integrations: [{}]", integrations.size());
+            List<IntegrationType> startSuccess = integrations.values().stream().filter(i ->
+                    STARTED.equals(i.getCurrentState()) ||
+                            UPDATED.equals(i.getCurrentState()) ||
+                            ACTIVATED.equals(i.getCurrentState())
+            ).map(integrationState -> integrationState.getConfiguration().getType()).collect(Collectors.toList());
+            Map<String, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
 
-        List<IntegrationType> startFailed = integrations.values().stream().filter(i ->
-                FAILED.equals(i.getCurrentState())
-        ).map(integrationState -> integrationState.getConfiguration().getType()).collect(Collectors.toList());
-        Map<String, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
+            List<IntegrationType> startFailed = integrations.values().stream().filter(i ->
+                    FAILED.equals(i.getCurrentState())
+            ).map(integrationState -> integrationState.getConfiguration().getType()).collect(Collectors.toList());
+            Map<String, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
 
-        mapSuccess.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStartGaugeSuccess(s.getKey(), s.getValue().intValue()));
-        mapFailed.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStartGaugeFailed(s.getKey(), s.getValue().intValue()));
-    }
+            Map<String, Long> gaugesSuccess = integrationStatisticsService.getGaugesSuccess();
+            Map<String, Long> gaugesFailed = integrationStatisticsService.getGaugesFailed();
+            gaugesSuccess.entrySet().forEach(m -> mapSuccess.putIfAbsent(m.getKey(), 0L));
+            gaugesFailed.entrySet().forEach(m -> mapFailed.putIfAbsent(m.getKey(), 0L));
 
-
-    private void updateIntegrationProcessStatistics(IntegrationInfo integrationInfo, ComponentLifecycleEvent currentState) {
-        IntegrationType type = integrationInfo.getType();
-        if (FAILED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationStartCounterAddFailed(type.name());
-        } else if (STARTED.equals(currentState) || ACTIVATED.equals(currentState) || UPDATED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationStartCounterAddSuccess(type.name());
+            mapSuccess.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStateSuccessGauge(s.getKey(), s.getValue().intValue()));
+            mapFailed.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStateFailedGauge(s.getKey(), s.getValue().intValue()));
         }
     }
 
-    private void updateIntegrationProcessStatistics(IntegrationState state)  {
-        IntegrationType type =  state.getIntegration().getConfiguration().getType();
-        ComponentLifecycleEvent currentState = state.getCurrentState();
-        if (FAILED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationStartCounterAddFailed(type.name());
-        } else if (STARTED.equals(currentState) || ACTIVATED.equals(currentState) || UPDATED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationStartCounterAddSuccess(type.name());
+    private void updateIntegrationProcessStatistics(IntegrationInfo integrationInfo, ComponentLifecycleEvent currentState) {
+        if (statisticsEnabled) {
+            IntegrationType type = integrationInfo.getType();
+            if (FAILED.equals(currentState)) {
+                integrationStatisticsService.onIntegrationMsgsStateFailedCounterAdd(type.name());
+            } else if (STARTED.equals(currentState) || ACTIVATED.equals(currentState) || UPDATED.equals(currentState)) {
+                integrationStatisticsService.onIntegrationMsgsStateSuccessCounterAdd(type.name());
+            }
+        }
+    }
+
+    private void updateIntegrationProcessStatistics(IntegrationState state) {
+        if (statisticsEnabled) {
+            IntegrationType type = state.getIntegration().getConfiguration().getType();
+            ComponentLifecycleEvent currentState = state.getCurrentState();
+            if (FAILED.equals(currentState)) {
+                integrationStatisticsService.onIntegrationMsgsStateFailedCounterAdd(type.name());
+            } else if (STARTED.equals(currentState) || ACTIVATED.equals(currentState) || UPDATED.equals(currentState)) {
+                integrationStatisticsService.onIntegrationMsgsStateSuccessCounterAdd(type.name());
+            }
         }
     }
 

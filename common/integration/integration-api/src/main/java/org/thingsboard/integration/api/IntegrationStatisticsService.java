@@ -30,15 +30,17 @@
  */
 package org.thingsboard.integration.api;
 
+import java.util.Map;
+
 public interface IntegrationStatisticsService {
 
-    void onIntegrationStartCounterAddSuccess(String  integrationTypeName);
+    void onIntegrationMsgsStateSuccessCounterAdd(String  integrationTypeName);
 
-    void onIntegrationStartCounterAddFailed(String  integrationTypeName);
+    void onIntegrationMsgsStateFailedCounterAdd(String  integrationTypeName);
 
-    void onIntegrationStartGaugeSuccess(String  integrationTypeName, int cntIntegration);
+    void onIntegrationStateSuccessGauge(String  integrationTypeName, int cntIntegration);
 
-    void onIntegrationStartGaugeFailed(String  integrationTypeName, int cntIntegration);
+    void onIntegrationStateFailedGauge(String  integrationTypeName, int cntIntegration);
 
     void onIntegrationMsgsUplinkSuccess(String  integrationTypeName);
 
@@ -47,6 +49,10 @@ public interface IntegrationStatisticsService {
     void onIntegrationMsgsDownlinkSuccess(String  integrationTypeName);
 
     void onIntegrationMsgsDownlinkFailed (String  integrationTypeName);
+
+    Map getGaugesSuccess();
+
+    Map getGaugesFailed();
 
     void printStats();
 

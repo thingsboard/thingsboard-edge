@@ -39,10 +39,11 @@ import org.thingsboard.server.common.stats.DefaultCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -60,8 +61,8 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     private static final String PROCESS_STATE_SUCCESS = "success";
     private static final String PROCESS_STATE_FAILED = "failed";
 
-    private final Map<String, DefaultCounter> counters = new HashMap<>();
-    private final Map<String, AtomicLong> gauges = new HashMap<>();
+    private final Map<String, DefaultCounter> counters = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> gauges = new ConcurrentHashMap<>();
 
     private final StatsFactory statsFactory;
 
@@ -69,7 +70,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     private boolean statisticsEnabled;
 
     @Override
-    public void onIntegrationStartCounterAddSuccess(String integrationTypeName) {
+    public void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName) {
         if (statisticsEnabled) {
             try {
                 logMessagesCounterAdd(NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
@@ -80,7 +81,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationStartCounterAddFailed(String integrationTypeName) {
+    public void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName) {
         if (statisticsEnabled) {
             try {
                 logMessagesCounterAdd(NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
@@ -91,7 +92,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationStartGaugeSuccess(String integrationTypeName, int cntIntegration) {
+    public void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration) {
         if (statisticsEnabled) {
             try {
                 logMessagesGauge(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
@@ -102,7 +103,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
     }
 
     @Override
-    public void onIntegrationStartGaugeFailed(String integrationTypeName, int cntIntegration) {
+    public void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration) {
         if (statisticsEnabled) {
             try {
                 logMessagesGauge(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
@@ -140,7 +141,7 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
             try {
                 logMessagesCounterAdd(NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
-                log.error("onIntegrationMsgsDownlink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
+                log.error("Type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
         }
     }
@@ -151,9 +152,21 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
             try {
                 logMessagesCounterAdd(NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
             } catch (Exception e) {
-                log.error("onIntegrationMsgsDownlink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
+                log.error("Type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
             }
         }
+    }
+
+    @Override
+    public Map getGaugesSuccess() {
+        return gauges.entrySet().stream().filter(m -> m.getKey().contains(PROCESS_STATE_SUCCESS)).collect(
+                Collectors.toMap(m -> m.getKey().substring(m.getKey().indexOf(INTEGRATION_TYPE) + 5), m -> m.getValue()));
+    }
+
+    @Override
+    public Map getGaugesFailed() {
+        return gauges.entrySet().stream().filter(m -> m.getKey().contains(PROCESS_STATE_FAILED)).collect(
+                Collectors.toMap(m -> m.getKey().substring(m.getKey().indexOf(INTEGRATION_TYPE) + 5), m -> m.getValue()));
     }
 
     @Override
