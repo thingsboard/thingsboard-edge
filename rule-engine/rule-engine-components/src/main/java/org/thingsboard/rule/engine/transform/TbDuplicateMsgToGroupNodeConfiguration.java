@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.transform;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
 public class TbDuplicateMsgToGroupNodeConfiguration extends TbDuplicateMsgNodeConfiguration implements NodeConfiguration {
@@ -40,6 +41,7 @@ public class TbDuplicateMsgToGroupNodeConfiguration extends TbDuplicateMsgNodeCo
     private EntityGroupId entityGroupId;
 
     private boolean entityGroupIsMessageOriginator;
+    private EntityId groupOwnerId;
 
     @Override
     public TbDuplicateMsgToGroupNodeConfiguration defaultConfiguration() {

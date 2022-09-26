@@ -39,6 +39,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -144,6 +145,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         Assert.assertFalse(isIntegrationConnected(startTs, 1, 6000));
     }
 
+    @Ignore("TODO: fix the flaky test.")
     @Test
     public void testIntegrationReconnectAfterServerRestart() throws Exception {
         long startTs = System.currentTimeMillis();

@@ -96,8 +96,4 @@ public class TbMsgAttributesNode implements TbNode {
         );
     }
 
-    @Override
-    public void destroy() {
-    }
-
 }

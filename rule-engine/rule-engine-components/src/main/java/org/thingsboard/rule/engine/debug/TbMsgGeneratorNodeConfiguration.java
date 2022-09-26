@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.debug;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
 public class TbMsgGeneratorNodeConfiguration implements NodeConfiguration<TbMsgGeneratorNodeConfiguration> {
@@ -44,6 +45,8 @@ public class TbMsgGeneratorNodeConfiguration implements NodeConfiguration<TbMsgG
     private String originatorId;
     private EntityType originatorType;
     private String jsScript;
+    private EntityId groupOwnerId;
+    private EntityType groupType;
 
     @Override
     public TbMsgGeneratorNodeConfiguration defaultConfiguration() {

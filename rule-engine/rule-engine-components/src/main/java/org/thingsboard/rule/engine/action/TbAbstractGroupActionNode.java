@@ -113,6 +113,9 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
 
     @Override
     public void destroy() {
+        if (groupIdCache != null) {
+            groupIdCache.invalidateAll();
+        }
     }
 
     @Data
