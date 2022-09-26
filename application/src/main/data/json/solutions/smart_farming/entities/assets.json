@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Field 1",
+    "label": "Wheat",
+    "type": "SF_Field",
+    "group": "Smart Farming",
+    "attributes": {
+      "latitude": 37.7798425,
+      "longitude": -122.4251679,
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0
+    },
+    "relations": [
+    ]
+  },
+  {
+    "name": "Field 2",
+    "label": "Corn",
+    "type": "SF_Field",
+    "group": "Smart Farming",
+    "attributes": {
+      "latitude": 37.7798425,
+      "longitude": -122.4251679,
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0
+    },
+    "relations": [
+    ]
+  }
+]

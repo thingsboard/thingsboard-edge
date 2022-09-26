@@ -42,5 +42,15 @@
     "imageUrls": ["https://thingsboard.io/images/solutions/smart_retail/smart-retail-1.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-2.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-3.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-4.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-5.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-6.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-7.png"],
     "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
     "tenantAttributeKeys": []
+  },
+  {
+    "id": "smart_farming",
+    "title": "Smart Farming",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 10000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/smart_retail/smart-retail-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/smart_retail/smart-retail-1.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
   }
 ]

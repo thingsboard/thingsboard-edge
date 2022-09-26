@@ -1,0 +1,302 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "SF Soil Moisture",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 7,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 1356,
+          "layoutY": 139
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1358,
+          "layoutY": 66
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1028,
+          "layoutY": 154
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1358,
+          "layoutY": 228
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1357,
+          "layoutY": 289
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1356,
+          "layoutY": 352
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 743,
+          "layoutY": 152
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 296,
+          "layoutY": 151
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
+        "name": "Is Telemetry?",
+        "debugMode": true,
+        "configuration": {
+          "messageTypes": [
+            "POST_TELEMETRY_REQUEST"
+          ]
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 368,
+          "layoutY": 284
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode",
+        "name": "Fetch Moisture Thresholds",
+        "debugMode": true,
+        "configuration": {
+          "relationsQuery": {
+            "fetchLastLevelOnly": false,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "FieldToMoistureSensor",
+                "entityTypes": [
+                  "ASSET"
+                ]
+              }
+            ]
+          },
+          "telemetry": false,
+          "attrMapping": {
+            "maxMoistureThreshold": "maxMoistureThreshold",
+            "minMoistureThreshold": "minMoistureThreshold"
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 664,
+          "layoutY": 282
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "Improve Telemetry",
+        "debugMode": true,
+        "configuration": {
+          "jsScript": "if (msg.moisture >= metadata.maxMoistureThreshold){\n    msg.highMoisture = true;\n}\nif (msg.moisture < metadata.minMoistureThreshold){\n    msg.lowMoisture = true;\n}\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 633,
+          "layoutY": 462
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "To Field Asset",
+        "debugMode": true,
+        "configuration": {
+          "originatorSource": "RELATED",
+          "relationsQuery": {
+            "fetchLastLevelOnly": false,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "FieldToMoistureSensor",
+                "entityTypes": [
+                  "ASSET"
+                ]
+              }
+            ]
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 963,
+          "layoutY": 459
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Aggregate Avg",
+        "debugMode": true,
+        "configuration": {
+          "inputValueKey": "moisture",
+          "outputValueKey": "avgMoisture",
+          "mathFunction": "AVG",
+          "aggIntervalType": "HOUR",
+          "timeZoneId": "Europe/Kiev",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "MINUTES",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          },
+          "queueName": null
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 6,
+        "type": "False"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 8,
+        "type": "True"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 6,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 11,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 0,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}
