@@ -38,12 +38,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.microsoft.azure.sdk.iot.service.DeliveryAcknowledgement;
-import com.microsoft.azure.sdk.iot.service.FeedbackReceiver;
 import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
 import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -53,8 +52,6 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -76,7 +73,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
     private ServiceClient serviceClient;
     private EventHubConsumerAsyncClient receiver;
-    private FeedbackReceiver feedbackReceiver;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -87,10 +83,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
         if (downlinkConverter != null) {
             serviceClient = initServiceClient(clientConfiguration);
-            if(serviceClient != null) {
-                feedbackReceiver = serviceClient.getFeedbackReceiver();
-                feedbackReceiver.open();
-            }
         }
     }
 
@@ -106,7 +98,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             serviceClient.closeAsync();
         }
 
-        if(receiver != null) {
+        if (receiver != null) {
             receiver.close();
         }
     }
@@ -154,7 +146,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                 integration.getConfiguration().get("clientConfiguration"),
                 AzureEventHubClientConfiguration.class
         );
-        try(var consumerClient = buildConsumerClient(configuration)) {
+        try (var consumerClient = buildConsumerClient(configuration)) {
             checkConnection(consumerClient);
         }
     }
@@ -201,10 +193,14 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         for (Map.Entry<String, List<Message>> messageEntry : deviceIdToMessage.entrySet()) {
             for (Message message : messageEntry.getValue()) {
                 logEventHubDownlink(context, message, messageEntry.getKey(), message.getProperties().get("content-type"));
-                serviceClient.sendAsync(messageEntry.getKey(), message);
-                if(feedbackReceiver.receive() == null) {
-                    throw new ThingsboardException("Downlink not sent. Check for correct device Id or SAS credentials", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-                }
+                var future = serviceClient.sendAsync(messageEntry.getKey(), message);
+                future.whenComplete((r, ex) -> {
+                    if (ex != null) {
+                        log.debug("[{}][{}] Failed to send downlink [{}] due to: ", configuration.getId(), message.getTo(), message.getMessageId(), ex);
+                    } else {
+                        log.debug("[{}][{}] Sent downlink [{}] successfully.", configuration.getId(), message.getTo(), message.getMessageId());
+                    }
+                });
             }
         }
         return !deviceIdToMessage.isEmpty();

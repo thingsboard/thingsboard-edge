@@ -62,7 +62,6 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -218,7 +217,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, TbQueueCallback callback) {
-        if (tenantId.isNullUid()) {
+        if (tenantId == null || tenantId.isNullUid()) {
             if (entityId.getEntityType().equals(EntityType.TENANT)) {
                 tenantId = TenantId.fromUUID(entityId.getId());
             } else {
@@ -416,7 +415,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
         boolean toIntegrationExecutor = entityType.equals(EntityType.CONVERTER) || entityType.equals(EntityType.INTEGRATION);
 
-        if (toIntegrationExecutor) {
+        if (entityType.equals(EntityType.TENANT) || toIntegrationExecutor) {
             TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIeNfProducer = producerProvider.getTbIntegrationExecutorNotificationsMsgProducer();
             Set<String> tbIeServices = partitionService.getAllServiceIds(ServiceType.TB_INTEGRATION_EXECUTOR);
             for (String serviceId : tbIeServices) {

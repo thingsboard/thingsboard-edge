@@ -185,18 +185,6 @@ public class TestServer {
 
     }
 
-    public static void main(String[] args) throws Exception {
-        TestServer server = new TestServer();
-
-        server.startup().get();
-
-        final CompletableFuture<Void> future = new CompletableFuture<>();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> future.complete(null)));
-
-        future.get();
-    }
-
     private Set<EndpointConfiguration> createEndpointConfigurations(X509Certificate certificate) {
         Set<EndpointConfiguration> endpointConfigurations = new LinkedHashSet<>();
 

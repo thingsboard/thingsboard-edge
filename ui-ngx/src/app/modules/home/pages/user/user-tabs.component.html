@@ -49,6 +49,12 @@
                       [entityName]="entity.name">
   </tb-attribute-table>
 </mat-tab>
+<mat-tab *ngIf="entity"
+         label="{{ 'relation.relations' | translate }}" #relationsTab="matTab">
+  <tb-relation-table [readonly]="!(resource.USER | hasGenericPermission: operation.WRITE)"
+                     [active]="relationsTab.isActive"
+                     [entityId]="entity.id"></tb-relation-table>
+</mat-tab>
 <mat-tab *ngIf="entity && (resource.AUDIT_LOG | hasGenericPermission: operation.READ)"
          label="{{ 'audit-log.audit-logs' | translate }}" #auditLogsTab="matTab">
   <tb-audit-log-table [active]="auditLogsTab.isActive" [auditLogMode]="auditLogModes.USER" [userId]="entity.id" detailsMode="true"></tb-audit-log-table>

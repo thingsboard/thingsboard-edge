@@ -34,12 +34,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -141,7 +141,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         boolean isConnected = false;
         for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
             Thread.sleep(CONNECT_TIMEOUT_MS);
-            PageData<Event> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
+            PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
             if (events.getData().isEmpty()) continue;
             String event = events.getData().get(0).getBody().get("event").asText();
             String success = events.getData().get(0).getBody().get("success").asText();
@@ -175,7 +175,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         Integration integration = new Integration();
         JsonNode conf = mapper.readTree(CONFIG);
         integration.setConfiguration(conf);
-        integration.setName("HTTP INTEGRATION" + RandomStringUtils.randomAlphanumeric(7));
+        integration.setName("HTTP INTEGRATION" + StringUtils.randomAlphanumeric(7));
         integration.setType(IntegrationType.HTTP);
         integration.setRoutingKey(ROUTING_KEY);
         integration.setSecret(SECRET_KEY);

@@ -52,4 +52,6 @@ public interface TbIntegrationExecutorContextComponent {
     ScheduledExecutorService getScheduledExecutorService();
 
     ExecutorService getCallBackExecutorService();
+
+    ExecutorService getGeneralExecutorService();
 }

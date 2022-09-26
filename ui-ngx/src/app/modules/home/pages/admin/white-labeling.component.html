@@ -80,7 +80,7 @@
               [allowedImageMimeTypes]="faviconTypes"
               (imageSizeOverflow)="onFaviconSizeError()"
               (imageTypeError)="onFaviconTypeError()"
-              (imageTypeChanged)="whiteLabelingParams.favicon.type = $event"
+              (imageTypeChanged)="wlSettings.get('favicon').get('type').setValue($event)"
               (imageCleared)="onFaviconCleared()"
               formControlName="url"
             ></tb-image-input>

@@ -93,8 +93,4 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }
