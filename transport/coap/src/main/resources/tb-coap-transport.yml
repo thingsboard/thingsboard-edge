@@ -112,7 +112,7 @@ transport:
     paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
     dtls:
       # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
-      retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS:9000}"
+      retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_MS:9000}"
   sessions:
     inactivity_timeout: "${TB_TRANSPORT_SESSIONS_INACTIVITY_TIMEOUT:300000}"
     report_timeout: "${TB_TRANSPORT_SESSIONS_REPORT_TIMEOUT:3000}"
