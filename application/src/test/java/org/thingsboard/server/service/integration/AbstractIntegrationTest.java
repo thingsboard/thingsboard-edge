@@ -43,6 +43,8 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.controller.AbstractControllerTest;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 public abstract class AbstractIntegrationTest extends AbstractControllerTest {
 
     @Autowired
@@ -87,9 +89,10 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         newIntegration.setConfiguration(integrationConfiguration);
         newIntegration.setDebugMode(true);
         newIntegration.setEnabled(true);
-        newIntegration.setAllowCreateDevicesOrAssets(true);
+        newIntegration.setAllowCreateDevicesOrAssets(false);
         integration = doPost("/api/integration", newIntegration, Integration.class);
         Assert.assertNotNull(integration);
+        disableIntegration();
     }
 
     public void enableIntegration() {
@@ -109,10 +112,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     }
 
     public void removeIntegration(Integration integration) throws Exception {
-        if (integration != null) {
-            MvcResult result = doDelete("/api/integration/" + integration.getId().getId().toString()).andReturn();
-            Assert.assertEquals(200, result.getResponse().getStatus());
-        }
+        doDelete("/api/integration/" + integration.getId().getId().toString()).andExpect(status().isOk());
     }
 
     protected abstract JsonNode createIntegrationClientConfiguration();
