@@ -53,7 +53,6 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
             Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
             autoCommit(user, savedCustomer.getId());
             createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
-            // TODO: @voba - notify edge that new customer was added
             return savedCustomer;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), customer, actionType, user, e);

@@ -35,6 +35,11 @@ import org.junit.Test;
 abstract public class BaseEdgeTest extends AbstractEdgeTest {
 
     @Test
+    public void testChangeOwnerOfCustomerFromTenantToCustomer() {
+
+    }
+
+    @Test
     public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() {
         // create customer
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge

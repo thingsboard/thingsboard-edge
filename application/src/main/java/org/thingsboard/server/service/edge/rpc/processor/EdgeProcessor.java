@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -59,16 +60,44 @@ import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Component
 @Slf4j
 @TbCoreComponent
 public class EdgeProcessor extends BaseEdgeProcessor {
+
+    private ConcurrentMap<CustomerId, Set<EdgeId>> customerHierarchyIdsToEdges = new ConcurrentHashMap<>();
+
+    @PostConstruct
+
+    public ListenableFuture<Void> processCustomerNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
+                new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        CustomerId customerId = new CustomerId(entityId.getId());
+        switch (actionType) {
+            case UPDATED:
+                customerHierarchyIdsToEdges.computeIfAbsent(customerId, customerId ->
+                        customerService.findCustomerById(entity.getTenantId(), customer.getCustomerId()))
+            case CHANGE_OWNER:
+                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
+            default:
+                return Futures.immediateFuture(null);
+        }
+    }
+
+    private Set<EdgeId> findEdgeIdsInCustomerHierarchy(CustomerId customerId) {
+
+    }
 
     public ListenableFuture<Void> processEdgeNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());

@@ -41,12 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -84,7 +80,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetBundleTypesRequestMsg;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
-import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.GeneralEdgeEventFetcher;
 
@@ -202,7 +197,7 @@ public final class EdgeGrpcSession implements Closeable {
     public void startSyncProcess(TenantId tenantId, EdgeId edgeId) {
         log.trace("[{}][{}] Staring edge sync process", tenantId, edgeId);
         syncCompleted = false;
-        doSync(new EdgeSyncCursor(ctx));
+        doSync(new EdgeSyncCursor(ctx, edge));
     }
 
     private void doSync(EdgeSyncCursor cursor) {
