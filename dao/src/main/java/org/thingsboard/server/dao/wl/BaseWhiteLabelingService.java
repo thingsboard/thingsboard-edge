@@ -284,7 +284,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {
-        if (validateDomain(loginWhiteLabelParams.getDomainName())) {
+        if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
 
