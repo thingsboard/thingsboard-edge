@@ -160,7 +160,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
-    public ArrayNode findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs) {
+    public ListenableFuture<ArrayNode> findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs) {
         log.trace("Executing findIntegrationStats, tenantId [{}], integrationId [{}], startTs [{}]", tenantId, integrationId, startTs);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(tenantId, INCORRECT_INTEGRATION_ID + integrationId);

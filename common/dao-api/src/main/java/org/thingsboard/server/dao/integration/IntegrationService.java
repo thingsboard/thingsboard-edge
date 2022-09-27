@@ -69,7 +69,7 @@ public interface IntegrationService {
 
     PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
-    ArrayNode findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs);
+    ListenableFuture<ArrayNode> findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 

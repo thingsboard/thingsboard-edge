@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.sql.integration;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -87,8 +88,9 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
     }
 
     @Override
-    public ArrayNode getIntegrationStats(UUID tenantId, UUID integrationId, long startTs) {
+    public ListenableFuture<ArrayNode> getIntegrationStats(UUID tenantId, UUID integrationId, long startTs) {
         Optional<String> optional = Optional.ofNullable(integrationInfoRepository.getIntegrationStats(tenantId, integrationId, startTs));
-        return optional.map(str -> JacksonUtil.fromString(str, ArrayNode.class)).orElse(JacksonUtil.OBJECT_MAPPER.createArrayNode());
+        return service.submit(() ->
+                optional.map(str -> JacksonUtil.fromString(str, ArrayNode.class)).orElse(JacksonUtil.OBJECT_MAPPER.createArrayNode()));
     }
 }

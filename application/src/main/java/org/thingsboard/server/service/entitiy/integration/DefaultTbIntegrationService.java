@@ -77,6 +77,7 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
     private static final String INTEGRATION_STATUS_KEY_PREFIX = "integration_status_";
     private static final String MONOLITH = "monolith";
     private static final int DAY_IN_MS = 24 * 60 * 60 * 1000;
+    private static final ArrayNode EMPTY_ARRAY = JacksonUtil.OBJECT_MAPPER.createArrayNode();
 
     @Value("${integrations.statistics.enabled}")
     private boolean statisticsEnabled;
@@ -97,13 +98,15 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
                 ObjectNode status = JacksonUtil.newObjectNode();
                 status.put("success", true);
                 integration.setStatus(status);
-                integration.setStats(JacksonUtil.OBJECT_MAPPER.createArrayNode());
+                integration.setStats(EMPTY_ARRAY);
             });
             response.setResult(new ResponseEntity<>(pageData, HttpStatus.OK));
             return;
         }
 
         List<ListenableFuture<Void>> futures = new ArrayList<>(integrationInfos.size());
+
+        long startTs = System.currentTimeMillis() - DAY_IN_MS;
 
         for (IntegrationInfo integrationInfo : integrationInfos) {
             if (integrationInfo.isEnabled()) {
@@ -115,11 +118,16 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
             }
 
             if (statisticsEnabled) {
-                long startTs = System.currentTimeMillis() - DAY_IN_MS;
-                ArrayNode stats = integrationService.findIntegrationStats(integrationInfo.getTenantId(), integrationInfo.getId(), startTs);
-                integrationInfo.setStats(stats);
+                ListenableFuture<ArrayNode> statsFuture =
+                        integrationService.findIntegrationStats(integrationInfo.getTenantId(), integrationInfo.getId(), startTs);
+
+                futures.add(Futures.transform(statsFuture, stats -> {
+                    integrationInfo.setStats(stats);
+                    return null;
+                }, dbCallbackExecutorService));
+
             } else {
-                integrationInfo.setStats(JacksonUtil.OBJECT_MAPPER.createArrayNode());
+                integrationInfo.setStats(EMPTY_ARRAY);
             }
         }
 
@@ -128,8 +136,7 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
                 error -> {
                     log.error("Failed to set integration status!", error);
                     AccessValidator.handleError(error, response, HttpStatus.INTERNAL_SERVER_ERROR);
-                },
-                dbCallbackExecutorService);
+                }, dbCallbackExecutorService);
     }
 
     private ListenableFuture<Void> setRemoteIntegrationStatus(IntegrationInfo integration) {

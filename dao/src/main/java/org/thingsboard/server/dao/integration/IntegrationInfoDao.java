@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.integration;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -50,5 +51,5 @@ public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
 
     PageData<IntegrationInfo> findByTenantIdAndIsEdgeTemplate(UUID tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
-    ArrayNode getIntegrationStats(UUID tenantId, UUID integrationId, long startTs);
+    ListenableFuture<ArrayNode> getIntegrationStats(UUID tenantId, UUID integrationId, long startTs);
 }
