@@ -179,6 +179,21 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
         return service.submit(() -> convertTenantAssetTypesToDto(tenantId, assetRepository.findTenantAssetTypes(tenantId)));
     }
 
+    @Override
+    public Long countAssetsByAssetProfileId(TenantId tenantId, UUID assetProfileId) {
+        return assetRepository.countByAssetProfileId(assetProfileId);
+    }
+
+    @Override
+    public PageData<Asset> findAssetsByTenantIdAndProfileId(UUID tenantId, UUID profileId, PageLink pageLink) {
+        return DaoUtil.toPageData(
+                assetRepository.findByTenantIdAndProfileId(
+                        tenantId,
+                        profileId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
     private List<EntitySubtype> convertTenantAssetTypesToDto(UUID tenantId, List<String> types) {
         List<EntitySubtype> list = Collections.emptyList();
         if (types != null && !types.isEmpty()) {

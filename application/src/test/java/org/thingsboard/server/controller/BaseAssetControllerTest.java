@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -214,6 +215,20 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testSaveAssetWithProfileFromDifferentTenant() throws Exception {
+        loginDifferentTenant();
+        AssetProfile differentProfile = createAssetProfile("Different profile");
+        differentProfile = doPost("/api/assetProfile", differentProfile, AssetProfile.class);
+
+        loginTenantAdmin();
+        Asset asset = new Asset();
+        asset.setName("My device");
+        asset.setAssetProfileId(differentProfile.getId());
+        doPost("/api/asset", asset).andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Asset can`t be referencing to asset profile from different tenant!")));
+    }
+
+    @Test
     public void testFindAssetById() throws Exception {
         Asset asset = new Asset();
         asset.setName("My asset");
@@ -336,16 +351,12 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        String msgError = "Asset type " + msgErrorShouldBeSpecified;
-        doPost("/api/asset", asset)
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString(msgError)));
+        Asset savedAsset = doPost("/api/asset", asset, Asset.class);
+        Assert.assertEquals("default", savedAsset.getType());
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError,
-                        ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
+        testNotifyEntityOneTimeMsgToEdgeServiceNever(savedAsset, savedAsset.getId(), savedAsset.getId(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED);
     }
 
     @Test
