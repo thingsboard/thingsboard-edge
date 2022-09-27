@@ -82,7 +82,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
     return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
-        type: [entity ? entity.type : null, [Validators.required, Validators.maxLength(255)]],
+        assetProfileId: [entity ? entity.assetProfileId : null, [Validators.required]],
         label: [entity ? entity.label : '', Validators.maxLength(255)],
         additionalInfo: this.fb.group(
           {
@@ -95,7 +95,7 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
 
   updateForm(entity: Asset) {
     this.entityForm.patchValue({name: entity.name});
-    this.entityForm.patchValue({type: entity.type});
+    this.entityForm.patchValue({assetProfileId: entity.assetProfileId});
     this.entityForm.patchValue({label: entity.label});
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
   }
@@ -110,5 +110,9 @@ export class AssetComponent extends GroupEntityComponent<Asset> {
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  onAssetProfileUpdated() {
+    this.entitiesTableConfig.updateData(false);
   }
 }

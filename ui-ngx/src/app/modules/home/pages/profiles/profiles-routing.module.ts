@@ -29,26 +29,38 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './alarm-id';
-export * from './asset-id';
-export * from './audit-log-id';
-export * from './customer-id';
-export * from './dashboard-id';
-export * from './device-credentials-id';
-export * from './device-id';
-export * from './device-profile-id';
-export * from './entity-id';
-export * from './entity-view-id';
-export * from './event-id';
-export * from './has-uuid';
-export * from './ota-package-id';
-export * from './rpc-id';
-export * from './rule-chain-id';
-export * from './rule-node-id';
-export * from './tenant-id';
-export * from './tenant-profile-id';
-export * from './user-id';
-export * from './widget-type-id';
-export * from './widgets-bundle-id';
-export * from './edge-id';
-export * from './asset-id';
+import { RouterModule, Routes } from '@angular/router';
+import { Authority } from '@shared/models/authority.enum';
+import { NgModule } from '@angular/core';
+import { deviceProfilesRoutes } from '@home/pages/device-profile/device-profile-routing.module';
+import { assetProfilesRoutes } from '@home/pages/asset-profile/asset-profile-routing.module';
+
+const routes: Routes = [
+  {
+    path: 'profiles',
+    data: {
+      auth: [Authority.TENANT_ADMIN],
+      breadcrumb: {
+        label: 'profiles.profiles',
+        icon: 'badge'
+      }
+    },
+    children: [
+      {
+        path: '',
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          redirectTo: '/profiles/deviceProfiles'
+        }
+      },
+      ...deviceProfilesRoutes,
+      ...assetProfilesRoutes
+    ]
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class ProfilesRoutingModule { }

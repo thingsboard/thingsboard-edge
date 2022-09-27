@@ -768,6 +768,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case INTEGRATION:
             case CONVERTER:
             case DEVICE_PROFILE:
+            case ASSET_PROFILE:
             case RULE_CHAIN:
             case SCHEDULER_EVENT:
             case TENANT:
