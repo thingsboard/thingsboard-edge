@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 import { Resolve, Router } from '@angular/router';
 import {
   checkBoxCell,
-  DateEntityTableColumn,
+  DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig,
   HeaderActionDescriptor
@@ -46,7 +46,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ImportExportService } from '@home/components/import-export/import-export.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { AssetProfile } from '@shared/models/asset.models';
+import { AssetProfile, TB_SERVICE_QUEUE } from '@shared/models/asset.models';
 import { AssetProfileService } from '@core/http/asset-profile.service';
 import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
 import { AssetProfileTabsComponent } from './asset-profile-tabs.component';
@@ -97,7 +97,8 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
         isEnabled: (assetProfile) => !assetProfile.default  &&
-          this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE),
+          this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE) &&
+          TB_SERVICE_QUEUE !== assetProfile.name,
         onAction: ($event, entity) => this.setDefaultAssetProfile($event, entity)
       }
     );
@@ -114,15 +115,18 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
     this.config.deleteEntity = id => this.assetProfileService.deleteAssetProfile(id.id);
     this.config.onEntityAction = action => this.onAssetProfileAction(action);
     this.config.deleteEnabled = (assetProfile) => assetProfile && !assetProfile.default &&
-      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE);
+      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE) && TB_SERVICE_QUEUE !== assetProfile.name;
     this.config.entitySelectionEnabled = (assetProfile) => assetProfile && !assetProfile.default &&
-      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE);
+      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE) && TB_SERVICE_QUEUE !== assetProfile.name;
+    this.config.detailsReadonly = (assetProfile) =>
+      !this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE)
+      || assetProfile && TB_SERVICE_QUEUE === assetProfile.name;
     this.config.addActionDescriptors = this.configureAddActions();
   }
 
   resolve(): EntityTableConfig<AssetProfile> {
     this.config.tableTitle = this.translate.instant('asset-profile.asset-profiles');
-
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 
