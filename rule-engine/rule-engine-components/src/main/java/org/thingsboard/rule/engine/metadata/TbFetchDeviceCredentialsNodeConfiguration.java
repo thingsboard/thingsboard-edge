@@ -28,27 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.rule.engine.metadata;
 
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-public interface DeviceCredentialsService {
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class TbFetchDeviceCredentialsNodeConfiguration implements NodeConfiguration<TbFetchDeviceCredentialsNodeConfiguration> {
 
-    DeviceCredentials findDeviceCredentialsByDeviceId(TenantId tenantId, DeviceId deviceId);
+    private boolean fetchToMetadata;
 
-    DeviceCredentials findDeviceCredentialsByCredentialsId(String credentialsId);
-
-    DeviceCredentials updateDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials);
-
-    DeviceCredentials createDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials);
-
-    void formatCredentials(DeviceCredentials deviceCredentials);
-
-    JsonNode toCredentialsInfo(DeviceCredentials deviceCredentials);
-
-    void deleteDeviceCredentials(TenantId tenantId, DeviceCredentials deviceCredentials);
-
+    @Override
+    public TbFetchDeviceCredentialsNodeConfiguration defaultConfiguration() {
+        TbFetchDeviceCredentialsNodeConfiguration configuration = new TbFetchDeviceCredentialsNodeConfiguration();
+        configuration.setFetchToMetadata(true);
+        return configuration;
+    }
 }
