@@ -35,7 +35,73 @@ import org.junit.Test;
 abstract public class BaseEdgeTest extends AbstractEdgeTest {
 
     @Test
-    public void changeOwnerToCustomer() {
-
+    public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() {
+        // create customer
+        // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
+        // validate tenant groups on edge
+        // change owner from tenant to customer
+        // validate that customer was created on edge
+        // validate that tenant groups are still on edge
+        // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
+        // validate customer groups on edge
+        // change owner to tenant
+        // validate that customer entity group were deleted from edge
+        // validate that customer was deleted from edge
+        // remove tenant entity groups
+        // validate no tenant groups on edge
+        // remove customer
     }
+
+    @Test
+    public void testChangeOwner_fromTenantToChildCustomer_andFromChildCustomerToTenant() {
+        // create customer
+        // create child customer (sub customer)
+        // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
+        // validate tenant groups on edge
+        // change owner from tenant to child customer
+        // validate that customer and sub customer were created on edge
+        // validate that tenant groups are still on edge
+        // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
+        // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
+        // validate customer groups on edge
+        // validate sub customer groups on edge
+        // change owner to tenant
+        // validate that customer and sub customer entity groups were deleted from edge
+        // validate that customer and sub customer were deleted from edge
+        // remove tenant entity groups
+        // validate no tenant groups on edge
+        // remove sub customer
+        // remove customer
+    }
+
+    @Test
+    public void testChangeOwner_fromParentCustomerToChildCustomer_andFromChildCustomerToParentCustomer() {
+        // create customer
+        // create child customer (sub customer)
+        // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
+        // change owner from tenant to parent customer
+        // validate that customer was created on edge
+        // validate that tenant groups are still on edge
+        // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
+        // validate customer groups on edge
+        // change owner to child customer
+        // validate that sub customer was created on edge
+        // validate that tenant groups are still on edge
+        // validate that customer groups are still on edge
+        // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
+        // validate sub customer groups on edge
+        // change owner to parent customer
+        // validate that tenant groups are still on edge
+        // validate that customer groups are still on edge
+        // validate that sub customer was deleted from edge
+        // validate that sub customer entity groups were deleted from edge
+        // change owner to tenant
+        // validate that customer was deleted from edge
+        // validate that customer entity group were deleted from edge
+        // remove tenant entity groups
+        // validate no tenant groups on edge
+        // remove sub customer
+        // remove customer
+    }
+
 }
