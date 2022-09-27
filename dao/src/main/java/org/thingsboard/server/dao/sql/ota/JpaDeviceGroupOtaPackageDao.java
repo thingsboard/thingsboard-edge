@@ -39,12 +39,14 @@ import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.DeviceGroupOtaPackageEntity;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.UUID;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@SqlDao
 public class JpaDeviceGroupOtaPackageDao implements DeviceGroupOtaPackageDao {
 
     private final DeviceGroupOtaPackageRepository deviceGroupOtaPackageRepository;

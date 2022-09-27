@@ -46,6 +46,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.dao.model.sql.EntityGroupEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
 
 
 @Component
+@SqlDao
 public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityGroup> implements EntityGroupDao {
 
     @Autowired
