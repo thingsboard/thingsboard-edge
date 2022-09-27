@@ -580,19 +580,6 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
-      sections.push(
-        {
-          id: guid(),
-          name: 'device-profile.device-profiles',
-          type: 'link',
-          path: '/deviceProfiles',
-          icon: 'mdi:alpha-d-box',
-          isMdiIcon: true,
-          disabled: disabledItems.indexOf('device_profiles') > -1
-        }
-      );
-    }
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ENTITY_VIEW) && disabledItems.indexOf('entity_view_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.ENTITY_VIEW));
     }
