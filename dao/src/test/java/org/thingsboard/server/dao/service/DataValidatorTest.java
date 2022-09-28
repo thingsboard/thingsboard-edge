@@ -16,7 +16,7 @@
 package org.thingsboard.server.dao.service;
 
 import org.junit.Test;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 
 public class DataValidatorTest {
 
