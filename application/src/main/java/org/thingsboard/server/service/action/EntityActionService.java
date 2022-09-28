@@ -263,22 +263,6 @@ public class EntityActionService {
         tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
-    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
-        if (kvEntry.getDataType() == DataType.BOOLEAN) {
-            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
-            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.LONG) {
-            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.JSON) {
-            if (kvEntry.getJsonValue().isPresent()) {
-                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
-            }
-        } else {
-            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
-        }
-    }
-
     public <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
                                                                            ActionType actionType, Exception e, Object... additionalInfo) {
         if (customerId == null || customerId.isNullUid()) {
