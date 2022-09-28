@@ -175,6 +175,8 @@ export class IntegrationComponent extends EntityComponent<Integration> implement
     if (entity && !entity.id) {
       form.get('routingKey').patchValue(guid(), { emitEvent: false });
       form.get('secret').patchValue(this.generateSecret(20), { emitEvent: false });
+    } else {
+      form.get('type').disable({emitEvent: false});
     }
   }
 
