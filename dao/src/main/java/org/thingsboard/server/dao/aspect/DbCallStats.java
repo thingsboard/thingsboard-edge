@@ -28,48 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.ota;
+package org.thingsboard.server.dao.aspect;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.OtaPackage;
+import lombok.Data;
+import org.springframework.data.util.Pair;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.sql.OtaPackageEntity;
-import org.thingsboard.server.dao.ota.OtaPackageDao;
-import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
-import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.UUID;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
-@Slf4j
-@Component
-@SqlDao
-public class JpaOtaPackageDao extends JpaAbstractSearchTextDao<OtaPackageEntity, OtaPackage> implements OtaPackageDao {
+@Data
+public class DbCallStats {
 
-    @Autowired
-    private OtaPackageRepository otaPackageRepository;
+    private final TenantId tenantId;
+    private final ConcurrentMap<String, MethodCallStats> methodStats = new ConcurrentHashMap<>();
+    private final AtomicInteger successCalls = new AtomicInteger();
+    private final AtomicInteger failureCalls = new AtomicInteger();
 
-    @Override
-    protected Class<OtaPackageEntity> getEntityClass() {
-        return OtaPackageEntity.class;
+    public void onMethodCall(String methodName, boolean success, long executionTime) {
+        var methodCallStats = methodStats.computeIfAbsent(methodName, m -> new MethodCallStats());
+        methodCallStats.getExecutions().incrementAndGet();
+        methodCallStats.getTiming().addAndGet(executionTime);
+        if (success) {
+            successCalls.incrementAndGet();
+        } else {
+            failureCalls.incrementAndGet();
+            methodCallStats.getFailures().incrementAndGet();
+        }
     }
 
-    @Override
-    protected JpaRepository<OtaPackageEntity, UUID> getRepository() {
-        return otaPackageRepository;
-    }
-
-    @Override
-    public Long sumDataSizeByTenantId(TenantId tenantId) {
-        return otaPackageRepository.sumDataSizeByTenantId(tenantId.getId());
-    }
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.OTA_PACKAGE;
+    public DbCallStatsSnapshot snapshot() {
+        return DbCallStatsSnapshot.builder()
+                .tenantId(tenantId)
+                .totalSuccess(successCalls.get())
+                .totalFailure(failureCalls.get())
+                .methodStats(methodStats.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().snapshot())))
+                .totalTiming(methodStats.values().stream().map(MethodCallStats::getTiming).map(AtomicLong::get).reduce(0L, Long::sum))
+                .build();
     }
 
 }
