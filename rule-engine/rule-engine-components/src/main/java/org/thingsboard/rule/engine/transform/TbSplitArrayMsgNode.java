@@ -30,63 +30,56 @@
  */
 package org.thingsboard.rule.engine.transform;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.api.EmptyNodeConfiguration;
+import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.RuleEngineException;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 
-import java.util.List;
+import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.common.util.DonAsynchron.withCallback;
-import static org.thingsboard.rule.engine.api.TbRelationTypes.FAILURE;
-
-/**
- * Created by ashvayka on 19.01.18.
- */
 @Slf4j
-public abstract class TbAbstractTransformNode implements TbNode {
+@RuleNode(
+        type = ComponentType.EXTERNAL,
+        name = "split array msg",
+        configClazz = EmptyNodeConfiguration.class,
+        nodeDescription = "Split array message into several msgs",
+        nodeDetails = "Split the array fetched from the msg body. If the msg data is not a JSON object returns the "
+                + "incoming message as outbound message with <code>Failure</code> chain, otherwise returns "
+                + "inner objects of the extracted array as separate messages via <code>Success</code> chain.",
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
+        icon = "content_copy",
+        configDirective = "tbNodeEmptyConfig"
+)
+public class TbSplitArrayMsgNode implements TbNode {
 
-    private TbTransformNodeConfiguration config;
+    private EmptyNodeConfiguration config;
 
     @Override
-    public void init(TbContext context, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbTransformNodeConfiguration.class);
+    public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        this.config = TbNodeUtils.convert(configuration, EmptyNodeConfiguration.class);
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) {
-        withCallback(transform(ctx, msg),
-                m -> transformSuccess(ctx, msg, m),
-                t -> transformFailure(ctx, msg, t),
-                MoreExecutors.directExecutor());
-    }
-
-    protected void transformFailure(TbContext ctx, TbMsg msg, Throwable t) {
-        ctx.tellFailure(msg, t);
-    }
-
-    protected void transformSuccess(TbContext ctx, TbMsg msg, TbMsg m) {
-        if (m != null) {
-            ctx.tellSuccess(m);
-        } else {
-            ctx.tellNext(msg, FAILURE);
-        }
-    }
-
-    protected void transformSuccess(TbContext ctx, TbMsg msg, List<TbMsg> msgs) {
-        if (msgs != null && !msgs.isEmpty()) {
-            if (msgs.size() == 1) {
-                ctx.tellSuccess(msgs.get(0));
+    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+        JsonNode jsonNode = JacksonUtil.toJsonNode(msg.getData());
+        if (jsonNode.isArray()) {
+            ArrayNode data = (ArrayNode) jsonNode;
+            if (data.size() == 1) {
+                ctx.tellSuccess(TbMsg.transformMsg(msg, msg.getType(), msg.getOriginator(), msg.getMetaData(), JacksonUtil.toString(data.get(0))));
             } else {
-                TbMsgCallbackWrapper wrapper = new MultipleTbMsgsCallbackWrapper(msgs.size(), new TbMsgCallback() {
+                TbMsgCallbackWrapper wrapper = new MultipleTbMsgsCallbackWrapper(data.size(), new TbMsgCallback() {
                     @Override
                     public void onSuccess() {
                         ctx.ack(msg);
@@ -97,16 +90,11 @@ public abstract class TbAbstractTransformNode implements TbNode {
                         ctx.tellFailure(msg, e);
                     }
                 });
-                msgs.forEach(newMsg -> ctx.enqueueForTellNext(newMsg, TbRelationTypes.SUCCESS, wrapper::onSuccess, wrapper::onFailure));
+                data.forEach(msgNode -> ctx.enqueueForTellNext(TbMsg.newMsg(msg.getQueueName(), msg.getType(), msg.getOriginator(), msg.getMetaData(), JacksonUtil.toString(msgNode)),
+                        TbRelationTypes.SUCCESS, wrapper::onSuccess, wrapper::onFailure));
             }
         } else {
-            ctx.tellNext(msg, FAILURE);
+            ctx.tellFailure(msg, new RuntimeException("Msg data is not a JSON Array!"));
         }
-    }
-
-    protected abstract ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg);
-
-    public void setConfig(TbTransformNodeConfiguration config) {
-        this.config = config;
     }
 }
