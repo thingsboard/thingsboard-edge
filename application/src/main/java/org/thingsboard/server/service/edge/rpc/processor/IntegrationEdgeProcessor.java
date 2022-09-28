@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.rpc.processor;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -39,10 +40,12 @@ import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
@@ -53,7 +56,7 @@ import java.util.Set;
 @TbCoreComponent
 public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processIntegrationToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertIntegrationEventToDownlink(EdgeEvent edgeEvent) {
         IntegrationId integrationId = new IntegrationId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -111,5 +114,9 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             log.warn(errMsg, e);
             return originalConfiguration;
         }
+    }
+
+    public ListenableFuture<Void> processIntegrationNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        return processEntityNotification(tenantId, edgeNotificationMsg);
     }
 }

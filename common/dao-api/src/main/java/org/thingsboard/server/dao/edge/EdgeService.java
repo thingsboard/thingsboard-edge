@@ -83,6 +83,8 @@ public interface EdgeService {
 
     void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId);
 
+    void assignCustomerAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, CustomerId parentCustomerId);
+
     PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 
     PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(TenantId tenantId, List<EntityId> entityIds, EntityType entityType, PageLink pageLink);

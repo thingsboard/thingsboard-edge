@@ -59,7 +59,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class CustomerEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processCustomerToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertCustomerEventToDownlink(EdgeEvent edgeEvent) {
         CustomerId customerId = new CustomerId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         switch (edgeEvent.getAction()) {
@@ -78,7 +78,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                 }
                 break;
             case DELETED:
-            case CHANGE_OWNER:
+//            case CHANGE_OWNER: TODO: @voba implement
                 CustomerUpdateMsg customerUpdateMsg =
                         customerMsgConstructor.constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()
@@ -99,8 +99,10 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
             case UPDATED:
                 List<EdgeId> edgesByCustomerId =
                         customersHierarchyEdgeService.findEdgesByCustomerId(tenantId, new CustomerId(entityId.getId()));
-                for (EdgeId edgeId : edgesByCustomerId) {
-                    saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                if (edgesByCustomerId != null) {
+                    for (EdgeId edgeId : edgesByCustomerId) {
+                        saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                    }
                 }
 //            case CHANGE_OWNER: TODO: @voba
 //                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);

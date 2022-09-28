@@ -20,15 +20,19 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @TbCoreComponent
 public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyEdgeService {
 
+    private static final CustomerId NULL_CUSTOMER_ID = new CustomerId(CustomerId.NULL_UUID);
+
     private final CustomerHierarchyNode root =
-            new CustomerHierarchyNode(new CustomerId(CustomerId.NULL_UUID), new ArrayList<>(), new ArrayList<>());
+            new CustomerHierarchyNode(NULL_CUSTOMER_ID, new ArrayList<>(), new ArrayList<>());
 
     @Autowired
     private CustomerService customerService;
@@ -51,8 +55,8 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
                 do {
                     edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, pageLink1);
                     for (Edge edge : edgesByTenantId.getData()) {
-                        List<CustomerId> customersHierarchy = getCustomersHierarchy(edge.getTenantId(), edge.getCustomerId());
-                        addEdgeToCustomersHierarchy(customersHierarchy, edge.getId(), root);
+                        List<CustomerId> customersHierarchyIds = getCustomersHierarchyIds(edge.getTenantId(), edge.getCustomerId());
+                        addEdgeToCustomersHierarchy(customersHierarchyIds, edge.getId(), root);
                     }
                     pageLink1 = pageLink1.nextPageLink();
                 } while (edgesByTenantId.hasNext());
@@ -62,11 +66,17 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
 
     }
 
-    private List<CustomerId> getCustomersHierarchy(TenantId tenantId, CustomerId customerId) {
-        List<CustomerId> result = new ArrayList<>();
-        result.add(customerId);
+    private List<CustomerId> getCustomersHierarchyIds(TenantId tenantId, CustomerId customerId) {
+        List<Customer> customersHierarchy = getCustomersHierarchy(tenantId, customerId);
+        return customersHierarchy.stream().map(Customer::getId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Customer> getCustomersHierarchy(TenantId tenantId, CustomerId customerId) {
+        List<Customer> result = new ArrayList<>();
         if (!customerId.isNullUid()) {
             Customer customerById = customerService.findCustomerById(tenantId, customerId);
+            result.add(customerById);
             if (customerById != null) {
                 CustomerId parentId = customerById.getParentCustomerId();
                 if (parentId != null) {
@@ -74,16 +84,16 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
                 }
             }
         }
+        Collections.reverse(result);
         return result;
     }
 
     private void addEdgeToCustomersHierarchy(List<CustomerId> customerIds, EdgeId edgeId, CustomerHierarchyNode node) {
-        if (customerIds.size() == 1) {
+        if (customerIds.isEmpty()) {
             node.getEdgeIds().add(edgeId);
             return;
         }
-        customerIds.remove(0);
-        CustomerId customerId = customerIds.get(0);
+        CustomerId customerId = customerIds.remove(0);
         CustomerHierarchyNode childNode = null;
         for (CustomerHierarchyNode tmpNode : node.getChildren()) {
             if (tmpNode.getCustomerId().equals(customerId)) {
@@ -124,7 +134,7 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
     public void processEdgeChangeOwner(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
         log.trace("Executing processEdgeChangeOwner [{}]", edgeId);
         if (previousOwnerId == null || EntityType.TENANT.equals(previousOwnerId.getEntityType())) {
-            previousOwnerId = new CustomerId(EntityId.NULL_UUID);
+            previousOwnerId = NULL_CUSTOMER_ID;
         }
         CustomerId previousCustomerId = new CustomerId(previousOwnerId.getId());
         List<EdgeId> edgeIds = findEdgesByCustomerIdInt(previousCustomerId, root);
@@ -133,8 +143,8 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
         }
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge != null) {
-            List<CustomerId> customersHierarchy = getCustomersHierarchy(edge.getTenantId(), edge.getCustomerId());
-            addEdgeToCustomersHierarchy(customersHierarchy, edge.getId(), root);
+            List<CustomerId> customersHierarchyIds = getCustomersHierarchyIds(edge.getTenantId(), edge.getCustomerId());
+            addEdgeToCustomersHierarchy(customersHierarchyIds, edge.getId(), root);
         }
     }
 

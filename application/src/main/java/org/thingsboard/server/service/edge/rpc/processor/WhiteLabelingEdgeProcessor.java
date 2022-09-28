@@ -51,7 +51,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processWhiteLabelingToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertWhiteLabelingEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
@@ -107,7 +107,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new WhiteLabelingParams().equals(whiteLabelingParams);
     }
 
-    public DownlinkMsg processLoginWhiteLabelingToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertLoginWhiteLabelingEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
@@ -163,7 +163,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new LoginWhiteLabelingParams().equals(loginWhiteLabelingParams);
     }
 
-    public DownlinkMsg processCustomTranslationToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
             EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);

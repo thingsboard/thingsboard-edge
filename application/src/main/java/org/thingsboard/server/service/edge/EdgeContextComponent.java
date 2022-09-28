@@ -46,13 +46,13 @@ import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
-import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -68,7 +68,6 @@ import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceProfileEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
-import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityViewEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsEdgeProcessor;
@@ -156,9 +155,6 @@ public class EdgeContextComponent {
 
     @Autowired
     private DeviceEdgeProcessor deviceProcessor;
-
-    @Autowired
-    private EntityEdgeProcessor entityProcessor;
 
     @Autowired
     private AssetEdgeProcessor assetProcessor;

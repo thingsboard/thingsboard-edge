@@ -1,5 +1,6 @@
 package org.thingsboard.server.service.edge.rpc;
 
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -12,5 +13,7 @@ public interface CustomersHierarchyEdgeService {
     List<EdgeId> findEdgesByCustomerId(TenantId tenantId, CustomerId customerId);
 
     void processEdgeChangeOwner(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId);
+
+    List<Customer> getCustomersHierarchy(TenantId tenantId, CustomerId customerId);
 
 }

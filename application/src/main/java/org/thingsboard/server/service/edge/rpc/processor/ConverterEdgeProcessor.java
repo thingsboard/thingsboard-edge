@@ -30,14 +30,17 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
@@ -45,7 +48,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class ConverterEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processConverterToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertConverterEventToDownlink(EdgeEvent edgeEvent) {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -61,5 +64,9 @@ public class ConverterEdgeProcessor extends BaseEdgeProcessor {
                 break;
         }
         return downlinkMsg;
+    }
+
+    public ListenableFuture<Void> processConverterNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        return processEntityNotification(tenantId, edgeNotificationMsg);
     }
 }

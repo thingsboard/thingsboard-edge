@@ -43,12 +43,17 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -78,6 +83,7 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
@@ -113,6 +119,7 @@ import org.thingsboard.server.service.state.DeviceStateService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 public abstract class BaseEdgeProcessor {
@@ -390,6 +397,133 @@ public abstract class BaseEdgeProcessor {
                 return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
             default:
                 throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        }
+    }
+
+    protected ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
+                new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        EdgeId edgeId = safeGetEdgeId(edgeNotificationMsg);
+        switch (actionType) {
+            case ADDED:
+            case UPDATED:
+            case CREDENTIALS_UPDATED:
+            case ADDED_TO_ENTITY_GROUP:
+            case REMOVED_FROM_ENTITY_GROUP:
+            case DELETED:
+                if (edgeId != null) {
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                } else {
+                    return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                }
+            case ASSIGNED_TO_EDGE:
+            case UNASSIGNED_FROM_EDGE:
+                ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                return Futures.transformAsync(future, unused -> {
+                    if (type.equals(EdgeEventType.RULE_CHAIN)) {
+                        return updateDependentRuleChains(tenantId, new RuleChainId(entityId.getId()), edgeId);
+                    } else {
+                        return Futures.immediateFuture(null);
+                    }
+                }, dbCallbackExecutorService);
+            case CHANGE_OWNER:
+                if (edgeId != null) {
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                } else {
+                    return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
+                }
+            default:
+                return Futures.immediateFuture(null);
+        }
+    }
+
+    private EdgeId safeGetEdgeId(TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        if (edgeNotificationMsg.getEdgeIdMSB() != 0 && edgeNotificationMsg.getEdgeIdLSB() != 0) {
+            return new EdgeId(new UUID(edgeNotificationMsg.getEdgeIdMSB(), edgeNotificationMsg.getEdgeIdLSB()));
+        } else {
+            return null;
+        }
+    }
+
+    private EntityGroupId constructEntityGroupId(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        if (edgeNotificationMsg.getEntityGroupIdMSB() != 0 && edgeNotificationMsg.getEntityGroupIdLSB() != 0) {
+            EntityGroupId entityGroupId = new EntityGroupId(new UUID(edgeNotificationMsg.getEntityGroupIdMSB(), edgeNotificationMsg.getEntityGroupIdLSB()));
+            EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+            if (entityGroup.isEdgeGroupAll()) {
+                return null;
+            } else {
+                return entityGroupId;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private ListenableFuture<Void> pushNotificationToAllRelatedEdges(TenantId tenantId, EntityId entityId, EdgeEventType type, EdgeEventActionType actionType, EntityGroupId entityGroupId) {
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<EdgeId> pageData;
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+        do {
+            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (EdgeId relatedEdgeId : pageData.getData()) {
+                    futures.add(saveEdgeEvent(tenantId, relatedEdgeId, type, actionType, entityId, null, entityGroupId));
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
+    private ListenableFuture<Void> updateDependentRuleChains(TenantId tenantId, RuleChainId processingRuleChainId, EdgeId edgeId) {
+        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+        PageData<RuleChain> pageData;
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+        do {
+            pageData = ruleChainService.findRuleChainsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
+                for (RuleChain ruleChain : pageData.getData()) {
+                    if (!ruleChain.getId().equals(processingRuleChainId)) {
+                        List<RuleChainConnectionInfo> connectionInfos =
+                                ruleChainService.loadRuleChainMetaData(ruleChain.getTenantId(), ruleChain.getId()).getRuleChainConnections();
+                        if (connectionInfos != null && !connectionInfos.isEmpty()) {
+                            for (RuleChainConnectionInfo connectionInfo : connectionInfos) {
+                                if (connectionInfo.getTargetRuleChainId().equals(processingRuleChainId)) {
+                                    futures.add(saveEdgeEvent(tenantId,
+                                            edgeId,
+                                            EdgeEventType.RULE_CHAIN_METADATA,
+                                            EdgeEventActionType.UPDATED,
+                                            ruleChain.getId(),
+                                            null));
+                                }
+                            }
+                        }
+                    }
+                }
+                if (pageData.hasNext()) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (pageData != null && pageData.hasNext());
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
+    protected ListenableFuture<Void> processEntityNotificationForAllEdges(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type, new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        switch (actionType) {
+            case ADDED:
+            case UPDATED:
+            case DELETED:
+            case CREDENTIALS_UPDATED: // used by USER entity
+                return processActionForAllEdges(tenantId, type, actionType, entityId);
+            default:
+                return Futures.immediateFuture(null);
         }
     }
 }
