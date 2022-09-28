@@ -125,8 +125,4 @@ public class TbTwilioSmsNode implements TbNode {
         }
     }
 
-    @Override
-    public void destroy() {
-    }
-
 }

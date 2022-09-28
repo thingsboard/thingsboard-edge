@@ -52,7 +52,6 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
                                      @Param("textSearch") String textSearch,
                                      Pageable pageable);
 
-
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId " +
             "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :textSearch, '%'))")
@@ -60,6 +59,14 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
                                                   @Param("customerId") UUID customerId,
                                                   @Param("textSearch") String textSearch,
                                                   Pageable pageable);
+
+    @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
+            "AND a.assetProfileId = :profileId " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<AssetEntity> findByTenantIdAndProfileId(@Param("tenantId") UUID tenantId,
+                                                 @Param("profileId") UUID profileId,
+                                                 @Param("searchText") String searchText,
+                                                 Pageable pageable);
 
     @Query("SELECT a FROM AssetEntity a, " +
             "RelationEntity re " +
@@ -122,6 +129,8 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
 
     @Query("SELECT DISTINCT a.type FROM AssetEntity a WHERE a.tenantId = :tenantId")
     List<String> findTenantAssetTypes(@Param("tenantId") UUID tenantId);
+
+    Long countByAssetProfileId(UUID assetProfileId);
 
     Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
 

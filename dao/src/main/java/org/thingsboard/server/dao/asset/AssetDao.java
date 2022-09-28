@@ -141,4 +141,16 @@ public interface AssetDao extends Dao<Asset>, TenantEntityDao, ExportableCustome
      * @return the list of tenant asset type objects
      */
     ListenableFuture<List<EntitySubtype>> findTenantAssetTypesAsync(UUID tenantId);
+
+    Long countAssetsByAssetProfileId(TenantId tenantId, UUID assetProfileId);
+
+    /**
+     * Find assets by tenantId, profileId and page link.
+     *
+     * @param tenantId the tenantId
+     * @param profileId the profileId
+     * @param pageLink the page link
+     * @return the list of device objects
+     */
+    PageData<Asset> findAssetsByTenantIdAndProfileId(UUID tenantId, UUID profileId, PageLink pageLink);
 }

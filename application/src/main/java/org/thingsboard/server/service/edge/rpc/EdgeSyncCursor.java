@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.AssetProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
@@ -66,6 +67,7 @@ public class EdgeSyncCursor {
         fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
         fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
         fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
+        fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
         if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
             fetchers.add(new OwnerEdgeEventFetcher());
             fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
