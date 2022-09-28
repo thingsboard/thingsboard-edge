@@ -41,7 +41,7 @@ public class DataValidatorTest {
         DataValidator.validateEmail(email);
     }
 
-    @Test(expected = DataValidationException.class)
+    @Test(expected =  DataValidationException.class)
     public void validateInvalidEmail1() {
         String email = "test:1@mail.io";
         DataValidator.validateEmail(email);
