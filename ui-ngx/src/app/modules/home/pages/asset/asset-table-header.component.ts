@@ -35,6 +35,7 @@ import { AppState } from '@core/core.state';
 import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
 import { EntityType } from '@shared/models/entity-type.models';
 import { Asset } from '@shared/models/asset.models';
+import { AssetProfileId } from '@shared/models/id/asset-profile-id';
 
 @Component({
   selector: 'tb-asset-table-header',
@@ -49,8 +50,8 @@ export class AssetTableHeaderComponent extends EntityTableHeaderComponent<Asset>
     super(store);
   }
 
-  assetTypeChanged(assetType: string) {
-    this.entitiesTableConfig.componentsData.assetType = assetType;
+  assetProfileChanged(assetProfileId: AssetProfileId) {
+    this.entitiesTableConfig.componentsData.assetProfileId = assetProfileId;
     this.entitiesTableConfig.getTable().resetSortAndFilter(true);
   }
 

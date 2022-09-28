@@ -162,6 +162,7 @@ export const HelpLinks = {
     users: helpBaseUrl + '/docs/pe/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/pe/user-guide/ui/devices',
     deviceProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/device-profiles',
+    assetProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/asset-profiles',
     edges: helpBaseUrl + '/docs/user-guide/ui/edges',
     assets: helpBaseUrl + '/docs/pe/user-guide/ui/assets',
     entityViews: helpBaseUrl + '/docs/pe/user-guide/ui/entity-views',
