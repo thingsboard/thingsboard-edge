@@ -46,7 +46,7 @@ public class DeviceDefinition extends CustomerEntityDefinition {
 
     @Override
     public EntityType getEntityType() {
-        return EntityType.ASSET;
+        return EntityType.DEVICE;
     }
 
 }

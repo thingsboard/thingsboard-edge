@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -49,12 +50,14 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.dashboard.DashboardDao;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -70,6 +73,9 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    @SpyBean
+    private DashboardDao dashboardDao;
 
     @Before
     public void beforeTest() throws Exception {
@@ -93,6 +99,8 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
+
+        afterTestEntityDaoRemoveByIdWithException (dashboardDao);
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
@@ -455,5 +463,23 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
 
         // Customer user must have access only to a shared dashboard
         Assert.assertEquals(1, customerUserDashboards.size());
+    }
+
+    @Test
+    public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
+        DashboardId dashboardId = createDashboard("Dashboard for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    @Test
+    public void testDeleteDashboardExceptionWithRelationsTransactional() throws Exception {
+        DashboardId dashboardId = createDashboard("Dashboard for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(dashboardDao, savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    private Dashboard createDashboard(String title) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(title);
+        return doPost("/api/dashboard", dashboard, Dashboard.class);
     }
 }

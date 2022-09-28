@@ -132,8 +132,4 @@ public class TbTwilioVoiceNode implements TbNode {
         }
     }
 
-    @Override
-    public void destroy() {
-    }
-
 }

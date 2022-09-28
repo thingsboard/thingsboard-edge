@@ -133,6 +133,7 @@ import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
+import { AggregationType } from '@shared/models/time/time.models';
 
 interface EntitiesTableWidgetSettings extends TableWidgetSettings {
   entitiesTitle: string;
@@ -460,7 +461,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         dataKey.label = this.utils.customTranslation(dataKey.label, dataKey.label);
         dataKey.title = dataKey.label;
         dataKey.def = 'def' + this.columns.length;
-        dataKey.sortable = !dataKey.usePostProcessing;
+        dataKey.sortable = !dataKey.usePostProcessing && (!dataKey.aggregationType || dataKey.aggregationType === AggregationType.NONE);
         const keySettings: TableWidgetDataKeySettings = dataKey.settings;
         if (dataKey.type === DataKeyType.entityField &&
           !isDefined(keySettings.columnWidth) || keySettings.columnWidth === '0px') {

@@ -38,7 +38,7 @@
       <div class="image-container" *ngIf="showPreview">
         <div class="image-content-container" [ngClass]="{'no-padding': disabled}">
           <div class="tb-image-preview-container">
-            <div *ngIf="!safeImageUrl; else elseBlock">{{ (disabled ? emptyImageText : noImageText) | translate }}</div>
+            <div *ngIf="!safeImageUrl; else elseBlock">{{ disabled ? emptyImageText : noImageText }}</div>
             <ng-template #elseBlock><img class="tb-image-preview" [src]="safeImageUrl" /></ng-template>
           </div>
           <div *ngIf="showClearButton && !disabled" class="tb-image-clear-container">

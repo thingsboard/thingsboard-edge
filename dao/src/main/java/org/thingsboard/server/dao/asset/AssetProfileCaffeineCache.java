@@ -28,15 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap;
+package org.thingsboard.server.dao.asset;
 
-import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 
-import java.util.List;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("AssetProfileCache")
+public class AssetProfileCaffeineCache extends CaffeineTbTransactionalCache<AssetProfileCacheKey, AssetProfile> {
 
-@Data
-public class LwM2MBootstrapServersConfiguration {
-
-    List<LwM2MBootstrapServerCredential> bootstrap;
+    public AssetProfileCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.ASSET_PROFILE_CACHE);
+    }
 
 }
