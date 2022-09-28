@@ -271,15 +271,22 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
                 baseUrl = systemParams.getBaseUrl();
             }
         } catch (Exception e) {
-            log.warn("Failed to fetch TenantLoginWhiteLabelingParams.");
+            log.warn("Failed to fetch SystemLoginWhiteLabelingParams.");
         }
 
-        if (baseUrl == null) {
-            AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
-            baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+        String sysDomainName;
+
+        if (baseUrl != null) {
+            sysDomainName = URI.create(baseUrl).getHost();
+            if (sysDomainName.equalsIgnoreCase(domainName)) {
+                return false;
+            }
         }
 
-        String sysDomainName = URI.create(baseUrl).getHost();
+        AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
+        baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+
+        sysDomainName = URI.create(baseUrl).getHost();
         return !sysDomainName.equalsIgnoreCase(domainName);
     }
 
