@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -50,8 +51,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -216,7 +215,7 @@ public class EntityActionService {
                         metaData.putValue(DataConstants.SCOPE, scope);
                         if (attributes != null) {
                             for (AttributeKvEntry attr : attributes) {
-                                addKvEntry(entityNode, attr);
+                                JacksonUtil.addKvEntry(entityNode, attr);
                             }
                         }
                     } else if (actionType == ActionType.ATTRIBUTES_DELETED) {
@@ -312,7 +311,7 @@ public class EntityActionService {
                 element.put("ts", entry.getKey());
                 ObjectNode values = element.putObject("values");
                 for (TsKvEntry tsKvEntry : entry.getValue()) {
-                    addKvEntry(values, tsKvEntry);
+                    JacksonUtil.addKvEntry(values, tsKvEntry);
                 }
                 result.add(element);
             }
