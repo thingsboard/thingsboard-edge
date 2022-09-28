@@ -89,8 +89,6 @@ abstract public class BaseRelationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(relationUpdateMsg.getTypeGroup(), relation.getTypeGroup().name());
     }
 
-
-
     @Test
     @Ignore
     public void testSendRelationToCloud() throws Exception {

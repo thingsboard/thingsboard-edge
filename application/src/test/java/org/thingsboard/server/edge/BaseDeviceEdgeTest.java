@@ -148,7 +148,6 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
     }
 
-
     @Test
     @Ignore
     public void testUpdateDeviceCredentials() throws Exception {
@@ -272,7 +271,6 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(edgeImitator.waitForResponses());
     }
 
-
     @Test
     @Ignore
     public void testSendDeviceCredentialsRequestToCloud() throws Exception {
@@ -313,7 +311,6 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         sendAttributesRequestAndVerify(device, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}",
                 "key2", "value2");
     }
-
 
     @Test
     @Ignore
@@ -499,7 +496,6 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(device);
         Assert.assertEquals("Edge Device 2", device.getName());
     }
-
 
     @Test
     @Ignore
