@@ -80,6 +80,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
+import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
@@ -299,6 +300,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected IntegrationProtoConstructor integrationProtoConstructor;
+
+    @Autowired
+    protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
 
     protected ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
                                EdgeId edgeId,

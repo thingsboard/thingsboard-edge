@@ -124,4 +124,9 @@ abstract public class BaseCustomerEdgeTest extends AbstractEdgeTest {
 //        Assert.assertEquals(customerUpdateMsg.getIdLSB(), savedCustomer.getUuidId().getLeastSignificantBits());
     }
 
+    @Test
+    public void testChangeOwnerOfCustomer_validateChangesToEdgeEntityGroups() {
+
+    }
+
 }

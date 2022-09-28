@@ -112,18 +112,21 @@ public class EntityEdgeProcessor extends BaseEdgeProcessor {
         switch (actionType) {
             case ADDED:
             case UPDATED:
-            case ADDED_TO_ENTITY_GROUP:
             case CREDENTIALS_UPDATED:
-                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
+            case ADDED_TO_ENTITY_GROUP:
+            case REMOVED_FROM_ENTITY_GROUP:
             case DELETED:
+                if (edgeId != null) {
+                    return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                } else {
+                    return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, constructEntityGroupId(tenantId, edgeNotificationMsg));
+                }
             case CHANGE_OWNER:
                 if (edgeId != null) {
                     return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
                 } else {
                     return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
                 }
-            case REMOVED_FROM_ENTITY_GROUP:
-                return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null, constructEntityGroupId(tenantId, edgeNotificationMsg));
             case ASSIGNED_TO_EDGE:
             case UNASSIGNED_FROM_EDGE:
                 ListenableFuture<Void> future = saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);

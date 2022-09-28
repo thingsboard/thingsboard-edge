@@ -55,6 +55,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EntityEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.GroupPermissionsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RelationEdgeProcessor;
@@ -88,6 +89,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private RelationEdgeProcessor relationProcessor;
+
+    @Autowired
+    private CustomerEdgeProcessor customerProcessor;
 
     private ExecutorService dbCallBackExecutor;
 
@@ -157,7 +161,6 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     future = entityProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                     break;
                 case USER:
-                case CUSTOMER:
                 case DEVICE_PROFILE:
                 case OTA_PACKAGE:
                 case WIDGETS_BUNDLE:
@@ -168,14 +171,17 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case ALARM:
                     future = alarmProcessor.processAlarmNotification(tenantId, edgeNotificationMsg);
                     break;
+                case RELATION:
+                    future = relationProcessor.processRelationNotification(tenantId, edgeNotificationMsg);
+                    break;
                 case ROLE:
                     future = roleProcessor.processRoleNotification(tenantId, edgeNotificationMsg);
                     break;
                 case GROUP_PERMISSION:
                     future = entityGroupProcessor.processGroupPermissionNotification(tenantId, edgeNotificationMsg);
                     break;
-                case RELATION:
-                    future = relationProcessor.processRelationNotification(tenantId, edgeNotificationMsg);
+                case CUSTOMER:
+                    future = customerProcessor.processCustomerNotification(tenantId, edgeNotificationMsg);
                     break;
                 default:
                     log.warn("Edge event type [{}] is not designed to be pushed to edge", type);
