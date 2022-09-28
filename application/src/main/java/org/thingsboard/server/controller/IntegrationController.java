@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -448,6 +449,32 @@ public class IntegrationController extends AutoCommitController {
         checkEdgeId(edgeId, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return checkNotNull(integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
+    }
+
+    @ApiOperation(value = "Get Edge Integrations (getEdgeIntegrationInfos)",
+            notes = "Returns a page of Integrations assigned to the specified edge. " + INTEGRATION_DESCRIPTION + PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/edge/{edgeId}/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
+    @ResponseBody
+    public PageData<IntegrationInfo> getEdgeIntegrationInfos(
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable(EDGE_ID) String strEdgeId,
+            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+            @RequestParam int pageSize,
+            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+            @RequestParam int page,
+            @ApiParam(value = INTEGRATION_TEXT_SEARCH_DESCRIPTION)
+            @RequestParam(required = false) String textSearch,
+            @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = INTEGRATION_SORT_PROPERTY_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortProperty,
+            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        checkParameter(EDGE_ID, strEdgeId);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+        checkEdgeId(edgeId, Operation.READ);
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return checkNotNull(tbIntegrationService.findIntegrationInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink));
     }
 
     @ApiOperation(value = "Find edge missing attributes for assigned integrations (findEdgeMissingAttributes)",

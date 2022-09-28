@@ -45,6 +45,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -137,6 +138,20 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
                     log.error("Failed to set integration status!", error);
                     AccessValidator.handleError(error, response, HttpStatus.INTERNAL_SERVER_ERROR);
                 }, dbCallbackExecutorService);
+    }
+
+    @Override
+    public PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+        PageData<IntegrationInfo> pageData = integrationService.findIntegrationInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
+
+        pageData.getData().forEach(integration -> {
+            ObjectNode status = JacksonUtil.newObjectNode();
+            status.put("success", true);
+            integration.setStatus(status);
+            integration.setStats(EMPTY_ARRAY);
+        });
+
+        return pageData;
     }
 
     private ListenableFuture<Void> setRemoteIntegrationStatus(IntegrationInfo integration) {

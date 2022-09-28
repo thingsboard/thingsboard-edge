@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 
 import java.util.List;
@@ -56,6 +57,15 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
                                                                 @Param("searchText") String searchText,
                                                                 @Param("isEdgeTemplate") boolean isEdgeTemplate,
                                                                 Pageable pageable);
+
+    @Query("SELECT ie FROM IntegrationInfoEntity ie, RelationEntity re WHERE ie.tenantId = :tenantId " +
+            "AND ie.id = re.toId AND re.toType = 'INTEGRATION' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
+            "AND LOWER(ie.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationInfoEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
+                                                    @Param("edgeId") UUID edgeId,
+                                                    @Param("searchText") String searchText,
+                                                    Pageable pageable);
 
     @Query(value = "SELECT cast(json_agg(element) as varchar) FROM " +
             "(SELECT SUM(se.e_messages_processed + se.e_errors_occurred) element " +

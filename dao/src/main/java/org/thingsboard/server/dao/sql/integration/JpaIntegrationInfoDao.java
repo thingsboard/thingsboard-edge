@@ -88,6 +88,17 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
     }
 
     @Override
+    public PageData<IntegrationInfo> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink) {
+        log.debug("Try to find integrations by tenantId [{}], edgeId [{}] and pageLink [{}]", tenantId, edgeId, pageLink);
+        return DaoUtil.toPageData(integrationInfoRepository
+                .findByTenantIdAndEdgeId(
+                        tenantId,
+                        edgeId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public ListenableFuture<ArrayNode> getIntegrationStats(UUID tenantId, UUID integrationId, long startTs) {
         Optional<String> optional = Optional.ofNullable(integrationInfoRepository.getIntegrationStats(tenantId, integrationId, startTs));
         return service.submit(() ->
