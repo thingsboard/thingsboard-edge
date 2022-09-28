@@ -179,6 +179,20 @@ public abstract class BaseIntegrationServiceTest extends AbstractBeforeTest {
         integrationService.saveIntegration(integration);
     }
 
+    @Test(expected = DataValidationException.class)
+    public void testUpdateIntegrationType() {
+        Integration integration = new Integration();
+        integration.setTenantId(tenantId);
+        integration.setDefaultConverterId(converterId);
+        integration.setName("My integration");
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+        integration.setType(IntegrationType.OCEANCONNECT);
+        integration.setConfiguration(INTEGRATION_CONFIGURATION);
+        Integration savedIntegration = integrationService.saveIntegration(integration);
+        savedIntegration.setType(IntegrationType.HTTP);
+        integrationService.saveIntegration(savedIntegration);
+    }
+
     @Test
     public void testFindIntegrationById() {
         Integration integration = new Integration();

@@ -112,6 +112,7 @@ public class ContainerTestSuite {
                         new File(targetDir + "advanced/docker-compose.postgres.volumes.yml"),
                         new File(targetDir + "docker-compose.integration.yml"),
                         new File(targetDir + "docker-compose.mosquitto.yml"),
+                        new File(targetDir + "docker-compose.opc-ua.yml"),
                         new File(targetDir + "advanced/docker-compose." + QUEUE_TYPE + ".yml"),
                         new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.yml" : "docker-compose.redis.yml")),
                         new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.volumes.yml" : "docker-compose.redis.volumes.yml"))
@@ -172,6 +173,9 @@ public class ContainerTestSuite {
                         .waitingFor("tb-mqtt-transport2", Wait.forLogMessage(TRANSPORTS_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-pe-mqtt-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-pe-http-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                        .waitingFor("tb-pe-tcp-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                        .waitingFor("tb-pe-udp-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
+                        .waitingFor("tb-pe-coap-integration", Wait.forLogMessage(INTEGRATION_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-integration-executor1", Wait.forLogMessage(TB_IE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-integration-executor2", Wait.forLogMessage(TB_IE_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))
                         .waitingFor("tb-vc-executor1", Wait.forLogMessage(TB_VC_LOG_REGEXP, 1).withStartupTimeout(CONTAINER_STARTUP_TIMEOUT))

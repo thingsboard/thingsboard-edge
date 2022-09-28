@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.dao.model.sql.DeviceProfileEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +56,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
+@SqlDao
 public class JpaDeviceProfileDao extends JpaAbstractSearchTextDao<DeviceProfileEntity, DeviceProfile> implements DeviceProfileDao {
 
     @Autowired

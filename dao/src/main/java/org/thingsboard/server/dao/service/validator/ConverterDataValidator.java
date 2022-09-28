@@ -80,6 +80,9 @@ public class ConverterDataValidator extends DataValidator<Converter> {
                     if (!d.getId().equals(converter.getId())) {
                         throw new DataValidationException("Converter with such name already exists!");
                     }
+                    if (!d.getType().equals(converter.getType())) {
+                        throw new DataValidationException("Converter type can not be changed!");
+                    }
                 }
         );
         return oldConverter.orElse(null);

@@ -32,17 +32,15 @@ package org.thingsboard.server.actors.ruleChain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
+import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
@@ -67,6 +65,8 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -75,7 +75,6 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.RpcError;
@@ -94,6 +93,7 @@ import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -120,7 +120,6 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -365,52 +364,58 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
-        DeviceProfile deviceProfile = null;
+        RuleChainId ruleChainId = null;
+        String queueName = null;
         if (device.getDeviceProfileId() != null) {
-            deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());
+            DeviceProfile deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());
+            if (deviceProfile == null) {
+                log.warn("[{}] Device profile is null!", device.getDeviceProfileId());
+            } else {
+                ruleChainId = deviceProfile.getDefaultRuleChainId();
+                queueName = deviceProfile.getDefaultQueueName();
+            }
         }
-        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, deviceProfile);
+        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, queueName, ruleChainId);
     }
 
     public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
-        return entityActionMsg(asset, asset.getId(), ruleNodeId, DataConstants.ENTITY_CREATED);
+        RuleChainId ruleChainId = null;
+        String queueName = null;
+        if (asset.getAssetProfileId() != null) {
+            AssetProfile assetProfile = mainCtx.getAssetProfileCache().find(asset.getAssetProfileId());
+            if (assetProfile == null) {
+                log.warn("[{}] Asset profile is null!", asset.getAssetProfileId());
+            } else {
+                ruleChainId = assetProfile.getDefaultRuleChainId();
+                queueName = assetProfile.getDefaultQueueName();
+            }
+        }
+        return entityActionMsg(asset, asset.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, queueName, ruleChainId);
     }
 
     public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
-        DeviceProfile deviceProfile = null;
+        RuleChainId ruleChainId = null;
+        String queueName = null;
         if (EntityType.DEVICE.equals(alarm.getOriginator().getEntityType())) {
             DeviceId deviceId = new DeviceId(alarm.getOriginator().getId());
-            deviceProfile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
+            DeviceProfile deviceProfile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
+            if (deviceProfile == null) {
+                log.warn("[{}] Device profile is null!", deviceId);
+            } else {
+                ruleChainId = deviceProfile.getDefaultRuleChainId();
+                queueName = deviceProfile.getDefaultQueueName();
+            }
+        } else if (EntityType.ASSET.equals(alarm.getOriginator().getEntityType())) {
+            AssetId assetId = new AssetId(alarm.getOriginator().getId());
+            AssetProfile assetProfile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
+            if (assetProfile == null) {
+                log.warn("[{}] Asset profile is null!", assetId);
+            } else {
+                ruleChainId = assetProfile.getDefaultRuleChainId();
+                queueName = assetProfile.getDefaultQueueName();
+            }
         }
-        return entityActionMsg(alarm, alarm.getOriginator(), ruleNodeId, action, deviceProfile);
-    }
-
-    public TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<AttributeKvEntry> attributes) {
-        ObjectNode entityNode = JacksonUtil.newObjectNode();
-        if (attributes != null) {
-            attributes.forEach(attributeKvEntry -> JacksonUtil.addKvEntry(entityNode, attributeKvEntry));
-        }
-        return attributesActionMsg(originator, ruleNodeId, scope, DataConstants.ATTRIBUTES_UPDATED, JacksonUtil.toString(entityNode));
-    }
-
-    public TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys) {
-        ObjectNode entityNode = JacksonUtil.newObjectNode();
-        ArrayNode attrsArrayNode = entityNode.putArray("attributes");
-        if (keys != null) {
-            keys.forEach(attrsArrayNode::add);
-        }
-        return attributesActionMsg(originator, ruleNodeId, scope, DataConstants.ATTRIBUTES_DELETED, JacksonUtil.toString(entityNode));
-    }
-
-    private TbMsg attributesActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, String action, String msgData) {
-        DeviceProfile deviceProfile = null;
-        if (EntityType.DEVICE.equals(originator.getEntityType())) {
-            DeviceId deviceId = new DeviceId(originator.getId());
-            deviceProfile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
-        }
-        TbMsgMetaData tbMsgMetaData = getActionMetaData(ruleNodeId);
-        tbMsgMetaData.putValue("scope", scope);
-        return entityActionMsg(originator, tbMsgMetaData, msgData, action, deviceProfile);
+        return entityActionMsg(alarm, alarm.getId(), ruleNodeId, action, queueName, ruleChainId);
     }
 
     @Override
@@ -419,27 +424,15 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action) {
-        return entityActionMsg(entity, id, ruleNodeId, action, null);
+        return entityActionMsg(entity, id, ruleNodeId, action, null, null);
     }
 
-    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, DeviceProfile deviceProfile) {
+    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, String queueName, RuleChainId ruleChainId) {
         try {
-            return entityActionMsg(id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), action, deviceProfile);
+            return TbMsg.newMsg(queueName, action, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), ruleChainId, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
         }
-    }
-
-    public <I extends EntityId> TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, String action, DeviceProfile deviceProfile) {
-        RuleChainId ruleChainId = null;
-        String queueName = null;
-        if (deviceProfile == null) {
-            log.warn("Device profile is null!");
-        } else {
-            ruleChainId = deviceProfile.getDefaultRuleChainId();
-            queueName = deviceProfile.getDefaultQueueName();
-        }
-        return TbMsg.newMsg(queueName, action, id, msgMetaData, msgData, ruleChainId, null);
     }
 
     @Override
@@ -549,6 +542,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public DeviceCredentialsService getDeviceCredentialsService() {
+        return mainCtx.getDeviceCredentialsService();
+    }
+
+    @Override
     public TbClusterService getClusterService() {
         return mainCtx.getClusterService();
     }
@@ -601,6 +599,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public RuleEngineDeviceProfileCache getDeviceProfileCache() {
         return mainCtx.getDeviceProfileCache();
+    }
+
+    @Override
+    public RuleEngineAssetProfileCache getAssetProfileCache() {
+        return mainCtx.getAssetProfileCache();
     }
 
     @Override
@@ -851,8 +854,14 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    public void addAssetProfileListeners(Consumer<AssetProfile> profileListener, BiConsumer<AssetId, AssetProfile> assetListener) {
+        mainCtx.getAssetProfileCache().addListener(getTenantId(), getSelfId(), profileListener, assetListener);
+    }
+
+    @Override
     public void removeListeners() {
         mainCtx.getDeviceProfileCache().removeListener(getTenantId(), getSelfId());
+        mainCtx.getAssetProfileCache().removeListener(getTenantId(), getSelfId());
         mainCtx.getTenantProfileCache().removeListener(getTenantId(), getSelfId());
     }
 

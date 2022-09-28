@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity;
+package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,15 +38,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EventInfo;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.id.IntegrationId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
@@ -109,11 +102,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
     public void telemetryUploadWithLocalIntegration() throws Exception {
         restClient.login(LOGIN, PASSWORD);
         Device device = createDevice("http_");
-        boolean isRemote = false;
-        Integration integration = createIntegration(isRemote);
-        createUplink(CUSTOM_CONVERTER_CONFIGURATION);
-        integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
-        restClient.saveIntegration(integration);
+        Integration integration = createIntegration(IntegrationType.HTTP, CONFIG, CUSTOM_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, false);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity uplinkResponse = restClient.getRestTemplate().
                 postForEntity(HTTPS_URL + "/api/v1/integrations/http/" + integration.getRoutingKey(),
@@ -123,34 +112,14 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
         wsClient.closeBlocking();
-        deleteAllObject(device, integration, restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId());
+        deleteAllObject(device, integration);
     }
 
     @Test
     public void telemetryUploadWithRemoteIntegration() throws Exception {
         restClient.login(LOGIN, PASSWORD);
         Device device = createDevice("http_");
-        boolean isRemote = true;
-        Integration integration = createIntegration(isRemote);
-        createUplink(CUSTOM_CONVERTER_CONFIGURATION);
-        integration.setDefaultConverterId(restClient.getConverters(new PageLink(1024)).getData().get(0).getId());
-        restClient.saveIntegration(integration);
-        IntegrationId integrationId = restClient.getIntegrationByRoutingKey(ROUTING_KEY).get().getId();
-
-        TenantId tenantId = restClient.getIntegrations(new PageLink(1024)).getData().get(0).getTenantId();
-        boolean isConnected = false;
-        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
-            Thread.sleep(CONNECT_TIMEOUT_MS);
-            PageData<EventInfo> events = restClient.getEvents(integrationId, tenantId, new TimePageLink(1024));
-            if (events.getData().isEmpty()) continue;
-            String event = events.getData().get(0).getBody().get("event").asText();
-            String success = events.getData().get(0).getBody().get("success").asText();
-            if (event.equals("STARTED") && success.equals("true")) {
-                isConnected = true;
-                break;
-            }
-        }
-        Assert.assertTrue("RPC have not connected to TB", isConnected);
+        Integration integration = createIntegration(IntegrationType.HTTP, CONFIG, CUSTOM_CONVERTER_CONFIGURATION, ROUTING_KEY, SECRET_KEY, true);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
         ResponseEntity uplinkResponse = rpcHTTPRestClient.getRestTemplate().
                 postForEntity(rpcURLHttp + "/api/v1/integrations/http/" + integration.getRoutingKey(),
@@ -160,7 +129,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
         wsClient.closeBlocking();
-        deleteAllObject(device, integration, integrationId);
+        deleteAllObject(device, integration);
     }
 
     private JsonNode createPayloadForUplink(String name, String type) throws JsonProcessingException {
@@ -170,20 +139,5 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         values.addProperty(TELEMETRY_KEY, TELEMETRY_VALUE);
         return mapper.readTree(values.toString());
     }
-
-    private Integration createIntegration(boolean isRemote) throws JsonProcessingException {
-        Integration integration = new Integration();
-        JsonNode conf = mapper.readTree(CONFIG);
-        integration.setConfiguration(conf);
-        integration.setName("HTTP INTEGRATION" + StringUtils.randomAlphanumeric(7));
-        integration.setType(IntegrationType.HTTP);
-        integration.setRoutingKey(ROUTING_KEY);
-        integration.setSecret(SECRET_KEY);
-        integration.setEnabled(true);
-        integration.setRemote(isRemote);
-        integration.setDebugMode(true);
-        return integration;
-    }
-
 
 }

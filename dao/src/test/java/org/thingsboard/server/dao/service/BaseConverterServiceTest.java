@@ -118,6 +118,18 @@ public abstract class BaseConverterServiceTest extends AbstractBeforeTest {
         converterService.saveConverter(converter);
     }
 
+    @Test(expected = DataValidationException.class)
+    public void testUpdateConverterType() {
+        Converter converter = new Converter();
+        converter.setTenantId(tenantId);
+        converter.setName("My converter");
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        Converter savedConverter = converterService.saveConverter(converter);
+        savedConverter.setType(ConverterType.DOWNLINK);
+        converterService.saveConverter(savedConverter);
+    }
+
     @Test
     public void testFindConverterById() {
         Converter converter = new Converter();
