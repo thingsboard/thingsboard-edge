@@ -98,7 +98,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
         switch (actionType) {
             case UPDATED:
                 List<EdgeId> edgesByCustomerId =
-                        customersHierarchyEdgeService.findEdgesByCustomerId(tenantId, new CustomerId(entityId.getId()));
+                        customersHierarchyEdgeService.findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
                 if (edgesByCustomerId != null) {
                     for (EdgeId edgeId : edgesByCustomerId) {
                         saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);

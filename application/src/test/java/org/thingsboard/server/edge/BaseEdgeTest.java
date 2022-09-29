@@ -31,17 +31,19 @@
 package org.thingsboard.server.edge;
 
 import org.junit.Test;
+import org.thingsboard.server.common.data.Customer;
 
 abstract public class BaseEdgeTest extends AbstractEdgeTest {
 
     @Test
-    public void testChangeOwnerOfCustomerFromTenantToCustomer() {
-
-    }
-
-    @Test
     public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() {
         // create customer
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+        // create sub customer
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
+        // create sub sub customer
+        Customer savedSubSubCustomerA = saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
+
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
         // validate tenant groups on edge
         // change owner from tenant to customer
@@ -54,13 +56,16 @@ abstract public class BaseEdgeTest extends AbstractEdgeTest {
         // validate that customer was deleted from edge
         // remove tenant entity groups
         // validate no tenant groups on edge
+        // remove sub sub customer
+        // remove sub customer
         // remove customer
     }
 
     @Test
-    public void testChangeOwner_fromTenantToChildCustomer_andFromChildCustomerToTenant() {
+    public void testChangeOwner_fromTenantToSubCustomer_andFromSubCustomerToTenant() {
         // create customer
-        // create child customer (sub customer)
+        // create sub customer
+        // create sub sub customer
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
         // validate tenant groups on edge
         // change owner from tenant to child customer
@@ -75,14 +80,16 @@ abstract public class BaseEdgeTest extends AbstractEdgeTest {
         // validate that customer and sub customer were deleted from edge
         // remove tenant entity groups
         // validate no tenant groups on edge
+        // remove sub sub customer
         // remove sub customer
         // remove customer
     }
 
     @Test
-    public void testChangeOwner_fromParentCustomerToChildCustomer_andFromChildCustomerToParentCustomer() {
+    public void testChangeOwner_fromCustomerToSubSubCustomer_andFromSubSubCustomerToCustomer() {
         // create customer
-        // create child customer (sub customer)
+        // create sub customer
+        // create sub sub customer
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
         // change owner from tenant to parent customer
         // validate that customer was created on edge
@@ -105,8 +112,14 @@ abstract public class BaseEdgeTest extends AbstractEdgeTest {
         // validate that customer entity group were deleted from edge
         // remove tenant entity groups
         // validate no tenant groups on edge
+        // remove sub sub customer
         // remove sub customer
         // remove customer
     }
+
+    @Test
+    public void testChangeOwner_fromSubCustomerAToCustomerB() {
+    }
+
 
 }

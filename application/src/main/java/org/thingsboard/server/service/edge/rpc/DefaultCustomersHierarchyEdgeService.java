@@ -1,3 +1,33 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.service.edge.rpc;
 
 import lombok.Data;
@@ -109,25 +139,25 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
     }
 
     @Override
-    public List<EdgeId> findEdgesByCustomerId(TenantId tenantId, CustomerId customerId) {
+    public List<EdgeId> findAllEdgesInHierarchyByCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findEdgesByCustomerId [{}]", customerId);
-        return findEdgesByCustomerIdInt(customerId, root);
+        return findAllEdgesInHierarchyByCustomerId(customerId, root, false);
     }
 
-    private List<EdgeId> findEdgesByCustomerIdInt(CustomerId customerId, CustomerHierarchyNode node) {
+    private List<EdgeId> findAllEdgesInHierarchyByCustomerId(CustomerId customerId, CustomerHierarchyNode node, boolean include) {
+        List<EdgeId> result = new ArrayList<>();
         if (node.getCustomerId().equals(customerId)) {
             log.trace("Found customer id in hierarchy [{}]", node);
-            return node.getEdgeIds();
-        } else {
-            for (CustomerHierarchyNode child : node.getChildren()) {
-                log.trace("Processing hierarchy node [{}]", node);
-                List<EdgeId> result = findEdgesByCustomerIdInt(customerId, child);
-                if (result != null) {
-                    return result;
-                }
-            }
-            return null;
+            include = true;
         }
+        if (include) {
+            result.addAll(node.getEdgeIds());
+        }
+        for (CustomerHierarchyNode child : node.getChildren()) {
+            log.trace("Processing hierarchy node [{}]", node);
+            result.addAll(findAllEdgesInHierarchyByCustomerId(customerId, child, include));
+        }
+        return result;
     }
 
     @Override
@@ -137,14 +167,30 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
             previousOwnerId = NULL_CUSTOMER_ID;
         }
         CustomerId previousCustomerId = new CustomerId(previousOwnerId.getId());
-        List<EdgeId> edgeIds = findEdgesByCustomerIdInt(previousCustomerId, root);
-        if (edgeIds != null) {
-            edgeIds.remove(edgeId);
+        CustomerHierarchyNode node = findNodeByCustomerId(previousCustomerId, root);
+        if (node != null) {
+            node.getEdgeIds().remove(edgeId);
         }
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         if (edge != null) {
             List<CustomerId> customersHierarchyIds = getCustomersHierarchyIds(edge.getTenantId(), edge.getCustomerId());
             addEdgeToCustomersHierarchy(customersHierarchyIds, edge.getId(), root);
+        }
+    }
+
+    private CustomerHierarchyNode findNodeByCustomerId(CustomerId customerId, CustomerHierarchyNode node) {
+        if (node.getCustomerId().equals(customerId)) {
+            log.trace("Found customer id in hierarchy [{}]", node);
+            return node;
+        } else {
+            for (CustomerHierarchyNode child : node.getChildren()) {
+                log.trace("Processing hierarchy node [{}]", node);
+                CustomerHierarchyNode result = findNodeByCustomerId(customerId, child);
+                if (result != null) {
+                    return result;
+                }
+            }
+            return null;
         }
     }
 

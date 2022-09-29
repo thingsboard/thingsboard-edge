@@ -40,108 +40,116 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 import java.util.List;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 abstract public class BaseCustomerEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testCreateUpdateDeleteCustomer() throws Exception {
         edgeImitator.expectMessageAmount(1);
         // create customer A
-        Customer customerA = new Customer();
-        customerA.setTitle("Edge Customer A");
-        Customer savedCustomerA = doPost("/api/customer", customerA, Customer.class);
-
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
         // create sub customer A
-        Customer subCustomerA = new Customer();
-        subCustomerA.setTitle("Edge Sub Customer A");
-        subCustomerA.setParentCustomerId(savedCustomerA.getId());
-        Customer savedSubCustomerA = doPost("/api/customer", subCustomerA, Customer.class);
-
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
         // create sub sub customer A
-        Customer subSubCustomerA = new Customer();
-        subSubCustomerA.setTitle("Edge Sub Sub Customer A");
-        subSubCustomerA.setParentCustomerId(savedSubCustomerA.getId());
-        Customer savedSubSubCustomerA = doPost("/api/customer", subSubCustomerA, Customer.class);
-
+        Customer savedSubSubCustomerA = saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
         // create customer B
-        Customer customerB = new Customer();
-        customerB.setTitle("Edge Customer B");
-        Customer savedCustomerB = doPost("/api/customer", customerB, Customer.class);
+        Customer savedCustomerB = saveCustomer("Edge Customer B", null);
+
+        // validate that no messages were sent to the edge
         Assert.assertFalse(edgeImitator.waitForMessages(1));
 
-        // change owner of edge from tenant to sub customer A
+        // change edge owner from tenant to sub customer A
+        changeEdgeOwnerFromTenantToSubCustomer(savedCustomerA, savedSubCustomerA);
+
+        // update customer and validate changes on edge
+        updateCustomerAndValidateChangesOnEdge(savedCustomerA, "Edge Customer A Updated");
+
+        // update sub customer and validate changes on edge
+        updateCustomerAndValidateChangesOnEdge(savedSubCustomerA, "Edge Sub Customer A Updated");
+
+        // update sub sub customer and validate NO changes on edge
+        updateCustomerAndValidate_NO_ChangesOnEdge(savedSubSubCustomerA, "Edge Sub Sub Customer A Updated");
+
+        // update customer B and validate NO changes on edge
+        updateCustomerAndValidate_NO_ChangesOnEdge(savedCustomerB, "Edge Customer B Updated");
+
+        // change edge owner from sub customer A to tenant
+        changeEdgeOwnerFromSubCustomerToTenant(savedCustomerA, savedSubCustomerA);
+
+        // delete customers
+        doDelete("/api/customer/" + savedCustomerA.getUuidId())
+                .andExpect(status().isOk());
+        doDelete("/api/customer/" + savedCustomerB.getUuidId())
+                .andExpect(status().isOk());
+    }
+
+    private void changeEdgeOwnerFromSubCustomerToTenant(Customer savedCustomerA, Customer savedSubCustomerA) throws Exception {
+        edgeImitator.expectMessageAmount(2);
+        doPost("/api/owner/TENANT/" + tenantId.getId() + "/EDGE/" + edge.getId().getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        List<CustomerUpdateMsg> customerDeleteMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
+        Assert.assertEquals(2, customerDeleteMsgs.size());
+        CustomerUpdateMsg customerADeleteMsg = customerDeleteMsgs.get(0);
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, customerADeleteMsg.getMsgType());
+        Assert.assertEquals(savedCustomerA.getUuidId().getMostSignificantBits(), customerADeleteMsg.getIdMSB());
+        Assert.assertEquals(savedCustomerA.getUuidId().getLeastSignificantBits(), customerADeleteMsg.getIdLSB());
+        CustomerUpdateMsg subCustomerADeleteMsg = customerDeleteMsgs.get(1);
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, subCustomerADeleteMsg.getMsgType());
+        Assert.assertEquals(savedSubCustomerA.getUuidId().getMostSignificantBits(), subCustomerADeleteMsg.getIdMSB());
+        Assert.assertEquals(savedSubCustomerA.getUuidId().getLeastSignificantBits(), subCustomerADeleteMsg.getIdLSB());
+    }
+
+    private void updateCustomerAndValidateChangesOnEdge(Customer customer, String updatedTitle) throws InterruptedException {
+        edgeImitator.expectMessageAmount(1);
+        customer.setTitle(updatedTitle);
+        doPost("/api/customer", customer, Customer.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof CustomerUpdateMsg);
+        CustomerUpdateMsg customerUpdateMsg = (CustomerUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
+        Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), customerUpdateMsg.getIdMSB());
+        Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), customerUpdateMsg.getIdLSB());
+        Assert.assertEquals(updatedTitle, customerUpdateMsg.getTitle());
+    }
+
+    private void updateCustomerAndValidate_NO_ChangesOnEdge(Customer customer, String updatedTitle) throws InterruptedException {
+        edgeImitator.expectMessageAmount(1);
+        customer.setTitle(updatedTitle);
+        doPost("/api/customer", customer, Customer.class);
+        Assert.assertFalse(edgeImitator.waitForMessages(1));
+    }
+
+    private void changeEdgeOwnerFromTenantToSubCustomer(Customer parentCustomer, Customer subCustomer) throws Exception {
         edgeImitator.expectMessageAmount(6);
-        doPost("/api/owner/CUSTOMER/" + savedSubCustomerA.getId().getId() + "/EDGE/" + edge.getId().getId());
-        boolean condition = edgeImitator.waitForMessages();
-        Assert.assertTrue(condition);
+        doPost("/api/owner/CUSTOMER/" + subCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
         List<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
         Assert.assertEquals(2, customerUpdateMsgs.size());
         CustomerUpdateMsg customerAUpdateMsg = customerUpdateMsgs.get(0);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
-        Assert.assertEquals(savedCustomerA.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedCustomerA.getUuidId().getLeastSignificantBits(), customerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedCustomerA.getTitle(), customerAUpdateMsg.getTitle());
+        Assert.assertEquals(parentCustomer.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
+        Assert.assertEquals(parentCustomer.getUuidId().getLeastSignificantBits(), customerAUpdateMsg.getIdLSB());
+        Assert.assertEquals(parentCustomer.getTitle(), customerAUpdateMsg.getTitle());
         testAutoGeneratedCodeByProtobuf(customerAUpdateMsg);
         CustomerUpdateMsg subCustomerAUpdateMsg = customerUpdateMsgs.get(1);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, subCustomerAUpdateMsg.getMsgType());
-        Assert.assertEquals(savedSubCustomerA.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedSubCustomerA.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedSubCustomerA.getTitle(), subCustomerAUpdateMsg.getTitle());
+        Assert.assertEquals(subCustomer.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getIdMSB());
+        Assert.assertEquals(subCustomer.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getIdLSB());
+        Assert.assertEquals(subCustomer.getTitle(), subCustomerAUpdateMsg.getTitle());
+
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(4, roleProtos.size());
-
-        // update customer A and validate changes on edge
-        edgeImitator.expectMessageAmount(1);
-        savedCustomerA.setTitle("Edge Customer A Updated");
-        savedCustomerA = doPost("/api/customer", savedCustomerA, Customer.class);
-        Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof CustomerUpdateMsg);
-        customerAUpdateMsg = (CustomerUpdateMsg) latestMessage;
-        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, customerAUpdateMsg.getMsgType());
-        Assert.assertEquals(savedCustomerA.getUuidId().getMostSignificantBits(), customerAUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedCustomerA.getUuidId().getLeastSignificantBits(), customerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedCustomerA.getTitle(), customerAUpdateMsg.getTitle());
-
-        // update sub customer and validate changes on edge
-        edgeImitator.expectMessageAmount(1);
-        savedSubCustomerA.setTitle("Edge Sub Customer A Updated");
-        savedSubCustomerA = doPost("/api/customer", savedSubCustomerA, Customer.class);
-        Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof CustomerUpdateMsg);
-        subCustomerAUpdateMsg = (CustomerUpdateMsg) latestMessage;
-        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, subCustomerAUpdateMsg.getMsgType());
-        Assert.assertEquals(savedSubCustomerA.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedSubCustomerA.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedSubCustomerA.getTitle(), subCustomerAUpdateMsg.getTitle());
-
-        // update sub sub customer and validate NO changes on edge
-        edgeImitator.expectMessageAmount(1);
-        savedSubSubCustomerA.setTitle("Edge Sub Sub Customer A Updated");
-        savedSubSubCustomerA = doPost("/api/customer", savedSubSubCustomerA, Customer.class);
-        Assert.assertFalse(edgeImitator.waitForMessages(1));
-
-        // update customer B and validate NO changes on edge
-        edgeImitator.expectMessageAmount(1);
-        savedCustomerB.setTitle("Edge Customer B Updated");
-        savedCustomerB = doPost("/api/customer", savedCustomerB, Customer.class);
-        Assert.assertFalse(edgeImitator.waitForMessages(1));
-
-//        // delete customer
-//        edgeImitator.expectMessageAmount(1);
-//        doDelete("/api/customer/" + savedCustomer.getUuidId())
-//                .andExpect(status().isOk());
-//        Assert.assertTrue(edgeImitator.waitForMessages());
-//        latestMessage = edgeImitator.getLatestMessage();
-//        Assert.assertTrue(latestMessage instanceof CustomerUpdateMsg);
-//        customerUpdateMsg = (CustomerUpdateMsg) latestMessage;
-//        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
-//        Assert.assertEquals(customerUpdateMsg.getIdMSB(), savedCustomer.getUuidId().getMostSignificantBits());
-//        Assert.assertEquals(customerUpdateMsg.getIdLSB(), savedCustomer.getUuidId().getLeastSignificantBits());
     }
 
     @Test
     public void testChangeOwnerOfCustomer_validateChangesToEdgeEntityGroups() {
+
+    }
+
+    @Test
+    public void testChangeOwnerOfCustomerFromTenantToCustomer() {
 
     }
 
