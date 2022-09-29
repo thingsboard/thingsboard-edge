@@ -30,11 +30,38 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-public enum SchedulerRepeatType {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 
-    DAILY, EVERY_N_DAYS, WEEKLY, EVERY_N_WEEKS, MONTHLY, YEARLY, TIMER;
+import java.util.Calendar;
 
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class EveryNDaysRepeat implements SchedulerRepeat {
+
+    private long endsOn;
+
+    private int days;
+
+    @Override
+    public SchedulerRepeatType getType() {
+        return SchedulerRepeatType.EVERY_N_DAYS;
+    }
+
+    @Override
+    public long getNext(long startTime, long ts, String timezone) {
+        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
+        long tmp = startTime;
+        int repeatIteration = 0;
+        while (tmp < endsOn) {
+            calendar.setTimeInMillis(startTime);
+            calendar.add(Calendar.DAY_OF_YEAR, repeatIteration * this.days);
+            tmp = calendar.getTimeInMillis();
+            if (tmp > ts && tmp < endsOn) {
+                return tmp;
+            }
+            repeatIteration++;
+        }
+        return 0L;
+    }
 }

@@ -28,13 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.scheduler;
+package org.thingsboard.server.common.data.query;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-public enum SchedulerRepeatType {
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
 
-    DAILY, EVERY_N_DAYS, WEEKLY, EVERY_N_WEEKS, MONTHLY, YEARLY, TIMER;
+@Data
+public class SchedulerEventFilter implements EntityFilter {
 
+    private EntityId originator;
+    private String eventType;
+
+    @Override
+    public EntityFilterType getType() {
+        return EntityFilterType.SCHEDULER_EVENT;
+    }
 }
