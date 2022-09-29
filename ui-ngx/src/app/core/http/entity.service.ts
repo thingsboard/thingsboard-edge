@@ -119,6 +119,7 @@ import { RuleChain, RuleChainMetaData, RuleChainType } from '@shared/models/rule
 import { WidgetService } from '@core/http/widget.service';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { QueueService } from '@core/http/queue.service';
+import { AssetProfileService } from '@core/http/asset-profile.service';
 
 @Injectable({
   providedIn: 'root'
@@ -142,6 +143,7 @@ export class EntityService {
     private otaPackageService: OtaPackageService,
     private widgetService: WidgetService,
     private deviceProfileService: DeviceProfileService,
+    private assetProfileService: AssetProfileService,
     private converterService: ConverterService,
     private integrationService: IntegrationService,
     private schedulerEventService: SchedulerEventService,
@@ -415,6 +417,9 @@ export class EntityService {
       case EntityType.ROLE:
         observable = this.roleService.getRolesByIds(entityIds, config);
         break;
+      case EntityType.ASSET_PROFILE:
+        observable = this.assetProfileService.getAssetProfilesByIds(entityIds, config);
+        break;
     }
     return observable;
   }
@@ -567,6 +572,10 @@ export class EntityService {
       case EntityType.DEVICE_PROFILE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.deviceProfileService.getDeviceProfileInfos(pageLink, null, config);
+        break;
+      case EntityType.ASSET_PROFILE:
+        pageLink.sortOrder.property = 'name';
+        entitiesObservable = this.assetProfileService.getAssetProfileInfos(pageLink, config);
         break;
     }
     return entitiesObservable;
@@ -1843,6 +1852,9 @@ export class EntityService {
         break;
       case EdgeEventType.GROUP_PERMISSION:
         entityObservable = this.roleService.getGroupPermissionInfo(entityId, false);
+        break;
+      case EdgeEventType.ASSET_PROFILE:
+        entityObservable = this.assetProfileService.getAssetProfile(entityId);
         break;
       case EdgeEventType.RELATION:
         entityObservable = of(entity.body);
