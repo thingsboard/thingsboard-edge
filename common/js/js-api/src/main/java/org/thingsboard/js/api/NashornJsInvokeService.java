@@ -65,7 +65,7 @@ public class NashornJsInvokeService extends AbstractNashornJsInvokeService {
     private int maxBlackListDurationSec;
 
     @Getter
-    @Value("${js.local.max_total_args_size:100000}")
+    @Value("${js.local.max_total_args_size:150000}")
     private long maxTotalArgsSize;
 
     @Getter

@@ -89,7 +89,7 @@ public class RemoteJsInvokeService extends AbstractJsInvokeService {
     private boolean statsEnabled;
 
     @Getter
-    @Value("${js.remote.max_total_args_size:100000}")
+    @Value("${js.remote.max_total_args_size:150000}")
     private long maxTotalArgsSize;
 
     @Getter
