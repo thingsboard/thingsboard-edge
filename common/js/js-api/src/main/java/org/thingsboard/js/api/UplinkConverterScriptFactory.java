@@ -45,7 +45,9 @@ public class UplinkConverterScriptFactory {
 
     private static final String JS_WRAPPER_SUFFIX = "}" +
             "    function convertBytesBase64(bytesBase64) {\n" +
-            "       var binary_string = decodeURIComponent(encodeURIComponent(atob(bytesBase64)));\n" +
+            "       var binary_string = decodeURIComponent(atob(bytesBase64).split('').map(function(c) {\n" +
+            "            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);\n" +
+            "        }).join(''));\n" +
             "       var len = binary_string.length;\n"+
             "       var payload = [];\n" +
             "       for (var i = 0; i < len; i++) {\n" +

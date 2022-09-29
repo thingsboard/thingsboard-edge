@@ -59,6 +59,7 @@ import org.thingsboard.server.dao.model.sql.AlarmEntity;
 import org.thingsboard.server.dao.model.sql.EntityAlarmEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.query.AlarmQueryRepository;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -73,6 +74,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@SqlDao
 public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements AlarmDao {
 
     @Autowired
