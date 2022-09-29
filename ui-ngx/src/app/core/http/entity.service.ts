@@ -881,6 +881,8 @@ export class EntityService {
           return entityTypes.indexOf(EntityType.ENTITY_VIEW) > -1;
         case AliasFilterType.edgeSearchQuery:
           return entityTypes.indexOf(EntityType.EDGE) > -1;
+        case AliasFilterType.schedulerEvent:
+          return entityTypes.indexOf(EntityType.SCHEDULER_EVENT) > -1;
       }
     }
     return false;
@@ -939,6 +941,8 @@ export class EntityService {
         return entityType === EntityType.ENTITY_VIEW;
       case AliasFilterType.edgeSearchQuery:
         return entityType === EntityType.EDGE;
+      case AliasFilterType.schedulerEvent:
+        return entityType === EntityType.SCHEDULER_EVENT;
     }
     return false;
   }
@@ -1313,6 +1317,25 @@ export class EntityService {
           const queryRootEntityId = this.resolveAliasEntityId(rootEntityType, rootEntityId);
           result.entityFilter = deepClone(filter);
           result.entityFilter.rootEntity = queryRootEntityId;
+          return of(result);
+        } else {
+          return of(result);
+        }
+      case AliasFilterType.schedulerEvent:
+        let originatorType;
+        let originatorId;
+        result.stateEntity = filter.originatorStateEntity;
+        result.entityFilter = deepClone(filter);
+        if (result.stateEntity && stateEntityId) {
+          originatorType = stateEntityId.entityType;
+          originatorId = stateEntityId.id;
+        } else if (!result.stateEntity && filter.originator) {
+          originatorType = filter.originator.entityType;
+          originatorId = filter.originator.id;
+        }
+        if (originatorType && originatorId) {
+          const queryOriginatorId = this.resolveAliasEntityId(originatorType, originatorId);
+          result.entityFilter.originator = queryOriginatorId;
           return of(result);
         } else {
           return of(result);

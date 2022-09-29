@@ -38,7 +38,9 @@ import * as moment_ from 'moment';
 
 export enum SchedulerRepeatType {
   DAILY = 'DAILY',
+  EVERY_N_DAYS = 'EVERY_N_DAYS',
   WEEKLY = 'WEEKLY',
+  EVERY_N_WEEKS = 'EVERY_N_WEEKS',
   MONTHLY = 'MONTHLY',
   YEARLY = 'YEARLY',
   TIMER = 'TIMER'
@@ -47,7 +49,9 @@ export enum SchedulerRepeatType {
 export const schedulerRepeatTypeTranslationMap = new Map<SchedulerRepeatType, string>(
   [
     [SchedulerRepeatType.DAILY, 'scheduler.daily'],
+    [SchedulerRepeatType.EVERY_N_DAYS, 'scheduler.every-n-days'],
     [SchedulerRepeatType.WEEKLY, 'scheduler.weekly'],
+    [SchedulerRepeatType.EVERY_N_WEEKS, 'scheduler.every-n-weeks'],
     [SchedulerRepeatType.MONTHLY, 'scheduler.monthly'],
     [SchedulerRepeatType.YEARLY, 'scheduler.yearly'],
     [SchedulerRepeatType.TIMER, 'scheduler.timer']
@@ -109,9 +113,11 @@ export interface SchedulerEventSchedule {
     type: SchedulerRepeatType;
     endsOn: number;
     repeatOn?: number[];
+    days?: number;
+    weeks?: number;
     repeatInterval?: number;
     timeUnit?: SchedulerTimeUnit;
-  }
+  };
 }
 
 export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {

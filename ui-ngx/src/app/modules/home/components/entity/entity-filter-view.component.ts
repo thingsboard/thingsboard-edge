@@ -287,16 +287,28 @@ export class EntityFilterViewComponent implements ControlValueAccessor {
             this.filterDisplayValue = this.translate.instant('alias.filter-type-entity-view-search-query-description',
               translationValues
             );
-          } else if (this.filter.type === AliasFilterType.edgeSearchQuery) {
-            const edgeTypesQuoted = [];
-            this.filter.edgeTypes.forEach((filterEdgeType) => {
-              edgeTypesQuoted.push(`'${filterEdgeType}'`);
-            });
-            const edgeTypesText = edgeTypesQuoted.join(', ');
-            translationValues.edgeTypes = edgeTypesText;
-            this.filterDisplayValue = this.translate.instant('alias.filter-type-edge-search-query-description',
-              translationValues
-            );
+          }
+          break;
+        case AliasFilterType.schedulerEvent:
+          if (this.filter.eventType) {
+            const interpolateParams = {
+              eventType: this.filter.eventType
+            };
+            if (this.filter.originator || this.filter.originatorStateEntity) {
+              this.filterDisplayValue = this.translate.instant('alias.filter-type-scheduler-event-type-originator-description',
+                interpolateParams
+              );
+            } else {
+              this.filterDisplayValue = this.translate.instant('alias.filter-type-scheduler-event-type-description',
+                interpolateParams
+              );
+            }
+          } else {
+            if (this.filter.originator || this.filter.originatorStateEntity) {
+              this.filterDisplayValue = this.translate.instant('alias.filter-type-scheduler-event-originator-description');
+            } else {
+              this.filterDisplayValue = this.translate.instant('alias.filter-type-scheduler-event');
+            }
           }
           break;
         default:
