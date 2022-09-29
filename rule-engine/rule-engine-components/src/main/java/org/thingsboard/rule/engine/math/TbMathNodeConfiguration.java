@@ -28,38 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.rule.engine.math;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
-/**
- * @author Andrew Shvayka
- */
-public interface AttributesService {
+@Data
+public class TbMathNodeConfiguration implements NodeConfiguration<TbMathNodeConfiguration> {
 
-    ListenableFuture<Optional<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String scope, String attributeKey);
+    private TbRuleNodeMathFunctionType operation;
+    private List<TbMathArgument> arguments;
+    private String customFunction;
+    private TbMathResult result;
 
-    ListenableFuture<List<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String scope, Collection<String> attributeKeys);
-
-    ListenableFuture<List<AttributeKvEntry>> findAll(TenantId tenantId, EntityId entityId, String scope);
-
-    ListenableFuture<List<String>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes);
-
-    ListenableFuture<String> save(TenantId tenantId, EntityId entityId, String scope, AttributeKvEntry attribute);
-
-    ListenableFuture<List<String>> removeAll(TenantId tenantId, EntityId entityId, String scope, List<String> attributeKeys);
-
-    List<String> findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId);
-
-    List<String> findAllKeysByEntityIds(TenantId tenantId, EntityType entityType, List<EntityId> entityIds);
-
+    @Override
+    public TbMathNodeConfiguration defaultConfiguration() {
+        TbMathNodeConfiguration configuration = new TbMathNodeConfiguration();
+        configuration.setOperation(TbRuleNodeMathFunctionType.ADD);
+        configuration.setArguments(Arrays.asList(new TbMathArgument("x", TbMathArgumentType.CONSTANT, "2"), new TbMathArgument("y", TbMathArgumentType.CONSTANT, "2")));
+        configuration.setResult(new TbMathResult(TbMathArgumentType.MESSAGE_BODY, "result", 2, false, false, null));
+        return configuration;
+    }
 }
