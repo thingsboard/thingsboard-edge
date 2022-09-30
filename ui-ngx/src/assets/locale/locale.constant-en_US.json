@@ -2267,11 +2267,7 @@
             "address2": "Address 2",
             "zip": "Zip",
             "phone": "Phone",
-            "label": "Label",
-            "configuration": "Configuration",
-            "schedule": "Schedule",
-            "originatorId": "Originator Id",
-            "originatorType": "Originator Type"
+            "label": "Label"
         },
         "sort-order": {
             "asc": "Ascending",
@@ -2356,7 +2352,11 @@
         "address2": "Address 2",
         "zip": "Zip",
         "phone": "Phone",
-        "label": "Label"
+        "label": "Label",
+        "configuration": "Configuration",
+        "schedule": "Schedule",
+        "originatorId": "Originator Id",
+        "originatorType": "Originator Type"
     },
     "entity-view": {
         "entity-view": "Entity View",

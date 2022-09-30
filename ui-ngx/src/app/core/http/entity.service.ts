@@ -1074,8 +1074,8 @@ export class EntityService {
         entityFieldKeys.push(entityFields.type.keyName);
         entityFieldKeys.push(entityFields.configuration.keyName);
         entityFieldKeys.push(entityFields.schedule.keyName);
-        entityFieldKeys.push(entityFields.orignatorId.keyName);
-        entityFieldKeys.push(entityFields.orignatorType.keyName);
+        entityFieldKeys.push(entityFields.originatorId.keyName);
+        entityFieldKeys.push(entityFields.originatorType.keyName);
         break;
     }
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;

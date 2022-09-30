@@ -48,6 +48,8 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
@@ -76,6 +78,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     @Column(name = SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY)
     private UUID originatorId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY)
     private EntityType originatorType;
 

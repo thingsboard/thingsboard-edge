@@ -1578,7 +1578,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
     private String schedulerEventQuery(QueryContext ctx, SchedulerEventFilter entityFilter) {
         String query = "";
-        if (entityFilter.getEventType() != null) {
+        if (StringUtils.isNotBlank(entityFilter.getEventType())) {
             ctx.addStringParameter("entity_filter_scheduler_event_type", entityFilter.getEventType());
             query = "e.type=:entity_filter_scheduler_event_type";
         }

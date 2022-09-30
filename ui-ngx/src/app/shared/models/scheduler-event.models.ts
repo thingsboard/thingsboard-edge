@@ -137,6 +137,7 @@ export interface SchedulerEventWithCustomerInfo extends SchedulerEventInfo {
 }
 
 export interface SchedulerEventConfiguration {
+  originatorId?: EntityId;
   msgType?: string;
   msgBody?: any;
   metadata?: any;
