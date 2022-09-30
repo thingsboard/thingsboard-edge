@@ -34,6 +34,7 @@ import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
 
 @Data
+
 public class SchedulerEventFilter implements EntityFilter {
 
     private EntityId originator;

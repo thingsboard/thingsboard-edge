@@ -123,6 +123,7 @@ export interface SchedulerEventSchedule {
 export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
   tenantId?: TenantId;
   customerId?: CustomerId;
+  originatorId?: EntityId;
   name: string;
   type: string;
   schedule: SchedulerEventSchedule;
@@ -136,7 +137,6 @@ export interface SchedulerEventWithCustomerInfo extends SchedulerEventInfo {
 }
 
 export interface SchedulerEventConfiguration {
-  originatorId?: EntityId;
   msgType?: string;
   msgBody?: any;
   metadata?: any;

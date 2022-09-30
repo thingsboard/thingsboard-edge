@@ -1057,7 +1057,6 @@ export class EntityService {
         break;
       case EntityType.CONVERTER:
       case EntityType.INTEGRATION:
-      case EntityType.SCHEDULER_EVENT:
       case EntityType.BLOB_ENTITY:
       case EntityType.ROLE:
         entityFieldKeys.push(entityFields.name.keyName);
@@ -1069,6 +1068,14 @@ export class EntityService {
         break;
       case EntityType.API_USAGE_STATE:
         entityFieldKeys.push(entityFields.name.keyName);
+        break;
+      case EntityType.SCHEDULER_EVENT:
+        entityFieldKeys.push(entityFields.name.keyName);
+        entityFieldKeys.push(entityFields.type.keyName);
+        entityFieldKeys.push(entityFields.configuration.keyName);
+        entityFieldKeys.push(entityFields.schedule.keyName);
+        entityFieldKeys.push(entityFields.orignatorId.keyName);
+        entityFieldKeys.push(entityFields.orignatorType.keyName);
         break;
     }
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;

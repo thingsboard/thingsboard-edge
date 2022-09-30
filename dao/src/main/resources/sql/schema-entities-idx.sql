@@ -100,3 +100,6 @@ CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
 
 CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(entity_id);
+
+CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
+
