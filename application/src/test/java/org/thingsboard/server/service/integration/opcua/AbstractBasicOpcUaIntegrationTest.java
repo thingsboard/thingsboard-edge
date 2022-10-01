@@ -114,24 +114,24 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     public void testIntegrationRegularConnect() throws Exception {
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 10));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
     }
 
     @Test
     public void testIntegrationRegularDisconnect() throws Exception {
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         startTs = System.currentTimeMillis();
         stopServer();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 120));
     }
 
     @Test
     public void testIntegrationReconnectAfterServerRestart() throws Exception {
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 10));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         stopServer();
         startTs = System.currentTimeMillis();
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE));
@@ -146,7 +146,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         stopServer();
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 10));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 20));
         startTs = System.currentTimeMillis();
         startServer();
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS));
@@ -154,10 +154,10 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testUplinkProcessing() throws Exception {
-        long startTs = System.currentTimeMillis();
         Device savedDevice = createDevice("OPCUA_device", "opcua");
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         Thread.sleep(10000);
         long start = System.currentTimeMillis();
         long end = System.currentTimeMillis() + 5000;
@@ -184,12 +184,10 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testDownlinkProcessing() throws Exception {
-        long startTs = System.currentTimeMillis();
-
         Device savedDevice = createDevice("OPCUA_device", "opcua");
-
+        long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
 
         TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = createIntegrationDownlinkMessage(savedDevice.getId());
 
