@@ -218,31 +218,6 @@ public class TestServer {
                 endpointConfigurations.add(buildTcpEndpoint(noSecurityBuilder));
                 endpointConfigurations.add(buildHttpsEndpoint(noSecurityBuilder));
 
-                // TCP Basic256Sha256 / SignAndEncrypt
-                endpointConfigurations.add(buildTcpEndpoint(
-                        builder.copy()
-                                .setSecurityPolicy(SecurityPolicy.Basic256Sha256)
-                                .setSecurityMode(MessageSecurityMode.SignAndEncrypt))
-                );
-
-                // HTTPS Basic256Sha256 / Sign (SignAndEncrypt not allowed for HTTPS)
-                endpointConfigurations.add(buildHttpsEndpoint(
-                        builder.copy()
-                                .setSecurityPolicy(SecurityPolicy.Basic256Sha256)
-                                .setSecurityMode(MessageSecurityMode.Sign))
-                );
-
-                /*
-                 * It's good practice to provide a discovery-specific endpoint with no security.
-                 * It's required practice if all regular endpoints have security configured.
-                 *
-                 * Usage of the  "/discovery" suffix is defined by OPC UA Part 6:
-                 *
-                 * Each OPC UA Server Application implements the Discovery Service Set. If the OPC UA Server requires a
-                 * different address for this Endpoint it shall create the address by appending the path "/discovery" to
-                 * its base address.
-                 */
-
                 EndpointConfiguration.Builder discoveryBuilder = builder.copy()
                         .setPath("/discovery")
                         .setSecurityPolicy(SecurityPolicy.None)
@@ -274,7 +249,10 @@ public class TestServer {
         return server;
     }
 
-    public CompletableFuture<OpcUaServer> startup() {
+    public CompletableFuture<OpcUaServer> startup() throws ExecutionException, InterruptedException {
+        if (started) {
+            server.shutdown().get();
+        }
         server = new OpcUaServer(serverConfig);
 
         exampleNamespace = new TestNamespace(server);

@@ -30,18 +30,26 @@
  */
 package org.thingsboard.server.service.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.SortOrder;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.controller.AbstractControllerTest;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,7 +80,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         }
     }
 
-    protected void createIntegration(String integrationName, IntegrationType type) {
+    protected void createIntegration(String integrationName, IntegrationType type) throws InterruptedException {
         Integration newIntegration = new Integration();
         newIntegration.setTenantId(tenantId);
         newIntegration.setDefaultConverterId(uplinkConverter.getId());
@@ -93,6 +101,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         integration = doPost("/api/integration", newIntegration, Integration.class);
         Assert.assertNotNull(integration);
         disableIntegration();
+        Thread.sleep(2000);
     }
 
     public void enableIntegration() {
@@ -104,7 +113,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     }
 
     public void disableIntegration() {
-        if (!integration.isEnabled()) {
+        if (integration.isEnabled()) {
             integration.setEnabled(false);
             integration = doPost("/api/integration", integration, Integration.class);
         }
@@ -117,4 +126,25 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
 
     protected abstract JsonNode createIntegrationClientConfiguration();
 
+
+    public List<EventInfo> getIntegrationDebugMessages(long startTs, String expectedMessageType, IntegrationDebugMessageStatus expectedStatus, long timeout) throws Exception {
+        long endTs = startTs + timeout * 1000;
+        List<EventInfo> targetMsgs;
+        do {
+            SortOrder sortOrder = new SortOrder("createdTime", SortOrder.Direction.DESC);
+            TimePageLink pageLink = new TimePageLink(100, 0, null, sortOrder, startTs, endTs);
+            PageData<EventInfo> events = doGetTypedWithTimePageLink("/api/events/INTEGRATION/{entityId}/DEBUG_INTEGRATION?tenantId={tenantId}&",
+                    new TypeReference<>() {},
+                    pageLink, integration.getId(), integration.getTenantId());
+            targetMsgs = events.getData().stream().filter(event -> expectedMessageType.equals(event.getBody().get("type").asText())
+                    && (IntegrationDebugMessageStatus.ANY.equals(expectedStatus)
+                            || expectedStatus.name().equals(event.getBody().get("status").asText()))).collect(Collectors.toList());
+            if (targetMsgs.size() > 0) {
+                break;
+            }
+            Thread.sleep(100);
+        }
+        while (System.currentTimeMillis() <= endTs);
+        return targetMsgs;
+    }
 }
