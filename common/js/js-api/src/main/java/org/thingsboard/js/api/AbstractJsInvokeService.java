@@ -33,7 +33,9 @@ package org.thingsboard.js.api;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -62,6 +64,16 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
     protected ScheduledExecutorService timeoutExecutorService;
     protected Map<UUID, String> scriptIdToNameMap = new ConcurrentHashMap<>();
     protected Map<UUID, DisableListInfo> disabledFunctions = new ConcurrentHashMap<>();
+
+    @Getter
+    @Value("${js.max_total_args_size:100000}")
+    private long maxTotalArgsSize;
+    @Getter
+    @Value("${js.max_result_size:300000}")
+    private long maxResultSize;
+    @Getter
+    @Value("${js.max_script_body_size:50000}")
+    private long maxScriptBodySize;
 
     protected AbstractJsInvokeService(Optional<TbApiUsageStateClient> apiUsageStateClient, Optional<TbApiUsageReportClient> apiUsageReportClient) {
         this.apiUsageStateClient = apiUsageStateClient;
@@ -151,12 +163,6 @@ public abstract class AbstractJsInvokeService implements JsInvokeService {
     protected abstract boolean isLocal();
 
     protected abstract long getMaxBlacklistDuration();
-
-    protected abstract long getMaxTotalArgsSize();
-
-    protected abstract long getMaxResultSize();
-
-    protected abstract long getMaxScriptBodySize();
 
     protected void onScriptExecutionError(UUID scriptId, Throwable t, String scriptBody) {
         DisableListInfo disableListInfo = disabledFunctions.computeIfAbsent(scriptId, key -> new DisableListInfo());
