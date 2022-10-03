@@ -765,15 +765,15 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected <T> void testEntityDaoWithRelationsTransactionalException(Dao<T> dao, EntityId entityIdFrom, EntityId entityTo,
                                                                         String urlDelete) throws Exception {
+        Mockito.doThrow(new ConstraintViolationException("mock message", new SQLException(), "MOCK_CONSTRAINT")).when(dao).removeById(any(), any());
         try {
-            Mockito.doThrow(new ConstraintViolationException("mock message", new SQLException(), "MOCK_CONSTRAINT")).when(dao).removeById(any(), any());
             createEntityRelation(entityIdFrom, entityTo, "TEST_TRANSACTIONAL_TYPE");
             assertThat(findRelationsByTo(entityTo)).hasSize(1);
+
             doDelete(urlDelete)
                     .andExpect(status().isInternalServerError());
+
             assertThat(findRelationsByTo(entityTo)).hasSize(1);
-        } catch (Exception e) {
-            log.error ("", e);
         } finally {
             Mockito.reset(dao);
         }

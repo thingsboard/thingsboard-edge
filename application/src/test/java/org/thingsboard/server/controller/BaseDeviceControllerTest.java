@@ -89,7 +89,8 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 @ContextConfiguration(classes = {BaseDeviceControllerTest.Config.class})
 public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
-    static final TypeReference<PageData<Device>> PAGE_DATA_DEVICE_TYPE_REF = new TypeReference<>() {};
+    static final TypeReference<PageData<Device>> PAGE_DATA_DEVICE_TYPE_REF = new TypeReference<>() {
+    };
 
     ListeningExecutorService executor;
 
@@ -579,7 +580,7 @@ public abstract class BaseDeviceControllerTest extends AbstractControllerTest {
 
         doPost("/api/device/credentials", deviceCredentials)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString(msgErrorNoFound("Device",  deviceTimeBasedId.toString()))));
+                .andExpect(statusReason(containsString(msgErrorNoFound("Device", deviceTimeBasedId.toString()))));
 
         testNotifyEntityNever(savedDevice.getId(), savedDevice);
         testNotificationUpdateGatewayNever();
