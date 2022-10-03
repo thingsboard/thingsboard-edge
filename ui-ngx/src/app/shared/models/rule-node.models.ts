@@ -518,7 +518,8 @@ const ruleNodeClazzHelpLinkMap = {
   'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2': 'ruleNodeAlarmsCount',
   'org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode': 'ruleNodeAlarmsCountDeprecated',
   'org.thingsboard.rule.engine.flow.TbRuleChainInputNode': 'ruleNodeRuleChain',
-  'org.thingsboard.rule.engine.flow.TbRuleChainOutputNode': 'ruleNodeOutputNode'
+  'org.thingsboard.rule.engine.flow.TbRuleChainOutputNode': 'ruleNodeOutputNode',
+  'org.thingsboard.rule.engine.math.TbMathNode': 'ruleNodeMath',
 };
 
 export function getRuleNodeHelpLink(component: RuleNodeComponentDescriptor): string {

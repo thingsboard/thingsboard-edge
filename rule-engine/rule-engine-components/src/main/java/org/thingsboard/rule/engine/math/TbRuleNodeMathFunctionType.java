@@ -28,38 +28,39 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.rule.engine.math;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import lombok.Getter;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+public enum TbRuleNodeMathFunctionType {
 
-/**
- * @author Andrew Shvayka
- */
-public interface AttributesService {
+    ADD(2), SUB(2), MULT(2), DIV(2),
+    SIN, SINH, COS, COSH, TAN, TANH, ACOS, ASIN, ATAN, ATAN2(2),
+    EXP, EXPM1, SQRT, CBRT, GET_EXP(1, 1, true), HYPOT(2), LOG, LOG10, LOG1P,
+    CEIL(1, 1, true), FLOOR(1, 1, true), FLOOR_DIV(2), FLOOR_MOD(2),
+    ABS, MIN(2), MAX(2), POW, SIGNUM, RAD, DEG,
 
-    ListenableFuture<Optional<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String scope, String attributeKey);
+    CUSTOM(0, 16, false); //Custom function based on exp4j
 
-    ListenableFuture<List<AttributeKvEntry>> find(TenantId tenantId, EntityId entityId, String scope, Collection<String> attributeKeys);
+    @Getter
+    private final int minArgs;
+    @Getter
+    private final int maxArgs;
+    @Getter
+    private final boolean integerResult;
 
-    ListenableFuture<List<AttributeKvEntry>> findAll(TenantId tenantId, EntityId entityId, String scope);
+    TbRuleNodeMathFunctionType() {
+        this(1, 1, false);
+    }
 
-    ListenableFuture<List<String>> save(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes);
+    TbRuleNodeMathFunctionType(int args) {
+        this(args, args, false);
+    }
 
-    ListenableFuture<String> save(TenantId tenantId, EntityId entityId, String scope, AttributeKvEntry attribute);
-
-    ListenableFuture<List<String>> removeAll(TenantId tenantId, EntityId entityId, String scope, List<String> attributeKeys);
-
-    List<String> findAllKeysByDeviceProfileId(TenantId tenantId, DeviceProfileId deviceProfileId);
-
-    List<String> findAllKeysByEntityIds(TenantId tenantId, EntityType entityType, List<EntityId> entityIds);
+    TbRuleNodeMathFunctionType(int minArgs, int maxArgs, boolean integerResult) {
+        this.minArgs = minArgs;
+        this.maxArgs = maxArgs;
+        this.integerResult = integerResult;
+    }
 
 }
