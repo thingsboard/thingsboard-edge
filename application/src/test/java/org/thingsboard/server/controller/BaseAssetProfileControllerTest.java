@@ -35,9 +35,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.JacksonUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
@@ -79,6 +84,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration(classes = {BaseAssetProfileControllerTest.Config.class})
 public abstract class BaseAssetProfileControllerTest extends AbstractControllerTest {
 
     private IdComparator<AssetProfile> idComparator = new IdComparator<>();
@@ -87,11 +93,19 @@ public abstract class BaseAssetProfileControllerTest extends AbstractControllerT
     private Tenant savedTenant;
     private User tenantAdmin;
 
-    @SpyBean
+    @Autowired
     private AssetProfileDao assetProfileDao;
 
     @SpyBean
     private UserPermissionsService userPermissionsService;
+
+    static class Config {
+        @Bean
+        @Primary
+        public AssetProfileDao assetProfileDao(AssetProfileDao assetProfileDao) {
+            return Mockito.mock(AssetProfileDao.class, AdditionalAnswers.delegatesTo(assetProfileDao));
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -115,8 +129,6 @@ public abstract class BaseAssetProfileControllerTest extends AbstractControllerT
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-
-        afterTestEntityDaoRemoveByIdWithException (assetProfileDao);
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
