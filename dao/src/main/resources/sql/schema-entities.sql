@@ -619,6 +619,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     created_time bigint NOT NULL,
     additional_info varchar,
     customer_id uuid,
+    originator_id uuid,
+    originator_type varchar(255),
     name varchar(255),
     search_text varchar(255),
     tenant_id uuid,

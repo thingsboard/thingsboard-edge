@@ -775,6 +775,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             integrationRepository.save(integration);
                         }
                     });
+                    try {
+                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_type varchar(255);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
                     log.info("Schema updated.");
                 } catch (Exception e) {
                     log.error("Failed to update schema!!!");

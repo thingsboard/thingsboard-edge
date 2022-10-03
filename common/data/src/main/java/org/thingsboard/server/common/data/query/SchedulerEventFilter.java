@@ -28,26 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.scheduler;
+package org.thingsboard.server.common.data.query;
 
-import java.util.Calendar;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
 
-abstract class SchedulerDate {
+@Data
 
-    protected long getNext(long startTime, long ts, String timezone, long endsOn, int calendarField) {
-        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
+public class SchedulerEventFilter implements EntityFilter {
 
-        long tmp = startTime;
-        int repeatIteration = 0;
-        while (tmp < endsOn) {
-            calendar.setTimeInMillis(startTime);
-            calendar.add(calendarField, repeatIteration);
-            tmp = calendar.getTimeInMillis();
-            if (tmp > ts && tmp < endsOn) {
-                return tmp;
-            }
-            repeatIteration++;
-        }
-        return 0L;
+    private EntityId originator;
+    private String eventType;
+
+    @Override
+    public EntityFilterType getType() {
+        return EntityFilterType.SCHEDULER_EVENT;
     }
 }

@@ -534,10 +534,12 @@ public class ModelConstants {
     public static final String SCHEDULER_EVENT_COLUMN_FAMILY_NAME = "scheduler_event";
     public static final String SCHEDULER_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY = "originator_id";
+    public static final String SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY = "originator_type";
     public static final String SCHEDULER_EVENT_NAME_PROPERTY = "name";
     public static final String SCHEDULER_EVENT_TYPE_PROPERTY = "type";
     public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
-    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = "configuration";
+    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
 
     public static final String SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant";
