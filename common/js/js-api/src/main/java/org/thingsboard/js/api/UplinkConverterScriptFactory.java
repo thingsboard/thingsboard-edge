@@ -43,25 +43,45 @@ public class UplinkConverterScriptFactory {
             "    return JSON.stringify(Decoder(payload, metadata));" +
             "    function Decoder(payload, metadata) {";
 
-    private static final String JS_WRAPPER_SUFFIX = "}" +
-            "    function convertBytesBase64(bytesBase64) {\n" +
-            "       var binary_string = decodeURIComponent(atob(bytesBase64).split('').map(function(c) {\n" +
-            "            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);\n" +
-            "        }).join(''));\n" +
-            "       var len = binary_string.length;\n"+
-            "       var payload = [];\n" +
-            "       for (var i = 0; i < len; i++) {\n" +
-            "           payload.push(binary_string.charCodeAt(i));\n" +
-            "       }\n" +
-            "       return payload;\n" +
-            "    }\n" +
-            "\n}";
+    private static final String LOCAL_JS_WRAPPER_SUFFIX = "}" +
+            "    function convertBytesBase64(bytesBase64) {" +
+            "       var binary_string = decodeURIComponent(atob(bytesBase64).split('').map(function(c) {" +
+            "            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);" +
+            "        }).join(''));" +
+            "       var len = binary_string.length;"+
+            "       var payload = [];" +
+            "       for (var i = 0; i < len; i++) {" +
+            "           payload.push(binary_string.charCodeAt(i));" +
+            "       }" +
+            "       return payload;" +
+            "    }" +
+            "}";
+
+    private static final String REMOTE_JS_WRAPPER_SUFFIX = "}" +
+            "    function convertBytesBase64(bytesBase64) {" +
+            "       var ascii_binary_string = atob(bytesBase64);" +
+            "       var len = ascii_binary_string.length;" +
+            "       var ascii_bytes = new Uint8Array(len);" +
+            "       for (var i = 0; i < len; i++) {" +
+            "           ascii_bytes[i] = ascii_binary_string.charCodeAt(i);" +
+            "       }" +
+            "       var decoder = new TextDecoder();" +
+            "       var utf_8_text = decoder.decode(ascii_bytes);" +
+            "       var utf_8_bytes = [];" +
+            "       for (var i = 0; i < utf_8_text.length; i++) {" +
+            "           utf_8_bytes.push(utf_8_text.charCodeAt(i));" +
+            "       }" +
+            "       return utf_8_bytes;" +
+            "    }" +
+            "}";
 
     public static String generateUplinkConverterScript(String functionName, String scriptBody, boolean isLocal) {
         String jsWrapperPrefix = String.format(JS_WRAPPER_PREFIX_TEMPLATE, functionName);
-        String result = jsWrapperPrefix + scriptBody + JS_WRAPPER_SUFFIX;
+        String result = jsWrapperPrefix + scriptBody;
         if (isLocal) {
-            result = JS_HELPERS_PREFIX_TEMPLATE + result;
+            result = JS_HELPERS_PREFIX_TEMPLATE + result + LOCAL_JS_WRAPPER_SUFFIX;
+        } else {
+            result = result + REMOTE_JS_WRAPPER_SUFFIX;
         }
         return result;
     }
