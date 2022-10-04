@@ -142,7 +142,7 @@ public class SqlPartitioningRepository {
         return false;
     }
 
-    private List<Long> fetchPartitions(String table) {
+    public List<Long> fetchPartitions(String table) {
         List<Long> partitions = new ArrayList<>();
         List<String> partitionsTables = jdbcTemplate.queryForList(SELECT_PARTITIONS_STMT, new Object[]{table}, String.class);
         for (String partitionTableName : partitionsTables) {
@@ -156,7 +156,7 @@ public class SqlPartitioningRepository {
         return partitions;
     }
 
-    private long calculatePartitionStartTime(long ts, long partitionDuration) {
+    public long calculatePartitionStartTime(long ts, long partitionDuration) {
         return ts - (ts % partitionDuration);
     }
 
