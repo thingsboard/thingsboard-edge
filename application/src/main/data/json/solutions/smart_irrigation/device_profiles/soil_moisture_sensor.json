@@ -1,5 +1,5 @@
 {
-  "name": "Soil Moisture Sensor",
+  "name": "SI Soil Moisture Sensor",
   "description": null,
   "image": null,
   "type": "DEFAULT",
@@ -7,7 +7,7 @@
   "provisionType": "DISABLED",
   "defaultRuleChainId": {
     "entityType": "RULE_CHAIN",
-    "id": "8be082a0-38c6-11ed-92c9-f7688f48c819"
+    "id": "f18f71a0-38d6-11ed-af17-3d7337747e91"
   },
   "defaultDashboardId": null,
   "defaultQueueName": null,

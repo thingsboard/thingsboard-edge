@@ -44,8 +44,8 @@
     "tenantAttributeKeys": []
   },
   {
-    "id": "smart_farming",
-    "title": "Smart Farming",
+    "id": "smart_irrigation",
+    "title": "Smart Irrigation",
     "level": "PROTOTYPE",
     "installTimeoutMs": 10000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/smart_retail/smart-retail-preview.png",
