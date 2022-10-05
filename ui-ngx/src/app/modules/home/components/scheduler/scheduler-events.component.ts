@@ -117,6 +117,7 @@ import {
 import { EntityType } from '@shared/models/entity-type.models';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
+import * as moment_ from 'moment';
 
 @Component({
   selector: 'tb-scheduler-events',
@@ -870,10 +871,31 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
                 switch (event.schedule.repeat.type) {
                   case SchedulerRepeatType.YEARLY:
                   case SchedulerRepeatType.MONTHLY:
+                  case SchedulerRepeatType.EVERY_N_DAYS:
+                  case SchedulerRepeatType.EVERY_N_WEEKS:
                     const eventStartOffsetDuration = _moment.duration(rangeStart.diff(eventStart));
-                    const offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
-                    eventStartOffsetUnits =
-                      Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                    let offsetUnits: moment_.unitOfTime.Base;
+                    if (event.schedule.repeat.type === SchedulerRepeatType.EVERY_N_DAYS) {
+                      offsetUnits = 'days';
+                      eventStartOffsetUnits =
+                        Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                      const remainder = eventStartOffsetUnits % event.schedule.repeat.days;
+                      if (remainder) {
+                        eventStartOffsetUnits += event.schedule.repeat.days - remainder;
+                      }
+                    } else if (event.schedule.repeat.type === SchedulerRepeatType.EVERY_N_WEEKS) {
+                      offsetUnits = 'weeks';
+                      eventStartOffsetUnits =
+                        Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                      const remainder = eventStartOffsetUnits % event.schedule.repeat.weeks;
+                      if (remainder) {
+                        eventStartOffsetUnits += event.schedule.repeat.weeks - remainder;
+                      }
+                    } else {
+                      offsetUnits = schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type);
+                      eventStartOffsetUnits =
+                        Math.ceil(eventStartOffsetDuration.as(offsetUnits));
+                    }
                     currentTime = eventStart.clone().add(eventStartOffsetUnits, offsetUnits);
                     break;
                   default:
@@ -903,6 +925,16 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
                     eventStartOffsetUnits++;
                     currentTime = eventStart.clone()
                       .add(eventStartOffsetUnits, schedulerRepeatTypeToUnitMap.get(event.schedule.repeat.type));
+                    break;
+                  case SchedulerRepeatType.EVERY_N_DAYS:
+                    eventStartOffsetUnits += event.schedule.repeat.days;
+                    currentTime = eventStart.clone()
+                      .add(eventStartOffsetUnits, 'days');
+                    break;
+                  case SchedulerRepeatType.EVERY_N_WEEKS:
+                    eventStartOffsetUnits += event.schedule.repeat.weeks;
+                    currentTime = eventStart.clone()
+                      .add(eventStartOffsetUnits, 'weeks');
                     break;
                   default:
                     currentTime.add(1, 'days');
@@ -955,8 +987,12 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
       info += this.translate.instant('scheduler.starting-from') + ' ' + _moment.utc(startTime).local().format('MMM DD, YYYY') + ', ';
       if (event.schedule.repeat.type === SchedulerRepeatType.DAILY) {
         info += this.translate.instant('scheduler.daily') + ', ';
+      } else if (event.schedule.repeat.type === SchedulerRepeatType.EVERY_N_DAYS) {
+        info += this.translate.instant('scheduler.every-n-days-text', {days: event.schedule.repeat.days}) + ', ';
       } else if (event.schedule.repeat.type === SchedulerRepeatType.MONTHLY) {
         info += this.translate.instant('scheduler.monthly') + ', ';
+      } else if (event.schedule.repeat.type === SchedulerRepeatType.EVERY_N_WEEKS) {
+        info += this.translate.instant('scheduler.every-n-weeks-text', {weeks: event.schedule.repeat.weeks}) + ', ';
       } else if (event.schedule.repeat.type === SchedulerRepeatType.YEARLY) {
         info += this.translate.instant('scheduler.yearly') + ', ';
       } else if (event.schedule.repeat.type === SchedulerRepeatType.TIMER) {

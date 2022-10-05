@@ -177,5 +177,25 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'label',
     name: 'entity-field.label',
     value: 'label'
+  },
+  configuration: {
+    keyName: 'configuration',
+    name: 'entity-field.configuration',
+    value: 'configuration'
+  },
+  schedule: {
+    keyName: 'schedule',
+    name: 'entity-field.schedule',
+    value: 'schedule'
+  },
+  originatorId: {
+    keyName: 'originatorId',
+    name: 'entity-field.originatorId',
+    value: 'originatorId'
+  },
+  originatorType: {
+    keyName: 'originatorType',
+    name: 'entity-field.originatorType',
+    value: 'originatorType'
   }
 };

@@ -211,7 +211,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     if ($event) {
       $event.stopPropagation();
     }
-    const url = this.router.createUrlTree(['deviceProfiles', deviceProfile.id.id]);
+    const url = this.router.createUrlTree(['profiles', 'deviceProfiles', deviceProfile.id.id]);
     this.router.navigateByUrl(url);
   }
 

@@ -60,6 +60,8 @@ import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-templates.module';
 import { VcModule } from '@home/pages/vc/vc.module';
+import { AssetProfileModule } from '@home/pages/asset-profile/asset-profile.module';
+import { ProfilesModule } from '@home/pages/profiles/profiles.module';
 
 @NgModule({
   exports: [
@@ -70,6 +72,8 @@ import { VcModule } from '@home/pages/vc/vc.module';
     TenantProfileModule,
     TenantModule,
     DeviceProfileModule,
+    AssetProfileModule,
+    ProfilesModule,
     DeviceModule,
     AssetModule,
     EdgeModule,

@@ -274,7 +274,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                 try {
                     JsonNode configuration = event.getConfiguration();
                     String msgType = getMsgType(event, configuration);
-                    EntityId originatorId = getOriginatorId(eventId, configuration);
+                    EntityId originatorId = getOriginatorId(event);
 
                     boolean isFirmwareUpdate = UPDATE_FIRMWARE.equals(event.getType());
                     boolean isSoftwareUpdate = UPDATE_SOFTWARE.equals(event.getType());
