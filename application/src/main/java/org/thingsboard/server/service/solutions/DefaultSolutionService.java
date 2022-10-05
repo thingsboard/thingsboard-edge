@@ -118,6 +118,7 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
+import org.thingsboard.server.service.entitiy.entity.relation.TbEntityRelationService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
@@ -204,7 +205,7 @@ public class DefaultSolutionService implements SolutionService {
     private final AttributesService attributesService;
     private final TimeseriesService tsService;
     private final DashboardService dashboardService;
-    private final RelationService relationService;
+    private final TbEntityRelationService relationService;
     private final DeviceService deviceService;
     private final DeviceCredentialsService deviceCredentialsService;
     private final AssetService assetService;
@@ -769,7 +770,7 @@ public class DefaultSolutionService implements SolutionService {
                 entityRelation.setTypeGroup(RelationTypeGroup.COMMON);
                 entityRelation.setType(relationDef.getType());
                 try {
-                    relationService.saveRelation(ctx.getTenantId(), entityRelation);
+                    relationService.save(ctx.getTenantId(), null, entityRelation, null);
                 } catch (Exception e) {
                     log.info("[{}] Failed to save relation: {}, cause: {}", id, relationDef, e.getMessage());
                 }
@@ -1189,7 +1190,9 @@ public class DefaultSolutionService implements SolutionService {
         }
         switch (entityId.getEntityType()) {
             case RULE_CHAIN:
-                ruleChainService.deleteRuleChainById(tenantId, new RuleChainId(entityId.getId()));
+                var ruleChainid = new RuleChainId(entityId.getId());
+                ruleChainService.deleteRuleChainById(tenantId, ruleChainid);
+                tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainid, ComponentLifecycleEvent.DELETED);
                 break;
             case DEVICE_PROFILE:
                 deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));

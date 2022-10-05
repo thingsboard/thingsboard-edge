@@ -476,6 +476,20 @@
           "jsScript": "var newMsg = {};\nif(msg.maxMoistureThreshold !== undefined) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold !== undefined) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 816,
+          "layoutY": 164
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbAckNode",
+        "name": "Ignore",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -583,6 +597,11 @@
         "fromIndex": 20,
         "toIndex": 21,
         "type": "Success"
+      },
+      {
+        "fromIndex": 20,
+        "toIndex": 26,
+        "type": "Failure"
       },
       {
         "fromIndex": 21,

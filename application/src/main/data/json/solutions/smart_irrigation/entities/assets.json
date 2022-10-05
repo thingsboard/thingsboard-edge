@@ -18,7 +18,7 @@
   {
     "name": "SI Field 2",
     "label": "Corn",
-    "type": "SF_Field",
+    "type": "SI Field",
     "group": "Smart Irrigation",
     "attributes": {
       "latitude": 37.7798425,
