@@ -136,12 +136,12 @@
         <ng-template matStepLabel>Connection</ng-template>
         <ng-template matStepContent>
           <form [formGroup]="integrationConfigurationForm">
-            <tb-integration-configuration-new
-              formGroupName="configuration"
+            <tb-integration-configuration
+              formControlName="configuration"
               [genericAdditionalInfoTemplate]="genericAdditionalInfo"
               [executeRemotelyTemplate]="executeRemotely"
               [integrationType]="integrationWizardForm.get('type').value"
-            ></tb-integration-configuration-new>
+            ></tb-integration-configuration>
             <ng-template #genericAdditionalInfo>
               <section [formGroup]="integrationConfigurationForm">
                 <div formGroupName="additionalInfo" fxLayout="column">

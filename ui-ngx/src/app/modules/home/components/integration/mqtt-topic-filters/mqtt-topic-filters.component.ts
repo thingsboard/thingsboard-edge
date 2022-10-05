@@ -36,7 +36,10 @@ import {
   FormArray,
   FormBuilder,
   FormGroup,
+  NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
   Validators
 } from '@angular/forms';
 import { mqttQoSTypes, MqttTopicFilter } from '../integration.models';
@@ -51,9 +54,14 @@ import { takeUntil } from 'rxjs/operators';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => MqttTopicFiltersComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => MqttTopicFiltersComponent),
+    multi: true,
   }]
 })
-export class MqttTopicFiltersComponent implements ControlValueAccessor, OnDestroy {
+export class MqttTopicFiltersComponent implements ControlValueAccessor, Validator, OnDestroy {
 
   mqttTopicFiltersForm: FormGroup;
   mqttQoSTypes = mqttQoSTypes;
@@ -129,5 +137,11 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, OnDestro
 
   private updateModel(value: MqttTopicFilter[]) {
     this.propagateChange(value);
+  }
+
+  validate(): ValidationErrors | null {
+    return this.mqttTopicFiltersForm.valid ? null : {
+      mqttTopicFilters: {valid: false}
+    };
   }
 }

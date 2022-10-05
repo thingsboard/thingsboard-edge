@@ -31,19 +31,15 @@
 
 -->
 <section [formGroup]="integrationConfigurationForm">
-<!--  <section [ngSwitch]="integrationType">-->
-<!--    <section *ngSwitchCase="integrationTypes.MQTT">-->
-<!--      -->
-<!--    </section>-->
-<!--    <section *ngSwitchDefault>-->
-<!--      <input formControlName="configuration">-->
-<!--    </section>-->
-<!--  </section>-->
-  <tb-mqtt-integration-form formControlName="configuration"
-                            [executeRemotelyTemplate]="executeRemotelyTemplate"
-                            [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
-  </tb-mqtt-integration-form>
-  <mat-form-field>
-    <input matInput formControlName="test">
-  </mat-form-field>
+  <section [ngSwitch]="integrationType">
+    <section *ngSwitchCase="integrationTypes.MQTT">
+      <tb-mqtt-integration-form formControlName="configuration"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-mqtt-integration-form>
+    </section>
+    <section *ngSwitchDefault>
+      <input formControlName="configuration">
+    </section>
+  </section>
 </section>

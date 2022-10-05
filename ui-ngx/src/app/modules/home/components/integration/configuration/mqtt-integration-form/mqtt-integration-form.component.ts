@@ -30,7 +30,16 @@
 ///
 
 import { Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
 import {
   mqttClientIdMaxLengthValidator,
   mqttClientIdPatternValidator,
@@ -48,9 +57,14 @@ import { isDefinedAndNotNull } from '@core/utils';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => MqttIntegrationFormComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => MqttIntegrationFormComponent),
+    multi: true,
   }]
 })
-export class MqttIntegrationFormComponent implements ControlValueAccessor, OnDestroy {
+export class MqttIntegrationFormComponent implements ControlValueAccessor, Validator, OnDestroy {
 
   mqttIntegrationConfigForm: FormGroup;
 
@@ -59,8 +73,6 @@ export class MqttIntegrationFormComponent implements ControlValueAccessor, OnDes
 
   @Input()
   disabled: boolean;
-
-  mqttCredentialTypes = mqttCredentialTypes;
 
   private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
@@ -75,7 +87,9 @@ export class MqttIntegrationFormComponent implements ControlValueAccessor, OnDes
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
-        credentials: ['', Validators.required],
+        credentials: [{
+          type: mqttCredentialTypes.anonymous.value
+        }],
       }),
       topicFilters: [[{
         filter: 'v1/devices/me/telemetry',
@@ -118,18 +132,9 @@ export class MqttIntegrationFormComponent implements ControlValueAccessor, OnDes
     this.propagateChange(value);
   }
 
-  // onIntegrationFormSet() {
-  //   const form = this.form.get('credentials') as FormGroup;
-  //   form.get('type').valueChanges.subscribe(() => {
-  //     this.mqttCredentialsTypeChanged();
-  //   });
-  //   this.mqttCredentialsTypeChanged();
-  // }
-  //
-  // mqttCredentialsTypeChanged() {
-  //   const form = this.form.get('credentials') as FormGroup;
-  //   const type: mqttCredentialType = form.get('type').value;
-  //   changeRequiredCredentialsFields(form, type);
-  // }
-
+  validate(): ValidationErrors | null {
+    return this.mqttIntegrationConfigForm.valid ? null : {
+      mqttIntegrationConfigForm: {valid: false}
+    };
+  }
 }

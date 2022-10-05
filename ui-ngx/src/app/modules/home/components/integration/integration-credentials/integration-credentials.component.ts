@@ -29,12 +29,20 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, NgControl, Validators } from '@angular/forms';
-import { ChangeDetectorRef, Component, forwardRef, Input, Self } from '@angular/core';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
+import { ChangeDetectorRef, Component, forwardRef, Input } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { mqttCredentialTypes } from '@home/components/integration/integration.models';
-import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-integration-credentials',
@@ -44,9 +52,14 @@ import { isDefinedAndNotNull } from '@core/utils';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => IntegrationCredentialsComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => IntegrationCredentialsComponent),
+    multi: true,
   }]
 })
-export class IntegrationCredentialsComponent implements ControlValueAccessor {
+export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator {
 
   integrationCredentialForm: FormGroup;
 
@@ -128,8 +141,11 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor {
 
   private updateModel(value) {
     this.propagateChange(value);
-    // if (this.integrationCredentialForm.pristine) {
-    //   this.controlDirective.control.updateValueAndValidity();
-    // }
+  }
+
+  validate(): ValidationErrors | null {
+    return this.integrationCredentialForm.valid ? null : {
+      integrationCredential: {valid: false}
+    };
   }
 }

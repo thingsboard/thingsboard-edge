@@ -30,21 +30,35 @@
 ///
 
 import { ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
 import { IntegrationType } from '@shared/models/integration.models';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-  selector: 'tb-integration-configuration-new',
+  selector: 'tb-integration-configuration',
   templateUrl: './integration-configuration.component.html',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => IntegrationConfigurationComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => IntegrationConfigurationComponent),
+    multi: true,
   }]
 })
-export class IntegrationConfigurationComponent implements ControlValueAccessor, OnDestroy {
+export class IntegrationConfigurationComponent implements ControlValueAccessor, Validator, OnDestroy {
 
   integrationConfigurationForm: FormGroup;
   integrationTypes = IntegrationType;
@@ -56,7 +70,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   @Input()
   set integrationType(value: IntegrationType) {
     this.integrationTypeValue = value || IntegrationType.CUSTOM;
-    // this.integrationConfigurationForm.setControl('configuration', this.fb.control(null));
+    this.integrationConfigurationForm.setControl('configuration', this.fb.control(null));
   }
 
   get integrationType(): IntegrationType {
@@ -72,8 +86,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   constructor(private fb: FormBuilder,
               private cd: ChangeDetectorRef) {
     this.integrationConfigurationForm = this.fb.group({
-      configuration: [null, Validators.required],
-      test: ['']
+      configuration: [null, Validators.required]
     });
     this.integrationConfigurationForm.valueChanges.pipe(
       takeUntil(this.destroy$)
@@ -106,7 +119,11 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
 
   private updateModel(value: any) {
     this.propagateChange(value);
-    this.integrationConfigurationForm.updateValueAndValidity({emitEvent: false});
-    this.cd.markForCheck();
+  }
+
+  validate(): ValidationErrors | null {
+    return this.integrationConfigurationForm.valid ? null : {
+      integrationConfiguration: {valid: false}
+    };
   }
 }
