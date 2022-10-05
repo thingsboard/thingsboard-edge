@@ -32,11 +32,15 @@ package org.thingsboard.server.edge;
 
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 abstract public class BaseEdgeTest extends AbstractEdgeTest {
 
     @Test
-    public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() {
+    public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() throws Exception {
         // create customer
         Customer savedCustomerA = saveCustomer("Edge Customer A", null);
         // create sub customer
@@ -45,20 +49,27 @@ abstract public class BaseEdgeTest extends AbstractEdgeTest {
         Customer savedSubSubCustomerA = saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
 
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
-        // validate tenant groups on edge
-        // change owner from tenant to customer
-        // validate that customer was created on edge
-        // validate that tenant groups are still on edge
+        EntityGroup deviceEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "EdgeDeviceGroup");
+        EntityGroup assetEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ASSET, "EdgeAssetGroup");
+        EntityGroup entityViewEntityGroup = createEntityGroupAndAssignToEdge(EntityType.ENTITY_VIEW, "EdgeEntityViewGroup");
+        EntityGroup dashboardEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "EdgeDashboardGroup");
+        EntityGroup userEntityGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "EdgeUserGroup");
+
+        // change edge owner from tenant to customer A
+        changeEdgeOwnerFromTenantToCustomer(savedCustomerA);
+
         // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
         // validate customer groups on edge
+
         // change owner to tenant
-        // validate that customer entity group were deleted from edge
-        // validate that customer was deleted from edge
+        changeEdgeOwnerFromCustomerToTenant(savedCustomerA);
+
         // remove tenant entity groups
         // validate no tenant groups on edge
-        // remove sub sub customer
-        // remove sub customer
-        // remove customer
+
+        // delete customers
+        doDelete("/api/customer/" + savedCustomerA.getUuidId())
+                .andExpect(status().isOk());
     }
 
     @Test
