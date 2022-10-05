@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -69,6 +70,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -90,6 +92,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.alarm.AlarmService;
@@ -106,6 +109,7 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.ThingsboardRuntimeException;
@@ -115,6 +119,7 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.install.InstallScripts;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
 import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
@@ -132,6 +137,7 @@ import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinit
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RoleDefinition;
+import org.thingsboard.server.service.solutions.data.definition.SchedulerEventDefinition;
 import org.thingsboard.server.service.solutions.data.definition.TenantDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserGroupDefinition;
@@ -216,6 +222,8 @@ public class DefaultSolutionService implements SolutionService {
     private final TelemetrySubscriptionService tsSubService;
     private final EntityActionService entityActionService;
     private final AlarmService alarmService;
+    private final SchedulerEventService schedulerEventService;
+    private final SchedulerService schedulerService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
@@ -469,6 +477,10 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionCustomerUsers(ctx, customers);
 
+            provisionSchedulerEvents(ctx);
+
+            updateRuleChains(ctx);
+
             launchEmulators(ctx, devices);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
@@ -596,9 +608,6 @@ public class DefaultSolutionService implements SolutionService {
             RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
             ruleChain.setTenantId(ctx.getTenantId());
             String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
-            for (var entry : ctx.getRealIds().entrySet()) {
-                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
-            }
             RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
             RuleChain savedRuleChain = ruleChainService.saveRuleChain(ruleChain);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
@@ -608,6 +617,33 @@ public class DefaultSolutionService implements SolutionService {
             }
             ctx.register(entityDefinition.getJsonId(), savedRuleChain);
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
+        }
+    }
+
+    private void updateRuleChains(SolutionInstallContext ctx) {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+        });
+        for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
+            // Rule chains should be ordered correctly to exclude dependencies.
+            Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getFile());
+            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            ruleChain.setTenantId(ctx.getTenantId());
+            String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
+            String oldMetadataStr = metadataStr;
+            for (var entry : ctx.getRealIds().entrySet()) {
+                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
+            }
+            if (metadataStr.equals(oldMetadataStr)) {
+                continue;
+            }
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
+
+            RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
+            RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
+            ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
 
@@ -655,6 +691,39 @@ public class DefaultSolutionService implements SolutionService {
 
         assetProfiles = assetProfiles.stream().map(assetProfileService::saveAssetProfile).collect(Collectors.toList());
         assetProfiles.forEach(ctx::register);
+    }
+
+    private void provisionSchedulerEvents(SolutionInstallContext ctx) {
+        List<SchedulerEventDefinition> schedulerEvents = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "scheduler_events.json", new TypeReference<>() {
+        });
+        schedulerEvents.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "scheduler_events", SchedulerEventDefinition.class));
+        schedulerEvents.forEach(entityDef -> {
+            SchedulerEvent schedulerEvent = new SchedulerEvent();
+            schedulerEvent.setTenantId(ctx.getTenantId());
+            schedulerEvent.setName(entityDef.getName());
+            schedulerEvent.setType(entityDef.getType());
+            schedulerEvent.setConfiguration(entityDef.getConfiguration());
+            schedulerEvent.setSchedule(entityDef.getSchedule());
+            schedulerEvent.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            if (entityDef.getOriginatorId() != null) {
+                String newId = ctx.getRealIds().get(entityDef.getOriginatorId().getId().toString());
+                if (newId != null) {
+                    schedulerEvent.setOriginatorId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Scheduler event: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entityDef.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+            //TODO: use tbSchedulerService here when it becomes available.
+            SchedulerEvent savedSchedulerEvent = schedulerEventService.saveSchedulerEvent(schedulerEvent);
+
+            if (schedulerEvent.getId() == null) {
+                schedulerService.onSchedulerEventAdded(savedSchedulerEvent);
+            } else {
+                schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
+            }
+            log.info("[{}] Saved asset: {}", schedulerEvent.getId(), schedulerEvent);
+        });
     }
 
     private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {

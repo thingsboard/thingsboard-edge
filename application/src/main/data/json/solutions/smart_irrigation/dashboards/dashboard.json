@@ -1,5 +1,5 @@
 {
-  "title": "Smart Farming",
+  "title": "Smart Irrigation",
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
@@ -91,7 +91,7 @@
     },
     "states": {
       "default": {
-        "name": "Smart Farming",
+        "name": "Smart Irrigation",
         "root": true,
         "layouts": {
           "main": {
@@ -156,5 +156,5 @@
     }
   },
   "externalId": null,
-  "name": "Smart Farming"
+  "name": "Smart Irrigation"
 }

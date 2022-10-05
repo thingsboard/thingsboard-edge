@@ -1,0 +1,65 @@
+[
+  {
+    "name": "SI Water Meter 1",
+    "type": "SI Water Meter",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "xPos": 0.7241627311506073,
+      "yPos": 0.5483131839908542,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 1",
+        "direction": "FROM",
+        "type": "FieldToWaterMeter"
+      }
+    ],
+    "jsonId": "d924ddb0-398c-11ed-af17-3d7337747e91"
+  },
+  {
+    "name": "SI Smart Valve 1",
+    "type": "SI Smart Valve",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "xPos": 0.7241627311506073,
+      "yPos": 0.5483131839908542,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 1",
+        "direction": "FROM",
+        "type": "FieldToSmartValve"
+      }
+    ],
+    "jsonId": "eb87ca30-3982-11ed-af17-3d7337747e91"
+  },
+  {
+    "name": "SI Soil Moisture 1",
+    "type": "SI Soil Moisture Sensor",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "xPos": 0.7241627311506073,
+      "yPos": 0.5483131839908542,
+      "lowWeightMajorThreshold": 15,
+      "lowWeightCriticalThreshold": 5
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 1",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e91"
+  }
+]
