@@ -38,19 +38,27 @@ import { IntegrationComponent } from '@home/pages/integration/integration.compon
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
 import { integrations } from './configurations';
+import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import {
+    MqttIntegrationFormComponent
+} from '@home/pages/integration/configurations/mqtt-integration-form/mqtt-integration-form.component';
 
 @NgModule({
-  declarations: [
-    IntegrationComponent,
-    IntegrationTabsComponent,
-    ...integrations
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    IntegrationRoutingModule
-  ]
+    declarations: [
+        IntegrationComponent,
+        IntegrationTabsComponent,
+        ...integrations
+    ],
+    exports: [
+        MqttIntegrationFormComponent
+    ],
+    imports: [
+        CommonModule,
+        SharedModule,
+        HomeComponentsModule,
+        HomeDialogsModule,
+        IntegrationRoutingModule,
+        IntegrationComponentModule
+    ]
 })
 export class IntegrationModule { }

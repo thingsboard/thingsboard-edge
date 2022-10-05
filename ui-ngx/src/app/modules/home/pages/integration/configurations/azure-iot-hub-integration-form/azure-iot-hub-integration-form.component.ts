@@ -30,7 +30,7 @@
 ///
 
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormArray, FormGroup } from '@angular/forms';
 import { azureIotHubCredentialsTypes, azureIotHubCredentialsType} from '../../integration-forms-templates';
 import { changeRequiredAzureCredentialsFields} from '../../integration-utils';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
@@ -42,7 +42,7 @@ import { IntegrationFormComponent } from '@home/pages/integration/configurations
 })
 export class AzureIotHubIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() topicFilters: FormGroup;
+  @Input() topicFilters: FormArray;
 
   azureIotHubCredentialTypes = azureIotHubCredentialsTypes;
 

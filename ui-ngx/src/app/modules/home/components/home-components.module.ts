@@ -211,9 +211,10 @@ import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits
 import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
 import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
 import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
-import {
-  IntegrationTypeSelectComponent
-} from '@home/components/integration/integration-type-select.component';
+import { IntegrationWizardDialogComponent } from '@home/components/wizard/integration-wizard-dialog.component';
+import { ConverterComponent } from '@home/components/converter/converter.component';
+import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
+import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 
 @NgModule({
   declarations:
@@ -372,12 +373,14 @@ import {
       ComplexVersionLoadComponent,
       RemoveOtherEntitiesConfirmComponent,
       AutoCommitSettingsComponent,
-      IntegrationTypeSelectComponent,
       OwnerEntityGroupListComponent,
       RateLimitsDetailsDialogComponent,
       RateLimitsComponent,
       RateLimitsListComponent,
-      RateLimitsTextComponent
+      RateLimitsTextComponent,
+      IntegrationWizardDialogComponent,
+      ConverterComponent,
+      ConverterTestDialogComponent
     ],
   imports: [
     CommonModule,
@@ -389,7 +392,8 @@ import {
     SnmpDeviceProfileTransportModule,
     StatesControllerModule,
     DeviceCredentialsModule,
-    DeviceProfileCommonModule
+    DeviceProfileCommonModule,
+    IntegrationComponentModule
   ],
   exports: [
     SharedHomeComponentsModule,
@@ -530,12 +534,12 @@ import {
     ComplexVersionLoadComponent,
     RemoveOtherEntitiesConfirmComponent,
     AutoCommitSettingsComponent,
-    IntegrationTypeSelectComponent,
     OwnerEntityGroupListComponent,
     RateLimitsDetailsDialogComponent,
     RateLimitsComponent,
     RateLimitsListComponent,
-    RateLimitsTextComponent
+    RateLimitsTextComponent,
+    IntegrationWizardDialogComponent
   ],
   providers: [
     WidgetComponentService,

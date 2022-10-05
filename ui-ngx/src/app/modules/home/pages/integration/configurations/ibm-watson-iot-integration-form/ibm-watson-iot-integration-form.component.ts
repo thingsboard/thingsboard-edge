@@ -30,7 +30,7 @@
 ///
 
 import {Component, Input, OnInit} from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 
 @Component({
@@ -40,7 +40,7 @@ import { IntegrationFormComponent } from '@home/pages/integration/configurations
 })
 export class IbmWatsonIotIntegrationFormComponent extends IntegrationFormComponent implements OnInit{
 
-  @Input() topicFilters: FormGroup;
+  @Input() topicFilters: FormArray;
   @Input() downlinkTopicPattern: FormControl;
 
   constructor() {

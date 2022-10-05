@@ -55,17 +55,17 @@
     </mat-option>
     <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null" class="tb-not-found">
       <div class="tb-not-found-content" (click)="$event.stopPropagation()">
-        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+        <div *ngIf="!textIsNotEmpty(searchText) || !addNewConverter; else searchNotEmpty">
           <span translate>converter.no-converters-found</span>
         </div>
         <ng-template #searchNotEmpty>
           <span>
               {{ 'converter.no-converters-matching' | translate:{entity: truncate.transform(searchText, true, 6, &apos;...&apos;)} }}
           </span>
+          <span *ngIf="(resource.CONVERTER | hasGenericPermission: operation.WRITE)">
+            <a translate (click)="createConverter($event, searchText)">converter.create-new-converter</a>
+          </span>
         </ng-template>
-        <span *ngIf="(resource.CONVERTER | hasGenericPermission: operation.WRITE)">
-          <a translate (click)="createConverter($event, searchText)">converter.create-new-converter</a>
-        </span>
       </div>
     </mat-option>
   </mat-autocomplete>

@@ -303,7 +303,10 @@ export const templates = {
       },
     },
     downlinkTopicPattern: '${topic}',
-    topicFilters: [],
+    topicFilters: [{
+      filter: 'v1/devices/me/telemetry',
+      qos: 0
+    }],
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],
@@ -376,7 +379,10 @@ export const templates = {
       }
     },
     downlinkTopicPattern: '${topic}',
-    topicFilters: [],
+    topicFilters: [{
+      filter: 'v1/devices/me/telemetry',
+      qos: 0
+    }],
     fieldValidators: {
       'clientConfiguration.host': [Validators.required],
       'clientConfiguration.port': [Validators.min(1), Validators.max(65535)],

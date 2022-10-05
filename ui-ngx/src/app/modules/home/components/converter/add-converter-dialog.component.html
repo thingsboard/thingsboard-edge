@@ -45,7 +45,11 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
-    <tb-anchor #entityDetailsForm></tb-anchor>
+    <tb-converter
+      #converterComponent
+      [entity]="converter"
+      [isEdit]="true">
+    </tb-converter>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary"
@@ -57,7 +61,7 @@
     </button>
     <button mat-raised-button color="primary"
             type="submit"
-            [disabled]="(isLoading$ | async) || detailsForm?.invalid">
+            [disabled]="(isLoading$ | async) || converterComponent.entityForm?.invalid">
       {{ 'action.add' | translate }}
     </button>
   </div>

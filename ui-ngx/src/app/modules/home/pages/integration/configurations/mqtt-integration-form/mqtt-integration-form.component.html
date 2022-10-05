@@ -31,112 +31,139 @@
 
 -->
 <section [formGroup]="form" fxLayout="column" autocomplte="off">
-    <fieldset>
-        <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-            <mat-form-field fxFlex="60" class="mat-block">
-                <mat-label translate>integration.host</mat-label>
-                <input matInput required formControlName="host">
-                <mat-error translate *ngIf="form.get('host').hasError('required')">integration.host-required
-                </mat-error>
-            </mat-form-field>
-            <mat-form-field fxFlex="40" class="mat-block">
-                <mat-label translate>integration.port</mat-label>
-                <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
-                <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
-                </mat-error>
-                <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
-                <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
-            </mat-form-field>
-            <mat-form-field fxFlex="40" class="mat-block">
-                <mat-label translate>integration.connect-timeout</mat-label>
-                <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
-                <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('required')">
-                    integration.connect-timeout-required</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('min')">integration.connect-timeout-range</mat-error>
-                <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('max')">integration.connect-timeout-range</mat-error>
-            </mat-form-field>
-        </div>
+  <fieldset>
+    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>integration.host</mat-label>
+        <input matInput required formControlName="host">
+        <mat-error translate *ngIf="form.get('host').hasError('required')">integration.host-required
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>integration.port</mat-label>
+        <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
+        <mat-error translate *ngIf="form.get('port').hasError('required')">integration.port-required
+        </mat-error>
+        <mat-error translate *ngIf="form.get('port').hasError('min')">integration.port-range</mat-error>
+        <mat-error translate *ngIf="form.get('port').hasError('max')">integration.port-range</mat-error>
+      </mat-form-field>
+    </div>
+    <fieldset class="fields-group">
+      <legend class="group-title" translate>integration.credentials</legend>
+      <div formGroupName="credentials">
         <mat-form-field class="mat-block">
-            <mat-label translate>integration.client-id</mat-label>
-            <input matInput formControlName="clientId" autocomplete="new-clientId">
-            <mat-error translate *ngIf="form.get('clientId').hasError('pattern')">integration.client-id-pattern
-            </mat-error>
-            <mat-error translate *ngIf="form.get('clientId').hasError('maxlength')">integration.client-id-range
-            </mat-error>
+          <mat-label translate>integration.credentials-type</mat-label>
+          <mat-select required formControlName="type">
+            <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
+                        [value]="credentialsType?.value.value">
+              {{credentialsType?.value.name | translate}}
+            </mat-option>
+          </mat-select>
+          <mat-error translate *ngIf="form.get('credentials').get('type')?.hasError('required')">
+            integration.credentials-type-required
+          </mat-error>
         </mat-form-field>
-        <div class="tb-hint client-id" [ngClass]="{invisible: form.get('clientId').errors}" translate>integration.client-id-hint</div>
-        <mat-form-field class="mat-block">
+        <section *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes.anonymous.value">
+          <ng-container *ngTemplateOutlet="enableSsl"></ng-container>
+        </section>
+        <section *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes.basic.value">
+          <div class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+            <mat-form-field class="mat-block" fxFlex>
+              <mat-label translate>integration.username</mat-label>
+              <input matInput required formControlName="username" autocomplete="new-username">
+              <mat-error translate *ngIf="form.get('credentials').get('username')?.hasError('required')">
+                integration.username-required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="mat-block" fxFlex>
+              <mat-label translate>integration.password</mat-label>
+              <input matInput type="password" required formControlName="password"
+                     autocomplete="new-password">
+              <tb-toggle-password matSuffix></tb-toggle-password>
+              <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
+                integration.password-required
+              </mat-error>
+            </mat-form-field>
+          </div>
+          <ng-container *ngTemplateOutlet="enableSsl"></ng-container>
+        </section>
+        <section
+          *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes['cert.PEM'].value"
+          class="dropdown-section">
+          <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
+          <mat-form-field class="mat-block">
+            <mat-label translate>integration.private-key-password</mat-label>
+            <input matInput type="password" formControlName="privateKeyPassword">
+            <tb-toggle-password matSuffix></tb-toggle-password>
+          </mat-form-field>
+        </section>
+      </div>
+    </fieldset>
+    <ng-content></ng-content>
+    <tb-mqtt-topic-filters [topicFilters]="topicFilters">
+    </tb-mqtt-topic-filters>
+    <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
+    </ng-container>
+  </fieldset>
+  <mat-expansion-panel class="configuration-panel">
+    <mat-expansion-panel-header>
+      <mat-panel-description fxLayoutAlign="end" translate>
+        integration.advanced-settings
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
+                        formControlName="cleanSession">
+        {{ 'integration.clean-session' | translate }}
+      </mat-slide-toggle>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.client-id</mat-label>
+        <input matInput formControlName="clientId" autocomplete="new-clientId">
+        <mat-error translate *ngIf="form.get('clientId').hasError('pattern')">integration.client-id-pattern
+        </mat-error>
+        <mat-error translate *ngIf="form.get('clientId').hasError('maxlength')">integration.client-id-range
+        </mat-error>
+      </mat-form-field>
+      <div class="tb-hint client-id" [ngClass]="{invisible: form.get('clientId').errors}" translate>
+        integration.client-id-hint
+      </div>
+      <section class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+        <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.max-bytes-in-message</mat-label>
           <input matInput type="number" formControlName="maxBytesInMessage">
-          <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('min')">integration.max-bytes-in-message-range</mat-error>
-          <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('max')">integration.max-bytes-in-message-range</mat-error>
+          <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('min')">
+            integration.max-bytes-in-message-range
+          </mat-error>
+          <mat-error translate *ngIf="form.get('maxBytesInMessage').hasError('max')">
+            integration.max-bytes-in-message-range
+          </mat-error>
         </mat-form-field>
-        <div fxLayout="column">
-            <mat-checkbox class="checkbox" [aria-label]="'integration.clean-session' | translate"
-                formControlName="cleanSession">
-                {{ 'integration.clean-session' | translate }}
-            </mat-checkbox>
-            <mat-checkbox class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
-                {{ 'integration.enable-ssl' | translate }}
-            </mat-checkbox>
-        </div>
-        <mat-accordion class="tb-integration-panel-group">
-            <mat-expansion-panel id="expansion-panel">
-                <mat-expansion-panel-header fxFlex>
-                    <mat-panel-title translate>integration.credentials</mat-panel-title>
-                    <mat-panel-description>
-                        {{ mqttCredentialTypes[form.get('credentials').get('type').value]?.name | translate }}
-                    </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div formGroupName="credentials">
-                    <mat-form-field class="mat-block">
-                        <mat-label translate>integration.credentials-type</mat-label>
-                        <mat-select required formControlName="type">
-                            <mat-option *ngFor="let credentialsType of mqttCredentialTypes | keyvalue"
-                                [value]="credentialsType?.value.value">
-                                {{credentialsType?.value.name | translate}}
-                            </mat-option>
-                        </mat-select>
-                        <mat-error translate *ngIf="form.get('credentials').get('type')?.hasError('required')">
-                            integration.credentials-type-required</mat-error>
-                    </mat-form-field>
-                    <section *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes.basic.value">
-                        <mat-form-field class="mat-block">
-                            <mat-label translate>integration.username</mat-label>
-                            <input matInput required formControlName="username" autocomplete="new-username">
-                            <mat-error translate *ngIf="form.get('credentials').get('username')?.hasError('required')">
-                                integration.username-required</mat-error>
-                        </mat-form-field>
-                        <mat-form-field class="mat-block">
-                            <mat-label translate>integration.password</mat-label>
-                            <input matInput type="password" required formControlName="password"
-                                autocomplete="new-password">
-                            <tb-toggle-password matSuffix></tb-toggle-password>
-                            <mat-error translate *ngIf="form.get('credentials').get('password')?.hasError('required')">
-                                integration.password-required</mat-error>
-                        </mat-form-field>
-                    </section>
-                    <section
-                        *ngIf="form.get('credentials').get('type').value === mqttCredentialTypes['cert.PEM'].value"
-                        class="dropdown-section">
-                        <tb-cert-upload [form]="form.get('credentials')"></tb-cert-upload>
-                        <mat-form-field class="mat-block">
-                            <mat-label translate>integration.private-key-password</mat-label>
-                            <input matInput type="password" formControlName="privateKeyPassword">
-                            <tb-toggle-password matSuffix></tb-toggle-password>
-                        </mat-form-field>
-                    </section>
-                </div>
-            </mat-expansion-panel>
-            <tb-mqtt-topic-filters [topicFilters]="topicFilters">
-            </tb-mqtt-topic-filters>
-        </mat-accordion>
-    </fieldset>
-    <div style="height: 30px;"></div>
-    <mat-form-field class="mat-block">
-        <mat-label translate>integration.downlink-topic-pattern</mat-label>
-        <input matInput required [formControl]="downlinkTopicPattern">
-        <mat-error translate *ngIf="downlinkTopicPattern.hasError('required')">
-            integration.downlink-topic-pattern-required</mat-error>
-    </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>integration.connect-timeout</mat-label>
+          <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
+          <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('required')">
+            integration.connect-timeout-required
+          </mat-error>
+          <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('min')">integration.connect-timeout-range
+          </mat-error>
+          <mat-error translate *ngIf="form.get('connectTimeoutSec').hasError('max')">integration.connect-timeout-range
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>integration.downlink-topic-pattern</mat-label>
+          <input matInput required [formControl]="downlinkTopicPattern">
+          <mat-error translate *ngIf="downlinkTopicPattern.hasError('required')">
+            integration.downlink-topic-pattern-required
+          </mat-error>
+        </mat-form-field>
+      </section>
+      <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
+      </ng-container>
+    </ng-template>
+  </mat-expansion-panel>
+  <ng-template #enableSsl>
+    <mat-slide-toggle class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
+      {{ 'integration.enable-ssl' | translate }}
+    </mat-slide-toggle>
+  </ng-template>
 </section>

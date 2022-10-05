@@ -53,7 +53,7 @@
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <div translate class="tb-hint" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
-      <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+      <div class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.name</mat-label>
           <input matInput formControlName="name" required>
@@ -67,90 +67,71 @@
         <tb-integration-type-select formControlName="type" required fxFlex>
         </tb-integration-type-select>
       </div>
-      <div fxLayout="row" fxLayout.xs="column">
-        <mat-checkbox fxFlex="33" formControlName="enabled">
-          {{ 'integration.enabled' | translate }}
-        </mat-checkbox>
-        <mat-checkbox fxFlex="33" formControlName="debugMode">
-          {{ 'integration.debug-mode' | translate }}
-        </mat-checkbox>
-        <mat-checkbox fxFlex formControlName="allowCreateDevicesOrAssets">
-          {{ 'integration.allow-create-devices-or-assets' | translate }}
-        </mat-checkbox>
-      </div>
-      <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
-        <tb-converter-autocomplete fxFlex formControlName="defaultConverterId" required
-          labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
-          [converterType]="converterType.UPLINK"
-          [showDetailsPageLink]="true"
-          [useFullEntityId]="true"
-          [isEdgeTemplate]="integrationScope === 'edges'">
-        </tb-converter-autocomplete>
-        <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
-          labelText="integration.downlink-converter"
-          [converterType]="converterType.DOWNLINK"
-          [showDetailsPageLink]="true"
-          [useFullEntityId]="true"
-          [isEdgeTemplate]="integrationScope === 'edges'">
-        </tb-converter-autocomplete>
-      </div>
-      <mat-slide-toggle formControlName="remote" style="padding-bottom: 48px;">
-        {{'integration.execute-remotely' | translate}}
-      </mat-slide-toggle>
+      <section *ngIf="integrationType">
+        <div class="row" fxLayout="column" fxLayoutGap="8px">
+          <mat-slide-toggle formControlName="enabled">
+            {{ 'integration.enabled' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="debugMode">
+            {{ 'integration.debug-mode' | translate }}
+          </mat-slide-toggle>
+          <mat-slide-toggle formControlName="allowCreateDevicesOrAssets">
+            {{ 'integration.allow-create-devices-or-assets' | translate }}
+          </mat-slide-toggle>
+        </div>
+        <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+          <tb-converter-autocomplete fxFlex formControlName="defaultConverterId" required
+                                     labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
+                                     [converterType]="converterType.UPLINK"
+                                     [showDetailsPageLink]="true"
+                                     [useFullEntityId]="true"
+                                     [isEdgeTemplate]="integrationScope === 'edges'">
+          </tb-converter-autocomplete>
+          <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+                                     labelText="integration.downlink-converter"
+                                     [converterType]="converterType.DOWNLINK"
+                                     [showDetailsPageLink]="true"
+                                     [useFullEntityId]="true"
+                                     [isEdgeTemplate]="integrationScope === 'edges'">
+          </tb-converter-autocomplete>
+        </div>
+      </section>
     </fieldset>
-    <div [fxShow]="entityForm.get('remote').value" class="mat-elevation-z1 remote-config-panel">
-      <div fxLayout="row" fxLayoutAlign="start center">
-        <mat-form-field class="mat-block" fxFlex>
-          <mat-label translate>integration.integration-key</mat-label>
-          <input matInput formControlName="routingKey">
-        </mat-form-field>
-        <button mat-button mat-icon-button ngxClipboard type="button"
-                (cbOnSuccess)="onIntegrationInfoCopied('key')"
-                [cbContent]="entityForm?.get('routingKey').value"
-                matTooltip="{{'integration.copy-integration-key' | translate}}">
-          <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
-        </button>
-      </div>
-      <div fxLayout="row" fxLayoutAlign="start center">
-        <mat-form-field class="mat-block" fxFlex>
-          <mat-label translate>integration.integration-secret</mat-label>
-          <input matInput formControlName="secret">
-        </mat-form-field>
-        <button mat-button mat-icon-button ngxClipboard type="button"
-                (cbOnSuccess)="onIntegrationInfoCopied('secret')"
-                [cbContent]="entityForm?.get('secret').value"
-                matTooltip="{{'integration.copy-integration-secret' | translate}}">
-          <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
-        </button>
-      </div>
-    </div>
-    <fieldset [disabled]="(isLoading$ | async) || !isEdit" *ngIf="integrationForm">
+    <fieldset [disabled]="(isLoading$ | async) || !isEdit" *ngIf="integrationForm" class="row">
       <section *ngIf="integrationInfo?.http">
         <tb-http-integration-form #integrationFormComponent [form]="integrationForm" [integrationType]="integrationType" [isAdd]="isAdd"
           [routingKey]="entityForm.get('routingKey').value">
         </tb-http-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.MQTT">
-        <tb-mqtt-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
-          [topicFilters]="integrationForm.get('topicFilters')"
-          [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')">
+        <tb-mqtt-integration-form #integrationFormComponent
+          [form]="clientConfigurationFormGroup"
+          [topicFilters]="topicFiltersFormArray"
+          [downlinkTopicPattern]="downlinkTopicPatternFormControl"
+          [genericAdditionalInfoTemplate]="genericAdditionalInfo"
+          [executeRemotelyTemplate]="executeRemotely">
+          <button *ngIf="isCheckConnectionAvailable && isEdit"
+                  style="margin-bottom: 10px"
+                  mat-button mat-stroked-button color="primary"
+                  (click)="onIntegrationCheck()" [disabled]="!isEdit">
+            {{ 'integration.check-connection' | translate }}
+          </button>
         </tb-mqtt-integration-form>
-        <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
-          {{ 'integration.check-connection' | translate }}
-        </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.OPC_UA">
-        <tb-opc-ua-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-opc-ua-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup">
         </tb-opc-ua-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.AWS_KINESIS">
-        <tb-aws-kinesis-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-aws-kinesis-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup">
         </tb-aws-kinesis-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.AWS_IOT">
-        <tb-aws-iot-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
-          [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')"
-          [topicFilters]="integrationForm.get('topicFilters')">
+        <tb-aws-iot-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup"
+           [downlinkTopicPattern]="downlinkTopicPatternFormControl"
+           [topicFilters]="topicFiltersFormArray"
+           [genericAdditionalInfoTemplate]="genericAdditionalInfo"
+           [executeRemotelyTemplate]="executeRemotely">
         </tb-aws-iot-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.AWS_SQS">
@@ -158,15 +139,15 @@
         </tb-aws-sqs-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.IBM_WATSON_IOT">
-        <tb-ibm-watson-iot-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
-          [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')"
-          [topicFilters]="integrationForm.get('topicFilters')">
+        <tb-ibm-watson-iot-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup"
+          [downlinkTopicPattern]="downlinkTopicPatternFormControl"
+          [topicFilters]="topicFiltersFormArray">
         </tb-ibm-watson-iot-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.TTN || integrationType === integrationTypes.TTI">
-        <tb-ttn-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
-                                 [downlinkTopicPattern]="integrationForm.get('downlinkTopicPattern')"
-                                 [topicFilters]="integrationForm.get('topicFilters')"
+        <tb-ttn-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup"
+                                 [downlinkTopicPattern]="downlinkTopicPatternFormControl"
+                                 [topicFilters]="topicFiltersFormArray"
                                  [integrationType]="integrationType">
         </tb-ttn-integration-form>
         <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
@@ -174,7 +155,7 @@
         </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.AZURE_EVENT_HUB">
-        <tb-azure-event-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
+        <tb-azure-event-hub-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup"
         [downlinkConverterIdControl]="entityForm.get('downlinkConverterId')">
         </tb-azure-event-hub-integration-form>
         <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
@@ -182,41 +163,41 @@
         </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.AZURE_IOT_HUB">
-        <tb-azure-iot-hub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
-                                           [topicFilters]="integrationForm.get('topicFilters')">
+        <tb-azure-iot-hub-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup"
+                                           [topicFilters]="topicFiltersFormArray">
         </tb-azure-iot-hub-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.TCP">
-        <tb-tcp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
+        <tb-tcp-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
         </tb-tcp-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.UDP">
-        <tb-udp-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
+        <tb-udp-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup" [isSetDownlink]="!!entityForm.get('downlinkConverterId').value">
         </tb-udp-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.KAFKA">
-        <tb-kafka-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-kafka-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup">
         </tb-kafka-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.RABBITMQ">
-        <tb-rabbitmq-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-rabbitmq-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup">
         </tb-rabbitmq-integration-form>
         <button *ngIf="isCheckConnectionAvailable" mat-button mat-raised-button color="primary" (click)="onIntegrationCheck()" [disabled]="!isEdit">
           {{ 'integration.check-connection' | translate }}
         </button>
       </section>
       <section *ngIf="integrationType === integrationTypes.CHIRPSTACK">
-        <tb-chirpstack-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')"
+        <tb-chirpstack-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup"
                                         [integrationType]="integrationType"
                                         [routingKey]="entityForm.get('routingKey').value">
         </tb-chirpstack-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.APACHE_PULSAR">
-        <tb-pulsar-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-pulsar-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup">
         </tb-pulsar-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.PUB_SUB">
-        <tb-pubsub-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')">
+        <tb-pubsub-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup">
         </tb-pubsub-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.CUSTOM">
@@ -224,26 +205,79 @@
         </tb-custom-integration-form>
       </section>
       <section *ngIf="integrationType === integrationTypes.COAP">
-        <tb-coap-integration-form #integrationFormComponent [form]="integrationForm.get('clientConfiguration')" [integrationType]="integrationType"
+        <tb-coap-integration-form #integrationFormComponent [form]="clientConfigurationFormGroup" [integrationType]="integrationType"
           [routingKey]="entityForm.get('routingKey').value">
         </tb-coap-integration-form>
       </section>
     </fieldset>
+<!--    <section *ngIf="integrationType">-->
+<!--      <div formGroupName="additionalInfo" fxLayout="column">-->
+<!--        <mat-form-field class="mat-block">-->
+<!--          <mat-label translate>integration.description</mat-label>-->
+<!--          <textarea matInput formControlName="description" cdkTextareaAutosize-->
+<!--                    cdkAutosizeMinRows="1" rows="1"></textarea>-->
+<!--        </mat-form-field>-->
+<!--      </div>-->
+<!--      <fieldset class="fields-group">-->
+<!--        <legend class="group-title" translate>integration.metadata</legend>-->
+<!--        <tb-key-val-map formControlName="metadata" isStrokedButton="true"></tb-key-val-map>-->
+<!--      </fieldset>-->
+<!--    </section>-->
+  </form>
+</div>
+<ng-template #genericAdditionalInfo>
+  <section [formGroup]="entityForm">
     <div formGroupName="additionalInfo" fxLayout="column">
       <mat-form-field class="mat-block">
         <mat-label translate>integration.description</mat-label>
-        <textarea matInput formControlName="description" rows="2"></textarea>
+        <textarea matInput formControlName="description" cdkTextareaAutosize
+                  cdkAutosizeMinRows="1" rows="1"></textarea>
       </mat-form-field>
     </div>
-    <mat-expansion-panel [expanded]="false">
-      <mat-expansion-panel-header>
+    <fieldset class="fields-group">
+      <legend class="group-title" translate>integration.metadata</legend>
+      <tb-key-val-map formControlName="metadata" isStrokedButton="true"></tb-key-val-map>
+    </fieldset>
+  </section>
+</ng-template>
+<ng-template #executeRemotely>
+  <section [formGroup]="entityForm">
+    <mat-expansion-panel class="remote-integration-setting" [expanded]="entityForm.get('remote').value">
+      <mat-expansion-panel-header fxLayout="row">
         <mat-panel-title>
-          <div class="tb-panel-title" translate>integration.metadata</div>
+          <mat-slide-toggle formControlName="remote" (click)="$event.stopPropagation()">
+            {{'integration.execute-remotely' | translate}}
+          </mat-slide-toggle>
         </mat-panel-title>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <tb-key-val-map formControlName="metadata" titleText="integration.metadata"></tb-key-val-map>
+        <section class="remote-integration-setting-content">
+          <div fxLayout="row" fxLayoutAlign="start center">
+            <mat-form-field class="mat-block" fxFlex>
+              <mat-label translate>integration.integration-key</mat-label>
+              <input matInput formControlName="routingKey">
+            </mat-form-field>
+            <button mat-button  mat-icon-button ngxClipboard type="button" color="primary"
+                    (cbOnSuccess)="onIntegrationInfoCopied('key')"
+                    [cbContent]="entityForm?.get('routingKey').value"
+                    matTooltip="{{'integration.copy-integration-key' | translate}}">
+              <mat-icon class="copy-icon">content_copy</mat-icon>
+            </button>
+          </div>
+          <div fxLayout="row" fxLayoutAlign="start center">
+            <mat-form-field class="mat-block" fxFlex>
+              <mat-label translate>integration.integration-secret</mat-label>
+              <input matInput formControlName="secret">
+            </mat-form-field>
+            <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+                    (cbOnSuccess)="onIntegrationInfoCopied('secret')"
+                    [cbContent]="entityForm?.get('secret').value"
+                    matTooltip="{{'integration.copy-integration-secret' | translate}}">
+              <mat-icon class="copy-icon">content_copy</mat-icon>
+            </button>
+          </div>
+        </section>
       </ng-template>
     </mat-expansion-panel>
-  </form>
-</div>
+  </section>
+</ng-template>

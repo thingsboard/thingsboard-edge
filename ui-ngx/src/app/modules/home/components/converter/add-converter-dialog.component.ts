@@ -29,15 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  Component,
-  ComponentFactoryResolver,
-  Inject,
-  Injector,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation
-} from '@angular/core';
+import { AfterViewInit, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { Store } from '@ngrx/store';
@@ -45,10 +37,8 @@ import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Converter, ConverterType, getConverterHelpLink } from '@shared/models/converter.models';
-import { FormGroup } from '@angular/forms';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
-import { ConverterComponent } from '@home/pages/converter/converter.component';
+import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterService } from '@core/http/converter.service';
 
 export interface AddConverterDialogData  {
@@ -62,56 +52,33 @@ export interface AddConverterDialogData  {
   templateUrl: './add-converter-dialog.component.html',
   styleUrls: ['./add-converter-dialog.component.scss']
 })
-export class AddConverterDialogComponent extends DialogComponent<AddConverterDialogComponent, BaseData<HasId>> implements OnInit {
+export class AddConverterDialogComponent extends DialogComponent<AddConverterDialogComponent, BaseData<HasId>>
+  implements OnInit, AfterViewInit {
 
-  detailsForm: FormGroup;
   dialogTitle = entityTypeTranslations.get(EntityType.CONVERTER).add;
+  converter: Converter;
 
-  private entityComponent: ConverterComponent;
-  private entity: Converter;
-
-  @ViewChild('entityDetailsForm', {static: true}) entityDetailsFormAnchor: TbAnchorComponent;
+  @ViewChild('converterComponent', {static: true}) converterComponent: ConverterComponent;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
               @Inject(MAT_DIALOG_DATA) public data: AddConverterDialogData,
               public dialogRef: MatDialogRef<AddConverterDialogComponent, BaseData<HasId>>,
-              private componentFactoryResolver: ComponentFactoryResolver,
-              private injector: Injector,
               private converterService: ConverterService) {
     super(store, router, dialogRef);
   }
 
   ngOnInit(): void {
-    this.entity = {...this.data as Converter};
-    const componentFactory = this.componentFactoryResolver.resolveComponentFactory(ConverterComponent);
-    const viewContainerRef = this.entityDetailsFormAnchor.viewContainerRef;
-    viewContainerRef.clear();
-    const injector: Injector = Injector.create(
-      {
-        providers: [
-          {
-            provide: 'entity',
-            useValue: this.entity
-          },
-          {
-            provide: 'entitiesTableConfig',
-            useValue: null
-          }
-        ],
-        parent: this.injector
-      }
-    );
-    const componentRef = viewContainerRef.createComponent(componentFactory, 0, injector);
-    this.entityComponent = componentRef.instance;
-    this.entityComponent.isEdit = true;
-    this.detailsForm = this.entityComponent.entityForm;
-    this.detailsForm.get('type').disable({emitEvent: false});
-    this.detailsForm.patchValue(this.entity);
+    this.converter = {...this.data as Converter};
+  }
+
+  ngAfterViewInit() {
+    this.converterComponent.entityForm.get('type').disable({emitEvent: false});
+    this.converterComponent.entityForm.patchValue(this.converter);
   }
 
   helpLinkId(): string {
-    return getConverterHelpLink(this.entityComponent.entityForm.getRawValue());
+    return getConverterHelpLink(this.data as Converter);
   }
 
   cancel(): void {
@@ -119,9 +86,9 @@ export class AddConverterDialogComponent extends DialogComponent<AddConverterDia
   }
 
   add(): void {
-    if (this.detailsForm.valid) {
-      this.entity = {...this.entity, ...this.entityComponent.entityFormValue()};
-      this.converterService.saveConverter(this.entity).subscribe(
+    if (this.converterComponent.entityForm.valid) {
+      this.converter = {...this.converter, ...this.converterComponent.entityFormValue()};
+      this.converterService.saveConverter(this.converter).subscribe(
         (entity) => {
           this.dialogRef.close(entity);
         }

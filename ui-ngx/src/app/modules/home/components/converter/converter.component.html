@@ -73,7 +73,7 @@
           {{ 'converter.name-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <mat-form-field class="mat-block">
+      <mat-form-field class="mat-block" *ngIf="!hideType">
         <mat-label translate>converter.type</mat-label>
         <mat-select formControlName="type" required>
           <mat-option *ngFor="let type of converterTypes" [value]="type">

@@ -39,17 +39,27 @@
          (keyup.enter)="selectedType()"
          [required]="required"
          [matAutocomplete]="integrationTypesAutocomplete">
+  <img class="input-icon" matPrefix [fxHide]="integrationTypesAutocomplete.isOpen || !modelValue" [src]="modelValue?.icon" alt="icon">
   <button *ngIf="integrationTypeFormGroup.get('type').value && !disabled"
           type="button"
           matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
   </button>
-  <mat-autocomplete class="tb-autocomplete"
+  <mat-autocomplete class="tb-autocomplete tb-integration-type-autocomplete"
+                    [displayWith]="displayIntegrationTypeFn"
                     #integrationTypesAutocomplete="matAutocomplete">
-    <mat-option *ngFor="let integrationType of filteredIntegrationTypes | async" [value]="integrationType">
-      <span [innerHTML]="integrationType | highlight: searchText"></span>
-    </mat-option>
+    <div fxLayout="row wrap" fxLayout.xs="column">
+      <mat-option *ngFor="let integrationInfo of filteredIntegrationTypes | async" [value]="integrationInfo" fxFlex="50" fxFlex.xs>
+        <div fxLayout="row" class="integration-type-button">
+          <img class="icon" [src]="integrationInfo.icon" alt="icon">
+          <div fxFlex>
+            <div class="name">{{ integrationInfo.name }}</div>
+            <div class="description">{{ integrationInfo.description }}</div>
+          </div>
+        </div>
+      </mat-option>
+    </div>
     <mat-option *ngIf="!(filteredIntegrationTypes | async)?.length" [value]="null" class="tb-not-found">
       <div class="tb-not-found-content" (click)="$event.stopPropagation()">
         {{ "integration.type-not-found" | translate }}

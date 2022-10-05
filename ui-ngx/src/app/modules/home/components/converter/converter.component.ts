@@ -29,10 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { EntityComponent } from '../../components/entity/entity.component';
+import { EntityComponent } from '../entity/entity.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -51,14 +51,17 @@ import { MatDialog } from '@angular/material/dialog';
 import {
   ConverterTestDialogComponent,
   ConverterTestDialogData
-} from '@home/pages/converter/converter-test-dialog.component';
+} from '@home/components/converter/converter-test-dialog.component';
 
 @Component({
   selector: 'tb-converter',
   templateUrl: './converter.component.html',
-  styleUrls: ['./converter.component.scss']
+  styleUrls: []
 })
 export class ConverterComponent extends EntityComponent<Converter> {
+
+  @Input()
+  hideType = false;
 
   converterType = ConverterType;
 
@@ -70,8 +73,8 @@ export class ConverterComponent extends EntityComponent<Converter> {
               protected translate: TranslateService,
               private converterService: ConverterService,
               private dialog: MatDialog,
-              @Inject('entity') protected entityValue: Converter,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
+              @Optional() @Inject('entity') protected entityValue: Converter,
+              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
               protected fb: FormBuilder,
               protected cd: ChangeDetectorRef) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);

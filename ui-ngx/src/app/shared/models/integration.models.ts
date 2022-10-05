@@ -81,6 +81,9 @@ export const coapSecurityModeTranslationsMap = new Map<CoapSecurityMode, string>
 
 export interface IntegrationTypeInfo {
   name: string;
+  description: string;
+  icon: string;
+  tags?: string[];
   http?: boolean;
   mqtt?: boolean;
   remote?: boolean;
@@ -90,107 +93,227 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
   [
     [
       IntegrationType.HTTP,
-      { name: 'integration.type-http', http: true }
+      {
+        name: 'integration.type-http',
+        description: 'integration.type-http-description',
+        icon: 'assets/integration-icon/http.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.OCEANCONNECT,
-      { name: 'integration.type-ocean-connect', http: true }
+      {
+        name: 'integration.type-ocean-connect',
+        description: 'integration.type-ocean-connect-description',
+        icon: 'assets/integration-icon/ocean-connect.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.SIGFOX,
-      { name: 'integration.type-sigfox', http: true }
+      {
+        name: 'integration.type-sigfox',
+        description: 'integration.type-sigfox-description',
+        icon: 'assets/integration-icon/sigfox.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.THINGPARK,
-      { name: 'integration.type-thingpark', http: true }
+      {
+        name: 'integration.type-thingpark',
+        description: 'integration.type-thingpark-description',
+        icon: 'assets/integration-icon/thingpark.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.TPE,
-      { name: 'integration.type-thingpark-enterprise', http: true }
+      {
+        name: 'integration.type-thingpark-enterprise',
+        description: 'integration.type-thingpark-enterprise-description',
+        icon: 'assets/integration-icon/thingpark-enterprise.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.TMOBILE_IOT_CDP,
-      { name: 'integration.type-tmobile-iot-cdp', http: true }
+      {
+        name: 'integration.type-tmobile-iot-cdp',
+        description: 'integration.type-tmobile-iot-cdp-description',
+        icon: 'assets/integration-icon/iotcreators.com.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.LORIOT,
-      { name: 'integration.type-loriot', http: true }
+      {
+        name: 'integration.type-loriot',
+        description: 'integration.type-loriot-description',
+        icon: 'assets/integration-icon/loriot.svg',
+        http: true
+      }
     ],
     [
       IntegrationType.MQTT,
-      { name: 'integration.type-mqtt', mqtt: true }
+      {
+        name: 'integration.type-mqtt',
+        description: 'integration.type-mqtt-description',
+        icon: 'assets/integration-icon/mqtt.svg',
+        mqtt: true
+      }
     ],
     [
       IntegrationType.AWS_IOT,
-      { name: 'integration.type-aws-iot', mqtt: true }
+      {
+        name: 'integration.type-aws-iot',
+        description: 'integration.type-aws-iot-description',
+        icon: 'assets/integration-icon/aws-iot.svg',
+        mqtt: true
+      }
     ],
     [
       IntegrationType.AWS_SQS,
-      { name: 'integration.type-aws-sqs', mqtt: true }
+      {
+        name: 'integration.type-aws-sqs',
+        description: 'integration.type-aws-sqs-description',
+        icon: 'assets/integration-icon/aws-sqs.svg',
+        mqtt: true
+      }
     ],
     [
       IntegrationType.AWS_KINESIS,
-      { name: 'integration.type-aws-kinesis' }
+      {
+        name: 'integration.type-aws-kinesis',
+        description: 'integration.type-aws-kinesis-description',
+        icon: 'assets/integration-icon/aws-kinesis.svg'
+      }
     ],
     [
       IntegrationType.IBM_WATSON_IOT,
-      { name: 'integration.type-ibm-watson-iot', mqtt: true }
+      {
+        name: 'integration.type-ibm-watson-iot',
+        description: 'integration.type-ibm-watson-iot-description',
+        icon: 'assets/integration-icon/ibm-watson-iot.svg',
+        mqtt: true
+      }
     ],
     [
       IntegrationType.TTN,
-      { name: 'integration.type-ttn', mqtt: true }
+      {
+        name: 'integration.type-ttn',
+        description: 'integration.type-ttn-description',
+        icon: 'assets/integration-icon/ttn.svg',
+        mqtt: true
+      }
     ],
     [
       IntegrationType.TTI,
-      { name: 'integration.type-tti', mqtt: true }
+      {
+        name: 'integration.type-tti',
+        description: 'integration.type-tti-description',
+        icon: 'assets/integration-icon/things-stack-industries.svg',
+        mqtt: true
+      }
     ],
     [
       IntegrationType.CHIRPSTACK,
-      { name: 'integration.type-chirpstack' }
+      {
+        name: 'integration.type-chirpstack',
+        description: 'integration.type-chirpstack-description',
+        icon: 'assets/integration-icon/chirpstack.svg'
+      }
     ],
     [
       IntegrationType.AZURE_EVENT_HUB,
-      { name: 'integration.type-azure-event-hub' }
+      {
+        name: 'integration.type-azure-event-hub',
+        description: 'integration.type-azure-event-hub-description',
+        icon: 'assets/integration-icon/azure-event-hub.svg'
+      }
     ],
     [
       IntegrationType.AZURE_IOT_HUB,
-      { name: 'integration.type-azure-iot-hub' }
+      {
+        name: 'integration.type-azure-iot-hub',
+        description: 'integration.type-azure-iot-hub-description',
+        icon: 'assets/integration-icon/azure-iot-hub.svg'
+      }
     ],
     [
       IntegrationType.OPC_UA,
-      { name: 'integration.type-opc-ua' }
+      {
+        name: 'integration.type-opc-ua',
+        description: 'integration.type-opc-ua-description',
+        icon: 'assets/integration-icon/opc-ua.svg'
+      }
     ],
     [
       IntegrationType.UDP,
-      { name: 'integration.type-udp', remote: true }
+      {
+        name: 'integration.type-udp',
+        description: 'integration.type-udp-description',
+        icon: 'assets/integration-icon/udp.svg',
+        remote: true
+      }
     ],
     [
       IntegrationType.TCP,
-      { name: 'integration.type-tcp', remote: true }
+      {
+        name: 'integration.type-tcp',
+        description: 'integration.type-tcp-description',
+        icon: 'assets/integration-icon/tcp.svg',
+        remote: true
+      }
     ],
     [
       IntegrationType.KAFKA,
-      { name: 'integration.type-kafka' }
+      {
+        name: 'integration.type-kafka',
+        description: 'integration.type-kafka-description',
+        icon: 'assets/integration-icon/kafka.svg'
+      }
     ],
     [
       IntegrationType.RABBITMQ,
-      { name: 'integration.type-rabbitmq' }
+      {
+        name: 'integration.type-rabbitmq',
+        description: 'integration.type-rabbitmq-description',
+        icon: 'assets/integration-icon/rabbitmq.svg'
+      }
     ],
     [
       IntegrationType.APACHE_PULSAR,
-      { name: 'integration.type-apache-pulsar' }
+      {
+        name: 'integration.type-apache-pulsar',
+        description: 'integration.type-apache-pulsar-description',
+        icon: 'assets/integration-icon/apache-pulsar.svg'
+      }
     ],
     [
       IntegrationType.PUB_SUB,
-      { name: 'integration.type-pubsub' }
+      {
+        name: 'integration.type-pubsub',
+        description: 'integration.type-pubsub-description',
+        icon: 'assets/integration-icon/pub-sub.svg'
+      }
     ],
     [
       IntegrationType.COAP,
-      { name: 'integration.type-coap' }
+      {
+        name: 'integration.type-coap',
+        description: 'integration.type-coap-description',
+        icon: 'assets/integration-icon/coap.svg'
+      }
     ],
     [
       IntegrationType.CUSTOM,
-      { name: 'integration.type-custom', remote: true }
+      {
+        name: 'integration.type-custom',
+        description: '',
+        icon: 'assets/integration-icon/custom.svg',
+        remote: true
+      }
     ]
   ]
 );

@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angula
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -287,6 +287,18 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
+  }
+
+  get clientConfigurationFormGroup(): FormGroup {
+    return this.integrationForm.get('clientConfiguration') as FormGroup;
+  }
+
+  get topicFiltersFormArray(): FormArray {
+    return this.integrationForm.get('topicFilters') as FormArray;
+  }
+
+  get downlinkTopicPatternFormControl(): FormControl {
+    return this.integrationForm.get('downlinkTopicPattern') as FormControl;
   }
 
   onIntegrationCheck(){

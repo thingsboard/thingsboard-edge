@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Input } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { Component, Input, TemplateRef } from '@angular/core';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { mqttCredentialType, mqttCredentialTypes } from '../../integration-forms-templates';
 import { changeRequiredCredentialsFields } from '../../integration-utils';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
@@ -42,7 +42,7 @@ import { IntegrationFormComponent } from '@home/pages/integration/configurations
 })
 export class MqttIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() topicFilters: FormGroup;
+  @Input() topicFilters: FormArray;
   @Input() downlinkTopicPattern: FormControl;
 
   mqttCredentialTypes = mqttCredentialTypes;
@@ -62,7 +62,7 @@ export class MqttIntegrationFormComponent extends IntegrationFormComponent {
   mqttCredentialsTypeChanged() {
     const form = this.form.get('credentials') as FormGroup;
     const type: mqttCredentialType = form.get('type').value;
-    changeRequiredCredentialsFields(form, type)
+    changeRequiredCredentialsFields(form, type);
   }
 
 }

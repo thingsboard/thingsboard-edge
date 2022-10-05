@@ -33,15 +33,18 @@ import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@an
 import { ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { isNotEmptyStr, isString } from '@core/utils';
-import { IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
+import { IntegrationType, IntegrationTypeInfo, integrationTypeInfoMap } from '@shared/models/integration.models';
 import { Observable, of } from 'rxjs';
-import { mergeMap, share, tap } from 'rxjs/operators';
+import { distinctUntilChanged, map, mergeMap, share, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+
+type IntegrationInfo = IntegrationTypeInfo & {type: IntegrationType};
 
 @Component({
   selector: 'tb-integration-type-select',
   templateUrl: 'integration-type-select.component.html',
+  styleUrls: ['integration-type-select.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => IntegrationTypeSelectComponent),
@@ -53,13 +56,12 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
   integrationTypeFormGroup: FormGroup;
   searchText = '';
 
-  filteredIntegrationTypes: Observable<Array<string>>;
+  filteredIntegrationTypes: Observable<Array<IntegrationInfo>>;
+  modelValue: IntegrationInfo;
 
-  private modelValue: IntegrationType;
   private pristine = true;
 
-  private integrationTypesTranslation = new Map<IntegrationType, string>();
-  private readonly integrationTypesList: Array<string>;
+  private integrationTypesInfo: Array<IntegrationInfo> = [];
 
   @ViewChild('integrationTypeInput', {static: true}) integrationTypeInput: ElementRef;
   @ViewChild(MatAutocompleteTrigger) autocomplete: MatAutocompleteTrigger;
@@ -91,9 +93,15 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
     this.integrationTypeFormGroup = this.fb.group({
       type: ['']
     });
-    Object.values(IntegrationType)
-      .map(type => this.integrationTypesTranslation.set(type, this.translate.instant(integrationTypeInfoMap.get(type).name)));
-    this.integrationTypesList = Array.from(this.integrationTypesTranslation.values());
+    Object.values(IntegrationType).forEach(integrationType => {
+      const integration = integrationTypeInfoMap.get(integrationType);
+      this.integrationTypesInfo.push({
+        type: integrationType,
+        ...integration,
+        name: this.translate.instant(integration.name),
+        description: integration.description ? this.translate.instant(integration.description) : ''
+      });
+    });
   }
 
   ngOnInit() {
@@ -101,17 +109,18 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
       .pipe(
         tap(value => {
           let modelValue;
-          if (!isString(value) || !this.integrationTypesList.includes(value)) {
+          if (isString(value) || !value) {
             modelValue = null;
           } else {
-            modelValue = Array.from(this.integrationTypesTranslation.keys())
-              .find(key => this.integrationTypesTranslation.get(key) === value);
+            modelValue = this.integrationTypesInfo.find(info => info.type === value.type);
           }
           this.updateView(modelValue);
           if (value === null) {
             this.clear();
           }
         }),
+        map(value => value ? (isString(value) ? value : value.type) : ''),
+        distinctUntilChanged(),
         mergeMap(name => this.fetchIntegrationTypes(name)),
         share()
       );
@@ -135,13 +144,10 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
 
   writeValue(value: IntegrationType) {
     this.searchText = '';
-    let integrationType = null;
-    if (value != null && this.integrationTypesTranslation.has(value)) {
-      integrationType = value;
-    }
+    const integrationType = value != null && this.integrationTypesInfo.find(integration => integration.type === value);
     if (integrationType) {
       this.modelValue = integrationType;
-      this.integrationTypeFormGroup.get('type').patchValue(this.integrationTypesTranslation.get(integrationType), {emitEvent: false});
+      this.integrationTypeFormGroup.get('type').patchValue(this.modelValue, {emitEvent: false});
     } else {
       this.modelValue = null;
       this.integrationTypeFormGroup.get('type').patchValue('', {emitEvent: false});
@@ -166,13 +172,6 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
     }
   }
 
-  updateView(value: IntegrationType | null) {
-    if (this.modelValue !== value) {
-      this.modelValue = value;
-      this.propagateChange(this.modelValue);
-    }
-  }
-
   clear() {
     this.integrationTypeFormGroup.get('type').patchValue('');
     setTimeout(() => {
@@ -181,17 +180,29 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
     }, 0);
   }
 
-  private fetchIntegrationTypes(searchText?: string): Observable<Array<string>> {
+  displayIntegrationTypeFn(inegration?: IntegrationInfo): string | undefined {
+    return inegration ? inegration.name : undefined;
+  }
+
+  private updateView(value: IntegrationInfo | null) {
+    if (this.modelValue !== value) {
+      this.modelValue = value;
+      this.propagateChange(this.modelValue?.type || null);
+    }
+  }
+
+  private fetchIntegrationTypes(searchText?: string): Observable<Array<IntegrationInfo>> {
     this.searchText = searchText;
-    let result = this.integrationTypesList;
+    let result = this.integrationTypesInfo;
     if (isNotEmptyStr(searchText)) {
       result = this.filterIntegrationType(searchText);
     }
     return of(result);
   }
 
-  private filterIntegrationType(searchText: string): Array<string> {
+  private filterIntegrationType(searchText: string): Array<IntegrationInfo> {
     const regex = new RegExp(searchText, 'i');
-    return this.integrationTypesList.filter((integrationType) => regex.test(integrationType));
+    return this.integrationTypesInfo.filter((integrationInfo) =>
+      regex.test(integrationInfo.name) || regex.test(integrationInfo.description) || regex.test(integrationInfo.tags?.toString()));
   }
 }

@@ -30,7 +30,7 @@
 ///
 
 // @dynamic
-import { Directive, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Directive, Input, OnChanges, SimpleChanges, TemplateRef } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 @Directive()
@@ -38,6 +38,8 @@ import { FormGroup } from '@angular/forms';
 export abstract class IntegrationFormComponent implements OnChanges {
 
   @Input() form: FormGroup;
+  @Input() executeRemotelyTemplate: TemplateRef<any>;
+  @Input() genericAdditionalInfoTemplate: TemplateRef<any>;
 
   ngOnChanges(changes: SimpleChanges): void {
     for (const propName of Object.keys(changes)) {

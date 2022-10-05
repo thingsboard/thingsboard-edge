@@ -30,54 +30,42 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section fxLayout="column">
-    <fieldset>
-        <mat-accordion class="tb-integration-panel-group topic-filters" [ngClass]="{'disabled': topicFilters.disabled}">
-            <mat-expansion-panel #matExpansionPanel>
-                <mat-expansion-panel-header>
-                    <mat-panel-title translate>integration.topic-filters</mat-panel-title>
-                    <mat-panel-description *ngIf="!matExpansionPanel.expanded && !topicFilters.length">
-                        <mat-error translate>integration.add-topic-filter-prompt</mat-error>
-                    </mat-panel-description>
-                </mat-expansion-panel-header>
-                <div class="container">
-                    <div fxFlex fxLayout="row" fxLayoutGap="8px"
-                        *ngFor="let topicFilter of topicFilters.controls; let i = index" style="max-height: 40px;"
-                        [formGroup]="topicFilter" fxLayoutAlign="start center">
-                        <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block"
-                            style="margin: 10px 0 0; max-height: 40px;">
-                            <mat-label></mat-label>
-                            <input matInput placeholder="{{ 'integration.topic' | translate }}"
-                                required name="topicFilterTopic" formControlName="filter">
-                        </mat-form-field>
-                        <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block"
-                            style="margin: 4px 0px 0px 0px; max-height: 40px;">
-                          <mat-label></mat-label>
-                          <mat-select placeholder="{{ 'integration.mqtt-qos' | translate }}"
-                              required formControlName="qos">
-                              <mat-option *ngFor="let mqttQoS of mqttQoSTypes" [value]="mqttQoS.value">
-                                  {{mqttQoS.name | translate}}
-                              </mat-option>
-                          </mat-select>
-                        </mat-form-field>
-                        <button mat-button *ngIf="!topicFilters.disabled" class="mat-icon-button mat-primary"
-                            (click)="topicFilters.removeAt(i)"
-                            [matTooltip]="'integration.remove-topic-filter' | translate" matTooltipPosition="above">
-                            <mat-icon  class="material-icons"> close </mat-icon>
-                        </button>
-                    </div>
-                </div>
-                <span *ngIf="!topicFilters.length" fxLayoutAlign="center center"
-                    [ngClass]="{'disabled': topicFilters.disabled}" class="no-data-found"
-                    translate>integration.add-topic-filter-prompt</span>
-                <div style="padding-top: 16px;">
-                    <button mat-raised-button color="primary" *ngIf="!topicFilters.disabled"
-                        (click)="addTopicFilter()"
-                        [matTooltip]="'integration.add-topic-filter' | translate" matTooltipPosition="above">
-                        <span translate>integration.add-topic-filter</span>
-                    </button>
-                </div>
-            </mat-expansion-panel>
-        </mat-accordion>
-    </fieldset>
-</section>
+<fieldset class="fields-group">
+  <legend class="group-title" translate>integration.topic-filters</legend>
+  <div class="container">
+    <div fxFlex fxLayout="row" fxLayoutGap="8px"
+         *ngFor="let topicFilter of topicFilters.controls; let i = index"
+         [formGroup]="topicFilter" fxLayoutAlign="start center" class="no-padding">
+      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
+        <mat-label>{{ i !== 0 ? "" : "integration.topic" | translate }}</mat-label>
+        <input matInput required name="topicFilterTopic" formControlName="filter">
+      </mat-form-field>
+      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
+        <mat-label>{{ i !== 0 ? "" : "integration.mqtt-qos" | translate }}</mat-label>
+        <mat-select required formControlName="qos">
+          <mat-option *ngFor="let mqttQoS of mqttQoSTypes" [value]="mqttQoS.value">
+            {{ mqttQoS.value }} - {{mqttQoS.name | translate}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button color="primary" [fxShow]="!topicFilters.disabled"
+              [ngClass]="{'invisibility': topicFilters.length === 1}"
+              (click)="topicFilters.removeAt(i)"
+              [matTooltip]="'integration.remove-topic-filter' | translate" matTooltipPosition="above">
+        <mat-icon class="material-icons">close</mat-icon>
+      </button>
+    </div>
+  </div>
+  <section *ngIf="!topicFilters.disabled" style="margin-top: 8px">
+    <div class="tb-hint" innerHTML="{{ 'device-profile.support-level-wildcards' | translate }}"></div>
+    <div class="tb-hint" innerHTML="{{ 'device-profile.single-level-wildcards-hint' | translate }}"></div>
+    <div class="tb-hint" innerHTML="{{ 'device-profile.multi-level-wildcards-hint' | translate }}"></div>
+  </section>
+  <span *ngIf="!topicFilters.length" fxLayoutAlign="center center" class="no-data-found" translate>integration.add-topic-filter-prompt</span>
+  <button mat-stroked-button color="primary" *ngIf="!topicFilters.disabled"
+          class="add-button"
+          (click)="addTopicFilter()"
+          [matTooltip]="'integration.add-topic-filter' | translate" matTooltipPosition="above">
+    <span translate>integration.add-topic-filter</span>
+  </button>
+</fieldset>

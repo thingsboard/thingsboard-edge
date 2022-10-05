@@ -30,7 +30,7 @@
 ///
 
 import { Component, Input } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 import { IntegrationType } from '@shared/models/integration.models';
 
@@ -42,7 +42,7 @@ import { IntegrationType } from '@shared/models/integration.models';
 })
 export class TtnIntegrationFormComponent extends IntegrationFormComponent {
 
-  @Input() topicFilters: FormGroup;
+  @Input() topicFilters: FormArray;
   @Input() downlinkTopicPattern: FormControl;
   @Input() integrationType: IntegrationType;
 

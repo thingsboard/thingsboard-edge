@@ -76,6 +76,9 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   isEdgeTemplate = false;
 
   @Input()
+  addNewConverter = true;
+
+  @Input()
   set converterType(converterType: ConverterType) {
     if (this.converterTypeValue !== converterType) {
       this.converterTypeValue = converterType;
@@ -161,7 +164,6 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
             this.clear();
           }
         }),
-        // startWith<string | BaseData<EntityId>>(''),
         map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
         distinctUntilChanged(),
         switchMap(name => this.fetchEntities(name) ),
@@ -287,22 +289,24 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
 
   createConverter($event: Event, converterName: string) {
     $event.preventDefault();
-    this.converterAutocomplete.closePanel();
-    this.dialog.open<AddConverterDialogComponent, AddConverterDialogData,
-      Converter>(AddConverterDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        name: converterName,
-        edgeTemplate: this.isEdgeTemplate,
-        type: this.converterTypeValue
-      }
-    }).afterClosed().subscribe(
-      (entity) => {
-        if (entity) {
-          this.selectConverterFormGroup.get('entity').patchValue(entity);
+    if (this.addNewConverter) {
+      this.converterAutocomplete.closePanel();
+      this.dialog.open<AddConverterDialogComponent, AddConverterDialogData,
+        Converter>(AddConverterDialogComponent, {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          name: converterName,
+          edgeTemplate: this.isEdgeTemplate,
+          type: this.converterTypeValue
         }
-      }
-    );
+      }).afterClosed().subscribe(
+        (entity) => {
+          if (entity) {
+            this.selectConverterFormGroup.get('entity').patchValue(entity);
+          }
+        }
+      );
+    }
   }
 }

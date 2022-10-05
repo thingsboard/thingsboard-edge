@@ -65,7 +65,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { forkJoin, Observable } from 'rxjs';
 import { isUndefined } from '@core/utils';
 import { map, mergeMap } from 'rxjs/operators';
-import { EntityAction } from '@home/models/entity/entity-component.models';
+import { AddEntityDialogData, EntityAction } from '@home/models/entity/entity-component.models';
 import { PageData } from '@shared/models/page/page-data';
 import { Edge } from '@shared/models/edge.models';
 import {
@@ -73,6 +73,7 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { PageLink } from '@shared/models/page/page-link';
+import { IntegrationWizardDialogComponent } from '@home/components/wizard/integration-wizard-dialog.component';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
@@ -123,6 +124,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     this.onEntityAction = action => this.onIntegrationAction(action, this.componentsData);
 
     this.configureIntegrationScope();
+
+    this.addEntity = () => this.addIntegration();
 
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
@@ -436,6 +439,17 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         }
       }
     );
+  }
+
+  private addIntegration(): Observable<Integration> {
+    return this.dialog.open<IntegrationWizardDialogComponent, AddEntityDialogData<IntegrationInfo>,
+      Integration>(IntegrationWizardDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        entitiesTableConfig: this as any
+      }
+    }).afterClosed();
   }
 
   private integrationStatus(integration: IntegrationInfo): string {
