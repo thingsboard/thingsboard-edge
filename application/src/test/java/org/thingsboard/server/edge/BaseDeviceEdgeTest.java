@@ -80,7 +80,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     @Test
     public void testDevices() throws Exception {
         // create device entity group and assign to edge
-        EntityGroup deviceEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "DeviceGroup");
+        EntityGroup deviceEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "DeviceGroup", tenantId);
 
         // add device into edge device entity group
         edgeImitator.expectMessageAmount(1);

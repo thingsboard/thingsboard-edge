@@ -123,7 +123,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                                 unassignEntityGroupsOfRemovedCustomer(tenantId, edgeId, EntityType.ENTITY_VIEW, removedCustomerId);
                                 unassignEntityGroupsOfRemovedCustomer(tenantId, edgeId, EntityType.USER, removedCustomerId);
                                 unassignEntityGroupsOfRemovedCustomer(tenantId, edgeId, EntityType.DASHBOARD, removedCustomerId);
-                                unassignSchedulerEventsOfPreviousOwnerFromEdge(tenantId, edgeId, removedCustomerId);
+                                unassignSchedulerEventsOfRemovedCustomer(tenantId, edgeId, removedCustomerId);
                             }
                         }
                         List<Customer> addedCustomers = new ArrayList<>(ownerCustomerHierarchy);
@@ -135,9 +135,8 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                         }
                         customersHierarchyEdgeService.processEdgeChangeOwner(tenantId, edgeId, previousOwnerId);
                     } catch (Exception e) {
-                        String errMsg = String.format("[%s] Failed to switch owner for edge [%s]", tenantId, edge);
-                        log.error(errMsg, e);
-                        return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+                        log.error("[{}] Failed to switch owner for edge [{}]", tenantId, edge, e);
+                        return Futures.immediateFailedFuture(e);
                     }
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
@@ -156,8 +155,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                 attributeKeys.add(attribute.get("key").asText());
             }
         } catch (Exception e) {
-            String errMsg = String.format("Can't process attributes updated event %s", edgeNotificationMsg);
-            log.warn(errMsg, e);
+            log.warn("[{}][{}] Can't process attributes updated event {}", tenantId, edgeId, edgeNotificationMsg, e);
             return Futures.immediateFailedFuture(e);
         }
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
@@ -192,37 +190,31 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     private void unassignEntityGroupsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId customerId) {
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<EntityGroup> pageData;
-//        List<ListenableFuture<Void>> futures = new ArrayList<>();
         do {
             pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType, pageLink);
             if (!pageData.getData().isEmpty()) {
                 for (EntityGroup entityGroup : pageData.getData()) {
                     if (entityGroup.getOwnerId().equals(customerId)) {
                         entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
-//                        futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.UNASSIGNED_FROM_EDGE, entityGroup.getId(), null));
                     }
                 }
             }
         } while (pageData.hasNext());
-//        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
-    private void unassignSchedulerEventsOfPreviousOwnerFromEdge(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
+    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<SchedulerEventInfo> pageData;
-//        List<ListenableFuture<Void>> futures = new ArrayList<>();
         do {
             pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
             if (!pageData.getData().isEmpty()) {
                 for (SchedulerEventInfo schedulerEventInfo : pageData.getData()) {
                     if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
                         schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
-//                        futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.SCHEDULER_EVENT, EdgeEventActionType.UNASSIGNED_FROM_EDGE, schedulerEventInfo.getId(), null));
                     }
                 }
             }
         } while (pageData.hasNext());
-//        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
     private ListenableFuture<Void> syncCustomer(TenantId tenantId, EdgeId edgeId, Customer customer) {
