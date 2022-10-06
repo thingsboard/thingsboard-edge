@@ -39,10 +39,13 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { ChangeDetectorRef, Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input } from '@angular/core';
 import { Subject } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
-import { mqttCredentialTypes } from '@home/components/integration/integration.models';
+import { takeUntil } from 'rxjs/operators';
+import {
+  IntegrationCredentialType,
+  IntegrationCredentialTypeTranslation
+} from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-integration-credentials',
@@ -63,7 +66,11 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
 
   integrationCredentialForm: FormGroup;
 
-  mqttCredentialTypes = mqttCredentialTypes;
+  @Input()
+  allowCredentialTypes: IntegrationCredentialType[] = [];
+
+  IntegrationCredentialTypeTranslation = IntegrationCredentialTypeTranslation;
+  IntegrationCredentialType = IntegrationCredentialType;
 
   @Input()
   disabled: boolean;
@@ -71,10 +78,9 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
-              private cd: ChangeDetectorRef) {
+  constructor(private fb: FormBuilder) {
     this.integrationCredentialForm = this.fb.group({
-      type: [mqttCredentialTypes.anonymous.value],
+      type: ['', Validators.required],
       username: [{value: '', disabled: true}, Validators.required],
       password: [{value: '', disabled: true}, Validators.required],
       caCertFileName: [{value: '', disabled: true}, Validators.required],
@@ -89,7 +95,6 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
       takeUntil(this.destroy$)
     ).subscribe(type => this.updatedValidation(type));
     this.integrationCredentialForm.valueChanges.pipe(
-      debounceTime(100),
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModel(value));
   }
@@ -110,23 +115,23 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   }
 
   writeValue(value) {
-    this.integrationCredentialForm.reset(value || {type: mqttCredentialTypes.anonymous.value}, {emitEvent: false});
-    this.updatedValidation(value?.type || mqttCredentialTypes.anonymous.value);
-    if (!this.disabled && !this.integrationCredentialForm.valid) {
+    this.integrationCredentialForm.reset(value, {emitEvent: false});
+    this.updatedValidation(value.type || IntegrationCredentialType.Anonymous);
+    if (!this.disabled && this.integrationCredentialForm.invalid) {
       this.updateModel(this.integrationCredentialForm.value);
     }
   }
 
-  private updatedValidation(type) {
+  private updatedValidation(type: IntegrationCredentialType) {
     this.integrationCredentialForm.disable({emitEvent: false});
     switch (type) {
-      case 'anonymous':
+      case IntegrationCredentialType.Anonymous:
         break;
-      case 'basic':
+      case IntegrationCredentialType.Basic:
         this.integrationCredentialForm.get('username').enable({emitEvent: false});
         this.integrationCredentialForm.get('password').enable({emitEvent: false});
         break;
-      case 'cert.PEM':
+      case IntegrationCredentialType.CertPEM:
         this.integrationCredentialForm.get('caCertFileName').enable({emitEvent: false});
         this.integrationCredentialForm.get('caCert').enable({emitEvent: false});
         this.integrationCredentialForm.get('certFileName').enable({emitEvent: false});

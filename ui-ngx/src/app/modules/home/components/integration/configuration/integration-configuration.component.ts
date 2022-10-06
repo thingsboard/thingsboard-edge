@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, TemplateRef, ViewEncapsulation } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -47,6 +47,8 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'tb-integration-configuration',
   templateUrl: './integration-configuration.component.html',
+  styleUrls: ['./integration-configuration.component.scss'],
+  encapsulation: ViewEncapsulation.None,
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => IntegrationConfigurationComponent),
@@ -66,6 +68,9 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   @Input() executeRemotelyTemplate: TemplateRef<any>;
   @Input() genericAdditionalInfoTemplate: TemplateRef<any>;
 
+  @Input()
+  routingKey: string;
+
   private integrationTypeValue: IntegrationType;
   @Input()
   set integrationType(value: IntegrationType) {
@@ -83,8 +88,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
-              private cd: ChangeDetectorRef) {
+  constructor(private fb: FormBuilder) {
     this.integrationConfigurationForm = this.fb.group({
       configuration: [null, Validators.required]
     });

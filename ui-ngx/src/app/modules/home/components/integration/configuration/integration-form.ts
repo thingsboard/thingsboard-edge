@@ -29,40 +29,23 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { IntegrationComponent } from '@home/pages/integration/integration.component';
-import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
-import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
-import { integrations } from './configurations';
-import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
-import {
-    MqttIntegrationFormComponent
-} from '@home/pages/integration/configurations/mqtt-integration-form/mqtt-integration-form.component';
-import {
-    HttpIntegrationFormComponent
-} from '@home/pages/integration/configurations/http-integration-form/http-integration-form.component';
+import { Directive, Input, OnDestroy, TemplateRef } from '@angular/core';
+import { Subject } from 'rxjs';
 
-@NgModule({
-    declarations: [
-        IntegrationComponent,
-        IntegrationTabsComponent,
-        ...integrations
-    ],
-    exports: [
-        MqttIntegrationFormComponent,
-        HttpIntegrationFormComponent
-    ],
-    imports: [
-        CommonModule,
-        SharedModule,
-        HomeComponentsModule,
-        HomeDialogsModule,
-        IntegrationRoutingModule,
-        IntegrationComponentModule
-    ]
-})
-export class IntegrationModule { }
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
+export abstract class IntegrationForm implements OnDestroy {
+
+  @Input() executeRemotelyTemplate: TemplateRef<any>;
+  @Input() genericAdditionalInfoTemplate: TemplateRef<any>;
+
+  @Input()
+  disabled: boolean;
+
+  protected destroy$ = new Subject();
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+}

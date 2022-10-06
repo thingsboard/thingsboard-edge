@@ -49,8 +49,8 @@
   <mat-autocomplete class="tb-autocomplete tb-integration-type-autocomplete"
                     [displayWith]="displayIntegrationTypeFn"
                     #integrationTypesAutocomplete="matAutocomplete">
-    <div fxLayout="row wrap" fxLayout.xs="column">
-      <mat-option *ngFor="let integrationInfo of filteredIntegrationTypes | async" [value]="integrationInfo" fxFlex="50" fxFlex.xs>
+    <div fxLayout="row wrap">
+      <mat-option *ngFor="let integrationInfo of filteredIntegrationTypes | async" [value]="integrationInfo" fxFlex="50" fxFlex.xs="100">
         <div fxLayout="row" class="integration-type-button">
           <img class="icon" [src]="integrationInfo.icon" alt="icon">
           <div fxFlex>

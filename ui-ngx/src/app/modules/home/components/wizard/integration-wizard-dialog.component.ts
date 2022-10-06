@@ -278,7 +278,7 @@ export class IntegrationWizardDialogComponent extends
       return 'action.skip';
     }
     if (this.selectedIndex === 3) {
-      return 'action.save';
+      return 'action.add';
     }
     return 'action.next';
   }

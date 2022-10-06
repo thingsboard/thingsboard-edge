@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
+import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -41,13 +41,13 @@ import {
   Validators
 } from '@angular/forms';
 import {
+  IntegrationCredentialType,
   mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator,
-  mqttCredentialTypes
+  mqttClientIdPatternValidator
 } from '@home/components/integration/integration.models';
-import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
+import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 
 @Component({
   selector: 'tb-mqtt-integration-form',
@@ -64,20 +64,16 @@ import { isDefinedAndNotNull } from '@core/utils';
     multi: true,
   }]
 })
-export class MqttIntegrationFormComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class MqttIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
   mqttIntegrationConfigForm: FormGroup;
 
-  @Input() executeRemotelyTemplate: TemplateRef<any>;
-  @Input() genericAdditionalInfoTemplate: TemplateRef<any>;
+  IntegrationCredentialType = IntegrationCredentialType;
 
-  @Input()
-  disabled: boolean;
-
-  private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
 
   constructor(private fb: FormBuilder) {
+    super();
     this.mqttIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
         host: ['', Validators.required],
@@ -88,11 +84,11 @@ export class MqttIntegrationFormComponent implements ControlValueAccessor, Valid
         clientId: ['', [mqttClientIdPatternValidator, mqttClientIdMaxLengthValidator]],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
         credentials: [{
-          type: mqttCredentialTypes.anonymous.value
+          type: IntegrationCredentialType.Anonymous
         }],
       }),
       topicFilters: [[{
-        filter: 'v1/devices/me/telemetry',
+        filter: '#',
         qos: 0
       }], Validators.required],
       downlinkTopicPattern: ['${topic}', Validators.required]
@@ -100,11 +96,6 @@ export class MqttIntegrationFormComponent implements ControlValueAccessor, Valid
     this.mqttIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModels(value));
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   writeValue(value: any) {

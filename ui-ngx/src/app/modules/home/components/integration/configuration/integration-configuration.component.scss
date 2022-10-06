@@ -28,13 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .tb-hint.client-id {
-    margin-top: -1.25em;
-    max-width: fit-content;
+.tb-integration-configuration {
+  .fields-group {
+    padding: 0 16px 8px;
+    margin-bottom: 10px;
+    border: 1px groove rgba(0, 0, 0, .25);
+    border-radius: 4px;
 
-    &.invisible {
-      visibility: hidden;
+    legend {
+      color: rgba(0, 0, 0, .7);
+      width: fit-content;
+    }
+
+    legend + * {
+      display: block;
+      margin-top: 16px;
+    }
+
+    .row {
+      margin-bottom: 8px;
+    }
+  }
+
+  .mat-expansion-panel.configuration-panel {
+    box-shadow: none;
+
+    &.mat-expanded {
+      overflow: visible;
+      height: 48px;
+    }
+
+    .mat-expansion-panel-header {
+      padding: 0;
+
+      &:hover {
+        background: none !important;
+      }
+
+      .mat-expansion-indicator {
+        padding: 2px;
+      }
+    }
+
+    > .mat-expansion-panel-content {
+      > .mat-expansion-panel-body {
+        padding: 0;
+      }
+    }
+
+    .mat-expansion-panel-header-description {
+      align-items: center;
     }
   }
 }

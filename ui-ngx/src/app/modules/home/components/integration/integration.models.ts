@@ -30,43 +30,31 @@
 ///
 
 import { Validators } from '@angular/forms';
+import { IntegrationType } from '@shared/models/integration.models';
 
-export type mqttCredentialType = 'anonymous' | 'basic' | 'cert.PEM';
-export const mqttCredentialTypes = {
-  anonymous: {
-    value: 'anonymous',
-    name: 'extension.anonymous'
-  },
-  basic: {
-    value: 'basic',
-    name: 'extension.basic'
-  },
-  'cert.PEM': {
-    value: 'cert.PEM',
-    name: 'extension.pem'
-  }
-};
+export enum IntegrationCredentialType {
+  Anonymous = 'anonymous',
+  Basic = 'basic',
+  CertPEM = 'cert.PEM'
+}
 
-enum MqttQos {
+export const IntegrationCredentialTypeTranslation = new Map<IntegrationCredentialType, string>([
+  [IntegrationCredentialType.Anonymous, 'extension.anonymous'],
+  [IntegrationCredentialType.Basic, 'extension.basic'],
+  [IntegrationCredentialType.CertPEM, 'extension.pem'],
+]);
+
+export enum MqttQos {
   AT_MOST_ONE = 0,
   AT_LEAST_ONCE = 1,
   EXACTLY_ONCE = 2
 }
 
-export const mqttQoSTypes = [
-  {
-    value: MqttQos.AT_MOST_ONE,
-    name: 'integration.mqtt-qos-at-most-once'
-  },
-  {
-    value: MqttQos.AT_LEAST_ONCE,
-    name: 'integration.mqtt-qos-at-least-once'
-  },
-  {
-    value: MqttQos.EXACTLY_ONCE,
-    name: 'integration.mqtt-qos-exactly-once'
-  }
-];
+export const MqttQosTranslation = new Map<MqttQos, string>([
+  [MqttQos.AT_MOST_ONE, 'integration.mqtt-qos-at-most-once'],
+  [MqttQos.AT_LEAST_ONCE, 'integration.mqtt-qos-at-least-once'],
+  [MqttQos.EXACTLY_ONCE, 'integration.mqtt-qos-exactly-once']
+]);
 
 export interface MqttTopicFilter {
   filter: string;
@@ -76,3 +64,6 @@ export interface MqttTopicFilter {
 export const mqttClientIdPatternValidator = Validators.pattern('[a-zA-Z0-9]*');
 export const mqttClientIdMaxLengthValidator = Validators.maxLength(23);
 
+export function integrationBaseUrlChanged(type: IntegrationType, baseUrl: string, key = ''): string {
+  return `${baseUrl}/api/v1/integrations/${type.toLowerCase()}/${key}`;
+}

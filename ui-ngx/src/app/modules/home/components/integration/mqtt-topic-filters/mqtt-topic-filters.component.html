@@ -43,8 +43,8 @@
       <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
         <mat-label>{{ i !== 0 ? "" : "integration.mqtt-qos" | translate }}</mat-label>
         <mat-select required formControlName="qos">
-          <mat-option *ngFor="let mqttQoS of mqttQoSTypes" [value]="mqttQoS.value">
-            {{ mqttQoS.value }} - {{mqttQoS.name | translate}}
+          <mat-option *ngFor="let mqttQoS of mqttQosTypes" [value]="mqttQoS">
+            {{ mqttQoS }} - {{ MqttQosTranslation.get(mqttQoS) | translate}}
           </mat-option>
         </mat-select>
       </mat-form-field>

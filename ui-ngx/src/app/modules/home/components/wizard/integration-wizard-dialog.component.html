@@ -134,10 +134,10 @@
       </mat-step>
       <mat-step [stepControl]="integrationConfigurationForm">
         <ng-template matStepLabel>Connection</ng-template>
-        <ng-template matStepContent>
           <form [formGroup]="integrationConfigurationForm">
             <tb-integration-configuration
               formControlName="configuration"
+              [routingKey]="integrationConfigurationForm.get('routingKey').value"
               [genericAdditionalInfoTemplate]="genericAdditionalInfo"
               [executeRemotelyTemplate]="executeRemotely"
               [integrationType]="integrationWizardForm.get('type').value"
@@ -199,7 +199,6 @@
               </section>
             </ng-template>
           </form>
-        </ng-template>
       </mat-step>
     </mat-stepper>
   </div>

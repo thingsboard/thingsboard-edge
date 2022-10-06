@@ -42,9 +42,10 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { mqttQoSTypes, MqttTopicFilter } from '../integration.models';
+import { MqttQos, MqttQosTranslation, MqttTopicFilter } from '../integration.models';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { isNumber } from '@core/utils';
 
 @Component({
   selector: 'tb-mqtt-topic-filters',
@@ -64,7 +65,8 @@ import { takeUntil } from 'rxjs/operators';
 export class MqttTopicFiltersComponent implements ControlValueAccessor, Validator, OnDestroy {
 
   mqttTopicFiltersForm: FormGroup;
-  mqttQoSTypes = mqttQoSTypes;
+  mqttQosTypes = Object.values(MqttQos).filter(v => isNumber(v));
+  MqttQosTranslation = MqttQosTranslation;
 
   @Input()
   disabled: boolean;

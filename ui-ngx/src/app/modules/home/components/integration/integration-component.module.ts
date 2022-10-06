@@ -46,15 +46,19 @@ import { CertUploadComponent } from '@home/components/integration/cert-upload/ce
 import {
   IntegrationCredentialsComponent
 } from '@home/components/integration/integration-credentials/integration-credentials.component';
+import {
+  HttpIntegrationFormComponent
+} from '@home/components/integration/configuration/http-integration-form/http-integration-form.component';
 
 @NgModule({
   declarations: [
     IntegrationTypeSelectComponent,
     IntegrationConfigurationComponent,
-    MqttIntegrationFormComponent,
     IntegrationCredentialsComponent,
     MqttTopicFiltersComponent,
-    CertUploadComponent
+    CertUploadComponent,
+    MqttIntegrationFormComponent,
+    HttpIntegrationFormComponent
   ],
   imports: [
     CommonModule,

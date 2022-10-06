@@ -30,13 +30,20 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="integrationConfigurationForm">
+<section [formGroup]="integrationConfigurationForm" class="tb-integration-configuration">
   <section [ngSwitch]="integrationType">
     <section *ngSwitchCase="integrationTypes.MQTT">
       <tb-mqtt-integration-form formControlName="configuration"
                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-mqtt-integration-form>
+    </section>
+    <section *ngSwitchCase="integrationTypes.HTTP">
+      <tb-http-integration-form formControlName="configuration"
+                                [routingKey]="routingKey"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-http-integration-form>
     </section>
     <section *ngSwitchDefault>
       <input formControlName="configuration">
