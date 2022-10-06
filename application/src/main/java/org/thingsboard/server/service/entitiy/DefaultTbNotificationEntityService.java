@@ -214,8 +214,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
-    public void notifyEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge, ActionType actionType,
-                           User user, Object... additionalInfo) {
+    public void notifyCreateOrUpdateOrDeleteEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, Edge edge,
+                                                 ActionType actionType, User user, Object... additionalInfo) {
         ComponentLifecycleEvent lifecycleEvent;
         switch (actionType) {
             case ADDED:
@@ -230,7 +230,6 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
             default:
                 throw new IllegalArgumentException("Unknown actionType: " + actionType);
         }
-
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, edgeId, lifecycleEvent);
         logEntityAction(tenantId, edgeId, edge, customerId, actionType, user, additionalInfo);
     }
@@ -305,6 +304,8 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
             for (EdgeId edgeId : edgeIds) {
                 sendNotificationMsgToEdge(tenantId, edgeId, entityId, body, null, EdgeEventActionType.DELETED);
             }
+        } else {
+            sendNotificationMsgToEdge(tenantId, null, entityId, body, null, EdgeEventActionType.DELETED);
         }
     }
 

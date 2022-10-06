@@ -69,10 +69,6 @@ public class UserMsgConstructor {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (user.getCustomerId() != null) {
-            builder.setCustomerIdMSB(user.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(user.getCustomerId().getId().getLeastSignificantBits());
-        }
         return builder.build();
     }
 

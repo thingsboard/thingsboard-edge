@@ -1643,7 +1643,7 @@ public class EdgeClientTest extends AbstractContainerTest {
         // validate sub customer groups on edge
         // change owner to tenant
         // validate that customer and sub customer entity groups were deleted from edge
-        // validate that customer and sub customer were deleted from edge
+        // validate that customer and sub customer were unassigned from edge
         // remove tenant entity groups
         // validate no tenant groups on edge
         // remove sub sub customer

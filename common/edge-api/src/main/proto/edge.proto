@@ -317,6 +317,8 @@ message CustomerUpdateMsg {
   optional string phone = 11;
   optional string email = 12;
   optional string additionalInfo = 13;
+  optional int64 entityGroupIdMSB = 14;
+  optional int64 entityGroupIdLSB = 15;
 }
 
 message RelationUpdateMsg {
@@ -714,4 +716,5 @@ message DownlinkMsg {
   repeated IntegrationUpdateMsg integrationMsg = 36;
   repeated OtaPackageUpdateMsg otaPackageUpdateMsg = 37;
   repeated QueueUpdateMsg queueUpdateMsg = 38;
+  EdgeConfiguration edgeConfiguration = 39;
 }

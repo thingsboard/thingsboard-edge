@@ -46,16 +46,12 @@ public class AssetMsgConstructor {
     public AssetUpdateMsg constructAssetUpdatedMsg(UpdateMsgType msgType, Asset asset, EntityGroupId entityGroupId) {
         AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(msgType)
-                .setIdMSB(asset.getId().getId().getMostSignificantBits())
-                .setIdLSB(asset.getId().getId().getLeastSignificantBits())
+                .setIdMSB(asset.getUuidId().getMostSignificantBits())
+                .setIdLSB(asset.getUuidId().getLeastSignificantBits())
                 .setName(asset.getName())
                 .setType(asset.getType());
         if (asset.getLabel() != null) {
             builder.setLabel(asset.getLabel());
-        }
-        if (entityGroupId != null) {
-            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         if (asset.getCustomerId() != null) {
             builder.setCustomerIdMSB(asset.getCustomerId().getId().getMostSignificantBits());
@@ -63,6 +59,10 @@ public class AssetMsgConstructor {
         }
         if (asset.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(asset.getAdditionalInfo()));
+        }
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
         return builder.build();
     }

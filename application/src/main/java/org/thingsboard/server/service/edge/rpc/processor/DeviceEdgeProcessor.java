@@ -71,11 +71,13 @@ import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.exception.DataValidationException;
+import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -121,7 +123,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                             log.error(errMsg, e);
                             return Futures.immediateFuture(null);
                         }
-                        ObjectNode body = mapper.createObjectNode();
+                        ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
                         body.put("conflictName", deviceName);
                         ListenableFuture<Void> input = saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.ENTITY_MERGE_REQUEST, newDevice.getId(), body);
                         return Futures.transformAsync(input, unused ->
@@ -218,13 +220,14 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
             }
+            device.setCustomerId(getCustomerId(deviceUpdateMsg));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
                 device.setDeviceData(deviceDataOpt.get());
             }
             Device savedDevice = deviceService.saveDevice(device);
-            tbClusterService.onDeviceUpdated(savedDevice, device);
+            tbClusterService.onDeviceUpdated(savedDevice, device, false);
             return saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null);
         } else {
             String errMsg = String.format("[%s] can't find device [%s], edge [%s]", tenantId, deviceUpdateMsg, edge.getId());
@@ -247,7 +250,6 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 device.setCreatedTime(Uuids.unixTimestamp(deviceId.getId()));
                 created = true;
             }
-            device.setCustomerId(edge.getCustomerId());
             device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
             if (deviceUpdateMsg.hasLabel()) {
@@ -262,6 +264,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
             }
+            device.setCustomerId(getCustomerId(deviceUpdateMsg));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
@@ -297,6 +300,14 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
         return device;
     }
 
+    private CustomerId getCustomerId(DeviceUpdateMsg deviceUpdateMsg) {
+        if (deviceUpdateMsg.hasCustomerIdMSB() && deviceUpdateMsg.hasCustomerIdLSB()) {
+            return new CustomerId(new UUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
+        } else {
+            return null;
+        }
+    }
+
     private void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
         EntityRelation relation = new EntityRelation();
         relation.setFrom(edgeId);
@@ -309,9 +320,9 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, Edge edge, Device device) {
         try {
             DeviceId deviceId = device.getId();
-            ObjectNode entityNode = mapper.valueToTree(device);
+            ObjectNode entityNode = JacksonUtil.OBJECT_MAPPER.valueToTree(device);
             TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, deviceId, device.getCustomerId(),
-                    getActionTbMsgMetaData(edge, device.getCustomerId()), TbMsgDataType.JSON, mapper.writeValueAsString(entityNode));
+                    getActionTbMsgMetaData(edge, device.getCustomerId()), TbMsgDataType.JSON, JacksonUtil.OBJECT_MAPPER.writeValueAsString(entityNode));
             tbClusterService.pushMsgToRuleEngine(tenantId, deviceId, tbMsg, new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
@@ -412,11 +423,10 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
         return futureToSet;
     }
 
-    public DownlinkMsg processDeviceToEdge(Edge edge, EdgeEvent edgeEvent,
-                                           UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
+    public DownlinkMsg convertDeviceEventToDownlink(EdgeEvent edgeEvent) {
         DeviceId deviceId = new DeviceId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEdgeEventActionType) {
+        switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
@@ -424,8 +434,9 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 Device device = deviceService.findDeviceById(edgeEvent.getTenantId(), deviceId);
                 if (device != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     DeviceUpdateMsg deviceUpdateMsg =
-                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, null, entityGroupId);
+                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg)
@@ -445,7 +456,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                         .build();
                 break;
             case CREDENTIALS_UPDATED:
-                DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(edge.getTenantId(), deviceId);
+                DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(edgeEvent.getTenantId(), deviceId);
                 if (deviceCredentials != null) {
                     DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg =
                             deviceMsgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
@@ -455,12 +466,18 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                             .build();
                 }
                 break;
+            case RPC_CALL:
+                return convertRpcCallEventToDownlink(edgeEvent);
+            case CREDENTIALS_REQUEST:
+                return convertCredentialsRequestEventToDownlink(edgeEvent);
+            case ENTITY_MERGE_REQUEST:
+                return convertEntityMergeRequestEventToDownlink(edgeEvent);
         }
         return downlinkMsg;
     }
 
-    public DownlinkMsg processRpcCallMsgToEdge(EdgeEvent edgeEvent) {
-        log.trace("Executing processRpcCall, edgeEvent [{}]", edgeEvent);
+    private DownlinkMsg convertRpcCallEventToDownlink(EdgeEvent edgeEvent) {
+        log.trace("Executing convertRpcCallEventToDownlink, edgeEvent [{}]", edgeEvent);
         DeviceRpcCallMsg deviceRpcCallMsg =
                 deviceMsgConstructor.constructDeviceRpcCallMsg(edgeEvent.getEntityId(), edgeEvent.getBody());
         return DownlinkMsg.newBuilder()
@@ -469,4 +486,34 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                 .build();
     }
 
+    private DownlinkMsg convertCredentialsRequestEventToDownlink(EdgeEvent edgeEvent) {
+        DeviceId deviceId = new DeviceId(edgeEvent.getEntityId());
+        DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = DeviceCredentialsRequestMsg.newBuilder()
+                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
+                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
+                .build();
+        DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                .addDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg);
+        return builder.build();
+    }
+
+    public DownlinkMsg convertEntityMergeRequestEventToDownlink(EdgeEvent edgeEvent) {
+        DeviceId deviceId = new DeviceId(edgeEvent.getEntityId());
+        Device device = deviceService.findDeviceById(edgeEvent.getTenantId(), deviceId);
+        String conflictName = null;
+        if(edgeEvent.getBody() != null) {
+            conflictName = edgeEvent.getBody().get("conflictName").asText();
+        }
+        DeviceUpdateMsg deviceUpdateMsg = deviceMsgConstructor
+                .constructDeviceUpdatedMsg(UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE, device, conflictName);
+        return DownlinkMsg.newBuilder()
+                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                .addDeviceUpdateMsg(deviceUpdateMsg)
+                .build();
+    }
+
+    public ListenableFuture<Void> processDeviceNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        return processEntityNotification(tenantId, edgeNotificationMsg);
+    }
 }
