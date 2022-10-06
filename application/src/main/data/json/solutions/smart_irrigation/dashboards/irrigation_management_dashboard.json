@@ -877,7 +877,7 @@
                   "label": "Name",
                   "color": "#2196f3",
                   "settings": {
-                    "columnWidth": "30%",
+                    "columnWidth": "40%",
                     "useCellStyleFunction": false,
                     "useCellContentFunction": false,
                     "defaultColumnVisibility": "visible",
@@ -898,7 +898,7 @@
                   "label": "moisture",
                   "color": "#4caf50",
                   "settings": {
-                    "columnWidth": "50%",
+                    "columnWidth": "40%",
                     "useCellStyleFunction": false,
                     "useCellContentFunction": true,
                     "cellContentFunction": "if (value) {\n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba(111, 116, 242, 0.16) '+percent+', rgba(111, 116, 242, 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: #5553AF;\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
@@ -1589,6 +1589,152 @@
         "row": 0,
         "col": 0,
         "id": "8345be8d-e581-cbf5-3b22-a95bc191063f"
+      },
+      "338c74b3-0f57-5ab6-38e9-8df68d47ffae": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "avgMoisture",
+                  "type": "timeseries",
+                  "label": "Moisture",
+                  "color": "#6f74f2",
+                  "settings": {},
+                  "_hash": 0.5177958102552112,
+                  "aggregationType": null,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "waterConsumption",
+                  "type": "timeseries",
+                  "label": "Consumption",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.11518359631018149,
+                  "aggregationType": null,
+                  "units": "l",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "stack": false,
+            "fontSize": 10,
+            "fontColor": "#545454",
+            "showTooltip": true,
+            "tooltipIndividual": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "grid": {
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0,
+              "color": null,
+              "backgroundColor": null,
+              "tickColor": "#DDDDDD"
+            },
+            "xaxis": {
+              "title": null,
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "min": null,
+              "max": null,
+              "title": null,
+              "showLabels": true,
+              "color": "#545454",
+              "tickSize": null,
+              "tickDecimals": 0,
+              "ticksFormatter": ""
+            },
+            "shadowSize": 0,
+            "smoothLines": true,
+            "comparisonEnabled": false,
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "title": null,
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Statistics",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": false,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "showLegend": true,
+          "legendConfig": {
+            "direction": "row",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false,
+            "showLatest": false
+          },
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "338c74b3-0f57-5ab6-38e9-8df68d47ffae"
       }
     },
     "states": {
@@ -1637,22 +1783,28 @@
           "main": {
             "widgets": {
               "a6b597ee-cb21-ee9f-dc98-8673f1d976f1": {
-                "sizeX": 13,
+                "sizeX": 8,
                 "sizeY": 5,
                 "row": 0,
                 "col": 0
               },
               "8fcd3aed-58d0-0cad-cf63-3a08e1be40a9": {
-                "sizeX": 11,
+                "sizeX": 5,
                 "sizeY": 11,
                 "row": 0,
-                "col": 13
+                "col": 19
               },
               "8345be8d-e581-cbf5-3b22-a95bc191063f": {
-                "sizeX": 13,
+                "sizeX": 8,
                 "sizeY": 6,
                 "row": 5,
                 "col": 0
+              },
+              "338c74b3-0f57-5ab6-38e9-8df68d47ffae": {
+                "sizeX": 11,
+                "sizeY": 5,
+                "row": 0,
+                "col": 8
               }
             },
             "gridSettings": {
