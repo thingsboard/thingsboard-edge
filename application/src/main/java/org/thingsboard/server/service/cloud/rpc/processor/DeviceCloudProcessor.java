@@ -317,7 +317,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 if (device != null) {
                     EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
                     DeviceUpdateMsg deviceUpdateMsg =
-                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, null, entityGroupId);
+                            deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, entityGroupId);
                     msg = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg).build();
