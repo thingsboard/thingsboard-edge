@@ -188,6 +188,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     eventService.migrateEvents();
                 }
 
+                break;
+            case "3.4.1":
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 

@@ -22,8 +22,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -47,6 +51,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration(classes = {BaseDashboardControllerTest.Config.class})
 public abstract class BaseDashboardControllerTest extends AbstractControllerTest {
 
     private IdComparator<DashboardInfo> idComparator = new IdComparator<>();
@@ -54,8 +59,16 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     private Tenant savedTenant;
     private User tenantAdmin;
 
-    @SpyBean
+    @Autowired
     private DashboardDao dashboardDao;
+
+    static class Config {
+        @Bean
+        @Primary
+        public DashboardDao dashboardDao(DashboardDao dashboardDao) {
+            return Mockito.mock(DashboardDao.class, AdditionalAnswers.delegatesTo(dashboardDao));
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -79,8 +92,6 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-
-        afterTestEntityDaoRemoveByIdWithException (dashboardDao);
 
         doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
                 .andExpect(status().isOk());
@@ -493,4 +504,5 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         dashboard.setTitle(title);
         return doPost("/api/dashboard", dashboard, Dashboard.class);
     }
+
 }

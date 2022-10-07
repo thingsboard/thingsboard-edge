@@ -57,6 +57,7 @@ import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -87,6 +88,7 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.ExternalCallExecutorService;
 import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.mail.MailExecutorService;
+import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRpcService;
@@ -177,11 +179,19 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    @Getter
     private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
     @Getter
     private TbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
+    @Getter
+    private TbAssetProfileCache assetProfileCache;
 
     @Autowired
     @Getter

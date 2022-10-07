@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -67,6 +68,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -98,6 +100,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -135,6 +138,7 @@ import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
+import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.resource.TbResourceService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -192,6 +196,9 @@ public abstract class BaseController {
 
     @Autowired
     protected AssetService assetService;
+
+    @Autowired
+    protected AssetProfileService assetProfileService;
 
     @Autowired
     protected AlarmSubscriptionService alarmService;
@@ -270,6 +277,9 @@ public abstract class BaseController {
 
     @Autowired
     protected TbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
+    protected TbAssetProfileCache assetProfileCache;
 
     @Autowired(required = false)
     protected EdgeService edgeService;
@@ -554,6 +564,9 @@ public abstract class BaseController {
                 case ASSET:
                     checkAssetId(new AssetId(entityId.getId()), operation);
                     return;
+                case ASSET_PROFILE:
+                    checkAssetProfileId(new AssetProfileId(entityId.getId()), operation);
+                    return;
                 case DASHBOARD:
                     checkDashboardId(new DashboardId(entityId.getId()), operation);
                     return;
@@ -668,6 +681,18 @@ public abstract class BaseController {
             checkNotNull(asset, "Asset with id [" + assetId + "] is not found");
             accessControlService.checkPermission(getCurrentUser(), Resource.ASSET, operation, assetId, asset);
             return asset;
+        } catch (Exception e) {
+            throw handleException(e, false);
+        }
+    }
+
+    AssetProfile checkAssetProfileId(AssetProfileId assetProfileId, Operation operation) throws ThingsboardException {
+        try {
+            validateId(assetProfileId, "Incorrect assetProfileId " + assetProfileId);
+            AssetProfile assetProfile = assetProfileService.findAssetProfileById(getCurrentUser().getTenantId(), assetProfileId);
+            checkNotNull(assetProfile, "Asset profile with id [" + assetProfileId + "] is not found");
+            accessControlService.checkPermission(getCurrentUser(), Resource.ASSET_PROFILE, operation, assetProfileId, assetProfile);
+            return assetProfile;
         } catch (Exception e) {
             throw handleException(e, false);
         }
