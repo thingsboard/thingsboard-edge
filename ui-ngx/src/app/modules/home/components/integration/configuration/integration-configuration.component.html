@@ -51,6 +51,12 @@
                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-ttn-integration-form>
     </section>
+    <section *ngSwitchCase="integrationTypes.AWS_IOT">
+      <tb-aws-iot-integration-form formControlName="configuration"
+                                   [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-aws-iot-integration-form>
+    </section>
     <section *ngSwitchCase="integrationTypes.TTI">
       <tb-tti-integration-form formControlName="configuration"
                                [executeRemotelyTemplate]="executeRemotelyTemplate"

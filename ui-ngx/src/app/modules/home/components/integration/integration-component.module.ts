@@ -58,6 +58,9 @@ import {
 import {
   TtiIntegrationFormComponent
 } from '@home/components/integration/configuration/ttn-tti-integration-form/tti-integration-form.component';
+import {
+  AwsIotIntegrationFormComponent
+} from '@home/components/integration/configuration/aws-iot-integration-form/aws-iot-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -70,7 +73,8 @@ import {
     HttpIntegrationFormComponent,
     SigfoxIntegrationFormComponent,
     TtnIntegrationFormComponent,
-    TtiIntegrationFormComponent
+    TtiIntegrationFormComponent,
+    AwsIotIntegrationFormComponent
   ],
   imports: [
     CommonModule,
