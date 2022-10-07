@@ -54,6 +54,7 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertUserEventToDownlink(EdgeEvent edgeEvent) {
         UserId userId = new UserId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
@@ -61,7 +62,6 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case ASSIGNED_TO_EDGE:
                 User user = userService.findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
@@ -75,7 +75,7 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case CHANGE_OWNER:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addUserUpdateMsg(userMsgConstructor.constructUserDeleteMsg(userId))
+                        .addUserUpdateMsg(userMsgConstructor.constructUserDeleteMsg(userId, entityGroupId))
                         .build();
                 break;
             case CREDENTIALS_UPDATED:

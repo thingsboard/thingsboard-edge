@@ -51,6 +51,7 @@ import java.util.Optional;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
+
     @Test
     public void testIntegrations() throws Exception {
         JsonNode baseUrlAttribute = JacksonUtil.toJsonNode("{\"baseUrl\": \"http://localhost:18080\"}");

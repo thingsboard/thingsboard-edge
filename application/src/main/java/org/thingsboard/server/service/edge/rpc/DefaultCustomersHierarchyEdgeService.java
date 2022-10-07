@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -49,9 +50,12 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -73,8 +77,15 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
     @Autowired
     private TenantService tenantService;
 
+    private ExecutorService executorService;
+
     @PostConstruct
     private void init() {
+        executorService = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("edge-customers-hierarchy"));
+        executorService.execute(this::fetchCustomersHierarchy);
+    }
+
+    private void fetchCustomersHierarchy() {
         PageLink pageLink = new PageLink(100, 0);
         PageData<TenantId> tenantsIds;
         do {
@@ -93,7 +104,13 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
             }
             pageLink = pageLink.nextPageLink();
         } while (tenantsIds.hasNext());
+    }
 
+    @PreDestroy
+    public void shutdownExecutor() {
+        if (executorService != null) {
+            executorService.shutdownNow();
+        }
     }
 
     private List<CustomerId> getCustomersHierarchyIds(TenantId tenantId, CustomerId customerId) {

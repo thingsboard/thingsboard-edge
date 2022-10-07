@@ -67,10 +67,15 @@ public class AssetMsgConstructor {
         return builder.build();
     }
 
-    public AssetUpdateMsg constructAssetDeleteMsg(AssetId assetId) {
-        return AssetUpdateMsg.newBuilder()
+    public AssetUpdateMsg constructAssetDeleteMsg(AssetId assetId, EntityGroupId entityGroupId) {
+        AssetUpdateMsg.Builder builder = AssetUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(assetId.getId().getMostSignificantBits())
-                .setIdLSB(assetId.getId().getLeastSignificantBits()).build();
+                .setIdLSB(assetId.getId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
     }
 }
