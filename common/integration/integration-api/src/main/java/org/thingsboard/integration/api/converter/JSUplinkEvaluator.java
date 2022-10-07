@@ -49,7 +49,7 @@ public class JSUplinkEvaluator extends AbstractJSEvaluator {
         super(tenantId, jsInvokeService, entityId, JsScriptType.UPLINK_CONVERTER_SCRIPT, script);
     }
 
-    public ListenableFuture<Object> execute(byte[] data, UplinkMetaData metadata) throws Exception {
+    public ListenableFuture<String> execute(byte[] data, UplinkMetaData metadata) throws Exception {
         validateSuccessfulScriptLazyInit();
         String[] inArgs = prepareArgs(data, metadata);
         return jsInvokeService.invokeFunction(tenantId, null, this.scriptId, inArgs[0], inArgs[1]);
