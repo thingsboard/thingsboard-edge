@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -52,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseEntityViewEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testEntityView() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 

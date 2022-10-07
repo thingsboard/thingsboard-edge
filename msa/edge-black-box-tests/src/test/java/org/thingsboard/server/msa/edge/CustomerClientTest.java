@@ -28,36 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.cloud;
+package org.thingsboard.server.msa.edge;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CloudEventId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
+import org.junit.Test;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class CloudEvent extends BaseData<CloudEventId> {
+@Slf4j
+public class CustomerClientTest extends AbstractContainerTest {
 
-    private TenantId tenantId;
-    private EdgeEventActionType action;
-    private UUID entityId;
-    private CloudEventType type;
-    private transient JsonNode entityBody;
-    private UUID entityGroupId;
+    @Test
+    public void testCreateUpdateDeleteCustomer() {
+        // create customer
+        Customer customer = new Customer();
+        customer.setTitle("Test Customer");
+        Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
-    public CloudEvent() {
-        super();
-    }
+        // update customer
+        savedCustomer.setTitle("Updated Customer Name");
+        cloudRestClient.saveCustomer(savedCustomer);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Updated Customer Name".equals(edgeRestClient.getCustomerById(savedCustomer.getId()).get().getTitle()));
 
-    public CloudEvent(CloudEventId id) {
-        super(id);
+        // delete customer
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
     }
 }
+

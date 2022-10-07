@@ -28,36 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.cloud;
+package org.thingsboard.server.dao.service.validator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CloudEventId;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.UUID;
+@Component
+public class CloudEventDataValidator extends DataValidator<CloudEvent> {
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class CloudEvent extends BaseData<CloudEventId> {
-
-    private TenantId tenantId;
-    private EdgeEventActionType action;
-    private UUID entityId;
-    private CloudEventType type;
-    private transient JsonNode entityBody;
-    private UUID entityGroupId;
-
-    public CloudEvent() {
-        super();
-    }
-
-    public CloudEvent(CloudEventId id) {
-        super(id);
+    @Override
+    protected void validateDataImpl(TenantId tenantId, CloudEvent cloudEvent) {
+        if (cloudEvent.getAction() == null) {
+            throw new DataValidationException("Edge Event action should be specified!");
+        }
     }
 }

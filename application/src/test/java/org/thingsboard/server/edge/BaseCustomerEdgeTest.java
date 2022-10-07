@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
@@ -44,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseCustomerEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testCreateUpdateDeleteCustomer() throws Exception {
         edgeImitator.expectMessageAmount(1);
         // create customer A

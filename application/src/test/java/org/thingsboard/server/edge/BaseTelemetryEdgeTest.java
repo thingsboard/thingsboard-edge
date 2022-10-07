@@ -36,6 +36,7 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.AbstractMessage;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testTimeseriesWithFailures() throws Exception {
         int numberOfTimeseriesToSend = 1000;
 
@@ -90,6 +92,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAttributes() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -175,6 +178,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testTimeseries() throws Exception {
         edgeImitator.expectMessageAmount(1);
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();

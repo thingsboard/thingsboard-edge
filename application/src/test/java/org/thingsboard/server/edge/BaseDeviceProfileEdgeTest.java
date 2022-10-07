@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -69,6 +70,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testDeviceProfiles() throws Exception {
         // create device profile
         DeviceProfile deviceProfile = this.createDeviceProfile("ONE_MORE_DEVICE_PROFILE", null);
@@ -112,6 +114,7 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceProfiles_snmp() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("SNMP", createSnmpDeviceProfileTransportConfiguration());
 
@@ -153,6 +156,7 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceProfiles_lwm2m() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("LWM2M", createLwm2mDeviceProfileTransportConfiguration());
 
@@ -205,6 +209,7 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceProfiles_coap() throws Exception {
         DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("COAP", createCoapDeviceProfileTransportConfiguration());
 

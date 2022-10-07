@@ -33,12 +33,12 @@ package org.thingsboard.server.dao.cloud;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -71,6 +71,9 @@ public class BaseCloudEventService implements CloudEventService {
     @Autowired
     public AttributesService attributesService;
 
+    @Autowired
+    private DataValidator<CloudEvent> cloudEventValidator;
+
     @Override
     public void cleanupEvents(long ttl) {
         cloudEventDao.cleanupEvents(ttl);
@@ -91,7 +94,7 @@ public class BaseCloudEventService implements CloudEventService {
     public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(TenantId tenantId,
                                                                                               EntityId entityId,
                                                                                               CloudEventType cloudEventType,
-                                                                                              String cloudEventAction,
+                                                                                              EdgeEventActionType cloudEventAction,
                                                                                               TimePageLink pageLink) {
         return cloudEventDao.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
                 tenantId.getId(),
@@ -118,6 +121,7 @@ public class BaseCloudEventService implements CloudEventService {
             throw new RuntimeException("Exception while fetching edge settings", e);
         }
     }
+
     @Override
     public void deleteCloudEventsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteCloudEventsByTenantId, tenantId [{}]", tenantId);
@@ -142,20 +146,10 @@ public class BaseCloudEventService implements CloudEventService {
                     new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, mapper.writeValueAsString(edgeSettings)), System.currentTimeMillis());
             List<AttributeKvEntry> attributes =
                     Collections.singletonList(edgeSettingAttr);
-             return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+            return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
         } catch (Exception e) {
             log.error("Exception while saving edge settings", e);
             throw new RuntimeException("Exception while saving edge settings", e);
         }
     }
-
-    private DataValidator<CloudEvent> cloudEventValidator =
-            new DataValidator<CloudEvent>() {
-                @Override
-                protected void validateDataImpl(TenantId tenantId, CloudEvent cloudEvent) {
-                    if (StringUtils.isEmpty(cloudEvent.getCloudEventAction())) {
-                        throw new DataValidationException("Cloud Event action should be specified!");
-                    }
-                }
-            };
 }

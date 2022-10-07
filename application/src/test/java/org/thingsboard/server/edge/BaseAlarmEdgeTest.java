@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -54,6 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseAlarmEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testSendAlarmToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -86,6 +88,7 @@ abstract public class BaseAlarmEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testAlarms() throws Exception {
         // create alarm
         edgeImitator.expectMessageAmount(1);

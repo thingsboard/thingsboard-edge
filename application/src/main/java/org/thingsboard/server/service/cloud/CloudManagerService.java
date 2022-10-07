@@ -45,14 +45,12 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -70,7 +68,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
@@ -78,6 +75,7 @@ import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
@@ -153,6 +151,9 @@ public class CloudManagerService extends BaseCloudEventService {
 
     @Autowired
     private EdgeRpcClient edgeRpcClient;
+
+    @Autowired
+    private EdgeCloudProcessor edgeCloudProcessor;
 
     @Autowired
     private RelationCloudProcessor relationProcessor;
@@ -353,8 +354,7 @@ public class CloudManagerService extends BaseCloudEventService {
             log.trace("Processing cloud event [{}]", cloudEvent);
             UplinkMsg uplinkMsg = null;
             try {
-                EdgeEventActionType edgeEventAction = EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction());
-                switch (edgeEventAction) {
+                switch (cloudEvent.getAction()) {
                     case UPDATED:
                     case ADDED:
                     case DELETED:
@@ -365,7 +365,7 @@ public class CloudManagerService extends BaseCloudEventService {
                     case RELATION_DELETED:
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
-                        uplinkMsg = processEntityMessage(this.tenantId, cloudEvent, edgeEventAction);
+                        uplinkMsg = processEntityMessage(this.tenantId, cloudEvent);
                         break;
                     case ATTRIBUTES_UPDATED:
                     case POST_ATTRIBUTES:
@@ -414,42 +414,19 @@ public class CloudManagerService extends BaseCloudEventService {
         return result;
     }
 
-    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent, EdgeEventActionType edgeEventAction)
+    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent)
             throws ExecutionException, InterruptedException {
-        UpdateMsgType msgType = getResponseMsgType(EdgeEventActionType.valueOf(cloudEvent.getCloudEventAction()));
-        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}], msgType [{}]", cloudEvent, edgeEventAction, msgType);
-        switch (cloudEvent.getCloudEventType()) {
+        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
+        switch (cloudEvent.getType()) {
             case DEVICE:
-                return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
+                return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent);
             case ALARM:
-                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent, msgType, edgeEventAction);
+                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent);
             case RELATION:
-                return relationProcessor.processRelationMsgToCloud(cloudEvent, msgType);
+                return relationProcessor.processRelationMsgToCloud(cloudEvent);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;
-        }
-    }
-
-    private UpdateMsgType getResponseMsgType(EdgeEventActionType actionType) {
-        switch (actionType) {
-            case UPDATED:
-            case CREDENTIALS_UPDATED:
-                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
-            case ADDED:
-            case RELATION_ADD_OR_UPDATE:
-            case ADDED_TO_ENTITY_GROUP:
-                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
-            case DELETED:
-            case RELATION_DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
-            case ALARM_ACK:
-                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
-            case ALARM_CLEAR:
-                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
-            default:
-                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
         }
     }
 
@@ -496,8 +473,6 @@ public class CloudManagerService extends BaseCloudEventService {
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
-            boolean updatingEdge = this.currentEdgeSettings != null;
-
             if (scheduledFuture != null) {
                 scheduledFuture.cancel(true);
                 scheduledFuture = null;
@@ -526,12 +501,8 @@ public class CloudManagerService extends BaseCloudEventService {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
-        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        CustomerId customerId = new CustomerId(customerUUID);
-
-        EntityId ownerId = !customerId.isNullUid() ? customerId : tenantId;
-
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
+
         EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
             tenantCloudProcessor.cleanUp();
@@ -546,9 +517,12 @@ public class CloudManagerService extends BaseCloudEventService {
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
-        // TODO: voba - verify storage of edge entity
-        saveEdge(edgeConfiguration);
+        saveOrUpdateEdge(tenantId, edgeConfiguration);
 
+        // TODO: voba - check this
+        UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        CustomerId customerId = new CustomerId(customerUUID);
+        EntityId ownerId = !customerId.isNullUid() ? customerId : tenantId;
         whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, ownerId);
 
         updateConnectivityStatus(true);
@@ -556,24 +530,10 @@ public class CloudManagerService extends BaseCloudEventService {
         initialized = true;
     }
 
-    private void saveEdge(EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
-        Edge edge = new Edge();
+    private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+        edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
         EdgeId edgeId = new EdgeId(edgeUUID);
-        edge.setId(edgeId);
-        UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
-        edge.setTenantId(new TenantId(tenantUUID));
-        // TODO: voba - can't assign edge to non-existing customer
-        // UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        // edge.setCustomerId(new CustomerId(customerUUID));
-        edge.setName(edgeConfiguration.getName());
-        edge.setType(edgeConfiguration.getType());
-        edge.setRoutingKey(edgeConfiguration.getRoutingKey());
-        edge.setSecret(edgeConfiguration.getSecret());
-        edge.setEdgeLicenseKey(edgeConfiguration.getEdgeLicenseKey());
-        edge.setCloudEndpoint(edgeConfiguration.getCloudEndpoint());
-        edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
-        edgeService.saveEdge(edge, false);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
     }

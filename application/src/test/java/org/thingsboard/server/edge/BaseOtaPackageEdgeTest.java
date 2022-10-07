@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ByteString;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
@@ -53,6 +54,7 @@ import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 abstract public class BaseOtaPackageEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testOtaPackages_usesUrl() throws Exception {
         // create ota package
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
@@ -103,6 +105,7 @@ abstract public class BaseOtaPackageEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testOtaPackages_hasData() throws Exception {
         // create ota package
         SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();

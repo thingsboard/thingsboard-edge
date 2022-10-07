@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -55,6 +56,7 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Test
+    @Ignore
     public void testCreateUpdateDeleteTenantUser() throws Exception {
         // create user
         edgeImitator.expectMessageAmount(2);
@@ -119,6 +121,7 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testCreateUpdateDeleteCustomerUser() throws Exception {
         // create customer
         edgeImitator.expectMessageAmount(1);
@@ -193,6 +196,7 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendUserCredentialsRequestToCloud() throws Exception {
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         UserCredentialsRequestMsg.Builder userCredentialsRequestMsgBuilder = UserCredentialsRequestMsg.newBuilder();

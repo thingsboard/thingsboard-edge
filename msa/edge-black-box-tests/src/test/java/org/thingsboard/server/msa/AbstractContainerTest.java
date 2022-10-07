@@ -32,8 +32,8 @@ package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.http.config.Registry;
@@ -56,12 +56,22 @@ import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -75,18 +85,42 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
+import org.thingsboard.server.common.data.id.QueueId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.id.WidgetTypeId;
+import org.thingsboard.server.common.data.id.WidgetsBundleId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
+import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -95,11 +129,14 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -108,7 +145,7 @@ public abstract class AbstractContainerTest {
 
     protected static final String CLOUD_HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
-    protected static RestClient cloudRestClient;
+    protected static RestClient cloudRestClient = null;
 
     protected static RestClient edgeRestClient;
 
@@ -117,53 +154,62 @@ public abstract class AbstractContainerTest {
 
     @BeforeClass
     public static void before() throws Exception {
-        cloudRestClient = new RestClient(CLOUD_HTTPS_URL);
-        cloudRestClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+        if (cloudRestClient == null) {
+            cloudRestClient = new RestClient(CLOUD_HTTPS_URL);
+            cloudRestClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
+            cloudRestClient.login("tenant@thingsboard.org", "tenant");
 
-        String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
-        Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
-        edgeUrl = "http://" + edgeHost + ":" + edgePort;
-        edgeRestClient = new RestClient(edgeUrl);
+            String edgeHost = ContainerTestSuite.testContainer.getServiceHost("tb-edge", 8082);
+            Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
+            edgeUrl = "http://" + edgeHost + ":" + edgePort;
+            edgeRestClient = new RestClient(edgeUrl);
 
-        setWhiteLabelingAndCustomTranslation();
+            setWhiteLabelingAndCustomTranslation();
 
+            Awaitility.await()
+                    .pollInterval(500, TimeUnit.MILLISECONDS)
+                    .atMost(30, TimeUnit.SECONDS).
+                    until(() -> {
+                                Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
+                                return cloudLoginWhiteLabelParams.isPresent() &&
+                                        "tenant.org".equals(cloudLoginWhiteLabelParams.get().getDomainName());
+                            });
+
+
+            edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
+
+            loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+
+            Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
+            Assert.assertTrue(tenant.isPresent());
+            Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+
+            updateRootRuleChain();
+
+            createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
+
+            // This is a starting point to start other tests
+            verifyWidgetBundles();
+        }
+    }
+
+    protected static void loginIntoEdgeWithRetries(String userName, String password) {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
-                            Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
-                            return cloudLoginWhiteLabelParams.isPresent() &&
-                                    "tenant.org".equals(cloudLoginWhiteLabelParams.get().getDomainName());
-                        });
-
-        edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
-
-        Awaitility.await()
-                .pollInterval(500, TimeUnit.MILLISECONDS)
-                .atMost(90, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(90, TimeUnit.SECONDS)
+                .until(() -> {
                     boolean loginSuccessful = false;
                     try {
-                        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+                        edgeRestClient.login(userName, password);
                         loginSuccessful = true;
-                    } catch (Throwable ignored1) {
+                    } catch (Exception ignored) {
                         try {
                             Thread.sleep(500);
-                        } catch (InterruptedException ignored2) {}
+                        } catch (InterruptedException ignored2) {
+                        }
                     }
                     return loginSuccessful;
                 });
-
-        Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
-        Assert.assertTrue(tenant.isPresent());
-        Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
-
-        updateRootRuleChain();
-
-        createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
-
-        // This is a starting point to start other tests
-        verifyWidgetBundles();
     }
 
     private static void verifyWidgetBundles() {
@@ -370,5 +416,412 @@ public abstract class AbstractContainerTest {
         edge.setCloudEndpoint("tb-monolith");
         return cloudRestClient.saveEdge(edge);
     }
+
+    protected Device saveDeviceOnEdge(String deviceName, String type) {
+        return saveDevice(deviceName, type, null, edgeRestClient);
+    }
+
+    protected Device saveDeviceOnCloud(String deviceName, String type) {
+        return saveDevice(deviceName, type, null, cloudRestClient);
+    }
+
+    private Device saveDeviceOnCloud(String deviceName, String type, EntityGroupId entityGroupId) {
+        return saveDevice(deviceName, type, entityGroupId, cloudRestClient);
+    }
+
+    private Device saveDevice(String deviceName, String type, EntityGroupId entityGroupId, RestClient restClient) {
+        Device device = new Device();
+        device.setName(deviceName);
+        device.setType(type);
+        Device savedDevice = restClient.saveDevice(device);
+        if (entityGroupId != null) {
+            restClient.addEntitiesToEntityGroup(entityGroupId, Arrays.asList(savedDevice.getId()));
+        }
+        return savedDevice;
+    }
+
+    protected Asset saveAndAssignAssetToEdge(EntityGroup savedAssetEntityGroup) throws Exception {
+        Asset asset = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), "Building", savedAssetEntityGroup.getId());
+        cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getAssetById(asset.getId()).isPresent());
+
+        return asset;
+    }
+
+    private Asset saveAssetOnCloud(String assetName, String type, EntityGroupId entityGroupId) {
+        Asset asset = new Asset();
+        asset.setName(assetName);
+        asset.setType(type);
+        Asset savedAsset = cloudRestClient.saveAsset(asset);
+        if (entityGroupId != null) {
+            cloudRestClient.addEntitiesToEntityGroup(entityGroupId, Arrays.asList(savedAsset.getId()));
+        }
+        return savedAsset;
+    }
+
+    protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
+        switch (entityType) {
+            case DEVICE_PROFILE:
+                assertDeviceProfiles(entityIds);
+                break;
+            case RULE_CHAIN:
+                assertRuleChains(entityIds);
+                break;
+            case WIDGETS_BUNDLE:
+                assertWidgetsBundles(entityIds);
+                break;
+            case WIDGET_TYPE:
+                assertWidgetTypes(entityIds);
+                break;
+            case DEVICE:
+                assertDevices(entityIds);
+                break;
+            case ASSET:
+                assertAssets(entityIds);
+                break;
+            case ENTITY_VIEW:
+                assertEntityViews(entityIds);
+                break;
+            case DASHBOARD:
+                assertDashboards(entityIds);
+                break;
+            case USER:
+                assertUsers(entityIds);
+                break;
+            case OTA_PACKAGE:
+                assertOtaPackages(entityIds);
+                break;
+            case QUEUE:
+                assertQueues(entityIds);
+                break;
+            case ROLE:
+                assertRoles(entityIds);
+                break;
+            case CONVERTER:
+                assertConverters(entityIds);
+                break;
+            case INTEGRATION:
+                assertIntegrations(entityIds);
+                break;
+        }
+    }
+
+    private void assertDeviceProfiles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            DeviceProfileId deviceProfileId = new DeviceProfileId(entityId.getId());
+            Optional<DeviceProfile> edgeDeviceProfile = edgeRestClient.getDeviceProfileById(deviceProfileId);
+            Optional<DeviceProfile> cloudDeviceProfile = cloudRestClient.getDeviceProfileById(deviceProfileId);
+            DeviceProfile expected = edgeDeviceProfile.get();
+            DeviceProfile actual = cloudDeviceProfile.get();
+            actual.setDefaultRuleChainId(null);
+            Assert.assertEquals("Device profiles on cloud and edge are different (except defaultRuleChainId)", expected, actual);
+        }
+    }
+
+    private void assertOtaPackages(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            OtaPackageId otaPackageId = new OtaPackageId(entityId.getId());
+            OtaPackage edgeOtaPackage = edgeRestClient.getOtaPackageById(otaPackageId);
+            OtaPackage cloudOtaPackage = cloudRestClient.getOtaPackageById(otaPackageId);
+            Assert.assertEquals("Ota packages on cloud and edge are different", edgeOtaPackage, cloudOtaPackage);
+        }
+    }
+
+    private void assertQueues(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            QueueId queueId = new QueueId(entityId.getId());
+            Queue edgeQueue = edgeRestClient.getQueueById(queueId);
+            Queue cloudQueue = cloudRestClient.getQueueById(queueId);
+            Assert.assertEquals("Queues on cloud and edge are different", edgeQueue, cloudQueue);
+        }
+    }
+
+    private void assertRuleChains(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            RuleChainId ruleChainId = new RuleChainId(entityId.getId());
+            Optional<RuleChain> edgeRuleChain = edgeRestClient.getRuleChainById(ruleChainId);
+            Optional<RuleChain> cloudRuleChain = cloudRestClient.getRuleChainById(ruleChainId);
+            RuleChain expected = edgeRuleChain.get();
+            RuleChain actual = cloudRuleChain.get();
+            Assert.assertEquals("Edge rule chain type is incorrect", RuleChainType.CORE, expected.getType());
+            Assert.assertEquals("Cloud rule chain type is incorrect", RuleChainType.EDGE, actual.getType());
+            expected.setType(null);
+            actual.setType(null);
+            Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
+
+            Awaitility.await()
+                    .atMost(30, TimeUnit.SECONDS).
+                    until(() -> {
+                        Optional<RuleChainMetaData> edgeRuleChainMetaData = edgeRestClient.getRuleChainMetaData(ruleChainId);
+                        Optional<RuleChainMetaData> cloudRuleChainMetaData = cloudRestClient.getRuleChainMetaData(ruleChainId);
+                        if (edgeRuleChainMetaData.isEmpty()) {
+                            return false;
+                        }
+                        if (cloudRuleChainMetaData.isEmpty()) {
+                            return false;
+                        }
+                        return validateRuleChainMetadata(edgeRuleChainMetaData.get(), cloudRuleChainMetaData.get());
+                    });
+        }
+    }
+
+    private boolean validateRuleChainMetadata(RuleChainMetaData expectedMetadata, RuleChainMetaData actualMetadata) {
+        if (!expectedMetadata.getRuleChainId().equals(actualMetadata.getRuleChainId())) {
+            return false;
+        }
+        if (expectedMetadata.getNodes().size() != actualMetadata.getNodes().size()) {
+            return false;
+        }
+        if (expectedMetadata.getConnections().size() != actualMetadata.getConnections().size()) {
+            return false;
+        }
+        for (RuleNode expectedNode : expectedMetadata.getNodes()) {
+            Optional<RuleNode> actualNodeOpt =
+                    actualMetadata.getNodes().stream().filter(n -> n.getId().equals(expectedNode.getId())).findFirst();
+            if (actualNodeOpt.isEmpty()) {
+                return false;
+            }
+            RuleNode actualNode = actualNodeOpt.get();
+            if (!expectedNode.equals(actualNode)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void assertWidgetsBundles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            WidgetsBundleId widgetsBundleId = new WidgetsBundleId(entityId.getId());
+            Optional<WidgetsBundle> edgeWidgetsBundle = edgeRestClient.getWidgetsBundleById(widgetsBundleId);
+            Optional<WidgetsBundle> cloudWidgetsBundle = cloudRestClient.getWidgetsBundleById(widgetsBundleId);
+            WidgetsBundle expected = edgeWidgetsBundle.get();
+            WidgetsBundle actual = cloudWidgetsBundle.get();
+            Assert.assertEquals("Widgets bundles on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertWidgetTypes(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            WidgetTypeId widgetTypeId = new WidgetTypeId(entityId.getId());
+            Optional<WidgetTypeDetails> edgeWidgetsBundle = edgeRestClient.getWidgetTypeById(widgetTypeId);
+            Optional<WidgetTypeDetails> cloudWidgetsBundle = cloudRestClient.getWidgetTypeById(widgetTypeId);
+            WidgetTypeDetails expected = edgeWidgetsBundle.get();
+            WidgetTypeDetails actual = cloudWidgetsBundle.get();
+            Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertDevices(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            DeviceId deviceId = new DeviceId(entityId.getId());
+            Optional<Device> edgeDevice = edgeRestClient.getDeviceById(deviceId);
+            Optional<Device> cloudDevice = cloudRestClient.getDeviceById(deviceId);
+            Device expected = edgeDevice.get();
+            Device actual = cloudDevice.get();
+            Assert.assertEquals("Devices on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertAssets(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            AssetId assetId = new AssetId(entityId.getId());
+            Optional<Asset> edgeAsset = edgeRestClient.getAssetById(assetId);
+            Optional<Asset> cloudAsset = cloudRestClient.getAssetById(assetId);
+            Asset expected = edgeAsset.get();
+            Asset actual = cloudAsset.get();
+            Assert.assertEquals("Assets on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertEntityViews(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            EntityViewId entityViewId = new EntityViewId(entityId.getId());
+            Optional<EntityView> edgeEntityView = edgeRestClient.getEntityViewById(entityViewId);
+            Optional<EntityView> cloudEntityView = cloudRestClient.getEntityViewById(entityViewId);
+            EntityView expected = edgeEntityView.get();
+            EntityView actual = cloudEntityView.get();
+            Assert.assertEquals("Entity Views on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertDashboards(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            DashboardId dashboardId = new DashboardId(entityId.getId());
+            Optional<Dashboard> edgeDashboard = edgeRestClient.getDashboardById(dashboardId);
+            Optional<Dashboard> cloudDashboard = cloudRestClient.getDashboardById(dashboardId);
+            Dashboard expected = edgeDashboard.get();
+            Dashboard actual = cloudDashboard.get();
+            Assert.assertEquals("Dashboards on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertUsers(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            UserId userId = new UserId(entityId.getId());
+            Optional<User> edgeUser = edgeRestClient.getUserById(userId);
+            Optional<User> cloudUser = cloudRestClient.getUserById(userId);
+            User expected = edgeUser.get();
+            User actual = cloudUser.get();
+            expected.setAdditionalInfo(cleanLastLoginTsFromAdditionalInfo(expected.getAdditionalInfo()));
+            actual.setAdditionalInfo(cleanLastLoginTsFromAdditionalInfo(actual.getAdditionalInfo()));
+            Assert.assertEquals("Users on cloud and edge are different (except lastLoginTs)", expected, actual);
+        }
+    }
+
+    private void assertRoles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            RoleId roleId = new RoleId(entityId.getId());
+            Optional<Role> edgeRole = edgeRestClient.getRoleById(roleId);
+            Optional<Role> cloudRole = cloudRestClient.getRoleById(roleId);
+            Role expected = edgeRole.get();
+            Role actual = cloudRole.get();
+            // permissions field is transient and not used in comparison
+            Assert.assertEquals("Roles on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertConverters(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            ConverterId converterId = new ConverterId(entityId.getId());
+            Optional<Converter> edgeConverter = edgeRestClient.getConverterById(converterId);
+            Optional<Converter> cloudConverter = cloudRestClient.getConverterById(converterId);
+            Converter expected = edgeConverter.get();
+            Converter actual = cloudConverter.get();
+            Assert.assertEquals("Edge converter isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
+            Assert.assertEquals("Cloud converter isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
+            actual.setEdgeTemplate(false);
+            Assert.assertEquals("Converters on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private void assertIntegrations(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            IntegrationId integrationId = new IntegrationId(entityId.getId());
+            Optional<Integration> edgeIntegration = edgeRestClient.getIntegrationById(integrationId);
+            Optional<Integration> cloudIntegration = cloudRestClient.getIntegrationById(integrationId);
+            Integration expected = edgeIntegration.get();
+            Integration actual = cloudIntegration.get();
+            Assert.assertEquals("Edge integration isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
+            Assert.assertEquals("Cloud integration isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
+            actual.setEdgeTemplate(false);
+
+            // configuration must be reset, because configuration on cloud contains placeholders
+            actual.setConfiguration(null);
+            expected.setConfiguration(null);
+
+            Assert.assertEquals("Integrations on cloud and edge are different", expected, actual);
+        }
+    }
+
+    private JsonNode cleanLastLoginTsFromAdditionalInfo(JsonNode additionalInfo) {
+        if (additionalInfo != null && additionalInfo.has("lastLoginTs")) {
+            ((ObjectNode) additionalInfo).remove("lastLoginTs");
+        }
+        return additionalInfo;
+    }
+
+    protected Device saveAndAssignDeviceToEdge(EntityGroup savedDeviceEntityGroup) {
+        Device device = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), "default", savedDeviceEntityGroup.getId());
+        cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getDeviceById(device.getId()).isPresent());
+
+        return device;
+    }
+
+    protected List<AttributeKvEntry> sendAttributesUpdated(RestClient sourceRestClient, RestClient targetRestClient,
+                                                         JsonObject attributesPayload, List<String> keys, String scope) throws Exception {
+
+        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+
+        sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()));
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> targetRestClient.getAttributesByScope(device.getId(), scope, keys).size() == keys.size());
+
+        List<AttributeKvEntry> attributeKvEntries =
+                targetRestClient.getAttributesByScope(device.getId(), scope, keys);
+
+        sourceRestClient.deleteEntityAttributes(device.getId(), scope, keys);
+
+        verifyDeviceIsActive(targetRestClient, device.getId());
+
+        return attributeKvEntries;
+    }
+
+    protected void verifyDeviceIsActive(RestClient restClient, DeviceId deviceId) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<AttributeKvEntry> attributeKvEntries =
+                            restClient.getAttributesByScope(deviceId, DataConstants.SERVER_SCOPE, Collections.singletonList("active"));
+                    if (attributeKvEntries.size() != 1) {
+                        return false;
+                    }
+                    AttributeKvEntry activeAttributeKv = attributeKvEntries.get(0);
+                    return activeAttributeKv.getValueAsString().equals("true");
+                });
+    }
+
+    protected EntityGroup createEntityGroup(EntityType entityType) {
+        EntityGroup assetEntityGroup = new EntityGroup();
+        assetEntityGroup.setType(entityType);
+        assetEntityGroup.setName(org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric(15));
+        return cloudRestClient.saveEntityGroup(assetEntityGroup);
+    }
+
+    protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
+        List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
+        if (attributesByScope.isEmpty()) {
+            return false;
+        }
+        AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
+        return attributeKvEntry.getValueAsString().equals(expectedValue);
+    }
+
+    protected void verifyEntityGroups(EntityType entityType, int expectedGroupsCount) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupInfo> entityGroupsByType = edgeRestClient.getEntityGroupsByType(entityType);
+                    return entityGroupsByType.size() == expectedGroupsCount;
+                });
+        List<EntityGroupInfo> entityGroupsByType = edgeRestClient.getEntityGroupsByType(entityType);
+        for (EntityGroupInfo entityGroupInfo : entityGroupsByType) {
+            List<EntityId> entityIds;
+            switch (entityType) {
+                case DEVICE:
+                    PageData<Device> devicesByEntityGroupId = edgeRestClient.getDevicesByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
+                    entityIds = devicesByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+                    break;
+                case ASSET:
+                    PageData<Asset> assetsByEntityGroupId = edgeRestClient.getAssetsByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
+                    entityIds = assetsByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+                    break;
+                case ENTITY_VIEW:
+                    PageData<EntityView> entityViewsByEntityGroupId = edgeRestClient.getEntityViewsByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
+                    entityIds = entityViewsByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+                    break;
+                case DASHBOARD:
+                    PageData<DashboardInfo> dashboardsByEntityGroupId = edgeRestClient.getGroupDashboards(entityGroupInfo.getId(), new PageLink(1000));
+                    entityIds = dashboardsByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+                    break;
+                case USER:
+                    PageData<User> usersByEntityGroupId = edgeRestClient.getUsersByEntityGroupId(entityGroupInfo.getId(), new PageLink(1000));
+                    entityIds = usersByEntityGroupId.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+                    break;
+                default:
+                    throw new IllegalArgumentException("Incorrect entity type provided " + entityType);
+            }
+            assertEntitiesByIdsAndType(entityIds, entityType);
+        }
+    }
+
 
 }

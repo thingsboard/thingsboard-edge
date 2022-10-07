@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -54,6 +55,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseRuleChainEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testRuleChains() throws Exception {
         // create rule chain
         edgeImitator.expectMessageAmount(2);
@@ -96,6 +98,7 @@ abstract public class BaseRuleChainEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendRuleChainMetadataRequestToCloud() throws Exception {
         RuleChainId edgeRootRuleChainId = edge.getRootRuleChainId();
 

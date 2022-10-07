@@ -56,15 +56,11 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.group.BaseEntityGroupService;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -194,8 +190,8 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
         }
     }
 
-    public UplinkMsg processGroupEntitiesRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
-        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+    public UplinkMsg processGroupEntitiesRequestMsgToCloud(CloudEvent cloudEvent) {
+        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         String type = cloudEvent.getEntityBody().get("type").asText();
         EntityGroupRequestMsg entityGroupEntitiesRequestMsg = EntityGroupRequestMsg.newBuilder()
                 .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())

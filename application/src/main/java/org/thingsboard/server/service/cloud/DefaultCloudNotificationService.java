@@ -30,11 +30,8 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -105,8 +102,8 @@ public class DefaultCloudNotificationService implements CloudNotificationService
 
         CloudEvent cloudEvent = new CloudEvent();
         cloudEvent.setTenantId(tenantId);
-        cloudEvent.setCloudEventType(cloudEventType);
-        cloudEvent.setCloudEventAction(cloudEventAction.name());
+        cloudEvent.setType(cloudEventType);
+        cloudEvent.setAction(cloudEventAction);
         if (entityId != null) {
             cloudEvent.setEntityId(entityId.getId());
         }

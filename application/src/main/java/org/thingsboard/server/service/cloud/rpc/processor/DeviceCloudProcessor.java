@@ -208,6 +208,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
             }
+            device.setCustomerId(getCustomerId(deviceUpdateMsg));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
@@ -245,6 +246,14 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                     deviceUpdateMsg.getEntityGroupIdLSB());
             EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
             addEntityToGroup(tenantId, entityGroupId, deviceId);
+        }
+    }
+
+    private CustomerId getCustomerId(DeviceUpdateMsg deviceUpdateMsg) {
+        if (deviceUpdateMsg.hasCustomerIdMSB() && deviceUpdateMsg.hasCustomerIdLSB()) {
+            return new CustomerId(new UUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
+        } else {
+            return null;
         }
     }
 
@@ -306,15 +315,16 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();
     }
 
-    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent, UpdateMsgType msgType, EdgeEventActionType edgeActionType) {
+    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
-        switch (edgeActionType) {
+        switch (cloudEvent.getAction()) {
             case ADDED:
             case UPDATED:
             case ADDED_TO_ENTITY_GROUP:
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
+                    UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
                     EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
                     DeviceUpdateMsg deviceUpdateMsg =
                             deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, entityGroupId);
@@ -347,7 +357,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 }
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported edge action type [" + edgeActionType + "]");
+                throw new IllegalArgumentException("Unsupported edge action type [" + cloudEvent.getAction() + "]");
         }
         return msg;
     }

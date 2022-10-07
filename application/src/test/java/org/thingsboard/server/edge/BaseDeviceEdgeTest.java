@@ -38,6 +38,7 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.AbstractMessage;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
@@ -78,6 +79,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testDevices() throws Exception {
         // create device entity group and assign to edge
         EntityGroup deviceEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "DeviceGroup", tenantId);
@@ -140,6 +142,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testUpdateDeviceCredentials() throws Exception {
         // create device and assign to edge; update device
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
@@ -179,6 +182,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceReachedMaximumAllowedOnCloud() throws Exception {
         // update tenant profile configuration
         loginSysAdmin();
@@ -213,6 +217,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceRpcResponseToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -239,6 +244,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceCredentialsUpdateToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -259,6 +265,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceCredentialsRequestToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -289,6 +296,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendAttributesRequestToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -299,6 +307,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeleteDeviceOnEdgeToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         UplinkMsg.Builder upLinkMsgBuilder = UplinkMsg.newBuilder();
@@ -319,6 +328,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendTelemetryToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -387,6 +397,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
         String deviceOnCloudName = StringUtils.randomAlphanumeric(15);
         Device deviceOnCloud = saveDevice(deviceOnCloudName, "Default");
@@ -440,6 +451,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendDeviceToCloud() throws Exception {
         UUID uuid = Uuids.timeBased();
 
@@ -476,6 +488,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcCall() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 

@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,6 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseDashboardEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testDashboards() throws Exception {
         // create dashboard entity group and assign to edge
         edgeImitator.expectMessageAmount(1);

@@ -28,36 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.cloud;
+package org.thingsboard.server.msa.edge;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CloudEventId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
+import org.junit.Test;
+import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.UUID;
+import java.util.Optional;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class CloudEvent extends BaseData<CloudEventId> {
+@Slf4j
+public class AdminSettingsClientTest extends AbstractContainerTest {
 
-    private TenantId tenantId;
-    private EdgeEventActionType action;
-    private UUID entityId;
-    private CloudEventType type;
-    private transient JsonNode entityBody;
-    private UUID entityGroupId;
+    @Test
+    public void testTenantAdminSettings() {
+        verifyTenantAdminSettingsByKey("general");
+        verifyTenantAdminSettingsByKey("mailTemplates");
+        verifyTenantAdminSettingsByKey("mail");
 
-    public CloudEvent() {
-        super();
+        // TODO: @voba - verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
+        // login as sysadmin on edge
+        // login as sysadmin on cloud
+        // verifyAdminSettingsByKey("general");
+        // verifyAdminSettingsByKey("mailTemplates");
+        // verifyAdminSettingsByKey("mail");
     }
 
-    public CloudEvent(CloudEventId id) {
-        super(id);
+    private void verifyTenantAdminSettingsByKey(String key) {
+        Optional<AdminSettings> edgeAdminSettings = edgeRestClient.getAdminSettings(key);
+        Assert.assertTrue("Admin settings is not available on edge, key = " + key, edgeAdminSettings.isPresent());
+        Optional<AdminSettings> cloudAdminSettings = cloudRestClient.getAdminSettings(key);
+        Assert.assertTrue("Admin settings is not available on cloud, key = " + key, cloudAdminSettings.isPresent());
+        Assert.assertEquals("Admin settings on cloud and edge are different", edgeAdminSettings.get(), cloudAdminSettings.get());
     }
+
 }
+

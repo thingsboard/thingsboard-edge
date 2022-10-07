@@ -732,7 +732,7 @@ transport:
   # Local LwM2M transport parameters
   lwm2m:
     # Enable/disable lvm2m transport protocol.
-    enabled: "${LWM2M_ENABLED:false}"
+    enabled: "${LWM2M_ENABLED:true}"
     server:
       id: "${LWM2M_SERVER_ID:123}"
       bind_address: "${LWM2M_BIND_ADDRESS:0.0.0.0}"
@@ -835,7 +835,7 @@ transport:
   #      - key: "PROTOCOL_STAGE_THREAD_COUNT"
   #        value: "${LWM2M_PROTOCOL_STAGE_THREAD_COUNT:4}"
   snmp:
-    enabled: "${SNMP_ENABLED:false}"
+    enabled: "${SNMP_ENABLED:true}"
     response_processing:
       # parallelism level for executor (workStealingPool) that is responsible for handling responses from SNMP devices
       parallelism_level: "${SNMP_RESPONSE_PROCESSING_PARALLELISM_LEVEL:20}"

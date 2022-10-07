@@ -40,8 +40,8 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -81,6 +81,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
@@ -115,6 +116,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private EdgeCloudProcessor edgeCloudProcessor;
 
     @Autowired
     private RuleChainCloudProcessor ruleChainProcessor;
@@ -200,6 +204,9 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             log.trace("DownlinkMsg Body {}", downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, currentEdgeSettings));
+            }
+            if (downlinkMsg.hasEdgeConfiguration()) {
+                result.add(edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, downlinkMsg.getEdgeConfiguration()));
             }
             if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {

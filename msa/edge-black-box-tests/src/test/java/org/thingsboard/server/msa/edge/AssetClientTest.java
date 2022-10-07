@@ -28,41 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.msa.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.awaitility.Awaitility;
+import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.msa.AbstractContainerTest;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public abstract class BaseCloudEventService {
+public class AssetClientTest extends AbstractContainerTest {
 
-    @Autowired
-    protected CloudEventService cloudEventService;
+    @Test
+    public void testAssets() throws Exception {
+        EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
+        Asset savedAsset = saveAndAssignAssetToEdge(savedAssetEntityGroup);
 
-    protected ListenableFuture<Void> saveCloudEvent(TenantId tenantId,
-                                                    CloudEventType cloudEventType,
-                                                    EdgeEventActionType cloudEventAction,
-                                                    EntityId entityId,
-                                                    JsonNode entityBody) {
-        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
+        JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
+        cloudRestClient.saveEntityAttributesV1(savedAsset.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
 
-        CloudEvent cloudEvent = new CloudEvent();
-        cloudEvent.setTenantId(tenantId);
-        cloudEvent.setType(cloudEventType);
-        cloudEvent.setAction(cloudEventAction);
-        if (entityId != null) {
-            cloudEvent.setEntityId(entityId.getId());
-        }
-        cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.saveAsync(cloudEvent);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> verifyAttributeOnEdge(savedAsset.getId(),
+                        DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
+
+        cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS).
+                until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isEmpty());
+
+        cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
     }
+
 }
+

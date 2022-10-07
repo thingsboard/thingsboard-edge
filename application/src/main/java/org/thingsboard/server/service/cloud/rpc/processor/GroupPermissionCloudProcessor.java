@@ -127,8 +127,8 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    public UplinkMsg processEntityGroupPermissionsRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
-        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getCloudEventType(), cloudEvent.getEntityId());
+    public UplinkMsg processEntityGroupPermissionsRequestMsgToCloud(CloudEvent cloudEvent) {
+        EntityId entityGroupId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         String type = cloudEvent.getEntityBody().get("type").asText();
         EntityGroupRequestMsg entityGroupPermissionsRequestMsg = EntityGroupRequestMsg.newBuilder()
                 .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())

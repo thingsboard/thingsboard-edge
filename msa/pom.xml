@@ -65,6 +65,7 @@
 <!--        <module>transport</module>-->
 <!--        <module>integration</module>-->
         <module>tb-edge</module>
+        <module>edge-black-box-tests</module>
     </modules>
 
 

@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
@@ -51,7 +52,9 @@ import java.util.Optional;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
+
     @Test
+    @Ignore
     public void testIntegrations() throws Exception {
         JsonNode baseUrlAttribute = JacksonUtil.toJsonNode("{\"baseUrl\": \"http://localhost:18080\"}");
         doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", baseUrlAttribute)

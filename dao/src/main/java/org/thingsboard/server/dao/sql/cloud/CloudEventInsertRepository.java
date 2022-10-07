@@ -74,7 +74,7 @@ public class CloudEventInsertRepository {
                                 : null);
                         ps.setObject(4, cloudEvent.getEntityId());
                         ps.setString(5, cloudEvent.getCloudEventType().name());
-                        ps.setString(6, cloudEvent.getCloudEventAction());
+                        ps.setString(6, cloudEvent.getCloudEventAction().name());
                         ps.setObject(7, cloudEvent.getTenantId());
                         ps.setLong(8, cloudEvent.getTs());
                     }

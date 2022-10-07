@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -51,6 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseRelationEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testRelations() throws Exception {
         // create relation
         edgeImitator.expectMessageAmount(1);
@@ -102,6 +104,7 @@ abstract public class BaseRelationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendRelationToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Asset asset = saveAssetOnCloudAndVerifyDeliveryToEdge();
@@ -137,6 +140,7 @@ abstract public class BaseRelationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendRelationRequestToCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Asset asset = saveAssetOnCloudAndVerifyDeliveryToEdge();

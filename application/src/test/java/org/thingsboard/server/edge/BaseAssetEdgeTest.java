@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -50,6 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseAssetEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testAssets() throws Exception {
         // create asset entity group and assign to edge
         edgeImitator.expectMessageAmount(1);

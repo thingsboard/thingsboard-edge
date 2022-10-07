@@ -28,41 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.cloud;
+package org.thingsboard.server.msa.edge;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.awaitility.Awaitility;
+import org.junit.Test;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.msa.AbstractContainerTest;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class BaseCloudEventService {
+public class RoleClientTest extends AbstractContainerTest {
 
-    @Autowired
-    protected CloudEventService cloudEventService;
+    @Test
+    public void testRoles() {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100)).getTotalElements() == 2);
 
-    protected ListenableFuture<Void> saveCloudEvent(TenantId tenantId,
-                                                    CloudEventType cloudEventType,
-                                                    EdgeEventActionType cloudEventAction,
-                                                    EntityId entityId,
-                                                    JsonNode entityBody) {
-        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
+        PageData<Role> genericPageData = edgeRestClient.getRoles(RoleType.GENERIC, new PageLink(100));
 
-        CloudEvent cloudEvent = new CloudEvent();
-        cloudEvent.setTenantId(tenantId);
-        cloudEvent.setType(cloudEventType);
-        cloudEvent.setAction(cloudEventAction);
-        if (entityId != null) {
-            cloudEvent.setEntityId(entityId.getId());
-        }
-        cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.saveAsync(cloudEvent);
+        List<EntityId> genericIds = genericPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100)).getTotalElements() == 1);
+        PageData<Role> groupPageData = edgeRestClient.getRoles(RoleType.GROUP, new PageLink(100));
+        List<EntityId> groupIds = groupPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
+        genericIds.addAll(groupIds);
+        assertEntitiesByIdsAndType(genericIds, EntityType.ROLE);
     }
+
 }
+
