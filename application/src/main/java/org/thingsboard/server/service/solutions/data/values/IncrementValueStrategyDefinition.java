@@ -30,8 +30,20 @@
  */
 package org.thingsboard.server.service.solutions.data.values;
 
-public enum ValueStrategyDefinitionType {
 
-    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE, SCHEDULE, INCREMENT, DECREMENT;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
+
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class IncrementValueStrategyDefinition extends IncDecValueStrategyDefinition {
+
+    private double minIncrement;
+    private double maxIncrement;
+
+    @Override
+    public ValueStrategyDefinitionType getStrategyType() {
+        return ValueStrategyDefinitionType.INCREMENT;
+    }
 
 }

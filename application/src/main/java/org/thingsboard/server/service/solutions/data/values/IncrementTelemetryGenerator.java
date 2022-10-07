@@ -30,8 +30,27 @@
  */
 package org.thingsboard.server.service.solutions.data.values;
 
-public enum ValueStrategyDefinitionType {
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.Setter;
+import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile;
 
-    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE, SCHEDULE, INCREMENT, DECREMENT;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
+import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.getMultiplier;
+import static org.thingsboard.server.service.solutions.data.values.GeneratorTools.randomDouble;
+
+public class IncrementTelemetryGenerator extends IncDecTelemetryGenerator<IncrementValueStrategyDefinition> {
+
+    public IncrementTelemetryGenerator(TelemetryProfile telemetryProfile) {
+        super(telemetryProfile);
+    }
+
+    @Override
+    public void addValue(long ts, ObjectNode values) {
+        double step = randomDouble(strategy.getMinIncrement(), strategy.getMaxIncrement());
+        double newValue = value + step;
+        value = Math.min(newValue, endValue);
+        put(values, value);
+    }
 }

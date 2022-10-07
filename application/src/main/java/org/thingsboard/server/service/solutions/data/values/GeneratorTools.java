@@ -65,7 +65,21 @@ public class GeneratorTools {
         return multiplier;
     }
 
-    public static boolean isHoliday(long ts){
+    public static int getHour(long ts) {
+        Date date = new Date(ts);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return c.get(Calendar.HOUR_OF_DAY);
+    }
+
+    public static int getMinute(long ts) {
+        Date date = new Date(ts);
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        return c.get(Calendar.MINUTE);
+    }
+
+    public static boolean isHoliday(long ts) {
         Date date = new Date(ts);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -73,7 +87,7 @@ public class GeneratorTools {
         return dayOfWeek == 1 || dayOfWeek == 7;
     }
 
-    public static boolean isWorkHour(long ts){
+    public static boolean isWorkHour(long ts) {
         Date date = new Date(ts);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -82,7 +96,7 @@ public class GeneratorTools {
         return hour > 8 && hour < 18;
     }
 
-    public static boolean isNightHour(long ts){
+    public static boolean isNightHour(long ts) {
         Date date = new Date(ts);
         Calendar c = Calendar.getInstance();
         c.setTime(date);
