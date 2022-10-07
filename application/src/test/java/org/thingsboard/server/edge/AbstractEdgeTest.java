@@ -706,6 +706,19 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         return savedEntityGroup;
     }
 
+    protected void unAssignEntityGroupFromEdge(EntityGroup entityGroup) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        doDelete("/api/edge/" + edge.getUuidId()
+                + "/entityGroup/" + entityGroup.getUuidId().toString() + "/" + entityGroup.getType().name(), EntityGroup.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof EntityGroupUpdateMsg);
+        EntityGroupUpdateMsg entityGroupUpdateMsg = (EntityGroupUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, entityGroupUpdateMsg.getMsgType());
+        Assert.assertEquals(entityGroup.getUuidId().getMostSignificantBits(), entityGroupUpdateMsg.getIdMSB());
+        Assert.assertEquals(entityGroup.getUuidId().getLeastSignificantBits(), entityGroupUpdateMsg.getIdLSB());
+    }
+
     protected void validateThatEntityGroupAssignedToEdge(EntityGroupId entityGroupId, EntityType groupType) throws Exception {
         validateThatEntityGroupAssignedOrNotToEdge(entityGroupId, groupType, true);
     }

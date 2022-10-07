@@ -108,6 +108,8 @@ abstract public class BaseAssetEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(assetEntityGroup2.getUuidId().getMostSignificantBits(), assetUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(assetEntityGroup2.getUuidId().getLeastSignificantBits(), assetUpdateMsg.getEntityGroupIdLSB());
 
+        unAssignEntityGroupFromEdge(assetEntityGroup2);
+
         // delete asset
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/asset/" + savedAsset.getUuidId())

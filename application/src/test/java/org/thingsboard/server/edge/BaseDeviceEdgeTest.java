@@ -135,6 +135,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
 
+        unAssignEntityGroupFromEdge(deviceEntityGroup2);
+
         // delete device
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/device/" + savedDevice.getUuidId())

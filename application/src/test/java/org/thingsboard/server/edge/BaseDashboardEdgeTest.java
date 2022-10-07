@@ -108,6 +108,8 @@ abstract public class BaseDashboardEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getMostSignificantBits(), dashboardUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getEntityGroupIdLSB());
 
+        unAssignEntityGroupFromEdge(dashboardEntityGroup2);
+
         // delete dashboard
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/dashboard/" + savedDashboard.getUuidId())

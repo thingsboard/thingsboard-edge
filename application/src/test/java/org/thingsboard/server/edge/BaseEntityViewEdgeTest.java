@@ -114,6 +114,8 @@ abstract public class BaseEntityViewEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(entityViewEntityGroup2.getUuidId().getMostSignificantBits(), entityViewUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(entityViewEntityGroup2.getUuidId().getLeastSignificantBits(), entityViewUpdateMsg.getEntityGroupIdLSB());
 
+        unAssignEntityGroupFromEdge(entityViewEntityGroup2);
+
         // delete entity view
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/entityView/" + savedEntityView.getUuidId())

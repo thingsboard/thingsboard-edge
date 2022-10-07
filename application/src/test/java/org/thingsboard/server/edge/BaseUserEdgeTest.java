@@ -186,16 +186,16 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
         Assert.assertTrue(userCredentialsUpdateMsgOpt.isPresent());
 
         // add custom user group and add user to this group
-        EntityGroup customerEdgeUserGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "CustomerEdgeUserGroup", savedCustomer.getId());
+        EntityGroup customUserGroup = createEntityGroupAndAssignToEdge(EntityType.USER, "CustomerEdgeUserGroup", savedCustomer.getId());
         edgeImitator.expectMessageAmount(1);
-        addEntitiesToEntityGroup(Collections.singletonList(savedCustomerUser.getId()), customerEdgeUserGroup.getId());
+        addEntitiesToEntityGroup(Collections.singletonList(savedCustomerUser.getId()), customUserGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         userUpdateMsg = latestMessageOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
-        Assert.assertEquals(customerEdgeUserGroup.getUuidId().getMostSignificantBits(), userUpdateMsg.getEntityGroupIdMSB());
-        Assert.assertEquals(customerEdgeUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
+        Assert.assertEquals(customUserGroup.getUuidId().getMostSignificantBits(), userUpdateMsg.getEntityGroupIdMSB());
+        Assert.assertEquals(customUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user
         edgeImitator.expectMessageAmount(1);
@@ -210,14 +210,14 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
 
         // remove user from custom user group
         edgeImitator.expectMessageAmount(1);
-        deleteEntitiesFromEntityGroup(Collections.singletonList(savedCustomerUser.getId()), customerEdgeUserGroup.getId());
+        deleteEntitiesFromEntityGroup(Collections.singletonList(savedCustomerUser.getId()), customUserGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         latestMessageOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
         Assert.assertTrue(latestMessageOpt.isPresent());
         userUpdateMsg = latestMessageOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, userUpdateMsg.getMsgType());
-        Assert.assertEquals(customerEdgeUserGroup.getUuidId().getMostSignificantBits(), userUpdateMsg.getEntityGroupIdMSB());
-        Assert.assertEquals(customerEdgeUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
+        Assert.assertEquals(customUserGroup.getUuidId().getMostSignificantBits(), userUpdateMsg.getEntityGroupIdMSB());
+        Assert.assertEquals(customUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user credentials
         edgeImitator.expectMessageAmount(1);
@@ -233,6 +233,8 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedCustomerUser.getUuidId().getMostSignificantBits(), userCredentialsUpdateMsg.getUserIdMSB());
         Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
         Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
+
+        unAssignEntityGroupFromEdge(customUserGroup);
 
         // delete user
         edgeImitator.expectMessageAmount(1);
