@@ -61,8 +61,49 @@ export interface MqttTopicFilter {
   qos: MqttQos;
 }
 
+export enum ThingsStartHostType {
+  Region = 0,
+  Custom = 1
+}
+
+export const ThingsStartHostTypeTranslation = new Map<ThingsStartHostType, string> ([
+  [ThingsStartHostType.Region, 'Region'],
+  [ThingsStartHostType.Custom, 'Custom'],
+]);
+
 export const mqttClientIdPatternValidator = Validators.pattern('[a-zA-Z0-9]*');
 export const mqttClientIdMaxLengthValidator = Validators.maxLength(23);
+
+export enum ttnVersion {
+  v2,
+  v3
+}
+
+export interface TtnVersionParameter {
+  downlinkPattern: string;
+  uplinkTopic: MqttTopicFilter[];
+}
+
+export const ttnVersionMap = new Map<ttnVersion, TtnVersionParameter>([
+  [
+    ttnVersion.v2, {
+      downlinkPattern: '${applicationId}/devices/${devId}/down',
+      uplinkTopic: [{
+        filter: '+/devices/+/up',
+        qos: MqttQos.AT_MOST_ONE
+      }]
+    }
+  ],
+  [
+    ttnVersion.v3, {
+    downlinkPattern: 'v3/${applicationId}/devices/${devId}/down/push',
+    uplinkTopic: [{
+      filter: 'v3/+/devices/+/up',
+      qos: MqttQos.AT_MOST_ONE
+    }]
+  }
+  ]
+]);
 
 export function integrationBaseUrlChanged(type: IntegrationType, baseUrl: string, key = ''): string {
   return `${baseUrl}/api/v1/integrations/${type.toLowerCase()}/${key}`;

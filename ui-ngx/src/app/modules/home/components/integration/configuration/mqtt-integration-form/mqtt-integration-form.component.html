@@ -54,10 +54,11 @@
         {{ 'integration.enable-ssl' | translate }}
       </mat-slide-toggle>
     </tb-integration-credentials>
-    <ng-container [ngTemplateOutlet]="topicFilters"></ng-container>
-    <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
-    </ng-container>
   </fieldset>
+  <tb-mqtt-topic-filters formControlName="topicFilters">
+  </tb-mqtt-topic-filters>
+  <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
+  </ng-container>
   <mat-expansion-panel class="configuration-panel" formGroupName="clientConfiguration">
     <mat-expansion-panel-header>
       <mat-panel-description fxLayoutAlign="end" translate>
@@ -116,9 +117,5 @@
         integration.downlink-topic-pattern-required
       </mat-error>
     </mat-form-field>
-  </ng-template>
-  <ng-template #topicFilters>
-    <tb-mqtt-topic-filters formControlName="topicFilters">
-    </tb-mqtt-topic-filters>
   </ng-template>
 </section>

@@ -65,9 +65,23 @@ import {
 export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator {
 
   integrationCredentialForm: FormGroup;
+  hideSelectType = false;
 
+  private allowCredentialTypesValue: IntegrationCredentialType[] = [];
   @Input()
-  allowCredentialTypes: IntegrationCredentialType[] = [];
+  set allowCredentialTypes(types: IntegrationCredentialType[]) {
+    this.allowCredentialTypesValue = types;
+    this.hideSelectType = types.length === 1;
+  }
+
+  get allowCredentialTypes(): IntegrationCredentialType[] {
+    return this.allowCredentialTypesValue;
+  }
+
+  @Input() userNameLabel = 'integration.username';
+  @Input() userNameRequired = 'integration.username-required';
+  @Input() passwordLabel = 'integration.password';
+  @Input() passwordRequired = 'integration.password-required';
 
   IntegrationCredentialTypeTranslation = IntegrationCredentialTypeTranslation;
   IntegrationCredentialType = IntegrationCredentialType;

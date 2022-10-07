@@ -45,6 +45,18 @@
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-http-integration-form>
     </section>
+    <section *ngSwitchCase="integrationTypes.TTN">
+      <tb-ttn-integration-form formControlName="configuration"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-ttn-integration-form>
+    </section>
+    <section *ngSwitchCase="integrationTypes.TTI">
+      <tb-tti-integration-form formControlName="configuration"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-tti-integration-form>
+    </section>
     <section *ngSwitchCase="integrationTypes.SIGFOX">
       <tb-sigfox-integration-form formControlName="configuration"
                                 [routingKey]="routingKey"

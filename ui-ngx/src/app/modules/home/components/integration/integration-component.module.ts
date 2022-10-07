@@ -52,6 +52,12 @@ import {
 import {
   SigfoxIntegrationFormComponent
 } from '@home/components/integration/configuration/http-sigfox-integration-form/sigfox-integration-form.component';
+import {
+  TtnIntegrationFormComponent
+} from '@home/components/integration/configuration/ttn-tti-integration-form/ttn-integration-form.component';
+import {
+  TtiIntegrationFormComponent
+} from '@home/components/integration/configuration/ttn-tti-integration-form/tti-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +68,9 @@ import {
     CertUploadComponent,
     MqttIntegrationFormComponent,
     HttpIntegrationFormComponent,
-    SigfoxIntegrationFormComponent
+    SigfoxIntegrationFormComponent,
+    TtnIntegrationFormComponent,
+    TtiIntegrationFormComponent
   ],
   imports: [
     CommonModule,
