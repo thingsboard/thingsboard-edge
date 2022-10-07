@@ -57,10 +57,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetProfileEdgeProcessor;
-<<<<<<< HEAD
 import org.thingsboard.server.service.edge.rpc.processor.ConverterEdgeProcessor;
-=======
->>>>>>> ce-upstream/feature/edge-multi-customers
 import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
