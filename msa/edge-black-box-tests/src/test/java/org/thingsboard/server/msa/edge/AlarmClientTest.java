@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAlarms() throws Exception {
+    public void testAlarms() {
         Device device = saveAndAssignDeviceToEdge();
 
         Alarm alarm = new Alarm();
@@ -49,14 +49,14 @@ public class AlarmClientTest extends AbstractContainerTest {
         Alarm savedAlarm = cloudRestClient.saveAlarm(alarm);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
         cloudRestClient.ackAlarm(savedAlarm.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
                     return alarmData.getAckTs() > 0;
                 });
@@ -64,8 +64,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         cloudRestClient.clearAlarm(savedAlarm.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> {
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
                     AlarmInfo alarmData = getLatestAlarmByEntityIdFromEdge(device.getId()).get();
                     return alarmData.getClearTs() > 0;
                 });
@@ -73,8 +73,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         cloudRestClient.deleteAlarm(savedAlarm.getId());
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromEdge(EntityId entityId) {
@@ -92,7 +92,7 @@ public class AlarmClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void sendAlarmToCloud() throws Exception {
+    public void sendAlarmToCloud() {
         Device device = saveAndAssignDeviceToEdge();
 
         Alarm alarm = new Alarm();

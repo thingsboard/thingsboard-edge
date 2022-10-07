@@ -624,4 +624,14 @@ public abstract class AbstractContainerTest {
                     return activeAttributeKv.getValueAsString().equals("true");
                 });
     }
+
+    protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
+        List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
+        if (attributesByScope.isEmpty()) {
+            return false;
+        }
+        AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
+        return attributeKvEntry.getValueAsString().equals(expectedValue);
+    }
+
 }

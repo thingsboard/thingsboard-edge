@@ -15,10 +15,13 @@
  */
 package org.thingsboard.server.msa.edge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.msa.AbstractContainerTest;
@@ -29,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class AssetClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssets() {
+    public void testAssets() throws Exception {
         // create asset and assign to edge
         Asset savedAsset = saveAndAssignAssetToEdge();
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset.getId());
@@ -43,6 +46,14 @@ public class AssetClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated Asset Name".equals(edgeRestClient.getAssetById(savedAsset.getId()).get().getName()));
+
+        // save asset attribute
+        JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
+        cloudRestClient.saveEntityAttributesV1(savedAsset.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnEdge(savedAsset.getId(),
+                        DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
 
         // assign asset to customer
         Customer customer = new Customer();
