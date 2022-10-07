@@ -30,8 +30,17 @@
  */
 package org.thingsboard.server.service.solutions.data.values;
 
-public enum ValueStrategyDefinitionType {
+import lombok.Data;
 
-    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE, SCHEDULE, INCREMENT, DECREMENT;
+@Data
+public class ValueStrategySchedule {
+
+    private int startHour;
+    private int startMinute;
+
+    private int endHour;
+    private int endMinute;
+
+    private ValueStrategyDefinition definition;
 
 }

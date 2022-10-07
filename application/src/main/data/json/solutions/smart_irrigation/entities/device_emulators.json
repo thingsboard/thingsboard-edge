@@ -2,28 +2,42 @@
   {
     "name": "Soil Moisture",
     "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 3600,
+    "publishFrequencyInSeconds": 300,
     "publishPauseInMillis": 1,
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
       {
         "key": "moisture",
         "valueStrategy": {
-          "type": "natural",
-          "precision": 1,
-          "minStartValue": 30,
-          "maxStartValue": 70,
-          "minLowValue": 10,
-          "maxLowValue": 10,
-          "minHighValue": 75,
-          "maxHighValue": 75,
-          "minIncrement": 3.0,
-          "maxIncrement": 5.0,
-          "minDecrement": 1.0,
-          "maxDecrement": 5.0,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 0.0
+          "type": "schedule",
+          "schedule": [
+            {
+              "startHour": 6,
+              "startMinute": 0,
+              "endHour": 7,
+              "endMinute": 0,
+              "definition": {
+                "type": "inc",
+                "precision": 2,
+                "minStartValue": 20,
+                "maxStartValue": 50,
+                "minEndValue": 70,
+                "maxEndValue": 75,
+                "minIncrement": 2,
+                "maxIncrement": 5
+              }
+            }
+          ],
+          "defaultDefinition": {
+            "type": "dec",
+            "precision": 2,
+            "minStartValue": 70,
+            "maxStartValue": 75,
+            "minEndValue": 20,
+            "maxEndValue": 30,
+            "minDecrement": 0.1,
+            "maxDecrement": 0.4
+          }
         }
       }
     ]

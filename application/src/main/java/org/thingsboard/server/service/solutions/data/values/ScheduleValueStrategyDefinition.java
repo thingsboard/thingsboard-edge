@@ -30,8 +30,21 @@
  */
 package org.thingsboard.server.service.solutions.data.values;
 
-public enum ValueStrategyDefinitionType {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 
-    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE, SCHEDULE, INCREMENT, DECREMENT;
+import java.util.List;
+import java.util.Map;
 
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ScheduleValueStrategyDefinition implements ValueStrategyDefinition {
+
+    private List<ValueStrategySchedule> schedule;
+    private ValueStrategyDefinition defaultDefinition;
+
+    @Override
+    public ValueStrategyDefinitionType getStrategyType() {
+        return ValueStrategyDefinitionType.SCHEDULE;
+    }
 }
