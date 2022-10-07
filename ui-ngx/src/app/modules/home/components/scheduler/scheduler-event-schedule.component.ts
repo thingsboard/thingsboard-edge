@@ -61,17 +61,19 @@ interface SchedulerEventScheduleConfig {
   repeatType?: SchedulerRepeatType;
   weeklyRepeat?: boolean[];
   endsOnDate?: Date;
+  days?: number;
+  weeks?: number;
   timerRepeat?: {
     repeatInterval?: number;
     timeUnit?: SchedulerTimeUnit;
   };
 }
 
-export class endsOnDateErrorStateMatcher implements ErrorStateMatcher {
-  isErrorState(control: FormControl | null,): boolean {
+export class EndsOnDateErrorStateMatcher implements ErrorStateMatcher {
+  isErrorState(control: FormControl | null): boolean {
     const invalidCtrl = !!(control?.invalid);
-    const invalidParent = !!(control?.parent && control?.parent.invalid);
-
+    const invalidParent = !!(control?.parent &&
+      control?.parent.invalid && control?.parent.hasError('endsOnDateValidator'));
     return (invalidCtrl || invalidParent);
   }
 }
@@ -90,7 +92,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   modelValue: SchedulerEventScheduleConfig | null;
 
-  endsOnDateMatcher = new endsOnDateErrorStateMatcher();
+  endsOnDateMatcher = new EndsOnDateErrorStateMatcher();
 
   scheduleConfigFormGroup: FormGroup;
 
@@ -109,8 +111,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private lastAppliedTimezone: string;
 
-  private propagateChange = (v: any) => {
-  };
+  private propagateChange = (v: any) => {};
 
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder) {
@@ -122,6 +123,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
       repeatType: [null, [Validators.required]],
       weeklyRepeat: this.fb.array(this.createDefaultWeeklyRepeat()),
       endsOnDate: [null, [Validators.required]],
+      days: [null, [Validators.min(1), Validators.required]],
+      weeks: [null, [Validators.min(1), Validators.required]],
       timerRepeat: this.fb.group(
         {
           repeatInterval: [null, [Validators.required, Validators.min(0)]],
@@ -129,9 +132,6 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
         }
       )
     }, {validator: this.endsOnDateValidator('startDate', 'endsOnDate')});
-
-
-
 
     this.scheduleConfigFormGroup.get('timezone').valueChanges.subscribe((timezone: string) => {
       if (timezone !== this.lastAppliedTimezone && timezone) {
@@ -181,15 +181,15 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     });
   }
 
-  private endsOnDateValidator(startDate:string, endsOnDate:string) {
+  private endsOnDateValidator(startDate: string, endsOnDate: string) {
     return (group: FormGroup): {[key: string]: any} => {
-      if(group.controls[endsOnDate].status === 'VALID') {
+      if (group.controls[endsOnDate].status === 'VALID') {
         if (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime()) {
-          return {'endsOnDateValidator': true};
+          return { endsOnDateValidator: true };
         }
       }
       return null;
-    }
+    };
   }
 
   weeklyRepeatControl(index: number): FormControl {
@@ -228,6 +228,8 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
         this.scheduleConfigFormGroup.get('weeklyRepeat').disable({emitEvent: false});
         this.scheduleConfigFormGroup.get('endsOnDate').disable({emitEvent: false});
         this.scheduleConfigFormGroup.get('timerRepeat').disable({emitEvent: false});
+        this.scheduleConfigFormGroup.get('days').disable({emitEvent: false});
+        this.scheduleConfigFormGroup.get('weeks').disable({emitEvent: false});
       } else {
         const repeatType: SchedulerRepeatType = this.scheduleConfigFormGroup.get('repeatType').value;
         if (repeatType !== SchedulerRepeatType.WEEKLY) {
@@ -235,6 +237,12 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
         }
         if (repeatType !== SchedulerRepeatType.TIMER) {
           this.scheduleConfigFormGroup.get('timerRepeat').disable({emitEvent: false});
+        }
+        if (repeatType !== SchedulerRepeatType.EVERY_N_DAYS) {
+          this.scheduleConfigFormGroup.get('days').disable({emitEvent: false});
+        }
+        if (repeatType !== SchedulerRepeatType.EVERY_N_WEEKS) {
+          this.scheduleConfigFormGroup.get('weeks').disable({emitEvent: false});
         }
       }
     }
@@ -279,6 +287,10 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
             repeatInterval: value.repeat.repeatInterval,
             timeUnit: value.repeat.timeUnit
           };
+        } else if (value.repeat.type === SchedulerRepeatType.EVERY_N_DAYS) {
+          config.days = value.repeat.days;
+        } else if (value.repeat.type === SchedulerRepeatType.EVERY_N_WEEKS) {
+          config.weeks = value.repeat.weeks;
         }
         config.endsOnDate = this.dateFromUtcTime(value.repeat.endsOn, timezone);
       } else {
@@ -310,6 +322,10 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
         } else if (value.repeatType === SchedulerRepeatType.TIMER) {
           schedule.repeat.repeatInterval = value.timerRepeat.repeatInterval;
           schedule.repeat.timeUnit = value.timerRepeat.timeUnit;
+        } else if (value.repeatType === SchedulerRepeatType.EVERY_N_DAYS) {
+          schedule.repeat.days = value.days;
+        } else if (value.repeatType === SchedulerRepeatType.EVERY_N_WEEKS) {
+          schedule.repeat.weeks = value.weeks;
         }
       }
       return schedule;

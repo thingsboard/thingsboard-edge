@@ -102,26 +102,27 @@ js:
     # Maximum allowed JavaScript execution errors before JavaScript will be blacklisted
     max_errors: "${LOCAL_JS_SANDBOX_MAX_ERRORS:3}"
 
-transport:
-  coap:
-    bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
-    bind_port: "${COAP_BIND_PORT:5683}"
-    timeout: "${COAP_TIMEOUT:10000}"
-    dtls:
-      # Enable/disable DTLS 1.2 support
-      enabled: "${COAP_DTLS_ENABLED:false}"
-      # CoAP DTLS bind address
-      bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
-      # CoAP DTLS bind port
-      bind_port: "${COAP_DTLS_BIND_PORT:5684}"
-      # Path to the key store that holds the certificate
-      key_store: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
-      # Password used to access the key store
-      key_store_password: "${COAP_DTLS_KEY_STORE_PASSWORD:server_ks_password}"
-      # Password used to access the key
-      key_password: "${COAP_DTLS_KEY_PASSWORD:server_key_password}"
-      # Key alias
-      key_alias: "${COAP_DTLS_KEY_ALIAS:serveralias}"
+coap:
+  bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
+  bind_port: "${COAP_BIND_PORT:5683}"
+  timeout: "${COAP_TIMEOUT:10000}"
+  dtls:
+    # Enable/disable DTLS 1.2 support
+    enabled: "${COAP_DTLS_ENABLED:false}"
+    # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
+    retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS:9000}"
+    # CoAP DTLS bind address
+    bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
+    # CoAP DTLS bind port
+    bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # Path to the key store that holds the certificate
+    key_store: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
+    # Password used to access the key store
+    key_store_password: "${COAP_DTLS_KEY_STORE_PASSWORD:server_ks_password}"
+    # Password used to access the key
+    key_password: "${COAP_DTLS_KEY_PASSWORD:server_key_password}"
+    # Key alias
+    key_alias: "${COAP_DTLS_KEY_ALIAS:serveralias}"
 
 service:
   type: "${TB_SERVICE_TYPE:tb-integration}"

@@ -114,7 +114,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
         this.modelValue.originatorId = {
           entityType: EntityType.DEVICE,
           id: null
-        }
+        };
         doUpdate = true;
       }
       if (!this.modelValue.metadata || !this.modelValue.metadata.oneway) {
@@ -123,7 +123,7 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
         this.modelValue.metadata = metadata;
         doUpdate = true;
       }
-      this.sendRpcRequestFormGroup.reset(this.modelValue,{emitEvent: false});
+      this.sendRpcRequestFormGroup.reset(this.modelValue, { emitEvent: false });
     }
     if (doUpdate) {
       setTimeout(() => {

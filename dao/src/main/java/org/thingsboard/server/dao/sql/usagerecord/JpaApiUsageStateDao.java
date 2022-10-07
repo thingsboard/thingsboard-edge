@@ -40,6 +40,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.ApiUsageStateEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.UUID;
 
@@ -47,6 +48,7 @@ import java.util.UUID;
  * @author Andrii Shvaika
  */
 @Component
+@SqlDao
 public class JpaApiUsageStateDao extends JpaAbstractDao<ApiUsageStateEntity, ApiUsageState> implements ApiUsageStateDao {
 
     private final ApiUsageStateRepository apiUsageStateRepository;
