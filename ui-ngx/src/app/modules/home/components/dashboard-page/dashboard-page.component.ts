@@ -32,13 +32,18 @@
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, ElementRef, EventEmitter, HostBinding,
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
   Inject,
   Injector,
   Input,
   NgZone,
   OnDestroy,
-  OnInit, Optional, Renderer2,
+  OnInit,
+  Optional,
+  Renderer2,
   StaticProvider,
   ViewChild,
   ViewContainerRef,
@@ -63,7 +68,7 @@ import {
 } from '@app/shared/models/dashboard.models';
 import { WINDOW } from '@core/services/window.service';
 import { WindowMessage } from '@shared/models/window-message.model';
-import { deepClone, guid, hashCode, isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@app/core/utils';
+import { deepClone, guid, isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@app/core/utils';
 import {
   DashboardContext,
   DashboardPageLayout,
@@ -156,7 +161,8 @@ import { MobileService } from '@core/services/mobile.service';
 
 import {
   DashboardImageDialogComponent,
-  DashboardImageDialogData, DashboardImageDialogResult
+  DashboardImageDialogData,
+  DashboardImageDialogResult
 } from '@home/components/dashboard-page/dashboard-image-dialog.component';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import cssjs from '@core/css/css';
@@ -166,6 +172,7 @@ import { MatButton } from '@angular/material/button';
 import { VersionControlComponent } from '@home/components/vc/version-control.component';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { tap } from 'rxjs/operators';
+import { TbPopoverComponent } from '@shared/components/popover.component';
 
 // @dynamic
 @Component({
@@ -213,6 +220,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   @Input()
   parentDashboard?: IDashboardComponent = null;
+
+  @Input()
+  popoverComponent?: TbPopoverComponent = null;
 
   @Input()
   parentAliasController?: IAliasController = null;
