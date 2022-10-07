@@ -121,6 +121,22 @@
                   "color": "#ffc107",
                   "settings": {},
                   "_hash": 0.7803202333041441
+                },
+                {
+                  "name": "cropType",
+                  "type": "attribute",
+                  "label": "cropType",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.13560061274453417
+                },
+                {
+                  "name": "avgMoisture",
+                  "type": "timeseries",
+                  "label": "avgMoisture",
+                  "color": "#ffc107",
+                  "settings": {},
+                  "_hash": 0.011152801250584377
                 }
               ]
             }
@@ -139,8 +155,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -149,14 +165,25 @@
               "limit": 25000
             }
           },
-          "showTitle": true,
+          "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0,0,0,0.87)",
-          "padding": "8px",
+          "padding": "0px",
           "settings": {
             "provider": "openstreet-map",
+            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
+            "gmDefaultMapType": "roadmap",
             "mapProvider": "Esri.WorldImagery",
             "useCustomProvider": false,
+            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "mapProviderHere": "HERE.normalDay",
+            "credentials": {
+              "app_id": "AhM6TzD9ThyK78CT3ptx",
+              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
+            },
+            "mapImageUrl": "data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
+            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
+            "tmDefaultMapType": "roadmap",
             "latKeyName": "1",
             "lngKeyName": "1",
             "xPosKeyName": "xPos",
@@ -192,13 +219,9 @@
             "polygonKeyName": "perimeter",
             "editablePolygon": false,
             "showPolygonLabel": true,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
+            "usePolygonLabelFunction": true,
+            "polygonLabelFunction": "var html = '<div>';\nhtml += '<div style=\"color: #FFF; font-weight: 600; text-align: center; padding-bottom: 8px;\">${entityName} (${cropType})</div>';\n\nvar avgMoisture = data['avgMoisture'];\nvar avgMoistureText = avgMoisture !== '' ?  avgMoisture.toFixed(1) + '%' : 'n/a';\nhtml += '<div style=\"color: #FFF; text-align: center;\"><span style=\"background: #fff; color: #000; border-radius: 8px; padding: 4px;\">'+avgMoistureText+'</span></div>';\n\nhtml += '<div>';\n\nreturn html;",
             "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
             "polygonColor": "#3388ff",
             "polygonOpacity": 0.2,
             "usePolygonColorFunction": false,
@@ -264,7 +287,7 @@
           },
           "showTitleIcon": false,
           "titleTooltip": "",
-          "enableDataExport": true,
+          "enableDataExport": false,
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": ""
@@ -298,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -311,7 +334,7 @@
           "showTitle": true,
           "backgroundColor": "rgb(255, 255, 255)",
           "color": "rgba(0,0,0,0.87)",
-          "padding": "4px",
+          "padding": "0px",
           "settings": {
             "entitiesTitle": "Irrigation Schedule",
             "enableSearch": true,
@@ -591,8 +614,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -604,7 +627,7 @@
           "showTitle": true,
           "backgroundColor": "rgb(255, 255, 255)",
           "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "4px",
+          "padding": "0px",
           "settings": {
             "entitiesTitle": "Fields",
             "enableSearch": true,
@@ -826,8 +849,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -839,7 +862,7 @@
           "showTitle": true,
           "backgroundColor": "rgb(255, 255, 255)",
           "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "4px",
+          "padding": "0px",
           "settings": {
             "entitiesTitle": "Sensors",
             "enableSearch": true,
@@ -944,7 +967,7 @@
           "titleTooltip": "",
           "enableDataExport": false,
           "widgetStyle": {},
-          "widgetCss": ".mat-header-row {\n    display: none;\n}\n\nmat-row, .mat-cell {\n    border-bottom: none;\n}",
+          "widgetCss": ".mat-header-row {\n    display: none;\n}\n\nmat-row, .mat-cell {\n    border-bottom: none;\n    cursor: pointer;\n}\n",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
           "actions": {
@@ -992,6 +1015,28 @@
                 "openInSeparateDialog": false,
                 "openInPopover": false,
                 "id": "6f239e8e-0b5d-fa30-a836-c22b83afaffa"
+              }
+            ],
+            "rowClick": [
+              {
+                "name": "Moisture sensor details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "moisture_sensor_details",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "popoverPreferredPlacement": "bottom",
+                "popoverHideOnClickOutside": true,
+                "popoverHideDashboardToolbar": true,
+                "popoverWidth": "300px",
+                "popoverHeight": "200px",
+                "popoverStyle": null,
+                "openInSeparateDialog": false,
+                "openInPopover": true,
+                "id": "548ad8b1-2a95-54f5-ffde-9d555e5a5832"
               }
             ]
           }
@@ -1051,8 +1096,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1064,11 +1109,22 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0,0,0,0.87)",
-          "padding": "8px",
+          "padding": "0px",
           "settings": {
             "provider": "openstreet-map",
+            "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
+            "gmDefaultMapType": "roadmap",
             "mapProvider": "Esri.WorldImagery",
             "useCustomProvider": false,
+            "customProviderTileUrl": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "mapProviderHere": "HERE.normalDay",
+            "credentials": {
+              "app_id": "AhM6TzD9ThyK78CT3ptx",
+              "app_code": "p6NPiITB3Vv0GMUFnkLOOg"
+            },
+            "mapImageUrl": "data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
+            "tmApiKey": "84d6d83e0e51e481e50454ccbe8986b",
+            "tmDefaultMapType": "roadmap",
             "latKeyName": "1",
             "lngKeyName": "1",
             "xPosKeyName": "xPos",
@@ -1083,11 +1139,8 @@
             "mapPageSize": 16384,
             "markerOffsetX": 0.5,
             "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
             "draggableMarker": false,
-            "showLabel": true,
-            "useLabelFunction": false,
-            "label": "${entityName}",
+            "showLabel": false,
             "showTooltip": true,
             "showTooltipAction": "click",
             "autocloseTooltip": true,
@@ -1096,22 +1149,14 @@
             "tooltipOffsetX": 0,
             "tooltipOffsetY": -1,
             "color": "#fe7569",
-            "useColorFunction": true,
-            "colorFunction": "var type = dsData[dsIndex]['Type'];\nif (type == 'colorpin') {\n\tvar temperature = dsData[dsIndex]['temperature'];\n\tif (typeof temperature !== undefined) {\n\t    var percent = (temperature + 60)/120 * 100;\n\t    return tinycolor.mix('blue', 'red', percent).toHexString();\n\t}\n\treturn 'blue';\n}\n",
+            "useColorFunction": false,
             "useMarkerImageFunction": false,
             "markerImageSize": 34,
-            "markerImages": [],
             "showPolygon": true,
             "polygonKeyName": "perimeter",
             "editablePolygon": true,
-            "showPolygonLabel": true,
-            "usePolygonLabelFunction": false,
-            "polygonLabel": "${entityName}",
+            "showPolygonLabel": false,
             "showPolygonTooltip": false,
-            "showPolygonTooltipAction": "click",
-            "autoClosePolygonTooltip": true,
-            "usePolygonTooltipFunction": false,
-            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
             "polygonColor": "#3388ff",
             "polygonOpacity": 0.2,
             "usePolygonColorFunction": false,
@@ -1209,6 +1254,20 @@
                   "color": "#ffc107",
                   "settings": {},
                   "_hash": 0.7803202333041441
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.683554616539082,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 }
               ]
             },
@@ -1233,6 +1292,28 @@
                   "color": "#ffc107",
                   "settings": {},
                   "_hash": 0.3622534354244682
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.6996122480848663,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "moisture",
+                  "type": "timeseries",
+                  "label": "moisture",
+                  "color": "#8bc34a",
+                  "settings": {},
+                  "_hash": 0.068068867797354
                 }
               ]
             }
@@ -1251,8 +1332,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1264,7 +1345,7 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0,0,0,0.87)",
-          "padding": "8px",
+          "padding": "0px",
           "settings": {
             "provider": "openstreet-map",
             "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
@@ -1284,7 +1365,7 @@
             "lngKeyName": "longitude",
             "xPosKeyName": "xPos",
             "yPosKeyName": "yPos",
-            "defaultZoomLevel": 14,
+            "defaultZoomLevel": 15,
             "defaultCenterPosition": "49.348472, 32.108611",
             "disableScrollZooming": false,
             "disableDoubleClickZooming": false,
@@ -1294,28 +1375,18 @@
             "mapPageSize": 16384,
             "markerOffsetX": 0.5,
             "markerOffsetY": 1,
-            "posFunction": "return {x: origXPos, y: origYPos};",
             "draggableMarker": true,
-            "showLabel": true,
-            "useLabelFunction": false,
-            "label": "${entityName}",
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": false,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
+            "showLabel": false,
+            "showTooltip": false,
             "color": "#fe7569",
-            "useColorFunction": true,
-            "colorFunction": "var type = dsData[dsIndex]['Type'];\nif (type == 'colorpin') {\n\tvar temperature = dsData[dsIndex]['temperature'];\n\tif (typeof temperature !== undefined) {\n\t    var percent = (temperature + 60)/120 * 100;\n\t    return tinycolor.mix('blue', 'red', percent).toHexString();\n\t}\n\treturn 'blue';\n}\n",
-            "useMarkerImageFunction": false,
-            "markerImageSize": 34,
+            "useColorFunction": false,
+            "useMarkerImageFunction": true,
+            "markerImageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var color = '#FFFFFF';\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"black\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
             "markerImages": [],
             "showPolygon": true,
             "polygonKeyName": "perimeter",
             "editablePolygon": false,
-            "showPolygonLabel": true,
+            "showPolygonLabel": false,
             "usePolygonLabelFunction": false,
             "polygonLabel": "${entityName}",
             "showPolygonTooltip": false,
@@ -1420,6 +1491,20 @@
                   "color": "#ffc107",
                   "settings": {},
                   "_hash": 0.7803202333041441
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#9c27b0",
+                  "settings": {},
+                  "_hash": 0.03959817681570765,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
                 }
               ]
             },
@@ -1444,6 +1529,28 @@
                   "color": "#ffc107",
                   "settings": {},
                   "_hash": 0.3622534354244682
+                },
+                {
+                  "name": "type",
+                  "type": "entityField",
+                  "label": "type",
+                  "color": "#607d8b",
+                  "settings": {},
+                  "_hash": 0.7731021658879498,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "moisture",
+                  "type": "timeseries",
+                  "label": "moisture",
+                  "color": "#8bc34a",
+                  "settings": {},
+                  "_hash": 0.1472154755148487
                 }
               ]
             }
@@ -1462,8 +1569,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1664974667278,
-                "endTimeMs": 1665061067278
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1475,7 +1582,7 @@
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0,0,0,0.87)",
-          "padding": "8px",
+          "padding": "0px",
           "settings": {
             "provider": "openstreet-map",
             "gmApiKey": "AIzaSyDoEx2kaGz3PxwbI9T7ccTSg5xjdw8Nw8Q",
@@ -1493,20 +1600,20 @@
             "tmDefaultMapType": "roadmap",
             "latKeyName": "latitude",
             "lngKeyName": "longitude",
-            "defaultZoomLevel": 14,
+            "xPosKeyName": "xPos",
+            "yPosKeyName": "yPos",
+            "defaultZoomLevel": 15,
             "defaultCenterPosition": "49.348472, 32.108611",
             "disableScrollZooming": false,
             "disableDoubleClickZooming": false,
             "disableZoomControl": false,
-            "fitMapBounds": true,
+            "fitMapBounds": false,
             "useDefaultCenterPosition": false,
             "mapPageSize": 16384,
             "markerOffsetX": 0.5,
             "markerOffsetY": 1,
-            "draggableMarker": true,
-            "showLabel": true,
-            "useLabelFunction": false,
-            "label": "${entityName}",
+            "draggableMarker": false,
+            "showLabel": false,
             "showTooltip": true,
             "showTooltipAction": "click",
             "autocloseTooltip": true,
@@ -1515,17 +1622,21 @@
             "tooltipOffsetX": 0,
             "tooltipOffsetY": -1,
             "color": "#fe7569",
-            "useColorFunction": true,
-            "colorFunction": "var type = dsData[dsIndex]['Type'];\nif (type == 'colorpin') {\n\tvar temperature = dsData[dsIndex]['temperature'];\n\tif (typeof temperature !== undefined) {\n\t    var percent = (temperature + 60)/120 * 100;\n\t    return tinycolor.mix('blue', 'red', percent).toHexString();\n\t}\n\treturn 'blue';\n}\n",
-            "useMarkerImageFunction": false,
-            "markerImageSize": 34,
+            "useColorFunction": false,
+            "useMarkerImageFunction": true,
+            "markerImageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var color = '#FFFFFF';\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"black\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
+            "markerImages": [],
             "showPolygon": true,
             "polygonKeyName": "perimeter",
             "editablePolygon": false,
-            "showPolygonLabel": true,
+            "showPolygonLabel": false,
             "usePolygonLabelFunction": false,
             "polygonLabel": "${entityName}",
             "showPolygonTooltip": false,
+            "showPolygonTooltipAction": "click",
+            "autoClosePolygonTooltip": true,
+            "usePolygonTooltipFunction": false,
+            "polygonTooltipPattern": "<b>${entityName}</b><br/><br/><b>TimeStamp:</b> ${ts:7}",
             "polygonColor": "#3388ff",
             "polygonOpacity": 0.2,
             "usePolygonColorFunction": false,
@@ -1551,12 +1662,6 @@
             "circleStrokeOpacity": 1,
             "circleStrokeWeight": 3,
             "useCircleStrokeColorFunction": false,
-            "snappable": false,
-            "initDragMode": true,
-            "hideAllControlButton": false,
-            "hideDrawControlButton": false,
-            "hideEditControlButton": false,
-            "hideRemoveControlButton": false,
             "useClusterMarkers": false,
             "zoomOnClick": true,
             "maxClusterRadius": 80,
@@ -1568,7 +1673,7 @@
           },
           "title": "Fields",
           "dropShadow": false,
-          "enableFullscreen": false,
+          "enableFullscreen": true,
           "titleStyle": {
             "fontSize": "16px",
             "fontWeight": 400
@@ -1735,6 +1840,329 @@
         "row": 0,
         "col": 0,
         "id": "338c74b3-0f57-5ab6-38e9-8df68d47ffae"
+      },
+      "1f66e5cb-041d-1a45-1abf-6f6ae3d91872": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
+              "filterId": null,
+              "dataKeys": []
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%;\" fxLayout=\"column\">\n    <tb-dashboard-state \n        style=\"height: 100px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '400px' : '200px', 200)\">\n        <mat-expansion-panel-header fxLayout=\"row wrap\">\n            <mat-panel-description fxLayoutAlign=\"end center\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_expanded\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff !important;\n}\n\n.tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings {\n    box-shadow: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-content {\n    overflow: visible;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header:hover {\n    background: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator {\n    padding: 2px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header-description {\n    align-items: center;\n}\n\n.mat-expansion-panel.tb-settings > .mat-expansion-panel-content > .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.mat-expansion-panel .mat-expansion-panel-content { \n    font: inherit;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": ".tb-widget-container > .tb-widget {\n    border-radius: 0px;\n    box-shadow: none;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "1f66e5cb-041d-1a45-1abf-6f6ae3d91872"
+      },
+      "b5c71687-c799-9b94-00f1-958cf76f006c": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "moisture",
+                  "type": "timeseries",
+                  "label": "moisture",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.3069038474738244
+                },
+                {
+                  "name": "active",
+                  "type": "attribute",
+                  "label": "active",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.21255896609213454,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": true,
+                  "postFuncBody": "return value === 'true' ? 'Active' : 'Offline';"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1665071779204,
+                "endTimeMs": 1665158179204
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div class=\"sensor-details\">\n    <table>\n        <tr>\n            <td>Last value</td>\n            <td>${moisture:1}%</td>\n        </tr>\n        <tr>\n            <td>Status</td>\n            <td>${active}</td>\n        </tr>\n        <tr>\n            <td>Last update</td>\n            <td>{{ ${moisture|ts} | date:'yyyy-MM-dd HH:mm:ss' }}</td>\n        </tr>\n    </table>\n</div>\n"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": ".tb-widget-container > .tb-widget {\n    border-radius: 0px;\n    box-shadow: none;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "b5c71687-c799-9b94-00f1-958cf76f006c"
+      },
+      "4e910f4e-5cb9-a8a5-b6d8-9ec9b7003900": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "moisture",
+                  "type": "timeseries",
+                  "label": "Moisture",
+                  "color": "#6f74f2",
+                  "settings": {
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "excludeFromStacking": false,
+                    "showLines": true,
+                    "lineWidth": 2,
+                    "fillLines": false,
+                    "showPoints": false,
+                    "showSeparateAxis": false,
+                    "axisPosition": "right",
+                    "comparisonSettings": {
+                      "showValuesForComparison": true,
+                      "comparisonValuesLabel": "",
+                      "color": ""
+                    },
+                    "thresholds": []
+                  },
+                  "_hash": 0.5672074613028228,
+                  "aggregationType": null,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0",
+          "settings": {
+            "stack": false,
+            "fontSize": 10,
+            "fontColor": "#545454",
+            "showTooltip": true,
+            "tooltipIndividual": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "grid": {
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0,
+              "color": "#545454",
+              "backgroundColor": null,
+              "tickColor": "#DDDDDD"
+            },
+            "xaxis": {
+              "title": null,
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "min": null,
+              "max": null,
+              "title": null,
+              "showLabels": true,
+              "color": "#545454",
+              "tickSize": null,
+              "tickDecimals": 0,
+              "ticksFormatter": ""
+            },
+            "shadowSize": 0,
+            "smoothLines": true,
+            "comparisonEnabled": false,
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "title": null,
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "New Timeseries Line Chart",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": false,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "widgetCss": ".tb-widget-container > .tb-widget {\n    border-radius: 0px;\n    box-shadow: none;\n}\n\n.flot-y-axis {\n    white-space: nowrap;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "showLegend": false,
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": true,
+            "showTotal": false,
+            "showLatest": false
+          },
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "4e910f4e-5cb9-a8a5-b6d8-9ec9b7003900"
       }
     },
     "states": {
@@ -1764,7 +2192,7 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#eeeeee",
+              "backgroundColor": "#f9fafe",
               "columns": 24,
               "margin": 10,
               "backgroundSizeMode": "100%",
@@ -1808,7 +2236,7 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#eeeeee",
+              "backgroundColor": "#f9fafe",
               "columns": 24,
               "margin": 10,
               "backgroundSizeMode": "100%",
@@ -1834,7 +2262,7 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#eeeeee",
+              "backgroundColor": "#ffffff",
               "columns": 24,
               "margin": 0,
               "backgroundSizeMode": "100%",
@@ -1860,7 +2288,85 @@
               }
             },
             "gridSettings": {
-              "backgroundColor": "#eeeeee",
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "moisture_sensor_details": {
+        "name": "Moisture sensor details",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "1f66e5cb-041d-1a45-1abf-6f6ae3d91872": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "moisture_sensor_details_brief": {
+        "name": "Moisture sensor details brief",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "b5c71687-c799-9b94-00f1-958cf76f006c": {
+                "sizeX": 24,
+                "sizeY": 9,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "moisture_sensor_details_expanded": {
+        "name": "Moisture sensor details expanded",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "4e910f4e-5cb9-a8a5-b6d8-9ec9b7003900": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
               "columns": 24,
               "margin": 0,
               "backgroundSizeMode": "100%",
@@ -1992,7 +2498,7 @@
       "hideToolbar": false,
       "showFilters": false,
       "showUpdateDashboardImage": false,
-      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-dashboard-content {\n    background: linear-gradient(0deg, rgba(111, 116, 242, 0.04), rgba(111, 116, 242, 0.04)), #FFFFFF !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell button.mat-icon-button mat-icon {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator {\n    color: #868D9C !important;\n}\n\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #868D9C !important;\n}\n"
+      "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n    box-shadow: 0px 4px 10px rgba(23, 33, 90, 0.08);\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-sort-header-arrow {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-moz-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element::-webkit-input-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-input-element:-ms-input-placeholder {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell .mat-checkbox-frame,.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-header-cell .mat-checkbox-frame {\n    border-color : #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-table .mat-cell button.mat-icon-button mat-icon {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator {\n    color: #868D9C !important;\n}\n\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator button.mat-icon-button {\n    color: #868D9C !important;\n}\n\n.tb-dashboard-page .tb-widget-container > .tb-widget .tb-table-widget .mat-paginator .mat-select-value {\n    color: #868D9C !important;\n}\n"
     }
   },
   "externalId": null,
