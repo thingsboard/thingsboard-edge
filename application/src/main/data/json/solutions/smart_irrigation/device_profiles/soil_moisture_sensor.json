@@ -33,17 +33,21 @@
                 {
                   "key": {
                     "type": "TIME_SERIES",
-                    "key": "highMoisture"
+                    "key": "moisture"
                   },
-                  "valueType": "BOOLEAN",
+                  "valueType": "NUMERIC",
                   "value": null,
                   "predicate": {
-                    "type": "BOOLEAN",
-                    "operation": "EQUAL",
+                    "type": "NUMERIC",
+                    "operation": "GREATER_OR_EQUAL",
                     "value": {
-                      "defaultValue": true,
+                      "defaultValue": 100,
                       "userValue": null,
-                      "dynamicValue": null
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_DEVICE",
+                        "sourceAttribute": "maxMoistureThreshold",
+                        "inherit": false
+                      }
                     }
                   }
                 }
@@ -65,15 +69,19 @@
                   "type": "TIME_SERIES",
                   "key": "moisture"
                 },
-                "valueType": "BOOLEAN",
+                "valueType": "NUMERIC",
                 "value": null,
                 "predicate": {
-                  "type": "BOOLEAN",
-                  "operation": "EQUAL",
+                  "type": "NUMERIC",
+                  "operation": "LESS",
                   "value": {
-                    "defaultValue": false,
+                    "defaultValue": 100,
                     "userValue": null,
-                    "dynamicValue": null
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_DEVICE",
+                      "sourceAttribute": "maxMoistureThreshold",
+                      "inherit": false
+                    }
                   }
                 }
               }
@@ -86,11 +94,92 @@
           "alarmDetails": null,
           "dashboardId": null
         },
-        "propagate": false,
+        "propagate": true,
         "propagateToOwner": false,
         "propagateToOwnerHierarchy": false,
         "propagateToTenant": false,
-        "propagateRelationTypes": null
+        "propagateRelationTypes": [
+          "FieldToMoistureSensor"
+        ]
+      },
+      {
+        "id": "0236832e-6b57-c64d-df15-9c275ec60143",
+        "alarmType": "Low Moisture Level",
+        "createRules": {
+          "CRITICAL": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "moisture"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "LESS_OR_EQUAL",
+                    "value": {
+                      "defaultValue": 0,
+                      "userValue": null,
+                      "dynamicValue": {
+                        "sourceType": "CURRENT_DEVICE",
+                        "sourceAttribute": "minMoistureThreshold",
+                        "inherit": false
+                      }
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          }
+        },
+        "clearRule": {
+          "condition": {
+            "condition": [
+              {
+                "key": {
+                  "type": "TIME_SERIES",
+                  "key": "moisture"
+                },
+                "valueType": "NUMERIC",
+                "value": null,
+                "predicate": {
+                  "type": "NUMERIC",
+                  "operation": "GREATER",
+                  "value": {
+                    "defaultValue": 0,
+                    "userValue": null,
+                    "dynamicValue": {
+                      "sourceType": "CURRENT_DEVICE",
+                      "sourceAttribute": "minMoistureThreshold",
+                      "inherit": false
+                    }
+                  }
+                }
+              }
+            ],
+            "spec": {
+              "type": "SIMPLE"
+            }
+          },
+          "schedule": null,
+          "alarmDetails": null,
+          "dashboardId": null
+        },
+        "propagate": true,
+        "propagateToOwner": false,
+        "propagateToOwnerHierarchy": false,
+        "propagateToTenant": false,
+        "propagateRelationTypes": [
+          "FieldToMoistureSensor"
+        ]
       }
     ]
   },

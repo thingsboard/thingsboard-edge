@@ -15,7 +15,7 @@
               "startHour": 6,
               "startMinute": 0,
               "endHour": 7,
-              "endMinute": 0,
+              "endMinute": 30,
               "definition": {
                 "type": "inc",
                 "precision": 2,
@@ -24,7 +24,7 @@
                 "minEndValue": 70,
                 "maxEndValue": 75,
                 "minIncrement": 2,
-                "maxIncrement": 5
+                "maxIncrement": 4
               }
             }
           ],

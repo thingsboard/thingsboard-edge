@@ -5,10 +5,6 @@
     "group": "Smart Irrigation",
     "profile": "Soil Moisture",
     "attributes": {
-      "xPos": 0.7241627311506073,
-      "yPos": 0.5483131839908542,
-      "lowWeightMajorThreshold": 15,
-      "lowWeightCriticalThreshold": 5
     },
     "relations": [
       {
@@ -26,10 +22,6 @@
     "group": "Smart Irrigation",
     "profile": "Soil Moisture",
     "attributes": {
-      "xPos": 0.7241627311506073,
-      "yPos": 0.5483131839908542,
-      "lowWeightMajorThreshold": 15,
-      "lowWeightCriticalThreshold": 5
     },
     "relations": [
       {
@@ -47,10 +39,8 @@
     "group": "Smart Irrigation",
     "profile": "Soil Moisture",
     "attributes": {
-      "xPos": 0.7241627311506073,
-      "yPos": 0.5483131839908542,
-      "lowWeightMajorThreshold": 15,
-      "lowWeightCriticalThreshold": 5
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0
     },
     "relations": [
       {
