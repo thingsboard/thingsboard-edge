@@ -273,4 +273,24 @@ public class JacksonUtil {
             }
         }
     }
+
+    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry, String key) {
+        if (kvEntry.getDataType() == DataType.BOOLEAN) {
+            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(key, value));
+        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
+            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(key, value));
+        } else if (kvEntry.getDataType() == DataType.LONG) {
+            kvEntry.getLongValue().ifPresent(value -> entityNode.put(key, value));
+        } else if (kvEntry.getDataType() == DataType.JSON) {
+            if (kvEntry.getJsonValue().isPresent()) {
+                entityNode.set(key, JacksonUtil.toJsonNode(kvEntry.getJsonValue().get()));
+            }
+        } else {
+            entityNode.put(key, kvEntry.getValueAsString());
+        }
+    }
+
+    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) {
+        addKvEntry(entityNode, kvEntry, kvEntry.getKey());
+    }
 }
