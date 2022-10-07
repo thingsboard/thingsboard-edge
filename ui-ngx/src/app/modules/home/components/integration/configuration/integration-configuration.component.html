@@ -45,6 +45,13 @@
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-http-integration-form>
     </section>
+    <section *ngSwitchCase="integrationTypes.SIGFOX">
+      <tb-sigfox-integration-form formControlName="configuration"
+                                [routingKey]="routingKey"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-sigfox-integration-form>
+    </section>
     <section *ngSwitchDefault>
       <input formControlName="configuration">
     </section>

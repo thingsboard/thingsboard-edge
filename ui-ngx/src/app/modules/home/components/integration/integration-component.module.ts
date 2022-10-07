@@ -48,7 +48,10 @@ import {
 } from '@home/components/integration/integration-credentials/integration-credentials.component';
 import {
   HttpIntegrationFormComponent
-} from '@home/components/integration/configuration/http-integration-form/http-integration-form.component';
+} from '@home/components/integration/configuration/http-sigfox-integration-form/http-integration-form.component';
+import {
+  SigfoxIntegrationFormComponent
+} from '@home/components/integration/configuration/http-sigfox-integration-form/sigfox-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +61,8 @@ import {
     MqttTopicFiltersComponent,
     CertUploadComponent,
     MqttIntegrationFormComponent,
-    HttpIntegrationFormComponent
+    HttpIntegrationFormComponent,
+    SigfoxIntegrationFormComponent
   ],
   imports: [
     CommonModule,

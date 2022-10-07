@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="httpIntegrationConfigForm">
+<section [formGroup]="baseHttpIntegrationConfigForm">
   <mat-form-field class="mat-block">
     <mat-label translate>integration.base-url</mat-label>
     <input matInput formControlName="baseUrl" required>
-    <mat-error translate *ngIf="httpIntegrationConfigForm.get('baseUrl').hasError('required')">
+    <mat-error translate *ngIf="baseHttpIntegrationConfigForm.get('baseUrl').hasError('required')">
       integration.base-url-required
     </mat-error>
   </mat-form-field>
@@ -46,7 +46,7 @@
     <fieldset [disabled]="false" style="width: auto">
       <div ngxClipboard
            (cbOnSuccess)="onHttpEndpointCopied()"
-           [cbContent]="httpIntegrationConfigForm.get('httpEndpoint').value"
+           [cbContent]="baseHttpIntegrationConfigForm.get('httpEndpoint').value"
            matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
         <button mat-button mat-icon-button type="button">
           <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
@@ -55,7 +55,7 @@
     </fieldset>
   </div>
 
-  <mat-expansion-panel class="security-setting" [expanded]="httpIntegrationConfigForm.get('enableSecurity').value">
+  <mat-expansion-panel class="security-setting" [expanded]="baseHttpIntegrationConfigForm.get('enableSecurity').value">
     <mat-expansion-panel-header fxLayout="row">
       <mat-panel-title>
         <mat-slide-toggle [aria-label]="'integration.enable-security' | translate"

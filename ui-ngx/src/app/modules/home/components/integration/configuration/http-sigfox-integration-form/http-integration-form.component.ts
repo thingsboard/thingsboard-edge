@@ -52,8 +52,8 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 
 @Component({
   selector: 'tb-http-integration-form',
-  templateUrl: './http-integration-form.component.html',
-  styleUrls: ['./http-integration-form.component.scss'],
+  templateUrl: './base-http-integration-form.component.html',
+  styleUrls: ['./base-http-integration-form.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => HttpIntegrationFormComponent),
@@ -67,44 +67,46 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 })
 export class HttpIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
-  httpIntegrationConfigForm: FormGroup;
+  baseHttpIntegrationConfigForm: FormGroup;
 
   @Input()
   routingKey: string;
 
+  protected integrationType = IntegrationType.HTTP;
+
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(private fb: FormBuilder,
-              private store: Store<AppState>,
-              private translate: TranslateService) {
+  constructor(protected fb: FormBuilder,
+              protected store: Store<AppState>,
+              protected translate: TranslateService) {
     super();
   }
 
   ngOnInit() {
-    this.httpIntegrationConfigForm = this.fb.group({
+    this.baseHttpIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), Validators.required],
-      httpEndpoint: [{value: integrationBaseUrlChanged(IntegrationType.HTTP, baseUrl(), this.routingKey), disabled: true}],
+      httpEndpoint: [{value: integrationBaseUrlChanged(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
       enableSecurity: [false],
       headersFilter: [{}],
       replaceNoContentToOk: [false]
     });
-    this.httpIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
+    this.baseHttpIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
-      const httpEndpoint = integrationBaseUrlChanged(IntegrationType.HTTP, value, this.routingKey);
-      this.httpIntegrationConfigForm.get('httpEndpoint').patchValue(httpEndpoint);
+      const httpEndpoint = integrationBaseUrlChanged(this.integrationType, value, this.routingKey);
+      this.baseHttpIntegrationConfigForm.get('httpEndpoint').patchValue(httpEndpoint);
     });
-    this.httpIntegrationConfigForm.valueChanges.pipe(
+    this.baseHttpIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.updateModels(this.httpIntegrationConfigForm.getRawValue());
+      this.updateModels(this.baseHttpIntegrationConfigForm.getRawValue());
     });
   }
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.httpIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.baseHttpIntegrationConfigForm.patchValue(value, {emitEvent: false});
     } else {
       this.propagateChangePending = true;
     }
@@ -115,7 +117,7 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
     if (this.propagateChangePending) {
       this.propagateChangePending = false;
       setTimeout(() => {
-        this.updateModels(this.httpIntegrationConfigForm.getRawValue());
+        this.updateModels(this.baseHttpIntegrationConfigForm.getRawValue());
       }, 0);
     }
   }
@@ -125,10 +127,10 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
   setDisabledState(isDisabled: boolean) {
     this.disabled = isDisabled;
     if (isDisabled) {
-      this.httpIntegrationConfigForm.disable({emitEvent: false});
+      this.baseHttpIntegrationConfigForm.disable({emitEvent: false});
     } else {
-      this.httpIntegrationConfigForm.enable({emitEvent: false});
-      this.httpIntegrationConfigForm.get('httpEndpoint').disable({emitEvent: false});
+      this.baseHttpIntegrationConfigForm.enable({emitEvent: false});
+      this.baseHttpIntegrationConfigForm.get('httpEndpoint').disable({emitEvent: false});
     }
   }
 
@@ -137,8 +139,8 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
   }
 
   validate(): ValidationErrors | null {
-    return this.httpIntegrationConfigForm.valid ? null : {
-      httpIntegrationConfigForm: {valid: false}
+    return this.baseHttpIntegrationConfigForm.valid ? null : {
+      baseHttpIntegrationConfigForm: {valid: false}
     };
   }
 
