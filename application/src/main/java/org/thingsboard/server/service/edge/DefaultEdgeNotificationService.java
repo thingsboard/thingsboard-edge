@@ -57,7 +57,10 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetProfileEdgeProcessor;
+<<<<<<< HEAD
 import org.thingsboard.server.service.edge.rpc.processor.ConverterEdgeProcessor;
+=======
+>>>>>>> ce-upstream/feature/edge-multi-customers
 import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
@@ -240,9 +243,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case DEVICE_PROFILE:
                     future = deviceProfileProcessor.processDeviceProfileNotification(tenantId, edgeNotificationMsg);
                     break;
-//                case ASSET_PROFILE:
-//                    future = assetProfileProcessor.processAssetProfileToEdge(tenantId, edgeNotificationMsg);
-//                    break;
+                case ASSET_PROFILE:
+                    future = assetProfileProcessor.processAssetProfileNotification(tenantId, edgeNotificationMsg);
+                    break;
                 case OTA_PACKAGE:
                     future = otaPackageProcessor.processOtaPackageNotification(tenantId, edgeNotificationMsg);
                     break;

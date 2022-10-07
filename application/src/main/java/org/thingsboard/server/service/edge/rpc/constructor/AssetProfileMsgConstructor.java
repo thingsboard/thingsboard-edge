@@ -46,9 +46,6 @@ import java.nio.charset.StandardCharsets;
 @TbCoreComponent
 public class AssetProfileMsgConstructor {
 
-    @Autowired
-    private DataDecodingEncodingService dataDecodingEncodingService;
-
     public AssetProfileUpdateMsg constructAssetProfileUpdatedMsg(UpdateMsgType msgType, AssetProfile assetProfile) {
         AssetProfileUpdateMsg.Builder builder = AssetProfileUpdateMsg.newBuilder()
                 .setMsgType(msgType)

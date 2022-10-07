@@ -534,8 +534,8 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getDeviceProcessor().convertDeviceEventToDownlink(edgeEvent);
             case DEVICE_PROFILE:
                 return ctx.getDeviceProfileProcessor().convertDeviceProfileEventToDownlink(edgeEvent);
-//            case ASSET_PROFILE:
-//                return ctx.getAssetProfileProcessor().processAssetProfileToEdge(edgeEvent, msgType, action);
+            case ASSET_PROFILE:
+                return ctx.getAssetProfileProcessor().convertAssetProfileEventToDownlink(edgeEvent);
             case ASSET:
                 return ctx.getAssetProcessor().convertAssetEventToDownlink(edgeEvent);
             case ENTITY_VIEW:
