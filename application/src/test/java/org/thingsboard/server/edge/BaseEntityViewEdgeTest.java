@@ -38,7 +38,7 @@ abstract public class BaseEntityViewEdgeTest extends AbstractEdgeTest {
 
     @Test
     @Ignore
-    public void testEntityView() throws Exception {
+    public void testEntityViews() throws Exception {
         // create entity view and assign to edge
         edgeImitator.expectMessageAmount(1);
         Device device = findDeviceByName("Edge Device 1");
