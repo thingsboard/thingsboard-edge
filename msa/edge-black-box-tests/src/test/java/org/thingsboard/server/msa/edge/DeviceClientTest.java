@@ -126,15 +126,6 @@ public class DeviceClientTest extends AbstractContainerTest {
                 .until(() -> edgeRestClient.getDeviceById(savedDevice.getId()).isEmpty());
     }
 
-    private boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
-        List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
-        if (attributesByScope.isEmpty()) {
-            return false;
-        }
-        AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
-        return attributeKvEntry.getValueAsString().equals(expectedValue);
-    }
-
     @Test
     public void sendDeviceToCloud() {
         // create device on edge
