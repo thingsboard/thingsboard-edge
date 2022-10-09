@@ -50,22 +50,31 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssets() throws Exception {
+        // create asset and assign to edge
         EntityGroup savedAssetEntityGroup = createEntityGroup(EntityType.ASSET);
         Asset savedAsset = saveAndAssignAssetToEdge(savedAssetEntityGroup);
 
+        // update asset
+        String updatedAssetName = savedAsset.getName() + "Updated";
+        savedAsset.setName(updatedAssetName);
+        cloudRestClient.saveAsset(savedAsset);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> updatedAssetName.equals(edgeRestClient.getAssetById(savedAsset.getId()).get().getName()));
+
+        // save asset attribute
         JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
         cloudRestClient.saveEntityAttributesV1(savedAsset.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
-
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> verifyAttributeOnEdge(savedAsset.getId(),
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnEdge(savedAsset.getId(),
                         DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
 
         cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isEmpty());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isEmpty());
 
         cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
     }

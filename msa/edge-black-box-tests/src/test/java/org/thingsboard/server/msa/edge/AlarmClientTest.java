@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAlarms() throws Exception {
+    public void testAlarms() {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
         Alarm alarm = new Alarm();
@@ -108,7 +108,7 @@ public class AlarmClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void sendAlarmToCloud() throws Exception {
+    public void sendAlarmToCloud() {
         Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
 
         Alarm alarm = new Alarm();

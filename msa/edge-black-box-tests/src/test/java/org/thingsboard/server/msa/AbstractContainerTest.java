@@ -440,13 +440,13 @@ public abstract class AbstractContainerTest {
         return savedDevice;
     }
 
-    protected Asset saveAndAssignAssetToEdge(EntityGroup savedAssetEntityGroup) throws Exception {
+    protected Asset saveAndAssignAssetToEdge(EntityGroup savedAssetEntityGroup) {
         Asset asset = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), "Building", savedAssetEntityGroup.getId());
         cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
 
         Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() -> edgeRestClient.getAssetById(asset.getId()).isPresent());
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetById(asset.getId()).isPresent());
 
         return asset;
     }
@@ -769,13 +769,6 @@ public abstract class AbstractContainerTest {
                 });
     }
 
-    protected EntityGroup createEntityGroup(EntityType entityType) {
-        EntityGroup assetEntityGroup = new EntityGroup();
-        assetEntityGroup.setType(entityType);
-        assetEntityGroup.setName(org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric(15));
-        return cloudRestClient.saveEntityGroup(assetEntityGroup);
-    }
-
     protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
         List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
         if (attributesByScope.isEmpty()) {
@@ -783,6 +776,13 @@ public abstract class AbstractContainerTest {
         }
         AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
         return attributeKvEntry.getValueAsString().equals(expectedValue);
+    }
+
+    protected EntityGroup createEntityGroup(EntityType entityType) {
+        EntityGroup assetEntityGroup = new EntityGroup();
+        assetEntityGroup.setType(entityType);
+        assetEntityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        return cloudRestClient.saveEntityGroup(assetEntityGroup);
     }
 
     protected void verifyEntityGroups(EntityType entityType, int expectedGroupsCount) {
