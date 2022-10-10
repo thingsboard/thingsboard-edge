@@ -198,7 +198,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(18);
+        edgeImitator.expectMessageAmount(20);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
