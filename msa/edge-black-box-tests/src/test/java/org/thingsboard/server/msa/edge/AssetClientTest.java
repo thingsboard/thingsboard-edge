@@ -33,50 +33,63 @@ public class AssetClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssets() throws Exception {
-        // create asset and assign to edge
-        Asset savedAsset = saveAndAssignAssetToEdge();
-        cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset.getId());
+        // create asset #1 and assign to edge
+        Asset savedAsset1 = saveAndAssignAssetToEdge();
+        cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isPresent());
+                .until(() -> edgeRestClient.getAssetById(savedAsset1.getId()).isPresent());
 
-        // update asset
-        savedAsset.setName("Updated Asset Name");
-        cloudRestClient.saveAsset(savedAsset);
+        // update asset #1
+        savedAsset1.setName("Updated Asset Name");
+        cloudRestClient.saveAsset(savedAsset1);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Updated Asset Name".equals(edgeRestClient.getAssetById(savedAsset.getId()).get().getName()));
+                .until(() -> "Updated Asset Name".equals(edgeRestClient.getAssetById(savedAsset1.getId()).get().getName()));
 
         // save asset attribute
         JsonNode assetAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"assetKey\":\"assetValue\"}");
-        cloudRestClient.saveEntityAttributesV1(savedAsset.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
+        cloudRestClient.saveEntityAttributesV1(savedAsset1.getId(), DataConstants.SERVER_SCOPE, assetAttributes);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> verifyAttributeOnEdge(savedAsset.getId(),
+                .until(() -> verifyAttributeOnEdge(savedAsset1.getId(),
                         DataConstants.SERVER_SCOPE, "assetKey", "assetValue"));
 
-        // assign asset to customer
+        // unassign asset #1 from edge
+        cloudRestClient.unassignAssetFromEdge(edge.getId(), savedAsset1.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetById(savedAsset1.getId()).isEmpty());
+        cloudRestClient.deleteAsset(savedAsset1.getId());
+
+        // create asset #2 and assign to edge
+        Asset savedAsset2 = saveAndAssignAssetToEdge();
+        cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetById(savedAsset2.getId()).isPresent());
+
+        // assign asset #2 to customer
         Customer customer = new Customer();
         customer.setTitle("Asset Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        cloudRestClient.assignAssetToCustomer(savedCustomer.getId(), savedAsset.getId());
+        cloudRestClient.assignAssetToCustomer(savedCustomer.getId(), savedAsset2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(edgeRestClient.getAssetById(savedAsset.getId()).get().getCustomerId()));
+                .until(() -> savedCustomer.getId().equals(edgeRestClient.getAssetById(savedAsset2.getId()).get().getCustomerId()));
 
-        // unassign asset from customer
-        cloudRestClient.unassignAssetFromCustomer(savedAsset.getId());
+        // unassign asset #2 from customer
+        cloudRestClient.unassignAssetFromCustomer(savedAsset2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getAssetById(savedAsset.getId()).get().getCustomerId().getId()));
+                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getAssetById(savedAsset2.getId()).get().getCustomerId().getId()));
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
-        // unassign asset from edge
-        cloudRestClient.unassignAssetFromEdge(edge.getId(), savedAsset.getId());
+        // delete asset #2
+        cloudRestClient.deleteAsset(savedAsset2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getAssetById(savedAsset.getId()).isEmpty());
-        cloudRestClient.deleteAsset(savedAsset.getId());
+                .until(() -> edgeRestClient.getAssetById(savedAsset2.getId()).isEmpty());
     }
 
 }

@@ -31,44 +31,57 @@ import java.util.concurrent.TimeUnit;
 public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
-    public void testEntityViews() throws Exception {
-        // create entity view and assign to edge
+    public void testEntityViews() {
+        // create entity view #1 and assign to edge
         Device device = saveAndAssignDeviceToEdge();
-        EntityView savedEntityViewOnCloud = saveEntityViewOnCloud("Edge Entity View 1", "Default", device.getId());
-        cloudRestClient.assignEntityViewToEdge(edge.getId(), savedEntityViewOnCloud.getId());
+        EntityView savedEntityView1 = saveEntityViewOnCloud("Edge Entity View 1", "Default", device.getId());
+        cloudRestClient.assignEntityViewToEdge(edge.getId(), savedEntityView1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isPresent());
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isPresent());
 
-        // update entity view
-        savedEntityViewOnCloud.setName("Updated Edge Entity View 1");
-        cloudRestClient.saveEntityView(savedEntityViewOnCloud);
+        // update entity view #1
+        savedEntityView1.setName("Updated Edge Entity View 1");
+        cloudRestClient.saveEntityView(savedEntityView1);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Updated Edge Entity View 1".equals(edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).get().getName()));
+                .until(() -> "Updated Edge Entity View 1".equals(edgeRestClient.getEntityViewById(savedEntityView1.getId()).get().getName()));
 
-        // assign entity view to customer
+        // unassign entity #1 view from edge
+        cloudRestClient.unassignEntityViewFromEdge(edge.getId(), savedEntityView1.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityView1.getId()).isEmpty());
+        cloudRestClient.deleteEntityView(savedEntityView1.getId());
+
+        // create entity view #2 and assign to edge
+        EntityView savedEntityView2 = saveEntityViewOnCloud("Edge Entity View 2", "Default", device.getId());
+        cloudRestClient.assignEntityViewToEdge(edge.getId(), savedEntityView2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityView2.getId()).isPresent());
+
+        // assign entity view #2 to customer
         Customer customer = new Customer();
         customer.setTitle("Entity View Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        cloudRestClient.assignEntityViewToCustomer(savedCustomer.getId(), savedEntityViewOnCloud.getId());
+        cloudRestClient.assignEntityViewToCustomer(savedCustomer.getId(), savedEntityView2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).get().getCustomerId()));
+                .until(() -> savedCustomer.getId().equals(edgeRestClient.getEntityViewById(savedEntityView2.getId()).get().getCustomerId()));
 
-        // unassign entity view from customer
-        cloudRestClient.unassignEntityViewFromCustomer(savedEntityViewOnCloud.getId());
+        // unassign entity view #2 from customer
+        cloudRestClient.unassignEntityViewFromCustomer(savedEntityView2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).get().getCustomerId().getId()));
+                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEntityViewById(savedEntityView2.getId()).get().getCustomerId().getId()));
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
-        // unassign entity view from edge
-        cloudRestClient.unassignEntityViewFromEdge(edge.getId(), savedEntityViewOnCloud.getId());
+        // delete entity view #2
+        cloudRestClient.deleteEntityView(savedEntityView2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getEntityViewById(savedEntityViewOnCloud.getId()).isEmpty());
-        cloudRestClient.deleteEntityView(savedEntityViewOnCloud.getId());
+                .until(() -> edgeRestClient.getEntityViewById(savedEntityView2.getId()).isEmpty());
     }
 
     private EntityView saveEntityViewOnCloud(String entityViewName, String type, DeviceId deviceId) {

@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -68,6 +69,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportC
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -372,10 +374,19 @@ public abstract class AbstractContainerTest {
         return cloudRestClient.saveAsset(asset);
     }
 
+    protected Dashboard saveDashboardOnCloud(String dashboardTitle) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(dashboardTitle);
+        return cloudRestClient.saveDashboard(dashboard);
+    }
+
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
         switch (entityType) {
             case DEVICE_PROFILE:
                 assertDeviceProfiles(entityIds);
+                break;
+            case ASSET_PROFILE:
+                assertAssetProfiles(entityIds);
                 break;
             case RULE_CHAIN:
                 assertRuleChains(entityIds);
@@ -419,6 +430,17 @@ public abstract class AbstractContainerTest {
             DeviceProfile actual = cloudDeviceProfile.get();
             actual.setDefaultRuleChainId(null);
             Assert.assertEquals("Device profiles on cloud and edge are different (except defaultRuleChainId)", expected, actual);
+        }
+    }
+
+    private void assertAssetProfiles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            AssetProfileId assetProfileId = new AssetProfileId(entityId.getId());
+            Optional<AssetProfile> edgeAssetProfile = edgeRestClient.getAssetProfileById(assetProfileId);
+            Optional<AssetProfile> cloudAssetProfile = cloudRestClient.getAssetProfileById(assetProfileId);
+            AssetProfile expected = edgeAssetProfile.get();
+            AssetProfile actual = cloudAssetProfile.get();
+            Assert.assertEquals("Asset profiles on cloud and edge are different", expected, actual);
         }
     }
 

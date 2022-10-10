@@ -30,29 +30,43 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testDashboards() {
-        // create dashboard and assign to edge
-        Dashboard savedDashboardOnCloud = saveDashboardOnCloud("Edge Dashboard 1");
-        cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboardOnCloud.getId());
+        // create dashboard #1 and assign to edge
+        Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1");
+        cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboard1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isPresent());
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isPresent());
 
-        // update dashboard
-        savedDashboardOnCloud.setTitle("Updated Dashboard Title");
-        cloudRestClient.saveDashboard(savedDashboardOnCloud);
+        // update dashboard #1
+        savedDashboard1.setTitle("Updated Dashboard Title");
+        cloudRestClient.saveDashboard(savedDashboard1);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Updated Dashboard Title".equals(edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).get().getTitle()));
+                .until(() -> "Updated Dashboard Title".equals(edgeRestClient.getDashboardById(savedDashboard1.getId()).get().getTitle()));
 
-        // assign dashboard to customer
+        // unassign dashboard #1 from edge
+        cloudRestClient.unassignDashboardFromEdge(edge.getId(), savedDashboard1.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isEmpty());
+        cloudRestClient.deleteDashboard(savedDashboard1.getId());
+
+        // create dashboard #2 and assign to edge
+        Dashboard savedDashboard2 = saveDashboardOnCloud("Edge Dashboard 2");
+        cloudRestClient.assignDashboardToEdge(edge.getId(), savedDashboard2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isPresent());
+
+        // assign dashboard #2 to customer
         Customer customer = new Customer();
         customer.setTitle("Dashboard Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        cloudRestClient.assignDashboardToCustomer(savedCustomer.getId(), savedDashboardOnCloud.getId());
+        cloudRestClient.assignDashboardToCustomer(savedCustomer.getId(), savedDashboard2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).get();
+                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboard2.getId()).get();
                     if (dashboard.getAssignedCustomers() == null
                             || dashboard.getAssignedCustomers().isEmpty()) {
                         return false;
@@ -64,28 +78,21 @@ public class DashboardClientTest extends AbstractContainerTest {
                     return savedCustomer.getId().equals(assignedCustomer.getCustomerId());
                 });
 
-        // unassign dashboard from customer
-        cloudRestClient.unassignDashboardFromCustomer(savedCustomer.getId(), savedDashboardOnCloud.getId());
+        // unassign dashboard #2 from customer
+        cloudRestClient.unassignDashboardFromCustomer(savedCustomer.getId(), savedDashboard2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).get();
+                    Dashboard dashboard = edgeRestClient.getDashboardById(savedDashboard2.getId()).get();
                     return dashboard.getAssignedCustomers().isEmpty();
                 });
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
-        // unassign dashboard from edge
-        cloudRestClient.unassignDashboardFromEdge(edge.getId(), savedDashboardOnCloud.getId());
+        // delete dashboard #2
+        cloudRestClient.deleteDashboard(savedDashboard2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isEmpty());
-        cloudRestClient.deleteDashboard(savedDashboardOnCloud.getId());
-    }
-
-    private Dashboard saveDashboardOnCloud(String dashboardTitle) {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(dashboardTitle);
-        return cloudRestClient.saveDashboard(dashboard);
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isEmpty());
     }
 }
 

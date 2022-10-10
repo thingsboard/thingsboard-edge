@@ -39,6 +39,7 @@ public class OtaPackageClientTest extends AbstractContainerTest {
 
     @Test
     public void testOtaPackages() throws Exception {
+        // create ota package
         DeviceProfileInfo defaultDeviceProfileInfo = cloudRestClient.getDefaultDeviceProfileInfo();
         OtaPackageInfo firmware = new OtaPackageInfo();
         firmware.setDeviceProfileId(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()));
@@ -65,8 +66,8 @@ public class OtaPackageClientTest extends AbstractContainerTest {
         PageData<OtaPackageInfo> pageData = edgeRestClient.getOtaPackages(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.OTA_PACKAGE);
 
+        // delete ota package
         cloudRestClient.deleteOtaPackage(savedOtaPackageInfo.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 0);

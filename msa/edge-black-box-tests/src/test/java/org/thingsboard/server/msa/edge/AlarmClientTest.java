@@ -39,6 +39,7 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void testAlarms() {
+        // create alarm
         Device device = saveAndAssignDeviceToEdge();
 
         Alarm alarm = new Alarm();
@@ -52,8 +53,8 @@ public class AlarmClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isPresent());
 
+        // ack alarm
         cloudRestClient.ackAlarm(savedAlarm.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
@@ -61,8 +62,8 @@ public class AlarmClientTest extends AbstractContainerTest {
                     return alarmData.getAckTs() > 0;
                 });
 
+        // clear alarm
         cloudRestClient.clearAlarm(savedAlarm.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
@@ -70,8 +71,8 @@ public class AlarmClientTest extends AbstractContainerTest {
                     return alarmData.getClearTs() > 0;
                 });
 
+        // delete alarm
         cloudRestClient.deleteAlarm(savedAlarm.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromEdge(device.getId()).isEmpty());
@@ -93,15 +94,14 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void sendAlarmToCloud() {
+        // create alarm
         Device device = saveAndAssignDeviceToEdge();
-
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
         alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm from edge");
         alarm.setSeverity(AlarmSeverity.MAJOR);
         Alarm savedAlarm = edgeRestClient.saveAlarm(alarm);
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isPresent());
@@ -109,8 +109,8 @@ public class AlarmClientTest extends AbstractContainerTest {
         Assert.assertEquals("Alarm on edge and cloud have different types",
                 "alarm from edge", getLatestAlarmByEntityIdFromCloud(device.getId()).get().getType());
 
+        // ack alarm
         edgeRestClient.ackAlarm(savedAlarm.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
@@ -118,8 +118,8 @@ public class AlarmClientTest extends AbstractContainerTest {
                     return alarmData.getAckTs() > 0;
                 });
 
+        // clear alarm
         edgeRestClient.clearAlarm(savedAlarm.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
@@ -127,8 +127,8 @@ public class AlarmClientTest extends AbstractContainerTest {
                     return alarmData.getClearTs() > 0;
                 });
 
+        // delete alarm
         edgeRestClient.deleteAlarm(savedAlarm.getId());
-
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> getLatestAlarmByEntityIdFromCloud(device.getId()).isEmpty());

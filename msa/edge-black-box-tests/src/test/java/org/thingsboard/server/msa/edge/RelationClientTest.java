@@ -30,7 +30,8 @@ import java.util.concurrent.TimeUnit;
 public class RelationClientTest extends AbstractContainerTest {
 
     @Test
-    public void testRelations() throws Exception {
+    public void testRelations() {
+        // create relation
         Device device = saveAndAssignDeviceToEdge();
         Asset asset = saveAndAssignAssetToEdge();
 
@@ -45,6 +46,7 @@ public class RelationClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
+        // delete relation
         cloudRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
@@ -53,7 +55,7 @@ public class RelationClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void sendRelationToCloud() throws Exception {
+    public void sendRelationToCloud() {
         Device device = saveAndAssignDeviceToEdge();
 
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");
