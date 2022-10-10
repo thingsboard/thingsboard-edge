@@ -53,8 +53,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -151,8 +149,8 @@ public class RelationEdgeProcessor extends BaseEdgeProcessor {
         }
 
         Set<EdgeId> uniqueEdgeIds = new HashSet<>();
-        uniqueEdgeIds.addAll(findRelatedEdgeIds(tenantId, relation.getTo()));
-        uniqueEdgeIds.addAll(findRelatedEdgeIds(tenantId, relation.getFrom()));
+        uniqueEdgeIds.addAll(edgeService.findAllRelatedEdgeIds(tenantId, relation.getTo()));
+        uniqueEdgeIds.addAll(edgeService.findAllRelatedEdgeIds(tenantId, relation.getFrom()));
         if (uniqueEdgeIds.isEmpty()) {
             return Futures.immediateFuture(null);
         }
@@ -167,21 +165,4 @@ public class RelationEdgeProcessor extends BaseEdgeProcessor {
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
-
-    private List<EdgeId> findRelatedEdgeIds(TenantId tenantId, EntityId entityId) {
-        List<EdgeId> result = new ArrayList<>();
-        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        PageData<EdgeId> pageData;
-        do {
-            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, entityId, pageLink);
-            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                result.addAll(pageData.getData());
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
-                }
-            }
-        } while (pageData != null && pageData.hasNext());
-        return result;
-    }
-
 }
