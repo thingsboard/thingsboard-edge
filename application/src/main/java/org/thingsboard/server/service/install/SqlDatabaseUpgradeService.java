@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
+import org.thingsboard.server.dao.asset.AssetProfileService;
+import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -116,7 +118,13 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     private DeviceService deviceService;
 
     @Autowired
+    private AssetService assetService;
+
+    @Autowired
     private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private AssetProfileService assetProfileService;
 
     @Autowired
     private ApiUsageStateService apiUsageStateService;
@@ -612,8 +620,55 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 }
                 break;
             case "3.4.1":
+                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
+                    log.info("Updating schema ...");
+                    if (isOldSchema(conn, 3004001)) {
+
+                        try {
+                            conn.createStatement().execute("ALTER TABLE asset ADD COLUMN asset_profile_id uuid");
+                        } catch (Exception e) {
+                        }
+
+                        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.1", "schema_update_before.sql");
+                        loadSql(schemaUpdateFile, conn);
+
+                        log.info("Creating default asset profiles...");
+                        PageLink pageLink = new PageLink(100);
+                        PageData<Tenant> pageData;
+                        do {
+                            pageData = tenantService.findTenants(pageLink);
+                            for (Tenant tenant : pageData.getData()) {
+                                List<EntitySubtype> assetTypes = assetService.findAssetTypesByTenantId(tenant.getId()).get();
+                                try {
+                                    assetProfileService.createDefaultAssetProfile(tenant.getId());
+                                } catch (Exception e) {
+                                }
+                                for (EntitySubtype assetType : assetTypes) {
+                                    try {
+                                        assetProfileService.findOrCreateAssetProfile(tenant.getId(), assetType.getType());
+                                    } catch (Exception e) {
+                                    }
+                                }
+                            }
+                            pageLink = pageLink.nextPageLink();
+                        } while (pageData.hasNext());
+
+                        log.info("Updating asset profiles...");
+                        conn.createStatement().execute("call update_asset_profiles()");
+
+                        schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.1", "schema_update_after.sql");
+                        loadSql(schemaUpdateFile, conn);
+
+                        conn.createStatement().execute("UPDATE tb_schema_settings SET schema_version = 3004002;");
+                    }
+                    log.info("Schema updated.");
+                } catch (Exception e) {
+                    log.error("Failed updating schema!!!", e);
+                }
+                break;
+            case "3.4.2":
                 log.info("Updating schema ...");
-                Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.1pe", SCHEMA_UPDATE_SQL);
+                Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.2pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     loadSql(schemaUpdateFile, conn);
                     try {
@@ -705,6 +760,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             integrationRepository.save(integration);
                         }
                     });
+                    try {
+                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_type varchar(255);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
                     log.info("Schema updated.");
                 } catch (Exception e) {
                     log.error("Failed to update schema!!!");

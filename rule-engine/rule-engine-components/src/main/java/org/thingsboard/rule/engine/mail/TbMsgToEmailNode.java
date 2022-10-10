@@ -179,8 +179,4 @@ public class TbMsgToEmailNode implements TbNode {
         return result;
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

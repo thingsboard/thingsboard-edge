@@ -61,11 +61,16 @@ public class DashboardMsgConstructor {
         return builder.build();
     }
 
-    public DashboardUpdateMsg constructDashboardDeleteMsg(DashboardId dashboardId) {
-        return DashboardUpdateMsg.newBuilder()
+    public DashboardUpdateMsg constructDashboardDeleteMsg(DashboardId dashboardId, EntityGroupId entityGroupId) {
+        DashboardUpdateMsg.Builder builder = DashboardUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(dashboardId.getId().getMostSignificantBits())
-                .setIdLSB(dashboardId.getId().getLeastSignificantBits()).build();
+                .setIdLSB(dashboardId.getId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
     }
 
 }

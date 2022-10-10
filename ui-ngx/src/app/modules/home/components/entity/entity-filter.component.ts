@@ -254,11 +254,17 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit {
           } else if (type === AliasFilterType.entityViewSearchQuery) {
             this.filterFormGroup.addControl('entityViewTypes',
               this.fb.control(filter ? filter.entityViewTypes : [], [Validators.required]));
-          } else if (type === AliasFilterType.edgeSearchQuery) {
-            this.filterFormGroup.addControl('edgeTypes',
-              this.fb.control(filter ? filter.edgeTypes : [], [Validators.required]));
           }
         }
+        break;
+      case AliasFilterType.schedulerEvent:
+        this.filterFormGroup = this.fb.group({
+          originatorStateEntity: [filter ? filter.originatorStateEntity : false, []],
+          stateEntityParamName: [filter ? filter.stateEntityParamName : null, []],
+          defaultStateEntity: [filter ? filter.defaultStateEntity : null, []],
+          originator: [filter ? filter.originator : null, []],
+          eventType: [filter ? filter.eventType : null, []]
+        });
         break;
     }
     this.filterFormGroup.valueChanges.subscribe(() => {

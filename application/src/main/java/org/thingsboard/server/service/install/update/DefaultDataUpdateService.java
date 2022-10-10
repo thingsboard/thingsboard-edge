@@ -45,10 +45,16 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode;
+import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNode;
+import org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2;
+import org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNode;
 import org.thingsboard.rule.engine.flow.TbRuleChainInputNodeConfiguration;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNode;
 import org.thingsboard.rule.engine.profile.TbDeviceProfileNodeConfiguration;
+import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode;
+import org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNodeConfiguration;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -86,6 +92,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.query.DynamicValue;
@@ -107,6 +114,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.PaletteSettings;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -294,15 +302,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
                 }
-
-                // remove this line in 4+ release
-                fixDuplicateSystemWidgetsBundles();
-
-                // reset full sync required - to upload latest widgets from cloud
-                tenantsFullSyncRequiredUpdater.updateEntities(null);
                 break;
-            case "3.4.1":
-                log.info("Updating data from version 3.4.1 to 3.4.1PE ...");
+            case "3.4.2":
+                log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
                 tenantsCustomersGroupAllUpdater.updateEntities();
                 tenantEntitiesGroupAllUpdater.updateEntities();
                 // tenantIntegrationUpdater.updateEntities();
@@ -322,12 +324,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     future.get();
                 }
 
+                updateAnalyticsRuleNode();
+                updateDuplicateMsgRuleNode();
+
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
-
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -521,55 +525,51 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private void fixDuplicateSystemWidgetsBundles() {
-        try {
-            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
-            for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
-                try {
-                    widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
-                } catch (IncorrectResultSizeDataAccessException e) {
-                    // fix for duplicate entries of system widgets
-                    for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
-                        if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
-                            widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+    private void updateAnalyticsRuleNode() {
+        List<String> ruleNodeNames = new ArrayList<>();
+        ruleNodeNames.add(TbSimpleAggMsgNode.class.getName());
+        ruleNodeNames.add(TbAlarmsCountNode.class.getName());
+        ruleNodeNames.add(TbAlarmsCountNodeV2.class.getName());
+        ruleNodeNames.add(TbAggLatestTelemetryNode.class.getName());
+
+        ruleNodeNames.forEach(ruleNodeName -> {
+            PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
+            ruleNodesIterator.forEach(ruleNode -> {
+                ObjectNode configNode = (ObjectNode) ruleNode.getConfiguration();
+                if (!configNode.has("outMsgType")) {
+                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
+                    if (targetRuleChain != null) {
+                        TenantId tenantId = targetRuleChain.getTenantId();
+                        configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                        ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
+                        ruleChainService.saveRuleNode(tenantId, ruleNode);
+                    }
+                }
+            });
+        });
+    }
+    
+    private void updateDuplicateMsgRuleNode() {
+        PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(
+                link -> ruleChainService.findAllRuleNodesByType(TbDuplicateMsgToGroupNode.class.getName(), link), 1024);
+        ruleNodesIterator.forEach(ruleNode -> {
+            TbDuplicateMsgToGroupNodeConfiguration configNode = JacksonUtil.convertValue(ruleNode.getConfiguration(), TbDuplicateMsgToGroupNodeConfiguration.class);
+            if (!configNode.isEntityGroupIsMessageOriginator()) {
+                if (configNode.getGroupOwnerId() == null) {
+                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
+                    if (targetRuleChain != null) {
+                        TenantId tenantId = targetRuleChain.getTenantId();
+                        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, configNode.getEntityGroupId());
+                        if (entityGroup != null) {
+                            configNode.setGroupOwnerId(entityGroup.getOwnerId());
+                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
+                            ruleChainService.saveRuleNode(tenantId, ruleNode);
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            log.error("Unable to fix duplicate system widgets bundles", e);
-        }
+        });
     }
-
-    private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
-            new PaginatedUpdater<>() {
-
-                @Override
-                protected String getName() {
-                    return "Tenants edge full sync required updater";
-                }
-
-                @Override
-                protected boolean forceReportTotal() {
-                    return true;
-                }
-
-                @Override
-                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
-                    return tenantService.findTenants(pageLink);
-                }
-
-                @Override
-                protected void updateEntity(Tenant tenant) {
-                    try {
-                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
-                        edgeSettings.setFullSyncRequired(true);
-                        cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
-                    } catch (Exception e) {
-                        log.error("Unable to update Tenant", e);
-                    }
-                }
-            };
 
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
             new PaginatedUpdater<>() {
@@ -1539,4 +1539,53 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return mainQueueConfiguration;
     }
 
+    private void fixDuplicateSystemWidgetsBundles() {
+        try {
+            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+            for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
+                try {
+                    widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
+                } catch (IncorrectResultSizeDataAccessException e) {
+                    // fix for duplicate entries of system widgets
+                    for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+                        if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
+                            widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Unable to fix duplicate system widgets bundles", e);
+        }
+    }
+
+    private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants edge full sync required updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
+                        edgeSettings.setFullSyncRequired(true);
+                        cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
 }

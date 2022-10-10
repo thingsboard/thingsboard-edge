@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainConnectionInfo;
 import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -92,6 +93,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ConverterProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
@@ -113,6 +115,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.WhiteLabelingParamsPr
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetTypeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.WidgetsBundleMsgConstructor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
@@ -139,6 +142,9 @@ public abstract class BaseEdgeProcessor {
     protected TbDeviceProfileCache deviceProfileCache;
 
     @Autowired
+    protected TbAssetProfileCache assetProfileCache;
+
+    @Autowired
     protected DashboardService dashboardService;
 
     @Autowired
@@ -161,6 +167,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DeviceProfileService deviceProfileService;
+
+    @Autowired
+    protected AssetProfileService assetProfileService;
 
     @Autowired
     protected RelationService relationService;
@@ -237,6 +246,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected DeviceProfileMsgConstructor deviceProfileMsgConstructor;
+
+    @Autowired
+    protected AssetProfileMsgConstructor assetProfileMsgConstructor;
 
     @Autowired
     protected WidgetsBundleMsgConstructor widgetsBundleMsgConstructor;

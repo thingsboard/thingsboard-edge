@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.integration.api.IntegrationCallback;
@@ -57,10 +56,14 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -114,6 +117,7 @@ import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
+import org.thingsboard.server.service.profile.DefaultTbAssetProfileCache;
 import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -129,9 +133,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_ATTRIBUTES_REQUEST;
-import static org.thingsboard.server.common.msg.session.SessionMsgType.POST_TELEMETRY_REQUEST;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -216,6 +217,9 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     @Autowired
     private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private DefaultTbAssetProfileCache assetProfileCache;
 
     @Value("${integrations.rate_limits.enabled}")
     private boolean rateLimitEnabled;
@@ -307,25 +311,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         Asset asset = getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
         if (data.hasPostTelemetryMsg()) {
-            data.getPostTelemetryMsg().getTsKvListList()
-                    .forEach(tsKv -> {
-                        TbMsgMetaData metaData = new TbMsgMetaData();
-                        metaData.putValue("assetName", data.getAssetName());
-                        metaData.putValue("assetType", data.getAssetType());
-                        metaData.putValue("ts", tsKv.getTs() + "");
-                        JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(POST_TELEMETRY_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-                        process(asset.getTenantId(), tbMsg, callback);
-                    });
+            process(asset, data.getPostTelemetryMsg(), callback);
         }
 
         if (data.hasPostAttributesMsg()) {
-            TbMsgMetaData metaData = new TbMsgMetaData();
-            metaData.putValue("assetName", data.getAssetName());
-            metaData.putValue("assetType", data.getAssetType());
-            JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-            TbMsg tbMsg = TbMsg.newMsg(POST_ATTRIBUTES_REQUEST.name(), asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-            process(asset.getTenantId(), tbMsg, callback);
+            process(asset, data.getPostAttributesMsg(), callback);
         }
     }
 
@@ -659,14 +649,24 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
     private void pushAssetCreatedEventToRuleEngine(IntegrationInfo integration, Asset asset) {
         try {
+            AssetProfile assetProfile = assetProfileCache.find(asset.getAssetProfileId());
+            RuleChainId ruleChainId;
+            String queueName;
+            if (assetProfile == null) {
+                ruleChainId = null;
+                queueName = null;
+            } else {
+                ruleChainId = assetProfile.getDefaultRuleChainId();
+                queueName = assetProfile.getDefaultQueueName();
+            }
             ObjectNode entityNode = mapper.valueToTree(asset);
-            TbMsg tbMsg = TbMsg.newMsg(DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset), mapper.writeValueAsString(entityNode));
+            TbMsg tbMsg = TbMsg.newMsg(queueName, DataConstants.ENTITY_CREATED, asset.getId(), asset.getCustomerId(), assetActionTbMsgMetaData(integration, asset),
+                    mapper.writeValueAsString(entityNode), ruleChainId, null);
             process(integration.getTenantId(), tbMsg, null);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             log.warn("[{}] Failed to push asset action to rule engine: {}", asset.getId(), DataConstants.ENTITY_CREATED, e);
         }
     }
-
 
     private void pushEntityGroupCreatedEventToRuleEngine(IntegrationInfo integration, EntityGroup entityGroup) {
         try {
@@ -722,6 +722,33 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
                 TransportProtos.ToCoreMsg.newBuilder().setToDeviceActorMsg(msg).build()), null);
     }
 
+    private void process(Asset asset, PostTelemetryMsg msg, IntegrationCallback<Void> callback) {
+        int dataPoints = 0;
+        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+            dataPoints += tsKv.getKvCount();
+        }
+        MsgPackCallback packCallback = new MsgPackCallback(msg.getTsKvListCount(), new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), dataPoints, callback));
+        for (TransportProtos.TsKvListProto tsKv : msg.getTsKvListList()) {
+            TbMsgMetaData metaData = new TbMsgMetaData();
+            metaData.putValue("assetName", asset.getName());
+            metaData.putValue("assetType", asset.getType());
+            metaData.putValue("ts", tsKv.getTs() + "");
+            JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
+            sendToRuleEngine(asset.getTenantId(), asset.getId(), asset.getAssetProfileId(),
+                    asset.getCustomerId(), json, metaData, SessionMsgType.POST_TELEMETRY_REQUEST, packCallback);
+        }
+    }
+
+    private void process(Asset asset, PostAttributeMsg msg, IntegrationCallback<Void> callback) {
+        JsonObject json = JsonUtils.getJsonObject(msg.getKvList());
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("assetName", asset.getName());
+        metaData.putValue("assetType", asset.getType());
+        sendToRuleEngine(asset.getTenantId(), asset.getId(), asset.getAssetProfileId(),
+                asset.getCustomerId(), json, metaData, SessionMsgType.POST_ATTRIBUTES_REQUEST,
+                     new IntegrationTbQueueCallback(new ApiStatsProxyCallback<>(asset.getTenantId(), asset.getCustomerId(), msg.getKvList().size(), callback)));
+    }
+
     private void sendToRuleEngine(TenantId tenantId, DeviceId deviceId, TransportProtos.SessionInfoProto sessionInfo, JsonObject json,
                                   TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
         DeviceProfileId deviceProfileId = new DeviceProfileId(new UUID(sessionInfo.getDeviceProfileIdMSB(), sessionInfo.getDeviceProfileIdLSB()));
@@ -740,6 +767,26 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
         }
 
         TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
+
+        sendToRuleEngine(tenantId, tbMsg, callback);
+    }
+
+    private void sendToRuleEngine(TenantId tenantId, AssetId assetId, AssetProfileId assetProfileId, CustomerId customerId, JsonObject json,
+                                  TbMsgMetaData metaData, SessionMsgType sessionMsgType, TbQueueCallback callback) {
+        AssetProfile assetProfile = assetProfileCache.get(tenantId, assetProfileId);
+        RuleChainId ruleChainId;
+        String queueName;
+
+        if (assetProfile == null) {
+            log.warn("[{}] Asset profile is null!", assetProfileId);
+            ruleChainId = null;
+            queueName = null;
+        } else {
+            ruleChainId = assetProfile.getDefaultRuleChainId();
+            queueName = assetProfile.getDefaultQueueName();
+        }
+
+        TbMsg tbMsg = TbMsg.newMsg(queueName, sessionMsgType.name(), assetId, customerId, metaData, gson.toJson(json), ruleChainId, null);
 
         sendToRuleEngine(tenantId, tbMsg, callback);
     }

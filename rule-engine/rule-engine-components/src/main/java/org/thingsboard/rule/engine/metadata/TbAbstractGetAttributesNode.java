@@ -94,10 +94,6 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
         }
     }
 
-    @Override
-    public void destroy() {
-    }
-
     protected abstract ListenableFuture<T> findEntityIdAsync(TbContext ctx, TbMsg msg);
 
     private void safePutAttributes(TbContext ctx, TbMsg msg, T entityId) {

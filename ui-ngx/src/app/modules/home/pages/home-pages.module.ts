@@ -60,6 +60,8 @@ import { EdgeModule } from '@home/pages/edge/edge.module';
 import { OtaUpdateModule } from '@home/pages/ota-update/ota-update.module';
 import { SolutionTemplatesModule } from '@home/pages/solution-template/solution-templates.module';
 import { VcModule } from '@home/pages/vc/vc.module';
+import { AssetProfileModule } from '@home/pages/asset-profile/asset-profile.module';
+import { ProfilesModule } from '@home/pages/profiles/profiles.module';
 import { CloudEventModule } from '@home/pages/cloud-event/cloud-event.module';
 import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
 
@@ -72,6 +74,8 @@ import { EdgeStatusModule } from '@home/pages/edge-status/edge-status.module';
     TenantProfileModule,
     TenantModule,
     DeviceProfileModule,
+    AssetProfileModule,
+    ProfilesModule,
     DeviceModule,
     AssetModule,
     EdgeModule,

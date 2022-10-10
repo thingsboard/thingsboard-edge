@@ -55,12 +55,14 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -91,6 +93,7 @@ import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -190,6 +193,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private final InstallScripts installScripts;
     private final DeviceProfileService deviceProfileService;
+    private final AssetProfileService assetProfileService;
     private final RuleChainService ruleChainService;
     private final AttributesService attributesService;
     private final TimeseriesService tsService;
@@ -399,6 +403,19 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
 
+        List<AssetProfile> assetProfiles = loadListOfEntitiesIfFileExists(solutionId, "asset_profiles.json", new TypeReference<>() {
+        });
+        assetProfiles.addAll(loadListOfEntitiesFromDirectory(solutionId, "asset_profiles", AssetProfile.class));
+        // Validate that entities with such name does not exist entities
+        if (!assetProfiles.isEmpty()) {
+            for (AssetProfile assetProfile : assetProfiles) {
+                AssetProfile savedProfile = assetProfileService.findAssetProfileByName(tenantId, assetProfile.getName());
+                if (savedProfile != null) {
+                    alreadyExistingEntities.computeIfAbsent(EntityType.ASSET_PROFILE, key -> new ArrayList<>()).add(savedProfile);
+                }
+            }
+        }
+
         List<DashboardDefinition> dashboards = loadListOfEntitiesIfFileExists(solutionId, "dashboards.json", new TypeReference<>() {
         });
         if (!dashboards.isEmpty()) {
@@ -434,6 +451,8 @@ public class DefaultSolutionService implements SolutionService {
             provisionRuleChains(ctx);
 
             provisionDeviceProfiles(ctx);
+
+            provisionAssetProfiles(ctx);
 
             List<CustomerDefinition> customers = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "customers.json", new TypeReference<>() {
             });
@@ -613,6 +632,29 @@ public class DefaultSolutionService implements SolutionService {
 
         deviceProfiles = deviceProfiles.stream().map(deviceProfileService::saveDeviceProfile).collect(Collectors.toList());
         deviceProfiles.forEach(ctx::register);
+    }
+
+    private void provisionAssetProfiles(SolutionInstallContext ctx) {
+        List<AssetProfile> assetProfiles = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "asset_profiles.json", new TypeReference<>() {
+        });
+        assetProfiles.addAll(loadListOfEntitiesFromDirectory(ctx.getSolutionId(), "asset_profiles", AssetProfile.class));
+        assetProfiles.forEach(assetProfile -> {
+            assetProfile.setId(null);
+            assetProfile.setCreatedTime(0L);
+            assetProfile.setTenantId(ctx.getTenantId());
+            if (assetProfile.getDefaultRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(assetProfile.getDefaultRuleChainId().getId().toString());
+                if (newId != null) {
+                    assetProfile.setDefaultRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Asset profile: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+        });
+
+        assetProfiles = assetProfiles.stream().map(assetProfileService::saveAssetProfile).collect(Collectors.toList());
+        assetProfiles.forEach(ctx::register);
     }
 
     private void provisionDashboards(SolutionInstallContext ctx) throws ExecutionException, InterruptedException {
@@ -1082,6 +1124,9 @@ public class DefaultSolutionService implements SolutionService {
                 break;
             case DEVICE_PROFILE:
                 deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));
+                break;
+            case ASSET_PROFILE:
+                assetProfileService.deleteAssetProfile(tenantId, new AssetProfileId(entityId.getId()));
                 break;
             case DASHBOARD:
                 dashboardService.deleteDashboard(tenantId, new DashboardId(entityId.getId()));

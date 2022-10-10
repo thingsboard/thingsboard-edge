@@ -53,6 +53,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertAssetEventToDownlink(EdgeEvent edgeEvent) {
         AssetId assetId = new AssetId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
@@ -60,7 +61,6 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
             case ASSIGNED_TO_EDGE:
                 Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
                 if (asset != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     AssetUpdateMsg assetUpdateMsg =
                             assetMsgConstructor.constructAssetUpdatedMsg(msgType, asset, entityGroupId);
@@ -75,7 +75,7 @@ public class AssetEdgeProcessor extends BaseEdgeProcessor {
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 AssetUpdateMsg assetUpdateMsg =
-                        assetMsgConstructor.constructAssetDeleteMsg(assetId);
+                        assetMsgConstructor.constructAssetDeleteMsg(assetId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetUpdateMsg(assetUpdateMsg)

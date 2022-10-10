@@ -64,13 +64,9 @@ public class DefaultEntityGroupService extends AbstractTbEntityService implement
             notificationEntityService.logEntityAction(tenantId, savedEntityGroup.getId(), savedEntityGroup,
                     actionType, user);
 
-            if (actionType.equals(ActionType.UPDATED)) {
-                notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
-                        savedEntityGroup, user, actionType, true, false, null);
-            } else {
-                notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
-                        savedEntityGroup, user, actionType, false, false,null);
-            }
+            boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
+            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, savedEntityGroup.getId(),
+                    savedEntityGroup, user, actionType, sendMsgToEdge, false, null);
             return savedEntityGroup;
         } catch (Exception e) {
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, null, emptyId(EntityType.ENTITY_GROUP),

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,6 +47,7 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
     private boolean countAlarmsForPropagationEntities;
     private List<EntityType> propagationEntityTypes;
     private String queueName;
+    private String outMsgType;
 
     @Override
     public TbAlarmsCountNodeV2Configuration defaultConfiguration() {
@@ -58,7 +60,7 @@ public class TbAlarmsCountNodeV2Configuration implements NodeConfiguration<TbAla
         configuration.setCountAlarmsForPropagationEntities(true);
         configuration.setPropagationEntityTypes(Collections.emptyList());
         configuration.setAlarmsCountMappings(alarmsCountMappings);
-
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
         return configuration;
     }
 }

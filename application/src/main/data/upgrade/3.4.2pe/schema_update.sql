@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     created_time bigint NOT NULL,
     additional_info varchar,
     customer_id uuid,
+    originator_id uuid,
+    originator_type varchar(255),
     name varchar(255),
     search_text varchar(255),
     tenant_id uuid,
@@ -203,6 +205,8 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
+
+CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
 
 
 

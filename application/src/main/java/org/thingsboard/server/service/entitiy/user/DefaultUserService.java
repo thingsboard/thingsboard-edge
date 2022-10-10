@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -51,6 +52,8 @@ import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 import static org.thingsboard.server.controller.UserController.ACTIVATE_URL_PATTERN;
 
@@ -101,8 +104,9 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     throw e;
                 }
             }
+            boolean sendMsgToEdge = actionType.equals(ActionType.UPDATED);
             notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, savedUser.getId(),
-                    savedUser, user, actionType, true, false, null);
+                    savedUser, user, actionType, sendMsgToEdge, false, null);
             return savedUser;
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER), tbUser, actionType, user, e);
@@ -115,9 +119,10 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
         UserId userId = tbUser.getId();
 
         try {
+            List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, userId);
             userService.deleteUser(tenantId, userId);
-            notificationEntityService.notifyCreateOrUpdateOrDelete(tenantId, customerId, userId, tbUser,
-                    user, ActionType.DELETED, true, false, null, customerId.toString());
+            notificationEntityService.notifyDeleteEntity(tenantId, userId, user, user.getCustomerId(),
+                    ActionType.DELETED, relatedEdgeIds, tbUser, userId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
                     ActionType.DELETED, user, e, userId.toString());

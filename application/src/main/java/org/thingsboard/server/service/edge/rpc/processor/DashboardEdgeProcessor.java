@@ -53,6 +53,7 @@ public class DashboardEdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertDashboardEventToDownlink(EdgeEvent edgeEvent) {
         DashboardId dashboardId = new DashboardId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
@@ -60,7 +61,6 @@ public class DashboardEdgeProcessor extends BaseEdgeProcessor {
             case ASSIGNED_TO_EDGE:
                 Dashboard dashboard = dashboardService.findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     DashboardUpdateMsg dashboardUpdateMsg =
                             dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
@@ -75,7 +75,7 @@ public class DashboardEdgeProcessor extends BaseEdgeProcessor {
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 DashboardUpdateMsg dashboardUpdateMsg =
-                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId);
+                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg)

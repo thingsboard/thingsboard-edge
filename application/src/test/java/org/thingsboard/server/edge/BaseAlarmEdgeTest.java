@@ -91,13 +91,13 @@ abstract public class BaseAlarmEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testAlarms() throws Exception {
         // create alarm
-        edgeImitator.expectMessageAmount(1);
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Alarm alarm = new Alarm();
         alarm.setOriginator(device.getId());
         alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         alarm.setType("alarm");
         alarm.setSeverity(AlarmSeverity.CRITICAL);
+        edgeImitator.expectMessageAmount(1);
         Alarm savedAlarm = doPost("/api/alarm", alarm, Alarm.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();

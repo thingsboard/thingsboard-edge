@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -63,6 +64,7 @@ import org.thingsboard.server.service.edge.rpc.processor.AdminSettingsEdgeProces
 import org.thingsboard.server.service.edge.rpc.processor.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.AssetEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.ConverterEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.AssetProfileEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.CustomerEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DashboardEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.DeviceEdgeProcessor;
@@ -115,6 +117,9 @@ public class EdgeContextComponent {
     private DeviceProfileService deviceProfileService;
 
     @Autowired
+    private AssetProfileService assetProfileService;
+
+    @Autowired
     private AttributesService attributesService;
 
     @Autowired
@@ -149,6 +154,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private DeviceProfileEdgeProcessor deviceProfileProcessor;
+
+    @Autowired
+    private AssetProfileEdgeProcessor assetProfileProcessor;
 
     @Autowired
     private EdgeProcessor edgeProcessor;
