@@ -648,12 +648,19 @@ public abstract class AbstractContainerTest {
     }
 
     protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
-        List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
+        return verifyAttribute(entityId, scope, key, expectedValue, edgeRestClient);
+    }
+
+    protected boolean verifyAttributeOnCloud(EntityId entityId, String scope, String key, String expectedValue) {
+        return verifyAttribute(entityId, scope, key, expectedValue, cloudRestClient);
+    }
+
+    private boolean verifyAttribute(EntityId entityId, String scope, String key, String expectedValue, RestClient restClient) {
+        List<AttributeKvEntry> attributesByScope = restClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
         if (attributesByScope.isEmpty()) {
             return false;
         }
         AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
         return attributeKvEntry.getValueAsString().equals(expectedValue);
     }
-
 }

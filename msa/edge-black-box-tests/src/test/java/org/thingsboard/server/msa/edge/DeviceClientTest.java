@@ -71,69 +71,89 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testDevices() throws Exception {
-        // create device and assign to edge
-        Device savedDevice = saveAndAssignDeviceToEdge();
+        // create device #1 and assign to edge
+        Device savedDevice1 = saveAndAssignDeviceToEdge();
 
-        // update device attributes
-        cloudRestClient.saveDeviceAttributes(savedDevice.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
-        cloudRestClient.saveDeviceAttributes(savedDevice.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        // update device #1 attributes
+        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
+        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> verifyAttributeOnEdge(savedDevice.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+                .until(() -> verifyAttributeOnEdge(savedDevice1.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> verifyAttributeOnEdge(savedDevice.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
+                .until(() -> verifyAttributeOnEdge(savedDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
-        // update device credentials on cloud
+        // update device #1 credentials on cloud
         Optional<DeviceCredentials> deviceCredentialsByDeviceId =
-                cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());
+                cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice1.getId());
         Assert.assertTrue(deviceCredentialsByDeviceId.isPresent());
         DeviceCredentials deviceCredentials = deviceCredentialsByDeviceId.get();
         deviceCredentials.setCredentialsId("UpdatedTokenCloudDevice");
         cloudRestClient.saveDeviceCredentials(deviceCredentials);
-        verifyDeviceCredentialsOnCloudAndEdge(savedDevice);
+        verifyDeviceCredentialsOnCloudAndEdge(savedDevice1);
 
         // validate transport configurations
-        validateDeviceTransportConfiguration(savedDevice, cloudRestClient, edgeRestClient);
+        validateDeviceTransportConfiguration(savedDevice1, cloudRestClient, edgeRestClient);
 
-        // update device
-        savedDevice.setName("Updated device name");
-        cloudRestClient.saveDevice(savedDevice);
+        // update device #1
+        savedDevice1.setName("Updated device name");
+        cloudRestClient.saveDevice(savedDevice1);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Updated device name".equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getName()));
+                .until(() -> "Updated device name".equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getName()));
 
-        // assign device to customer
+        // unassign device #1 from edge
+        cloudRestClient.unassignDeviceFromEdge(edge.getId(), savedDevice1.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(savedDevice1.getId()).isEmpty());
+        cloudRestClient.deleteDevice(savedDevice1.getId());
+
+        // create device #2 and assign to edge
+        Device savedDevice2 = saveAndAssignDeviceToEdge();
+
+        // assign device #2 to customer
         Customer customer = new Customer();
         customer.setTitle("Device Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        cloudRestClient.assignDeviceToCustomer(savedCustomer.getId(), savedDevice.getId());
+        cloudRestClient.assignDeviceToCustomer(savedCustomer.getId(), savedDevice2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId()));
+                .until(() -> savedCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId()));
 
-        // unassign device from customer
-        cloudRestClient.unassignDeviceFromCustomer(savedDevice.getId());
+        // unassign device #2 from customer
+        cloudRestClient.unassignDeviceFromCustomer(savedDevice2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId().getId()));
+                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId().getId()));
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
-        // unassign device from edge
-        cloudRestClient.unassignDeviceFromEdge(edge.getId(), savedDevice.getId());
+        // delete device #2
+        cloudRestClient.deleteDevice(savedDevice2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDeviceById(savedDevice.getId()).isEmpty());
+                .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
     }
 
     @Test
-    public void sendDeviceToCloud() {
+    public void sendDeviceToCloud() throws Exception {
         // create device on edge
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).isPresent());
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
+
+        // update device attributes
+        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
+        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnCloud(savedDeviceOnEdge.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnCloud(savedDeviceOnEdge.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
 
         // update device credentials on edge
         Optional<DeviceCredentials> deviceCredentialsByDeviceId =
@@ -146,6 +166,13 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         // validate transport configurations
         validateDeviceTransportConfiguration(savedDeviceOnEdge, edgeRestClient, cloudRestClient);
+
+        // update device
+        savedDeviceOnEdge.setName("Edge Device 2 Updated");
+        edgeRestClient.saveDevice(savedDeviceOnEdge);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Device 2 Updated".equals(cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).get().getName()));
 
         // assign device to customer
         Customer customer = new Customer();
