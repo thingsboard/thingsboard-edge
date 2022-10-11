@@ -133,9 +133,9 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
-        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(), savedCustomer.getId(),
-                savedCustomer.getTenantId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED);
+        testNotifyManyEntityManyTimeMsgToEdgeServiceNever(savedCustomer, savedCustomer,
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ADDED, 1);
 
         Assert.assertNotNull(savedCustomer);
         Assert.assertNotNull(savedCustomer.getId());
@@ -278,7 +278,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTime(savedCustomer, savedCustomer.getId(),
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(),
                 savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
                 tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
     }
@@ -308,7 +308,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTime(savedCustomer, savedCustomer.getId(),
+        testNotifyEntityAllOneTimeLogEntityActionEntityEqClass(savedCustomer, savedCustomer.getId(),
                 savedCustomer.getId(), savedCustomer.getTenantId(), savedCustomer.getId(), tenantAdmin.getId(),
                 tenantAdmin.getEmail(), ActionType.DELETED, savedCustomer.getId().getId().toString());
 
@@ -374,7 +374,7 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new Customer(), new Customer(),
                 tenantId, tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity);
 
         List<Customer> loadedCustomers = new ArrayList<>(135);
         PageLink pageLink = new PageLink(23);

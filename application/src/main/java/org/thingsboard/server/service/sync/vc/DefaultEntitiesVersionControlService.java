@@ -744,11 +744,12 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 return;
             }
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
+                List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(ctx.getTenantId(), entity.getId());
                 exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
 
                 ctx.addEventCallback(() -> {
                     entityNotificationService.notifyDeleteEntity(ctx.getTenantId(), entity.getId(),
-                            entity, null, ActionType.DELETED, null, ctx.getUser());
+                            entity, null, ActionType.DELETED, relatedEdgeIds, ctx.getUser());
                 });
                 ctx.registerDeleted(entityType, true);
             }
