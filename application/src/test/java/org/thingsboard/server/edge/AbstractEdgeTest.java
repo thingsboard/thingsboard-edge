@@ -249,7 +249,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
     }
 
-    private void installation() throws Exception {
+    private void installation() {
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
 
         thermostatDeviceProfile = this.createDeviceProfile(THERMOSTAT_DEVICE_PROFILE_NAME,
