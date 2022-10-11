@@ -31,8 +31,7 @@
 
 
 export interface TbMessage {
-    scriptIdMSB: string;
-    scriptIdLSB: string;
+    scriptHash: string;
 }
 
 export interface RemoteJsRequest {

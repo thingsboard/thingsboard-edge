@@ -39,6 +39,7 @@ import delight.nashornsandbox.NashornSandbox;
 import delight.nashornsandbox.NashornSandboxes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
@@ -143,7 +144,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     }
 
     @Override
-    protected ListenableFuture<UUID> doEval(UUID scriptId, String functionName, String jsScript) {
+    protected ListenableFuture<UUID> doEval(UUID scriptId, String scriptHash, String functionName, String jsScript) {
         jsPushedMsgs.incrementAndGet();
         ListenableFuture<UUID> result = jsExecutor.submit(() -> {
             try {
@@ -157,7 +158,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
                 } finally {
                     evalLock.unlock();
                 }
-                scriptIdToNameMap.put(scriptId, functionName);
+                scriptIdToNameAndHashMap.put(scriptId, Pair.of(functionName, scriptHash));
                 return scriptId;
             } catch (Exception e) {
                 log.debug("Failed to compile JS script: {}", e.getMessage(), e);
@@ -172,7 +173,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
     }
 
     @Override
-    protected ListenableFuture<Object> doInvokeFunction(UUID scriptId, String functionName, Object[] args) {
+    protected ListenableFuture<Object> doInvokeFunction(UUID scriptId, String scriptHash, String functionName, Object[] args) {
         jsPushedMsgs.incrementAndGet();
         ListenableFuture<Object> result = jsExecutor.submit(() -> {
             try {
@@ -196,7 +197,7 @@ public abstract class AbstractNashornJsInvokeService extends AbstractJsInvokeSer
         return result;
     }
 
-    protected void doRelease(UUID scriptId, String functionName) throws ScriptException {
+    protected void doRelease(UUID scriptId, String scriptHash, String functionName) throws ScriptException {
         if (useJsSandbox()) {
             sandbox.eval(functionName + " = undefined;");
         } else {

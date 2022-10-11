@@ -51,6 +51,7 @@ import Long from 'long';
 const COMPILATION_ERROR = 0;
 const RUNTIME_ERROR = 1;
 const TIMEOUT_ERROR = 2;
+const NOT_FOUND_ERROR = 3;
 
 const statFrequency = Number(config.get('script.stat_print_frequency'));
 const scriptBodyTraceFrequency = Number(config.get('script.script_body_trace_frequency'));
@@ -144,7 +145,12 @@ export class JsInvokeMessageProcessor {
     processCompileRequest(requestId: string, responseTopic: string, headers: any, compileRequest: JsCompileRequest) {
         const scriptId = JsInvokeMessageProcessor.getScriptId(compileRequest);
         this.logger.debug('[%s] Processing compile request, scriptId: [%s]', requestId, scriptId);
-
+        if (this.scriptMap.has(scriptId)) {
+            const compileResponse = JsInvokeMessageProcessor.createCompileResponse(scriptId, true);
+            this.logger.debug('[%s] Script was already compiled, scriptId: [%s]', requestId, scriptId);
+            this.sendResponse(requestId, responseTopic, headers, scriptId, compileResponse);
+            return;
+        }
         this.executor.compileScript(compileRequest.scriptBody).then(
             (script) => {
                 this.cacheScript(scriptId, script);
@@ -208,8 +214,12 @@ export class JsInvokeMessageProcessor {
                 )
             },
             (err: any) => {
-                const invokeResponse = JsInvokeMessageProcessor.createInvokeResponse("", false, COMPILATION_ERROR, err);
-                this.logger.debug('[%s] Sending failed invoke response, scriptId: [%s], errorCode: [%s]', requestId, scriptId, COMPILATION_ERROR);
+                let errorCode = COMPILATION_ERROR;
+                if (err && isString(err.name) && err.name.includes('script body not found')) {
+                    errorCode = NOT_FOUND_ERROR;
+                }
+                const invokeResponse = JsInvokeMessageProcessor.createInvokeResponse("", false, errorCode, err);
+                this.logger.debug('[%s] Sending failed invoke response, scriptId: [%s], errorCode: [%s]', requestId, scriptId, errorCode);
                 this.sendResponse(requestId, responseTopic, headers, scriptId, undefined, invokeResponse);
             }
         );
@@ -237,7 +247,7 @@ export class JsInvokeMessageProcessor {
         const remoteResponse = JsInvokeMessageProcessor.createRemoteResponse(requestId, compileResponse, invokeResponse, releaseResponse);
         const rawResponse = Buffer.from(JSON.stringify(remoteResponse), 'utf8');
         this.logger.debug('[%s] Sending response to queue, scriptId: [%s]', requestId, scriptId);
-        this.producer.send(responseTopic, scriptId, rawResponse, headers).then(
+        this.producer.send(responseTopic, requestId, rawResponse, headers).then(
             () => {
                 this.logger.debug('[%s] Response sent to queue, took [%s]ms, scriptId: [%s]', requestId, (performance.now() - tStartSending), scriptId);
             },
@@ -257,7 +267,7 @@ export class JsInvokeMessageProcessor {
             if (script) {
                 self.incrementUseScriptId(scriptId);
                 resolve(script);
-            } else {
+            } else if (scriptBody) {
                 const startTime = performance.now();
                 self.executor.compileScript(scriptBody).then(
                     (compiledScript) => {
@@ -270,6 +280,12 @@ export class JsInvokeMessageProcessor {
                         reject(err);
                     }
                 );
+            } else {
+                const err = {
+                    name: 'script body not found',
+                    message: ''
+                }
+                reject(err);
             }
         });
     }
@@ -300,13 +316,11 @@ export class JsInvokeMessageProcessor {
     }
 
     private static createCompileResponse(scriptId: string, success: boolean, errorCode?: number, err?: any): JsCompileResponse {
-        const scriptIdBits = UUIDToBits(scriptId);
         return {
             errorCode: errorCode,
             success: success,
             errorDetails: parseJsErrorDetails(err),
-            scriptIdMSB: scriptIdBits[0],
-            scriptIdLSB: scriptIdBits[1]
+            scriptHash: scriptId,
         };
     }
 
@@ -320,16 +334,14 @@ export class JsInvokeMessageProcessor {
     }
 
     private static createReleaseResponse(scriptId: string, success: boolean): JsReleaseResponse {
-        const scriptIdBits = UUIDToBits(scriptId);
         return {
             success: success,
-            scriptIdMSB: scriptIdBits[0],
-            scriptIdLSB: scriptIdBits[1]
+            scriptHash: scriptId,
         };
     }
 
     private static getScriptId(request: TbMessage): string {
-        return toUUIDString(request.scriptIdMSB, request.scriptIdLSB);
+        return request.scriptHash;
     }
 
     private incrementUseScriptId(scriptId: string) {
