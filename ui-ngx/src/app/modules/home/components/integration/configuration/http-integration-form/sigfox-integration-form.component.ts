@@ -39,8 +39,8 @@ import { IntegrationType } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-sigfox-integration-form',
-  templateUrl: './base-http-integration-form.component.html',
-  styleUrls: ['./base-http-integration-form.component.scss'],
+  templateUrl: './http-integration-form.component.html',
+  styleUrls: ['./http-integration-form.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SigfoxIntegrationFormComponent),

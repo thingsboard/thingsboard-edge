@@ -52,8 +52,8 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 
 @Component({
   selector: 'tb-http-integration-form',
-  templateUrl: './base-http-integration-form.component.html',
-  styleUrls: ['./base-http-integration-form.component.scss'],
+  templateUrl: './http-integration-form.component.html',
+  styleUrls: ['./http-integration-form.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => HttpIntegrationFormComponent),
@@ -68,6 +68,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 export class HttpIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
   baseHttpIntegrationConfigForm: FormGroup;
+  showSecurity = true;
 
   @Input()
   routingKey: string;

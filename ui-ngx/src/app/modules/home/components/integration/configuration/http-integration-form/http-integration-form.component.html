@@ -55,7 +55,9 @@
     </fieldset>
   </div>
 
-  <mat-expansion-panel class="security-setting" [expanded]="baseHttpIntegrationConfigForm.get('enableSecurity').value">
+  <mat-expansion-panel class="security-setting"
+                       [expanded]="baseHttpIntegrationConfigForm.get('enableSecurity').value"
+                       *ngIf="showSecurity">
     <mat-expansion-panel-header fxLayout="row">
       <mat-panel-title>
         <mat-slide-toggle [aria-label]="'integration.enable-security' | translate"

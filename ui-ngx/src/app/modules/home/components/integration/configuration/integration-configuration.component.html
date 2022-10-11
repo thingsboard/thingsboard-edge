@@ -70,6 +70,20 @@
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-sigfox-integration-form>
     </section>
+    <section *ngSwitchCase="integrationTypes.OCEANCONNECT">
+      <tb-ocean-connect-integration-form formControlName="configuration"
+                                         [routingKey]="routingKey"
+                                         [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                         [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-ocean-connect-integration-form>
+    </section>
+    <section *ngSwitchCase="integrationTypes.TMOBILE_IOT_CDP">
+      <tb-t-mobile-iot-cdp-integration-form formControlName="configuration"
+                                            [routingKey]="routingKey"
+                                            [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                            [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-t-mobile-iot-cdp-integration-form>
+    </section>
     <section *ngSwitchDefault>
       <input formControlName="configuration">
     </section>

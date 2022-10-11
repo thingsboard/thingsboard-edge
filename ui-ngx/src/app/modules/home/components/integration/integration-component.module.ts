@@ -48,10 +48,10 @@ import {
 } from '@home/components/integration/integration-credentials/integration-credentials.component';
 import {
   HttpIntegrationFormComponent
-} from '@home/components/integration/configuration/http-sigfox-integration-form/http-integration-form.component';
+} from '@home/components/integration/configuration/http-integration-form/http-integration-form.component';
 import {
   SigfoxIntegrationFormComponent
-} from '@home/components/integration/configuration/http-sigfox-integration-form/sigfox-integration-form.component';
+} from '@home/components/integration/configuration/http-integration-form/sigfox-integration-form.component';
 import {
   TtnIntegrationFormComponent
 } from '@home/components/integration/configuration/ttn-tti-integration-form/ttn-integration-form.component';
@@ -61,6 +61,12 @@ import {
 import {
   AwsIotIntegrationFormComponent
 } from '@home/components/integration/configuration/aws-iot-integration-form/aws-iot-integration-form.component';
+import {
+  OceanConnectIntegrationFormComponent
+} from '@home/components/integration/configuration/http-integration-form/ocean-connect-integration-form.component';
+import {
+  TMobileIotIntegrationFormComponent
+} from '@home/components/integration/configuration/http-integration-form/t-mobile-iot-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -74,7 +80,9 @@ import {
     SigfoxIntegrationFormComponent,
     TtnIntegrationFormComponent,
     TtiIntegrationFormComponent,
-    AwsIotIntegrationFormComponent
+    AwsIotIntegrationFormComponent,
+    OceanConnectIntegrationFormComponent,
+    TMobileIotIntegrationFormComponent
   ],
   imports: [
     CommonModule,
