@@ -79,6 +79,7 @@ import {
 import {
   LoriotIntegrationFormComponent
 } from '@home/components/integration/configuration/loriot-integration-form/loriot-integration-form.component';
+import { ChirpStackIntegrationFormComponent } from '@home/components/integration/configuration/chirp-stack-integration-form/chirp-stack-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -98,7 +99,8 @@ import {
     OpcUaIntegrationFormComponent,
     OpcUaMappingComponent,
     OpcUaSubscriptionComponent,
-    LoriotIntegrationFormComponent
+    LoriotIntegrationFormComponent,
+    ChirpStackIntegrationFormComponent
   ],
   imports: [
     CommonModule,

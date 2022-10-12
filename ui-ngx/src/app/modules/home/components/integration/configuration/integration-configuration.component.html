@@ -96,6 +96,13 @@
                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-loriot-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.CHIRPSTACK">
+      <tb-chirp-stack-integration-form formControlName="configuration"
+                                       [routingKey]="routingKey"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-chirp-stack-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
       <input formControlName="configuration">
     </ng-container>
