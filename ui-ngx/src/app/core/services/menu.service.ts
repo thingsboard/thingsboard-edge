@@ -540,16 +540,43 @@ export class MenuService {
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE) && disabledItems.indexOf('device_groups') === -1) {
       sections.push(this.createEntityGroupSection(EntityType.DEVICE));
     }
+    const profilePages: Array<MenuSection> = [];
     if (this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
-      sections.push(
+      profilePages.push(
         {
           id: guid(),
           name: 'device-profile.device-profiles',
           type: 'link',
-          path: '/deviceProfiles',
+          path: '/profiles/deviceProfiles',
           icon: 'mdi:alpha-d-box',
           isMdiIcon: true,
           disabled: disabledItems.indexOf('device_profiles') > -1
+        }
+      );
+    }
+    if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)) {
+      profilePages.push(
+        {
+          id: guid(),
+          name: 'asset-profile.asset-profiles',
+          type: 'link',
+          path: '/profiles/assetProfiles',
+          icon: 'mdi:alpha-a-box',
+          isMdiIcon: true,
+          disabled: disabledItems.indexOf('asset_profiles') > -1
+        }
+      );
+    }
+    if (profilePages.length) {
+      sections.push(
+        {
+          id: guid(),
+          name: 'profiles.profiles',
+          type: 'toggle',
+          path: '/profiles',
+          icon: 'badge',
+          pages: profilePages,
+          asyncPages: of(profilePages)
         }
       );
     }
@@ -936,21 +963,37 @@ export class MenuService {
         }
       );
     }
-    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ASSET)) {
-      homeSections.push(
-        {
-          name: 'asset.management',
-          places: [
-            {
-              name: 'asset.assets',
-              icon: 'domain',
-              path: '/assetGroups',
-              disabled: disabledItems.indexOf('asset_groups') > -1
-            }
-          ]
-        }
-      );
+
+    if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ASSET) ||
+      this.userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)) {
+      const assetManagementSection: HomeSection = {
+        name: 'asset.management',
+        places: []
+      };
+      homeSections.push(assetManagementSection);
+      if (this.userPermissionsService.hasReadGroupsPermission(EntityType.ASSET)) {
+        assetManagementSection.places.push(
+          {
+            name: 'asset.assets',
+            icon: 'domain',
+            path: '/assetGroups',
+            disabled: disabledItems.indexOf('asset_groups') > -1
+          }
+        );
+      }
+      if (this.userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)) {
+        assetManagementSection.places.push(
+          {
+            name: 'asset-profile.asset-profiles',
+            icon: 'mdi:alpha-a-box',
+            isMdiIcon: true,
+            path: '/profiles/assetProfiles',
+            disabled: disabledItems.indexOf('asset_profiles') > -1
+          }
+        );
+      }
     }
+
     if (this.userPermissionsService.hasReadGroupsPermission(EntityType.DEVICE) ||
       this.userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)) {
       const deviceManagementSection: HomeSection = {

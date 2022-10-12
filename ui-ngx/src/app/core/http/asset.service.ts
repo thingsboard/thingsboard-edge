@@ -55,6 +55,12 @@ export class AssetService {
       defaultHttpOptionsFromConfig(config));
   }
 
+  public getTenantAssetInfosByAssetProfileId(pageLink: PageLink, assetProfileId: string = '',
+                                             config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    return this.http.get<PageData<AssetInfo>>(`/api/tenant/assetInfos${pageLink.toQuery()}&assetProfileId=${assetProfileId}`,
+      defaultHttpOptionsFromConfig(config));
+  }
+
   public getCustomerAssetInfos(customerId: string, pageLink: PageLink, type: string = '',
                                config?: RequestConfig): Observable<PageData<AssetInfo>> {
     return this.http.get<PageData<AssetInfo>>(`/api/customer/${customerId}/assetInfos${pageLink.toQuery()}&type=${type}`,
@@ -67,10 +73,17 @@ export class AssetService {
   }
 
   public getCustomerAssets(customerId: string, pageLink: PageLink, type: string = '',
-                               config?: RequestConfig): Observable<PageData<Asset>> {
+                           config?: RequestConfig): Observable<PageData<Asset>> {
     return this.http.get<PageData<Asset>>(`/api/customer/${customerId}/assets${pageLink.toQuery()}&type=${type}`,
       defaultHttpOptionsFromConfig(config));
   }
+
+/*  public getCustomerAssetInfosByAssetProfileId(customerId: string, pageLink: PageLink, assetProfileId: string = '',
+                                               config?: RequestConfig): Observable<PageData<AssetInfo>> {
+    return this.http.get<PageData<AssetInfo>>
+    (`/api/customer/${customerId}/assetInfos${pageLink.toQuery()}&assetProfileId=${assetProfileId}`,
+      defaultHttpOptionsFromConfig(config));
+  } */
 
   public getAsset(assetId: string, config?: RequestConfig): Observable<Asset> {
     return this.http.get<Asset>(`/api/asset/${assetId}`, defaultHttpOptionsFromConfig(config));

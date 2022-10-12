@@ -63,7 +63,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_type ON asset(tenant_id, type);
 
 CREATE INDEX IF NOT EXISTS idx_attribute_kv_by_key_and_last_update_ts ON attribute_kv(entity_id, attribute_key, last_update_ts desc);
 
-CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_id_and_created_time ON audit_log(tenant_id, created_time);
+CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_id_and_created_time ON audit_log(tenant_id, created_time DESC);
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 
@@ -100,3 +100,6 @@ CREATE INDEX IF NOT EXISTS idx_role_external_id ON role(tenant_id, external_id);
 CREATE INDEX IF NOT EXISTS idx_entity_group_external_id ON entity_group(external_id);
 
 CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(entity_id);
+
+CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
+

@@ -248,6 +248,7 @@ public class TbAggLatestTelemetryNodeTest {
 
         config.setPeriodTimeUnit(TimeUnit.MILLISECONDS);
         config.setPeriodValue(0);
+        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         ObjectMapper mapper = new ObjectMapper();
         nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));

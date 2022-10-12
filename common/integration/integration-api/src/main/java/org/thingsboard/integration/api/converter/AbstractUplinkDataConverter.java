@@ -70,7 +70,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
     public ListenableFuture<List<UplinkData>> convertUplink(ConverterContext context, byte[] data, UplinkMetaData metadata,
                                                             ExecutorService callBackExecutorService) throws Exception {
         long startTime = System.currentTimeMillis();
-        ListenableFuture<Object> convertFuture = doConvertUplink(data, metadata);
+        ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
         ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, convertResult -> {
             String rawResult = (String) convertResult;
             if (log.isTraceEnabled()) {
@@ -103,7 +103,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return result;
     }
 
-    protected abstract ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
+    protected abstract ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception;
 
     protected UplinkData parseUplinkData(JsonObject src) {
         boolean isAsset = getIsAssetAndVerify(src);

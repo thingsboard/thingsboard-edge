@@ -68,7 +68,7 @@ public class JSUplinkDataConverter extends AbstractUplinkDataConverter {
     }
 
     @Override
-    public ListenableFuture<Object> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
+    public ListenableFuture<String> doConvertUplink(byte[] data, UplinkMetaData metadata) throws Exception {
         return evaluator.execute(data, metadata);
     }
 

@@ -78,8 +78,4 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgToOrigina
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }
