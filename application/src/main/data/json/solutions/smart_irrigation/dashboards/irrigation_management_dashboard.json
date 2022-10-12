@@ -155,8 +155,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -614,8 +614,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -849,8 +849,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1096,8 +1096,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1332,8 +1332,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1569,8 +1569,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1890,8 +1890,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1989,8 +1989,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665486837920,
-                "endTimeMs": 1665573237920
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2179,6 +2179,288 @@
         "row": 0,
         "col": 0,
         "id": "4e910f4e-5cb9-a8a5-b6d8-9ec9b7003900"
+      },
+      "fd1083dd-fad3-90c3-8eba-8a8fe0f1d93e": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "criticalAlarmsCount",
+                  "type": "attribute",
+                  "label": "criticalAlarmsCount",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.9443086420596323
+                },
+                {
+                  "name": "majorAlarmsCount",
+                  "type": "attribute",
+                  "label": "majorAlarmsCount",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.3039588670801061
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1665497079550,
+                "endTimeMs": 1665583479550
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextFunction": "var criticalAlarmsCount = data[0]['criticalAlarmsCount'];\nvar majorAlarmsCount = data[0]['majorAlarmsCount'];\nif (criticalAlarmsCount) {\n    var text = \"Critical Alarm\";\n    if (criticalAlarmsCount > 1) {\n        text += \"s\";\n    }\n    return '<div class=\"alarms critical\"><div id=\"alarms\" class=\"alarm-card\"><mat-icon>error</mat-icon><span class=\"alarm-text\">' + criticalAlarmsCount + ' ' + text + '</span></div></div>';\n} else if (majorAlarmsCount) {\n    var text = \"Major Alarm\";\n    if (majorAlarmsCount > 1) {\n        text += \"s\";\n    }\n    return '<div class=\"alarms major\"><div id=\"alarms\" class=\"alarm-card\"><mat-icon>warning</mat-icon><span class=\"alarm-text\">' + majorAlarmsCount + ' ' + text + '</span></div></div>';\n} else {\n    return '<div class=\"alarms no-alarms\"><div id=\"alarms\" class=\"alarm-card\"><mat-icon>check_circle_outline</mat-icon><span class=\"alarm-text\">No alarms</span></div></div>';\n}\n",
+            "markdownCss": ".alarms {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    cursor: pointer;\n}\n\n.alarms .alarm-card {\n    padding: 14px;\n    border-radius: 8px;\n}\n\n.alarms .alarm-text {\n    font-weight: 400;\n    font-size: 14px;\n    padding-left: 8px;\n}\n\n.alarms .mat-icon {\n    width: 28px;\n    height: 28px;\n    line-height: 28px;\n    font-size: 28px;\n    vertical-align: middle;\n}\n\n.alarms.no-alarms .mat-icon {\n    color: #198038;\n}\n\n.alarms.no-alarms .alarm-text {\n    color: #868D9C;\n}\n\n.alarms.critical .alarm-card {\n    background: #D12730;\n}\n\n.alarms.critical .mat-icon, .alarms.critical .alarm-text {\n    color: #ffffff;\n}\n\n.alarms.critical .alarm-text, .alarms.major .alarm-text {\n    font-weight: 500;\n}\n\n.alarms.major .alarm-card {\n    border: solid 2px #e78202\n}\n\n.alarms.major .mat-icon, .alarms.major .alarm-text {\n    color: #e78202\n}\n\n"
+          },
+          "title": "Alarms",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "alarms",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "field_alarms",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "popoverPreferredPlacement": "left",
+                "popoverHideOnClickOutside": true,
+                "popoverHideDashboardToolbar": true,
+                "popoverWidth": "800px",
+                "popoverHeight": "50vh",
+                "popoverStyle": {},
+                "openInSeparateDialog": false,
+                "openInPopover": true,
+                "id": "699a826e-1f2a-9033-551d-a4853ce8c671"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "fd1083dd-fad3-90c3-8eba-8a8fe0f1d93e"
+      },
+      "2dcc4fce-85e4-e67d-4467-7bd38e579c5c": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 10.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "enableSelectColumnDisplay": true,
+            "enableFilter": false,
+            "enableStickyHeader": true,
+            "enableStickyAction": false,
+            "reserveSpaceForHiddenAction": "true",
+            "displayDetails": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "useRowStyleFunction": false
+          },
+          "title": "New Alarms table",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": null,
+            "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.021092237451093787
+              },
+              {
+                "name": "originator",
+                "type": "alarm",
+                "label": "Sensor",
+                "color": "#4caf50",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.2780007688856758,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.7323586880398418
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {
+                  "columnWidth": "0px",
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "var severity = value;\nvar color = 'black';\nswitch (severity) {\n  case 'CRITICAL':\n    color = 'red';\n    break;\n  case 'MAJOR':\n    color = 'orange';\n    break;\n  case 'MINOR':\n    color = '#ffca3d';\n    break;\n  case 'WARNING':\n    color = '#abab00';\n    break;\n  case 'INDETERMINATE':\n    color = 'green';\n    break;\n}\n\nseverity = severity.toLowerCase();\nseverity = severity.charAt(0).toUpperCase() + severity.slice(1);\n\nreturn '<span style=\"font-weight: bold; color: ' + color +' !important;\">' + severity + '<span>';\n",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
+                },
+                "_hash": 0.09927019860088193,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.6588418951443418
+              }
+            ]
+          },
+          "alarmSearchStatus": "ANY",
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleIcon": "more_horiz",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "widgetStyle": {},
+          "displayTimewindow": true,
+          "actions": {},
+          "alarmStatusList": [
+            "ACTIVE"
+          ],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": true,
+          "datasources": [],
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "2dcc4fce-85e4-e67d-4467-7bd38e579c5c"
       }
     },
     "states": {
@@ -2227,28 +2509,34 @@
           "main": {
             "widgets": {
               "a6b597ee-cb21-ee9f-dc98-8673f1d976f1": {
-                "sizeX": 8,
+                "sizeX": 10,
                 "sizeY": 5,
                 "row": 0,
                 "col": 0
               },
               "8fcd3aed-58d0-0cad-cf63-3a08e1be40a9": {
                 "sizeX": 5,
-                "sizeY": 11,
-                "row": 0,
+                "sizeY": 9,
+                "row": 2,
                 "col": 19
               },
               "8345be8d-e581-cbf5-3b22-a95bc191063f": {
-                "sizeX": 8,
+                "sizeX": 10,
                 "sizeY": 6,
                 "row": 5,
                 "col": 0
               },
               "338c74b3-0f57-5ab6-38e9-8df68d47ffae": {
-                "sizeX": 11,
+                "sizeX": 9,
                 "sizeY": 5,
                 "row": 0,
-                "col": 8
+                "col": 10
+              },
+              "fd1083dd-fad3-90c3-8eba-8a8fe0f1d93e": {
+                "sizeX": 5,
+                "sizeY": 2,
+                "row": 0,
+                "col": 19
               }
             },
             "gridSettings": {
@@ -2375,6 +2663,32 @@
           "main": {
             "widgets": {
               "4e910f4e-5cb9-a8a5-b6d8-9ec9b7003900": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "field_alarms": {
+        "name": "Field Alarms",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "2dcc4fce-85e4-e67d-4467-7bd38e579c5c": {
                 "sizeX": 24,
                 "sizeY": 11,
                 "row": 0,
