@@ -76,6 +76,9 @@ import {
 import {
   OpcUaSubscriptionComponent
 } from '@home/components/integration/configuration/opc-ua-integration-form/opc-ua-subscription.component';
+import {
+  LoriotIntegrationFormComponent
+} from '@home/components/integration/configuration/loriot-integration-form/loriot-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -94,7 +97,8 @@ import {
     TMobileIotIntegrationFormComponent,
     OpcUaIntegrationFormComponent,
     OpcUaMappingComponent,
-    OpcUaSubscriptionComponent
+    OpcUaSubscriptionComponent,
+    LoriotIntegrationFormComponent
   ],
   imports: [
     CommonModule,

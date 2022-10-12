@@ -35,13 +35,15 @@ import { IntegrationType } from '@shared/models/integration.models';
 export enum IntegrationCredentialType {
   Anonymous = 'anonymous',
   Basic = 'basic',
-  CertPEM = 'cert.PEM'
+  CertPEM = 'cert.PEM',
+  Token = 'token'
 }
 
 export const IntegrationCredentialTypeTranslation = new Map<IntegrationCredentialType, string>([
   [IntegrationCredentialType.Anonymous, 'extension.anonymous'],
   [IntegrationCredentialType.Basic, 'extension.basic'],
   [IntegrationCredentialType.CertPEM, 'extension.pem'],
+  [IntegrationCredentialType.Token, 'extension.token']
 ]);
 
 export enum MqttQos {
