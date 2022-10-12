@@ -50,7 +50,7 @@ import java.util.Optional;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
+abstract public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testIntegrations() throws Exception {
