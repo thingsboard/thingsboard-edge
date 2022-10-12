@@ -33,7 +33,7 @@ import config from 'config';
 import { _logger } from '../config/logger';
 import { JsExecutor, TbScript } from './jsExecutor';
 import { performance } from 'perf_hooks';
-import { isString, parseJsErrorDetails, toUUIDString, UUIDFromBuffer, UUIDToBits } from './utils';
+import { isString, parseJsErrorDetails, toUUIDString, UUIDFromBuffer, UUIDToBits, isNotUUID } from './utils';
 import { IQueue } from '../queue/queue.models';
 import {
     JsCompileRequest,
@@ -191,7 +191,7 @@ export class JsInvokeMessageProcessor {
                             this.logger.debug('[%s] Sending success invoke response, scriptId: [%s]', requestId, scriptId);
                             this.sendResponse(requestId, responseTopic, headers, scriptId, undefined, invokeResponse);
                         } else {
-                            let err = {
+                            const err = {
                                 name: 'Error',
                                 message: 'script invocation result exceeds maximum allowed size of ' + maxResultSize + ' symbols'
                             }
@@ -215,7 +215,7 @@ export class JsInvokeMessageProcessor {
             },
             (err: any) => {
                 let errorCode = COMPILATION_ERROR;
-                if (err && isString(err.name) && err.name.includes('script body not found')) {
+                if (err?.name === 'script body not found') {
                     errorCode = NOT_FOUND_ERROR;
                 }
                 const invokeResponse = JsInvokeMessageProcessor.createInvokeResponse("", false, errorCode, err);
@@ -316,12 +316,26 @@ export class JsInvokeMessageProcessor {
     }
 
     private static createCompileResponse(scriptId: string, success: boolean, errorCode?: number, err?: any): JsCompileResponse {
-        return {
-            errorCode: errorCode,
-            success: success,
-            errorDetails: parseJsErrorDetails(err),
-            scriptHash: scriptId,
-        };
+        if (isNotUUID(scriptId)) {
+            return {
+                errorCode: errorCode,
+                success: success,
+                errorDetails: parseJsErrorDetails(err),
+                scriptIdMSB: "0",
+                scriptIdLSB: "0",
+                scriptHash: scriptId
+            };
+        } else { // this is for backward compatibility (to be able to work with tb-node of previous version) - todo: remove in the next release
+            let scriptIdBits = UUIDToBits(scriptId);
+            return {
+                errorCode: errorCode,
+                success: success,
+                errorDetails: parseJsErrorDetails(err),
+                scriptIdMSB: scriptIdBits[0],
+                scriptIdLSB: scriptIdBits[1],
+                scriptHash: ""
+            };
+        }
     }
 
     private static createInvokeResponse(result: string, success: boolean, errorCode?: number, err?: any): JsInvokeResponse {
@@ -334,14 +348,26 @@ export class JsInvokeMessageProcessor {
     }
 
     private static createReleaseResponse(scriptId: string, success: boolean): JsReleaseResponse {
-        return {
-            success: success,
-            scriptHash: scriptId,
-        };
+        if (isNotUUID(scriptId)) {
+            return {
+                success: success,
+                scriptIdMSB: "0",
+                scriptIdLSB: "0",
+                scriptHash: scriptId,
+            };
+        } else { // todo: remove in the next release
+            let scriptIdBits = UUIDToBits(scriptId);
+            return {
+                success: success,
+                scriptIdMSB: scriptIdBits[0],
+                scriptIdLSB: scriptIdBits[1],
+                scriptHash: ""
+            }
+        }
     }
 
     private static getScriptId(request: TbMessage): string {
-        return request.scriptHash;
+        return request.scriptHash ? request.scriptHash : toUUIDString(request.scriptIdMSB, request.scriptIdLSB);
     }
 
     private incrementUseScriptId(scriptId: string) {
