@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -149,6 +150,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private AuditLogDao auditLogDao;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
         switch (fromVersion) {
@@ -182,19 +186,29 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 break;
             case "3.4.0":
-                String skipEventsMigration = System.getenv("TB_SKIP_EVENTS_MIGRATION");
-                if (skipEventsMigration == null || skipEventsMigration.equalsIgnoreCase("false")) {
+                boolean skipEventsMigration = getEnv("TB_SKIP_EVENTS_MIGRATION", false);
+                if (!skipEventsMigration) {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
                 }
 
                 break;
             case "3.4.1":
+                boolean skipAuditLogsMigration = getEnv("TB_SKIP_AUDIT_LOGS_MIGRATION", false);
+                if (!skipAuditLogsMigration) {
+                    log.info("Updating data from version 3.4.1 to 3.4.2 ...");
+                    log.info("Starting audit logs migration. Can be skipped with TB_SKIP_AUDIT_LOGS_MIGRATION env variable set to true");
+                    auditLogDao.migrateAuditLogs();
+                } else {
+                    log.info("Skipping audit logs migration");
+                }
+
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
+
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
@@ -717,6 +731,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
         mainQueueProcessingStrategy.setMaxPauseBetweenRetries(3);
         mainQueueConfiguration.setProcessingStrategy(mainQueueProcessingStrategy);
         return mainQueueConfiguration;
+    }
+
+    private boolean getEnv(String name, boolean defaultValue) {
+        String env = System.getenv(name);
+        if (env == null) {
+            return defaultValue;
+        } else {
+            return Boolean.parseBoolean(env);
+        }
     }
 
 }
