@@ -141,7 +141,7 @@
         "propagateToOwnerHierarchy": false,
         "propagateToTenant": false,
         "propagateRelationTypes": [
-          "FieldToMoistureSensor"
+          "FieldToSmartValve"
         ]
       }
     ]

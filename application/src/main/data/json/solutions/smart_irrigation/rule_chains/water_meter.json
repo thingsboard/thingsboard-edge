@@ -115,7 +115,7 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.CalculateDeltaNode",
         "name": "Calculate Delta",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "inputValueKey": "pulseCounter",
           "outputValueKey": "waterConsumption",
@@ -135,12 +135,12 @@
         },
         "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
         "name": "SimulateWaterUsage",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "msgCount": 0,
           "periodInSeconds": 1,
           "jsScript": "var msg = { pulseCounter: prevMsg.pulseCounter +1 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "d924ddb0-398c-11ed-af17-3d7337747e91",
+          "originatorId": "85577d30-4a3c-11ed-a9d2-bb3f1ef29ab0",
           "originatorType": "DEVICE"
         },
         "externalId": null
@@ -153,7 +153,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Field",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "originatorSource": "RELATED",
           "entityType": null,
@@ -182,9 +182,23 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Field Rule Chain",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
-          "ruleChainId": "7e327000-38ee-11ed-af17-3d7337747e91"
+          "ruleChainId": "853ddab0-4a3c-11ed-a9d2-bb3f1ef29ab0"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 493,
+          "layoutY": 141
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "Count Alarms",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
         },
         "externalId": null
       }
@@ -221,9 +235,39 @@
         "type": "RPC Request to Device"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 11,
+        "type": "Alarm Acknowledged"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 11,
+        "type": "Alarm Cleared"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 11,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 11,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 11,
+        "type": "Alarm Severity Updated"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 11,
+        "type": "Alarm Updated"
       },
       {
         "fromIndex": 7,

@@ -106,6 +106,20 @@
           "fetchAlarmRulesStateOnStart": false
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 566,
+          "layoutY": 95
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+        "name": "Count Alarms",
+        "debugMode": false,
+        "configuration": {
+          "ruleChainId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -135,9 +149,39 @@
         "type": "RPC Request to Device"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "Alarm Acknowledged"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Severity Updated"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 7,
+        "type": "Alarm Updated"
       }
     ],
     "ruleChainConnections": null

@@ -279,61 +279,14 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 591,
-          "layoutY": 47
+          "layoutX": 590,
+          "layoutY": 35
         },
-        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "Count Alarms",
         "debugMode": false,
         "configuration": {
-          "alarmsCountMappings": [
-            {
-              "target": "criticalAlarmsCount",
-              "typesList": [],
-              "severityList": [
-                "CRITICAL"
-              ],
-              "statusList": [
-                "ACTIVE_UNACK",
-                "ACTIVE_ACK"
-              ]
-            },
-            {
-              "target": "majorAlarmsCount",
-              "typesList": [],
-              "severityList": [
-                "MAJOR",
-                "MINOR",
-                "WARNING",
-                "INDETERMINATE"
-              ],
-              "statusList": [
-                "ACTIVE_UNACK",
-                "ACTIVE_ACK"
-              ]
-            }
-          ],
-          "countAlarmsForPropagationEntities": true,
-          "propagationEntityTypes": [
-            "ASSET"
-          ],
-          "outMsgType": "POST_ATTRIBUTES_REQUEST",
-          "queueName": "HighPriority"
-        },
-        "externalId": null
-      },
-      {
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 926,
-          "layoutY": 27
-        },
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
-        "name": "Save Server Attributes",
-        "debugMode": false,
-        "configuration": {
-          "scope": "SERVER_SCOPE",
-          "notifyDevice": false
+          "ruleChainId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
         },
         "externalId": null
       }
@@ -375,6 +328,16 @@
         "type": "Relation Added or Updated"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Alarm Acknowledged"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Alarm Cleared"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
@@ -388,6 +351,11 @@
         "fromIndex": 6,
         "toIndex": 15,
         "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Severity Updated"
       },
       {
         "fromIndex": 6,
@@ -423,11 +391,6 @@
         "fromIndex": 14,
         "toIndex": 7,
         "type": "True"
-      },
-      {
-        "fromIndex": 15,
-        "toIndex": 16,
-        "type": "Success"
       }
     ],
     "ruleChainConnections": null

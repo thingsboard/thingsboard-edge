@@ -1,5 +1,10 @@
 [
   {
+    "name": "SI Count Alarms",
+    "file": "count_alarms.json",
+    "jsonId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
+  },
+  {
     "name": "SI Field",
     "file": "field.json",
     "jsonId": "7e327000-38ee-11ed-af17-3d7337747e91"
