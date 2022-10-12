@@ -2485,7 +2485,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     }
 
     @Test
-    public void updateSharedAttributeOnCloudAndValidateDeviceSubscription() throws Exception {
+    public void sendUpdateSharedAttributeToCloudAndValidateDeviceSubscription() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
         DeviceCredentials deviceCredentials = doGet("/api/device/" + device.getUuidId() + "/credentials", DeviceCredentials.class);

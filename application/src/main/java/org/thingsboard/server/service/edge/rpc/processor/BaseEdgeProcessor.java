@@ -126,7 +126,7 @@ public abstract class BaseEdgeProcessor {
     @Autowired
     protected TelemetrySubscriptionService tsSubService;
 
-    @Autowired(required = false)
+    @Autowired
     protected TbNotificationEntityService notificationEntityService;
 
     @Autowired
