@@ -126,7 +126,6 @@ export enum CloudEventActionType {
   RULE_CHAIN_METADATA_REQUEST = 'RULE_CHAIN_METADATA_REQUEST',
   RELATION_REQUEST = 'RELATION_REQUEST',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
-  DEVICE_PROFILE_DEVICES_REQUEST = 'DEVICE_PROFILE_DEVICES_REQUEST',
   WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST',
   ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST'
 }
@@ -196,7 +195,6 @@ export const cloudEventActionTypeTranslations = new Map<string, string>(
     [CloudEventActionType.RULE_CHAIN_METADATA_REQUEST, 'cloud-event.cloud-event-action-rule-chain-metadata-request'],
     [CloudEventActionType.RELATION_REQUEST, 'cloud-event.cloud-event-action-relation-request'],
     [CloudEventActionType.CREDENTIALS_REQUEST, 'cloud-event.cloud-event-action-credentials-request'],
-    [CloudEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, 'cloud-event.cloud-event-action-device-profile-devices-request'],
     [CloudEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, 'cloud-event.cloud-event-action-widget-bundle-types-request'],
     [CloudEventActionType.ENTITY_VIEW_REQUEST, 'cloud-event.cloud-event-action-entity-view-request']
   ]

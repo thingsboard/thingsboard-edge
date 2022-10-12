@@ -1855,7 +1855,6 @@
         "cloud-event-action-rule-chain-metadata-request": "Rule Chain Metadata Request",
         "cloud-event-action-relation-request": "Relation Request",
         "cloud-event-action-credentials-request": "Credentials Request",
-        "cloud-event-action-device-profile-devices-request": "Device Profile Devices Request",
         "cloud-event-action-widget-bundle-types-request": "Widget Bundle Types Request",
         "cloud-event-action-entity-view-request": "Entity View Request"
     },
