@@ -155,8 +155,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961149,
+                "endTimeMs": 1665161361149
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -321,8 +321,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961149,
+                "endTimeMs": 1665161361149
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -614,8 +614,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961149,
+                "endTimeMs": 1665161361149
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -849,8 +849,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961149,
+                "endTimeMs": 1665161361149
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1032,8 +1032,8 @@
                 "popoverHideOnClickOutside": true,
                 "popoverHideDashboardToolbar": true,
                 "popoverWidth": "300px",
-                "popoverHeight": "200px",
-                "popoverStyle": null,
+                "popoverHeight": "220px",
+                "popoverStyle": {},
                 "openInSeparateDialog": false,
                 "openInPopover": true,
                 "id": "548ad8b1-2a95-54f5-ffde-9d555e5a5832"
@@ -1096,8 +1096,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961149,
+                "endTimeMs": 1665161361149
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1332,8 +1332,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961149,
+                "endTimeMs": 1665161361149
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1569,8 +1569,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961150,
+                "endTimeMs": 1665161361150
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1614,13 +1614,7 @@
             "markerOffsetY": 1,
             "draggableMarker": false,
             "showLabel": false,
-            "showTooltip": true,
-            "showTooltipAction": "click",
-            "autocloseTooltip": true,
-            "useTooltipFunction": false,
-            "tooltipPattern": "<b>${entityName}</b><br/><br/><b>Latitude:</b> ${latitude:7}<br/><b>Longitude:</b> ${longitude:7}<br/><b>Temperature:</b> ${temperature} °C<br/><small>See advanced settings for details</small>",
-            "tooltipOffsetX": 0,
-            "tooltipOffsetY": -1,
+            "showTooltip": false,
             "color": "#fe7569",
             "useColorFunction": false,
             "useMarkerImageFunction": true,
@@ -1682,7 +1676,28 @@
           "showLegend": false,
           "widgetStyle": {},
           "actions": {
-            "markerClick": []
+            "markerClick": [
+              {
+                "name": "Moisture sensor details",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "moisture_sensor_details",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "popoverPreferredPlacement": "top",
+                "popoverHideOnClickOutside": true,
+                "popoverHideDashboardToolbar": true,
+                "popoverWidth": "300px",
+                "popoverHeight": "220px",
+                "popoverStyle": {},
+                "openInSeparateDialog": false,
+                "openInPopover": true,
+                "id": "f551c47e-12d1-7041-264a-ca98839c2f41"
+              }
+            ]
           },
           "showTitleIcon": false,
           "titleTooltip": "",
@@ -1819,7 +1834,7 @@
           "useDashboardTimewindow": false,
           "showTitleIcon": false,
           "titleTooltip": "",
-          "enableDataExport": true,
+          "enableDataExport": false,
           "widgetStyle": {},
           "widgetCss": "",
           "pageSize": 1024,
@@ -1875,8 +1890,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961150,
+                "endTimeMs": 1665161361150
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1891,8 +1906,8 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%;\" fxLayout=\"column\">\n    <tb-dashboard-state \n        style=\"height: 100px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '400px' : '200px', 200)\">\n        <mat-expansion-panel-header fxLayout=\"row wrap\">\n            <mat-panel-description fxLayoutAlign=\"end center\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_expanded\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
-            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff !important;\n}\n\n.tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings {\n    box-shadow: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-content {\n    overflow: visible;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header:hover {\n    background: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator {\n    padding: 2px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header-description {\n    align-items: center;\n}\n\n.mat-expansion-panel.tb-settings > .mat-expansion-panel-content > .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.mat-expansion-panel .mat-expansion-panel-content { \n    font: inherit;\n}"
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%;\" fxLayout=\"column\">\n    <tb-dashboard-state \n        style=\"height: 130px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '460px' : '220px', 200)\">\n        <mat-expansion-panel-header fxLayout=\"row wrap\">\n            <mat-panel-description fxLayoutAlign=\"end center\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_expanded\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
+            "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff !important;\n}\n\n.tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings {\n    box-shadow: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-content {\n    overflow: visible;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header:hover {\n    background: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator {\n    padding: 2px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header-description {\n    align-items: center;\n    font-weight: 600;\n    font-size: 13px;\n    margin-right: 8px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator:after, .mat-expansion-panel.tb-settings .mat-expansion-panel-header-description {\n    color: #5553AF;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator {\n    padding: 0 2px;\n    font-size: 13px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator:after {\n    vertical-align: baseline;\n}\n\n.mat-expansion-panel.tb-settings > .mat-expansion-panel-content > .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.mat-expansion-panel .mat-expansion-panel-content { \n    font: inherit;\n}\n\n.tb-timewindow {\n    border: 1px solid rgba(0, 0, 0, 0.08);\n    border-radius: 8px;\n    color: #868D9C;\n    font-weight: 400;\n    font-size: 12px;\n}\n\n.tb-timewindow .mat-icon-button {\n    width: 18px;\n    line-height: 18px;\n    height: 18px;\n    margin-right: 4px;\n}\n\n.tb-timewindow .mat-icon-button .mat-icon {\n    width: 15px;\n    font-size: 15px;\n    line-height: 15px;\n    height: 15px;\n}"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -1974,8 +1989,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665071779204,
-                "endTimeMs": 1665158179204
+                "startTimeMs": 1665074961150,
+                "endTimeMs": 1665161361150
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1989,8 +2004,9 @@
           "color": "rgba(0, 0, 0, 0.87)",
           "padding": "0px",
           "settings": {
-            "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"sensor-details\">\n    <table>\n        <tr>\n            <td>Last value</td>\n            <td>${moisture:1}%</td>\n        </tr>\n        <tr>\n            <td>Status</td>\n            <td>${active}</td>\n        </tr>\n        <tr>\n            <td>Last update</td>\n            <td>{{ ${moisture|ts} | date:'yyyy-MM-dd HH:mm:ss' }}</td>\n        </tr>\n    </table>\n</div>\n"
+            "useMarkdownTextFunction": true,
+            "markdownTextFunction": "var statusClass = data[0]['active'] === \"Active\" ? \"active\" : \"inactive\";\nvar moistureTs = data[0]['moisture|ts'];\nvar moistureElapsedTsHtml;\nif (moistureTs) {\n    var moistureElapsedTs = new Date().getTime() - moistureTs;\n    var MINUTE = 60 * 1000;\n    var HOUR = 60 * MINUTE;\n    var DAY = 24 * HOUR;\n    if (moistureElapsedTs > DAY) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / DAY) * DAY;\n    } else if (moistureElapsedTs > HOUR) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / HOUR) * HOUR;\n    } else if (moistureElapsedTs > MINUTE) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / MINUTE) * MINUTE;\n    }\n    moistureElapsedTsHtml = '{{ ' + moistureElapsedTs + ' | milliSecondsToTimeString }} ago';\n} else {\n    moistureElapsedTsHtml = 'N/A';\n}\nreturn '<div class=\"sensor-details\">' +\n    '<h3 class=\"title\">${entityName}</h3>' + \n    '<table>' +\n        '<tr>' +\n            '<td class=\"label\">Last value</td>' +\n            '<td class=\"value\">${moisture:1}%</td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Status</td>' +\n            '<td class=\"value\"><span class=\"status '+ statusClass +'\"></span><span style=\"padding-left: 8px;\">${active}</span></td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Last update</td>' +\n            '<td class=\"value\">' + moistureElapsedTsHtml + '</td>' +\n        '</tr>' +\n    '</table>' +\n'</div>';\n",
+            "markdownCss": ".sensor-details .title {\n    font-weight: 500;\n    font-size: 16px;\n    padding-bottom: 25px;\n}\n\n.sensor-details .label {\n    font-weight: 400;\n    font-size: 12px;\n    color: #868D9C;\n    width: 145px;\n    padding-right: 24px;\n}\n\n.sensor-details .value {\n    font-weight: 600;\n    font-size: 13px;\n    color: rgba(0, 0, 0, 0.76);\n}\n\n.sensor-details .value .status {\n    display: inline-block;\n    vertical-align: middle;\n    width: 4px;\n    height: 4px;\n    border-radius: 2px;\n}\n\n.sensor-details .value .status.active {\n    background: #198038;\n}\n\n.sensor-details .value .status.inactive {\n    background: red;\n}"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -2110,14 +2126,14 @@
             "xaxis": {
               "title": null,
               "showLabels": true,
-              "color": "#545454"
+              "color": "#868d9c"
             },
             "yaxis": {
               "min": null,
               "max": null,
               "title": null,
               "showLabels": true,
-              "color": "#545454",
+              "color": "#868d9c",
               "tickSize": null,
               "tickDecimals": 0,
               "ticksFormatter": ""
