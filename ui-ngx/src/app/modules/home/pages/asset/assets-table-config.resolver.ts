@@ -157,7 +157,7 @@ export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<Asse
         this.config.entitiesDeleteEnabled = this.config.componentsData.assetScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.assetScope === 'tenant';
 
-        // edge read-only
+        // @voba - edge read-only
         this.config.detailsReadonly = () => true;
         this.config.deleteEnabled = () => false;
         this.config.addEnabled = false;

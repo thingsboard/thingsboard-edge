@@ -132,7 +132,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
     this.config.entitySelectionEnabled = (customer) => customer && (!customer.additionalInfo || !customer.additionalInfo.isPublic);
     this.config.detailsReadonly = (customer) => customer && customer.additionalInfo && customer.additionalInfo.isPublic;
 
-    // edge read-only
+    // @voba - edge read-only
     this.config.detailsReadonly = () => true;
     this.config.deleteEnabled = () => false;
     this.config.addEnabled = false;

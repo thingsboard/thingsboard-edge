@@ -157,7 +157,7 @@ export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig
         this.config.entitiesDeleteEnabled = this.config.componentsData.entityViewScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.entityViewScope === 'tenant';
 
-        // edge read-only
+        // @voba - edge read-only
         this.config.detailsReadonly = () => true;
         this.config.deleteEnabled = () => false;
         this.config.addEnabled = false;

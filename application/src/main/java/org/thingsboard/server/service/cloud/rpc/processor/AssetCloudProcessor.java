@@ -35,8 +35,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class AssetCloudProcessor extends BaseCloudProcessor {
 
-    private final Lock assetCreationLock = new ReentrantLock();
-
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            AssetUpdateMsg assetUpdateMsg,
                                                            Long queueStartTs) {

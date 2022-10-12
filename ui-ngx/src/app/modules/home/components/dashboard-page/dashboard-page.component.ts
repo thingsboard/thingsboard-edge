@@ -448,7 +448,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       this.dashboardConfiguration.entityAliases,
       this.dashboardConfiguration.filters);
 
-    // edge read-only
+    // @voba - edge read-only
     this.readonly = true;
 
     this.updateDashboardCss();

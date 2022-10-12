@@ -390,8 +390,12 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 protected void updateEntity(Tenant tenant) {
                     try {
                         EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
-                        edgeSettings.setFullSyncRequired(true);
-                        cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                        if (edgeSettings != null) {
+                            edgeSettings.setFullSyncRequired(true);
+                            cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                        } else {
+                            log.warn("Edge settings not found for tenant: {}", tenant.getId());
+                        }
                     } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
                     }

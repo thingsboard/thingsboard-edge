@@ -78,7 +78,9 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
       {
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
-        isEnabled: (assetProfile) => !assetProfile.default && TB_SERVICE_QUEUE !== assetProfile.name,
+        // @voba - edge read-only
+        // isEnabled: (assetProfile) => !assetProfile.default && TB_SERVICE_QUEUE !== assetProfile.name,
+        isEnabled: (assetProfile) => false,
         onAction: ($event, entity) => this.setDefaultAssetProfile($event, entity)
       }
     );
@@ -98,6 +100,14 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
     this.config.entitySelectionEnabled = (assetProfile) => assetProfile && !assetProfile.default && TB_SERVICE_QUEUE !== assetProfile.name;
     this.config.detailsReadonly = (assetProfile) => assetProfile && TB_SERVICE_QUEUE === assetProfile.name;
     this.config.addActionDescriptors = this.configureAddActions();
+
+    // @voba - edge read-only
+    this.config.detailsReadonly = () => true;
+    this.config.deleteEnabled = () => false;
+    this.config.addEnabled = false;
+    this.config.entitiesDeleteEnabled = false;
+
+    this.config.entitySelectionEnabled = (deviceProfile) => false;
   }
 
   resolve(): EntityTableConfig<AssetProfile> {

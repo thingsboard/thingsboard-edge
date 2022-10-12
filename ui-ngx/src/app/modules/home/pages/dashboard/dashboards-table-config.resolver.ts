@@ -155,7 +155,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         this.config.entitiesDeleteEnabled = this.config.componentsData.dashboardScope === 'tenant';
         this.config.deleteEnabled = () => this.config.componentsData.dashboardScope === 'tenant';
 
-        // edge read-only
+        // @voba - edge read-only
         this.config.detailsReadonly = () => true;
         this.config.deleteEnabled = () => false;
         this.config.addEnabled = false;

@@ -61,13 +61,13 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
     public void testAssetProfiles() {
-        verifyAssetProfilesOnEdge(1);
+        verifyAssetProfilesOnEdge(2);
 
         // create asset profile
         Dashboard dashboard = createDashboardAndAssignToEdge();
         AssetProfile savedAssetProfile = createCustomAssetProfile(dashboard.getId());
 
-        verifyAssetProfilesOnEdge(2);
+        verifyAssetProfilesOnEdge(3);
 
         // update asset profile
         savedAssetProfile.setName("Buildings Updated");
@@ -78,7 +78,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
 
         // delete asset profile
         cloudRestClient.deleteAssetProfile(savedAssetProfile.getId());
-        verifyAssetProfilesOnEdge(1);
+        verifyAssetProfilesOnEdge(2);
     }
 
     private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId) {

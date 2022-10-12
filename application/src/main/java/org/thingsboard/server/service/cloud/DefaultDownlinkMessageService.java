@@ -171,14 +171,14 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                     result.add(processDeviceCredentialsRequestMsg(tenantId, deviceCredentialsRequestMsg));
                 }
             }
-            if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
-                for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, deviceUpdateMsg, queueStartTs));
-                }
-            }
             if (downlinkMsg.getDeviceProfileUpdateMsgCount() > 0) {
                 for (DeviceProfileUpdateMsg deviceProfileUpdateMsg : downlinkMsg.getDeviceProfileUpdateMsgList()) {
                     result.add(deviceProfileProcessor.processDeviceProfileMsgFromCloud(tenantId, deviceProfileUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
+                for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
+                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, deviceUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {

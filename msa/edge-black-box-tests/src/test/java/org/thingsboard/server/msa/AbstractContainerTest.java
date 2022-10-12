@@ -602,7 +602,7 @@ public abstract class AbstractContainerTest {
     }
 
     protected Device saveAndAssignDeviceToEdge() {
-        Device device = saveDeviceOnCloud(randomAlphanumeric(15), "default");
+        Device device = saveDeviceOnCloud(randomAlphanumeric(15), "Remote Controller");
         cloudRestClient.assignDeviceToEdge(edge.getId(), device.getId());
 
         Awaitility.await()
