@@ -107,16 +107,16 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
     };
   }
 
-  writeValue(subcriptions: any[]) {
-    if (isDefinedAndNotNull(subcriptions)) {
-      if (this.opcSubscriptionArray.length === subcriptions.length) {
-        this.opcSubscriptionForm.get('subscription').patchValue(subcriptions, {emitEvents: false});
+  writeValue(subscriptions: any[]) {
+    if (isDefinedAndNotNull(subscriptions)) {
+      if (this.opcSubscriptionArray.length === subscriptions.length) {
+        this.opcSubscriptionForm.get('subscription').patchValue(subscriptions, {emitEvents: false});
       } else {
-        const subcriptionControls: Array<FormGroup> = [];
-        subcriptions.forEach((subcription) => {
-          subcriptionControls.push(this.createFormGroup(subcription));
+        const subscriptionControls: Array<FormGroup> = [];
+        subscriptions.forEach((subscription) => {
+          subscriptionControls.push(this.createFormGroup(subscription));
         });
-        this.opcSubscriptionForm.setControl('subscription', this.fb.array(subcriptionControls), {emitEvent: false});
+        this.opcSubscriptionForm.setControl('subscription', this.fb.array(subscriptionControls), {emitEvent: false});
         if (this.disabled) {
           this.opcSubscriptionForm.disable({emitEvent: false});
         } else {

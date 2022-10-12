@@ -29,38 +29,22 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  .container{
-    overflow-x: auto;
-  }
   mat-checkbox  {
     margin-bottom: 0;
   }
-  .subscription-setting {
-    box-shadow: none;
-    border: 1px groove rgba(0, 0, 0, .25);
-    border-radius: 4px;
-
-    .mat-expansion-panel-header {
-      padding: 0 24px 0 16px;
-
-      &.mat-expanded {
-        height: 48px;
-      }
+  .fields-group {
+    legend + * {
+      margin-top: 0;
     }
   }
+  .no-data-found {
+    height: 57px;
+  }
 }
-
 :host::ng-deep {
-  .subscription-setting {
-    .mat-content {
-      overflow: visible;
-    }
-    .mat-expansion-panel-body {
-      padding: 0;
-      .subscription-setting-content {
-        margin: 0 16px;
-        overflow-x: auto;
-      }
+  mat-form-field {
+    .mat-form-field-infix {
+      width: 100%;
     }
   }
 }

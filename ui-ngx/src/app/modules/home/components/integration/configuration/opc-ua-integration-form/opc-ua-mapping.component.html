@@ -31,55 +31,60 @@
 
 -->
 <section [formGroup]="opcMappingForm">
-  <fieldset class="fields-group">
-    <legend class="group-title" translate>integration.opc-ua-mapping</legend>
-    <div *ngFor="let mapControl of mapFormArrayControls; let $index = index; last as isLast;"
-        [ngStyle]="!isLast ? {paddingBottom: '8px'} : {}" fxLayout="row">
-      <div class="index">{{ $index + 1}}</div>
-      <section fxFlex [formGroup]="mapControl">
-        <mat-form-field fxFlex class="mat-block">
-          <mat-label translate>integration.opc-ua-mapping-type</mat-label>
-          <mat-select formControlName="mappingType" required>
-            <mat-option *ngFor="let type of OpcMappingTypes" [value]="type">
-              {{ OpcMappingTypeTranslation.get(type) }}
-            </mat-option>
-          </mat-select>
-          <mat-error translate *ngIf="mapControl.get('mappingType').hasError('required')">
-            integration.opc-ua-mapping-type-required
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
-          <mat-label translate>integration.opc-ua-device-node-pattern</mat-label>
-          <input matInput required formControlName="deviceNodePattern">
-          <mat-error translate *ngIf="mapControl.get('deviceNodePattern').hasError('required')">
-            integration.opc-ua-device-node-pattern-required
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field fxFlex class="mat-block"
-                        *ngIf="mapControl.get('mappingType').value === OpcMappingType.ID">
-          <mat-label translate>integration.opc-ua-namespace</mat-label>
-          <input matInput
-                 placeholder="{{ 'integration.opc-ua-namespace' | translate }}"
-                 type="number" min="0" formControlName="namespace">
-        </mat-form-field>
-        <tb-opc-ua-subscription formControlName="subscriptionTags">
-        </tb-opc-ua-subscription>
+  <mat-expansion-panel class="mapping-setting" [expanded]=true>
+    <mat-expansion-panel-header collapsedHeight="48px" expandedHeight="48px">
+      <mat-panel-title translate>integration.opc-ua-mapping</mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <section class="mapping-setting-content">
+        <div *ngFor="let mapControl of mapFormArrayControls; let $index = index; last as isLast;"
+             [ngStyle]="!isLast ? {paddingBottom: '10px'} : {}" fxLayout="row">
+          <div class="index">{{ $index + 1}}</div>
+          <section class="fields-group" fxFlex [formGroup]="mapControl">
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>integration.opc-ua-mapping-type</mat-label>
+              <mat-select formControlName="mappingType" required>
+                <mat-option *ngFor="let type of OpcMappingTypes" [value]="type">
+                  {{ OpcMappingTypeTranslation.get(type) }}
+                </mat-option>
+              </mat-select>
+              <mat-error translate *ngIf="mapControl.get('mappingType').hasError('required')">
+                integration.opc-ua-mapping-type-required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>integration.opc-ua-device-node-pattern</mat-label>
+              <input matInput required formControlName="deviceNodePattern">
+              <mat-error translate *ngIf="mapControl.get('deviceNodePattern').hasError('required')">
+                integration.opc-ua-device-node-pattern-required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block"
+                            *ngIf="mapControl.get('mappingType').value === OpcMappingType.ID">
+              <mat-label translate>integration.opc-ua-namespace</mat-label>
+              <input matInput
+                     placeholder="{{ 'integration.opc-ua-namespace' | translate }}"
+                     type="number" min="0" formControlName="namespace">
+            </mat-form-field>
+            <tb-opc-ua-subscription formControlName="subscriptionTags">
+            </tb-opc-ua-subscription>
+          </section>
+          <button mat-icon-button class="mat-icon-button" *ngIf="!disabled"
+                  (click)="removeMap($index)"
+                  [matTooltip]="'action.remove' | translate" matTooltipPosition="above">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <span *ngIf="!mapFormArray.length" fxLayoutAlign="center center" class="no-data-found" translate>
+          integration.add-opc-ua-mapping-prompt
+        </span>
+        <div style="padding-top: 16px; padding-left: 36px" *ngIf="!disabled">
+          <button mat-stroked-button color="primary" (click)="addMap()"
+                  [matTooltip]="'integration.opc-ua-add-map' | translate" matTooltipPosition="above">
+            <span translate>integration.opc-ua-add-map</span>
+          </button>
+        </div>
       </section>
-      <button mat-icon-button class="mat-icon-button" *ngIf="!disabled"
-              (click)="removeMap($index)"
-              [matTooltip]="'action.remove' | translate" matTooltipPosition="above">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-    <span *ngIf="!mapFormArray.length" fxLayoutAlign="center center" class="no-data-found" translate>
-      integration.add-opc-ua-mapping-prompt
-    </span>
-    <div style="padding-top: 16px;"  *ngIf="!disabled">
-      <button mat-stroked-button color="primary" (click)="addMap()"
-              [matTooltip]="'integration.opc-ua-add-map' | translate" matTooltipPosition="above">
-<!--        <mat-icon class="material-icons">add</mat-icon>-->
-        <span translate>integration.opc-ua-add-map</span>
-      </button>
-    </div>
-  </fieldset>
+    </ng-template>
+  </mat-expansion-panel>
 </section>

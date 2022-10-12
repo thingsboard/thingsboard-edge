@@ -59,16 +59,15 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
     useExisting: forwardRef(() => ChirpStackIntegrationFormComponent),
     multi: true
   },
-    {
-      provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => ChirpStackIntegrationFormComponent),
-      multi: true,
-    }]
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => ChirpStackIntegrationFormComponent),
+    multi: true,
+  }]
 })
 export class ChirpStackIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
   chirpStackIntegrationConfigForm: FormGroup;
-  showSecurity = true;
 
   @Input()
   routingKey: string;

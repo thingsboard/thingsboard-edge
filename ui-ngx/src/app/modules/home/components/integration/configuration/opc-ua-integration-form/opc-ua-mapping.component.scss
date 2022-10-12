@@ -31,11 +31,42 @@
 :host {
   .index {
     width: 28px;
+    min-width: 28px;
+    max-width: 28px;
     height: 28px;
-    margin-right: 16px;
+    margin-top: 8px;
+    margin-right: 8px;
     background: #F3F6FA;
     border-radius: 50%;
     text-align: center;
     line-height: 28px;
+  }
+  .fields-group {
+    padding: 8px 16px 8px;
+    margin-bottom: 0;
+  }
+  .mapping-setting {
+    box-shadow: none;
+    border: 1px groove rgba(0, 0, 0, .25);
+    border-radius: 4px;
+    margin-bottom: 8px;
+
+    .mat-expansion-panel-header {
+      padding: 0 24px 0 16px;
+    }
+  }
+}
+:host::ng-deep {
+  .mapping-setting {
+    .mat-content {
+      overflow: visible;
+    }
+    .mat-expansion-panel-body {
+      padding: 0;
+      .mapping-setting-content {
+        margin: 0 16px 16px;
+        overflow-x: auto;
+      }
+    }
   }
 }
