@@ -1,0 +1,87 @@
+/**
+ * Copyright © 2016-2022 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.thingsboard.server.service.cloud.rpc.processor;
+
+import com.datastax.oss.driver.api.core.uuid.Uuids;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.dao.asset.AssetProfileService;
+import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+@Component
+@Slf4j
+public class AssetProfileCloudProcessor extends BaseCloudProcessor {
+
+    @Autowired
+    private AssetProfileService assetProfileService;
+
+    private static final Lock assetProfileCreationLock = new ReentrantLock();
+
+    public ListenableFuture<Void> processAssetProfileMsgFromCloud(TenantId tenantId, AssetProfileUpdateMsg assetProfileUpdateMsg) {
+        AssetProfileId assetProfileId = new AssetProfileId(new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB()));
+        switch (assetProfileUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                assetProfileCreationLock.lock();
+                try {
+                    AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+                    boolean created = false;
+                    if (assetProfile == null) {
+                        created = true;
+                        assetProfile = new AssetProfile();
+                        assetProfile.setId(assetProfileId);
+                        assetProfile.setCreatedTime(Uuids.unixTimestamp(assetProfileId.getId()));
+                        assetProfile.setTenantId(tenantId);
+                    }
+                    assetProfile.setName(assetProfileUpdateMsg.getName());
+                    assetProfile.setDefault(assetProfileUpdateMsg.getDefault());
+                    assetProfile.setDefaultQueueName(assetProfileUpdateMsg.hasDefaultQueueName() ? assetProfileUpdateMsg.getDefaultQueueName() : null);
+                    assetProfile.setDescription(assetProfileUpdateMsg.hasDescription() ? assetProfileUpdateMsg.getDescription() : null);
+                    assetProfile.setImage(assetProfileUpdateMsg.hasImage()
+                            ? new String(assetProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
+                    AssetProfile savedAssetProfile = assetProfileService.saveAssetProfile(assetProfile, false);
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAssetProfile.getId(),
+                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+                } finally {
+                    assetProfileCreationLock.unlock();
+                }
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
+                if (assetProfile != null) {
+                    assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
+                    tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
+                }
+                break;
+            case UNRECOGNIZED:
+                return handleUnsupportedMsgType(assetProfileUpdateMsg.getMsgType());
+        }
+        return Futures.immediateFuture(null);
+    }
+
+}
