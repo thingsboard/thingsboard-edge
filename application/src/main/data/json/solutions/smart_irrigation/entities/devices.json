@@ -36,11 +36,14 @@
   {
     "name": "SI Soil Moisture 1",
     "type": "SI Soil Moisture Sensor",
+    "label": "Wheat 1",
     "group": "Smart Irrigation",
     "profile": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 75.0,
-      "minMoistureThreshold": 25.0
+      "minMoistureThreshold": 25.0,
+      "latitude": 49.350655054084804,
+      "longitude": 32.11289790531149
     },
     "relations": [
       {
@@ -51,5 +54,159 @@
       }
     ],
     "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e91"
+  },
+  {
+    "name": "SI Soil Moisture 2",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Wheat 2",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0,
+      "latitude": 49.35749844576021,
+      "longitude": 32.10479173694648
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 1",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e92"
+  },
+  {
+    "name": "SI Soil Moisture 3",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Wheat 3",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0,
+      "latitude": 49.36006998903504,
+      "longitude": 32.11019918212899
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 1",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e93"
+  },
+  {
+    "name": "SI Soil Moisture 4",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Wheat 4",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 75.0,
+      "minMoistureThreshold": 25.0,
+      "latitude": 49.35285812399901,
+      "longitude": 32.118782428450395
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 1",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e94"
+  },
+  {
+    "name": "SI Soil Moisture 5",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Corn 1",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 80.0,
+      "minMoistureThreshold": 23.0,
+      "latitude": 49.359587891492694,
+      "longitude": 32.10059708327466
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 2",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e95"
+  },
+  {
+    "name": "SI Soil Moisture 6",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Corn 2",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 80.0,
+      "minMoistureThreshold": 23.0,
+      "latitude": 49.36422758395962,
+      "longitude": 32.094760475776106
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 2",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e96"
+  },
+  {
+    "name": "SI Soil Moisture 7",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Corn 3",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 80.0,
+      "minMoistureThreshold": 23.0,
+      "latitude": 49.366966493941945,
+      "longitude": 32.1005970832747
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 2",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e97"
+  },
+  {
+    "name": "SI Soil Moisture 8",
+    "type": "SI Soil Moisture Sensor",
+    "label": "Corn 4",
+    "group": "Smart Irrigation",
+    "profile": "Soil Moisture",
+    "attributes": {
+      "maxMoistureThreshold": 80.0,
+      "minMoistureThreshold": 23.0,
+      "latitude": 49.362382936461316,
+      "longitude": 32.10566119860433
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 2",
+        "direction": "FROM",
+        "type": "FieldToMoistureSensor"
+      }
+    ],
+    "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e98"
   }
 ]

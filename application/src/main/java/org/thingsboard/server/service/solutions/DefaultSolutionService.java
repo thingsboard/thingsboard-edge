@@ -73,6 +73,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -723,7 +724,8 @@ public class DefaultSolutionService implements SolutionService {
             } else {
                 schedulerService.onSchedulerEventUpdated(savedSchedulerEvent);
             }
-            log.info("[{}] Saved asset: {}", schedulerEvent.getId(), schedulerEvent);
+            log.info("[{}] Saved scheduler event: {}", schedulerEvent.getId(), schedulerEvent);
+            ctx.register(savedSchedulerEvent.getId());
         });
     }
 
@@ -1220,6 +1222,9 @@ public class DefaultSolutionService implements SolutionService {
                 break;
             case ENTITY_GROUP:
                 entityGroupService.deleteEntityGroup(tenantId, new EntityGroupId(entityId.getId()));
+                break;
+            case SCHEDULER_EVENT:
+                schedulerEventService.deleteSchedulerEvent(tenantId, new SchedulerEventId(entityId.getId()));
                 break;
         }
     }

@@ -48,7 +48,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "version": 0
         },
@@ -116,7 +116,7 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode",
         "name": "Fetch Moisture Thresholds",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "relationsQuery": {
             "fetchLastLevelOnly": false,
@@ -147,7 +147,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Field Asset",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "originatorSource": "RELATED",
           "relationsQuery": {
@@ -174,15 +174,15 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Aggregate Avg",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "inputValueKey": "moisture",
           "outputValueKey": "avgMoisture",
           "mathFunction": "AVG",
-          "aggIntervalType": "HOUR",
-          "timeZoneId": "Europe/Kiev",
-          "aggIntervalValue": 1,
-          "aggIntervalTimeUnit": "HOURS",
+          "aggIntervalType": "CUSTOM",
+          "timeZoneId": "UTC",
+          "aggIntervalValue": 5,
+          "aggIntervalTimeUnit": "MINUTES",
           "intervalPersistencePolicy": "ON_EACH_MESSAGE",
           "intervalCheckValue": 1,
           "intervalCheckTimeUnit": "MINUTES",
@@ -209,7 +209,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
         "name": "Has Moisture?",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "messageNames": [
             "moisture"
@@ -227,7 +227,7 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Field Rule Chain",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "ruleChainId": "7e327000-38ee-11ed-af17-3d7337747e91"
         },
@@ -241,7 +241,7 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Attributes",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scope": "SERVER_SCOPE",
           "notifyDevice": false
@@ -256,7 +256,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Change msg type",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
@@ -270,9 +270,70 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Check Field relation",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "jsScript": "return msg.type === \"FieldToMoistureSensor\";"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 591,
+          "layoutY": 47
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count Alarms",
+        "debugMode": false,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "criticalAlarmsCount",
+              "typesList": [],
+              "severityList": [
+                "CRITICAL"
+              ],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            },
+            {
+              "target": "majorAlarmsCount",
+              "typesList": [],
+              "severityList": [
+                "MAJOR",
+                "MINOR",
+                "WARNING",
+                "INDETERMINATE"
+              ],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": true,
+          "propagationEntityTypes": [
+            "ASSET"
+          ],
+          "outMsgType": "POST_ATTRIBUTES_REQUEST",
+          "queueName": "HighPriority"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 926,
+          "layoutY": 27
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Server Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false
         },
         "externalId": null
       }
@@ -319,6 +380,21 @@
         "type": "Success"
       },
       {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Updated"
+      },
+      {
         "fromIndex": 7,
         "toIndex": 13,
         "type": "Success"
@@ -347,6 +423,11 @@
         "fromIndex": 14,
         "toIndex": 7,
         "type": "True"
+      },
+      {
+        "fromIndex": 15,
+        "toIndex": 16,
+        "type": "Success"
       }
     ],
     "ruleChainConnections": null

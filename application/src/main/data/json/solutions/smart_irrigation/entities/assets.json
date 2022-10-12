@@ -5,11 +5,10 @@
     "type": "SI Field",
     "group": "Smart Irrigation",
     "attributes": {
-      "latitude": 37.7798425,
-      "longitude": -122.4251679,
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
-      "cropType" : "wheat"
+      "cropType" : "wheat",
+      "perimeter" : [[49.348444078486665,32.113723756657556],[49.35782580854662,32.10142806361495],[49.36209942574998,32.110204693549484],[49.35267945867829,32.122306811750974]]
     },
     "relations": [
     ],
@@ -21,11 +20,10 @@
     "type": "SI Field",
     "group": "Smart Irrigation",
     "attributes": {
-      "latitude": 37.7798425,
-      "longitude": -122.4251679,
-      "maxMoistureThreshold": 75.0,
-      "minMoistureThreshold": 25.0,
-      "cropType" : "corn"
+      "maxMoistureThreshold": 80.0,
+      "minMoistureThreshold": 23.0,
+      "cropType" : "corn",
+      "perimeter" : [[49.35733376286064,32.099990847388675],[49.36462881286005,32.09157942926953],[49.3693518503928,32.1008920749419],[49.362018441924455,32.10958265164581]]
     },
     "relations": [
     ],
