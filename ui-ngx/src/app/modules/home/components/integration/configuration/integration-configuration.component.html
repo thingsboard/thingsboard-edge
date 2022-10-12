@@ -31,61 +31,67 @@
 
 -->
 <section [formGroup]="integrationConfigurationForm" class="tb-integration-configuration">
-  <section [ngSwitch]="integrationType">
-    <section *ngSwitchCase="integrationTypes.MQTT">
+  <ng-container [ngSwitch]="integrationType">
+    <ng-container *ngSwitchCase="integrationTypes.MQTT">
       <tb-mqtt-integration-form formControlName="configuration"
                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-mqtt-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.HTTP">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.HTTP">
       <tb-http-integration-form formControlName="configuration"
                                 [routingKey]="routingKey"
                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-http-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.TTN">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TTN">
       <tb-ttn-integration-form formControlName="configuration"
                                [executeRemotelyTemplate]="executeRemotelyTemplate"
                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-ttn-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.AWS_IOT">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AWS_IOT">
       <tb-aws-iot-integration-form formControlName="configuration"
                                    [executeRemotelyTemplate]="executeRemotelyTemplate"
                                    [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-aws-iot-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.TTI">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TTI">
       <tb-tti-integration-form formControlName="configuration"
                                [executeRemotelyTemplate]="executeRemotelyTemplate"
                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-tti-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.SIGFOX">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.SIGFOX">
       <tb-sigfox-integration-form formControlName="configuration"
                                 [routingKey]="routingKey"
                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-sigfox-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.OCEANCONNECT">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.OCEANCONNECT">
       <tb-ocean-connect-integration-form formControlName="configuration"
                                          [routingKey]="routingKey"
                                          [executeRemotelyTemplate]="executeRemotelyTemplate"
                                          [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-ocean-connect-integration-form>
-    </section>
-    <section *ngSwitchCase="integrationTypes.TMOBILE_IOT_CDP">
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TMOBILE_IOT_CDP">
       <tb-t-mobile-iot-cdp-integration-form formControlName="configuration"
                                             [routingKey]="routingKey"
                                             [executeRemotelyTemplate]="executeRemotelyTemplate"
                                             [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-t-mobile-iot-cdp-integration-form>
-    </section>
-    <section *ngSwitchDefault>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.OPC_UA">
+      <tb-opc-ua-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-opc-ua-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchDefault>
       <input formControlName="configuration">
-    </section>
-  </section>
+    </ng-container>
+  </ng-container>
 </section>

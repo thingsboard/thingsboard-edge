@@ -108,3 +108,35 @@ export const ttnVersionMap = new Map<ttnVersion, TtnVersionParameter>([
 export function integrationBaseUrlChanged(type: IntegrationType, baseUrl: string, key = ''): string {
   return `${baseUrl}/api/v1/integrations/${type.toLowerCase()}/${key}`;
 }
+
+export enum IdentityType {
+  Anonymous = 'anonymous',
+  Username = 'username'
+}
+
+export const IdentityTypeTranslation = new Map<IdentityType, string>([
+  [IdentityType.Anonymous, 'extension.anonymous'],
+  [IdentityType.Username, 'extension.username']
+]);
+
+export enum OpcSecurityType {
+  Basic128Rsa15 = 'Basic128Rsa15',
+  Basic256 = 'Basic256',
+  Basic256Sha256 = 'Basic256Sha256',
+  None = 'None'
+}
+
+export enum OpcKeystoreType {
+  PKCS12 = 'PKCS12',
+  JKS = 'JKS'
+}
+
+export enum OpcMappingType {
+  ID = 'ID',
+  FQN = 'FQN'
+}
+
+export const OpcMappingTypeTranslation = new Map<OpcMappingType, string>([
+  [OpcMappingType.ID, 'ID'],
+  [OpcMappingType.FQN, 'Fully Qualified Name']
+]);

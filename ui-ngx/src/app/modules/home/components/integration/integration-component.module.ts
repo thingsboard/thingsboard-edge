@@ -67,6 +67,15 @@ import {
 import {
   TMobileIotIntegrationFormComponent
 } from '@home/components/integration/configuration/http-integration-form/t-mobile-iot-integration-form.component';
+import {
+  OpcUaIntegrationFormComponent
+} from '@home/components/integration/configuration/opc-ua-integration-form/opc-ua-integration-form.component';
+import {
+  OpcUaMappingComponent
+} from '@home/components/integration/configuration/opc-ua-integration-form/opc-ua-mapping.component';
+import {
+  OpcUaSubscriptionComponent
+} from '@home/components/integration/configuration/opc-ua-integration-form/opc-ua-subscription.component';
 
 @NgModule({
   declarations: [
@@ -82,7 +91,10 @@ import {
     TtiIntegrationFormComponent,
     AwsIotIntegrationFormComponent,
     OceanConnectIntegrationFormComponent,
-    TMobileIotIntegrationFormComponent
+    TMobileIotIntegrationFormComponent,
+    OpcUaIntegrationFormComponent,
+    OpcUaMappingComponent,
+    OpcUaSubscriptionComponent
   ],
   imports: [
     CommonModule,
