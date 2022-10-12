@@ -23,7 +23,9 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 
@@ -60,6 +62,12 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                         asset.setCustomerId(customerId);
                     } else {
                         asset.setCustomerId(null);
+                    }
+                    if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
+                        AssetProfileId assetProfileId = new AssetProfileId(
+                                new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
+                                        assetUpdateMsg.getAssetProfileIdLSB()));
+                        asset.setAssetProfileId(assetProfileId);
                     }
                     assetService.saveAsset(asset, false);
                 } finally {
