@@ -69,7 +69,7 @@ public interface IntegrationService {
 
     PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
-    ArrayNode findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs);
+    ListenableFuture<ArrayNode> findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
@@ -82,4 +82,6 @@ public interface IntegrationService {
     Integration unassignIntegrationFromEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId, boolean remove);
 
     PageData<Integration> findIntegrationsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
+
+    PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 }

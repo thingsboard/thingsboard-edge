@@ -51,7 +51,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ToString(callSuper = true)
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Integration extends IntegrationInfo implements ExportableEntity<IntegrationId> {
+public class Integration extends AbstractIntegration implements ExportableEntity<IntegrationId> {
 
     private static final long serialVersionUID = 4934987577236873728L;
 

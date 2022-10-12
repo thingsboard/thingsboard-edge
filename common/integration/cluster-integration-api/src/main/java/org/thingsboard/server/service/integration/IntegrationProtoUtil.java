@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration;
 
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
@@ -40,7 +41,7 @@ import java.util.UUID;
 
 public class IntegrationProtoUtil {
 
-    public static IntegrationInfoProto toProto(IntegrationInfo integrationInfo) {
+    public static IntegrationInfoProto toProto(AbstractIntegration integrationInfo) {
         return IntegrationInfoProto.newBuilder()
                 .setIntegrationIdMSB(integrationInfo.getId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(integrationInfo.getId().getId().getLeastSignificantBits())
