@@ -56,7 +56,7 @@ public class NaturalTelemetryGenerator extends TelemetryGenerator {
         this.value = getRandomStartValue();
         this.lowValue = getRandomLowValue();
         this.highValue = getRandomHighValue();
-        isIncrement = true;
+        isIncrement = !strategy.isDecrementOnStart();
     }
 
     @Override

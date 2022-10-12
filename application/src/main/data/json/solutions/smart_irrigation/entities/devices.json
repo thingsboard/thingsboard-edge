@@ -3,8 +3,10 @@
     "name": "SI Water Meter 1",
     "type": "SI Water Meter",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "profile": "Water Meter",
     "attributes": {
+      "lowBatteryThreshold": 30.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -20,8 +22,10 @@
     "name": "SI Smart Valve 1",
     "type": "SI Smart Valve",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "profile": "Smart Valve",
     "attributes": {
+      "lowBatteryThreshold": 30.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -43,7 +47,9 @@
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
       "latitude": 49.350655054084804,
-      "longitude": 32.11289790531149
+      "longitude": 32.11289790531149,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -65,7 +71,9 @@
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
       "latitude": 49.35749844576021,
-      "longitude": 32.10479173694648
+      "longitude": 32.10479173694648,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -87,7 +95,9 @@
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
       "latitude": 49.36006998903504,
-      "longitude": 32.11019918212899
+      "longitude": 32.11019918212899,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -109,7 +119,9 @@
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
       "latitude": 49.35285812399901,
-      "longitude": 32.118782428450395
+      "longitude": 32.118782428450395,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -131,7 +143,9 @@
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
       "latitude": 49.359587891492694,
-      "longitude": 32.10059708327466
+      "longitude": 32.10059708327466,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -153,7 +167,9 @@
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
       "latitude": 49.36422758395962,
-      "longitude": 32.094760475776106
+      "longitude": 32.094760475776106,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -175,7 +191,9 @@
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
       "latitude": 49.366966493941945,
-      "longitude": 32.1005970832747
+      "longitude": 32.1005970832747,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {
@@ -197,7 +215,9 @@
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
       "latitude": 49.362382936461316,
-      "longitude": 32.10566119860433
+      "longitude": 32.10566119860433,
+      "lowBatteryThreshold": 20.0,
+      "lowBatteryAlarmEnabled": true
     },
     "relations": [
       {

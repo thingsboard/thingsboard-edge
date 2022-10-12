@@ -39,6 +39,87 @@
             "maxDecrement": 0.4
           }
         }
+      },
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 25,
+          "maxStartValue": 75,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Smart Valve",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 25,
+          "maxStartValue": 75,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "Water Meter",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 300,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 2,
+          "minStartValue": 25,
+          "maxStartValue": 75,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 100,
+          "maxHighValue": 100,
+          "minIncrement": 0.0,
+          "maxIncrement": 0.0,
+          "minDecrement": 0.05,
+          "maxDecrement": 0.05,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0,
+          "decrementOnStart": true
+        }
       }
     ]
   }
