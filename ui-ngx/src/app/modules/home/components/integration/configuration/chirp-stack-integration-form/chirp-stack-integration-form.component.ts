@@ -127,7 +127,7 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
 
   validate(): ValidationErrors | null {
     return this.chirpStackIntegrationConfigForm.valid ? null : {
-      baseHttpIntegrationConfigForm: {valid: false}
+      chirpStackIntegrationConfigForm: {valid: false}
     };
   }
 

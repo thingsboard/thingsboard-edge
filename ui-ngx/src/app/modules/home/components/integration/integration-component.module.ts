@@ -93,6 +93,7 @@ import {
   AwsKinesisIntegrationFormComponent
 } from '@home/components/integration/configuration/aws-kinesis-integration-form/aws-kinesis-integration-form.component';
 import { IbmWatsonIotIntegrationFormComponent } from '@home/components/integration/configuration/ibm-watson-iot-integration-form/ibm-watson-iot-integration-form.component';
+import { AwsSqsIntegrationFormComponent } from '@home/components/integration/configuration/aws-sqs-integration-form/aws-sqs-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -118,7 +119,8 @@ import { IbmWatsonIotIntegrationFormComponent } from '@home/components/integrati
     ApachePulsarIntegrationFormComponent,
     CustomIntegrationFormComponent,
     AwsKinesisIntegrationFormComponent,
-    IbmWatsonIotIntegrationFormComponent
+    IbmWatsonIotIntegrationFormComponent,
+    AwsSqsIntegrationFormComponent
   ],
   imports: [
     CommonModule,

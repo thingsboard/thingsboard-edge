@@ -3018,6 +3018,7 @@
         "bootstrap-servers-required": "Bootstrap servers is required.",
         "poll-interval": "Poll interval",
         "poll-interval-required": "Poll interval is required.",
+        "poll-interval-min-value": "Poll interval value can't be less then 1",
         "auto-create-topics": "Auto create topics",
         "clean-session": "Clean session",
         "enable-ssl": "Enable SSL",
