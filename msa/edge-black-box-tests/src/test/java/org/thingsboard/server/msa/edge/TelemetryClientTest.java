@@ -111,7 +111,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
     private List<TsKvEntry> sendPostTelemetryRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
                                                      JsonObject timeseriesPayload, List<String> keys) throws Exception {
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -204,7 +204,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     private List<AttributeKvEntry> testSendPostAttributesRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
                                                                  JsonObject attributesPayload, List<String> keys) throws Exception {
 
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)

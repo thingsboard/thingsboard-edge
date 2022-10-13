@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
@@ -66,8 +67,8 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -76,7 +77,7 @@ import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
 import org.thingsboard.server.common.data.transport.snmp.PrivacyProtocol;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,33 +89,102 @@ public class DeviceClientTest extends AbstractContainerTest {
 
     @Test
     public void testDevices() throws Exception {
-        EntityGroup savedDeviceEntityGroup = createEntityGroup(EntityType.DEVICE);
-        Device edgeDevice1 = saveAndAssignDeviceToEdge(savedDeviceEntityGroup);
+        // create device #1, add to group #1 and assign group #1 to edge
+        EntityGroup savedDeviceEntityGroup1 = createEntityGroup(EntityType.DEVICE);
+        Device savedDevice1 = saveDeviceAndAssignEntityGroupToEdge("Remote Controller", savedDeviceEntityGroup1);
 
-        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
-        cloudRestClient.saveDeviceAttributes(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        // update device #1 credentials on cloud
+        Optional<DeviceCredentials> deviceCredentialsByDeviceId =
+                cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice1.getId());
+        Assert.assertTrue(deviceCredentialsByDeviceId.isPresent());
+        DeviceCredentials deviceCredentials = deviceCredentialsByDeviceId.get();
+        deviceCredentials.setCredentialsId("UpdatedTokenCloudDevice");
+        cloudRestClient.saveDeviceCredentials(deviceCredentials);
+        verifyDeviceCredentialsOnCloudAndEdge(savedDevice1);
+
+        // validate transport configurations
+        validateDeviceTransportConfiguration(savedDevice1, cloudRestClient, edgeRestClient);
+
+        // update device #1
+        String updatedDeviceName = savedDevice1.getName() + "Updated";
+        savedDevice1.setName(updatedDeviceName);
+        cloudRestClient.saveDevice(savedDevice1);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> updatedDeviceName.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getName()));
+
+        // save device #1 attribute
+        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
+        cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnEdge(savedDevice1.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnEdge(savedDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
+
+        // create device #2 inside group #1
+        Device savedDevice2 = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), "Remote Controller", savedDeviceEntityGroup1.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isPresent());
+
+        // add group #2 and assign to edge
+        EntityGroup savedDeviceEntityGroup2 = createEntityGroup(EntityType.DEVICE);
+        assignEntityGroupToEdge(savedDeviceEntityGroup2);
+
+        // add device #2 to group #2
+        cloudRestClient.addEntitiesToEntityGroup(savedDeviceEntityGroup2.getId(), Collections.singletonList(savedDevice2.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
+                    return device2Groups.contains(savedDeviceEntityGroup2.getId());
+                });
+
+        // remove device #2 from group #2
+        cloudRestClient.removeEntitiesFromEntityGroup(savedDeviceEntityGroup2.getId(), Collections.singletonList(savedDevice2.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
+                    return !device2Groups.contains(savedDeviceEntityGroup2.getId());
+                });
+
+        // delete device #2
+        cloudRestClient.deleteDevice(savedDevice2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
+
+        // unassign group #1 from edge
+        cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup1.getId(), EntityType.DEVICE);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedDeviceEntityGroup1.getId()).isEmpty());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+                .until(() -> edgeRestClient.getDeviceById(savedDevice1.getId()).isEmpty());
 
+        // clean up
+        cloudRestClient.deleteDevice(savedDevice1.getId());
+        cloudRestClient.deleteEntityGroup(savedDeviceEntityGroup1.getId());
+        cloudRestClient.deleteEntityGroup(savedDeviceEntityGroup2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> verifyAttributeOnEdge(edgeDevice1.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
+                .until(() -> edgeRestClient.getEntityGroupById(savedDeviceEntityGroup2.getId()).isEmpty());
 
-        validateDeviceTransportConfiguration(edgeDevice1, cloudRestClient, edgeRestClient);
-
-        cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
-
+        // delete "Remote Controller" device profile
+        cloudRestClient.deleteDeviceProfile(savedDevice1.getDeviceProfileId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDeviceById(edgeDevice1.getId()).isEmpty());
+                .until(() -> edgeRestClient.getDeviceProfileById(savedDevice1.getDeviceProfileId()).isEmpty());
 
-        cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
     }
 
     @Test
-    public void sendDeviceToCloud() {
+    public void sendDeviceToCloud() throws Exception {
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
 
         Awaitility.await()
@@ -123,6 +193,17 @@ public class DeviceClientTest extends AbstractContainerTest {
 
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
 
+        // update device attributes
+        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
+        edgeRestClient.saveDeviceAttributes(savedDeviceOnEdge.getId(), DataConstants.SHARED_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key2\":\"value2\"}"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnCloud(savedDeviceOnEdge.getId(), DataConstants.SERVER_SCOPE, "key1", "value1"));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> verifyAttributeOnCloud(savedDeviceOnEdge.getId(), DataConstants.SHARED_SCOPE, "key2", "value2"));
+
+        // update device credentials on edge
         Optional<DeviceCredentials> deviceCredentialsByDeviceId =
                 edgeRestClient.getDeviceCredentialsByDeviceId(savedDeviceOnEdge.getId());
         Assert.assertTrue(deviceCredentialsByDeviceId.isPresent());
@@ -131,6 +212,13 @@ public class DeviceClientTest extends AbstractContainerTest {
         edgeRestClient.saveDeviceCredentials(deviceCredentials);
 
         verifyDeviceCredentialsOnCloudAndEdge(savedDeviceOnEdge);
+
+        // update device
+        savedDeviceOnEdge.setName("Edge Device 2 Updated");
+        edgeRestClient.saveDevice(savedDeviceOnEdge);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Device 2 Updated".equals(cloudRestClient.getDeviceById(savedDeviceOnEdge.getId()).get().getName()));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -336,7 +424,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     @Test
     public void testOneWayRpcCall() {
         // create device on cloud and assign to edge
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -385,7 +473,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     @Test
     public void testTwoWayRpcCall() {
         // create device on cloud and assign to edge
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -489,7 +577,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         User savedUser = cloudRestClient.saveUser(user, false);
         cloudRestClient.activateUser(savedUser.getId(), "customer", false);
 
-        Device savedDevice = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+        Device savedDevice = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
         Optional<DeviceCredentials> deviceCredentialsByDeviceId =
                 cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());
         verifyDeviceCredentialsOnCloudAndEdge(savedDevice);

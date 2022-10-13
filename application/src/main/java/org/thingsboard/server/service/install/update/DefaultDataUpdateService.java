@@ -119,12 +119,12 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -306,6 +306,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
                 }
+
                 break;
             case "3.4.1":
                 boolean skipAuditLogsMigration = getEnv("TB_SKIP_AUDIT_LOGS_MIGRATION", false);
@@ -316,6 +317,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 } else {
                     log.info("Skipping audit logs migration");
                 }
+
                 break;
             case "3.4.2":
                 log.info("Updating data from version 3.4.2 to 3.4.2PE ...");
@@ -1604,12 +1606,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 protected void updateEntity(Tenant tenant) {
                     try {
                         EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
-                        edgeSettings.setFullSyncRequired(true);
-                        cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                        if (edgeSettings != null) {
+                            edgeSettings.setFullSyncRequired(true);
+                            cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                        } else {
+                            log.warn("Edge settings not found for tenant: {}", tenant.getId());
+                        }
                     } catch (Exception e) {
                         log.error("Unable to update Tenant", e);
                     }
                 }
             };
-
 }

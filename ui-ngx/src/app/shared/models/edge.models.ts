@@ -79,10 +79,10 @@ export enum CloudEventType {
   USER = 'USER',
   CUSTOMER = 'CUSTOMER',
   RELATION = 'RELATION',
-  ENTITY_GROUP = 'ENTITY_GROUP',
   EDGE = 'EDGE',
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
-  WIDGET_TYPE = 'WIDGET_TYPE'
+  WIDGET_TYPE = 'WIDGET_TYPE',
+  ENTITY_GROUP = 'ENTITY_GROUP'
 }
 
 export interface Edge extends BaseData<EdgeId> {
@@ -154,17 +154,16 @@ export enum CloudEventActionType {
   RELATIONS_DELETED = 'RELATIONS_DELETED',
   ALARM_ACK = 'ALARM_ACK',
   ALARM_CLEAR = 'ALARM_CLEAR',
-  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
-  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
   ATTRIBUTES_REQUEST = 'ATTRIBUTES_REQUEST',
   RULE_CHAIN_METADATA_REQUEST = 'RULE_CHAIN_METADATA_REQUEST',
   RELATION_REQUEST = 'RELATION_REQUEST',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
+  WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST',
+  ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST',
   GROUP_ENTITIES_REQUEST = 'GROUP_ENTITIES_REQUEST',
   GROUP_PERMISSIONS_REQUEST = 'GROUP_PERMISSIONS_REQUEST',
-  DEVICE_PROFILE_DEVICES_REQUEST = 'DEVICE_PROFILE_DEVICES_REQUEST',
-  WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST',
-  ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST'
+  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
+  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP'
 }
 
 // PE MERGE
@@ -232,17 +231,16 @@ export const cloudEventActionTypeTranslations = new Map<string, string>(
     [CloudEventActionType.RELATIONS_DELETED, 'cloud-event.cloud-event-action-relations-deleted'],
     [CloudEventActionType.ALARM_ACK, 'cloud-event.cloud-event-action-alarm-ack'],
     [CloudEventActionType.ALARM_CLEAR, 'cloud-event.cloud-event-action-alarm-clear'],
-    [CloudEventActionType.ADDED_TO_ENTITY_GROUP, 'cloud-event.cloud-event-action-added-to-entity-group'],
-    [CloudEventActionType.REMOVED_FROM_ENTITY_GROUP, 'cloud-event.cloud-event-action-removed-from-entity-group'],
     [CloudEventActionType.ATTRIBUTES_REQUEST, 'cloud-event.cloud-event-action-attributes-request'],
     [CloudEventActionType.RULE_CHAIN_METADATA_REQUEST, 'cloud-event.cloud-event-action-rule-chain-metadata-request'],
     [CloudEventActionType.RELATION_REQUEST, 'cloud-event.cloud-event-action-relation-request'],
     [CloudEventActionType.CREDENTIALS_REQUEST, 'cloud-event.cloud-event-action-credentials-request'],
-    [CloudEventActionType.GROUP_ENTITIES_REQUEST, 'cloud-event.cloud-event-action-group-entities-request'],
-    [CloudEventActionType.GROUP_PERMISSIONS_REQUEST, 'cloud-event.cloud-event-action-group-permissions-request'],
-    [CloudEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, 'cloud-event.cloud-event-action-device-profile-devices-request'],
     [CloudEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, 'cloud-event.cloud-event-action-widget-bundle-types-request'],
-    [CloudEventActionType.ENTITY_VIEW_REQUEST, 'cloud-event.cloud-event-action-entity-view-request']
+    [CloudEventActionType.ENTITY_VIEW_REQUEST, 'cloud-event.cloud-event-action-entity-view-request'],
+    [CloudEventActionType.GROUP_PERMISSIONS_REQUEST, 'cloud-event.cloud-event-action-group-permissions-request'],
+    [CloudEventActionType.GROUP_ENTITIES_REQUEST, 'cloud-event.cloud-event-action-group-entities-request'],
+    [CloudEventActionType.ADDED_TO_ENTITY_GROUP, 'cloud-event.cloud-event-action-added-to-entity-group'],
+    [CloudEventActionType.REMOVED_FROM_ENTITY_GROUP, 'cloud-event.cloud-event-action-removed-from-entity-group']
   ]
 );
 
@@ -319,12 +317,6 @@ export const edgeEventStatusColor = new Map<EdgeEventStatus, string>(
     [EdgeEventStatus.PENDING, '#9e9e9e']
   ]
 );
-
-export interface EdgeEventBody extends BaseEventBody {
-  type: string;
-  action: string;
-  entityId: string;
-}
 
 export interface EdgeEvent extends BaseData<EventId> {
   tenantId: TenantId;

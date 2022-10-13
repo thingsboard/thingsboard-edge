@@ -41,22 +41,14 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.nio.charset.StandardCharsets;
@@ -107,26 +99,32 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                             ? new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
                     deviceProfile.setProvisionType(deviceProfileUpdateMsg.hasProvisionType()
                             ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
-                    deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey() ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
+                    deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey()
+                            ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
                     if (profileDataOpt.isPresent()) {
                         deviceProfile.setProfileData(profileDataOpt.get());
+                    } else {
+                        deviceProfile.setProfileData(null);
                     }
                     if (deviceProfileUpdateMsg.getDefaultRuleChainIdMSB() != 0 &&
                             deviceProfileUpdateMsg.getDefaultRuleChainIdLSB() != 0) {
                         RuleChainId defaultRuleChainId = new RuleChainId(
                                 new UUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB()));
                         deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
+                    } else {
+                        deviceProfile.setDefaultRuleChainId(null);
                     }
-                    String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName()) ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
+                    String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName())
+                            ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
                     deviceProfile.setDefaultQueueName(defaultQueueName);
                     DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
                     // TODO: @voba - move this part to device profile notification service
                     notifyCluster(tenantId, deviceProfile, created, savedDeviceProfile);
 
-                    return saveCloudEvent(tenantId, CloudEventType.DEVICE_PROFILE, EdgeEventActionType.DEVICE_PROFILE_DEVICES_REQUEST, deviceProfileId, null);
+                    break;
                 } finally {
                     deviceCreationLock.unlock();
                 }
@@ -137,7 +135,7 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                     tbClusterService.onDeviceProfileDelete(deviceProfile, null);
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
                 }
-                return Futures.immediateFuture(null);
+                break;
             case UNRECOGNIZED:
                 return handleUnsupportedMsgType(deviceProfileUpdateMsg.getMsgType());
         }
@@ -162,15 +160,4 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
         otaPackageStateService.update(savedDeviceProfile, isFirmwareChanged, isSoftwareChanged);
     }
 
-    public UplinkMsg processDeviceProfileDevicesRequestMsgToCloud(CloudEvent cloudEvent) {
-        EntityId deviceProfileId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
-        DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = DeviceProfileDevicesRequestMsg.newBuilder()
-                .setDeviceProfileIdMSB(deviceProfileId.getId().getMostSignificantBits())
-                .setDeviceProfileIdLSB(deviceProfileId.getId().getLeastSignificantBits())
-                .build();
-        UplinkMsg.Builder builder = UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addDeviceProfileDevicesRequestMsg(deviceProfileDevicesRequestMsg);
-        return builder.build();
-    }
 }

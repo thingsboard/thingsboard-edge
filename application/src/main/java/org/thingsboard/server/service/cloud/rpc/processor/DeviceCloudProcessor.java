@@ -196,23 +196,24 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             }
             device.setName(deviceName);
             device.setType(deviceUpdateMsg.getType());
-            if (deviceUpdateMsg.hasLabel()) {
-                device.setLabel(deviceUpdateMsg.getLabel());
-            }
-            if (deviceUpdateMsg.hasAdditionalInfo()) {
-                device.setAdditionalInfo(JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()));
-            }
+            device.setLabel(deviceUpdateMsg.hasLabel() ? deviceUpdateMsg.getLabel() : null);
+            device.setAdditionalInfo(deviceUpdateMsg.hasAdditionalInfo()
+                    ? JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()) : null);
             if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
                 DeviceProfileId deviceProfileId = new DeviceProfileId(
                         new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(),
                                 deviceUpdateMsg.getDeviceProfileIdLSB()));
                 device.setDeviceProfileId(deviceProfileId);
+            } else {
+                device.setDeviceProfileId(null);
             }
             device.setCustomerId(getCustomerId(deviceUpdateMsg));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
                 device.setDeviceData(deviceDataOpt.get());
+            } else {
+                device.setDeviceData(null);
             }
             if (created) {
                 deviceValidator.validate(device, Device::getTenantId);

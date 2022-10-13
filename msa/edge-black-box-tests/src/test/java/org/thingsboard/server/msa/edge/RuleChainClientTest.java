@@ -62,6 +62,7 @@ public class RuleChainClientTest extends AbstractContainerTest {
         PageData<RuleChain> pageData = edgeRestClient.getRuleChains(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
 
+        // create rule chain
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("Edge Test Rule Chain");
         ruleChain.setType(RuleChainType.EDGE);
@@ -76,12 +77,22 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
         assertEntitiesByIdsAndType(Collections.singletonList(savedRuleChain.getId()), EntityType.RULE_CHAIN);
 
+        // update rule chain
+        savedRuleChain.setName("Edge Test Rule Chain Updated");
+        cloudRestClient.saveRuleChain(savedRuleChain);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Test Rule Chain Updated"
+                        .equals(edgeRestClient.getRuleChainById(savedRuleChain.getId()).get().getName()));
+
+        // unassign rule chain from edge
         cloudRestClient.unassignRuleChainFromEdge(edge.getId(), savedRuleChain.getId());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
 
+        // delete rule chain
         cloudRestClient.deleteRuleChain(savedRuleChain.getId());
     }
 

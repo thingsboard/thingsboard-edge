@@ -155,7 +155,12 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
             AssetProfile assetProfile;
             if (asset.getAssetProfileId() == null) {
                 if (!StringUtils.isEmpty(asset.getType())) {
-                    assetProfile = this.assetProfileService.findOrCreateAssetProfile(asset.getTenantId(), asset.getType());
+                    // TODO: @voba asset profiles are not created on edge at the a
+                    assetProfile = this.assetProfileService.findAssetProfileByName(asset.getTenantId(), asset.getType());
+                    if (assetProfile == null) {
+                        assetProfile = this.assetProfileService.findDefaultAssetProfile(asset.getTenantId());
+                    }
+                    // assetProfile = this.assetProfileService.findOrCreateAssetProfile(asset.getTenantId(), asset.getType());
                 } else {
                     assetProfile = this.assetProfileService.findDefaultAssetProfile(asset.getTenantId());
                 }

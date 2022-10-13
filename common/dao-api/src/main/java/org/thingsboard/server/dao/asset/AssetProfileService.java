@@ -50,6 +50,8 @@ public interface AssetProfileService {
 
     AssetProfile saveAssetProfile(AssetProfile assetProfile);
 
+    AssetProfile saveAssetProfile(AssetProfile assetProfile, boolean doValidate);
+
     void deleteAssetProfile(TenantId tenantId, AssetProfileId assetProfileId);
 
     PageData<AssetProfile> findAssetProfiles(TenantId tenantId, PageLink pageLink);

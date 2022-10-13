@@ -46,9 +46,9 @@ import java.util.concurrent.TimeUnit;
 public class RelationClientTest extends AbstractContainerTest {
 
     @Test
-    public void testRelations() throws Exception {
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
-        Asset asset = saveAndAssignAssetToEdge(createEntityGroup(EntityType.ASSET));
+    public void testRelations() {
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
+        Asset asset = saveAssetAndAssignEntityGroupToEdge(createEntityGroup(EntityType.ASSET));
 
         EntityRelation relation = new EntityRelation();
         relation.setType("test");
@@ -61,6 +61,7 @@ public class RelationClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> edgeRestClient.getRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo()).isPresent());
 
+        // delete relation
         cloudRestClient.deleteRelation(relation.getFrom(), relation.getType(), relation.getTypeGroup(), relation.getTo());
 
         Awaitility.await()
@@ -69,8 +70,8 @@ public class RelationClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void sendRelationToCloud() throws Exception {
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+    public void sendRelationToCloud() {
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Device savedDeviceOnEdge = saveDeviceOnEdge("Test Device 3", "default");
         Awaitility.await()

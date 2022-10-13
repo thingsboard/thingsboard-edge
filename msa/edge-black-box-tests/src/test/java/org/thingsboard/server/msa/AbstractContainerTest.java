@@ -72,6 +72,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -89,6 +90,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
@@ -135,8 +137,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -266,8 +266,9 @@ public abstract class AbstractContainerTest {
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
-    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, null);
+    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
+                                                             DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+        DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
         extendDeviceProfileData(deviceProfile);
         return cloudRestClient.saveDeviceProfile(deviceProfile);
     }
@@ -425,47 +426,60 @@ public abstract class AbstractContainerTest {
         return saveDevice(deviceName, type, null, cloudRestClient);
     }
 
-    private Device saveDeviceOnCloud(String deviceName, String type, EntityGroupId entityGroupId) {
-        return saveDevice(deviceName, type, entityGroupId, cloudRestClient);
+    protected Device saveDeviceOnCloud(String deviceName, String deviceType, EntityGroupId entityGroupId) {
+        return saveDevice(deviceName, deviceType, entityGroupId, cloudRestClient);
     }
 
     private Device saveDevice(String deviceName, String type, EntityGroupId entityGroupId, RestClient restClient) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(type);
-        Device savedDevice = restClient.saveDevice(device);
-        if (entityGroupId != null) {
-            restClient.addEntitiesToEntityGroup(entityGroupId, Arrays.asList(savedDevice.getId()));
-        }
-        return savedDevice;
+        return restClient.saveDevice(device, null, entityGroupId);
     }
 
-    protected Asset saveAndAssignAssetToEdge(EntityGroup savedAssetEntityGroup) {
-        Asset asset = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), "Building", savedAssetEntityGroup.getId());
-        cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedAssetEntityGroup.getId(), EntityType.ASSET);
+    protected Asset saveAssetAndAssignEntityGroupToEdge(EntityGroup savedAssetEntityGroup) {
+        return saveAssetAndAssignEntityGroupToEdge("default", savedAssetEntityGroup);
+    }
+
+    protected Asset saveAssetAndAssignEntityGroupToEdge(String assetType, EntityGroup savedAssetEntityGroup) {
+        Asset asset = saveAssetOnCloud(RandomStringUtils.randomAlphanumeric(15), assetType, savedAssetEntityGroup.getId());
+
+        assignEntityGroupToEdge(savedAssetEntityGroup);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(asset.getId()).isPresent());
-
         return asset;
     }
 
-    private Asset saveAssetOnCloud(String assetName, String type, EntityGroupId entityGroupId) {
+    protected void assignEntityGroupToEdge(EntityGroup entityGroup) {
+        cloudRestClient.assignEntityGroupToEdge(edge.getId(), entityGroup.getId(), entityGroup.getType());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(entityGroup.getId()).isPresent());
+    }
+
+    protected Asset saveAssetOnCloud(String assetName, String type, EntityGroupId entityGroupId) {
         Asset asset = new Asset();
         asset.setName(assetName);
         asset.setType(type);
-        Asset savedAsset = cloudRestClient.saveAsset(asset);
-        if (entityGroupId != null) {
-            cloudRestClient.addEntitiesToEntityGroup(entityGroupId, Arrays.asList(savedAsset.getId()));
-        }
-        return savedAsset;
+        return cloudRestClient.saveAsset(asset, entityGroupId);
+    }
+
+    protected Dashboard saveDashboardOnCloud(String dashboardTitle) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(dashboardTitle);
+        return cloudRestClient.saveDashboard(dashboard);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
         switch (entityType) {
             case DEVICE_PROFILE:
                 assertDeviceProfiles(entityIds);
+                break;
+            case ASSET_PROFILE:
+                assertAssetProfiles(entityIds);
                 break;
             case RULE_CHAIN:
                 assertRuleChains(entityIds);
@@ -518,6 +532,17 @@ public abstract class AbstractContainerTest {
             DeviceProfile actual = cloudDeviceProfile.get();
             actual.setDefaultRuleChainId(null);
             Assert.assertEquals("Device profiles on cloud and edge are different (except defaultRuleChainId)", expected, actual);
+        }
+    }
+
+    private void assertAssetProfiles(List<EntityId> entityIds) {
+        for (EntityId entityId : entityIds) {
+            AssetProfileId assetProfileId = new AssetProfileId(entityId.getId());
+            Optional<AssetProfile> edgeAssetProfile = edgeRestClient.getAssetProfileById(assetProfileId);
+            Optional<AssetProfile> cloudAssetProfile = cloudRestClient.getAssetProfileById(assetProfileId);
+            AssetProfile expected = edgeAssetProfile.get();
+            AssetProfile actual = cloudAssetProfile.get();
+            Assert.assertEquals("Asset profiles on cloud and edge are different", expected, actual);
         }
     }
 
@@ -723,8 +748,12 @@ public abstract class AbstractContainerTest {
         return additionalInfo;
     }
 
-    protected Device saveAndAssignDeviceToEdge(EntityGroup savedDeviceEntityGroup) {
-        Device device = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), "default", savedDeviceEntityGroup.getId());
+    protected Device saveDeviceAndAssignEntityGroupToEdge(EntityGroup savedDeviceEntityGroup) {
+        return saveDeviceAndAssignEntityGroupToEdge("default", savedDeviceEntityGroup );
+    }
+
+    protected Device saveDeviceAndAssignEntityGroupToEdge(String deviceType, EntityGroup savedDeviceEntityGroup) {
+        Device device = saveDeviceOnCloud(RandomStringUtils.randomAlphanumeric(15), deviceType, savedDeviceEntityGroup.getId());
         cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedDeviceEntityGroup.getId(), EntityType.DEVICE);
 
         Awaitility.await()
@@ -737,7 +766,7 @@ public abstract class AbstractContainerTest {
     protected List<AttributeKvEntry> sendAttributesUpdated(RestClient sourceRestClient, RestClient targetRestClient,
                                                          JsonObject attributesPayload, List<String> keys, String scope) throws Exception {
 
-        Device device = saveAndAssignDeviceToEdge(createEntityGroup(EntityType.DEVICE));
+        Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         sourceRestClient.saveDeviceAttributes(device.getId(), scope, JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()));
 
@@ -767,15 +796,6 @@ public abstract class AbstractContainerTest {
                     AttributeKvEntry activeAttributeKv = attributeKvEntries.get(0);
                     return activeAttributeKv.getValueAsString().equals("true");
                 });
-    }
-
-    protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
-        List<AttributeKvEntry> attributesByScope = edgeRestClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
-        if (attributesByScope.isEmpty()) {
-            return false;
-        }
-        AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
-        return attributeKvEntry.getValueAsString().equals(expectedValue);
     }
 
     protected EntityGroup createEntityGroup(EntityType entityType) {
@@ -823,5 +843,20 @@ public abstract class AbstractContainerTest {
         }
     }
 
+    protected boolean verifyAttributeOnEdge(EntityId entityId, String scope, String key, String expectedValue) {
+        return verifyAttribute(entityId, scope, key, expectedValue, edgeRestClient);
+    }
 
+    protected boolean verifyAttributeOnCloud(EntityId entityId, String scope, String key, String expectedValue) {
+        return verifyAttribute(entityId, scope, key, expectedValue, cloudRestClient);
+    }
+
+    private boolean verifyAttribute(EntityId entityId, String scope, String key, String expectedValue, RestClient restClient) {
+        List<AttributeKvEntry> attributesByScope = restClient.getAttributesByScope(entityId, scope, Arrays.asList(key));
+        if (attributesByScope.isEmpty()) {
+            return false;
+        }
+        AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
+        return attributeKvEntry.getValueAsString().equals(expectedValue);
+    }
 }

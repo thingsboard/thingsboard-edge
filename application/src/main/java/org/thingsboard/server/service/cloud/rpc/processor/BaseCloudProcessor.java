@@ -119,6 +119,8 @@ public abstract class BaseCloudProcessor {
 
     protected static final Lock deviceCreationLock = new ReentrantLock();
 
+    protected static final Lock assetCreationLock = new ReentrantLock();
+
     protected static final Lock widgetCreationLock = new ReentrantLock();
 
     @Autowired

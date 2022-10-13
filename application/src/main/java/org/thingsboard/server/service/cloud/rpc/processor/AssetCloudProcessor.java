@@ -38,20 +38,17 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 @Slf4j
 public class AssetCloudProcessor extends BaseCloudProcessor {
-
-    private final Lock assetCreationLock = new ReentrantLock();
 
     public ListenableFuture<Void> processAssetMsgFromCloud(TenantId tenantId,
                                                            AssetUpdateMsg assetUpdateMsg,
@@ -78,11 +75,18 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                     CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(),
                             assetUpdateMsg.getCustomerIdLSB());
                     asset.setCustomerId(customerId);
+                    if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
+                        AssetProfileId assetProfileId = new AssetProfileId(
+                                new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
+                                        assetUpdateMsg.getAssetProfileIdLSB()));
+                        asset.setAssetProfileId(assetProfileId);
+                    }
                     Asset savedAsset = assetService.saveAsset(asset, false);
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
                     }
                     addToEntityGroup(tenantId, assetUpdateMsg, assetId);
+                    assetService.saveAsset(asset, false);
                 } finally {
                     assetCreationLock.unlock();
                 }

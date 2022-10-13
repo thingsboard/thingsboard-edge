@@ -32,20 +32,19 @@ package org.thingsboard.server.msa.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -53,49 +52,90 @@ public class DashboardClientTest extends AbstractContainerTest {
 
     @Test
     public void testDashboards() throws Exception {
-        verifyEntityGroups(EntityType.DASHBOARD, 1);
+        // create dashboard #1, add to group #1 and assign group #1 to edge
+        EntityGroup savedDashboardEntityGroup1 = createEntityGroup(EntityType.DASHBOARD);
+        Dashboard savedDashboard1 = saveDashboardOnCloud("Edge Dashboard 1", savedDashboardEntityGroup1.getId());
 
-        EntityGroup dashboardEntityGroup = new EntityGroup();
-        dashboardEntityGroup.setType(EntityType.DASHBOARD);
-        dashboardEntityGroup.setName("DashboardGroup");
-        EntityGroupInfo savedDashboardEntityGroup = cloudRestClient.saveEntityGroup(dashboardEntityGroup);
-        Dashboard savedDashboardOnCloud = saveDashboardOnCloud("Edge Dashboard 1", savedDashboardEntityGroup.getId());
-
-        cloudRestClient.assignEntityGroupToEdge(edge.getId(), savedDashboardEntityGroup.getId(), EntityType.DASHBOARD);
-
-        verifyEntityGroups(EntityType.DASHBOARD, 2);
+        assignEntityGroupToEdge(savedDashboardEntityGroup1);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isPresent());
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isPresent());
 
+        // update dashboard #1
+        String updatedDashboardTitle = savedDashboard1.getTitle() + "Updated";
+        savedDashboard1.setTitle(updatedDashboardTitle);
+        cloudRestClient.saveDashboard(savedDashboard1);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> updatedDashboardTitle.equals(edgeRestClient.getDashboardById(savedDashboard1.getId()).get().getTitle()));
+
+        // save dashboard #1 attribute
         JsonNode dashboardAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"dashboardKey\":\"dashboardValue\"}");
-        cloudRestClient.saveEntityAttributesV1(savedDashboardOnCloud.getId(), DataConstants.SERVER_SCOPE, dashboardAttributes);
+        cloudRestClient.saveEntityAttributesV1(savedDashboard1.getId(), DataConstants.SERVER_SCOPE, dashboardAttributes);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> verifyAttributeOnEdge(savedDashboardOnCloud.getId(),
+                .until(() -> verifyAttributeOnEdge(savedDashboard1.getId(),
                         DataConstants.SERVER_SCOPE, "dashboardKey", "dashboardValue"));
 
-        cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDashboardEntityGroup.getId(), EntityType.DASHBOARD);
+        // create dashboard #2 inside group #1
+        Dashboard savedDashboard2 = saveDashboardOnCloud(RandomStringUtils.randomAlphanumeric(15), savedDashboardEntityGroup1.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isPresent());
 
-        verifyEntityGroups(EntityType.DASHBOARD, 1);
+        // add group #2 and assign to edge
+        EntityGroup savedDashboardEntityGroup2 = createEntityGroup(EntityType.DASHBOARD);
+        assignEntityGroupToEdge(savedDashboardEntityGroup2);
+
+        // add dashboard #2 to group #2
+        cloudRestClient.addEntitiesToEntityGroup(savedDashboardEntityGroup2.getId(), Collections.singletonList(savedDashboard2.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> dashboard2Groups = edgeRestClient.getEntityGroupsForEntity(savedDashboard2.getId());
+                    return dashboard2Groups.contains(savedDashboardEntityGroup2.getId());
+                });
+
+        // remove dashboard #2 from group #2
+        cloudRestClient.removeEntitiesFromEntityGroup(savedDashboardEntityGroup2.getId(), Collections.singletonList(savedDashboard2.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> dashboard2Groups = edgeRestClient.getEntityGroupsForEntity(savedDashboard2.getId());
+                    return !dashboard2Groups.contains(savedDashboardEntityGroup2.getId());
+                });
+
+        // delete dashboard #2
+        cloudRestClient.deleteDashboard(savedDashboard2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard2.getId()).isEmpty());
+
+        // unassign group #1 from edge
+        cloudRestClient.unassignEntityGroupFromEdge(edge.getId(), savedDashboardEntityGroup1.getId(), EntityType.DASHBOARD);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedDashboardEntityGroup1.getId()).isEmpty());
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDashboardById(savedDashboardOnCloud.getId()).isEmpty());
+                .until(() -> edgeRestClient.getDashboardById(savedDashboard1.getId()).isEmpty());
 
-        cloudRestClient.deleteDashboard(savedDashboardOnCloud.getId());
+        // clean up
+        cloudRestClient.deleteDashboard(savedDashboard1.getId());
+        cloudRestClient.deleteEntityGroup(savedDashboardEntityGroup1.getId());
+        cloudRestClient.deleteEntityGroup(savedDashboardEntityGroup2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getEntityGroupById(savedDashboardEntityGroup2.getId()).isEmpty());
     }
 
     private Dashboard saveDashboardOnCloud(String dashboardTitle, EntityGroupId entityGroupId) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
-        Dashboard savedDashboard = cloudRestClient.saveDashboard(dashboard);
-        if (entityGroupId != null) {
-            cloudRestClient.addEntitiesToEntityGroup(entityGroupId, Arrays.asList(savedDashboard.getId()));
-        }
-        return savedDashboard;
+        return cloudRestClient.saveDashboard(dashboard, entityGroupId);
     }
 }
 

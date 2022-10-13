@@ -394,9 +394,6 @@ public class CloudManagerService extends BaseCloudEventService {
                     case RPC_CALL:
                         uplinkMsg = deviceProcessor.processRpcCallResponseMsgToCloud(cloudEvent);
                         break;
-                    case DEVICE_PROFILE_DEVICES_REQUEST:
-                        uplinkMsg = deviceProfileProcessor.processDeviceProfileDevicesRequestMsgToCloud(cloudEvent);
-                        break;
                     case WIDGET_BUNDLE_TYPES_REQUEST:
                         uplinkMsg = widgetBundleProcessor.processWidgetBundleTypesRequestMsgToCloud(cloudEvent);
                         break;
