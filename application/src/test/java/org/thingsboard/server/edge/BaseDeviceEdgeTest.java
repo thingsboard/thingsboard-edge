@@ -36,10 +36,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.protobuf.AbstractMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -57,6 +60,7 @@ import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileCon
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
@@ -66,6 +70,8 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.transport.mqtt.MqttTestCallback;
+import org.thingsboard.server.transport.mqtt.MqttTestClient;
 
 import java.util.Collections;
 import java.util.List;
@@ -77,6 +83,9 @@ import java.util.concurrent.TimeUnit;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestPropertySource(properties = {
+        "transport.mqtt.enabled=true"
+})
 abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
     @Test
@@ -86,18 +95,26 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         EntityGroup deviceEntityGroup1 = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "DeviceGroup1", tenantId);
 
         // create device and add to entity group 1
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         Device savedDevice = saveDevice("Edge Device 1", THERMOSTAT_DEVICE_PROFILE_NAME, deviceEntityGroup1.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
-        DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+
+        Optional<DeviceUpdateMsg> deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
+        Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
+        DeviceUpdateMsg deviceUpdateMsg = deviceUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
-        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
-        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
         Assert.assertEquals(deviceEntityGroup1.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(deviceEntityGroup1.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
+        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
+        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
+        Assert.assertEquals(savedDevice.getType(), deviceUpdateMsg.getType());
+        Optional<DeviceProfileUpdateMsg> deviceProfileUpdateMsgOpt = edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class);
+        Assert.assertTrue(deviceProfileUpdateMsgOpt.isPresent());
+        DeviceProfileUpdateMsg deviceProfileUpdateMsg = deviceProfileUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
+        Assert.assertEquals(savedDevice.getDeviceProfileId().getId().getMostSignificantBits(), deviceProfileUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedDevice.getDeviceProfileId().getId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
 
         // request devices by entity group id
         testDeviceEntityGroupRequestMsg(deviceEntityGroup1.getUuidId().getMostSignificantBits(),
@@ -105,22 +122,33 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
         // add device to entity group 2
         EntityGroup deviceEntityGroup2 = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "DeviceGroup2", tenantId);
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         addEntitiesToEntityGroup(Collections.singletonList(savedDevice.getId()), deviceEntityGroup2.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
-        deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
+        Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
+        deviceUpdateMsg = deviceUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(deviceEntityGroup2.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getEntityGroupIdLSB());
+        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
+        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
+        Assert.assertEquals(savedDevice.getType(), deviceUpdateMsg.getType());
+
+        deviceProfileUpdateMsgOpt = edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class);
+        Assert.assertTrue(deviceProfileUpdateMsgOpt.isPresent());
+        deviceProfileUpdateMsg = deviceProfileUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
+        Assert.assertEquals(savedDevice.getDeviceProfileId().getId().getMostSignificantBits(), deviceProfileUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedDevice.getDeviceProfileId().getId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
 
         // update device
         edgeImitator.expectMessageAmount(1);
         savedDevice.setName("Edge Device 1 Updated");
         savedDevice = doPost("/api/device", savedDevice, Device.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
         deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
@@ -164,17 +192,19 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         testAutoGeneratedCodeByProtobuf(uplinkMsgBuilder);
 
         edgeImitator.expectResponsesAmount(1);
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
         Assert.assertTrue(edgeImitator.waitForResponses());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
-        DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        Optional<DeviceUpdateMsg> deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
+        Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
+        DeviceUpdateMsg deviceUpdateMsg = deviceUpdateMsgOpt.get();
         DeviceId receivedDeviceId =
                 new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         Assert.assertEquals(expectedDeviceId, receivedDeviceId);
+        Optional<DeviceProfileUpdateMsg> deviceProfileUpdateMsgOpt = edgeImitator.findMessageByType(DeviceProfileUpdateMsg.class);
+        Assert.assertTrue(deviceProfileUpdateMsgOpt.isPresent());
 
         testAutoGeneratedCodeByProtobuf(deviceUpdateMsg);
     }
@@ -613,4 +643,39 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
                 new TypeReference<>() {});
     }
 
+    @Test
+    public void sendUpdateSharedAttributeToCloudAndValidateDeviceSubscription() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        DeviceCredentials deviceCredentials = doGet("/api/device/" + device.getUuidId() + "/credentials", DeviceCredentials.class);
+
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(deviceCredentials.getCredentialsId());
+        MqttTestCallback onUpdateCallback = new MqttTestCallback();
+        client.setCallback(onUpdateCallback);
+        client.subscribeAndWait("v1/devices/me/attributes", MqttQoS.AT_MOST_ONCE);
+
+        edgeImitator.expectResponsesAmount(1);
+
+        JsonObject attributesData = new JsonObject();
+        String attrKey = "sharedAttrName";
+        String attrValue = "sharedAttrValue";
+        attributesData.addProperty(attrKey, attrValue);
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityDataProto.Builder entityDataBuilder = EntityDataProto.newBuilder();
+        entityDataBuilder.setEntityType(device.getId().getEntityType().name());
+        entityDataBuilder.setEntityIdMSB(device.getId().getId().getMostSignificantBits());
+        entityDataBuilder.setEntityIdLSB(device.getId().getId().getLeastSignificantBits());
+        entityDataBuilder.setAttributesUpdatedMsg(JsonConverter.convertToAttributesProto(attributesData));
+        entityDataBuilder.setPostAttributeScope(DataConstants.SHARED_SCOPE);
+        uplinkMsgBuilder.addEntityData(entityDataBuilder.build());
+
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(5, TimeUnit.SECONDS));
+
+        Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.createObjectNode().put(attrKey, attrValue),
+                JacksonUtil.fromBytes(onUpdateCallback.getPayloadBytes()));
+    }
 }

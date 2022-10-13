@@ -216,6 +216,8 @@ sql:
     batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}"
     batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}"
     stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}"
+  audit_logs:
+    partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   cloud_events:
     batch_size: "${SQL_CLOUD_EVENTS_BATCH_SIZE:1000}"
     batch_max_delay: "${SQL_CLOUD_EVENTS_BATCH_MAX_DELAY_MS:100}"
@@ -258,6 +260,10 @@ sql:
     rpc:
       enabled: "${SQL_TTL_RPC_ENABLED:true}"
       checking_interval: "${SQL_RPC_TTL_CHECKING_INTERVAL:7200000}" # Number of milliseconds. The current value corresponds to two hours
+    audit_logs:
+      enabled: "${SQL_TTL_AUDIT_LOGS_ENABLED:true}"
+      ttl: "${SQL_TTL_AUDIT_LOGS_SECS:0}" # Disabled by default. Accuracy of the cleanup depends on the sql.audit_logs.partition_size
+      checking_interval_ms: "${SQL_TTL_AUDIT_LOGS_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
     cloud_events:
       enabled: "${SQL_TTL_CLOUD_EVENTS_ENABLED:true}"
       execution_interval_ms: "${SQL_TTL_CLOUD_EVENTS_EXECUTION_INTERVAL:86400000}" # Number of milliseconds. The current value corresponds to one day

@@ -28,35 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.audit;
+package org.thingsboard.server.common.msg.edge;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.audit.AuditLog;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
-import org.thingsboard.server.dao.Dao;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.msg.MsgType;
 
-import java.util.List;
 import java.util.UUID;
 
-public interface AuditLogDao extends Dao<AuditLog> {
+@AllArgsConstructor
+@Getter
+public class ToEdgeSyncRequest implements EdgeSessionMsg {
+    private final UUID id;
+    private final TenantId tenantId;
+    private final EdgeId edgeId;
 
-    ListenableFuture<Void> saveByTenantId(AuditLog auditLog);
-
-    PageData<AuditLog> findAuditLogsByTenantIdAndEntityId(UUID tenantId, EntityId entityId, List<ActionType> actionTypes, TimePageLink pageLink);
-
-    PageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(UUID tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink);
-
-    PageData<AuditLog> findAuditLogsByTenantIdAndUserId(UUID tenantId, UserId userId, List<ActionType> actionTypes, TimePageLink pageLink);
-
-    PageData<AuditLog> findAuditLogsByTenantId(UUID tenantId, List<ActionType> actionTypes, TimePageLink pageLink);
-
-    void cleanUpAuditLogs(long expTime);
-
-    void migrateAuditLogs();
-
+    @Override
+    public MsgType getMsgType() {
+        return MsgType.EDGE_SYNC_REQUEST_TO_EDGE_SESSION_MSG;
+    }
 }

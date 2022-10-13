@@ -124,6 +124,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -260,6 +261,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private AuditLogDao auditLogDao;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -297,10 +301,20 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 rateLimitsUpdater.updateEntities();
                 break;
             case "3.4.0":
-                String skipEventsMigration = System.getenv("TB_SKIP_EVENTS_MIGRATION");
-                if (skipEventsMigration == null || skipEventsMigration.equalsIgnoreCase("false")) {
+                boolean skipEventsMigration = getEnv("TB_SKIP_EVENTS_MIGRATION", false);
+                if (!skipEventsMigration) {
                     log.info("Updating data from version 3.4.0 to 3.4.1 ...");
                     eventService.migrateEvents();
+                }
+                break;
+            case "3.4.1":
+                boolean skipAuditLogsMigration = getEnv("TB_SKIP_AUDIT_LOGS_MIGRATION", false);
+                if (!skipAuditLogsMigration) {
+                    log.info("Updating data from version 3.4.1 to 3.4.2 ...");
+                    log.info("Starting audit logs migration. Can be skipped with TB_SKIP_AUDIT_LOGS_MIGRATION env variable set to true");
+                    auditLogDao.migrateAuditLogs();
+                } else {
+                    log.info("Skipping audit logs migration");
                 }
                 break;
             case "3.4.2":
@@ -1539,6 +1553,15 @@ public class DefaultDataUpdateService implements DataUpdateService {
         return mainQueueConfiguration;
     }
 
+    private boolean getEnv(String name, boolean defaultValue) {
+        String env = System.getenv(name);
+        if (env == null) {
+            return defaultValue;
+        } else {
+            return Boolean.parseBoolean(env);
+        }
+    }
+
     private void fixDuplicateSystemWidgetsBundles() {
         try {
             List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
@@ -1588,4 +1611,5 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     }
                 }
             };
+
 }

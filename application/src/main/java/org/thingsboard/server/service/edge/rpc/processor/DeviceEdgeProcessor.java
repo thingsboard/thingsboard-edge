@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -437,10 +438,14 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     DeviceUpdateMsg deviceUpdateMsg =
                             deviceMsgConstructor.constructDeviceUpdatedMsg(msgType, device, null, entityGroupId);
-                    downlinkMsg = DownlinkMsg.newBuilder()
+                    DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addDeviceUpdateMsg(deviceUpdateMsg)
-                            .build();
+                            .addDeviceUpdateMsg(deviceUpdateMsg);
+                    if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
+                        DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(edgeEvent.getTenantId(), device.getDeviceProfileId());
+                        builder.addDeviceProfileUpdateMsg(deviceProfileMsgConstructor.constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
+                    }
+                    downlinkMsg = builder.build();
                 }
                 break;
             case DELETED:

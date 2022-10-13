@@ -121,8 +121,8 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
         try {
             List<EdgeId> relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, userId);
             userService.deleteUser(tenantId, userId);
-            notificationEntityService.notifyDeleteEntity(tenantId, userId, user, user.getCustomerId(),
-                    ActionType.DELETED, relatedEdgeIds, tbUser, userId.toString());
+            notificationEntityService.notifyDeleteEntity(tenantId, userId, tbUser, customerId,
+                    ActionType.DELETED, relatedEdgeIds, user, customerId.toString());
         } catch (Exception e) {
             notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.USER),
                     ActionType.DELETED, user, e, userId.toString());

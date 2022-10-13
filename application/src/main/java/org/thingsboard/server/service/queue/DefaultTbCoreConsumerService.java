@@ -380,13 +380,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
-        } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
-            Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray());
-            if (actorMsg.isPresent()) {
-                log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                actorContext.tellWithHighPriority(actorMsg.get());
-            }
-            callback.onSuccess();
+        } else if (!toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            forwardToAppActor(id, encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray()), callback);
+        } else if (!toCoreNotification.getToEdgeSyncRequestMsg().isEmpty()) {
+            forwardToAppActor(id, encodingService.decode(toCoreNotification.getToEdgeSyncRequestMsg().toByteArray()), callback);
+        } else if (!toCoreNotification.getFromEdgeSyncResponseMsg().isEmpty()) {
+            forwardToAppActor(id, encodingService.decode(toCoreNotification.getFromEdgeSyncResponseMsg().toByteArray()), callback);
         } else if (toCoreNotification.hasQueueUpdateMsg()) {
             TransportProtos.QueueUpdateMsg queue = toCoreNotification.getQueueUpdateMsg();
             partitionService.updateQueue(queue);
@@ -681,6 +680,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             stats.log(cloudNotificationMsg);
         }
         cloudNotificationService.pushNotificationToCloud(cloudNotificationMsg, callback);
+    }
+
+    private void forwardToAppActor(UUID id, Optional<TbActorMsg> actorMsg, TbCallback callback) {
+        if (actorMsg.isPresent()) {
+            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+            actorContext.tell(actorMsg.get());
+        }
+        callback.onSuccess();
     }
 
     private void throwNotHandled(Object msg, TbCallback callback) {

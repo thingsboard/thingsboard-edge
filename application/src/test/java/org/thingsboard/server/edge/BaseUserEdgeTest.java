@@ -222,6 +222,8 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(customUserGroup.getUuidId().getMostSignificantBits(), userUpdateMsg.getEntityGroupIdMSB());
         Assert.assertEquals(customUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
+        unAssignEntityGroupFromEdge(customUserGroup);
+
         // update user credentials
         edgeImitator.expectMessageAmount(1);
         login(savedCustomerUser.getEmail(), "customer");
@@ -236,8 +238,6 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedCustomerUser.getUuidId().getMostSignificantBits(), userCredentialsUpdateMsg.getUserIdMSB());
         Assert.assertEquals(savedCustomerUser.getUuidId().getLeastSignificantBits(), userCredentialsUpdateMsg.getUserIdLSB());
         Assert.assertTrue(passwordEncoder.matches(changePasswordRequest.getNewPassword(), userCredentialsUpdateMsg.getPassword()));
-
-        unAssignEntityGroupFromEdge(customUserGroup);
 
         // delete user
         edgeImitator.expectMessageAmount(1);

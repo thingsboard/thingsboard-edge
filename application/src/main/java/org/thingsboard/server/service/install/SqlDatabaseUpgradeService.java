@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.install;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,10 +40,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.EntitySubtype;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -54,8 +50,6 @@ import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
-import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.tenant.profile.TenantProfileQueueConfiguration;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -80,11 +74,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Profile("install")
@@ -622,8 +613,8 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "3.4.1":
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     log.info("Updating schema ...");
+                    runSchemaUpdateScript(conn, "3.4.1");
                     if (isOldSchema(conn, 3004001)) {
-
                         try {
                             conn.createStatement().execute("ALTER TABLE asset ADD COLUMN asset_profile_id uuid");
                         } catch (Exception e) {
@@ -777,6 +768,11 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }
+    }
+
+    private void runSchemaUpdateScript(Connection connection, String version) throws Exception {
+        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", version, SCHEMA_UPDATE_SQL);
+        loadSql(schemaUpdateFile, connection);
     }
 
     private void loadSql(Path sqlFile, Connection conn) throws Exception {
