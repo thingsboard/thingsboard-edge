@@ -45,6 +45,7 @@ import {
 import {
     HttpIntegrationFormComponent
 } from '@home/pages/integration/configurations/http-integration-form/http-integration-form.component';
+import { MqttTopicFiltersComponent } from '@home/pages/integration/configurations/mqtt-topic-filters/mqtt-topic-filters.component';
 
 @NgModule({
     declarations: [
@@ -52,10 +53,11 @@ import {
         IntegrationTabsComponent,
         ...integrations
     ],
-    exports: [
-        MqttIntegrationFormComponent,
-        HttpIntegrationFormComponent
-    ],
+  exports: [
+    MqttIntegrationFormComponent,
+    HttpIntegrationFormComponent,
+    MqttTopicFiltersComponent
+  ],
     imports: [
         CommonModule,
         SharedModule,
