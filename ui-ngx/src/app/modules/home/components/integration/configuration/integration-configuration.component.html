@@ -121,11 +121,12 @@
                                        [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-aws-kinesis-integration-form>
     </ng-container>
-    <ng-container *ngSwitchCase="integrationTypes.CUSTOM">
-      <tb-custom-integration-form formControlName="configuration"
-                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
-                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
-      </tb-custom-integration-form>
+    <ng-container *ngSwitchCase="integrationTypes.UDP">
+      <tb-udp-integration-form formControlName="configuration"
+                               [isSetDownlink]="isSetDownlink"
+                               [executeRemotelyTemplate]="executeRemotelyTemplate"
+                               [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-udp-integration-form>
     </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.IBM_WATSON_IOT">
       <tb-ibm-watson-iot-integration-form formControlName="configuration"
@@ -133,11 +134,11 @@
                                           [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-ibm-watson-iot-integration-form>
     </ng-container>
-    <ng-container *ngSwitchCase="integrationTypes.AWS_SQS">
-      <tb-aws-sqs-integration-form formControlName="configuration"
-                                   [executeRemotelyTemplate]="executeRemotelyTemplate"
-                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
-      </tb-aws-sqs-integration-form>
+    <ng-container *ngSwitchCase="integrationTypes.CUSTOM">
+      <tb-custom-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-custom-integration-form>
     </ng-container>
     <ng-container *ngSwitchDefault>
       Not Found!!

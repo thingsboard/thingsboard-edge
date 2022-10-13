@@ -154,3 +154,17 @@ export const InitialPositionInStreamTranslation = new Map<InitialPositionInStrea
   [InitialPositionInStream.TRIM_HORIZON, 'Trim horizon'],
   [InitialPositionInStream.AT_TIMESTAMP, 'At timestamp']
 ]);
+
+export enum HandlerConfigurationType {
+  TEXT = 'TEXT',
+  BINARY = 'BINARY',
+  JSON = 'JSON',
+  HEX = 'HEX'
+}
+
+export const HandlerConfigurationTypeTranslation = new Map<HandlerConfigurationType, string>([
+  [HandlerConfigurationType.TEXT, 'extension.text'],
+  [HandlerConfigurationType.BINARY, 'extension.binary'],
+  [HandlerConfigurationType.JSON, 'extension.json'],
+  [HandlerConfigurationType.HEX, 'extension.hex']
+]);

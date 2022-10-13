@@ -28,8 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+:host {
+  .fields-group {
+    margin-top: 8px;
+    legend + * {
+      margin-top: 0;
+    }
+  }
+}
+
 :host ::ng-deep {
-  .mat-slide-toggle {
+  .toggle {
     margin: 16px 0 8px;
 
     .mat-slide-toggle-content {

@@ -68,8 +68,8 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   @Input() executeRemotelyTemplate: TemplateRef<any>;
   @Input() genericAdditionalInfoTemplate: TemplateRef<any>;
 
-  @Input()
-  routingKey: string;
+  @Input() isSetDownlink: boolean;
+  @Input() routingKey: string;
 
   private integrationTypeValue: IntegrationType;
   @Input()

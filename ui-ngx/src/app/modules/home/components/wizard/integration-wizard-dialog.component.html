@@ -141,6 +141,7 @@
               [genericAdditionalInfoTemplate]="genericAdditionalInfo"
               [executeRemotelyTemplate]="executeRemotely"
               [integrationType]="integrationWizardForm.get('type').value"
+              [isSetDownlink]="!!downlinkConverterForm.get('downlinkConverterId').value || downlinkConverterForm.get('converterType').value === 'new'"
             ></tb-integration-configuration>
             <ng-template #genericAdditionalInfo>
               <section [formGroup]="integrationConfigurationForm">
