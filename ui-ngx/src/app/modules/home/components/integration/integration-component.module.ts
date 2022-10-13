@@ -97,6 +97,7 @@ import { AwsSqsIntegrationFormComponent } from '@home/components/integration/con
 import {
   UdpIntegrationFormComponent
 } from '@home/components/integration/configuration/udp-integration-form/udp-integration-form.component';
+import { AzureEventHubIntegrationFormComponent } from '@home/components/integration/configuration/azure-event-hub-form/azure-event-hub-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -124,7 +125,8 @@ import {
     AwsKinesisIntegrationFormComponent,
     IbmWatsonIotIntegrationFormComponent,
     AwsSqsIntegrationFormComponent,
-    UdpIntegrationFormComponent
+    UdpIntegrationFormComponent,
+    AzureEventHubIntegrationFormComponent
   ],
   imports: [
     CommonModule,

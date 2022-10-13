@@ -140,6 +140,13 @@
                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-custom-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AZURE_EVENT_HUB">
+      <tb-azure-event-hub-integration-form formControlName="configuration"
+                                           [isSetDownlink]="isSetDownlink"
+                                           [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                           [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-azure-event-hub-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
       Not Found!!
     </ng-container>
