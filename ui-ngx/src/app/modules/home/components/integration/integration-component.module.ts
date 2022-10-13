@@ -86,6 +86,9 @@ import {
 import {
   CustomIntegrationFormComponent
 } from '@home/components/integration/configuration/custom-integration-form/custom-integration-form.component';
+import {
+  ApachePulsarIntegrationFormComponent
+} from '@home/components/integration/configuration/apache-pulsar-integration-form/apache-pulsar-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -108,6 +111,7 @@ import {
     LoriotIntegrationFormComponent,
     ChirpStackIntegrationFormComponent,
     PubSubIntegrationFormComponent,
+    ApachePulsarIntegrationFormComponent,
     CustomIntegrationFormComponent
   ],
   imports: [

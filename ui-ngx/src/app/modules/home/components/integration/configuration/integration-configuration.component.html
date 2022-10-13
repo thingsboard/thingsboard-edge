@@ -109,6 +109,12 @@
                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-pubsub-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.APACHE_PULSAR">
+      <tb-apache-pulsar-integration-form formControlName="configuration"
+                                         [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                         [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-apache-pulsar-integration-form>
+    </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.CUSTOM">
       <tb-custom-integration-form formControlName="configuration"
                                   [executeRemotelyTemplate]="executeRemotelyTemplate"
