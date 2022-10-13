@@ -362,60 +362,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
-    private void fixDuplicateSystemWidgetsBundles() {
-        try {
-            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
-            for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
-                try {
-                    widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
-                } catch (IncorrectResultSizeDataAccessException e) {
-                    // fix for duplicate entries of system widgets
-                    for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
-                        if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
-                            widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error("Unable to fix duplicate system widgets bundles", e);
-        }
-    }
-
-    private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
-            new PaginatedUpdater<>() {
-
-                @Override
-                protected String getName() {
-                    return "Tenants edge full sync required updater";
-                }
-
-                @Override
-                protected boolean forceReportTotal() {
-                    return true;
-                }
-
-                @Override
-                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
-                    return tenantService.findTenants(pageLink);
-                }
-
-                @Override
-                protected void updateEntity(Tenant tenant) {
-                    try {
-                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
-                        if (edgeSettings != null) {
-                            edgeSettings.setFullSyncRequired(true);
-                            cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
-                        } else {
-                            log.warn("Edge settings not found for tenant: {}", tenant.getId());
-                        }
-                    } catch (Exception e) {
-                        log.error("Unable to update Tenant", e);
-                    }
-                }
-            };
-
     private final PaginatedUpdater<String, Tenant> tenantsDefaultEdgeRuleChainUpdater =
             new PaginatedUpdater<>() {
 
@@ -742,4 +688,57 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
     }
 
+    private void fixDuplicateSystemWidgetsBundles() {
+        try {
+            List<WidgetsBundle> systemWidgetsBundles = widgetsBundleService.findSystemWidgetsBundles(TenantId.SYS_TENANT_ID);
+            for (WidgetsBundle widgetsBundle : systemWidgetsBundles) {
+                try {
+                    widgetsBundleService.findWidgetsBundleByTenantIdAndAlias(TenantId.SYS_TENANT_ID, widgetsBundle.getAlias());
+                } catch (IncorrectResultSizeDataAccessException e) {
+                    // fix for duplicate entries of system widgets
+                    for (WidgetsBundle systemWidgetsBundle : systemWidgetsBundles) {
+                        if (systemWidgetsBundle.getAlias().equals(widgetsBundle.getAlias())) {
+                            widgetsBundleService.deleteWidgetsBundle(TenantId.SYS_TENANT_ID, systemWidgetsBundle.getId());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Unable to fix duplicate system widgets bundles", e);
+        }
+    }
+
+    private final PaginatedUpdater<String, Tenant> tenantsFullSyncRequiredUpdater =
+            new PaginatedUpdater<>() {
+
+                @Override
+                protected String getName() {
+                    return "Tenants edge full sync required updater";
+                }
+
+                @Override
+                protected boolean forceReportTotal() {
+                    return true;
+                }
+
+                @Override
+                protected PageData<Tenant> findEntities(String region, PageLink pageLink) {
+                    return tenantService.findTenants(pageLink);
+                }
+
+                @Override
+                protected void updateEntity(Tenant tenant) {
+                    try {
+                        EdgeSettings edgeSettings = cloudEventService.findEdgeSettings(tenant.getId());
+                        if (edgeSettings != null) {
+                            edgeSettings.setFullSyncRequired(true);
+                            cloudEventService.saveEdgeSettings(tenant.getId(), edgeSettings);
+                        } else {
+                            log.warn("Edge settings not found for tenant: {}", tenant.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("Unable to update Tenant", e);
+                    }
+                }
+            };
 }
