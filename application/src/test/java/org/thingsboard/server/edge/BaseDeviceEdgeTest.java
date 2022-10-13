@@ -36,9 +36,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
 import com.google.protobuf.AbstractMessage;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -65,6 +67,8 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.transport.mqtt.MqttTestCallback;
+import org.thingsboard.server.transport.mqtt.MqttTestClient;
 
 import java.util.Collections;
 import java.util.List;
@@ -600,4 +604,39 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
                 new TypeReference<>() {});
     }
 
+    @Test
+    public void sendUpdateSharedAttributeToCloudAndValidateDeviceSubscription() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        DeviceCredentials deviceCredentials = doGet("/api/device/" + device.getUuidId() + "/credentials", DeviceCredentials.class);
+
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(deviceCredentials.getCredentialsId());
+        MqttTestCallback onUpdateCallback = new MqttTestCallback();
+        client.setCallback(onUpdateCallback);
+        client.subscribeAndWait("v1/devices/me/attributes", MqttQoS.AT_MOST_ONCE);
+
+        edgeImitator.expectResponsesAmount(1);
+
+        JsonObject attributesData = new JsonObject();
+        String attrKey = "sharedAttrName";
+        String attrValue = "sharedAttrValue";
+        attributesData.addProperty(attrKey, attrValue);
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityDataProto.Builder entityDataBuilder = EntityDataProto.newBuilder();
+        entityDataBuilder.setEntityType(device.getId().getEntityType().name());
+        entityDataBuilder.setEntityIdMSB(device.getId().getId().getMostSignificantBits());
+        entityDataBuilder.setEntityIdLSB(device.getId().getId().getLeastSignificantBits());
+        entityDataBuilder.setAttributesUpdatedMsg(JsonConverter.convertToAttributesProto(attributesData));
+        entityDataBuilder.setPostAttributeScope(DataConstants.SHARED_SCOPE);
+        uplinkMsgBuilder.addEntityData(entityDataBuilder.build());
+
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(5, TimeUnit.SECONDS));
+
+        Assert.assertEquals(JacksonUtil.OBJECT_MAPPER.createObjectNode().put(attrKey, attrValue),
+                JacksonUtil.fromBytes(onUpdateCallback.getPayloadBytes()));
+    }
 }
