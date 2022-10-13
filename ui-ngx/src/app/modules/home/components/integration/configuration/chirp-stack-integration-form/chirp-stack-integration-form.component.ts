@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -65,7 +65,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
     multi: true,
   }]
 })
-export class ChirpStackIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
+export class ChirpStackIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
   chirpStackIntegrationConfigForm: FormGroup;
 
@@ -80,9 +80,6 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
               private store: Store<AppState>,
               private translate: TranslateService) {
     super();
-  }
-
-  ngOnInit() {
     this.chirpStackIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), Validators.required],
       httpEndpoint: [{value: integrationBaseUrlChanged(this.integrationType, baseUrl(), this.routingKey), disabled: true}],

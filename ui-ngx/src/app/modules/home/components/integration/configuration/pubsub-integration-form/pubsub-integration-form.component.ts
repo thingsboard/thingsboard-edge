@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, OnInit } from '@angular/core';
+import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -59,7 +59,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
     multi: true,
   }]
 })
-export class PubSubIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
+export class PubSubIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
   pubSubIntegrationConfigForm: FormGroup;
 
@@ -67,9 +67,6 @@ export class PubSubIntegrationFormComponent extends IntegrationForm implements C
 
   constructor(private fb: FormBuilder) {
     super();
-  }
-
-  ngOnInit() {
     this.pubSubIntegrationConfigForm = this.fb.group({
       projectId: [null, Validators.required],
       subscriptionId: [null, Validators.required],

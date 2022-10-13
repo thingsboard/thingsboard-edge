@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, OnInit } from '@angular/core';
+import { Component, forwardRef } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -59,19 +59,16 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
       multi: true,
     }]
 })
-export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
+export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
   ibmWatsonIotIntegrationConfigForm: FormGroup;
 
-  private propagateChange = (v: any) => { };
+  private ibmWatsonIotApiKeyPatternValidator = Validators.pattern(/^a-\w+-\w+$/);
 
-  private ibmWatsonIotApiKeyPatternValidator = Validators.pattern(/^a-\w+-\w+$/)
+  private propagateChange = (v: any) => { };
 
   constructor(private fb: FormBuilder) {
     super();
-  }
-
-  ngOnInit() {
     this.ibmWatsonIotIntegrationConfigForm = this.fb.group({
       clientConfiguration: this.fb.group({
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
@@ -88,6 +85,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
       }], Validators.required],
       downlinkTopicPattern: ['iot-2/type/${device_type}/id/${device_id}/cmd/${command_id}/fmt/${format}', [Validators.required]],
     });
+
     this.ibmWatsonIotIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModels(value));
