@@ -34,7 +34,7 @@ public class AssetClientTest extends AbstractContainerTest {
     @Test
     public void testAssets() throws Exception {
         // create asset #1 and assign to edge
-        Asset savedAsset1 = saveAndAssignAssetToEdge();
+        Asset savedAsset1 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset1.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -63,7 +63,7 @@ public class AssetClientTest extends AbstractContainerTest {
         cloudRestClient.deleteAsset(savedAsset1.getId());
 
         // create asset #2 and assign to edge
-        Asset savedAsset2 = saveAndAssignAssetToEdge();
+        Asset savedAsset2 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -90,6 +90,12 @@ public class AssetClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getAssetById(savedAsset2.getId()).isEmpty());
+
+        // delete "Building" asset profile
+        cloudRestClient.deleteAssetProfile(savedAsset1.getAssetProfileId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getAssetProfileById(savedAsset1.getAssetProfileId()).isEmpty());
     }
 
 }

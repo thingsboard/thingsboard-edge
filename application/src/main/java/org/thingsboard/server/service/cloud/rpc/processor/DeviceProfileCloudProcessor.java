@@ -84,19 +84,25 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                             ? new String(deviceProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
                     deviceProfile.setProvisionType(deviceProfileUpdateMsg.hasProvisionType()
                             ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
-                    deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey() ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
+                    deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey()
+                            ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
                     if (profileDataOpt.isPresent()) {
                         deviceProfile.setProfileData(profileDataOpt.get());
+                    } else {
+                        deviceProfile.setProfileData(null);
                     }
                     if (deviceProfileUpdateMsg.getDefaultRuleChainIdMSB() != 0 &&
                             deviceProfileUpdateMsg.getDefaultRuleChainIdLSB() != 0) {
                         RuleChainId defaultRuleChainId = new RuleChainId(
                                 new UUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB()));
                         deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
+                    } else {
+                        deviceProfile.setDefaultRuleChainId(null);
                     }
-                    String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName()) ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
+                    String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName())
+                            ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
                     deviceProfile.setDefaultQueueName(defaultQueueName);
                     DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
 

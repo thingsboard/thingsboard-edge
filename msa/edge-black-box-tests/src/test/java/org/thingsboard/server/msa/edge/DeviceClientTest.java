@@ -72,7 +72,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     @Test
     public void testDevices() throws Exception {
         // create device #1 and assign to edge
-        Device savedDevice1 = saveAndAssignDeviceToEdge();
+        Device savedDevice1 = saveAndAssignDeviceToEdge("Remote Controller");
 
         // update device #1 attributes
         cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));
@@ -111,7 +111,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDevice(savedDevice1.getId());
 
         // create device #2 and assign to edge
-        Device savedDevice2 = saveAndAssignDeviceToEdge();
+        Device savedDevice2 = saveAndAssignDeviceToEdge("Remote Controller");
 
         // assign device #2 to customer
         Customer customer = new Customer();
@@ -134,6 +134,12 @@ public class DeviceClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDeviceById(savedDevice2.getId()).isEmpty());
+
+        // delete "Remote Controller" device profile
+        cloudRestClient.deleteDeviceProfile(savedDevice1.getDeviceProfileId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDeviceProfileById(savedDevice1.getDeviceProfileId()).isEmpty());
     }
 
     @Test

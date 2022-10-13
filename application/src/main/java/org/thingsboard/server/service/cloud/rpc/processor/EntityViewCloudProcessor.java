@@ -76,7 +76,8 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     entityView.setName(entityViewUpdateMsg.getName());
                     entityView.setType(entityViewUpdateMsg.getType());
                     entityView.setEntityId(entityId);
-                    entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
+                    entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo()
+                            ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
                     if (entityViewUpdateMsg.hasCustomerIdMSB() && entityViewUpdateMsg.hasCustomerIdLSB()) {
                         CustomerId customerId = new CustomerId(new UUID(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB()));
                         entityView.setCustomerId(customerId);

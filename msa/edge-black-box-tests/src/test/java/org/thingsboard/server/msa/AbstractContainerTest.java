@@ -226,8 +226,9 @@ public abstract class AbstractContainerTest {
         cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
     }
 
-    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
-        DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, null);
+    protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName,
+                                                             DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) {
+        DeviceProfile deviceProfile = createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
         extendDeviceProfileData(deviceProfile);
         return cloudRestClient.saveDeviceProfile(deviceProfile);
     }
@@ -357,7 +358,11 @@ public abstract class AbstractContainerTest {
     }
 
     protected Asset saveAndAssignAssetToEdge() {
-        Asset asset = saveAssetOnCloud(randomAlphanumeric(15), "Building");
+        return saveAndAssignAssetToEdge("default");
+    }
+
+    protected Asset saveAndAssignAssetToEdge(String assetType) {
+        Asset asset = saveAssetOnCloud(randomAlphanumeric(15), assetType);
         cloudRestClient.assignAssetToEdge(edge.getId(), asset.getId());
 
         Awaitility.await()
@@ -602,7 +607,11 @@ public abstract class AbstractContainerTest {
     }
 
     protected Device saveAndAssignDeviceToEdge() {
-        Device device = saveDeviceOnCloud(randomAlphanumeric(15), "Remote Controller");
+        return saveAndAssignDeviceToEdge("default");
+    }
+
+    protected Device saveAndAssignDeviceToEdge(String deviceType) {
+        Device device = saveDeviceOnCloud(randomAlphanumeric(15), deviceType);
         cloudRestClient.assignDeviceToEdge(edge.getId(), device.getId());
 
         Awaitility.await()
