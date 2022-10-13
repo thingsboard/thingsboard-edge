@@ -6,88 +6,6 @@
   "configuration": {
     "description": "",
     "widgets": {
-      "9096bb98-7d8a-5888-e77b-7f02c846c922": {
-        "isSystemType": true,
-        "bundleAlias": "charts",
-        "typeAlias": "basic_timeseries",
-        "type": "timeseries",
-        "title": "New widget",
-        "image": null,
-        "description": null,
-        "sizeX": 8,
-        "sizeY": 5,
-        "config": {
-          "datasources": [
-            {
-              "type": "entity",
-              "name": null,
-              "entityAliasId": "cd737d26-3068-aae0-d370-c93f8e7e1a00",
-              "filterId": null,
-              "dataKeys": [
-                {
-                  "name": "avgMoisture",
-                  "type": "timeseries",
-                  "label": "avgMoisture",
-                  "color": "#2196f3",
-                  "settings": {},
-                  "_hash": 0.8744305724481565
-                }
-              ],
-              "latestDataKeys": []
-            }
-          ],
-          "timewindow": {
-            "realtime": {
-              "timewindowMs": 60000
-            }
-          },
-          "showTitle": true,
-          "backgroundColor": "#fff",
-          "color": "rgba(0, 0, 0, 0.87)",
-          "padding": "8px",
-          "settings": {
-            "shadowSize": 4,
-            "fontColor": "#545454",
-            "fontSize": 10,
-            "xaxis": {
-              "showLabels": true,
-              "color": "#545454"
-            },
-            "yaxis": {
-              "showLabels": true,
-              "color": "#545454"
-            },
-            "grid": {
-              "color": "#545454",
-              "tickColor": "#DDDDDD",
-              "verticalLines": true,
-              "horizontalLines": true,
-              "outlineWidth": 1
-            },
-            "legend": {
-              "show": true,
-              "position": "nw",
-              "backgroundColor": "#f0f0f0",
-              "backgroundOpacity": 0.85,
-              "labelBoxBorderColor": "rgba(1, 1, 1, 0.45)"
-            },
-            "decimals": 1,
-            "stack": false,
-            "tooltipIndividual": false
-          },
-          "title": "New Timeseries Line Chart",
-          "dropShadow": true,
-          "enableFullscreen": true,
-          "titleStyle": {
-            "fontSize": "16px",
-            "fontWeight": 400
-          },
-          "useDashboardTimewindow": true
-        },
-        "row": 0,
-        "col": 0,
-        "id": "9096bb98-7d8a-5888-e77b-7f02c846c922"
-      },
       "c5f8412d-2ffb-4c44-7a7f-223ceea08d84": {
         "isSystemType": true,
         "bundleAlias": "maps_v2",
@@ -171,8 +89,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -334,8 +252,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -627,8 +545,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -701,8 +619,10 @@
                   "color": "#2196f3",
                   "settings": {
                     "columnWidth": "30%",
-                    "useCellStyleFunction": false,
-                    "useCellContentFunction": false,
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "return {\n    fontWeight: 600\n};",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "return value ? '<span style=\"background: rgba(111, 116, 242, 0.08); border-radius: 16px; padding: 4px 8px; color: #5553AF;\">'+value+'</span>' : '';",
                     "defaultColumnVisibility": "visible",
                     "columnSelectionToDisplay": "enabled",
                     "columnExportOption": "onlyVisible"
@@ -744,7 +664,8 @@
                   "settings": {
                     "columnWidth": "20%",
                     "useCellStyleFunction": false,
-                    "useCellContentFunction": false,
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "if (value) {\n    var criticalAlarmsCount = entity['criticalAlarmsCount'];\n    var majorAlarmsCount = entity['majorAlarmsCount'];\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    if (criticalAlarmsCount) {\n        background = '209, 39, 48';\n        textColor = '#D12730';\n    } else if (majorAlarmsCount) {\n        background = '213, 157, 19';\n        textColor = '#e78202';\n    }\n    \n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
                     "defaultColumnVisibility": "visible",
                     "columnSelectionToDisplay": "enabled",
                     "columnExportOption": "onlyVisible"
@@ -753,6 +674,48 @@
                   "aggregationType": "NONE",
                   "units": "%",
                   "decimals": 0,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "criticalAlarmsCount",
+                  "type": "attribute",
+                  "label": "criticalAlarmsCount",
+                  "color": "#607d8b",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": false,
+                    "defaultColumnVisibility": "hidden",
+                    "columnSelectionToDisplay": "disabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.06822434191582616,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "majorAlarmsCount",
+                  "type": "attribute",
+                  "label": "majorAlarmsCount",
+                  "color": "#9c27b0",
+                  "settings": {
+                    "columnWidth": "0px",
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": false,
+                    "defaultColumnVisibility": "hidden",
+                    "columnSelectionToDisplay": "disabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.15623745440101233,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
                   "funcBody": null,
                   "usePostProcessing": null,
                   "postFuncBody": null
@@ -862,8 +825,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -929,12 +892,35 @@
                   "postFuncBody": null
                 },
                 {
+                  "name": "label",
+                  "type": "entityField",
+                  "label": "Label",
+                  "color": "#9c27b0",
+                  "settings": {
+                    "columnWidth": "20%",
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "return {\n    fontWeight: 600\n};\n",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "return value ? '<span style=\"background: rgba(111, 116, 242, 0.08); border-radius: 16px; padding: 4px 8px; color: #5553AF;\">'+value+'</span>' : '';",
+                    "defaultColumnVisibility": "visible",
+                    "columnSelectionToDisplay": "enabled",
+                    "columnExportOption": "onlyVisible"
+                  },
+                  "_hash": 0.5996920850265313,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
                   "name": "moisture",
                   "type": "timeseries",
                   "label": "moisture",
                   "color": "#4caf50",
                   "settings": {
-                    "columnWidth": "40%",
+                    "columnWidth": "30%",
                     "useCellStyleFunction": false,
                     "useCellContentFunction": true,
                     "cellContentFunction": "if (value) {\n    var criticalAlarmsCount = entity['criticalAlarmsCount'];\n    var majorAlarmsCount = entity['majorAlarmsCount'];\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    if (criticalAlarmsCount) {\n        background = '209, 39, 48';\n        textColor = '#D12730';\n    } else if (majorAlarmsCount) {\n        background = '213, 157, 19';\n        textColor = '#e78202';\n    }\n    \n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
@@ -956,7 +942,7 @@
                   "label": "active",
                   "color": "#f44336",
                   "settings": {
-                    "columnWidth": "20%",
+                    "columnWidth": "10%",
                     "useCellStyleFunction": false,
                     "useCellContentFunction": true,
                     "cellContentFunction": "var text = value === 'true' ? 'On' : 'Off';\nvar color = value === 'true' ? '#198038' : 'red';\nreturn '<div><span style=\"width: 4px; height: 4px; border-radius: 2px; background: '+color+'; display: inline-block; vertical-align: middle;\"></span><span style=\"padding-left: 8px;\">'+text+'</span></div>';",
@@ -1087,7 +1073,7 @@
                 "popoverHideOnClickOutside": true,
                 "popoverHideDashboardToolbar": true,
                 "popoverWidth": "300px",
-                "popoverHeight": "220px",
+                "popoverHeight": "250px",
                 "popoverStyle": {},
                 "openInSeparateDialog": false,
                 "openInPopover": true,
@@ -1151,8 +1137,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1387,8 +1373,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1640,8 +1626,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1762,7 +1748,7 @@
                 "popoverHideOnClickOutside": true,
                 "popoverHideDashboardToolbar": true,
                 "popoverWidth": "300px",
-                "popoverHeight": "220px",
+                "popoverHeight": "250px",
                 "popoverStyle": {},
                 "openInSeparateDialog": false,
                 "openInPopover": true,
@@ -1961,8 +1947,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1977,7 +1963,7 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%;\" fxLayout=\"column\">\n    <tb-dashboard-state \n        style=\"height: 130px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '460px' : '220px', 200)\">\n        <mat-expansion-panel-header fxLayout=\"row wrap\">\n            <mat-panel-description fxLayoutAlign=\"end center\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_expanded\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
+            "markdownTextPattern": "<div class=\"main-layout\" style=\"width: 100%;\" fxLayout=\"column\">\n    <tb-dashboard-state \n        style=\"height: 160px; width: 100%;\"\n        [ctx]=\"ctx\"\n        stateId=\"moisture_sensor_details_brief\"\n        [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\"> \n    </tb-dashboard-state>\n    <mat-expansion-panel id=\"${entityId}\" class=\"tb-settings\" \n         (expandedChange)=\"showDetails = $event; ctx.popoverComponent?.resize($event ? '400px' : '300px', $event ? '570px' : '250px', 200)\">\n        <mat-expansion-panel-header fxLayout=\"row wrap\">\n            <mat-panel-description fxLayoutAlign=\"end center\">\n                View details\n            </mat-panel-description>\n        </mat-expansion-panel-header>\n        <ng-template matExpansionPanelContent>\n            <div style=\"height: 80px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_alarms\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n            <div style=\"height: 200px; width: 100%;\">\n                <tb-dashboard-state \n                    *ngIf=\"showDetails\"\n                    style=\"height: 100%; width: 100%;\"\n                    [ctx]=\"ctx\"\n                    stateId=\"moisture_sensor_details_moisture\"\n                    [entityId]=\"{ entityType: 'DEVICE', id: '${entityId}' }\">\n                </tb-dashboard-state>\n            </div>\n        </ng-template>\n    </mat-expansion-panel>\n</div>",
             "markdownCss": ".tb-markdown-view .tb-progress-cover, .tb-markdown-view .mat-drawer-container {\n    background-color: #fff !important;\n}\n\n.tb-markdown-view {\n    overflow: hidden !important;\n}\n\n.tb-markdown-view > div {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings {\n    box-shadow: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-content {\n    overflow: visible;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header {\n    padding: 0;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header:hover {\n    background: none;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator {\n    padding: 2px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header-description {\n    align-items: center;\n    font-weight: 600;\n    font-size: 13px;\n    margin-right: 8px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator:after, .mat-expansion-panel.tb-settings .mat-expansion-panel-header-description {\n    color: #5553AF;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator {\n    padding: 0 2px;\n    font-size: 13px;\n}\n\n.mat-expansion-panel.tb-settings .mat-expansion-panel-header .mat-expansion-indicator:after {\n    vertical-align: baseline;\n}\n\n.mat-expansion-panel.tb-settings > .mat-expansion-panel-content > .mat-expansion-panel-body {\n    padding: 0;\n}\n\n.mat-expansion-panel .mat-expansion-panel-content { \n    font: inherit;\n}\n\n.tb-timewindow {\n    border: 1px solid rgba(0, 0, 0, 0.08);\n    border-radius: 8px;\n    color: #868D9C;\n    font-weight: 400;\n    font-size: 12px;\n}\n\n.tb-timewindow .mat-icon-button {\n    width: 18px;\n    line-height: 18px;\n    height: 18px;\n    margin-right: 4px;\n}\n\n.tb-timewindow .mat-icon-button .mat-icon {\n    width: 15px;\n    font-size: 15px;\n    line-height: 15px;\n    height: 15px;\n}"
           },
           "title": "New Markdown/HTML Card",
@@ -2018,9 +2004,23 @@
             {
               "type": "entity",
               "name": null,
-              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "entityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
               "filterId": null,
               "dataKeys": [
+                {
+                  "name": "label",
+                  "type": "entityField",
+                  "label": "label",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.9633249686422383,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
                 {
                   "name": "moisture",
                   "type": "timeseries",
@@ -2060,8 +2060,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2076,8 +2076,8 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": true,
-            "markdownTextFunction": "var statusClass = data[0]['active'] === \"Active\" ? \"active\" : \"inactive\";\nvar moistureTs = data[0]['moisture|ts'];\nvar moistureElapsedTsHtml;\nif (moistureTs) {\n    var moistureElapsedTs = new Date().getTime() - moistureTs;\n    var MINUTE = 60 * 1000;\n    var HOUR = 60 * MINUTE;\n    var DAY = 24 * HOUR;\n    if (moistureElapsedTs > DAY) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / DAY) * DAY;\n    } else if (moistureElapsedTs > HOUR) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / HOUR) * HOUR;\n    } else if (moistureElapsedTs > MINUTE) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / MINUTE) * MINUTE;\n    }\n    moistureElapsedTsHtml = '{{ ' + moistureElapsedTs + ' | milliSecondsToTimeString }} ago';\n} else {\n    moistureElapsedTsHtml = 'N/A';\n}\nreturn '<div class=\"sensor-details\">' +\n    '<h3 class=\"title\">${entityName}</h3>' + \n    '<table>' +\n        '<tr>' +\n            '<td class=\"label\">Last value</td>' +\n            '<td class=\"value\">${moisture:1}%</td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Status</td>' +\n            '<td class=\"value\"><span class=\"status '+ statusClass +'\"></span><span style=\"padding-left: 8px;\">${active}</span></td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Last update</td>' +\n            '<td class=\"value\">' + moistureElapsedTsHtml + '</td>' +\n        '</tr>' +\n    '</table>' +\n'</div>';\n",
-            "markdownCss": ".sensor-details .title {\n    font-weight: 500;\n    font-size: 16px;\n    padding-bottom: 25px;\n}\n\n.sensor-details .label {\n    font-weight: 400;\n    font-size: 12px;\n    color: #868D9C;\n    width: 145px;\n    padding-right: 24px;\n}\n\n.sensor-details .value {\n    font-weight: 600;\n    font-size: 13px;\n    color: rgba(0, 0, 0, 0.76);\n}\n\n.sensor-details .value .status {\n    display: inline-block;\n    vertical-align: middle;\n    width: 4px;\n    height: 4px;\n    border-radius: 2px;\n}\n\n.sensor-details .value .status.active {\n    background: #198038;\n}\n\n.sensor-details .value .status.inactive {\n    background: red;\n}"
+            "markdownTextFunction": "var statusClass = data[0]['active'] === \"Active\" ? \"active\" : \"inactive\";\nvar moistureTs = data[0]['moisture|ts'];\nvar label = data[0]['label'];\nvar moistureElapsedTsHtml;\nif (moistureTs) {\n    var moistureElapsedTs = new Date().getTime() - moistureTs;\n    var MINUTE = 60 * 1000;\n    var HOUR = 60 * MINUTE;\n    var DAY = 24 * HOUR;\n    if (moistureElapsedTs > DAY) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / DAY) * DAY;\n    } else if (moistureElapsedTs > HOUR) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / HOUR) * HOUR;\n    } else if (moistureElapsedTs > MINUTE) {\n        moistureElapsedTs = Math.floor(moistureElapsedTs / MINUTE) * MINUTE;\n    }\n    moistureElapsedTsHtml = '{{ ' + moistureElapsedTs + ' | milliSecondsToTimeString }} ago';\n} else {\n    moistureElapsedTsHtml = 'N/A';\n}\n\nreturn '<div class=\"sensor-details\">' +\n    '<div class=\"header\">' + \n        '<h3 class=\"title\">${entityName}</h3>' + \n        (label ? '<span class=\"sensor-label\">' + label + '</span>' : '') + \n    '</div>' +\n    '<div style=\"padding-bottom: 25px;\"></div>' +\n    '<table>' +\n        '<tr>' +\n            '<td class=\"label\">Last value</td>' +\n            '<td class=\"value\">${moisture:1}%</td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Status</td>' +\n            '<td class=\"value\"><span class=\"status '+ statusClass +'\"></span><span style=\"padding-left: 8px;\">${active}</span></td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Last update</td>' +\n            '<td class=\"value\">' + moistureElapsedTsHtml + '</td>' +\n        '</tr>' +\n    '</table>' +\n'</div>';\n",
+            "markdownCss": ".sensor-details .header {\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n}\n\n.sensor-details .title {\n    font-weight: 500;\n    font-size: 16px;\n    padding-right: 8px;\n}\n\n.sensor-details .sensor-label {\n    font-weight: 600;\n    font-size: 13px;\n    line-height: 16px;\n    background: rgba(111, 116, 242, 0.08);\n    border-radius: 16px;\n    padding: 4px 8px;\n    color: #5553AF;   \n}\n\n.sensor-details .label {\n    font-weight: 400;\n    font-size: 12px;\n    color: #868D9C;\n    width: 145px;\n    padding-right: 24px;\n}\n\n.sensor-details .value {\n    font-weight: 600;\n    font-size: 13px;\n    color: rgba(0, 0, 0, 0.76);\n}\n\n.sensor-details .value .status {\n    display: inline-block;\n    vertical-align: middle;\n    width: 4px;\n    height: 4px;\n    border-radius: 2px;\n}\n\n.sensor-details .value .status.active {\n    background: #198038;\n}\n\n.sensor-details .value .status.inactive {\n    background: red;\n}"
           },
           "title": "New Markdown/HTML Card",
           "showTitleIcon": false,
@@ -2302,8 +2302,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1665497079550,
-                "endTimeMs": 1665583479550
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2532,6 +2532,597 @@
         "row": 0,
         "col": 0,
         "id": "2dcc4fce-85e4-e67d-4467-7bd38e579c5c"
+      },
+      "aac826ba-ba9f-7e72-752f-3a0a6b9cddb5": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "criticalAlarmsCount",
+                  "type": "attribute",
+                  "label": "criticalAlarmsCount",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.09047361437069745
+                },
+                {
+                  "name": "majorAlarmsCount",
+                  "type": "attribute",
+                  "label": "majorAlarmsCount",
+                  "color": "#4caf50",
+                  "settings": {},
+                  "_hash": 0.27501871866952143
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1665565035979,
+                "endTimeMs": 1665651435979
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextFunction": "var criticalAlarmsCount = data[0]['criticalAlarmsCount'];\nvar majorAlarmsCount = data[0]['majorAlarmsCount'];\nvar crtiticalAlarmsText = 'N/A';\nvar majorAlarmsText = 'N/A';\nvar criticalAlarmsClass = 'alarms';\nvar criticalAlarmsId = '';\nvar majorAlarmsClass = 'alarms';\nvar majorAlarmsId = '';\nif (typeof criticalAlarmsCount === 'number') {\n    if (criticalAlarmsCount == 0) {\n        crtiticalAlarmsText = 'No alarms';\n    } else {\n        crtiticalAlarmsText = criticalAlarmsCount + ' alarm';\n        if (criticalAlarmsCount > 1) {\n            crtiticalAlarmsText += 's';\n        }\n        criticalAlarmsClass += ' critical';\n        criticalAlarmsId = ' id=\"sensor-alarms\" '\n    }\n}\nif (typeof majorAlarmsCount === 'number') {\n    if (majorAlarmsCount === 0) {\n        majorAlarmsText = 'No alarms';\n    } else {\n        majorAlarmsText = majorAlarmsCount + ' alarm';\n        if (majorAlarmsCount > 1) {\n            majorAlarmsText += 's';\n        }\n        majorAlarmsClass += ' major';\n        majorAlarmsId = ' id=\"sensor-alarms\" '\n    }\n}\nreturn '<div class=\"sensor-details\">' +\n    '<table>' +\n        '<tr>' +\n            '<td class=\"label\">Critical alarms</td>' +\n            '<td class=\"value\"><span ' + criticalAlarmsId + ' class=\"' + criticalAlarmsClass + '\">' + crtiticalAlarmsText + '</span></td>' +\n        '</tr>' +\n        '<tr>' +\n            '<td class=\"label\">Major alarms</td>' +\n            '<td class=\"value\"><span ' + majorAlarmsId + ' class=\"' + majorAlarmsClass + '\">' + majorAlarmsText + '</span></td>' +\n        '</tr>' +\n    '</table>' +\n'</div>';\n",
+            "markdownCss": ".sensor-details .label {\n    font-weight: 400;\n    font-size: 12px;\n    color: #868D9C;\n    width: 145px;\n    padding-right: 24px;\n}\n\n.sensor-details .value {\n    font-weight: 600;\n    font-size: 13px;\n    color: rgba(0, 0, 0, 0.76);\n}\n\n.sensor-details .value .alarms {\n    border-radius: 16px;\n}\n\n.sensor-details .value .alarms.critical {\n    padding: 4px 8px;\n    background: #D12730;\n    color: #fff;\n    cursor: pointer;\n}\n\n.sensor-details .value .alarms.major {\n    padding: 4px 8px;\n    border: solid 2px #e78202;\n    color: #e78202;\n    cursor: pointer;\n}\n"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": ".tb-widget-container > .tb-widget {\n    border-radius: 0px;\n    box-shadow: none;\n}",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "actions": {
+            "elementClick": [
+              {
+                "name": "sensor-alarms",
+                "icon": "more_horiz",
+                "useShowWidgetActionFunction": null,
+                "showWidgetActionFunction": "return true;",
+                "type": "openDashboardState",
+                "targetDashboardStateId": "sensor_alarms",
+                "setEntityId": true,
+                "stateEntityParamName": null,
+                "openRightLayout": false,
+                "popoverPreferredPlacement": "top",
+                "popoverHideOnClickOutside": true,
+                "popoverHideDashboardToolbar": true,
+                "popoverWidth": "750px",
+                "popoverHeight": "40vh",
+                "popoverStyle": {},
+                "openInSeparateDialog": false,
+                "openInPopover": true,
+                "id": "86f8f07a-ebef-5c54-bdde-dacb5f505061"
+              }
+            ]
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "aac826ba-ba9f-7e72-752f-3a0a6b9cddb5"
+      },
+      "8923d335-d974-2aaa-8c40-3eafec174a58": {
+        "isSystemType": true,
+        "bundleAlias": "alarm_widgets",
+        "typeAlias": "alarms_table",
+        "type": "alarm",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 10.5,
+        "sizeY": 6.5,
+        "config": {
+          "timewindow": {
+            "realtime": {
+              "interval": 1000,
+              "timewindowMs": 86400000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 200
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "enableSelection": true,
+            "enableSearch": true,
+            "enableSelectColumnDisplay": true,
+            "enableFilter": false,
+            "enableStickyHeader": true,
+            "enableStickyAction": false,
+            "reserveSpaceForHiddenAction": "true",
+            "displayDetails": true,
+            "allowAcknowledgment": true,
+            "allowClear": true,
+            "displayPagination": true,
+            "defaultPageSize": 10,
+            "defaultSortOrder": "-createdTime",
+            "useRowStyleFunction": false
+          },
+          "title": "New Alarms table",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "alarmSource": {
+            "type": "entity",
+            "name": null,
+            "entityAliasId": "61ca5437-6539-88f4-4f59-a9508eefdf1e",
+            "filterId": null,
+            "dataKeys": [
+              {
+                "name": "createdTime",
+                "type": "alarm",
+                "label": "Created time",
+                "color": "#2196f3",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.021092237451093787
+              },
+              {
+                "name": "type",
+                "type": "alarm",
+                "label": "Type",
+                "color": "#f44336",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.7323586880398418
+              },
+              {
+                "name": "severity",
+                "type": "alarm",
+                "label": "Severity",
+                "color": "#ffc107",
+                "settings": {
+                  "columnWidth": "0px",
+                  "useCellStyleFunction": false,
+                  "useCellContentFunction": true,
+                  "cellContentFunction": "var severity = value;\nvar color = 'black';\nswitch (severity) {\n  case 'CRITICAL':\n    color = 'red';\n    break;\n  case 'MAJOR':\n    color = 'orange';\n    break;\n  case 'MINOR':\n    color = '#ffca3d';\n    break;\n  case 'WARNING':\n    color = '#abab00';\n    break;\n  case 'INDETERMINATE':\n    color = 'green';\n    break;\n}\n\nseverity = severity.toLowerCase();\nseverity = severity.charAt(0).toUpperCase() + severity.slice(1);\n\nreturn '<span style=\"font-weight: bold; color: ' + color +' !important;\">' + severity + '<span>';\n",
+                  "defaultColumnVisibility": "visible",
+                  "columnSelectionToDisplay": "enabled",
+                  "columnExportOption": "onlyVisible"
+                },
+                "_hash": 0.09927019860088193,
+                "aggregationType": null,
+                "units": null,
+                "decimals": null,
+                "funcBody": null,
+                "usePostProcessing": null,
+                "postFuncBody": null
+              },
+              {
+                "name": "status",
+                "type": "alarm",
+                "label": "Status",
+                "color": "#607d8b",
+                "settings": {
+                  "useCellStyleFunction": false,
+                  "cellStyleFunction": "",
+                  "useCellContentFunction": false,
+                  "cellContentFunction": ""
+                },
+                "_hash": 0.6588418951443418
+              }
+            ]
+          },
+          "alarmSearchStatus": "ANY",
+          "alarmsPollingInterval": 5,
+          "showTitleIcon": false,
+          "titleIcon": "more_horiz",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "widgetStyle": {},
+          "displayTimewindow": true,
+          "actions": {},
+          "alarmStatusList": [
+            "ACTIVE"
+          ],
+          "alarmSeverityList": [],
+          "alarmTypeList": [],
+          "searchPropagatedAlarms": true,
+          "datasources": [],
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "8923d335-d974-2aaa-8c40-3eafec174a58"
+      },
+      "1f955cc5-9f43-43da-334d-915d7bfb7b81": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "cd737d26-3068-aae0-d370-c93f8e7e1a00",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "avgMoisture",
+                  "type": "timeseries",
+                  "label": "${entityName}",
+                  "color": "#6f74f2",
+                  "settings": {},
+                  "_hash": 0.5177958102552112,
+                  "aggregationType": null,
+                  "units": "%",
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 50000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "stack": false,
+            "fontSize": 10,
+            "fontColor": "#545454",
+            "showTooltip": true,
+            "tooltipIndividual": false,
+            "tooltipCumulative": false,
+            "hideZeros": false,
+            "grid": {
+              "verticalLines": false,
+              "horizontalLines": true,
+              "outlineWidth": 0,
+              "color": null,
+              "backgroundColor": null,
+              "tickColor": "#DDDDDD"
+            },
+            "xaxis": {
+              "title": null,
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "min": null,
+              "max": null,
+              "title": null,
+              "showLabels": true,
+              "color": "#545454",
+              "tickSize": null,
+              "tickDecimals": 0,
+              "ticksFormatter": ""
+            },
+            "shadowSize": 0,
+            "smoothLines": true,
+            "comparisonEnabled": false,
+            "xaxisSecond": {
+              "axisPosition": "top",
+              "title": null,
+              "showLabels": true
+            },
+            "customLegendEnabled": false
+          },
+          "title": "Moisture history",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": false,
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "showLegend": true,
+          "legendConfig": {
+            "direction": "row",
+            "position": "top",
+            "sortDataKeys": false,
+            "showMin": false,
+            "showMax": false,
+            "showAvg": false,
+            "showTotal": false,
+            "showLatest": false
+          },
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "1f955cc5-9f43-43da-334d-915d7bfb7b81"
+      },
+      "e18122c8-7973-5206-792a-cfa7f924a7b0": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "timeseries_table",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 6.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "irrigationTask",
+                  "type": "timeseries",
+                  "label": "Start day",
+                  "color": "#4caf50",
+                  "settings": {
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "return {\n    minWidth: '60px',\n    width: '60px',\n    maxWidth: '60px'\n}",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var dateFormat;\n    if (new Date().getYear() === new Date(data.startTs).getYear()) {\n        dateFormat = 'd MMM';\n    } else {\n        dateFormat = 'd MMM yyyy';\n    }\n    return ctx.date.transform(data.startTs, dateFormat);\n} else {\n    return '';\n}"
+                  },
+                  "_hash": 0.7275755335760952,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "irrigationTask",
+                  "type": "timeseries",
+                  "label": "Start time",
+                  "color": "#9c27b0",
+                  "settings": {
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "return {\n    minWidth: '60px',\n    width: '60px',\n    maxWidth: '60px'\n}",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var time = ctx.date.transform(data.startTs, 'HH:mm');\n    return '<span style=\"font-weight: 600; background: rgba(111, 116, 242, 0.08); border-radius: 16px; padding: 4px 8px; color: #5553AF;\">'+time+'</span>';\n} else {\n    return '';\n}\n"
+                  },
+                  "_hash": 0.914222992801236,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "irrigationTask",
+                  "type": "timeseries",
+                  "label": "End rule",
+                  "color": "#2196f3",
+                  "settings": {
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var durationThreshold = data.durationThreshold;\n    var consumptionThreshold = data.consumptionThreshold;\n    var text = 'N/A';\n    if (durationThreshold) {\n        text = (durationThreshold / 60000).toFixed(0) + ' min';\n    } else if (consumptionThreshold) {\n        text = consumptionThreshold.toFixed(0) + ' l';\n    }\n    return '<span style=\"font-weight: 600; background: rgba(111, 116, 242, 0.08); border-radius: 16px; padding: 4px 8px;  color: #5553AF;\">'+text+'</span>';\n} else {\n    return '';\n}\n"
+                  },
+                  "_hash": 0.40035296849915825,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "irrigationTask",
+                  "type": "timeseries",
+                  "label": "Duration",
+                  "color": "#f44336",
+                  "settings": {
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var duration = data.duration;\n    if (typeof duration === 'number') {\n        return '~' + (duration / 60000).toFixed(0) + ' min';\n    } else {\n        return 'N/A'\n    }\n} else {\n    return 'N/A';\n}\n"
+                  },
+                  "_hash": 0.16840508210390004,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "irrigationTask",
+                  "type": "timeseries",
+                  "label": "Volume",
+                  "color": "#ffc107",
+                  "settings": {
+                    "useCellStyleFunction": false,
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var consumption = data.consumption;\n    if (typeof consumption === 'number') {\n        return consumption.toFixed(0) + ' l';\n    } else {\n        return 'N/A'\n    }\n} else {\n    return 'N/A';\n}\n"
+                  },
+                  "_hash": 0.9378980877980216,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                },
+                {
+                  "name": "irrigationTask",
+                  "type": "timeseries",
+                  "label": "Progress",
+                  "color": "#607d8b",
+                  "settings": {
+                    "useCellStyleFunction": true,
+                    "cellStyleFunction": "return {\n    width: '30%'\n}",
+                    "useCellContentFunction": true,
+                    "cellContentFunction": "var data;\nif (value) {\n    try {\n        data = JSON.parse(value);\n    } catch (e){}\n}\nif (data) {\n    var durationThreshold = data.durationThreshold;\n    var consumptionThreshold = data.consumptionThreshold;\n    var progress = 0;\n    if (durationThreshold) {\n        progress = data.duration ? (data.duration / durationThreshold * 100) : 0;\n    } else if (consumptionThreshold) {\n        progress = data.consumption ? (data.consumption / consumptionThreshold * 100) : 0;\n    }\n    var percent = progress + '%';\n    var percentText = progress.toFixed(0) + '%';\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    return '<div style=\"width: 100%; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return '';\n}\n"
+                  },
+                  "_hash": 0.5459599068099552,
+                  "aggregationType": null,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ],
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": true,
+            "hideAggInterval": true,
+            "hideTimezone": true,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1000
+            },
+            "aggregation": {
+              "type": "NONE",
+              "limit": 1000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "enableSearch": false,
+            "enableStickyHeader": true,
+            "enableStickyAction": true,
+            "reserveSpaceForHiddenAction": "true",
+            "showTimestamp": false,
+            "showMilliseconds": false,
+            "displayPagination": true,
+            "useEntityLabel": false,
+            "defaultPageSize": 10,
+            "hideEmptyLines": false,
+            "disableStickyHeader": false,
+            "useRowStyleFunction": false
+          },
+          "title": "Irrigation Tasks",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400,
+            "padding": "5px 10px 5px 10px"
+          },
+          "useDashboardTimewindow": false,
+          "showLegend": false,
+          "widgetStyle": {},
+          "actions": {},
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "displayTimewindow": true,
+          "titleTooltip": "",
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "e18122c8-7973-5206-792a-cfa7f924a7b0"
       }
     },
     "states": {
@@ -2541,22 +3132,22 @@
         "layouts": {
           "main": {
             "widgets": {
-              "9096bb98-7d8a-5888-e77b-7f02c846c922": {
-                "sizeX": 10,
-                "sizeY": 6,
-                "row": 6,
-                "col": 0
-              },
               "c5f8412d-2ffb-4c44-7a7f-223ceea08d84": {
                 "sizeX": 12,
-                "sizeY": 6,
+                "sizeY": 12,
                 "row": 0,
                 "col": 0
               },
               "8ce15aad-9ab2-55ce-2628-a663814d27b1": {
-                "sizeX": 7,
+                "sizeX": 12,
                 "sizeY": 6,
                 "row": 0,
+                "col": 12
+              },
+              "1f955cc5-9f43-43da-334d-915d7bfb7b81": {
+                "sizeX": 12,
+                "sizeY": 6,
+                "row": 6,
                 "col": 12
               }
             },
@@ -2608,6 +3199,12 @@
                 "sizeY": 2,
                 "row": 0,
                 "col": 19
+              },
+              "e18122c8-7973-5206-792a-cfa7f924a7b0": {
+                "sizeX": 9,
+                "sizeY": 6,
+                "row": 5,
+                "col": 10
               }
             },
             "gridSettings": {
@@ -2727,8 +3324,34 @@
           }
         }
       },
-      "moisture_sensor_details_expanded": {
-        "name": "Moisture sensor details expanded",
+      "field_alarms": {
+        "name": "Field Alarms",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "2dcc4fce-85e4-e67d-4467-7bd38e579c5c": {
+                "sizeX": 24,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "moisture_sensor_details_moisture": {
+        "name": "Moisture sensor details moisture",
         "root": false,
         "layouts": {
           "main": {
@@ -2753,13 +3376,39 @@
           }
         }
       },
-      "field_alarms": {
-        "name": "Field Alarms",
+      "moisture_sensor_details_alarms": {
+        "name": "Moisture sensor details alarms",
         "root": false,
         "layouts": {
           "main": {
             "widgets": {
-              "2dcc4fce-85e4-e67d-4467-7bd38e579c5c": {
+              "aac826ba-ba9f-7e72-752f-3a0a6b9cddb5": {
+                "sizeX": 24,
+                "sizeY": 9,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#ffffff",
+              "columns": 24,
+              "margin": 0,
+              "backgroundSizeMode": "100%",
+              "autoFillHeight": true,
+              "backgroundImageUrl": null,
+              "mobileAutoFillHeight": true,
+              "mobileRowHeight": 70
+            }
+          }
+        }
+      },
+      "sensor_alarms": {
+        "name": "Sensor alarms",
+        "root": false,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "8923d335-d974-2aaa-8c40-3eafec174a58": {
                 "sizeX": 24,
                 "sizeY": 11,
                 "row": 0,

@@ -140,7 +140,7 @@
           "msgCount": 0,
           "periodInSeconds": 1,
           "jsScript": "var msg = { pulseCounter: prevMsg.pulseCounter +1 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "85577d30-4a3c-11ed-a9d2-bb3f1ef29ab0",
+          "originatorId": "d924ddb0-398c-11ed-af17-3d7337747e91",
           "originatorType": "DEVICE"
         },
         "externalId": null
@@ -184,7 +184,7 @@
         "name": "To Field Rule Chain",
         "debugMode": false,
         "configuration": {
-          "ruleChainId": "853ddab0-4a3c-11ed-a9d2-bb3f1ef29ab0"
+          "ruleChainId": "7e327000-38ee-11ed-af17-3d7337747e91"
         },
         "externalId": null
       },
