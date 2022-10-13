@@ -29,77 +29,69 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, TemplateRef, ViewEncapsulation } from '@angular/core';
+import { Component, forwardRef, OnInit, ViewChild } from '@angular/core';
+import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { ContentType } from '@shared/models/constants';
+import { JsonContentComponent } from '@shared/components/json-content.component';
+import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
+    AbstractControl,
   ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
+  FormBuilder, FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
   Validator,
   Validators
 } from '@angular/forms';
-import { IntegrationType } from '@shared/models/integration.models';
-import { Subject } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
-  selector: 'tb-integration-configuration',
-  templateUrl: './integration-configuration.component.html',
-  styleUrls: ['./integration-configuration.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  selector: 'tb-custom-integration-form',
+  templateUrl: './custom-integration-form.component.html',
+  styleUrls: [],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => IntegrationConfigurationComponent),
+    useExisting: forwardRef(() => CustomIntegrationFormComponent),
     multi: true
   },
-  {
-    provide: NG_VALIDATORS,
-    useExisting: forwardRef(() => IntegrationConfigurationComponent),
-    multi: true,
-  }]
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => CustomIntegrationFormComponent),
+      multi: true,
+    }]
 })
-export class IntegrationConfigurationComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class CustomIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
-  integrationConfigurationForm: FormGroup;
-  integrationTypes = IntegrationType;
+  customIntegrationConfigForm: FormGroup;
 
-  @Input() executeRemotelyTemplate: TemplateRef<any>;
-  @Input() genericAdditionalInfoTemplate: TemplateRef<any>;
+  // @ViewChild('jsonContentComponent', {static: true}) jsonContentComponent: JsonContentComponent;
 
-  @Input()
-  routingKey: string;
+  contentType = ContentType;
 
-  private integrationTypeValue: IntegrationType;
-  @Input()
-  set integrationType(value: IntegrationType) {
-    this.integrationTypeValue = value;
-    this.integrationConfigurationForm.setControl('configuration', this.fb.control(null));
-  }
-
-  get integrationType(): IntegrationType {
-    return this.integrationTypeValue;
-  }
-
-  @Input()
-  disabled: boolean;
-
-  private destroy$ = new Subject();
   private propagateChange = (v: any) => { };
 
   constructor(private fb: FormBuilder) {
-    this.integrationConfigurationForm = this.fb.group({
-      configuration: [null, Validators.required]
+    super();
+    this.customIntegrationConfigForm = this.fb.group({
+      clazz: ['', Validators.required],
+      configuration: ['{}']
     });
-    this.integrationConfigurationForm.valueChanges.pipe(
+    this.customIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(value => this.updateModel(value.configuration));
+    ).subscribe((value) => {
+      this.updateModels(value);
+    });
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+  writeValue(value: any) {
+    if (isDefinedAndNotNull(value)) {
+      this.customIntegrationConfigForm.patchValue(value, {emitEvent: false});
+    }
   }
 
   registerOnChange(fn: any) {
@@ -111,23 +103,19 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   setDisabledState(isDisabled: boolean) {
     this.disabled = isDisabled;
     if (isDisabled) {
-      this.integrationConfigurationForm.disable({emitEvent: false});
+      this.customIntegrationConfigForm.disable({emitEvent: false});
     } else {
-      this.integrationConfigurationForm.enable({emitEvent: false});
+      this.customIntegrationConfigForm.enable({emitEvent: false});
     }
   }
 
-  writeValue(value: any) {
-    this.integrationConfigurationForm.get('configuration').patchValue(value, {emitEvents: false});
-  }
-
-  private updateModel(value: any) {
-    this.propagateChange(value);
-  }
-
-  validate(): ValidationErrors | null {
-    return this.integrationConfigurationForm.valid ? null : {
-      integrationConfiguration: {valid: false}
+  validate(): ValidationErrors {
+    return this.customIntegrationConfigForm.valid ? null : {
+      customIntegrationConfigForm: {valid: false}
     };
+  }
+
+  private updateModels(value) {
+    this.propagateChange(value);
   }
 }

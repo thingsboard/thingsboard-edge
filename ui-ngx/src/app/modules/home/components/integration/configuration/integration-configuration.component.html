@@ -109,8 +109,14 @@
                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-pubsub-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.CUSTOM">
+      <tb-custom-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-custom-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
-      <input formControlName="configuration">
+      Not Found!!
     </ng-container>
   </ng-container>
 </section>

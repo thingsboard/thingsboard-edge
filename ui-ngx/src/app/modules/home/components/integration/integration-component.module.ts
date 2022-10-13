@@ -83,6 +83,9 @@ import { ChirpStackIntegrationFormComponent } from '@home/components/integration
 import {
   PubSubIntegrationFormComponent
 } from '@home/components/integration/configuration/pubsub-integration-form/pubsub-integration-form.component';
+import {
+  CustomIntegrationFormComponent
+} from '@home/components/integration/configuration/custom-integration-form/custom-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -104,7 +107,8 @@ import {
     OpcUaSubscriptionComponent,
     LoriotIntegrationFormComponent,
     ChirpStackIntegrationFormComponent,
-    PubSubIntegrationFormComponent
+    PubSubIntegrationFormComponent,
+    CustomIntegrationFormComponent
   ],
   imports: [
     CommonModule,

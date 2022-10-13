@@ -31,7 +31,7 @@
 
 import { AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
-import { Integration } from '@shared/models/integration.models';
+import { Integration, IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
@@ -109,6 +109,20 @@ export class IntegrationWizardDialogComponent extends
       allowCreateDevicesOrAssets: [true],
     });
 
+    this.integrationWizardForm.get('type').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((value: IntegrationType) => {
+      if (integrationTypeInfoMap.has(value)) {
+        if (integrationTypeInfoMap.get(value).remote) {
+          this.integrationConfigurationForm.get('remote').disable({emitEvent: true});
+          this.integrationConfigurationForm.get('remote').setValue(true, {emitEvent: true});
+        } else {
+          this.integrationConfigurationForm.get('remote').enable({emitEvent: true});
+          this.integrationConfigurationForm.get('remote').setValue(false, {emitEvent: true});
+        }
+      }
+    });
+
     this.uplinkConverterForm = this.fb.group({
       uplinkConverterId: [null, [Validators.required]],
       converterType: ['exist'],
@@ -135,8 +149,8 @@ export class IntegrationWizardDialogComponent extends
       configuration: [{}, Validators.required],
       metadata: [{}],
       remote: [false],
-      routingKey: this.fb.control({ value: guid(), disabled: true }),
-      secret: this.fb.control({ value: this.generateSecret(20), disabled: true }),
+      routingKey: [{value: guid(), disabled: true}],
+      secret: [{value: this.generateSecret(20), disabled: true}],
       additionalInfo: this.fb.group(
         {
           description: ['']
