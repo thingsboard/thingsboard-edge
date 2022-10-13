@@ -199,7 +199,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(21);
+        edgeImitator.expectMessageAmount(20);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -293,11 +293,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         validateEdgeConfiguration();
 
-        // 5 messages
+        // 3 messages
         // - 2 from device profile fetcher (default and thermostat)
-        // - 1 from device fetcher
         // - 1 from device profile controller (thermostat)
-        // - 1 from device controller (thermostat)
         validateDeviceProfiles();
 
         // 2 messages - 1 from rule chain fetcher and 1 from rule chain controller
@@ -309,10 +307,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 2 messages - 2 messages from fetcher (general', 'mail')
         validateAdminSettings();
 
-        // 3 messages
-        // - 1 message from asset profile fetcher
-        // - 1 message from asset fetcher
-        // - 1 message from asset controller
+        // 1 message from asset profile fetcher
         validateAssetProfiles();
 
         // 1 message from queue fetcher
@@ -344,10 +339,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         List<DeviceProfileUpdateMsg> deviceProfileUpdateMsgList = edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class);
         // default msg
         // thermostat msg from fetcher
-        // thermostat msg from device fetcher
         // thermostat msg from controller
-        // thermostat msg from creation of device
-        Assert.assertEquals(5, deviceProfileUpdateMsgList.size());
+        Assert.assertEquals(3, deviceProfileUpdateMsgList.size());
         Optional<DeviceProfileUpdateMsg> thermostatProfileUpdateMsgOpt =
                 deviceProfileUpdateMsgList.stream().filter(dfum -> THERMOSTAT_DEVICE_PROFILE_NAME.equals(dfum.getName())).findAny();
         Assert.assertTrue(thermostatProfileUpdateMsgOpt.isPresent());
@@ -422,9 +415,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateAssetProfiles() throws Exception {
-        List<AssetProfileUpdateMsg> assetProfileUpdateMsgs = edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class);
-        Assert.assertEquals(3, assetProfileUpdateMsgs.size());
-        AssetProfileUpdateMsg assetProfileUpdateMsg = assetProfileUpdateMsgs.get(0);
+        Optional<AssetProfileUpdateMsg> assetProfileUpdateMsgOpt = edgeImitator.findMessageByType(AssetProfileUpdateMsg.class);
+        Assert.assertTrue(assetProfileUpdateMsgOpt.isPresent());
+        AssetProfileUpdateMsg assetProfileUpdateMsg = assetProfileUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, assetProfileUpdateMsg.getMsgType());
         UUID assetProfileUUID = new UUID(assetProfileUpdateMsg.getIdMSB(), assetProfileUpdateMsg.getIdLSB());
         AssetProfile assetProfile = doGet("/api/assetProfile/" + assetProfileUUID, AssetProfile.class);
