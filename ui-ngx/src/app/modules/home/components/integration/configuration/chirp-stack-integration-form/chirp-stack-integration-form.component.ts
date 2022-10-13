@@ -74,12 +74,11 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
 
   protected integrationType = IntegrationType.CHIRPSTACK;
 
-  private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: FormBuilder,
-              protected store: Store<AppState>,
-              protected translate: TranslateService) {
+  constructor(private fb: FormBuilder,
+              private store: Store<AppState>,
+              private translate: TranslateService) {
     super();
   }
 
@@ -106,19 +105,11 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.chirpStackIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
-    } else {
-      this.propagateChangePending = true;
     }
   }
 
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
-    if (this.propagateChangePending) {
-      this.propagateChangePending = false;
-      setTimeout(() => {
-        this.updateModels(this.chirpStackIntegrationConfigForm.getRawValue());
-      }, 0);
-    }
   }
 
   registerOnTouched(fn: any) { }

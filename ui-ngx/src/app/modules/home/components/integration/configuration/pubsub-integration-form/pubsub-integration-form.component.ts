@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -40,14 +40,8 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { baseUrl, isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
-import { IntegrationType } from '@shared/models/integration.models';
-import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
-import { ActionNotificationShow } from '@core/notification/notification.actions';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 
 @Component({
@@ -59,22 +53,19 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
     useExisting: forwardRef(() => PubSubIntegrationFormComponent),
     multi: true
   },
-    {
-      provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => PubSubIntegrationFormComponent),
-      multi: true,
-    }]
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => PubSubIntegrationFormComponent),
+    multi: true,
+  }]
 })
 export class PubSubIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
   pubSubIntegrationConfigForm: FormGroup;
 
-  private propagateChangePending = false;
   private propagateChange = (v: any) => { };
 
-  constructor(protected fb: FormBuilder,
-              protected store: Store<AppState>,
-              protected translate: TranslateService) {
+  constructor(private fb: FormBuilder) {
     super();
   }
 
@@ -87,27 +78,19 @@ export class PubSubIntegrationFormComponent extends IntegrationForm implements C
     });
     this.pubSubIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.updateModels(this.pubSubIntegrationConfigForm.getRawValue());
+    ).subscribe((value) => {
+      this.updateModels(value);
     });
   }
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.pubSubIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
-    } else {
-      this.propagateChangePending = true;
     }
   }
 
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
-    if (this.propagateChangePending) {
-      this.propagateChangePending = false;
-      setTimeout(() => {
-        this.updateModels(this.pubSubIntegrationConfigForm.getRawValue());
-      }, 0);
-    }
   }
 
   registerOnTouched(fn: any) { }
