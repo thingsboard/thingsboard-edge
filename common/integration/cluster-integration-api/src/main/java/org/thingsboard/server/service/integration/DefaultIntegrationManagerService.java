@@ -701,17 +701,22 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void updateIntegrationStateStatistics() {
-        log.debug("All integrations: [{}]", integrations.size());
-        List<IntegrationType> startSuccess = integrations.values().stream().filter(i ->
-                STARTED.equals(i.getCurrentState()) ||
+        List<IntegrationType> startSuccess = integrations.values()
+                .stream()
+                .filter(i ->
+                        STARTED.equals(i.getCurrentState()) ||
                         UPDATED.equals(i.getCurrentState()) ||
-                        ACTIVATED.equals(i.getCurrentState())
-        ).map(integrationState -> integrationState.getConfiguration().getType()).collect(Collectors.toList());
+                        ACTIVATED.equals(i.getCurrentState()))
+                .map(integrationState -> integrationState.getConfiguration().getType())
+                .collect(Collectors.toList());
         Map<String, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
 
-        List<IntegrationType> startFailed = integrations.values().stream().filter(i ->
-                FAILED.equals(i.getCurrentState())
-        ).map(integrationState -> integrationState.getConfiguration().getType()).collect(Collectors.toList());
+        List<IntegrationType> startFailed = integrations.values()
+                .stream()
+                .filter(i ->
+                    FAILED.equals(i.getCurrentState()))
+                .map(integrationState -> integrationState.getConfiguration().getType())
+                .collect(Collectors.toList());
         Map<String, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
 
         Map<String, Long> gaugesSuccess = integrationStatisticsService.getGaugesSuccess();

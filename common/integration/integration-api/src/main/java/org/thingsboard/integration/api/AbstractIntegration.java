@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
@@ -55,6 +57,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -284,7 +287,17 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
             ListenableFuture<List<UplinkData>> uplinkDataList =  this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
-            onIntegrationMsgsUplinkSuccess();
+            Futures.addCallback(uplinkDataList, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable List<UplinkData> result) {
+                    onIntegrationMsgsUplinkSuccess();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+
+                }
+            }, context.getCallBackExecutorService());
             return uplinkDataList;
         } catch (Exception e) {
             onIntegrationMsgsUplinkFailed();
@@ -317,7 +330,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
-        onIntegrationMsgsDownlinkFailed();
         if (!status.equals("OK")) {
             onIntegrationMsgsDownlinkFailed();
             integrationStatistics.incErrorsOccurred();

@@ -41,7 +41,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnExpression("('${metrics.enabled:false}'=='false')")
-public class DefaultIntegrationStatisticsEmpty implements IntegrationStatisticsService {
+public class IntegrationStatisticsEmpty implements IntegrationStatisticsService {
     @Override
     public void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName) {
 

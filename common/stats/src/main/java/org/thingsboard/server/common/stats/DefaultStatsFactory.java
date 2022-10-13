@@ -137,7 +137,7 @@ public class DefaultStatsFactory implements StatsFactory {
         }
     }
 
-    public Meter remove (Counter counter) {
+    public Meter remove(Counter counter) {
         return meterRegistry.remove(counter.getId());
     }
 

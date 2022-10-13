@@ -40,7 +40,6 @@ import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -49,7 +48,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnExpression("('${metrics.enabled:false}'=='true')")
-public class DefaultIntegrationStatistics implements IntegrationStatisticsService {
+public class IntegrationStatisticsDefault implements IntegrationStatisticsService {
 
     private static final String STATS_KEY_COUNTER = StatsType.INTEGRATION.getName() + "_stats_counter";
     private static final String STATS_KEY_GAUGE = StatsType.INTEGRATION.getName() + "_stats_gauge";
@@ -158,25 +157,13 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
         if (counters.size() > 0) {
             StringBuilder stats = new StringBuilder();
             counters.entrySet().stream().forEach(c -> stats.append(c.getKey()).append(" = [").append(c.getValue().get()).append("] "));
-            log.info("Core Stats: {}", stats);
+            log.info("Integration Stats: {}", stats);
         }
     }
 
     @Override
     public void reset() {
         counters.values().forEach(DefaultCounter::clear);
-    }
-
-    private void logMessagesCounterWithClear(int cntIntegration, String... tags) throws Exception {
-        String statsName = getValidateStatsName(tags);
-        Optional<Map.Entry<String, DefaultCounter>> statsCounterOpt = counters.entrySet().stream()
-                .filter(c -> c.getKey().equals(statsName)).findFirst();
-        if (statsCounterOpt.isPresent()) {
-            counters.remove(statsName);
-            statsFactory.remove(statsCounterOpt.get().getValue().getMicrometerCounter());
-        }
-        DefaultCounter counter = createAndRegisterCounter(statsName, tags);
-        counter.add(cntIntegration);
     }
 
     private void logMessagesCounterAdd(String... tags) throws Exception {
@@ -191,41 +178,20 @@ public class DefaultIntegrationStatistics implements IntegrationStatisticsServic
 
     private DefaultCounter getOrCreateStatsCounter(String... tags) throws Exception {
         String statsName = getValidateStatsName(tags);
-        Optional<Map.Entry<String, DefaultCounter>> statsCounterOpt = counters.entrySet().stream()
-                .filter(c -> c.getKey().equals(statsName)).findFirst();
-        if (statsCounterOpt.isPresent()) {
-            return statsCounterOpt.get().getValue();
-        } else {
-            return createAndRegisterCounter(statsName, tags);
-        }
+        return counters.computeIfAbsent(statsName, s ->
+                statsFactory.createDefaultCounter(STATS_KEY_COUNTER, tags));
     }
 
     private AtomicLong getOrCreateStatsGauge(String... tags) throws Exception {
         String statsName = getValidateStatsName(tags);
-        Optional<Map.Entry<String, AtomicLong>> statsGaugeOpt = gauges.entrySet().stream()
-                .filter(c -> c.getKey().equals(statsName)).findFirst();
-        AtomicLong statsGauge = statsGaugeOpt.isPresent() ? statsGaugeOpt.get().getValue() :
-                createAndRegisterGauge(statsName, tags);
-        return statsGauge;
-    }
-
-    private DefaultCounter createAndRegisterCounter(String statsName, String... tags) {
-        DefaultCounter counter = statsFactory.createDefaultCounter(STATS_KEY_COUNTER, tags);
-        counters.putIfAbsent(statsName, counter);
-        return counter;
-    }
-
-    private AtomicLong createAndRegisterGauge(String statsName, String... tags) {
-        AtomicLong gaugeValue = new AtomicLong(0);
-        statsFactory.createGauge(STATS_KEY_GAUGE, gaugeValue, tags);
-        gauges.putIfAbsent(statsName, gaugeValue);
-        return gaugeValue;
+        return  gauges.computeIfAbsent(statsName, s ->
+                statsFactory.createGauge(STATS_KEY_GAUGE, new AtomicLong(0), tags));
     }
 
     private String getValidateStatsName(String... keyValues) throws Exception {
         Tags.of(keyValues);
         if (keyValues.length != 6) {
-            throw new IllegalArgumentException("Length eyValues  must be equals 6!");
+            throw new IllegalArgumentException("Length eyValues must be equals 6!");
         }
         return String.join("_", keyValues);
     }

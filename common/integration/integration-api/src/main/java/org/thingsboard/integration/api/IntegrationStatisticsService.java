@@ -34,21 +34,21 @@ import java.util.Map;
 
 public interface IntegrationStatisticsService {
 
-    void onIntegrationMsgsStateSuccessCounterAdd(String  integrationTypeName);
+    void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName);
 
-    void onIntegrationMsgsStateFailedCounterAdd(String  integrationTypeName);
+    void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName);
 
-    void onIntegrationStateSuccessGauge(String  integrationTypeName, int cntIntegration);
+    void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration);
 
-    void onIntegrationStateFailedGauge(String  integrationTypeName, int cntIntegration);
+    void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration);
 
-    void onIntegrationMsgsUplinkSuccess(String  integrationTypeName);
+    void onIntegrationMsgsUplinkSuccess(String integrationTypeName);
 
-    void onIntegrationMsgsUplinkFailed (String  integrationTypeName);
+    void onIntegrationMsgsUplinkFailed (String integrationTypeName);
 
-    void onIntegrationMsgsDownlinkSuccess(String  integrationTypeName);
+    void onIntegrationMsgsDownlinkSuccess(String integrationTypeName);
 
-    void onIntegrationMsgsDownlinkFailed (String  integrationTypeName);
+    void onIntegrationMsgsDownlinkFailed (String integrationTypeName);
 
     Map getGaugesSuccess();
 
