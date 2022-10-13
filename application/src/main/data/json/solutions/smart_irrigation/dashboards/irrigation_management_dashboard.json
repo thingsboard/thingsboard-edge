@@ -57,20 +57,20 @@
                   "_hash": 0.011152801250584377
                 },
                 {
-                  "name": "criticalAlarmsCount",
+                  "name": "minMoistureThreshold",
                   "type": "attribute",
-                  "label": "criticalAlarmsCount",
-                  "color": "#607d8b",
+                  "label": "minMoistureThreshold",
+                  "color": "#8bc34a",
                   "settings": {},
-                  "_hash": 0.9442627412386413
+                  "_hash": 0.4441224029270672
                 },
                 {
-                  "name": "majorAlarmsCount",
+                  "name": "maxMoistureThreshold",
                   "type": "attribute",
-                  "label": "majorAlarmsCount",
-                  "color": "#9c27b0",
+                  "label": "maxMoistureThreshold",
+                  "color": "#3f51b5",
                   "settings": {},
-                  "_hash": 0.5383729759675824
+                  "_hash": 0.024053653116780316
                 }
               ]
             }
@@ -131,6 +131,7 @@
             "mapPageSize": 16384,
             "markerOffsetX": 0.5,
             "markerOffsetY": 1,
+            "posFunction": "return {x: origXPos, y: origYPos};",
             "draggableMarker": false,
             "showLabel": true,
             "useLabelFunction": false,
@@ -146,12 +147,13 @@
             "useColorFunction": false,
             "useMarkerImageFunction": false,
             "markerImageSize": 34,
+            "markerImages": [],
             "showPolygon": true,
             "polygonKeyName": "perimeter",
             "editablePolygon": false,
             "showPolygonLabel": true,
             "usePolygonLabelFunction": true,
-            "polygonLabelFunction": "var html = '<div>';\nhtml += '<div style=\"color: #FFF; font-weight: 600; text-align: center; padding-bottom: 8px;\">${entityName} (${cropType})</div>';\n\nvar avgMoisture = data['avgMoisture'];\nvar avgMoistureText = avgMoisture !== '' ?  Number(avgMoisture).toFixed(1) + '%' : 'n/a';\nvar criticalAlarmsCount = data['criticalAlarmsCount'];\nvar majorAlarmsCount = data['majorAlarmsCount'];\nvar color = '#FFFFFF';\nvar textColor = '#000000';\nif (criticalAlarmsCount) {\n    color = '#D12730';\n    textColor = '#FFFFFF';\n} else if (majorAlarmsCount) {\n    color = '#e78202';\n    textColor = '#FFFFFF';\n}\n\nhtml += '<div style=\"text-align: center;\"><span style=\"background: ' + color + '; color: ' + textColor + '; border-radius: 8px; padding: 4px;\">'+avgMoistureText+'</span></div>';\n\nhtml += '<div>';\n\nreturn html;",
+            "polygonLabelFunction": "var html = '<div>';\nhtml += '<div style=\"color: #FFF; font-weight: 600; text-align: center; padding-bottom: 8px;\">${entityName} (${cropType})</div>';\n\nvar avgMoisture = data['avgMoisture'];\nvar avgMoistureText = avgMoisture !== '' ?  Number(avgMoisture).toFixed(1) + '%' : 'n/a';\nvar minMoistureThreshold = data['minMoistureThreshold'];\nvar maxMoistureThreshold = data['maxMoistureThreshold'];\nvar color = '#FFFFFF';\nvar textColor = '#000000';\nif (avgMoisture < minMoistureThreshold || avgMoisture > maxMoistureThreshold) {\n    color = '#D12730';\n    textColor = '#FFFFFF';\n}\n\nhtml += '<div style=\"text-align: center;\"><span style=\"background: ' + color + '; color: ' + textColor + '; border-radius: 8px; padding: 4px;\">'+avgMoistureText+'</span></div>';\n\nhtml += '<div>';\n\nreturn html;",
             "showPolygonTooltip": false,
             "polygonColor": "#3388ff",
             "polygonOpacity": 0.2,
@@ -665,7 +667,7 @@
                     "columnWidth": "20%",
                     "useCellStyleFunction": false,
                     "useCellContentFunction": true,
-                    "cellContentFunction": "if (value) {\n    var criticalAlarmsCount = entity['criticalAlarmsCount'];\n    var majorAlarmsCount = entity['majorAlarmsCount'];\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    if (criticalAlarmsCount) {\n        background = '209, 39, 48';\n        textColor = '#D12730';\n    } else if (majorAlarmsCount) {\n        background = '213, 157, 19';\n        textColor = '#e78202';\n    }\n    \n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
+                    "cellContentFunction": "if (value) {\n    var minMoistureThreshold = entity['minMoistureThreshold'];\n    var maxMoistureThreshold = entity['maxMoistureThreshold'];\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    if (value < minMoistureThreshold || value > maxMoistureThreshold) {\n        background = '209, 39, 48';\n        textColor = '#D12730';\n    }\n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
                     "defaultColumnVisibility": "visible",
                     "columnSelectionToDisplay": "enabled",
                     "columnExportOption": "onlyVisible"
@@ -679,10 +681,10 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "criticalAlarmsCount",
+                  "name": "minMoistureThreshold",
                   "type": "attribute",
-                  "label": "criticalAlarmsCount",
-                  "color": "#607d8b",
+                  "label": "minMoistureThreshold",
+                  "color": "#8bc34a",
                   "settings": {
                     "columnWidth": "0px",
                     "useCellStyleFunction": false,
@@ -691,7 +693,7 @@
                     "columnSelectionToDisplay": "disabled",
                     "columnExportOption": "onlyVisible"
                   },
-                  "_hash": 0.06822434191582616,
+                  "_hash": 0.5565658823011432,
                   "aggregationType": null,
                   "units": null,
                   "decimals": null,
@@ -700,10 +702,10 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "majorAlarmsCount",
+                  "name": "maxMoistureThreshold",
                   "type": "attribute",
-                  "label": "majorAlarmsCount",
-                  "color": "#9c27b0",
+                  "label": "maxMoistureThreshold",
+                  "color": "#3f51b5",
                   "settings": {
                     "columnWidth": "0px",
                     "useCellStyleFunction": false,
@@ -712,7 +714,7 @@
                     "columnSelectionToDisplay": "disabled",
                     "columnExportOption": "onlyVisible"
                   },
-                  "_hash": 0.15623745440101233,
+                  "_hash": 0.860782325530304,
                   "aggregationType": null,
                   "units": null,
                   "decimals": null,
@@ -923,7 +925,7 @@
                     "columnWidth": "30%",
                     "useCellStyleFunction": false,
                     "useCellContentFunction": true,
-                    "cellContentFunction": "if (value) {\n    var criticalAlarmsCount = entity['criticalAlarmsCount'];\n    var majorAlarmsCount = entity['majorAlarmsCount'];\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    if (criticalAlarmsCount) {\n        background = '209, 39, 48';\n        textColor = '#D12730';\n    } else if (majorAlarmsCount) {\n        background = '213, 157, 19';\n        textColor = '#e78202';\n    }\n    \n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
+                    "cellContentFunction": "if (value) {\n    var minMoistureThreshold = entity['minMoistureThreshold'];\n    var maxMoistureThreshold = entity['maxMoistureThreshold'];\n    var background = '111, 116, 242';\n    var textColor = '#5553AF';\n    if (value < minMoistureThreshold || value > maxMoistureThreshold) {\n        background = '209, 39, 48';\n        textColor = '#D12730';\n    }\n    var percent = value + '%';\n    var percentText = value.toFixed(0) + '%';\n    return '<div style=\"width: 100%; max-width: 100px; height: 16px; background: linear-gradient(to right, rgba('+background+', 0.16) '+percent+', rgba('+background+', 0.08) '+percent+'); border-radius: 5.21053px;\"><span style=\"padding-left: 4px; font-weight: 600; font-size: 13px; color: '+textColor+';\">'+percentText+'</span></div>';\n} else {\n    return 'No data';\n}",
                     "defaultColumnVisibility": "visible",
                     "columnSelectionToDisplay": "enabled",
                     "columnExportOption": "onlyVisible"
@@ -959,10 +961,10 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "criticalAlarmsCount",
+                  "name": "minMoistureThreshold",
                   "type": "attribute",
-                  "label": "criticalAlarmsCount",
-                  "color": "#ffc107",
+                  "label": "minMoistureThreshold",
+                  "color": "#8bc34a",
                   "settings": {
                     "columnWidth": "0px",
                     "useCellStyleFunction": false,
@@ -971,7 +973,7 @@
                     "columnSelectionToDisplay": "disabled",
                     "columnExportOption": "onlyVisible"
                   },
-                  "_hash": 0.8266549968345052,
+                  "_hash": 0.8242338033703862,
                   "aggregationType": null,
                   "units": null,
                   "decimals": null,
@@ -980,10 +982,10 @@
                   "postFuncBody": null
                 },
                 {
-                  "name": "majorAlarmsCount",
+                  "name": "maxMoistureThreshold",
                   "type": "attribute",
-                  "label": "majorAlarmsCount",
-                  "color": "#607d8b",
+                  "label": "maxMoistureThreshold",
+                  "color": "#3f51b5",
                   "settings": {
                     "columnWidth": "0px",
                     "useCellStyleFunction": false,
@@ -992,7 +994,7 @@
                     "columnSelectionToDisplay": "disabled",
                     "columnExportOption": "onlyVisible"
                   },
-                  "_hash": 0.9593934216033464,
+                  "_hash": 0.31385567303616213,
                   "aggregationType": null,
                   "units": null,
                   "decimals": null,
@@ -1594,20 +1596,20 @@
                   "_hash": 0.1472154755148487
                 },
                 {
-                  "name": "criticalAlarmsCount",
+                  "name": "minMoistureThreshold",
                   "type": "attribute",
-                  "label": "criticalAlarmsCount",
-                  "color": "#3f51b5",
+                  "label": "minMoistureThreshold",
+                  "color": "#ffeb3b",
                   "settings": {},
-                  "_hash": 0.39374395597899725
+                  "_hash": 0.6726458750444104
                 },
                 {
-                  "name": "majorAlarmsCount",
+                  "name": "maxMoistureThreshold",
                   "type": "attribute",
-                  "label": "majorAlarmsCount",
-                  "color": "#e91e63",
+                  "label": "maxMoistureThreshold",
+                  "color": "#03a9f4",
                   "settings": {},
-                  "_hash": 0.0004067754653349631
+                  "_hash": 0.41803536024678767
                 }
               ]
             }
@@ -1675,7 +1677,7 @@
             "color": "#fe7569",
             "useColorFunction": false,
             "useMarkerImageFunction": true,
-            "markerImageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var criticalAlarmsCount = data['criticalAlarmsCount'];\n    var majorAlarmsCount = data['majorAlarmsCount'];\n    var color = '#FFFFFF';\n    var textColor = '#000000';\n    if (criticalAlarmsCount) {\n        color = '#D12730';\n        textColor = '#FFFFFF';\n    } else if (majorAlarmsCount) {\n        color = '#e78202';\n        textColor = '#FFFFFF';\n    }\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"'+textColor+'\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']).toFixed(1);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
+            "markerImageFunction": "var type = data['type'];\nif (type === 'SI Soil Moisture Sensor') {\n    var text = getSensorText();\n    var defaultMarkerWidth = 20;\n    var width = defaultMarkerWidth + getTextWidth(text);\n    var svgStr = getSensorSvg(width, text);\n    var encodedSvg = encodeURIComponent(svgStr);\n    var svgUrl = 'data:image/svg+xml,' + encodedSvg;\n    return {\n        url: svgUrl,\n        size: width,\n        markerOffset: [defaultMarkerWidth / 2, defaultMarkerWidth / 2],\n        tooltipOffset: [width * 0.5 - defaultMarkerWidth / 2, - (defaultMarkerWidth / 2)]\n    };\n} else {\n    return null;\n}\n\nfunction getSensorSvg(width, text) {\n    var moisture = data['moisture'];\n    var minMoistureThreshold = data['minMoistureThreshold'];\n    var maxMoistureThreshold = data['maxMoistureThreshold'];\n    var color = '#FFFFFF';\n    var textColor = '#000000';\n    if (typeof moisture === 'number' && (moisture < minMoistureThreshold || moisture > maxMoistureThreshold)) {\n        color = '#D12730';\n        textColor = '#FFFFFF';\n    }\n    var background = getSensorBackground(color, width);\n    var svgWidth = width;\n    var svgHeight = 20;\n    var opacity = 1;\n    var sensorSvg = '<svg opacity=\"' + opacity + '\" width=\"' + svgWidth + '\" height=\"' + svgHeight + '\" viewBox=\"0 0 ' + svgWidth + ' ' + svgHeight + '\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">' +\n                    background;\n    if (text !== '') {\n        var transform = '8 0';\n        sensorSvg += '<text transform=\"translate(' + transform + ')\" fill=\"'+textColor+'\" xml:space=\"preserve\" style=\"white-space: pre\" font-family=\"Roboto\" font-size=\"12\" font-weight=\"600\" letter-spacing=\"0em\"><tspan x=\"0.10664\" y=\"14.2637\">' + text + '</tspan></text>';\n    }\n    sensorSvg += '</svg>';\n    return sensorSvg;    \n}\n\nfunction getSensorBackground(color, width) {\n     if (width === 20) {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>';\n     } else {\n         return '<circle cx=\"10\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' + \n                '<circle cx=\"' + (width - 35) + '\" cy=\"10\" r=\"10\" fill=\"'+ color +'\"/>' +\n                '<rect x=\"10\" y=\"0\" width=\"' + (width - 45) + '\" height=\"20\" rx=\"1\" fill=\"'+ color +'\"/>';\n     }\n}\n\nfunction getSensorText() {\n    if (data['moisture']) {\n        var moisture = Number(data['moisture']).toFixed(1);\n        return moisture + '%';\n    } else {\n        return '';\n    }\n}\n\nfunction getTextWidth(text) {\n    var width = 0;\n    for (var i = 0; i < text.length; i++) {\n        var charWidth;\n        var character = text.charAt(i);\n        if (character === ' ') {\n            charWidth = 8;\n        } else if (character === '-') {\n            charWidth = 7;\n        } else if (character === '°') {\n            charWidth = 5;\n        } else if (!isNaN(character * 1)){\n            charWidth = 9;\n        } else {\n            // Upper case\n            if (character === character.toUpperCase()) {\n                charWidth = 12;\n            // Lower case    \n            } else {\n                charWidth = 10;\n            }\n        }\n        width += charWidth;\n    }\n    return width;\n}",
             "markerImages": [],
             "showPolygon": true,
             "polygonKeyName": "perimeter",
