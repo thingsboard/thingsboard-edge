@@ -115,6 +115,12 @@
                                          [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-apache-pulsar-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AWS_KINESIS">
+      <tb-aws-kinesis-integration-form formControlName="configuration"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-aws-kinesis-integration-form>
+    </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.CUSTOM">
       <tb-custom-integration-form formControlName="configuration"
                                   [executeRemotelyTemplate]="executeRemotelyTemplate"

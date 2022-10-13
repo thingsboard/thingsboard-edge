@@ -89,6 +89,9 @@ import {
 import {
   ApachePulsarIntegrationFormComponent
 } from '@home/components/integration/configuration/apache-pulsar-integration-form/apache-pulsar-integration-form.component';
+import {
+  AwsKinesisIntegrationFormComponent
+} from '@home/components/integration/configuration/aws-kinesis-integration-form/aws-kinesis-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -112,7 +115,8 @@ import {
     ChirpStackIntegrationFormComponent,
     PubSubIntegrationFormComponent,
     ApachePulsarIntegrationFormComponent,
-    CustomIntegrationFormComponent
+    CustomIntegrationFormComponent,
+    AwsKinesisIntegrationFormComponent
   ],
   imports: [
     CommonModule,

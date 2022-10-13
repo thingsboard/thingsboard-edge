@@ -142,3 +142,15 @@ export const OpcMappingTypeTranslation = new Map<OpcMappingType, string>([
   [OpcMappingType.ID, 'ID'],
   [OpcMappingType.FQN, 'Fully Qualified Name']
 ]);
+
+export enum InitialPositionInStream {
+  LATEST = 'LATEST',
+  TRIM_HORIZON = 'TRIM_HORIZON',
+  AT_TIMESTAMP = 'AT_TIMESTAMP'
+}
+
+export const InitialPositionInStreamTranslation = new Map<InitialPositionInStream, string>([
+  [InitialPositionInStream.LATEST, 'Latest'],
+  [InitialPositionInStream.TRIM_HORIZON, 'Trim horizon'],
+  [InitialPositionInStream.AT_TIMESTAMP, 'At timestamp']
+]);
