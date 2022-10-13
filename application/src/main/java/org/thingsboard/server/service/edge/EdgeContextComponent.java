@@ -43,6 +43,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -109,6 +110,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private Configuration freemarkerConfig;
+
+    @Autowired
+    private DeviceService deviceService;
 
     @Autowired
     private AssetService assetService;

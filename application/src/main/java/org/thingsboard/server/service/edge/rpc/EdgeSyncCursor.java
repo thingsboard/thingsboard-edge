@@ -37,9 +37,9 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.edge.EdgeContextComponent;
 import org.thingsboard.server.service.edge.rpc.fetch.AdminSettingsEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.AssetProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
-import org.thingsboard.server.service.edge.rpc.fetch.AssetProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
@@ -54,7 +54,6 @@ import org.thingsboard.server.service.edge.rpc.fetch.TenantRolesEdgeEventFetcher
 import org.thingsboard.server.service.edge.rpc.fetch.TenantWidgetsBundlesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.WhiteLabelingEdgeEventFetcher;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;

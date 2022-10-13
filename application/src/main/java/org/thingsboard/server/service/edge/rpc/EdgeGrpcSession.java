@@ -51,14 +51,12 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.AssetProfileAssetsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.ConnectRequestMsg;
 import org.thingsboard.server.gen.edge.v1.ConnectResponseCode;
 import org.thingsboard.server.gen.edge.v1.ConnectResponseMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.DeviceProfileDevicesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -644,18 +642,6 @@ public final class EdgeGrpcSession implements Closeable {
             if (uplinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcCallMsg : uplinkMsg.getDeviceRpcCallMsgList()) {
                     result.add(ctx.getDeviceProcessor().processDeviceRpcCallResponseFromEdge(edge.getTenantId(), deviceRpcCallMsg));
-                }
-            }
-            if (uplinkMsg.getDeviceProfileDevicesRequestMsgCount() > 0) {
-                for (DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg : uplinkMsg.getDeviceProfileDevicesRequestMsgList()) {
-                    // do nothing. used in CE. in PE devices are synced by entity group entities request
-                    result.add(Futures.immediateFuture(null));
-                }
-            }
-            if (uplinkMsg.getAssetProfileAssetsRequestMsgCount() > 0) {
-                for (AssetProfileAssetsRequestMsg assetProfileAssetsRequestMsg : uplinkMsg.getAssetProfileAssetsRequestMsgList()) {
-                    // do nothing. used in CE. in PE assets are synced by entity group entities request
-                    result.add(Futures.immediateFuture(null));
                 }
             }
             if (uplinkMsg.getWidgetBundleTypesRequestMsgCount() > 0) {
