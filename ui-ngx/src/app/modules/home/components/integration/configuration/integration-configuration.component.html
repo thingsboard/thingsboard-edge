@@ -154,6 +154,13 @@
                                            [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-azure-event-hub-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.COAP">
+      <tb-coap-integration-form formControlName="configuration"
+                                [routingKey]="routingKey"
+                                [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-coap-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
       Not Found!!
     </ng-container>

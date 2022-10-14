@@ -101,6 +101,7 @@ import { AzureEventHubIntegrationFormComponent } from '@home/components/integrat
 import {
   TcpIntegrationFormComponent
 } from '@home/components/integration/configuration/tcp-integration-form/tcp-integration-form.component';
+import { CoapIntegrationFormComponent } from '@home/components/integration/configuration/coap-form/coap-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -130,7 +131,8 @@ import {
     AwsSqsIntegrationFormComponent,
     UdpIntegrationFormComponent,
     AzureEventHubIntegrationFormComponent,
-    TcpIntegrationFormComponent
+    TcpIntegrationFormComponent,
+    CoapIntegrationFormComponent
   ],
   imports: [
     CommonModule,
