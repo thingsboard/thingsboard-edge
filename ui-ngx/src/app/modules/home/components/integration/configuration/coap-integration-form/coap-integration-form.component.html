@@ -64,7 +64,7 @@
       <mat-label translate>integration.coap-endpoint</mat-label>
       <input matInput formControlName="coapEndpoint">
     </mat-form-field>
-    <fieldset [disabled]="true" style="width: auto">
+    <fieldset style="width: auto">
       <div ngxClipboard
            (cbOnSuccess)="onCoapEndpointCopied()"
            [cbContent]="coapIntegrationConfigForm.get('coapEndpoint').value"
@@ -80,7 +80,7 @@
       <mat-label translate>integration.coap-dtls-endpoint</mat-label>
       <input matInput formControlName="dtlsCoapEndpoint">
     </mat-form-field>
-    <fieldset [disabled]="true" style="width: auto">
+    <fieldset style="width: auto">
       <div ngxClipboard
            (cbOnSuccess)="onDtlsCoapEndpointCopied()"
            [cbContent]="coapIntegrationConfigForm.get('dtlsCoapEndpoint').value"

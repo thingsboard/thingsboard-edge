@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -40,7 +40,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { baseUrl, coapBaseUrl, isDefinedAndNotNull } from '@core/utils';
+import { coapBaseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { CoapSecurityMode, coapSecurityModeTranslationsMap, IntegrationType } from '@shared/models/integration.models';
@@ -48,7 +48,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { disableFields, enableFields } from '@home/pages/integration/integration-utils';
-import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-coap-integration-form',
@@ -65,7 +65,7 @@ import { integrationBaseUrlChanged } from '@home/components/integration/integrat
     multi: true,
   }]
 })
-export class CoapIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
+export class CoapIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
   @Input() routingKey;
 
@@ -75,6 +75,8 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
   coapSecurityModeTranslations = coapSecurityModeTranslationsMap;
 
   coapIntegrationConfigForm: FormGroup;
+
+  private rxSubscriptions$: Array<Subscription> = [];
 
   private propagateChangePending = false;
 
@@ -99,15 +101,28 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
     ).subscribe(() => {
       this.updateModels(this.coapIntegrationConfigForm.getRawValue());
     });
-    this.coapIntegrationConfigForm.get('securityMode').valueChanges.subscribe(value => this.integrationTypeChanged(value));
-    this.coapIntegrationConfigForm.get('baseUrl').valueChanges.subscribe(() => {
-      this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
-    });
-    this.coapIntegrationConfigForm.get('dtlsBaseUrl').valueChanges.subscribe(() => {
-      this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
-    });
+    this.rxSubscriptions$.push(
+      this.coapIntegrationConfigForm.get('securityMode').valueChanges.subscribe(value => this.integrationTypeChanged(value))
+    );
+    this.rxSubscriptions$.push(
+      this.coapIntegrationConfigForm.get('baseUrl').valueChanges.subscribe(() => {
+        this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
+      })
+    );
+    this.rxSubscriptions$.push(
+      this.coapIntegrationConfigForm.get('dtlsBaseUrl').valueChanges.subscribe(() => {
+        this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
+      })
+    );
     this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
     this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
+  }
+
+  ngOnDestroy(): void {
+    this.rxSubscriptions$.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    this.rxSubscriptions$.length = 0;
   }
 
   writeValue(value: any) {
