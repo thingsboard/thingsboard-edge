@@ -37,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.asset.AssetInfo;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
@@ -136,12 +135,14 @@ public class AssetProfileCloudProcessor extends BaseCloudProcessor {
 
     private void updateAssets(TenantId tenantId, AssetProfileId newAssetProfileId, AssetProfileId previousAssetProfileId) {
         PageLink pageLink = new PageLink(100);
-        PageData<AssetInfo> pageData;
+        PageData<Asset> pageData;
         do {
-            pageData = assetService.findAssetInfosByTenantIdAndAssetProfileId(tenantId, previousAssetProfileId, pageLink);
-            pageData.getData().forEach(assetInfo -> {
-                assetInfo.setAssetProfileId(newAssetProfileId);
-                assetService.saveAsset(new Asset(assetInfo));
+            pageData = assetService.findAssetsByTenantId(tenantId, pageLink);
+            pageData.getData().forEach(asset -> {
+                if (previousAssetProfileId.getId().equals(asset.getAssetProfileId().getId())) {
+                    asset.setAssetProfileId(newAssetProfileId);
+                    assetService.saveAsset(asset);
+                }
             });
             if (pageData.hasNext()) {
                 pageLink = pageLink.nextPageLink();
