@@ -135,6 +135,20 @@
                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-udp-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.THINGPARK">
+      <tb-thing-spark-integration-form formControlName="configuration"
+                                       [routingKey]="routingKey"
+                                       [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                       [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-thing-spark-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.TPE">
+      <tb-thing-spark-enterprise-integration-form formControlName="configuration"
+                                                  [routingKey]="routingKey"
+                                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-thing-spark-enterprise-integration-form>
+    </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.IBM_WATSON_IOT">
       <tb-ibm-watson-iot-integration-form formControlName="configuration"
                                           [executeRemotelyTemplate]="executeRemotelyTemplate"
