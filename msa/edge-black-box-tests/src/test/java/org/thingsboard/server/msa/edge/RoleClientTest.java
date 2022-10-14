@@ -33,6 +33,8 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -42,6 +44,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -66,6 +69,80 @@ public class RoleClientTest extends AbstractContainerTest {
         List<EntityId> groupIds = groupPageData.getData().stream().map(IdBased::getId).collect(Collectors.toList());
         genericIds.addAll(groupIds);
         assertEntitiesByIdsAndType(genericIds, EntityType.ROLE);
+    }
+
+    @Test
+    public void testTenantRole() {
+        // create role
+        Role role = new Role();
+        role.setType(RoleType.GENERIC);
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+        role.setName("Generic Edge Role");
+        Role savedRole = cloudRestClient.saveRole(role);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isPresent());
+        assertEntitiesByIdsAndType(Collections.singletonList(savedRole.getId()), EntityType.ROLE);
+
+        // update role
+        savedRole.setName("Generic Edge Role Updated");
+        cloudRestClient.saveRole(savedRole);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Generic Edge Role Updated".equals(edgeRestClient.getRoleById(savedRole.getId()).get().getName()));
+
+        // delete role
+        cloudRestClient.deleteRole(savedRole.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isEmpty());
+    }
+
+    @Test
+    public void testCustomerRole() {
+        // create customer
+        Customer savedCustomer = saveCustomer("Edge Customer A", null);
+
+        Role role = new Role();
+        role.setType(RoleType.GENERIC);
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+        role.setName("Customer Generic Edge Role");
+        role.setOwnerId(savedCustomer.getId());
+        role.setCustomerId(savedCustomer.getId());
+        Role savedRole = cloudRestClient.saveRole(role);
+
+        // change owner to customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isPresent());
+        assertEntitiesByIdsAndType(Collections.singletonList(savedRole.getId()), EntityType.ROLE);
+
+        // update role
+        savedRole.setName("Customer Generic Edge Role Updated");
+        cloudRestClient.saveRole(savedRole);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Customer Generic Edge Role Updated".equals(edgeRestClient.getRoleById(savedRole.getId()).get().getName()));
+
+        // delete role
+        cloudRestClient.deleteRole(savedRole.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getRoleById(savedRole.getId()).isEmpty());
+
+        // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
+
+        // delete customers
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
     }
 
 }
