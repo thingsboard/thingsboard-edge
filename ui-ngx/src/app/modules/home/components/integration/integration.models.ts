@@ -155,12 +155,18 @@ export const InitialPositionInStreamTranslation = new Map<InitialPositionInStrea
   [InitialPositionInStream.AT_TIMESTAMP, 'At timestamp']
 ]);
 
-export enum HandlerConfigurationType {
+export enum TcpHandlerConfigurationType {
   TEXT = 'TEXT',
   BINARY = 'BINARY',
-  JSON = 'JSON',
+  JSON = 'JSON'
+}
+
+export enum UpdHandlerConfigurationType {
   HEX = 'HEX'
 }
+
+export type HandlerConfigurationType = TcpHandlerConfigurationType | UpdHandlerConfigurationType;
+export const HandlerConfigurationType = {...TcpHandlerConfigurationType, ...UpdHandlerConfigurationType};
 
 export const HandlerConfigurationTypeTranslation = new Map<HandlerConfigurationType, string>([
   [HandlerConfigurationType.TEXT, 'extension.text'],
@@ -168,3 +174,13 @@ export const HandlerConfigurationTypeTranslation = new Map<HandlerConfigurationT
   [HandlerConfigurationType.JSON, 'extension.json'],
   [HandlerConfigurationType.HEX, 'extension.hex']
 ]);
+
+export enum TcpBinaryByteOrder {
+  LITTLE_ENDIAN = 'LITTLE_ENDIAN',
+  BIG_ENDIAN = 'BIG_ENDIAN'
+}
+
+export enum TcpTextMessageSeparator {
+  SYSTEM_LINE_SEPARATOR = 'SYSTEM_LINE_SEPARATOR',
+  NUL_DELIMITER = 'NUL_DELIMITER'
+}

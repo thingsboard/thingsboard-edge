@@ -57,15 +57,18 @@
       <mat-label translate>integration.cache-size</mat-label>
       <input matInput type="number" min="0" pattern="[0-9]+" formControlName="cacheSize">
       <mat-error translate *ngIf="updConfigForm.get('cacheSize').hasError('min')">
-        integration.min-cache-size</mat-error>
+        integration.min-cache-size
+      </mat-error>
     </mat-form-field>
     <mat-form-field fxFlex class="mat-block">
       <mat-label translate>integration.cache-time-to-live</mat-label>
       <input matInput type="number" min="0" max="525600" pattern="[0-9]+" formControlName="timeToLiveInMinutes">
       <mat-error translate *ngIf="updConfigForm.get('timeToLiveInMinutes').hasError('min')">
-        integration.min-cache-time-to-live</mat-error>
+        integration.min-cache-time-to-live
+      </mat-error>
       <mat-error translate *ngIf="updConfigForm.get('timeToLiveInMinutes').hasError('max')">
-        integration.max-cache-time-to-live</mat-error>
+        integration.max-cache-time-to-live
+      </mat-error>
     </mat-form-field>
   </div>
 

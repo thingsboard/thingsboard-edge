@@ -63,12 +63,12 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
 
   downlinkConverter: boolean;
   @Input()
-  set isSetDownlink (value: boolean) {
+  set isSetDownlink(value: boolean) {
     if (this.downlinkConverter !== value) {
       this.downlinkConverter = value;
       this.downlinkConverterChanged();
     }
-  };
+  }
 
   get isSetDownLink(): boolean {
     return this.downlinkConverter;
@@ -124,7 +124,7 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
     };
   }
 
-  downlinkConverterChanged() {
+  private downlinkConverterChanged() {
     if (this.azureEventHubIntegrationConfigForm) {
       if (this.isSetDownLink) {
         this.azureEventHubIntegrationConfigForm.get('iotHubName').setValidators(Validators.required);
