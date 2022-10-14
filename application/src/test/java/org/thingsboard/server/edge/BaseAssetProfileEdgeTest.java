@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ByteString;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
@@ -45,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 abstract public class BaseAssetProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testAssetProfiles() throws Exception {
         // create asset profile
         AssetProfile assetProfile = this.createAssetProfile("Building");
