@@ -343,8 +343,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
                     log.warn("Failed to persist debug message", e);
                 }
             }
-        } else {
-            onIntegrationMsgsDownlinkSuccess();
         }
     }
 
