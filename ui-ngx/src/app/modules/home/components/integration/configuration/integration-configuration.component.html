@@ -175,6 +175,18 @@
                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-coap-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.AWS_SQS">
+      <tb-aws-sqs-integration-form formControlName="configuration"
+                                  [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-aws-sqs-integration-form>
+    </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.KAFKA">
+      <tb-kafka-integration-form formControlName="configuration"
+                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                 [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-kafka-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
       Not Found!!
     </ng-container>

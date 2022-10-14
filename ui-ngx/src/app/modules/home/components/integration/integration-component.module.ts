@@ -108,6 +108,7 @@ import {
 import {
   ThingParkEnterpriseIntegrationFormComponent
 } from '@home/components/integration/configuration/thing-park-integration-form/thing-park-enterprise-integration-form.component';
+import { KafkaIntegrationFormComponent } from '@home/components/integration/configuration/kafka-integration-form/kafka-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -140,7 +141,8 @@ import {
     TcpIntegrationFormComponent,
     CoapIntegrationFormComponent,
     ThingParkIntegrationFormComponent,
-    ThingParkEnterpriseIntegrationFormComponent
+    ThingParkEnterpriseIntegrationFormComponent,
+    KafkaIntegrationFormComponent
   ],
   imports: [
     CommonModule,
