@@ -36,32 +36,44 @@ import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class UserClientTest extends AbstractContainerTest {
 
     @Test
-    public void testUsers() {
-        verifyEntityGroups(EntityType.USER, 3);
-    }
-
-    @Test
     public void testCreateUpdateDeleteTenantUser() {
-        // create user
+        // create user and add to tenant admin group
         User user = new User();
         user.setAuthority(Authority.TENANT_ADMIN);
         user.setTenantId(edge.getTenantId());
         user.setEmail("edgeTenant@thingsboard.org");
         user.setFirstName("Joe");
         user.setLastName("Downs");
-        User savedUser = cloudRestClient.saveUser(user, false);
+        User savedUser = cloudRestClient.saveUser(user, false, findTenantAdminsGroup().get().getId());
         cloudRestClient.activateUser(savedUser.getId(), "tenant", false);
         loginIntoEdgeWithRetries("edgeTenant@thingsboard.org", "tenant");
         cloudRestClient.login("edgeTenant@thingsboard.org", "tenant");
+
+        // add custom user group and assign to edge
+        EntityGroup savedCustomUserGroup = createEntityGroup(EntityType.USER);
+        assignEntityGroupToEdge(savedCustomUserGroup);
+
+        // add user to custom user group
+        cloudRestClient.addEntitiesToEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
+                    return user2Groups.contains(savedCustomUserGroup.getId());
+                });
 
         // update user
         savedUser.setFirstName("John");
@@ -73,6 +85,16 @@ public class UserClientTest extends AbstractContainerTest {
         // update user credentials
         cloudRestClient.changePassword("tenant", "newTenant");
         loginIntoEdgeWithRetries("edgeTenant@thingsboard.org", "newTenant");
+        cloudRestClient.login("edgeTenant@thingsboard.org", "newTenant");
+
+        // remove user from custom user group
+        cloudRestClient.removeEntitiesFromEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
+                    return !user2Groups.contains(savedCustomUserGroup.getId());
+                });
 
         // delete user
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
@@ -81,14 +103,21 @@ public class UserClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
+
+        // clean up
+        cloudRestClient.deleteEntityGroup(savedCustomUserGroup.getId());
     }
 
     @Test
     public void testCreateUpdateDeleteCustomerUser() {
         // create customer
-        Customer customer = new Customer();
-        customer.setTitle("User Test Customer");
-        Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        Customer savedCustomer = saveCustomer("Edge Customer A", null);
+
+        // change owner to customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
 
         // create user
         User user = new User();
@@ -98,10 +127,23 @@ public class UserClientTest extends AbstractContainerTest {
         user.setEmail("edgeCustomer@thingsboard.org");
         user.setFirstName("Phil");
         user.setLastName("Trace");
-        User savedUser = cloudRestClient.saveUser(user, false);
+        User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
         cloudRestClient.activateUser(savedUser.getId(), "customer", false);
         loginIntoEdgeWithRetries("edgeCustomer@thingsboard.org", "customer");
         cloudRestClient.login("edgeCustomer@thingsboard.org", "customer");
+
+        // add custom user group and assign to edge
+        EntityGroup savedCustomUserGroup = createEntityGroup(EntityType.USER, savedCustomer.getId());
+        assignEntityGroupToEdge(savedCustomUserGroup);
+
+        // add user to custom user group
+        cloudRestClient.addEntitiesToEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
+                    return user2Groups.contains(savedCustomUserGroup.getId());
+                });
 
         // update user
         savedUser.setFirstName("Phillip");
@@ -113,12 +155,28 @@ public class UserClientTest extends AbstractContainerTest {
         // update user credentials
         cloudRestClient.changePassword("customer", "newCustomer");
         loginIntoEdgeWithRetries("edgeCustomer@thingsboard.org", "newCustomer");
+        cloudRestClient.login("edgeCustomer@thingsboard.org", "newCustomer");
+
+        // remove user from custom user group
+        cloudRestClient.removeEntitiesFromEntityGroup(savedCustomUserGroup.getId(), Collections.singletonList(savedUser.getId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> user2Groups = edgeRestClient.getEntityGroupsForEntity(savedUser.getId());
+                    return !user2Groups.contains(savedCustomUserGroup.getId());
+                });
+
+        // change owner to tenant
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
 
         // delete user
-        cloudRestClient.login("tenant@thingsboard.org", "tenant");
         cloudRestClient.deleteUser(savedUser.getId());
         cloudRestClient.deleteCustomer(savedCustomer.getId());
-        loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());

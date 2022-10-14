@@ -53,8 +53,6 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class CustomerCloudProcessor extends BaseCloudProcessor {
 
-    private final Lock customerCreationLock = new ReentrantLock();
-
     @Autowired
     private CustomerService customerService;
 

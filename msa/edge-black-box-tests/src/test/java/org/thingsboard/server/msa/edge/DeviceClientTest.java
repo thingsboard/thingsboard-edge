@@ -71,6 +71,9 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
@@ -567,6 +570,24 @@ public class DeviceClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+
+        // add claim role and assign to customer admins group
+        Role role = new Role();
+        role.setType(RoleType.GENERIC);
+        role.setPermissions(JacksonUtil.toJsonNode("{\"DEVICE\":[\"CLAIM_DEVICES\"]}"));
+        role.setName("Claiming Role");
+        Role savedRole = cloudRestClient.saveRole(role);
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setRoleId(savedRole.getId());
+        groupPermission.setUserGroupId(findCustomerAdminsGroup(savedCustomer).get().getId());
+        cloudRestClient.saveGroupPermission(groupPermission);
+
+        // change owner to customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+
         User user = new User();
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(edge.getTenantId());
@@ -574,7 +595,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         user.setEmail("claimUser@thingsboard.org");
         user.setFirstName("Claim");
         user.setLastName("User");
-        User savedUser = cloudRestClient.saveUser(user, false);
+        User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
         cloudRestClient.activateUser(savedUser.getId(), "customer", false);
 
         Device savedDevice = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
@@ -602,11 +623,18 @@ public class DeviceClientTest extends AbstractContainerTest {
                         savedCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId())
                                 && savedCustomer.getId().equals(cloudRestClient.getDeviceById(savedDevice.getId()).get().getCustomerId()));
 
+        // change owner to tenant
+        loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
+
         // cleanup
         cloudRestClient.deleteDevice(savedDevice.getId());
         cloudRestClient.deleteUser(savedUser.getId());
         cloudRestClient.deleteCustomer(savedCustomer.getId());
-        loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+        cloudRestClient.deleteRole(savedRole.getId());
     }
 }
 

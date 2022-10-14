@@ -33,41 +33,16 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.DeviceProfileProvisionType;
-import org.thingsboard.server.common.data.DeviceProfileType;
-import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
-import org.thingsboard.server.common.data.device.data.PowerMode;
-import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
-import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
-import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
-import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
-import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
-import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
-import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
-import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
-import org.thingsboard.server.common.data.device.profile.SnmpDeviceProfileTransportConfiguration;
-import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
-import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingConfiguration;
-import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
-import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
-import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.IdBased;
-import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.transport.snmp.SnmpMapping;
-import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
-import org.thingsboard.server.common.data.transport.snmp.config.impl.TelemetryQueryingSnmpCommunicationConfig;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -110,8 +85,10 @@ public class AssetProfileClientTest extends AbstractContainerTest {
     }
 
     private Dashboard createDashboardAndAssignToEdge() {
-        Dashboard dashboard = saveDashboardOnCloud("Asset Profile Test Dashboard");
-        cloudRestClient.assignDashboardToEdge(edge.getId(), dashboard.getId());
+        EntityGroup dashboardEntityGroup= createEntityGroup(EntityType.DASHBOARD);
+        Dashboard dashboard = saveDashboardOnCloud("Asset Profile Test Dashboard", dashboardEntityGroup.getId());
+        assignEntityGroupToEdge(dashboardEntityGroup);
+
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getDashboardById(dashboard.getId()).isPresent());

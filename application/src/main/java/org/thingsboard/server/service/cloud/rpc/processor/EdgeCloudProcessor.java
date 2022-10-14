@@ -53,8 +53,8 @@ public class EdgeCloudProcessor extends BaseCloudProcessor {
 
     public ListenableFuture<Void> processEdgeConfigurationMsgFromCloud(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
         EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
+        edgeCreationLock.lock();
         try {
-            edgeCreationLock.lock();
             Edge edge = edgeService.findEdgeById(tenantId, edgeId);
             if (edge == null) {
                 edge = new Edge();
@@ -64,6 +64,7 @@ public class EdgeCloudProcessor extends BaseCloudProcessor {
             if (edgeConfiguration.getCustomerIdMSB() != 0 && edgeConfiguration.getCustomerIdLSB() != 0) {
                 UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
                 edge.setCustomerId(new CustomerId(customerUUID));
+                customerCreationLock.lock();
             } else {
                 edge.setCustomerId(null);
             }
@@ -76,6 +77,7 @@ public class EdgeCloudProcessor extends BaseCloudProcessor {
             edge.setAdditionalInfo(JacksonUtil.toJsonNode(edgeConfiguration.getAdditionalInfo()));
             edgeService.saveEdge(edge, false);
         } finally {
+            customerCreationLock.unlock();
             edgeCreationLock.unlock();
         }
         return Futures.immediateFuture(null);

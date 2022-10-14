@@ -123,6 +123,8 @@ public abstract class BaseCloudProcessor {
 
     protected static final Lock widgetCreationLock = new ReentrantLock();
 
+    protected final Lock customerCreationLock = new ReentrantLock();
+
     @Autowired
     protected AttributesService attributesService;
 

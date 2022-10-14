@@ -132,10 +132,5 @@ public class DashboardClientTest extends AbstractContainerTest {
                 .until(() -> edgeRestClient.getEntityGroupById(savedDashboardEntityGroup2.getId()).isEmpty());
     }
 
-    private Dashboard saveDashboardOnCloud(String dashboardTitle, EntityGroupId entityGroupId) {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(dashboardTitle);
-        return cloudRestClient.saveDashboard(dashboard, entityGroupId);
-    }
 }
 

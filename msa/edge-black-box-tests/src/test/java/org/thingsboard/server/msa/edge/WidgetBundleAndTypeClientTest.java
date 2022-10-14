@@ -56,7 +56,7 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
     public void testWidgetsBundles_verifyInitialSetup() {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
+                .until(() -> edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 16);
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
@@ -65,32 +65,6 @@ public class WidgetBundleAndTypeClientTest extends AbstractContainerTest {
             Awaitility.await()
                     .atMost(30, TimeUnit.SECONDS)
                     .until(() -> {
-                        List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-                        return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null
-                                && edgeBundleWidgetTypes.size() == cloudBundleWidgetTypes.size();
-                    });
-            List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
-            Assert.assertNotNull("edgeBundleWidgetTypes can't be null", edgeBundleWidgetTypes);
-            Assert.assertNotNull("cloudBundleWidgetTypes can't be null", cloudBundleWidgetTypes);
-            assertEntitiesByIdsAndType(edgeBundleWidgetTypes.stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGET_TYPE);
-        }
-    }
-
-    @Test
-    public void testWidgetsBundles() {
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS).
-                until(() ->  edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 14);
-
-        PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
-        assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.WIDGETS_BUNDLE);
-
-        for (String widgetsBundlesAlias : pageData.getData().stream().map(WidgetsBundle::getAlias).collect(Collectors.toList())) {
-            Awaitility.await()
-                    .atMost(30, TimeUnit.SECONDS).
-                    until(() -> {
                         List<WidgetType> edgeBundleWidgetTypes = edgeRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                         List<WidgetType> cloudBundleWidgetTypes = cloudRestClient.getBundleWidgetTypes(true, widgetsBundlesAlias);
                         return cloudBundleWidgetTypes != null && edgeBundleWidgetTypes != null

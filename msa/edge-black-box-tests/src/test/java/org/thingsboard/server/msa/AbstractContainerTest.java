@@ -56,6 +56,7 @@ import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
@@ -91,9 +92,11 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -135,6 +138,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -467,10 +471,10 @@ public abstract class AbstractContainerTest {
         return cloudRestClient.saveAsset(asset, entityGroupId);
     }
 
-    protected Dashboard saveDashboardOnCloud(String dashboardTitle) {
+    protected Dashboard saveDashboardOnCloud(String dashboardTitle, EntityGroupId entityGroupId) {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle(dashboardTitle);
-        return cloudRestClient.saveDashboard(dashboard);
+        return cloudRestClient.saveDashboard(dashboard, entityGroupId);
     }
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
@@ -799,10 +803,15 @@ public abstract class AbstractContainerTest {
     }
 
     protected EntityGroup createEntityGroup(EntityType entityType) {
-        EntityGroup assetEntityGroup = new EntityGroup();
-        assetEntityGroup.setType(entityType);
-        assetEntityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
-        return cloudRestClient.saveEntityGroup(assetEntityGroup);
+        return createEntityGroup(entityType, null);
+    }
+
+    protected EntityGroup createEntityGroup(EntityType entityType, EntityId ownerId) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setType(entityType);
+        entityGroup.setOwnerId(ownerId);
+        entityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        return cloudRestClient.saveEntityGroup(entityGroup);
     }
 
     protected void verifyEntityGroups(EntityType entityType, int expectedGroupsCount) {
@@ -858,5 +867,20 @@ public abstract class AbstractContainerTest {
         }
         AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
         return attributeKvEntry.getValueAsString().equals(expectedValue);
+    }
+
+    protected Customer saveCustomer(String title, CustomerId parentCustomerId) {
+        Customer customer = new Customer();
+        customer.setTitle(title);
+        customer.setParentCustomerId(parentCustomerId);
+        return cloudRestClient.saveCustomer(customer);
+    }
+
+    protected Optional<EntityGroupInfo> findTenantAdminsGroup() {
+        return cloudRestClient.getEntityGroupInfoByOwnerAndNameAndType(edge.getTenantId(), EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
+    }
+
+    protected Optional<EntityGroupInfo> findCustomerAdminsGroup(Customer customer) {
+        return cloudRestClient.getEntityGroupInfoByOwnerAndNameAndType(customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
     }
 }

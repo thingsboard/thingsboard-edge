@@ -107,11 +107,13 @@ abstract public class BaseCustomerEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testChangeOwnerOfCustomer_validateChangesToEdgeEntityGroups() {
 
     }
 
     @Test
+    @Ignore
     public void testChangeOwnerOfCustomerFromTenantToCustomer() {
 
     }

@@ -43,26 +43,50 @@ public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
     public void testCreateUpdateDeleteCustomer() {
-        // create customer
-        Customer customer = new Customer();
-        customer.setTitle("Test Customer");
-        Customer savedCustomer = cloudRestClient.saveCustomer(customer);
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+        // create customer A
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+        // create sub customer A
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
+        // create sub sub customer A
+        Customer savedSubSubCustomerA = saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
+        // create customer B
+        Customer savedCustomerB = saveCustomer("Edge Customer B", null);
 
-        // update customer
-        savedCustomer.setTitle("Updated Customer Name");
-        cloudRestClient.saveCustomer(savedCustomer);
+        // change owner to sub customer A
+        cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Updated Customer Name".equals(edgeRestClient.getCustomerById(savedCustomer.getId()).get().getTitle()));
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
 
-        // delete customer
-        cloudRestClient.deleteCustomer(savedCustomer.getId());
+        // update customer A
+        savedCustomerA.setTitle("Edge Customer A Updated");
+        cloudRestClient.saveCustomer(savedCustomerA);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
+                .until(() -> "Edge Customer A Updated".equals(edgeRestClient.getCustomerById(savedCustomerA.getId()).get().getTitle()));
+
+        // update sub customer A
+        savedSubCustomerA.setTitle("Edge Sub Customer A Updated");
+        cloudRestClient.saveCustomer(savedSubCustomerA);
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> "Edge Sub Customer A Updated".equals(edgeRestClient.getCustomerById(savedSubCustomerA.getId()).get().getTitle()));
+
+        // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
+
+        // delete customers
+        cloudRestClient.deleteCustomer(savedCustomerA.getId());
+        cloudRestClient.deleteCustomer(savedCustomerB.getId());
     }
 }
 

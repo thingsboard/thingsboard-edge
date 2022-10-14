@@ -2187,7 +2187,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public User saveUser(User user, boolean sendActivationMail) {
-        return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}", user, User.class, sendActivationMail).getBody();
+        return saveUser(user, sendActivationMail, null);
+    }
+
+    public User saveUser(User user, boolean sendActivationMail, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}", user, User.class, sendActivationMail).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}&entityGroupId={entityGroupId}", user, User.class, sendActivationMail, entityGroupId.getId()).getBody();
+        }
     }
 
     public void sendActivationEmail(String email) {
