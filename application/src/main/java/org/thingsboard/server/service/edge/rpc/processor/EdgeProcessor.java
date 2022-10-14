@@ -134,6 +134,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                             }
                         }
                         customersHierarchyEdgeService.processEdgeChangeOwner(tenantId, edgeId, previousOwnerId);
+                        futures.add(saveEdgeEvent(edge.getTenantId(), edgeId, EdgeEventType.EDGE, EdgeEventActionType.CHANGE_OWNER, edgeId, null));
                     } catch (Exception e) {
                         log.error("[{}] Failed to switch owner for edge [{}]", tenantId, edge, e);
                         return Futures.immediateFailedFuture(e);
@@ -236,7 +237,25 @@ public class EdgeProcessor extends BaseEdgeProcessor {
                 }
             }
         } while (rolesData != null && rolesData.hasNext());
-        edgeService.assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, edgeId, customer.getId(), customer.getParentCustomerId());
+        futures.addAll(assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, edgeId, customer.getId(), customer.getParentCustomerId()));
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
+    }
+
+    private List<ListenableFuture<Void>> assignCustomerAdministratorsAndUsersGroupToEdge(TenantId tenantId,
+                                                                                         EdgeId edgeId,
+                                                                                         CustomerId customerId,
+                                                                                         CustomerId parentCustomerId) {
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
+
+        EntityGroup customerAdmins = entityGroupService.findOrCreateCustomerAdminsGroup(tenantId, customerId, parentCustomerId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, customerAdmins.getId(), edgeId, customerAdmins.getType());
+        futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE,
+                customerAdmins.getId(), null, null));
+
+        EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(tenantId, customerId, parentCustomerId);
+        entityGroupService.assignEntityGroupToEdge(tenantId, customerUsers.getId(), edgeId, customerUsers.getType());
+        futures.add(saveEdgeEvent(tenantId, edgeId, EdgeEventType.ENTITY_GROUP, EdgeEventActionType.ASSIGNED_TO_EDGE,
+                customerUsers.getId(), null, null));
+        return futures;
     }
 }
