@@ -127,9 +127,11 @@ export class AwsKinesisIntegrationFormComponent extends IntegrationForm implemen
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.awsKinesisConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
-      this.awsKinesisConfigForm.get('useCredentialsFromInstanceMetadata').updateValueAndValidity({onlySelf: true});
-      this.awsKinesisConfigForm.get('useConsumersWithEnhancedFanOut').updateValueAndValidity({onlySelf: true});
+      this.awsKinesisConfigForm.reset(value.clientConfiguration, {emitEvent: false});
+      if (!this.disabled) {
+        this.awsKinesisConfigForm.get('useCredentialsFromInstanceMetadata').updateValueAndValidity({onlySelf: true});
+        this.awsKinesisConfigForm.get('useConsumersWithEnhancedFanOut').updateValueAndValidity({onlySelf: true});
+      }
     }
   }
 

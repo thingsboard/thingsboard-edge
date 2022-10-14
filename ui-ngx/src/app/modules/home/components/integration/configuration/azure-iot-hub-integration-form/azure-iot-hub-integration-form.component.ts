@@ -91,7 +91,7 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationForm impleme
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.azureIotConfigForm.patchValue(value, {emitEvent: false});
+      this.azureIotConfigForm.reset(value, {emitEvent: false});
     }
   }
 

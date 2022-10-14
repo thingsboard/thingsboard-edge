@@ -141,13 +141,15 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.loriotIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.loriotIntegrationConfigForm.reset(value, {emitEvent: false});
       this.updatedDownlinkUrl = !value.sendDownlink;
     } else {
       this.propagateChangePending = true;
       this.updatedDownlinkUrl = true;
     }
-    this.updateEnableFields();
+    if (!this.disabled) {
+      this.updateEnableFields();
+    }
   }
 
   registerOnChange(fn: any): void {

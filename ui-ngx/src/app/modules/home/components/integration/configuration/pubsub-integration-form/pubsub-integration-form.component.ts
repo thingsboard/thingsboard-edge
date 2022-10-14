@@ -82,7 +82,7 @@ export class PubSubIntegrationFormComponent extends IntegrationForm implements C
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.pubSubIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.pubSubIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }
   }
 

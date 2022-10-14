@@ -107,7 +107,7 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.baseHttpIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.baseHttpIntegrationConfigForm.reset(value, {emitEvent: false});
     } else {
       this.propagateChangePending = true;
     }

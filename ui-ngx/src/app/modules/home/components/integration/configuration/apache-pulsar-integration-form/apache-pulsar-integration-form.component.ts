@@ -120,7 +120,7 @@ export class ApachePulsarIntegrationFormComponent extends IntegrationForm implem
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.apachePulsarIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.apachePulsarIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     } else {
       this.propagateChangePending = true;
     }

@@ -71,16 +71,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   @Input() isSetDownlink: boolean;
   @Input() routingKey: string;
 
-  private integrationTypeValue: IntegrationType;
-  @Input()
-  set integrationType(value: IntegrationType) {
-    this.integrationTypeValue = value;
-    this.integrationConfigurationForm.setControl('configuration', this.fb.control(null));
-  }
-
-  get integrationType(): IntegrationType {
-    return this.integrationTypeValue;
-  }
+  @Input() integrationType: IntegrationType;
 
   @Input()
   disabled: boolean;
@@ -118,7 +109,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   }
 
   writeValue(value: any) {
-    this.integrationConfigurationForm.get('configuration').patchValue(value, {emitEvents: false});
+    this.integrationConfigurationForm.get('configuration').reset(value, {emitEvents: false});
   }
 
   private updateModel(value: any) {

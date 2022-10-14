@@ -120,9 +120,11 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.opcIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
-      this.updateSecurityTypeValidation(value.clientConfiguration.security);
-      this.updateSecurityTypeValidation(value.clientConfiguration.identity.type);
+      this.opcIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
+      if (!this.disabled) {
+        this.updateSecurityTypeValidation(value.clientConfiguration.security);
+        this.updateSecurityTypeValidation(value.clientConfiguration.identity.type);
+      }
     }
   }
 

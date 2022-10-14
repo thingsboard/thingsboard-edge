@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angula
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
-import { FormArray, FormBuilder, FormControl, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -44,15 +44,8 @@ import {
   IntegrationTypeInfo,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
-import { guid, isDefined, isUndefined, removeEmptyObjects } from '@core/utils';
+import { guid, isDefined, isUndefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
-import {
-  templates,
-  updateIntegrationFormDefaultFields,
-  updateIntegrationFormState,
-  updateIntegrationFormValidators
-} from './integration-forms-templates';
-import _ from 'lodash';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 import { IntegrationService } from '@core/http/integration.service';
 import { PageLink } from '@shared/models/page/page-link';
@@ -72,7 +65,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
 
   integrationTypes = IntegrationType;
 
-  integrationForm: FormGroup;
+  // integrationForm: FormGroup;
 
   integrationInfo: IntegrationTypeInfo;
 
@@ -115,7 +108,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         remote: [entity ? entity.remote : null],
         routingKey: this.fb.control({ value: entity ? entity.routingKey : null, disabled: true }),
         secret: this.fb.control({ value: entity ? entity.secret : null, disabled: true }),
-        configuration: this.fb.array([entity ? entity.configuration : {}, []]),
+        configuration: this.fb.control([entity ? entity.configuration : null]),
         metadata: [entity && entity.configuration ? entity.configuration.metadata : {}],
         additionalInfo: this.fb.group(
           {
@@ -127,32 +120,32 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     this.integrationType = entity ? entity.type : null;
     form.get('type').valueChanges.subscribe((type: IntegrationType) => {
       this.integrationType = type;
-      this.setConfigurationForm();
+      // this.setConfigurationForm();
       this.integrationTypeChanged(form);
     });
     this.checkIsNewIntegration(entity, form);
     return form;
   }
 
-  setConfigurationForm(configuration = {}) {
-    const configurationForm = this.entityForm.get('configuration') as FormArray;
-    configurationForm.controls = [];
-    if (this.integrationType) {
-      this.integrationInfo = integrationTypeInfoMap.get(this.integrationType);
-      const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[this.integrationType]);
-      const ignoreNonPrimitiveFields: string[] = formTemplate.ignoreNonPrimitiveFields || [];
-      const fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = formTemplate.fieldValidators || {};
-      delete formTemplate.ignoreNonPrimitiveFields;
-      delete formTemplate.fieldValidators;
-      this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, configuration), ignoreNonPrimitiveFields);
-      updateIntegrationFormDefaultFields(this.integrationType, this.integrationForm);
-      updateIntegrationFormValidators(this.integrationForm, fieldValidators, this.integrationType, this.integrationScope);
-      updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
-      configurationForm.push(this.integrationForm);
-    } else {
-      this.integrationForm = null;
-    }
-  }
+  // setConfigurationForm(configuration = {}) {
+  //   const configurationForm = this.entityForm.get('configuration') as FormArray;
+  //   configurationForm.controls = [];
+  //   if (this.integrationType) {
+  //     this.integrationInfo = integrationTypeInfoMap.get(this.integrationType);
+  //     const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[this.integrationType]);
+  //     const ignoreNonPrimitiveFields: string[] = formTemplate.ignoreNonPrimitiveFields || [];
+  //     const fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = formTemplate.fieldValidators || {};
+  //     delete formTemplate.ignoreNonPrimitiveFields;
+  //     delete formTemplate.fieldValidators;
+  //     this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, configuration), ignoreNonPrimitiveFields);
+  //     updateIntegrationFormDefaultFields(this.integrationType, this.integrationForm);
+  //     updateIntegrationFormValidators(this.integrationForm, fieldValidators, this.integrationType, this.integrationScope);
+  //     updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
+  //     configurationForm.push(this.integrationForm);
+  //   } else {
+  //     this.integrationForm = null;
+  //   }
+  // }
 
   updateFormState() {
     super.updateFormState();
@@ -161,12 +154,12 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       this.entityForm.get('routingKey').disable({ emitEvent: false });
       this.entityForm.get('secret').disable({ emitEvent: false });
     }
-    if (this.integrationForm) {
-      updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
-      if (this.integrationFormComponent) {
-        this.integrationFormComponent.updateFormState(!this.isEditValue);
-      }
-    }
+    // if (this.integrationForm) {
+    //   updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
+    //   if (this.integrationFormComponent) {
+    //     this.integrationFormComponent.updateFormState(!this.isEditValue);
+    //   }
+    // }
   }
 
   private checkIsNewIntegration(entity: Integration, form: FormGroup) {
@@ -205,9 +198,10 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
   }
 
   updateForm(entity: Integration) {
-    this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
+    // this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
     this.entityForm.patchValue({
       name: entity.name,
+      type: entity.type,
       enabled: isDefined(entity.enabled) ? entity.enabled : true,
       debugMode: isDefined(entity.debugMode) ? entity.debugMode : true,
       allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true,
@@ -217,36 +211,41 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       routingKey: entity.routingKey,
       secret: entity.secret,
       metadata: entity.configuration ? entity.configuration.metadata : {},
-      additionalInfo: { description: entity.additionalInfo ? entity.additionalInfo.description : '' }});
+      configuration: entity.configuration,
+      additionalInfo: {
+        description: entity.additionalInfo ? entity.additionalInfo.description : '' }
+      },
+      {emitEvent: false}
+    );
     // this.entityForm.patchValue({ configuration: entity.configuration });
     this.checkIsNewIntegration(entity, this.entityForm);
     this.integrationType = entity.type;
-    this.setConfigurationForm(entity.configuration);
+    // this.setConfigurationForm(entity.configuration);
   }
 
-  getIntegrationForm(form: object, ignoreNonPrimitiveFields: string[] = []): FormGroup {
-    const template = {};
-    for (const key of Object.keys(form)) {
-      if (Array.isArray(form[key]) && !ignoreNonPrimitiveFields.includes(key)) {
-        template[key] = this.fb.array(form[key].map(el => this.getIntegrationForm(el, ignoreNonPrimitiveFields)));
-      }
-      else if (typeof (form[key]) === 'object' && !ignoreNonPrimitiveFields.includes(key)) {
-        template[key] = this.getIntegrationForm(form[key], ignoreNonPrimitiveFields);
-      }
-      else {
-        template[key] = this.fb.control(form[key]);
-      }
-    }
-    return this.fb.group(
-      template
-    );
-  }
+  // getIntegrationForm(form: object, ignoreNonPrimitiveFields: string[] = []): FormGroup {
+  //   const template = {};
+  //   for (const key of Object.keys(form)) {
+  //     if (Array.isArray(form[key]) && !ignoreNonPrimitiveFields.includes(key)) {
+  //       template[key] = this.fb.array(form[key].map(el => this.getIntegrationForm(el, ignoreNonPrimitiveFields)));
+  //     }
+  //     else if (typeof (form[key]) === 'object' && !ignoreNonPrimitiveFields.includes(key)) {
+  //       template[key] = this.getIntegrationForm(form[key], ignoreNonPrimitiveFields);
+  //     }
+  //     else {
+  //       template[key] = this.fb.control(form[key]);
+  //     }
+  //   }
+  //   return this.fb.group(
+  //     template
+  //   );
+  // }
 
   prepareFormValue(formValue: any): any {
     if (!formValue.configuration) {
       formValue.configuration = {};
     }
-    formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
+    // formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
     formValue.name = formValue.name ? formValue.name.trim() : formValue.name;
     delete formValue.metadata;
@@ -287,18 +286,6 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         verticalPosition: 'bottom',
         horizontalPosition: 'right'
       }));
-  }
-
-  get clientConfigurationFormGroup(): FormGroup {
-    return this.integrationForm.get('clientConfiguration') as FormGroup;
-  }
-
-  get topicFiltersFormArray(): FormArray {
-    return this.integrationForm.get('topicFilters') as FormArray;
-  }
-
-  get downlinkTopicPatternFormControl(): FormControl {
-    return this.integrationForm.get('downlinkTopicPattern') as FormControl;
   }
 
   onIntegrationCheck(){

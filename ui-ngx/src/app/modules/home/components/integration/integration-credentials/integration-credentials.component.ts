@@ -127,14 +127,14 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
       this.integrationCredentialForm.disable({emitEvent: false});
     } else {
       this.integrationCredentialForm.enable({emitEvent: false});
+      this.integrationCredentialForm.get('type').updateValueAndValidity({onlySelf: true});
     }
   }
 
   writeValue(value) {
-    this.integrationCredentialForm.reset(value, {emitEvent: false});
-    this.updatedValidation(value.type || IntegrationCredentialType.Anonymous);
-    if (!this.disabled && this.integrationCredentialForm.invalid) {
-      this.updateModel(this.integrationCredentialForm.value);
+    this.integrationCredentialForm.patchValue(value, {emitEvent: false});
+    if (!this.disabled) {
+      this.integrationCredentialForm.get('type').updateValueAndValidity({onlySelf: true});
     }
   }
 

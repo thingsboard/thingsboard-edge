@@ -101,7 +101,7 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.chirpStackIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.chirpStackIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }
   }
 

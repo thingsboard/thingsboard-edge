@@ -121,6 +121,7 @@ export class IntegrationWizardDialogComponent extends
           this.integrationConfigurationForm.get('remote').setValue(false, {emitEvent: true});
         }
       }
+      this.integrationConfigurationForm.get('configuration').setValue(null);
     });
 
     this.uplinkConverterForm = this.fb.group({

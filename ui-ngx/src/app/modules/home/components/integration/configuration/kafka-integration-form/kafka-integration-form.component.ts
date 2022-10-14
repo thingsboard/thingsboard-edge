@@ -85,7 +85,7 @@ export class KafkaIntegrationFormComponent extends IntegrationForm implements Co
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.kafkaIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.kafkaIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }
   }
 

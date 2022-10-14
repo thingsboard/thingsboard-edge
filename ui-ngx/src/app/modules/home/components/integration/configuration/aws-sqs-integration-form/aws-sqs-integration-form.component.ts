@@ -83,7 +83,7 @@ export class AwsSqsIntegrationFormComponent extends IntegrationForm implements C
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.sqsConfiguration)) {
-      this.awsSqsIntegrationConfigForm.patchValue(value.sqsConfiguration, {emitEvent: false});
+      this.awsSqsIntegrationConfigForm.reset(value.sqsConfiguration, {emitEvent: false});
     }
   }
 

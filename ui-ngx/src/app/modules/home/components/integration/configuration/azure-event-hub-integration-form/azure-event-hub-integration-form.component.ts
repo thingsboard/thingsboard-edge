@@ -95,7 +95,7 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.azureEventHubIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.azureEventHubIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }
   }
 

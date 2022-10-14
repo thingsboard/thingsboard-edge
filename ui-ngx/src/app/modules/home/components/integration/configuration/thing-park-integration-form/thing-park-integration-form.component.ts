@@ -124,8 +124,10 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
       this.thingParkConfigForm.patchValue(value, {emitEvent: false});
-      this.thingParkConfigForm.get('enableSecurity').updateValueAndValidity({onlySelf: true});
-      this.thingParkConfigForm.get('enableSecurityNew').updateValueAndValidity({onlySelf: true});
+      if (!this.disabled) {
+        this.thingParkConfigForm.get('enableSecurity').updateValueAndValidity({onlySelf: true});
+        this.thingParkConfigForm.get('enableSecurityNew').updateValueAndValidity({onlySelf: true});
+      }
     } else {
       this.propagateChangePending = true;
     }

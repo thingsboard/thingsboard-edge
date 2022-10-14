@@ -76,7 +76,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
   isEdgeTemplate = false;
 
   @Input()
-  addNewConverter = true;
+  addNewConverter = false;
 
   @Input()
   set converterType(converterType: ConverterType) {

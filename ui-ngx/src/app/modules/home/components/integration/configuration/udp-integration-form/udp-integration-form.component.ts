@@ -103,8 +103,10 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.updConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
-      this.updConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+      this.updConfigForm.reset(value.clientConfiguration, {emitEvent: false});
+      if (!this.disabled) {
+        this.updConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+      }
     } else {
       this.propagateChangePending = true;
     }

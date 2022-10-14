@@ -93,7 +93,7 @@ export class RabbitMqIntegrationFormComponent extends IntegrationForm implements
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.rabbitMqIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.rabbitMqIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }
   }
 

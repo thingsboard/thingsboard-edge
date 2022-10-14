@@ -54,10 +54,6 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
-                        formControlName="cleanSession">
-        {{ 'integration.clean-session' | translate }}
-      </mat-slide-toggle>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">

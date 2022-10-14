@@ -93,7 +93,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.ibmWatsonIotIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.ibmWatsonIotIntegrationConfigForm.reset(value, {emitEvent: false});
     }
   }
 

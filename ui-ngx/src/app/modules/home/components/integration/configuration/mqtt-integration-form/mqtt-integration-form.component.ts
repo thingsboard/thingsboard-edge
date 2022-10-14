@@ -100,7 +100,7 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements Con
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.mqttIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.mqttIntegrationConfigForm.reset(value, {emitEvent: false});
     }
   }
 

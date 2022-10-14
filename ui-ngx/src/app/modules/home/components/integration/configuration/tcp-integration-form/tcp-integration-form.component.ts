@@ -119,8 +119,10 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.tcpConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
-      this.tcpConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+      this.tcpConfigForm.reset(value.clientConfiguration, {emitEvent: false});
+      if (!this.disabled) {
+        this.tcpConfigForm.get('handlerConfiguration.handlerType').updateValueAndValidity({onlySelf: false});
+      }
     } else {
       this.propagateChangePending = true;
     }

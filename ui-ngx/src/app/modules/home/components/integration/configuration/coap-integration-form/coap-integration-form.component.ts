@@ -127,7 +127,7 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.coapIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      this.coapIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     } else {
       this.propagateChangePending = true;
     }

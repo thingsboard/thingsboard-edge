@@ -150,17 +150,18 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.ttnIntegrationConfigForm.patchValue(value, {emitEvent: false});
-
-      if (value.clientConfiguration.customHost === !!ThingsStartHostType.Custom) {
-        this.hostEdit.patchValue('', {emitEvent: false});
-      } else if (value.clientConfiguration.host && value.clientConfiguration.host.endsWith(this.hostRegionSuffix)) {
-        this.hostEdit.patchValue(value.clientConfiguration.host.slice(0, -this.hostRegionSuffix.length), {emitEvent: false});
-      } else {
-        this.hostEdit.patchValue(value.clientConfiguration.host, {emitEvent: false});
+      this.ttnIntegrationConfigForm.reset(value, {emitEvent: false});
+      if (isDefinedAndNotNull(value.clientConfiguration)) {
+        if (value.clientConfiguration.customHost === !!ThingsStartHostType.Custom) {
+          this.hostEdit.patchValue('', {emitEvent: false});
+        } else if (value.clientConfiguration.host && value.clientConfiguration.host.endsWith(this.hostRegionSuffix)) {
+          this.hostEdit.patchValue(value.clientConfiguration.host.slice(0, -this.hostRegionSuffix.length), {emitEvent: false});
+        } else {
+          this.hostEdit.patchValue(value.clientConfiguration.host, {emitEvent: false});
+        }
       }
       let apiVersion = false;
-      if (value.downlinkTopicPattern.startsWith('v3')) {
+      if (value.downlinkTopicPattern?.startsWith('v3')) {
         apiVersion = true;
       }
       this.apiVersion.patchValue(apiVersion, {emitEvent: false});

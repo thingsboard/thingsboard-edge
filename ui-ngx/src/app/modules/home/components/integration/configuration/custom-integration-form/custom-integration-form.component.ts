@@ -90,7 +90,7 @@ export class CustomIntegrationFormComponent extends IntegrationForm implements C
 
   writeValue(value: any) {
     if (isDefinedAndNotNull(value)) {
-      this.customIntegrationConfigForm.patchValue(value, {emitEvent: false});
+      this.customIntegrationConfigForm.reset(value, {emitEvent: false});
     }
   }
 
