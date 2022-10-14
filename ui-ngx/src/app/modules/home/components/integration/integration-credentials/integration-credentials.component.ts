@@ -104,7 +104,8 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
       privateKeyFileName: [{value: '', disabled: true}, Validators.required],
       privateKey: [{value: '', disabled: true}, Validators.required],
       privateKeyPassword: [{value: '', disabled: true}],
-      token: [{value: '', disabled: true}, Validators.required]
+      token: [{value: '', disabled: true}, Validators.required],
+      sasKey: [{value: '', disabled: true}, Validators.required],
     });
     this.integrationCredentialForm.get('type').valueChanges.pipe(
       takeUntil(this.destroy$)
@@ -157,6 +158,11 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
         break;
       case IntegrationCredentialType.Token:
         this.integrationCredentialForm.get('token').enable({emitEvent: false});
+        break;
+      case IntegrationCredentialType.SAS:
+        this.integrationCredentialForm.get('sasKey').enable({emitEvent: false});
+        this.integrationCredentialForm.get('caCertFileName').enable({emitEvent: false});
+        this.integrationCredentialForm.get('caCert').enable({emitEvent: false});
         break;
     }
     this.integrationCredentialForm.get('type').enable({emitEvent: false});

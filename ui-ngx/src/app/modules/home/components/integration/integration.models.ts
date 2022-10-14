@@ -36,14 +36,16 @@ export enum IntegrationCredentialType {
   Anonymous = 'anonymous',
   Basic = 'basic',
   CertPEM = 'cert.PEM',
-  Token = 'token'
+  Token = 'token',
+  SAS = 'sas'
 }
 
 export const IntegrationCredentialTypeTranslation = new Map<IntegrationCredentialType, string>([
   [IntegrationCredentialType.Anonymous, 'extension.anonymous'],
   [IntegrationCredentialType.Basic, 'extension.basic'],
   [IntegrationCredentialType.CertPEM, 'extension.pem'],
-  [IntegrationCredentialType.Token, 'extension.token']
+  [IntegrationCredentialType.Token, 'extension.token'],
+  [IntegrationCredentialType.SAS, 'extension.sas']
 ]);
 
 export enum MqttQos {

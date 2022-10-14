@@ -110,6 +110,9 @@ import {
 } from '@home/components/integration/configuration/thing-park-integration-form/thing-park-enterprise-integration-form.component';
 import { KafkaIntegrationFormComponent } from '@home/components/integration/configuration/kafka-integration-form/kafka-integration-form.component';
 import { RabbitMqIntegrationFormComponent } from '@home/components/integration/configuration/rabbit-mq-integration-form/rabbit-mq-integration-form.component';
+import {
+  AzureIotHubIntegrationFormComponent
+} from '@home/components/integration/configuration/azure-iot-hub-integration-form/azure-iot-hub-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -144,7 +147,8 @@ import { RabbitMqIntegrationFormComponent } from '@home/components/integration/c
     ThingParkIntegrationFormComponent,
     ThingParkEnterpriseIntegrationFormComponent,
     KafkaIntegrationFormComponent,
-    RabbitMqIntegrationFormComponent
+    RabbitMqIntegrationFormComponent,
+    AzureIotHubIntegrationFormComponent
   ],
   imports: [
     CommonModule,
