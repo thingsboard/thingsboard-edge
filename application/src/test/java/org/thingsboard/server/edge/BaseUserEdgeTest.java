@@ -210,6 +210,7 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void sendUserCredentialsRequest() throws Exception {
         UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
         UserCredentialsRequestMsg.Builder userCredentialsRequestMsgBuilder = UserCredentialsRequestMsg.newBuilder();

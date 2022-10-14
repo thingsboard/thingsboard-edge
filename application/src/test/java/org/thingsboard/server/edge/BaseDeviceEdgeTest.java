@@ -602,6 +602,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void sendUpdateSharedAttributeToCloudAndValidateDeviceSubscription() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
