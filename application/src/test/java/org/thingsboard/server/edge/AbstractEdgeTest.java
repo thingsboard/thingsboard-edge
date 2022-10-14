@@ -669,7 +669,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected void changeEdgeOwnerToCustomer(Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(3);
+        edgeImitator.expectMessageAmount(6);
         doPost("/api/owner/CUSTOMER/" + customer.getId().getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         Optional<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
@@ -682,10 +682,16 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtos.size());
+
+        List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
+        Assert.assertEquals(2, entityGroupUpdateMsgs.size());
+
+        Optional<EdgeConfiguration> edgeConfigurationOpt = edgeImitator.findMessageByType(EdgeConfiguration.class);
+        Assert.assertTrue(edgeConfigurationOpt.isPresent());
     }
 
     protected void changeEdgeOwnerFromCustomerToCustomer(Customer previousCustomer, Customer newCustomer) throws Exception {
-        edgeImitator.expectMessageAmount(4);
+        edgeImitator.expectMessageAmount(7);
         doPost("/api/owner/CUSTOMER/" + newCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         List<CustomerUpdateMsg> customerMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
@@ -704,6 +710,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtos.size());
+
+        List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
+        Assert.assertEquals(2, entityGroupUpdateMsgs.size());
+
+        Optional<EdgeConfiguration> edgeConfigurationOpt = edgeImitator.findMessageByType(EdgeConfiguration.class);
+        Assert.assertTrue(edgeConfigurationOpt.isPresent());
     }
 
     protected void changeEdgeOwnerFromCustomerToTenant(Customer customer) throws Exception {
@@ -719,7 +731,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected void changeEdgeOwnerFromTenantToSubCustomer(Customer parentCustomer, Customer customer) throws Exception {
-        edgeImitator.expectMessageAmount(6);
+        edgeImitator.expectMessageAmount(11);
         doPost("/api/owner/CUSTOMER/" + customer.getId().getId() + "/EDGE/" + edge.getId().getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         List<CustomerUpdateMsg> customerUpdateMsgs = edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class);
@@ -738,6 +750,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(4, roleProtos.size());
+
+        List<EntityGroupUpdateMsg> entityGroupUpdateMsgs = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
+        Assert.assertEquals(4, entityGroupUpdateMsgs.size());
+
+        Optional<EdgeConfiguration> edgeConfigurationOpt = edgeImitator.findMessageByType(EdgeConfiguration.class);
+        Assert.assertTrue(edgeConfigurationOpt.isPresent());
     }
 
     protected void changeEdgeOwnerFromSubCustomerToTenant(Customer parentCustomer, Customer customer) throws Exception {
