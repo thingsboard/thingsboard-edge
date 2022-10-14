@@ -187,6 +187,12 @@
                                  [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-kafka-integration-form>
     </ng-container>
+    <ng-container *ngSwitchCase="integrationTypes.RABBITMQ">
+      <tb-rabbit-mq-integration-form formControlName="configuration"
+                                     [executeRemotelyTemplate]="executeRemotelyTemplate"
+                                     [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+      </tb-rabbit-mq-integration-form>
+    </ng-container>
     <ng-container *ngSwitchDefault>
       Not Found!!
     </ng-container>

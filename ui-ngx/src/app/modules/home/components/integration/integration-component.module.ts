@@ -97,11 +97,11 @@ import { AwsSqsIntegrationFormComponent } from '@home/components/integration/con
 import {
   UdpIntegrationFormComponent
 } from '@home/components/integration/configuration/udp-integration-form/udp-integration-form.component';
-import { AzureEventHubIntegrationFormComponent } from '@home/components/integration/configuration/azure-event-hub-form/azure-event-hub-integration-form.component';
+import { AzureEventHubIntegrationFormComponent } from '@home/components/integration/configuration/azure-event-hub-integration-form/azure-event-hub-integration-form.component';
 import {
   TcpIntegrationFormComponent
 } from '@home/components/integration/configuration/tcp-integration-form/tcp-integration-form.component';
-import { CoapIntegrationFormComponent } from '@home/components/integration/configuration/coap-form/coap-integration-form.component';
+import { CoapIntegrationFormComponent } from '@home/components/integration/configuration/coap-integration-form/coap-integration-form.component';
 import {
   ThingParkIntegrationFormComponent
 } from '@home/components/integration/configuration/thing-park-integration-form/thing-park-integration-form.component';
@@ -109,6 +109,7 @@ import {
   ThingParkEnterpriseIntegrationFormComponent
 } from '@home/components/integration/configuration/thing-park-integration-form/thing-park-enterprise-integration-form.component';
 import { KafkaIntegrationFormComponent } from '@home/components/integration/configuration/kafka-integration-form/kafka-integration-form.component';
+import { RabbitMqIntegrationFormComponent } from '@home/components/integration/configuration/rabbit-mq-integration-form/rabbit-mq-integration-form.component';
 
 @NgModule({
   declarations: [
@@ -142,7 +143,8 @@ import { KafkaIntegrationFormComponent } from '@home/components/integration/conf
     CoapIntegrationFormComponent,
     ThingParkIntegrationFormComponent,
     ThingParkEnterpriseIntegrationFormComponent,
-    KafkaIntegrationFormComponent
+    KafkaIntegrationFormComponent,
+    RabbitMqIntegrationFormComponent
   ],
   imports: [
     CommonModule,
