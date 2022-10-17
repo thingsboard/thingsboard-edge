@@ -47,6 +47,7 @@ import {
   HandlerConfigurationTypeTranslation
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
+import { UpdIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-udp-integration-form',
@@ -101,7 +102,7 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: UpdIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.updConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {

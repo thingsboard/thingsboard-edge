@@ -43,6 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { AzureEventHubIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-azure-event-hub-integration-form',
@@ -93,7 +94,7 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: AzureEventHubIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.azureEventHubIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }

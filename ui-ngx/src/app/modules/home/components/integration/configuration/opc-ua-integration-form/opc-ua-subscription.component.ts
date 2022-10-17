@@ -44,6 +44,7 @@ import {
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
+import { OpcUaSubscription } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-subscription',
@@ -107,7 +108,7 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
     };
   }
 
-  writeValue(subscriptions: any[]) {
+  writeValue(subscriptions: OpcUaSubscription[]) {
     if (isDefinedAndNotNull(subscriptions)) {
       if (this.opcSubscriptionArray.length === subscriptions.length) {
         this.opcSubscriptionForm.get('subscription').patchValue(subscriptions, {emitEvents: false});

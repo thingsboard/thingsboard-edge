@@ -35,6 +35,25 @@ import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
 import { ActivatedRouteSnapshot } from '@angular/router';
+import {
+  HandlerConfigurationType,
+  IdentityType,
+  integrationBaseUrlChanged,
+  IntegrationCredentialType,
+  mqttClientIdMaxLengthValidator,
+  mqttClientIdPatternValidator,
+  MqttQos,
+  OpcKeystoreType,
+  OpcMappingType,
+  OpcSecurityType,
+  TcpBinaryByteOrder,
+  TcpTextMessageSeparator,
+  ttnVersion,
+  ttnVersionMap
+} from '@home/components/integration/integration.models';
+import { Validators } from '@angular/forms';
+import { baseUrl, coapBaseUrl } from '@core/utils';
+import barsOptions = jquery.flot.barsOptions;
 
 export enum IntegrationType {
   MQTT = 'MQTT',
@@ -420,3 +439,314 @@ export function resolveIntegrationParams(route: ActivatedRouteSnapshot): Integra
   };
 }
 
+export interface Credentials {
+  type: IntegrationCredentialType
+}
+
+export interface Topics {
+  topicFilters: Array<{filter: string; qos: number}>;
+  downlinkTopicPattern: string;
+}
+
+export interface ApachePulsarIntegration {
+  clientConfiguration: {
+    serviceUrl: string;
+    topics: string;
+    subscriptionName: string;
+    maxNumMessages: number;
+    maxNumBytes: number;
+    timeoutInMs: number;
+    credentials: Credentials;
+  }
+}
+
+export interface AwsIotIntegration {
+  clientConfiguration: {
+    host: string;
+    connectTimeoutSec: number;
+    clientId: string;
+    maxBytesInMessage: number;
+    credentials: Credentials;
+  };
+  topicFilters: Array<{filter: string; qos: MqttQos}>;
+  downlinkTopicPattern: string;
+}
+
+export interface AwsKinesisIntegration {
+  clientConfiguration: {
+    streamName: string;
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    useCredentialsFromInstanceMetadata: boolean;
+    applicationName?: string;
+    initialPositionInStream: string;
+    useConsumersWithEnhancedFanOut: boolean;
+    maxRecords: number;
+    requestTimeout: number;
+  }
+}
+
+export interface AwsSqsIntegration {
+  sqsConfiguration: {
+    queueUrl: string;
+    pollingPeriodSeconds: number;
+    region: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+  }
+}
+
+export interface AzureEventHubIntegration {
+  clientConfiguration: {
+    connectTimeoutSec: number;
+    connectionString: string;
+    consumerGroup?: string;
+    iotHubName?: string;
+  }
+}
+
+export interface AzureIotHubIntegration {
+  clientConfiguration: {
+    host: string;
+    clientId: string;
+    maxBytesInMessage: number;
+    credentials: Credentials;
+  };
+  topicFilters: Array<{filter: string; qos: number}>;
+}
+
+export interface ChipStackIntegration {
+  clientConfiguration: {
+    baseUrl: string;
+    httpEndpoint: string,
+    applicationServerUrl: string;
+    applicationServerAPIToken: string;
+  }
+}
+
+export interface CoapIntegration {
+  clientConfiguration: {
+    baseUrl: string;
+    dtlsBaseUrl: string;
+    securityMode: CoapSecurityMode;
+    coapEndpoint: string;
+    dtlsCoapEndpoint: string;
+  }
+}
+
+export interface CustomIntegration {
+  clazz: string;
+  configuration: string;
+}
+
+export interface HttpIntegration {
+  baseUrl: string;
+  httpEndpoint: string;
+  enableSecurity?: boolean;
+  headersFilter?: {[key: string]: string} | null,
+  replaceNoContentToOk: boolean;
+}
+
+export interface IbmWatsonIotIntegration extends Topics{
+  clientConfiguration: {
+    connectTimeoutSec: number;
+    maxBytesInMessage: number;
+    credentials: {
+      type: string;
+      username: string;
+      password: string;
+    }
+  }
+}
+
+export interface KafkaIntegration {
+  clientConfiguration: {
+    groupId: string;
+    clientId: string;
+    topics: string;
+    bootstrapServers: string;
+    pollInterval: number;
+    autoCreateTopics: boolean
+    otherProperties?: {[key: string]: string} | null;
+  }
+}
+
+export interface LoriotIntegration {
+  baseUrl: string,
+  httpEndpoint: {
+    value: string;
+    disabled: boolean;
+  };
+  enableSecurity: boolean;
+  headersFilter?: {[key: string]: string} | null;
+  replaceNoContentToOk: boolean;
+  createLoriotOutput: boolean;
+  sendDownlink: boolean;
+  server: string;
+  domain: string;
+  appId: string;
+  token: string;
+  credentials: Credentials;
+  loriotDownlinkUrl: string;
+}
+
+export interface MqttIntegration extends Topics{
+  clientConfiguration: {
+    host: string;
+    port: number;
+    cleanSession: boolean
+    ssl: boolean;
+    connectTimeoutSec: number
+    clientId: string;
+    maxBytesInMessage: number;
+    credentials: Credentials
+  }
+}
+
+export interface OpcUaIntegration {
+  clientConfiguration: {
+    applicationName?: string;
+    applicationUri?: string;
+    host: string;
+    port: number;
+    scanPeriodInSeconds: number;
+    timeoutInMillis: number;
+    security: OpcSecurityType;
+    identity: {
+      password: string;
+      username: string;
+      type: IdentityType;
+    }
+    mapping: Array<OpcUaMapping>;
+    keystore: {
+      location: string;
+      type: OpcKeystoreType;
+      fileContent: string;
+      password: string;
+      alias: string;
+      keyPassword: string;
+    }
+  }
+}
+
+export interface OpcUaMapping {
+  deviceNodePattern: string;
+  mappingType: OpcMappingType;
+  subscriptionTags: Array<OpcUaSubscription>
+  namespace: number | null;
+}
+
+export interface OpcUaSubscription {
+  key: string;
+  path: string;
+  required: boolean;
+}
+
+export interface PubSubIntegration {
+  clientConfiguration: {
+    projectId: string;
+    subscriptionId: string;
+    serviceAccountKey: string;
+    serviceAccountKeyFileName: string;
+  }
+}
+
+export interface RabbitMqIntegration {
+  clientConfiguration: {
+    exchangeName: string;
+    host: string;
+    port: number;
+    virtualHost: string;
+    username: string;
+    password: string;
+    downlinkTopic: string;
+    queues: string;
+    routingKeys: string;
+    connectionTimeout: number;
+    handshakeTimeout: number;
+    pollPeriod: number;
+    durable: boolean;
+    exclusive: boolean;
+    autoDelete: boolean;
+  }
+}
+
+export interface TcpIntegration {
+  clientConfiguration: {
+    port: number;
+    soBacklogOption: number;
+    soRcvBuf: number;
+    soSndBuf: number;
+    soKeepaliveOption: boolean;
+    tcpNoDelay: boolean;
+    cacheSize: number;
+    timeToLiveInMinutes: number;
+    handlerConfiguration: {
+      handlerType: HandlerConfigurationType;
+      byteOrder: TcpBinaryByteOrder;
+      maxFrameLength: number;
+      lengthFieldOffset: number;
+      lengthFieldLength: number;
+      lengthAdjustment: number;
+      initialBytesToStrip: number;
+      failFast: boolean;
+      stripDelimiter: {
+        value: boolean
+        disabled: boolean;
+      }
+      messageSeparator: {
+        value: TcpTextMessageSeparator;
+        disabled: boolean;
+      }
+    }
+  }
+}
+
+export interface ThingParkIntegration {
+  baseUrl: string
+  httpEndpoint: string;
+  enableSecurity: boolean;
+  replaceNoContentToOk: boolean;
+  downlinkUrl?: string;
+  enableSecurityNew: boolean;
+  asId?: string;
+  asIdNew?: string;
+  asKey?: string;
+  clientIdNew?: string;
+  clientSecret?: string;
+  maxTimeDiffInSeconds: number;
+}
+
+export interface TtnIntegration extends Topics{
+  clientConfiguration: {
+   host: string;
+   hostEdit?: string;
+   customHost: boolean;
+   port: number;
+   ssl: boolean;
+   maxBytesInMessage: number;
+   connectTimeoutSec: number;
+    apiVersion?: boolean;
+   credentials: {
+     type: string;
+     username: string;
+     password: string;
+   }
+  }
+}
+
+export interface UpdIntegration {
+  clientConfiguration: {
+    port: number;
+    soBroadcast: boolean;
+    soRcvBuf: number;
+    cacheSize: number;
+    timeToLiveInMinutes: number;
+    handlerConfiguration: {
+      handlerType: HandlerConfigurationType;
+      charsetName: string;
+      maxFrameLength: number;
+    }
+  }
+}

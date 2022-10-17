@@ -43,6 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { AwsSqsIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-aws-sqs-integration-form',
@@ -81,7 +82,7 @@ export class AwsSqsIntegrationFormComponent extends IntegrationForm implements C
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: AwsSqsIntegration) {
     if (isDefinedAndNotNull(value?.sqsConfiguration)) {
       this.awsSqsIntegrationConfigForm.reset(value.sqsConfiguration, {emitEvent: false});
     }

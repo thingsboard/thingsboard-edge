@@ -43,6 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { IbmWatsonIotIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-ibm-watson-iot-integration-form',
@@ -91,7 +92,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
     ).subscribe(value => this.updateModels(value));
   }
 
-  writeValue(value: any) {
+  writeValue(value: IbmWatsonIotIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.ibmWatsonIotIntegrationConfigForm.reset(value, {emitEvent: false});
     }

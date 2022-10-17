@@ -48,6 +48,7 @@ import {
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { MqttIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-mqtt-integration-form',
@@ -98,7 +99,7 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements Con
     ).subscribe(value => this.updateModels(value));
   }
 
-  writeValue(value: any) {
+  writeValue(value: MqttIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.mqttIntegrationConfigForm.reset(value, {emitEvent: false});
     }

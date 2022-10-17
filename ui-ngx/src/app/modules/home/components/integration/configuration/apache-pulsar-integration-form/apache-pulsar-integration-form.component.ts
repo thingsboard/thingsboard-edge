@@ -44,6 +44,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationCredentialType } from '@home/components/integration/integration.models';
+import { ApachePulsarIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-apache-pulsar-integration-form',
@@ -118,7 +119,7 @@ export class ApachePulsarIntegrationFormComponent extends IntegrationForm implem
     };
   }
 
-  writeValue(value: any) {
+  writeValue(value: ApachePulsarIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.apachePulsarIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     } else {

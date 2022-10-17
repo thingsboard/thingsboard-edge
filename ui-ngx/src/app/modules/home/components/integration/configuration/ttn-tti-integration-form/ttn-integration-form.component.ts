@@ -51,6 +51,7 @@ import {
   ttnVersion,
   ttnVersionMap
 } from '@home/components/integration/integration.models';
+import { TtnIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-ttn-integration-form',
@@ -148,7 +149,7 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: TtnIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.ttnIntegrationConfigForm.reset(value, {emitEvent: false});
       if (isDefinedAndNotNull(value.clientConfiguration)) {

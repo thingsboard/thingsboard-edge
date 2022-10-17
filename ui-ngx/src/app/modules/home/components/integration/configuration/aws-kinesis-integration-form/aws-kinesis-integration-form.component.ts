@@ -45,6 +45,7 @@ import {
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
+import { AwsKinesisIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-aws-kinesis-integration-form',
@@ -125,7 +126,7 @@ export class AwsKinesisIntegrationFormComponent extends IntegrationForm implemen
     };
   }
 
-  writeValue(value: any) {
+  writeValue(value: AwsKinesisIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.awsKinesisConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {

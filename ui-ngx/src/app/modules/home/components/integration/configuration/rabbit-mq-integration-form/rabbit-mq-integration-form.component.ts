@@ -43,6 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { RabbitMqIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-rabbit-mq-integration-form',
@@ -91,7 +92,7 @@ export class RabbitMqIntegrationFormComponent extends IntegrationForm implements
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: RabbitMqIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.rabbitMqIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }

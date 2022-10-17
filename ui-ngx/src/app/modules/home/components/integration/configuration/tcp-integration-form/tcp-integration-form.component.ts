@@ -50,6 +50,7 @@ import {
   TcpTextMessageSeparator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
+import { TcpIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-tcp-integration-form',
@@ -117,7 +118,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: TcpIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.tcpConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {

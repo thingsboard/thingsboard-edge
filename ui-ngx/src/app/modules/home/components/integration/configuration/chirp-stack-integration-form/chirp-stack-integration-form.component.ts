@@ -42,7 +42,7 @@ import {
 } from '@angular/forms';
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
-import { IntegrationType } from '@shared/models/integration.models';
+import { ChipStackIntegration, IntegrationType } from '@shared/models/integration.models';
 import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -99,7 +99,7 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: ChipStackIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.chirpStackIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }

@@ -44,6 +44,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 import { IntegrationCredentialType } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
+import { AzureIotHubIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-azure-iot-hub-integration-form',
@@ -89,7 +90,7 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationForm impleme
     ).subscribe(value => this.updateModels(value));
   }
 
-  writeValue(value: any) {
+  writeValue(value: AzureIotHubIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.azureIotConfigForm.reset(value, {emitEvent: false});
     }

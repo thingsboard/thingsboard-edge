@@ -49,6 +49,7 @@ import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
+import { CustomIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-custom-integration-form',
@@ -88,7 +89,7 @@ export class CustomIntegrationFormComponent extends IntegrationForm implements C
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: CustomIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.customIntegrationConfigForm.reset(value, {emitEvent: false});
     }

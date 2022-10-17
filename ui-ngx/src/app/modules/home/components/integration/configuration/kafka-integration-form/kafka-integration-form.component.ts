@@ -43,6 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { KafkaIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-kafka-integration-form',
@@ -83,7 +84,7 @@ export class KafkaIntegrationFormComponent extends IntegrationForm implements Co
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: KafkaIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.kafkaIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }

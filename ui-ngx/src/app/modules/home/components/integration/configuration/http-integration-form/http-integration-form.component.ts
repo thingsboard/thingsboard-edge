@@ -42,7 +42,7 @@ import {
 } from '@angular/forms';
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
-import { IntegrationType } from '@shared/models/integration.models';
+import { HttpIntegration, IntegrationType } from '@shared/models/integration.models';
 import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -105,7 +105,7 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: HttpIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.baseHttpIntegrationConfigForm.reset(value, {emitEvent: false});
     } else {

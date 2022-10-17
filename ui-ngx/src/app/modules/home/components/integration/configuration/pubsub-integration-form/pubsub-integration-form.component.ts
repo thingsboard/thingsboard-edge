@@ -43,6 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
+import { PubSubIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-pubsub-integration-form',
@@ -80,7 +81,7 @@ export class PubSubIntegrationFormComponent extends IntegrationForm implements C
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: PubSubIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.pubSubIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     }

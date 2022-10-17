@@ -42,7 +42,7 @@ import {
 } from '@angular/forms';
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { filter, takeUntil } from 'rxjs/operators';
-import { IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType, LoriotIntegration } from '@shared/models/integration.models';
 import { integrationBaseUrlChanged, IntegrationCredentialType } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -139,7 +139,7 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: LoriotIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.loriotIntegrationConfigForm.reset(value, {emitEvent: false});
       this.updatedDownlinkUrl = !value.sendDownlink;

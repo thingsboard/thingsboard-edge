@@ -44,6 +44,7 @@ import { IdentityType, IdentityTypeTranslation, OpcKeystoreType, OpcSecurityType
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
+import { OpcUaIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
@@ -118,12 +119,12 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: OpcUaIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.opcIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {
         this.updateSecurityTypeValidation(value.clientConfiguration.security);
-        this.updateSecurityTypeValidation(value.clientConfiguration.identity.type);
+        this.updateIdentityTypeValidation(value.clientConfiguration.identity.type);
       }
     }
   }
@@ -141,7 +142,7 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
     } else {
       this.opcIntegrationConfigForm.enable({emitEvent: false});
       this.updateSecurityTypeValidation(this.opcIntegrationConfigForm.value.security);
-      this.updateSecurityTypeValidation(this.opcIntegrationConfigForm.value.identity.type);
+      this.updateIdentityTypeValidation(this.opcIntegrationConfigForm.value.identity.type);
     }
   }
 

@@ -42,7 +42,7 @@ import {
 } from '@angular/forms';
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
-import { IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType, ThingParkIntegration } from '@shared/models/integration.models';
 import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
@@ -121,7 +121,7 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
     });
   }
 
-  writeValue(value: any) {
+  writeValue(value: ThingParkIntegration) {
     if (isDefinedAndNotNull(value)) {
       this.thingParkConfigForm.patchValue(value, {emitEvent: false});
       if (!this.disabled) {

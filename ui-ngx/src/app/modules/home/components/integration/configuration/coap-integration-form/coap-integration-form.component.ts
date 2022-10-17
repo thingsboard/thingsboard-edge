@@ -43,7 +43,12 @@ import {
 import { coapBaseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import { CoapSecurityMode, coapSecurityModeTranslationsMap, IntegrationType } from '@shared/models/integration.models';
+import {
+  CoapIntegration,
+  CoapSecurityMode,
+  coapSecurityModeTranslationsMap,
+  IntegrationType
+} from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -125,7 +130,7 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
     this.rxSubscriptions$.length = 0;
   }
 
-  writeValue(value: any) {
+  writeValue(value: CoapIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.coapIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
     } else {

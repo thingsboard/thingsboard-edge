@@ -45,6 +45,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { OpcMappingType, OpcMappingTypeTranslation } from '@home/components/integration/integration.models';
+import { OpcUaMapping } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-mapping',
@@ -107,7 +108,7 @@ export class OpcUaMappingComponent implements ControlValueAccessor, Validator, O
     }
   }
 
-  writeValue(mappings: any[]): void {
+  writeValue(mappings: OpcUaMapping[]): void {
     if (isDefinedAndNotNull(mappings)) {
       if (this.mapFormArray.length === mappings.length) {
         this.opcMappingForm.get('map').patchValue(mappings, {emitEvents: false});
