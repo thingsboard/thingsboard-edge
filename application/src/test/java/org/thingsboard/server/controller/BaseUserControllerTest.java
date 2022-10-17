@@ -124,7 +124,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 ActionType.ADDED, ActionType.ADDED, 1, 1, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
-        logout();
+        resetTokens();
         doGet("/api/noauth/activate?activateToken={activateToken}", TestMailService.currentActivateToken)
                 .andExpect(status().isSeeOther())
                 .andExpect(header().string(HttpHeaders.LOCATION, "/login/createPassword?activateToken=" + TestMailService.currentActivateToken));
@@ -141,7 +141,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.authority", is(Authority.TENANT_ADMIN.name())))
                 .andExpect(jsonPath("$.email", is(email)));
 
-        logout();
+        resetTokens();
 
         login(email, "testPassword");
 
@@ -218,7 +218,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         User foundUser = doGet("/api/user/" + savedUser.getId().getId().toString(), User.class);
         Assert.assertEquals(foundUser, savedUser);
 
-        logout();
+        resetTokens();
 
         loginSysAdmin();
         doDelete("/api/user/" + savedUser.getId().getId().toString())
@@ -277,7 +277,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         user.setLastName("Downs");
 
         User savedUser = createUserAndLogin(user, "testPassword1");
-        logout();
+        resetTokens();
 
         JsonNode resetPasswordByEmailRequest = new ObjectMapper().createObjectNode()
                 .put("email", email);
@@ -303,7 +303,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.authority", is(Authority.TENANT_ADMIN.name())))
                 .andExpect(jsonPath("$.email", is(email)));
 
-        logout();
+        resetTokens();
 
         login(email, "testPassword2");
         doGet("/api/auth/user")
