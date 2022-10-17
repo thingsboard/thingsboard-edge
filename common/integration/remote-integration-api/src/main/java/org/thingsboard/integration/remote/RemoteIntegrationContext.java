@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -61,6 +62,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Data
 @Slf4j
+@RequiredArgsConstructor
 public class RemoteIntegrationContext implements IntegrationContext {
 
     private static final ObjectMapper mapper = new ObjectMapper();
