@@ -16,8 +16,8 @@
     "nodes": [
       {
         "additionalInfo": {
-          "layoutX": 822,
-          "layoutY": 294
+          "layoutX": 913,
+          "layoutY": 297
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -29,8 +29,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 221
+          "layoutX": 915,
+          "layoutY": 224
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
@@ -42,8 +42,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 494,
-          "layoutY": 309
+          "layoutX": 585,
+          "layoutY": 312
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
@@ -55,8 +55,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 383
+          "layoutX": 915,
+          "layoutY": 386
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
@@ -68,8 +68,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 823,
-          "layoutY": 444
+          "layoutX": 914,
+          "layoutY": 447
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -81,8 +81,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 822,
-          "layoutY": 507
+          "layoutX": 913,
+          "layoutY": 510
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
@@ -95,8 +95,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 209,
-          "layoutY": 307
+          "layoutX": 300,
+          "layoutY": 310
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
@@ -110,8 +110,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1113,
-          "layoutY": 291
+          "layoutX": 1204,
+          "layoutY": 294
         },
         "type": "org.thingsboard.rule.engine.metadata.CalculateDeltaNode",
         "name": "Calculate Delta",
@@ -130,11 +130,11 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 90,
-          "layoutY": 622
+          "layoutX": 46,
+          "layoutY": 383
         },
         "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "SimulateWaterUsage",
+        "name": "Field 1 Simulator",
         "debugMode": false,
         "configuration": {
           "msgCount": 0,
@@ -148,8 +148,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1404,
-          "layoutY": 291
+          "layoutX": 1495,
+          "layoutY": 294
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Field",
@@ -177,8 +177,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1639,
-          "layoutY": 290
+          "layoutX": 1730,
+          "layoutY": 293
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Field Rule Chain",
@@ -191,14 +191,32 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 493,
-          "layoutY": 141
+          "layoutX": 584,
+          "layoutY": 144
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "Count Alarms",
         "debugMode": false,
         "configuration": {
           "ruleChainId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 46,
+          "layoutY": 454
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "Field 2 Simulator",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 1,
+          "jsScript": "var msg = { pulseCounter: prevMsg.pulseCounter +1 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "d924ddb0-398c-11ed-af17-3d7337747e92",
+          "originatorType": "DEVICE"
         },
         "externalId": null
       }
@@ -287,6 +305,11 @@
       {
         "fromIndex": 9,
         "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 6,
         "type": "Success"
       }
     ],

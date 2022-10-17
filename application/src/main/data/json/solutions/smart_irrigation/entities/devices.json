@@ -134,6 +134,44 @@
     "jsonId": "f1a06190-38d6-11ed-af17-3d7337747e94"
   },
   {
+    "name": "SI Water Meter 2",
+    "type": "SI Water Meter",
+    "group": "Smart Irrigation",
+    "profile": "Water Meter",
+    "attributes": {
+      "lowBatteryThreshold": 30.0,
+      "lowBatteryAlarmEnabled": true
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 2",
+        "direction": "FROM",
+        "type": "FieldToWaterMeter"
+      }
+    ],
+    "jsonId": "d924ddb0-398c-11ed-af17-3d7337747e92"
+  },
+  {
+    "name": "SI Smart Valve 2",
+    "type": "SI Smart Valve",
+    "group": "Smart Irrigation",
+    "profile": "Smart Valve",
+    "attributes": {
+      "lowBatteryThreshold": 30.0,
+      "lowBatteryAlarmEnabled": true
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "SI Field 2",
+        "direction": "FROM",
+        "type": "FieldToSmartValve"
+      }
+    ],
+    "jsonId": "eb87ca30-3982-11ed-af17-3d7337747e92"
+  },
+  {
     "name": "SI Soil Moisture 5",
     "type": "SI Soil Moisture Sensor",
     "label": "Corn 1",

@@ -142,8 +142,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1488,
-          "layoutY": 150
+          "layoutX": 1196,
+          "layoutY": 250
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Field Asset",
@@ -169,8 +169,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1483,
-          "layoutY": 249
+          "layoutX": 1432,
+          "layoutY": 336
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Aggregate Avg",
@@ -222,8 +222,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1481,
-          "layoutY": 337
+          "layoutX": 1699,
+          "layoutY": 256
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Field Rule Chain",
@@ -287,6 +287,34 @@
         "debugMode": false,
         "configuration": {
           "ruleChainId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1434,
+          "layoutY": 164
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
+        "name": "Aggregate Latest Moisture",
+        "debugMode": false,
+        "configuration": {
+          "queueName": "MAIN",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "direction": "FROM",
+          "relationType": "FieldToMoistureSensor",
+          "deduplicationInSec": 10,
+          "aggMappings": [
+            {
+              "source": "moisture",
+              "sourceScope": "LATEST_TELEMETRY",
+              "defaultValue": 0,
+              "target": "latestAvgMoisture",
+              "aggFunction": "AVG",
+              "filter": null
+            }
+          ]
         },
         "externalId": null
       }
@@ -373,6 +401,11 @@
         "type": "Success"
       },
       {
+        "fromIndex": 8,
+        "toIndex": 16,
+        "type": "Success"
+      },
+      {
         "fromIndex": 9,
         "toIndex": 11,
         "type": "Success"
@@ -391,6 +424,11 @@
         "fromIndex": 14,
         "toIndex": 7,
         "type": "True"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 11,
+        "type": "Success"
       }
     ],
     "ruleChainConnections": null

@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
-        name = "aggregate latest",
+        name = "aggregate latest (deprecated)",
         configClazz = TbAggLatestTelemetryNodeConfiguration.class,
         nodeDescription = "Periodically aggregates entities attributes or latest timeseries",
         nodeDetails = "Performs aggregation of attributes or latest timeseries fetched from child entities with configurable period. " +

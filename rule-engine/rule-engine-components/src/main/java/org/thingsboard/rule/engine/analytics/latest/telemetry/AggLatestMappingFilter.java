@@ -84,7 +84,7 @@ public class AggLatestMappingFilter {
         }
     }
 
-    private void prepareAttributes(TbContext ctx, Map<String,String> attributes, EntityId entityId, String scope, List<String> keys, String prefix) throws Exception {
+    private void prepareAttributes(TbContext ctx, Map<String, String> attributes, EntityId entityId, String scope, List<String> keys, String prefix) throws Exception {
         if (keys != null && !keys.isEmpty()) {
             ListenableFuture<List<AttributeKvEntry>> latest = ctx.getAttributesService().find(ctx.getTenantId(), entityId, scope, keys);
             latest.get().forEach(r -> {
@@ -95,7 +95,7 @@ public class AggLatestMappingFilter {
         }
     }
 
-    private void prepareTimeseries(TbContext ctx, Map<String,String> attributes, EntityId entityId, List<String> keys) throws Exception {
+    private void prepareTimeseries(TbContext ctx, Map<String, String> attributes, EntityId entityId, List<String> keys) throws Exception {
         if (keys != null && !keys.isEmpty()) {
             ListenableFuture<List<TsKvEntry>> latest = ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, keys);
             latest.get().forEach(r -> {
