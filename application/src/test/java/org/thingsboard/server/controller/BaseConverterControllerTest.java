@@ -33,12 +33,14 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
@@ -57,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -397,4 +400,44 @@ public abstract class BaseConverterControllerTest extends AbstractControllerTest
                 savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.DELETED, new DataValidationException(msgError), downlinkConverter.getId().getId().toString());
     }
+
+    @Test
+    public void testUplinkConverterSpecialCharactersDecoding() {
+        String decoderConfiguration = "" +
+                "var payloadStr = decodeToString(payload);\n" +
+                "var data = decodeToJson(payload);\n" +
+                "var result = {\n" +
+                "   telemetry: {\n" +
+                "       name: data.name\n" +
+                "   }\n" +
+                "};" +
+                "function decodeToString(payload) {\n" +
+                "   return String.fromCharCode.apply(String, payload);\n" +
+                "}\n" +
+                "\n" +
+                "function decodeToJson(payload) {\n" +
+                "   // covert payload to string.\n" +
+                "   var str = decodeToString(payload);\n" +
+                "\n" +
+                "   // parse string to JSON\n" +
+                "   var data = JSON.parse(str);\n" +
+                "   return data;\n" +
+                "}\n" +
+                "\n" +
+                "return result;";
+
+        ObjectNode payload = JacksonUtil.newObjectNode();
+        String specialCharacters = "Привіт,Genève Hôpital Etterbeek-Ixelles,我们一起去玩吧。,اللغة العربية";
+        payload.set("name", new TextNode(specialCharacters));
+
+        ObjectNode inputParams = JacksonUtil.newObjectNode();
+        inputParams.set("decoder", new TextNode(decoderConfiguration));
+        inputParams.set("payload", new TextNode(Base64Utils.encodeToString(payload.toString().getBytes())));
+        inputParams.set("metadata", JacksonUtil.newObjectNode());
+
+        JsonNode output = doPost("/api/converter/testUpLink", inputParams, JsonNode.class);
+        JsonNode telemetry = JacksonUtil.toJsonNode(output.get("output").asText()).get("telemetry");
+        assertThat(telemetry.get("name").asText()).isEqualTo(specialCharacters);
+    }
+
 }

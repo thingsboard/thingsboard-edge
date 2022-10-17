@@ -33,7 +33,8 @@ import { IDashboardComponent } from '@home/models/dashboard-component.models';
 import {
   DataSet,
   Datasource,
-  DatasourceData, FormattedData,
+  DatasourceData,
+  FormattedData,
   JsonSettingsSchema,
   Widget,
   WidgetActionDescriptor,
@@ -53,7 +54,8 @@ import {
   IStateController,
   IWidgetSubscription,
   IWidgetUtils,
-  RpcApi, StateParams,
+  RpcApi,
+  StateParams,
   SubscriptionEntityInfo,
   TimewindowFunctions,
   WidgetActionsApi,
@@ -131,7 +133,8 @@ export class WidgetContext {
   constructor(public dashboard: IDashboardComponent,
               private dashboardWidget: IDashboardWidget,
               private widget: Widget,
-              public parentDashboard?: IDashboardComponent) {}
+              public parentDashboard?: IDashboardComponent,
+              public popoverComponent?: TbPopoverComponent) {}
 
   get stateController(): IStateController {
     return this.parentDashboard ? this.parentDashboard.stateController : this.dashboard.stateController;
