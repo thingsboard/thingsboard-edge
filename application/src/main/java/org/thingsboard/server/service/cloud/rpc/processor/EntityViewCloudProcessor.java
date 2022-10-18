@@ -47,6 +47,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
     private final Lock entityViewCreationLock = new ReentrantLock();
 
     public ListenableFuture<Void> processEntityViewMsgFromCloud(TenantId tenantId,
+                                                                CustomerId edgeCustomerId,
                                                                 EntityViewUpdateMsg entityViewUpdateMsg,
                                                                 Long queueStartTs) {
         EntityViewId entityViewId = new EntityViewId(new UUID(entityViewUpdateMsg.getIdMSB(), entityViewUpdateMsg.getIdLSB()));
@@ -78,12 +79,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                     entityView.setEntityId(entityId);
                     entityView.setAdditionalInfo(entityViewUpdateMsg.hasAdditionalInfo()
                             ? JacksonUtil.toJsonNode(entityViewUpdateMsg.getAdditionalInfo()) : null);
-                    if (entityViewUpdateMsg.hasCustomerIdMSB() && entityViewUpdateMsg.hasCustomerIdLSB()) {
-                        CustomerId customerId = new CustomerId(new UUID(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB()));
-                        entityView.setCustomerId(customerId);
-                    } else {
-                        entityView.setCustomerId(null);
-                    }
+                    entityView.setCustomerId(safeGetCustomerId(entityViewUpdateMsg.getCustomerIdMSB(), entityViewUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
                     EntityView savedEntityView = entityViewService.saveEntityView(entityView, false);
 
                     tbClusterService.broadcastEntityStateChangeEvent(savedEntityView.getTenantId(), savedEntityView.getId(),

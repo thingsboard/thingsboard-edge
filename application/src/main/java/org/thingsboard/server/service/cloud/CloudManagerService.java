@@ -36,8 +36,10 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -183,6 +185,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private final Map<Integer, UplinkMsg> pendingMsgsMap = new HashMap<>();
 
     private TenantId tenantId;
+    private CustomerId customerId;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -463,33 +466,52 @@ public class CloudManagerService extends BaseCloudEventService {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
+        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
+        EdgeId edgeId = new EdgeId(edgeUUID);
+
+        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeId, edgeConfiguration);
+
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
 
         EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
-            tenantCloudProcessor.cleanUp();
+            tenantCloudProcessor.cleanUp(this.tenantId);
             this.currentEdgeSettings = newEdgeSetting;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
         // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
-        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
+        log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
+        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired() | edgeCustomerIdUpdated);
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
-        saveOrUpdateEdge(tenantId, edgeConfiguration);
+        saveOrUpdateEdge(tenantId, edgeId, edgeConfiguration);
 
         updateConnectivityStatus(true);
 
         initialized = true;
     }
 
-    private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+    private boolean setOrUpdateCustomerId(EdgeId edgeId, EdgeConfiguration edgeConfiguration) {
+        Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+        CustomerId previousCustomerId = null;
+        if (edge != null) {
+            previousCustomerId = edge.getCustomerId();
+        }
+        if (edgeConfiguration.getCustomerIdMSB() != 0 && edgeConfiguration.getCustomerIdLSB() != 0) {
+            UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+            this.customerId = new CustomerId(customerUUID);
+            return !this.customerId.equals(previousCustomerId);
+        } else {
+            this.customerId = null;
+            return false;
+        }
+    }
+
+    private void saveOrUpdateEdge(TenantId tenantId, EdgeId edgeId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
         edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
-        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
-        EdgeId edgeId = new EdgeId(edgeUUID);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
     }
@@ -508,7 +530,8 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
+        ListenableFuture<List<Void>> future =
+                downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {

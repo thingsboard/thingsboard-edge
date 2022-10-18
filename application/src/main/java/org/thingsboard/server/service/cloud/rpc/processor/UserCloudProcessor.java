@@ -31,7 +31,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
@@ -52,6 +51,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
     private UserService userService;
 
     public ListenableFuture<Void> processUserMsgFromCloud(TenantId tenantId,
+                                                          CustomerId edgeCustomerId,
                                                           UserUpdateMsg userUpdateMsg,
                                                           Long queueStartTs) {
         UserId userId = new UserId(new UUID(userUpdateMsg.getIdMSB(), userUpdateMsg.getIdLSB()));
@@ -74,7 +74,7 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                     user.setFirstName(userUpdateMsg.hasFirstName() ? userUpdateMsg.getFirstName() : null);
                     user.setLastName(userUpdateMsg.hasLastName() ? userUpdateMsg.getLastName() : null);
                     user.setAdditionalInfo(userUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(userUpdateMsg.getAdditionalInfo()) : null);
-                    safeSetCustomerId(userUpdateMsg, user);
+                    user.setCustomerId(safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(), userUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
                     User savedUser = userService.saveUser(user, false);
                     if (created) {
                         UserCredentials userCredentials = new UserCredentials();
@@ -107,15 +107,6 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 return Futures.immediateFuture(null);
             }
         }, dbCallbackExecutor);
-    }
-
-    private void safeSetCustomerId(UserUpdateMsg userUpdateMsg, User user) {
-        CustomerId customerId = safeGetCustomerId(userUpdateMsg.getCustomerIdMSB(),
-                userUpdateMsg.getCustomerIdLSB());
-        if (customerId == null) {
-            customerId = new CustomerId(ModelConstants.NULL_UUID);
-        }
-        user.setCustomerId(customerId);
     }
 
     public ListenableFuture<Void> processUserCredentialsMsgFromCloud(TenantId tenantId, UserCredentialsUpdateMsg userCredentialsUpdateMsg) {

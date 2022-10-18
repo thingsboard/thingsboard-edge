@@ -54,6 +54,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -238,13 +239,15 @@ public abstract class BaseCloudProcessor {
         return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
     }
 
-    protected CustomerId safeGetCustomerId(long mSB, long lSB) {
-        CustomerId customerId = null;
-        UUID customerUUID = safeGetUUID(mSB, lSB);
+    protected CustomerId safeGetCustomerId(long customerIdMSB, long customerIdLSB, CustomerId edgeCustomerId) {
+        UUID customerUUID = safeGetUUID(customerIdMSB, customerIdLSB);
         if (customerUUID != null) {
-            customerId = new CustomerId(customerUUID);
+            CustomerId customerId = new CustomerId(customerUUID);
+            if (customerId.equals(edgeCustomerId)) {
+                return customerId;
+            }
         }
-        return customerId;
+        return new CustomerId(ModelConstants.NULL_UUID);
     }
 
     // TODO: voba - not used at the moment, but could be used in future releases

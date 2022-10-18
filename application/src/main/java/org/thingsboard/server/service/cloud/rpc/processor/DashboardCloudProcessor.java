@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.ShortCustomerInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -45,6 +46,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
     private DashboardService dashboardService;
 
     public ListenableFuture<Void> processDashboardMsgFromCloud(TenantId tenantId,
+                                                               CustomerId edgeCustomerId,
                                                                DashboardUpdateMsg dashboardUpdateMsg,
                                                                Long queueStartTs) {
         DashboardId dashboardId = new DashboardId(new UUID(dashboardUpdateMsg.getIdMSB(), dashboardUpdateMsg.getIdLSB()));
@@ -66,16 +68,15 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
 
                     if (dashboardUpdateMsg.hasAssignedCustomers()) {
                         Set<ShortCustomerInfo> assignedCustomers =
-                                JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {});
+                                JacksonUtil.fromString(dashboardUpdateMsg.getAssignedCustomers(), new TypeReference<>() {
+                                });
                         if (assignedCustomers != null && !assignedCustomers.isEmpty()) {
                             for (ShortCustomerInfo assignedCustomer : assignedCustomers) {
-                                dashboardService.assignDashboardToCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
+                                if (assignedCustomer.getCustomerId().equals(edgeCustomerId)) {
+                                    dashboardService.assignDashboardToCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
+                                }
                             }
-                        } else {
-                            unassignCustomersFromDashboard(tenantId, dashboard);
                         }
-                    } else {
-                        unassignCustomersFromDashboard(tenantId, dashboard);
                     }
                 } finally {
                     dashboardCreationLock.unlock();
@@ -92,13 +93,5 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs), future -> null, dbCallbackExecutor);
-    }
-
-    private void unassignCustomersFromDashboard(TenantId tenantId, Dashboard dashboard) {
-        if (dashboard.getAssignedCustomers() != null && !dashboard.getAssignedCustomers().isEmpty()) {
-            for (ShortCustomerInfo assignedCustomer : dashboard.getAssignedCustomers()) {
-                dashboardService.unassignDashboardFromCustomer(tenantId, dashboard.getId(), assignedCustomer.getCustomerId());
-            }
-        }
     }
 }

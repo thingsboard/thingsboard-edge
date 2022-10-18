@@ -62,13 +62,14 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
     private DataDecodingEncodingService dataDecodingEncodingService;
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
+                                                            CustomerId edgeCustomerId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
                                                             Long queueStartTs) {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                createDevice(tenantId, deviceUpdateMsg);
+                createDevice(tenantId, edgeCustomerId, deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
@@ -151,7 +152,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private Device createDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    private Device createDevice(TenantId tenantId, CustomerId edgeCustomerId, DeviceUpdateMsg deviceUpdateMsg) {
         Device device;
         deviceCreationLock.lock();
         try {
@@ -184,7 +185,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 device.setDeviceProfileId(null);
             }
-            device.setCustomerId(getCustomerId(deviceUpdateMsg));
+            device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
@@ -211,14 +212,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             deviceCreationLock.unlock();
         }
         return device;
-    }
-
-    private CustomerId getCustomerId(DeviceUpdateMsg deviceUpdateMsg) {
-        if (deviceUpdateMsg.hasCustomerIdMSB() && deviceUpdateMsg.hasCustomerIdLSB()) {
-            return new CustomerId(new UUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
-        } else {
-            return null;
-        }
     }
 
     public ListenableFuture<Void> processDeviceRpcRequestFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcRequestMsg) {

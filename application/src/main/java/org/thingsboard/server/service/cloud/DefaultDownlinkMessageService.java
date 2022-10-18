@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -143,6 +144,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
     private DbCallbackExecutorService dbCallbackExecutorService;
 
     public ListenableFuture<List<Void>> processDownlinkMsg(TenantId tenantId,
+                                                           CustomerId edgeCustomerId,
                                                            DownlinkMsg downlinkMsg,
                                                            EdgeSettings currentEdgeSettings,
                                                            Long queueStartTs) {
@@ -178,7 +180,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getDeviceUpdateMsgCount() > 0) {
                 for (DeviceUpdateMsg deviceUpdateMsg : downlinkMsg.getDeviceUpdateMsgList()) {
-                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, deviceUpdateMsg, queueStartTs));
+                    result.add(deviceProcessor.processDeviceMsgFromCloud(tenantId, edgeCustomerId, deviceUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getAssetProfileUpdateMsgCount() > 0) {
@@ -193,12 +195,12 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getAssetUpdateMsgCount() > 0) {
                 for (AssetUpdateMsg assetUpdateMsg : downlinkMsg.getAssetUpdateMsgList()) {
-                    result.add(assetProcessor.processAssetMsgFromCloud(tenantId, assetUpdateMsg, queueStartTs));
+                    result.add(assetProcessor.processAssetMsgFromCloud(tenantId, edgeCustomerId, assetUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getEntityViewUpdateMsgCount() > 0) {
                 for (EntityViewUpdateMsg entityViewUpdateMsg : downlinkMsg.getEntityViewUpdateMsgList()) {
-                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(tenantId, entityViewUpdateMsg, queueStartTs));
+                    result.add(entityViewProcessor.processEntityViewMsgFromCloud(tenantId, edgeCustomerId, entityViewUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
@@ -213,7 +215,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getDashboardUpdateMsgCount() > 0) {
                 for (DashboardUpdateMsg dashboardUpdateMsg : downlinkMsg.getDashboardUpdateMsgList()) {
-                    result.add(dashboardProcessor.processDashboardMsgFromCloud(tenantId, dashboardUpdateMsg, queueStartTs));
+                    result.add(dashboardProcessor.processDashboardMsgFromCloud(tenantId, edgeCustomerId, dashboardUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getAlarmUpdateMsgCount() > 0) {
@@ -250,7 +252,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                 for (UserUpdateMsg userUpdateMsg : downlinkMsg.getUserUpdateMsgList()) {
                     sequenceDependencyLock.lock();
                     try {
-                        result.add(userProcessor.processUserMsgFromCloud(tenantId, userUpdateMsg, queueStartTs));
+                        result.add(userProcessor.processUserMsgFromCloud(tenantId, edgeCustomerId, userUpdateMsg, queueStartTs));
                     } finally {
                         sequenceDependencyLock.unlock();
                     }
