@@ -138,7 +138,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         logEntityAction(tenantId, entityId, entity, customerId, actionType, user, additionalInfo);
 
         if (sendToEdge) {
-            sendEntityNotificationMsg(tenantId, entityId, edgeTypeByActionType(actionType), true);
+            sendEntityNotificationMsg(tenantId, entityId, edgeTypeByActionType(actionType), JacksonUtil.toString(customerId), true);
         }
     }
 
@@ -265,10 +265,15 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, boolean notifyCloud) {
-        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
+        sendEntityNotificationMsg(tenantId, entityId, action, null, notifyCloud);
+    }
+
+    private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, String body, boolean notifyCloud) {
+        sendNotificationMsgToEdge(tenantId, null, entityId, body, null, action);
         if (notifyCloud) {
             sendNotificationMsgToCloud(tenantId, entityId, action);
         }
+
     }
 
     private void sendAlarmDeleteNotificationMsg(TenantId tenantId, Alarm alarm, List<EdgeId> edgeIds, String body) {
