@@ -120,7 +120,6 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     this.integrationType = entity ? entity.type : null;
     form.get('type').valueChanges.subscribe((type: IntegrationType) => {
       this.integrationType = type;
-      // this.setConfigurationForm();
       this.integrationTypeChanged(form);
     });
     this.checkIsNewIntegration(entity, form);
@@ -170,7 +169,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
   }
 
   private integrationTypeChanged(form: FormGroup) {
-   // form.get('configuration').patchValue({}, { emitEvent: false });
+    form.get('configuration').patchValue(null, { emitEvent: false });
     form.get('metadata').patchValue({}, { emitEvent: false });
     this.checkIsRemote(form);
   }

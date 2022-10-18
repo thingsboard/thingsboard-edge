@@ -47,10 +47,10 @@ import {
   HandlerConfigurationTypeTranslation,
   TcpBinaryByteOrder,
   TcpHandlerConfigurationType,
+  TcpIntegration,
   TcpTextMessageSeparator
-} from '@home/components/integration/integration.models';
+} from '@shared/models/integration.models';
 import { takeUntil } from 'rxjs/operators';
-import { TcpIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-tcp-integration-form',

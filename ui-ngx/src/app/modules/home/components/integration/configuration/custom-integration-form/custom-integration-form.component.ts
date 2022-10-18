@@ -29,24 +29,19 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, OnInit, ViewChild } from '@angular/core';
-import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
+import { Component, forwardRef } from '@angular/core';
 import { ContentType } from '@shared/models/constants';
-import { JsonContentComponent } from '@shared/components/json-content.component';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
-    AbstractControl,
   ControlValueAccessor,
-  FormBuilder, FormGroup,
+  FormBuilder,
+  FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
   Validator,
   Validators
 } from '@angular/forms';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { CustomIntegration } from '@shared/models/integration.models';

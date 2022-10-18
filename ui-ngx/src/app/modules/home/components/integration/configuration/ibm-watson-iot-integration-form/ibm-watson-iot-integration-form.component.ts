@@ -43,7 +43,7 @@ import {
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import { IbmWatsonIotIntegration } from '@shared/models/integration.models';
+import { IbmWatsonIotIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-ibm-watson-iot-integration-form',
@@ -54,15 +54,17 @@ import { IbmWatsonIotIntegration } from '@shared/models/integration.models';
     useExisting: forwardRef(() => IbmWatsonIotIntegrationFormComponent),
     multi: true
   },
-    {
-      provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => IbmWatsonIotIntegrationFormComponent),
-      multi: true,
-    }]
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => IbmWatsonIotIntegrationFormComponent),
+    multi: true,
+  }]
 })
 export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
   ibmWatsonIotIntegrationConfigForm: FormGroup;
+
+  IntegrationCredentialType = IntegrationCredentialType;
 
   private ibmWatsonIotApiKeyPatternValidator = Validators.pattern(/^a-\w+-\w+$/);
 
@@ -75,7 +77,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
         connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
         maxBytesInMessage: [32368, [Validators.min(1), Validators.max(256000000)]],
         credentials: this.fb.group({
-          type: ['basic', []],
+          type: [IntegrationCredentialType.Basic],
           username: ['', [Validators.required, this.ibmWatsonIotApiKeyPatternValidator]],
           password: ['', Validators.required],
         }),

@@ -40,11 +40,16 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { IdentityType, IdentityTypeTranslation, OpcKeystoreType, OpcSecurityType } from '../../integration.models';
+import {
+  IdentityType,
+  IdentityTypeTranslation,
+  OpcKeystoreType,
+  OpcSecurityType,
+  OpcUaIntegration
+} from '@shared/models/integration.models';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
-import { OpcUaIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',

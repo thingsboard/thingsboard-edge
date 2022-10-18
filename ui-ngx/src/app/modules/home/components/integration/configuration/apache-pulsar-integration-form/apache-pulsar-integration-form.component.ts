@@ -43,8 +43,7 @@ import {
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
-import { IntegrationCredentialType } from '@home/components/integration/integration.models';
-import { ApachePulsarIntegration } from '@shared/models/integration.models';
+import { ApachePulsarIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-apache-pulsar-integration-form',

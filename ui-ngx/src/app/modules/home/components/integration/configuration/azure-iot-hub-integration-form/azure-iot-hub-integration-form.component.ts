@@ -41,10 +41,9 @@ import {
   Validators
 } from '@angular/forms';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import { IntegrationCredentialType } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
-import { AzureIotHubIntegration } from '@shared/models/integration.models';
+import { AzureIotHubIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-azure-iot-hub-integration-form',

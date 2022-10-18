@@ -44,10 +44,10 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 import { isDefinedAndNotNull } from '@core/utils';
 import {
   HandlerConfigurationType,
-  HandlerConfigurationTypeTranslation
-} from '@home/components/integration/integration.models';
+  HandlerConfigurationTypeTranslation,
+  UpdIntegration
+} from '@shared/models/integration.models';
 import { takeUntil } from 'rxjs/operators';
-import { UpdIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-udp-integration-form',

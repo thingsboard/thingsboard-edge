@@ -137,9 +137,10 @@ export function updateIntegrationFormState(type: IntegrationType, info: Integrat
     integrationForm.disable({emitEvent: false});
   } else {
     integrationForm.enable({emitEvent: false});
-    if (info.http) {
-      integrationForm.get('httpEndpoint').disable({emitEvent: false});
-    } else if (type === IntegrationType.TTN) {
+    // if (info.http) {
+    //   integrationForm.get('httpEndpoint').disable({emitEvent: false});
+    // } else
+    if (type === IntegrationType.TTN) {
       integrationForm.get('topicFilters').disable({emitEvent: false});
     } else if (type === IntegrationType.CHIRPSTACK) {
       integrationForm.get('clientConfiguration.httpEndpoint').disable({emitEvent: false});

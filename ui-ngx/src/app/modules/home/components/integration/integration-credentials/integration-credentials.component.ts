@@ -42,10 +42,7 @@ import {
 import { Component, forwardRef, Input } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import {
-  IntegrationCredentialType,
-  IntegrationCredentialTypeTranslation
-} from '@home/components/integration/integration.models';
+import { IntegrationCredentialType, IntegrationCredentialTypeTranslation } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-integration-credentials',

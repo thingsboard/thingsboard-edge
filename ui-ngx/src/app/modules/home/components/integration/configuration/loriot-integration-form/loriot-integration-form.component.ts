@@ -42,8 +42,8 @@ import {
 } from '@angular/forms';
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { filter, takeUntil } from 'rxjs/operators';
-import { IntegrationType, LoriotIntegration } from '@shared/models/integration.models';
-import { integrationBaseUrlChanged, IntegrationCredentialType } from '@home/components/integration/integration.models';
+import { IntegrationCredentialType, IntegrationType, LoriotIntegration } from '@shared/models/integration.models';
+import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';

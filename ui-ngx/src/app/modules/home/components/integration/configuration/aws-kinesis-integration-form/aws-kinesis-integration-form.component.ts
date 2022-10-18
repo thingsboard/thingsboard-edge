@@ -35,17 +35,19 @@ import {
   FormBuilder,
   FormGroup,
   NG_VALIDATORS,
-  NG_VALUE_ACCESSOR, ValidationErrors,
-  Validator, Validators
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+  Validators
 } from '@angular/forms';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import {
-  InitialPositionInStream,
-  InitialPositionInStreamTranslation
-} from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
-import { AwsKinesisIntegration } from '@shared/models/integration.models';
+import {
+  AwsKinesisIntegration,
+  InitialPositionInStream,
+  InitialPositionInStreamTranslation
+} from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-aws-kinesis-integration-form',

@@ -44,8 +44,7 @@ import {
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
-import { OpcMappingType, OpcMappingTypeTranslation } from '@home/components/integration/integration.models';
-import { OpcUaMapping } from '@shared/models/integration.models';
+import { OpcMappingType, OpcMappingTypeTranslation, OpcUaMapping } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-mapping',

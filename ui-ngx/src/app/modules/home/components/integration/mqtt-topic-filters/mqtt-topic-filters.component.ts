@@ -42,7 +42,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { MqttQos, MqttQosTranslation, MqttTopicFilter } from '../integration.models';
+import { MqttQos, MqttQosTranslation, MqttTopicFilter } from '@shared/models/integration.models';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { isNumber } from '@core/utils';

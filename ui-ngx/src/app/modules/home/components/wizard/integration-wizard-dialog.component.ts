@@ -53,6 +53,10 @@ import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { ConverterId } from '@shared/models/id/converter-id';
 
+export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
+  edgeTemplate: boolean;
+}
+
 @Component({
   selector: 'tb-integration-wizard',
   templateUrl: './integration-wizard-dialog.component.html',
@@ -69,6 +73,7 @@ export class IntegrationWizardDialogComponent extends
   selectedIndex = 0;
   showNext = true;
   converterType = ConverterType;
+  isEdgeTemplate = false;
 
   stepperOrientation: Observable<StepperOrientation>;
 
@@ -89,7 +94,7 @@ export class IntegrationWizardDialogComponent extends
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
-              @Inject(MAT_DIALOG_DATA) public data: AddEntityDialogData<Integration>,
+              @Inject(MAT_DIALOG_DATA) public data: IntegrationWizardData<Integration>,
               public dialogRef: MatDialogRef<IntegrationWizardDialogComponent, Integration>,
               private breakpointObserver: BreakpointObserver,
               private converterService: ConverterService,
@@ -97,6 +102,8 @@ export class IntegrationWizardDialogComponent extends
               private translate: TranslateService,
               private fb: FormBuilder) {
     super(store, router, dialogRef);
+
+    this.isEdgeTemplate = this.data.edgeTemplate;
 
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
@@ -223,6 +230,7 @@ export class IntegrationWizardDialogComponent extends
       return of(this.uplinkConverterForm.get('uplinkConverterId').value);
     } else {
       const converterConfig: Converter = this.uplinkConverterForm.get('newUplinkConverter').value;
+      converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
           this.uplinkConverterForm.patchValue({
@@ -243,6 +251,7 @@ export class IntegrationWizardDialogComponent extends
       return of(this.downlinkConverterForm.get('downlinkConverterId').value);
     } else {
       const converterConfig: Converter = this.downlinkConverterForm.get('newDownlinkConverter').value;
+      converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
           this.downlinkConverterForm.patchValue({
@@ -257,9 +266,13 @@ export class IntegrationWizardDialogComponent extends
 
   private createdIntegration(uplinkConverterId: ConverterId, downlinkConverterId: ConverterId): Observable<Integration> {
     const integrationData: Integration = {
-      ...this.integrationConfigurationForm.value,
+      configuration: {
+        metadata: this.integrationConfigurationForm.value.metadata,
+        ...this.integrationConfigurationForm.value.configuration,
+      },
       routingKey: this.integrationConfigurationForm.getRawValue().routingKey,
       secret: this.integrationConfigurationForm.getRawValue().secret,
+      remote: this.integrationConfigurationForm.value.remote,
       defaultConverterId: uplinkConverterId,
       downlinkConverterId,
       name: this.integrationWizardForm.value.name,
@@ -267,7 +280,13 @@ export class IntegrationWizardDialogComponent extends
       enabled: this.integrationWizardForm.value.enabled,
       debugMode: this.integrationWizardForm.value.debugMode,
       allowCreateDevicesOrAssets: this.integrationWizardForm.value.allowCreateDevicesOrAssets,
+      edgeTemplate: this.data.edgeTemplate
     };
+    if (this.integrationConfigurationForm.value.additionalInfo.description) {
+      integrationData.additionalInfo = {
+        description: this.integrationConfigurationForm.value.additionalInfo.description
+      };
+    }
     return this.integrationService.saveIntegration(integrationData);
   }
 

@@ -41,14 +41,13 @@ import {
   Validators
 } from '@angular/forms';
 import {
-  IntegrationCredentialType,
   mqttClientIdMaxLengthValidator,
   mqttClientIdPatternValidator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import { MqttIntegration } from '@shared/models/integration.models';
+import { IntegrationCredentialType, MqttIntegration } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-mqtt-integration-form',

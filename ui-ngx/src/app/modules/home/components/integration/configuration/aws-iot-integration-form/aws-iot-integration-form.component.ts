@@ -41,14 +41,13 @@ import {
   Validators
 } from '@angular/forms';
 import {
-  IntegrationCredentialType,
   mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator, MqttQos
+  mqttClientIdPatternValidator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import { AwsIotIntegration } from '@shared/models/integration.models';
+import { AwsIotIntegration, IntegrationCredentialType, MqttQos } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-aws-iot-integration-form',

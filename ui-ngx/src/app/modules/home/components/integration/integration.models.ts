@@ -30,40 +30,7 @@
 ///
 
 import { Validators } from '@angular/forms';
-import { IntegrationType } from '@shared/models/integration.models';
-
-export enum IntegrationCredentialType {
-  Anonymous = 'anonymous',
-  Basic = 'basic',
-  CertPEM = 'cert.PEM',
-  Token = 'token',
-  SAS = 'sas'
-}
-
-export const IntegrationCredentialTypeTranslation = new Map<IntegrationCredentialType, string>([
-  [IntegrationCredentialType.Anonymous, 'extension.anonymous'],
-  [IntegrationCredentialType.Basic, 'extension.basic'],
-  [IntegrationCredentialType.CertPEM, 'extension.pem'],
-  [IntegrationCredentialType.Token, 'extension.token'],
-  [IntegrationCredentialType.SAS, 'extension.sas']
-]);
-
-export enum MqttQos {
-  AT_MOST_ONE = 0,
-  AT_LEAST_ONCE = 1,
-  EXACTLY_ONCE = 2
-}
-
-export const MqttQosTranslation = new Map<MqttQos, string>([
-  [MqttQos.AT_MOST_ONE, 'integration.mqtt-qos-at-most-once'],
-  [MqttQos.AT_LEAST_ONCE, 'integration.mqtt-qos-at-least-once'],
-  [MqttQos.EXACTLY_ONCE, 'integration.mqtt-qos-exactly-once']
-]);
-
-export interface MqttTopicFilter {
-  filter: string;
-  qos: MqttQos;
-}
+import { IntegrationType, MqttQos, MqttTopicFilter } from '@shared/models/integration.models';
 
 export enum ThingsStartHostType {
   Region = 0,
@@ -113,76 +80,3 @@ export function integrationBaseUrlChanged(type: IntegrationType, baseUrl: string
   return `${baseUrl}/api/v1/integrations/${type.toLowerCase()}/${key}`;
 }
 
-export enum IdentityType {
-  Anonymous = 'anonymous',
-  Username = 'username'
-}
-
-export const IdentityTypeTranslation = new Map<IdentityType, string>([
-  [IdentityType.Anonymous, 'extension.anonymous'],
-  [IdentityType.Username, 'extension.username']
-]);
-
-export enum OpcSecurityType {
-  Basic128Rsa15 = 'Basic128Rsa15',
-  Basic256 = 'Basic256',
-  Basic256Sha256 = 'Basic256Sha256',
-  None = 'None'
-}
-
-export enum OpcKeystoreType {
-  PKCS12 = 'PKCS12',
-  JKS = 'JKS'
-}
-
-export enum OpcMappingType {
-  ID = 'ID',
-  FQN = 'FQN'
-}
-
-export const OpcMappingTypeTranslation = new Map<OpcMappingType, string>([
-  [OpcMappingType.ID, 'ID'],
-  [OpcMappingType.FQN, 'Fully Qualified Name']
-]);
-
-export enum InitialPositionInStream {
-  LATEST = 'LATEST',
-  TRIM_HORIZON = 'TRIM_HORIZON',
-  AT_TIMESTAMP = 'AT_TIMESTAMP'
-}
-
-export const InitialPositionInStreamTranslation = new Map<InitialPositionInStream, string>([
-  [InitialPositionInStream.LATEST, 'Latest'],
-  [InitialPositionInStream.TRIM_HORIZON, 'Trim horizon'],
-  [InitialPositionInStream.AT_TIMESTAMP, 'At timestamp']
-]);
-
-export enum TcpHandlerConfigurationType {
-  TEXT = 'TEXT',
-  BINARY = 'BINARY',
-  JSON = 'JSON'
-}
-
-export enum UpdHandlerConfigurationType {
-  HEX = 'HEX'
-}
-
-export type HandlerConfigurationType = TcpHandlerConfigurationType | UpdHandlerConfigurationType;
-export const HandlerConfigurationType = {...TcpHandlerConfigurationType, ...UpdHandlerConfigurationType};
-
-export const HandlerConfigurationTypeTranslation = new Map<HandlerConfigurationType, string>([
-  [HandlerConfigurationType.TEXT, 'extension.text'],
-  [HandlerConfigurationType.BINARY, 'extension.binary'],
-  [HandlerConfigurationType.JSON, 'extension.json'],
-  [HandlerConfigurationType.HEX, 'extension.hex']
-]);
-
-export enum TcpBinaryByteOrder {
-  LITTLE_ENDIAN = 'LITTLE_ENDIAN',
-  BIG_ENDIAN = 'BIG_ENDIAN'
-}
-
-export enum TcpTextMessageSeparator {
-  SYSTEM_LINE_SEPARATOR = 'SYSTEM_LINE_SEPARATOR',
-  NUL_DELIMITER = 'NUL_DELIMITER'
-}

@@ -91,7 +91,8 @@
             <tb-converter-autocomplete fxFlex formControlName="uplinkConverterId" required
                                        labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
                                        [converterType]="converterType.UPLINK"
-                                       [useFullEntityId]="true">
+                                       [useFullEntityId]="true"
+                                       [isEdgeTemplate]="isEdgeTemplate">
             </tb-converter-autocomplete>
           </section>
           <section [fxShow]="uplinkConverterForm.get('converterType').value === 'new'">
@@ -117,7 +118,8 @@
             <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
                                        labelText="integration.downlink-converter"
                                        [converterType]="converterType.DOWNLINK"
-                                       [useFullEntityId]="true">
+                                       [useFullEntityId]="true"
+                                       [isEdgeTemplate]="isEdgeTemplate">
             </tb-converter-autocomplete>
           </section>
           <section [fxShow]="downlinkConverterForm.get('converterType').value === 'new'">

@@ -45,13 +45,12 @@ import { isDefinedAndNotNull, isNumber } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
-  IntegrationCredentialType,
   ThingsStartHostType,
   ThingsStartHostTypeTranslation,
   ttnVersion,
   ttnVersionMap
 } from '@home/components/integration/integration.models';
-import { TtnIntegration } from '@shared/models/integration.models';
+import { IntegrationCredentialType, TtnIntegration, } from '@shared/models/integration.models';
 
 @Component({
   selector: 'tb-ttn-integration-form',
