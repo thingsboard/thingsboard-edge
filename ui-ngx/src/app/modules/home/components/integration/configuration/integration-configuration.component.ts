@@ -70,11 +70,10 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
 
   @Input() isSetDownlink: boolean;
   @Input() routingKey: string;
-
   @Input() integrationType: IntegrationType;
+  @Input() isEdgeTemplate: boolean;
 
-  @Input()
-  disabled: boolean;
+  @Input() disabled: boolean;
 
   private destroy$ = new Subject();
   private propagateChange = (v: any) => { };

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef } from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -60,7 +60,9 @@ import { IbmWatsonIotIntegration, IntegrationCredentialType } from '@shared/mode
     multi: true,
   }]
 })
-export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
+export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implements OnInit, ControlValueAccessor, Validator {
+
+  @Input() isEdgeTemplate = false;
 
   ibmWatsonIotIntegrationConfigForm: FormGroup;
 
@@ -92,6 +94,13 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
     this.ibmWatsonIotIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModels(value));
+  }
+
+  ngOnInit() {
+    if (this.isEdgeTemplate) {
+      this.ibmWatsonIotIntegrationConfigForm.get('clientConfiguration.credentials.username').setValidators(Validators.required);
+      this.ibmWatsonIotIntegrationConfigForm.get('clientConfiguration.credentials.username').updateValueAndValidity({emitEvent: false});
+    }
   }
 
   writeValue(value: IbmWatsonIotIntegration) {

@@ -35,7 +35,8 @@
     <ng-container *ngSwitchCase="integrationTypes.MQTT">
       <tb-mqtt-integration-form formControlName="configuration"
                                 [executeRemotelyTemplate]="executeRemotelyTemplate"
-                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+                                [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                [isEdgeTemplate]="isEdgeTemplate">
       </tb-mqtt-integration-form>
     </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.HTTP">
@@ -152,7 +153,8 @@
     <ng-container *ngSwitchCase="integrationTypes.IBM_WATSON_IOT">
       <tb-ibm-watson-iot-integration-form formControlName="configuration"
                                           [executeRemotelyTemplate]="executeRemotelyTemplate"
-                                          [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
+                                          [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate"
+                                          [isEdgeTemplate]="isEdgeTemplate">
       </tb-ibm-watson-iot-integration-form>
     </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.CUSTOM">

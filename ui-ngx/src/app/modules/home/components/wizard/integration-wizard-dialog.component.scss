@@ -31,7 +31,7 @@
 @import "../../../../../scss/constants";
 
 :host-context(.tb-fullscreen-dialog .mat-dialog-container) {
-  @media #{$mat-lt-sm} {
+  @media #{$mat-gt-xs} {
     .mat-dialog-content {
       max-height: 75vh;
     }
@@ -49,6 +49,10 @@
         height: 48px;
       }
     }
+  }
+
+  .tb-group-button {
+    margin-bottom: 8px;
   }
 }
 
@@ -117,5 +121,13 @@
   .remote-config-panel {
     padding: 16px;
     margin: 8px 8px 16px;
+  }
+
+  .mat-horizontal-stepper-header-container {
+    padding: 0 12px;
+  }
+
+  .mat-stepper-label-position-bottom .mat-horizontal-stepper-header {
+    padding: 20px 12px 12px;
   }
 }

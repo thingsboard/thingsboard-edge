@@ -151,7 +151,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-mqtt',
         description: 'integration.type-mqtt-description',
-        icon: 'assets/integration-icon/mqtt.svg'
+        icon: 'assets/integration-icon/mqtt.svg',
+        checkConnection: true
       }
     ],
     [
@@ -191,7 +192,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-ttn',
         description: 'integration.type-ttn-description',
-        icon: 'assets/integration-icon/ttn.svg'
+        icon: 'assets/integration-icon/ttn.svg',
+        checkConnection: true
       }
     ],
     [
@@ -199,7 +201,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-tti',
         description: 'integration.type-tti-description',
-        icon: 'assets/integration-icon/things-stack-industries.svg'
+        icon: 'assets/integration-icon/things-stack-industries.svg',
+        checkConnection: true
       }
     ],
     [
@@ -215,7 +218,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-azure-event-hub',
         description: 'integration.type-azure-event-hub-description',
-        icon: 'assets/integration-icon/azure-event-hub.svg'
+        icon: 'assets/integration-icon/azure-event-hub.svg',
+        checkConnection: true
       }
     ],
     [
@@ -265,7 +269,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-rabbitmq',
         description: 'integration.type-rabbitmq-description',
-        icon: 'assets/integration-icon/rabbitmq.svg'
+        icon: 'assets/integration-icon/rabbitmq.svg',
+        checkConnection: true
       }
     ],
     [

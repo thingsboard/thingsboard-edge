@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Integration, IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
 import { Store } from '@ngrx/store';
@@ -47,7 +47,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { guid, isUndefined } from '@core/utils';
+import { guid } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
@@ -64,16 +64,19 @@ export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
   providers: []
 })
 export class IntegrationWizardDialogComponent extends
-  DialogComponent<IntegrationWizardDialogComponent, Integration> implements OnInit, AfterViewInit, OnDestroy {
+  DialogComponent<IntegrationWizardDialogComponent, Integration> implements AfterViewInit, OnDestroy {
 
   @ViewChild('addIntegrationWizardStepper', {static: true}) addIntegrationWizardStepper: MatStepper;
   @ViewChild('uplinkDataConverter', {static: true}) uplinkDataConverterComponent: ConverterComponent;
   @ViewChild('downlinkDataConverter', {static: true}) downlinkDataConverterComponent: ConverterComponent;
 
   selectedIndex = 0;
-  showNext = true;
   converterType = ConverterType;
   isEdgeTemplate = false;
+  showCheckConnection = false;
+  integrationType = '';
+  showCheckSuccess = false;
+  checkErrMsg = '';
 
   stepperOrientation: Observable<StepperOrientation>;
 
@@ -90,6 +93,7 @@ export class IntegrationWizardDialogComponent extends
     type: ConverterType.DOWNLINK
   } as Converter;
 
+  private checkConnectionAllow = false;
   private destroy$ = new Subject();
 
   constructor(protected store: Store<AppState>,
@@ -105,7 +109,7 @@ export class IntegrationWizardDialogComponent extends
 
     this.isEdgeTemplate = this.data.edgeTemplate;
 
-    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-sm'])
+    this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
     this.integrationWizardForm = this.fb.group({
@@ -120,6 +124,8 @@ export class IntegrationWizardDialogComponent extends
       takeUntil(this.destroy$)
     ).subscribe((value: IntegrationType) => {
       if (integrationTypeInfoMap.has(value)) {
+        this.integrationType = this.translate.instant(integrationTypeInfoMap.get(value).name);
+        this.checkConnectionAllow = integrationTypeInfoMap.get(value).checkConnection || false;
         if (integrationTypeInfoMap.get(value).remote) {
           this.integrationConfigurationForm.get('remote').disable({emitEvent: true});
           this.integrationConfigurationForm.get('remote').setValue(true, {emitEvent: true});
@@ -127,6 +133,8 @@ export class IntegrationWizardDialogComponent extends
           this.integrationConfigurationForm.get('remote').enable({emitEvent: true});
           this.integrationConfigurationForm.get('remote').setValue(false, {emitEvent: true});
         }
+      } else {
+        this.integrationType = '';
       }
       this.integrationConfigurationForm.get('configuration').setValue(null);
     });
@@ -189,10 +197,6 @@ export class IntegrationWizardDialogComponent extends
         this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
       }
     });
-  }
-
-  ngOnInit() {
-
   }
 
   ngAfterViewInit() {
@@ -264,7 +268,7 @@ export class IntegrationWizardDialogComponent extends
     }
   }
 
-  private createdIntegration(uplinkConverterId: ConverterId, downlinkConverterId: ConverterId): Observable<Integration> {
+  private getIntegrationData(uplinkConverterId?: ConverterId, downlinkConverterId?: ConverterId): Integration {
     const integrationData: Integration = {
       configuration: {
         metadata: this.integrationConfigurationForm.value.metadata,
@@ -287,6 +291,11 @@ export class IntegrationWizardDialogComponent extends
         description: this.integrationConfigurationForm.value.additionalInfo.description
       };
     }
+    return integrationData;
+  }
+
+  private createdIntegration(uplinkConverterId: ConverterId, downlinkConverterId: ConverterId): Observable<Integration> {
+    const integrationData = this.getIntegrationData(uplinkConverterId, downlinkConverterId);
     return this.integrationService.saveIntegration(integrationData);
   }
 
@@ -296,10 +305,13 @@ export class IntegrationWizardDialogComponent extends
 
   changeStep($event: StepperSelectionEvent) {
     this.selectedIndex = $event.selectedIndex;
+    if (this.selectedIndex === 3) {
+      this.showCheckConnection = false;
+    }
   }
 
   nextStep() {
-    if (this.selectedIndex === this.maxStepperIndex) {
+    if (this.selectedIndex >= 3) {
       this.add();
     } else {
       this.addIntegrationWizardStepper.next();
@@ -311,7 +323,7 @@ export class IntegrationWizardDialogComponent extends
       this.downlinkConverterForm.get('newDownlinkConverter').pristine) {
       return 'action.skip';
     }
-    if (this.selectedIndex === 3) {
+    if (this.selectedIndex >= 3) {
       return 'action.add';
     }
     return 'action.next';
@@ -334,14 +346,35 @@ export class IntegrationWizardDialogComponent extends
       }));
   }
 
-  private get maxStepperIndex(): number {
-    return this.addIntegrationWizardStepper?._steps?.length - 1;
+  onIntegrationCheck(): void {
+    if (this.allValid()) {
+      this.showCheckConnection = true;
+      this.showCheckSuccess = false;
+      this.checkErrMsg = '';
+      setTimeout(() => {
+        this.addIntegrationWizardStepper.next();
+      }, 0);
+      const integrationData = this.getIntegrationData(null, null);
+      this.integrationService.checkIntegrationConnection(integrationData, {
+        ignoreErrors: true,
+        ignoreLoading: true
+      }).subscribe(() => {
+        this.showCheckSuccess = true;
+      }, (error) => {
+        this.checkErrMsg = error.error.message;
+      });
+    }
   }
 
-  private generateSecret(length?: number): string {
-    if (isUndefined(length) || length == null) {
-      length = 1;
-    }
+  get isCheckConnectionAvailable(): boolean {
+    return !this.isEdgeTemplate && this.checkConnectionAllow && !this.isRemoteIntegration;
+  }
+
+  private get isRemoteIntegration(): boolean {
+    return this.integrationConfigurationForm.value.remote;
+  }
+
+  private generateSecret(length: number = 1): string {
     const l = length > 10 ? 10 : length;
     const str = Math.random().toString(36).substr(2, l);
     if (str.length >= length) {

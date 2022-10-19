@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef } from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -64,7 +64,9 @@ import { IntegrationCredentialType, MqttIntegration } from '@shared/models/integ
     multi: true,
   }]
 })
-export class MqttIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
+export class MqttIntegrationFormComponent extends IntegrationForm implements OnInit, ControlValueAccessor, Validator {
+
+  @Input() isEdgeTemplate = false;
 
   mqttIntegrationConfigForm: FormGroup;
 
@@ -96,6 +98,13 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements Con
     this.mqttIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModels(value));
+  }
+
+  ngOnInit() {
+    if (this.isEdgeTemplate) {
+      this.mqttIntegrationConfigForm.get('clientConfiguration.clientId').clearValidators();
+      this.mqttIntegrationConfigForm.get('clientConfiguration.clientId').updateValueAndValidity({emitEvent: false});
+    }
   }
 
   writeValue(value: MqttIntegration) {

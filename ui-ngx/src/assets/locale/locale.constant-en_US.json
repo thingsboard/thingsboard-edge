@@ -3316,7 +3316,11 @@
         "daily-rate": "Daily rate",
         "enable-debug-mode": "Enable debug mode",
         "disable-debug-mode": "Disable debug mode",
-        "advanced-settings": "Advanced settings"
+        "advanced-settings": "Advanced settings",
+        "basic-settings": "Basic settings",
+        "use-existing": "Use existing",
+        "create-new": "Create new",
+        "connection": "Connection"
     },
     "item": {
         "selected": "Selected"
