@@ -76,7 +76,11 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                                     dashboardService.assignDashboardToCustomer(tenantId, dashboardId, assignedCustomer.getCustomerId());
                                 }
                             }
+                        } else {
+                            unassignCustomersFromDashboard(tenantId, dashboard);
                         }
+                    } else {
+                        unassignCustomersFromDashboard(tenantId, dashboard);
                     }
                 } finally {
                     dashboardCreationLock.unlock();
@@ -93,5 +97,13 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, dashboardUpdateMsg.getMsgType(), dashboardId, queueStartTs), future -> null, dbCallbackExecutor);
+    }
+
+    private void unassignCustomersFromDashboard(TenantId tenantId, Dashboard dashboard) {
+        if (dashboard.getAssignedCustomers() != null && !dashboard.getAssignedCustomers().isEmpty()) {
+            for (ShortCustomerInfo assignedCustomer : dashboard.getAssignedCustomers()) {
+                dashboardService.unassignDashboardFromCustomer(tenantId, dashboard.getId(), assignedCustomer.getCustomerId());
+            }
+        }
     }
 }
