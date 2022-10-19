@@ -150,7 +150,8 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
                                                            Long queueStartTs) {
         List<ListenableFuture<Void>> result = new ArrayList<>();
         try {
-            log.debug("Starting process DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
+            log.debug("[{}] Starting process DownlinkMsg. edgeCustomerId [{}], downlinkMsgId [{}],",
+                    tenantId, edgeCustomerId, downlinkMsg.getDownlinkMsgId());
             log.trace("DownlinkMsg Body {}", downlinkMsg);
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, currentEdgeSettings));

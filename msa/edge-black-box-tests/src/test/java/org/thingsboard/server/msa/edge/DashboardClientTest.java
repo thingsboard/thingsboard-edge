@@ -62,6 +62,7 @@ public class DashboardClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Dashboard Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignDashboardToCustomer(savedCustomer.getId(), savedDashboard2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)

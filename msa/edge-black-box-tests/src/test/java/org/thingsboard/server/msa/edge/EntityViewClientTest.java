@@ -65,6 +65,7 @@ public class EntityViewClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Entity View Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignEntityViewToCustomer(savedCustomer.getId(), savedEntityView2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)

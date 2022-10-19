@@ -73,6 +73,7 @@ public class AssetClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Asset Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignAssetToCustomer(savedCustomer.getId(), savedAsset2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)

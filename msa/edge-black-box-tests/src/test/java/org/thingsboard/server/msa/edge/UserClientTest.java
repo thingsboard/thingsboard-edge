@@ -68,6 +68,7 @@ public class UserClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("User Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
 
         // create user
         User user = new User();

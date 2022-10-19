@@ -40,6 +40,7 @@ import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rest.client.RestClient;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -672,4 +673,12 @@ public abstract class AbstractContainerTest {
         AttributeKvEntry attributeKvEntry = attributesByScope.get(0);
         return attributeKvEntry.getValueAsString().equals(expectedValue);
     }
+
+    protected void assignEdgeToCustomerAndValidateAssignmentOnCloud(Customer savedCustomer) {
+        cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> savedCustomer.getId().equals(cloudRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
+    }
+
 }

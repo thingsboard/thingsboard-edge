@@ -117,6 +117,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Device Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         cloudRestClient.assignDeviceToCustomer(savedCustomer.getId(), savedDevice2.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -184,6 +185,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Device On Edge Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
@@ -544,6 +546,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         User user = new User();
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(edge.getTenantId());

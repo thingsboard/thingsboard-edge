@@ -32,6 +32,7 @@ public class CustomerClientTest extends AbstractContainerTest {
         Customer customer = new Customer();
         customer.setTitle("Test Customer");
         Customer savedCustomer = cloudRestClient.saveCustomer(customer);
+        assignEdgeToCustomerAndValidateAssignmentOnCloud(savedCustomer);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());

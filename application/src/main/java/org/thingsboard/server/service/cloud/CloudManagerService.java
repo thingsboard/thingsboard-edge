@@ -466,10 +466,7 @@ public class CloudManagerService extends BaseCloudEventService {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
-        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
-        EdgeId edgeId = new EdgeId(edgeUUID);
-
-        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeId, edgeConfiguration);
+        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
 
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
 
@@ -487,14 +484,15 @@ public class CloudManagerService extends BaseCloudEventService {
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
-        saveOrUpdateEdge(tenantId, edgeId, edgeConfiguration);
+        saveOrUpdateEdge(tenantId, edgeConfiguration);
 
         updateConnectivityStatus(true);
 
         initialized = true;
     }
 
-    private boolean setOrUpdateCustomerId(EdgeId edgeId, EdgeConfiguration edgeConfiguration) {
+    private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
+        EdgeId edgeId = getEdgeId(edgeConfiguration);
         Edge edge = edgeService.findEdgeById(tenantId, edgeId);
         CustomerId previousCustomerId = null;
         if (edge != null) {
@@ -510,7 +508,13 @@ public class CloudManagerService extends BaseCloudEventService {
         }
     }
 
-    private void saveOrUpdateEdge(TenantId tenantId, EdgeId edgeId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+    private EdgeId getEdgeId(EdgeConfiguration edgeConfiguration) {
+        UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
+        return new EdgeId(edgeUUID);
+    }
+
+    private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+        EdgeId edgeId = getEdgeId(edgeConfiguration);
         edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
@@ -530,6 +534,7 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
+        boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
         ListenableFuture<List<Void>> future =
                 downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
         Futures.addCallback(future, new FutureCallback<>() {
@@ -540,6 +545,12 @@ public class CloudManagerService extends BaseCloudEventService {
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
                         .setSuccess(true).build();
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
+                if (downlinkMsg.hasEdgeConfiguration()) {
+                    if (edgeCustomerIdUpdated) {
+                        log.info("Edge customer id has been updated. Sending sync request...");
+                        edgeRpcClient.sendSyncRequestMsg(true, false);
+                    }
+                }
             }
 
             @Override
@@ -552,6 +563,14 @@ public class CloudManagerService extends BaseCloudEventService {
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
         }, MoreExecutors.directExecutor());
+    }
+
+    private boolean updateCustomerIdIfRequired(DownlinkMsg downlinkMsg) {
+        if (downlinkMsg.hasEdgeConfiguration()) {
+            return setOrUpdateCustomerId(downlinkMsg.getEdgeConfiguration());
+        } else {
+            return false;
+        }
     }
 
     private void updateConnectivityStatus(boolean activityState) {
