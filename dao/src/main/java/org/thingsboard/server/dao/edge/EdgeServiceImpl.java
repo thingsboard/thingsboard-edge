@@ -74,8 +74,8 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -279,6 +279,14 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
+    public void deleteEdgesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteEdgesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        customerEdgesRemover.removeEntities(tenantId, customerId);
+    }
+
+    @Override
     public ListenableFuture<List<Edge>> findEdgesByQuery(TenantId tenantId, EdgeSearchQuery query) {
         log.trace("[{}] Executing findEdgesByQuery [{}]", tenantId, query);
         ListenableFuture<List<EntityRelation>> relations = relationService.findByQuery(tenantId, query.toEntitySearchQuery());
@@ -418,6 +426,19 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                     deleteEdge(tenantId, new EdgeId(entity.getUuidId()));
                 }
             };
+
+    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<CustomerId, Edge>() {
+
+        @Override
+        protected PageData<Edge> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
+            return edgeDao.findEdgesByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, Edge entity) {
+            deleteEdge(tenantId, new EdgeId(entity.getUuidId()));
+        }
+    };
 
     @Override
     public List<EdgeId> findAllRelatedEdgeIds(TenantId tenantId, EntityId entityId) {

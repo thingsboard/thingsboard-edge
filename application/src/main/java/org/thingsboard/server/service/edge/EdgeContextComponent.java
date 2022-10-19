@@ -48,6 +48,7 @@ import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -116,6 +117,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private AssetService assetService;
+
+    @Autowired
+    private EntityViewService entityViewService;
 
     @Autowired
     private DeviceProfileService deviceProfileService;
