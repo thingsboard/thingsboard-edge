@@ -31,103 +31,493 @@
 package org.thingsboard.server.msa.edge;
 
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.Test;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.msa.AbstractContainerTest;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class EdgeClientTest extends AbstractContainerTest {
     @Test
     public void testChangeOwner_fromTenantToCustomer_andFromCustomerToTenant() {
         // create customer
-        // create sub customer
-        // create sub sub customer
+        Customer savedCustomer = saveCustomer("Edge Customer", null);
+
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
         // validate tenant groups on edge
-        // change owner from tenant to customer
+        List<EntityGroupId> tenantEntityGroupIds = createEntitiesGroupAndAssignToEdge(edge.getTenantId());
+
+        // change owner to customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
         // validate that customer was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+
         // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
         // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
         // validate customer groups on edge
+        List<EntityGroupId> customerEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomer.getId());
+
         // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
         // validate that customer entity group were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(customerEntityGroupIds);
+
         // validate that customer was deleted from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
+
         // remove tenant entity groups
+        for (EntityGroupId tenantEntityGroupId : tenantEntityGroupIds) {
+            cloudRestClient.deleteEntityGroup(tenantEntityGroupId);
+        }
+
         // validate no tenant groups on edge
-        // remove sub sub customer
-        // remove sub customer
+        validateEntityGroupsAreRemovedFromEdge(tenantEntityGroupIds);
+
         // remove customer
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
     }
 
     @Test
     public void testChangeOwner_fromTenantToSubCustomer_andFromSubCustomerToTenant() {
-        // create customer
-        // create sub customer
-        // create sub sub customer
+        // create customer A
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+        // create sub customer A
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
+
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
         // validate tenant groups on edge
+        List<EntityGroupId> tenantEntityGroupIds = createEntitiesGroupAndAssignToEdge(edge.getTenantId());
+
         // change owner from tenant to child customer
+        cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
+
         // validate that customer and sub customer were created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
+
         // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
         // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
-        // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
         // validate customer groups on edge
+        List<EntityGroupId> customerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerA.getId());
+
+        // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
         // validate sub customer groups on edge
+        List<EntityGroupId> subCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubCustomerA.getId());
+
         // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
         // validate that customer and sub customer entity groups were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(customerAEntityGroupIds);
+        validateEntityGroupsAreRemovedFromEdge(subCustomerAEntityGroupIds);
+
         // validate that customer and sub customer were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(customerAEntityGroupIds);
+        validateEntityGroupsAreUnassignedFromEdge(subCustomerAEntityGroupIds);
+
         // remove tenant entity groups
+        for (EntityGroupId tenantEntityGroupId : tenantEntityGroupIds) {
+            cloudRestClient.deleteEntityGroup(tenantEntityGroupId);
+        }
         // validate no tenant groups on edge
-        // remove sub sub customer
+        validateEntityGroupsAreRemovedFromEdge(tenantEntityGroupIds);
+
         // remove sub customer
         // remove customer
+        cloudRestClient.deleteCustomer(savedCustomerA.getId());
     }
 
     @Test
-    public void testChangeOwner_fromCustomerToSubSubCustomer_andFromSubSubCustomerToCustomer() {
-        // create customer
-        // create sub customer
-        // create sub sub customer
+    public void testChangeOwner_fromCustomerToSubCustomer_andFromSubCustomerToCustomer() {
+        // create customer A
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+        // create sub customer A
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
+        // create sub sub customer A
+        saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
+
         // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
+        List<EntityGroupId> tenantEntityGroupIds = createEntitiesGroupAndAssignToEdge(edge.getTenantId());
+
         // change owner from tenant to parent customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomerA.getId(), edge.getId());
+
         // validate that customer was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
+
         // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
         // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
         // validate customer groups on edge
+        List<EntityGroupId> customerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerA.getId());
+
         // change owner to child customer
+        cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
+
         // validate that sub customer was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
+
         // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
         // validate that customer groups are still on edge
+        validateEntityGroupsAreStillOnEdge(customerAEntityGroupIds);
+
         // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
         // validate sub customer groups on edge
+        List<EntityGroupId> subCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubCustomerA.getId());
+
         // change owner to parent customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomerA.getId(), edge.getId());
+
         // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
         // validate that customer groups are still on edge
+        validateEntityGroupsAreStillOnEdge(customerAEntityGroupIds);
+
         // validate that sub customer was deleted from edge
-        // validate that sub customer entity groups were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(subCustomerAEntityGroupIds);
+
+        // validate that sub customer entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(subCustomerAEntityGroupIds);
+
+        // validate that sub customer was removed from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
+
         // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
         // validate that customer was deleted from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
+
         // validate that customer entity group were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(customerAEntityGroupIds);
+
+        // validate that customer entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(customerAEntityGroupIds);
+
         // remove tenant entity groups
+        for (EntityGroupId tenantEntityGroupId : tenantEntityGroupIds) {
+            cloudRestClient.deleteEntityGroup(tenantEntityGroupId);
+        }
+
         // validate no tenant groups on edge
+        validateEntityGroupsAreRemovedFromEdge(tenantEntityGroupIds);
+
         // remove sub sub customer
         // remove sub customer
         // remove customer
+        cloudRestClient.deleteCustomer(savedCustomerA.getId());
     }
 
     @Test
-    public void testChangeOwner_fromSubCustomerAToCustomerB() {
+    public void testChangeOwner_fromSubCustomerToSubSubCustomer_andFromSubSubCustomerToSubCustomer() {
+        // create customer A
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+        // create sub customer A
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
+        // create sub sub customer A
+        Customer savedSubSubCustomerA = saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
+
+        // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
+        List<EntityGroupId> tenantEntityGroupIds = createEntitiesGroupAndAssignToEdge(edge.getTenantId());
+
+        // change owner from tenant to parent customer
+        cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
+
+        // validate that customer was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
+
+        // validate that sub customer was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
+        // create device, asset, entity view, dashboard, user entity groups on customer level and assign to edge
+        // validate customer groups on edge
+        List<EntityGroupId> customerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerA.getId());
+
+        // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
+        // validate sub customer groups on edge
+        List<EntityGroupId> subCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubCustomerA.getId());
+
+        // change owner to child customer
+        cloudRestClient.changeOwnerToCustomer(savedSubSubCustomerA.getId(), edge.getId());
+
+        // validate that sub customer was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubSubCustomerA.getId()).isPresent());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
+        // validate that customer groups are still on edge
+        validateEntityGroupsAreStillOnEdge(customerAEntityGroupIds);
+
+        // validate that sub customer groups are still on edge
+        validateEntityGroupsAreStillOnEdge(subCustomerAEntityGroupIds);
+
+        // create device, asset, entity view, dashboard, user entity groups on sub customer level and assign to edge
+        // validate sub customer groups on edge
+        List<EntityGroupId> subSubCustomerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedSubSubCustomerA.getId());
+
+        // change owner to parent customer
+        cloudRestClient.changeOwnerToCustomer(savedSubCustomerA.getId(), edge.getId());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
+        // validate that customer groups are still on edge
+        validateEntityGroupsAreStillOnEdge(customerAEntityGroupIds);
+
+        // validate that sub customer groups are still on edge
+        validateEntityGroupsAreStillOnEdge(subCustomerAEntityGroupIds);
+
+        // validate that sub sub customer was deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(subSubCustomerAEntityGroupIds);
+
+        // validate that sub sub customer entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(subSubCustomerAEntityGroupIds);
+
+        // validate that sub sub customer was removed from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubSubCustomerA.getId()).isEmpty());
+
+        // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // validate that customer was deleted from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
+
+        // validate that sub customer was deleted from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isEmpty());
+
+        // validate that customer entity group were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(customerAEntityGroupIds);
+
+        // validate that sub customer entity group were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(subCustomerAEntityGroupIds);
+
+        // validate that customer entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(customerAEntityGroupIds);
+
+        // validate that sub customer entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(subCustomerAEntityGroupIds);
+
+        // remove tenant entity groups
+        for (EntityGroupId tenantEntityGroupId : tenantEntityGroupIds) {
+            cloudRestClient.deleteEntityGroup(tenantEntityGroupId);
+        }
+
+        // validate no tenant groups on edge
+        validateEntityGroupsAreRemovedFromEdge(tenantEntityGroupIds);
+
+        // remove sub sub customer
+        // remove sub customer
+        // remove customer
+        cloudRestClient.deleteCustomer(savedCustomerA.getId());
     }
 
     @Test
-    public void changeOwnerToCustomer() {
-        // create device and assign it to edge
-        // create customer A on cloud
-        // add admin users to customer A
-        // change edge owner from tenant to customer A
-        // login to edge with customer A admin user
-        // make sure that device assigned to edge from tenant is not available on edge anymore
-        // change edge owner from customer A to tenant
-        // make sure that login edge with customer A admin user doesn't work
+    public void testChangeOwner_fromSubCustomerAToCustomerB_andFromCustomerBToCustomerA() {
+        // create customer A
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+
+        // create customer B
+        Customer savedCustomerB = saveCustomer("Edge Customer B", null);
+
+        // create device, asset, entity view, dashboard, user entity groups on tenant level and assign to edge
+        // validate tenant groups on edge
+        List<EntityGroupId> tenantEntityGroupIds = createEntitiesGroupAndAssignToEdge(edge.getTenantId());
+
+        // change owner to customer A
+        cloudRestClient.changeOwnerToCustomer(savedCustomerA.getId(), edge.getId());
+
+        // validate that customer A was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isPresent());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
+        // create device, asset, entity view, dashboard, user entity groups on customer A level and assign to edge
+        // validate customer A groups on edge
+        List<EntityGroupId> customerAEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerA.getId());
+
+        // change owner to customer B
+        cloudRestClient.changeOwnerToCustomer(savedCustomerB.getId(), edge.getId());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
+        // validate that customer A entity group were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(customerAEntityGroupIds);
+
+        // validate that customer A entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(customerAEntityGroupIds);
+
+        // validate that customer A was deleted from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerA.getId()).isEmpty());
+
+        // validate that customer B was created on edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerB.getId()).isPresent());
+
+        // create device, asset, entity view, dashboard, user entity groups on customer B level and assign to edge
+        // validate customer B groups on edge
+        List<EntityGroupId> customerBEntityGroupIds = createEntitiesGroupAndAssignToEdge(savedCustomerB.getId());
+
+        // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // validate that tenant groups are still on edge
+        validateEntityGroupsAreStillOnEdge(tenantEntityGroupIds);
+
+        // validate that customer B was deleted from edge
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomerB.getId()).isEmpty());
+
+        // validate that customer B entity group were deleted from edge
+        validateEntityGroupsAreRemovedFromEdge(customerBEntityGroupIds);
+
+        // validate that customer B entity groups were unassigned from edge
+        validateEntityGroupsAreUnassignedFromEdge(customerBEntityGroupIds);
+
+        // remove tenant entity groups
+        for (EntityGroupId tenantEntityGroupId : tenantEntityGroupIds) {
+            cloudRestClient.deleteEntityGroup(tenantEntityGroupId);
+        }
+
+        // validate no tenant groups on edge
+        validateEntityGroupsAreRemovedFromEdge(tenantEntityGroupIds);
+
+        // remove customer A
+        cloudRestClient.deleteCustomer(savedCustomerA.getId());
+
+        // remove customer B
+        cloudRestClient.deleteCustomer(savedCustomerB.getId());
     }
+
+    private List<EntityGroupId> createEntitiesGroupAndAssignToEdge(EntityId ownerId) {
+        List<EntityGroupId> result = new ArrayList<>();
+        EntityGroup deviceEntityGroup = createEntityGroup(EntityType.DEVICE, ownerId);
+        assignEntityGroupToEdge(deviceEntityGroup);
+        EntityGroup assetEntityGroup = createEntityGroup(EntityType.ASSET, ownerId);
+        assignEntityGroupToEdge(assetEntityGroup);
+        EntityGroup entityViewEntityGroup = createEntityGroup(EntityType.ENTITY_VIEW, ownerId);
+        assignEntityGroupToEdge(entityViewEntityGroup);
+        EntityGroup dashboardEntityGroup = createEntityGroup(EntityType.DASHBOARD, ownerId);
+        assignEntityGroupToEdge(dashboardEntityGroup);
+        EntityGroup userEntityGroup = createEntityGroup(EntityType.USER, ownerId);
+        assignEntityGroupToEdge(userEntityGroup);
+
+        result.add(deviceEntityGroup.getId());
+        result.add(assetEntityGroup.getId());
+        result.add(entityViewEntityGroup.getId());
+        result.add(dashboardEntityGroup.getId());
+        result.add(userEntityGroup.getId());
+
+        return result;
+    }
+
+    private void validateEntityGroupsAreStillOnEdge(List<EntityGroupId> entityGroupIds) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    boolean result = true;
+                    for (EntityGroupId entityGroupId : entityGroupIds) {
+                        result &= edgeRestClient.getEntityGroupById(entityGroupId).isPresent();
+                    }
+                    return result;
+                });
+    }
+
+    private void validateEntityGroupsAreRemovedFromEdge(List<EntityGroupId> entityGroupIds) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    boolean result = true;
+                    for (EntityGroupId entityGroupId : entityGroupIds) {
+                        result &= edgeRestClient.getEntityGroupById(entityGroupId).isEmpty();
+                    }
+                    return result;
+                });
+    }
+
+    private void validateEntityGroupsAreUnassignedFromEdge(List<EntityGroupId> entityGroupIds) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupId> edgeEntityGroupsId = new ArrayList<>();
+                    List<EntityGroupInfo> deviceEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.DEVICE);
+                    edgeEntityGroupsId.addAll(deviceEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    List<EntityGroupInfo> assetEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.ASSET);
+                    edgeEntityGroupsId.addAll(assetEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    List<EntityGroupInfo> entityViewEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.ENTITY_VIEW);
+                    edgeEntityGroupsId.addAll(entityViewEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    List<EntityGroupInfo> dashboardEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.DASHBOARD);
+                    edgeEntityGroupsId.addAll(dashboardEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    List<EntityGroupInfo> userEdgeGroups = cloudRestClient.getAllEdgeEntityGroups(edge.getId(), EntityType.USER);
+                    edgeEntityGroupsId.addAll(userEdgeGroups.stream().map(EntityGroup::getId).collect(Collectors.toList()));
+                    boolean result = true;
+                    for (EntityGroupId entityGroupId : entityGroupIds) {
+                        result &= !edgeEntityGroupsId.contains(entityGroupId);
+                    }
+                    return result;
+                });
+    }
+
 }
 
