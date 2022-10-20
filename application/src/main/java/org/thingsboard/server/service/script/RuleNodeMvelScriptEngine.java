@@ -38,6 +38,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.script.api.RuleNodeScriptFactory;
+import org.thingsboard.script.api.ScriptType;
+import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -60,7 +62,11 @@ import java.util.stream.Collectors;
 public class RuleNodeMvelScriptEngine extends RuleNodeScriptEngine<MvelInvokeService, Object> {
 
     public RuleNodeMvelScriptEngine(TenantId tenantId, MvelInvokeService scriptInvokeService, String script, String... argNames) {
-        super(tenantId, scriptInvokeService, script, argNames);
+        this(tenantId, scriptInvokeService, ScriptType.RULE_NODE_SCRIPT, script, argNames);
+    }
+
+    public RuleNodeMvelScriptEngine(TenantId tenantId, MvelInvokeService scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
+        super(tenantId, scriptInvokeService, scriptType, script, argNames);
     }
 
     @Override

@@ -320,12 +320,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public ScriptEngine createAttributesJsScriptEngine(String script) {
-        //TODO MVEL
-        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script);
-    }
-
-    @Override
     public void tellFailure(TbMsg msg, Throwable th) {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
@@ -480,8 +474,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return mainCtx.getExternalCallExecutorService();
     }
 
-    @Deprecated
     @Override
+    @Deprecated
     public ScriptEngine createJsScriptEngine(String script, String... argNames) {
         return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);
     }
@@ -495,6 +489,15 @@ class DefaultTbContext implements TbContext, TbPeContext {
 
     @Override
     public ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames) {
+        return createScriptEngine(scriptLang, ScriptType.RULE_NODE_SCRIPT, script, argNames);
+    }
+
+    @Override
+    public ScriptEngine createAttributesScriptEngine(ScriptLanguage scriptLang, String script) {
+        return createScriptEngine(scriptLang, ScriptType.ATTRIBUTES_SCRIPT, script, "attributes");
+    }
+
+    public ScriptEngine createScriptEngine(ScriptLanguage scriptLang, ScriptType scriptType, String script, String... argNames) {
         if (scriptLang == null) {
             scriptLang = ScriptLanguage.JS;
         }

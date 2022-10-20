@@ -56,6 +56,7 @@ import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.data.EventInfo;
@@ -68,11 +69,14 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.converter.TbConverterService;
+import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -192,7 +196,7 @@ public class ConverterController extends AutoCommitController {
         ConverterId converterId = new ConverterId(toUUID(strConverterId));
         Converter converter = checkConverterId(converterId, Operation.DELETE);
         tbConverterService.delete(converter, getCurrentUser());
-     }
+    }
 
     @ApiOperation(value = "Get latest debug input event (getLatestConverterDebugInput)",
             notes = "Returns a JSON object of the latest debug event representing the input message the converter processed. " + NEW_LINE +
@@ -259,14 +263,17 @@ public class ConverterController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
-    public JsonNode testUpLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
-                                        @RequestBody JsonNode inputParams) throws ThingsboardException {
+    public JsonNode testUpLinkConverter(
+            @ApiParam(value = "Script language: JS or MVEL")
+            @RequestParam(required = false) ScriptLanguage scriptLang,
+            @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+            @RequestBody JsonNode inputParams) throws ThingsboardException {
         String payloadBase64 = inputParams.get("payload").asText();
         byte[] payload = Base64.getDecoder().decode(payloadBase64);
         JsonNode metadata = inputParams.get("metadata");
         String decoder = inputParams.get("decoder").asText();
 
-        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<>() {
         });
         UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
 
@@ -274,9 +281,8 @@ public class ConverterController extends AutoCommitController {
         String errorText = "";
         ScriptUplinkEvaluator scriptUplinkEvaluator = null;
         try {
-            //TODO MVEL
-            scriptUplinkEvaluator = new ScriptUplinkEvaluator(getTenantId(), jsInvokeService, getCurrentUser().getId(), decoder);
-            output = scriptUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
+            scriptUplinkEvaluator = new ScriptUplinkEvaluator(getTenantId(), getScriptInvokeService(scriptLang), getCurrentUser().getId(), decoder);
+            output = scriptUplinkEvaluator.execute(payload, uplinkMetaData).get();
         } catch (Exception e) {
             log.error("Error evaluating JS UpLink Converter function", e);
             errorText = e.getMessage();
@@ -298,8 +304,11 @@ public class ConverterController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
-    public JsonNode testDownLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
-                                          @RequestBody JsonNode inputParams) throws Exception {
+    public JsonNode testDownLinkConverter(
+            @ApiParam(value = "Script language: JS or MVEL")
+            @RequestParam(required = false) ScriptLanguage scriptLang,
+            @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+            @RequestBody JsonNode inputParams) throws Exception {
         String data = inputParams.get("msg").asText();
         JsonNode metadata = inputParams.get("metadata");
         String msgType = inputParams.get("msgType").asText();
@@ -318,8 +327,7 @@ public class ConverterController extends AutoCommitController {
         ScriptDownlinkEvaluator scriptDownlinkEvaluator = null;
         try {
             TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
-            //TODO MVEL: add parameter and corresponding service
-            scriptDownlinkEvaluator = new ScriptDownlinkEvaluator(getTenantId(), null, getCurrentUser().getId(), encoder);
+            scriptDownlinkEvaluator = new ScriptDownlinkEvaluator(getTenantId(), getScriptInvokeService(scriptLang), getCurrentUser().getId(), encoder);
             output = scriptDownlinkEvaluator.execute(inMsg, integrationMetaData);
             validateDownLinkOutput(output);
         } catch (Exception e) {
@@ -334,6 +342,22 @@ public class ConverterController extends AutoCommitController {
         result.put("output", objectMapper.writeValueAsString(output));
         result.put("error", errorText);
         return result;
+    }
+
+    private ScriptInvokeService getScriptInvokeService(ScriptLanguage scriptLang) {
+        ScriptInvokeService scriptInvokeService;
+        if (scriptLang == null) {
+            scriptLang = ScriptLanguage.JS;
+        }
+        if (ScriptLanguage.JS.equals(scriptLang)) {
+            scriptInvokeService = jsInvokeService;
+        } else {
+            if (mvelInvokeService.isEmpty()) {
+                throw new IllegalArgumentException("MVEL script engine is disabled!");
+            }
+            scriptInvokeService = mvelInvokeService.get();
+        }
+        return scriptInvokeService;
     }
 
     private void validateDownLinkOutput(JsonNode output) throws Exception {

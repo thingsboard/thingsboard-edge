@@ -39,7 +39,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import java.util.UUID;
 
 @Slf4j
-public abstract class AbstractJSEvaluator {
+public abstract class AbstractScriptEvaluator {
 
     protected final ScriptInvokeService scriptInvokeService;
     private final ScriptType scriptType;
@@ -51,7 +51,7 @@ public abstract class AbstractJSEvaluator {
     private volatile boolean isErrorScript = false;
 
 
-    public AbstractJSEvaluator(TenantId tenantId, ScriptInvokeService scriptInvokeService, EntityId entityId, ScriptType scriptType, String script) {
+    public AbstractScriptEvaluator(TenantId tenantId, ScriptInvokeService scriptInvokeService, EntityId entityId, ScriptType scriptType, String script) {
         this.scriptInvokeService = scriptInvokeService;
         this.scriptType = scriptType;
         this.script = script;

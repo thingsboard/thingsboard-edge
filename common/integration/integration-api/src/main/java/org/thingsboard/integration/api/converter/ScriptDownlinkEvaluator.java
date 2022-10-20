@@ -39,13 +39,16 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
-public class ScriptDownlinkEvaluator extends AbstractJSEvaluator {
+public class ScriptDownlinkEvaluator extends AbstractScriptEvaluator {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
@@ -56,7 +59,7 @@ public class ScriptDownlinkEvaluator extends AbstractJSEvaluator {
     public JsonNode execute(TbMsg msg, IntegrationMetaData metadata) throws ScriptException {
         try {
             validateSuccessfulScriptLazyInit();
-            String[] inArgs = prepareArgs(msg, metadata);
+            Object[] inArgs = prepareArgs(scriptInvokeService.getLanguage(), msg, metadata);
             Object eval = scriptInvokeService.invokeScript(this.tenantId, msg.getCustomerId(), this.scriptId, inArgs[0], inArgs[1], inArgs[2], inArgs[3]).get();
             if (eval instanceof String) {
                 return JacksonUtil.toJsonNode(eval.toString());
@@ -74,21 +77,33 @@ public class ScriptDownlinkEvaluator extends AbstractJSEvaluator {
         }
     }
 
-    //TODO MVEL: Adopt to MVEL
-    private static String[] prepareArgs(TbMsg msg, IntegrationMetaData metadata) {
-        try {
-            String[] args = new String[4];
-            if (msg.getData() != null) {
-                args[0] = msg.getData();
-            } else {
-                args[0] = "";
+    private static Object[] prepareArgs(ScriptLanguage scriptLang, TbMsg msg, IntegrationMetaData metadata) {
+        if (ScriptLanguage.JS.equals(scriptLang)) {
+            try {
+                String[] args = new String[4];
+                if (msg.getData() != null) {
+                    args[0] = msg.getData();
+                } else {
+                    args[0] = "";
+                }
+                args[1] = mapper.writeValueAsString(msg.getMetaData().getData());
+                args[2] = msg.getType();
+                args[3] = mapper.writeValueAsString(metadata.getKvMap());
+                return args;
+            } catch (Throwable th) {
+                throw new IllegalArgumentException("Cannot bind js args", th);
             }
-            args[1] = mapper.writeValueAsString(msg.getMetaData().getData());
+        } else {
+            Object[] args = new Object[4];
+            if (msg.getData() != null) {
+                args[0] = JacksonUtil.fromString(msg.getData(), Map.class);
+            } else {
+                args[0] = new HashMap<>();
+            }
+            args[1] = new HashMap<>(msg.getMetaData().getData());
             args[2] = msg.getType();
-            args[3] = mapper.writeValueAsString(metadata.getKvMap());
+            args[3] = new HashMap<>(metadata.getKvMap());
             return args;
-        } catch (Throwable th) {
-            throw new IllegalArgumentException("Cannot bind js args", th);
         }
     }
 

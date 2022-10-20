@@ -57,11 +57,11 @@ public abstract class RuleNodeScriptEngine<T extends ScriptInvokeService, R> imp
     private final UUID scriptId;
     private final TenantId tenantId;
 
-    public RuleNodeScriptEngine(TenantId tenantId, T scriptInvokeService, String script, String... argNames) {
+    public RuleNodeScriptEngine(TenantId tenantId, T scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
         this.tenantId = tenantId;
         this.scriptInvokeService = scriptInvokeService;
         try {
-            this.scriptId = this.scriptInvokeService.eval(tenantId, ScriptType.RULE_NODE_SCRIPT, script, argNames).get();
+            this.scriptId = this.scriptInvokeService.eval(tenantId, scriptType, script, argNames).get();
         } catch (Exception e) {
             Throwable t = e;
             if (e instanceof ExecutionException) {

@@ -189,7 +189,7 @@ public class TbAggLatestTelemetryNodeTest {
 
         String attributesFilterScript = "return Number(attributes['temperature']) > 21;";
 
-        when(peCtx.createAttributesJsScriptEngine(attributesFilterScript)).thenReturn(scriptEngine);
+        when(peCtx.createAttributesScriptEngine(attributesFilterScript)).thenReturn(scriptEngine);
 
         when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
                 (Answer<ListenableFuture<Boolean>>) invocation -> {

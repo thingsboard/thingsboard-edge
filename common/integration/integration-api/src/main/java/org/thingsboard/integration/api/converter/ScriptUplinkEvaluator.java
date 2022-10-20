@@ -42,19 +42,22 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
+
+import java.util.HashMap;
 
 @Slf4j
-public class ScriptUplinkEvaluator extends AbstractJSEvaluator {
+public class ScriptUplinkEvaluator extends AbstractScriptEvaluator {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public ScriptUplinkEvaluator(TenantId tenantId, ScriptInvokeService jsInvokeService, EntityId entityId, String script) {
-        super(tenantId, jsInvokeService, entityId, ScriptType.UPLINK_CONVERTER_SCRIPT, script);
+    public ScriptUplinkEvaluator(TenantId tenantId, ScriptInvokeService invokeService, EntityId entityId, String script) {
+        super(tenantId, invokeService, entityId, ScriptType.UPLINK_CONVERTER_SCRIPT, script);
     }
 
     public ListenableFuture<String> execute(byte[] data, UplinkMetaData metadata) throws Exception {
         validateSuccessfulScriptLazyInit();
-        String[] inArgs = prepareArgs(data, metadata);
+        Object[] inArgs = prepareArgs(scriptInvokeService.getLanguage(), data, metadata);
         return Futures.transform(scriptInvokeService.invokeScript(tenantId, null, this.scriptId, inArgs[0], inArgs[1]),
                 eval -> {
                     if (eval instanceof String) {
@@ -65,16 +68,21 @@ public class ScriptUplinkEvaluator extends AbstractJSEvaluator {
                 }, MoreExecutors.directExecutor());
     }
 
-
-    //TODO MVEL: adopt to MVEL reality
-    private static String[] prepareArgs(byte[] data, UplinkMetaData metadata) {
-        try {
-            String[] args = new String[2];
-            args[0] = Base64Utils.encodeToString(data);
-            args[1] = mapper.writeValueAsString(metadata.getKvMap());
+    private static Object[] prepareArgs(ScriptLanguage scriptLang, byte[] data, UplinkMetaData metadata) {
+        if (ScriptLanguage.JS.equals(scriptLang)) {
+            try {
+                String[] args = new String[2];
+                args[0] = Base64Utils.encodeToString(data);
+                args[1] = mapper.writeValueAsString(metadata.getKvMap());
+                return args;
+            } catch (Throwable th) {
+                throw new IllegalArgumentException("Cannot bind js args", th);
+            }
+        } else {
+            Object[] args = new Object[2];
+            args[0] = data;
+            args[1] = new HashMap<>(metadata.getKvMap());
             return args;
-        } catch (Throwable th) {
-            throw new IllegalArgumentException("Cannot bind js args", th);
         }
     }
 

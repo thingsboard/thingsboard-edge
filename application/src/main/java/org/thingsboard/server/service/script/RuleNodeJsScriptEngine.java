@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.script.api.RuleNodeScriptFactory;
+import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -56,7 +57,11 @@ import java.util.Set;
 public class RuleNodeJsScriptEngine extends RuleNodeScriptEngine<JsInvokeService, JsonNode> {
 
     public RuleNodeJsScriptEngine(TenantId tenantId, JsInvokeService scriptInvokeService, String script, String... argNames) {
-        super(tenantId, scriptInvokeService, script, argNames);
+        this(tenantId, scriptInvokeService, ScriptType.RULE_NODE_SCRIPT, script, argNames);
+    }
+
+    public RuleNodeJsScriptEngine(TenantId tenantId, JsInvokeService scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
+        super(tenantId, scriptInvokeService, scriptType, script, argNames);
     }
 
     @Override
