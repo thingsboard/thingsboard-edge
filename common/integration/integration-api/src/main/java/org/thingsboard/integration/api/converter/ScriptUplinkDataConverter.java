@@ -37,6 +37,7 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 
 /**
  * Created by ashvayka on 02.12.17.
@@ -55,7 +56,8 @@ public class ScriptUplinkDataConverter extends AbstractUplinkDataConverter {
     public void init(Converter configuration) {
         super.init(configuration);
         ScriptInvokeService scriptInvokeService = getScriptInvokeService(configuration);
-        String decoder = configuration.getConfiguration().get("decoder").asText();
+        String decoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "decoder" : "mvelDecoder";
+        String decoder = configuration.getConfiguration().get(decoderField).asText();
         this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), decoder);
     }
 

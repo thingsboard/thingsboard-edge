@@ -107,4 +107,8 @@ public class ScriptDownlinkEvaluator extends AbstractScriptEvaluator {
         }
     }
 
+    @Override
+    protected String[] getArgNames() {
+        return new String[]{"msg", "metadata", "msgType", "integrationMetadata"};
+    }
 }

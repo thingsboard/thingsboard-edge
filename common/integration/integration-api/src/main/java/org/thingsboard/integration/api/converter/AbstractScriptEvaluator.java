@@ -77,7 +77,7 @@ public abstract class AbstractScriptEvaluator {
         synchronized (this) {
             if (this.scriptId == null) {
                 try {
-                    this.scriptId = this.scriptInvokeService.eval(tenantId, scriptType, script).get();
+                    this.scriptId = this.scriptInvokeService.eval(tenantId, scriptType, script, this.getArgNames()).get();
                 } catch (Exception e) {
                     isErrorScript = true;
                     throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
@@ -85,5 +85,7 @@ public abstract class AbstractScriptEvaluator {
             }
         }
     }
+
+    protected abstract String[] getArgNames();
 
 }

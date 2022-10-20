@@ -86,4 +86,8 @@ public class ScriptUplinkEvaluator extends AbstractScriptEvaluator {
         }
     }
 
+    @Override
+    protected String[] getArgNames() {
+        return new String[]{"payload", "metadata"};
+    }
 }

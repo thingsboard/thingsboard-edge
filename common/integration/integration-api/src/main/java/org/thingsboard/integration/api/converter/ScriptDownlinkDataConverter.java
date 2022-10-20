@@ -37,6 +37,7 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 
 /**
@@ -57,7 +58,8 @@ public class ScriptDownlinkDataConverter extends AbstractDownlinkDataConverter {
     public void init(Converter configuration) {
         super.init(configuration);
         ScriptInvokeService scriptInvokeService = getScriptInvokeService(configuration);
-        String encoder = configuration.getConfiguration().get("encoder").asText();
+        String encoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "encoder" : "mvelEncoder";
+        String encoder = configuration.getConfiguration().get(encoderField).asText();
         this.evaluator = new ScriptDownlinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), encoder);
     }
 
