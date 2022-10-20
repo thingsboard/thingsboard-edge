@@ -2442,6 +2442,27 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
+    public List<EntityGroupInfo> getAllEdgeEntityGroups(EdgeId edgeId, EntityType groupType) {
+        return restTemplate.exchange(
+                baseURL + "/api/allEntityGroups/edge/{edgeId}/{groupType}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityGroupInfo>>() {},
+                edgeId.getId(),
+                groupType.name()).getBody();
+    }
+
+    public PageData<EntityGroupInfo> getEdgeEntityGroups(EdgeId edgeId, EntityType groupType, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("edgeId", edgeId.getId().toString());
+        params.put("groupType", groupType.name());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroups/edge/{edgeId}/{groupType}?" + getUrlParams(pageLink),
+                HttpMethod.GET, HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<EntityGroupInfo>>() {},
+                params).getBody();
+    }
     public PageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("edgeId", edgeId.getId().toString());
