@@ -51,12 +51,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.JSDownlinkEvaluator;
-import org.thingsboard.integration.api.converter.JSUplinkEvaluator;
+import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
+import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.js.api.JsInvokeService;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
@@ -79,6 +80,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
@@ -108,7 +110,8 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 public class ConverterController extends AutoCommitController {
 
     private final EventService eventService;
-    private final JsInvokeService jsSandboxService;
+    private final JsInvokeService jsInvokeService;
+    private final Optional<MvelInvokeService> mvelInvokeService;
     private final TbConverterService tbConverterService;
 
     public static final String CONVERTER_ID = "converterId";
@@ -269,16 +272,17 @@ public class ConverterController extends AutoCommitController {
 
         String output = "";
         String errorText = "";
-        JSUplinkEvaluator jsUplinkEvaluator = null;
+        ScriptUplinkEvaluator scriptUplinkEvaluator = null;
         try {
-            jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
-            output = jsUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
+            //TODO MVEL
+            scriptUplinkEvaluator = new ScriptUplinkEvaluator(getTenantId(), jsInvokeService, getCurrentUser().getId(), decoder);
+            output = scriptUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
         } catch (Exception e) {
             log.error("Error evaluating JS UpLink Converter function", e);
             errorText = e.getMessage();
         } finally {
-            if (jsUplinkEvaluator != null) {
-                jsUplinkEvaluator.destroy();
+            if (scriptUplinkEvaluator != null) {
+                scriptUplinkEvaluator.destroy();
             }
         }
         ObjectNode result = objectMapper.createObjectNode();
@@ -311,18 +315,19 @@ public class ConverterController extends AutoCommitController {
 
         JsonNode output = null;
         String errorText = "";
-        JSDownlinkEvaluator jsDownlinkEvaluator = null;
+        ScriptDownlinkEvaluator scriptDownlinkEvaluator = null;
         try {
             TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
-            jsDownlinkEvaluator = new JSDownlinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), encoder);
-            output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
+            //TODO MVEL: add parameter and corresponding service
+            scriptDownlinkEvaluator = new ScriptDownlinkEvaluator(getTenantId(), null, getCurrentUser().getId(), encoder);
+            output = scriptDownlinkEvaluator.execute(inMsg, integrationMetaData);
             validateDownLinkOutput(output);
         } catch (Exception e) {
             log.error("Error evaluating JS Downlink Converter function", e);
             errorText = e.getMessage();
         } finally {
-            if (jsDownlinkEvaluator != null) {
-                jsDownlinkEvaluator.destroy();
+            if (scriptDownlinkEvaluator != null) {
+                scriptDownlinkEvaluator.destroy();
             }
         }
         ObjectNode result = objectMapper.createObjectNode();

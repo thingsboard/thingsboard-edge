@@ -32,15 +32,15 @@ package org.thingsboard.server.service.script;
 
 import com.google.common.util.concurrent.Futures;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.stat.inference.TestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.data.util.Pair;
-import org.thingsboard.js.api.AbstractJsInvokeService;
-import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.script.api.ScriptType;
+import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.common.stats.TbApiUsageStateClient;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.js.JsInvokeProtos.RemoteJsRequest;
 import org.thingsboard.server.gen.js.JsInvokeProtos.RemoteJsResponse;
@@ -48,10 +48,8 @@ import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoJsQueueMsg;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -66,6 +64,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class RemoteJsInvokeServiceTest {
 
@@ -75,7 +74,13 @@ class RemoteJsInvokeServiceTest {
 
     @BeforeEach
     public void beforeEach() {
-        remoteJsInvokeService = new RemoteJsInvokeService(Optional.empty(), Optional.empty());
+        TbApiUsageStateClient apiUsageStateClient = mock(TbApiUsageStateClient.class);
+        ApiUsageState apiUsageState = mock(ApiUsageState.class);
+        when(apiUsageState.isJsExecEnabled()).thenReturn(true);
+        when(apiUsageStateClient.getApiUsageState(any())).thenReturn(apiUsageState);
+        TbApiUsageReportClient apiUsageReportClient = mock(TbApiUsageReportClient.class);
+
+        remoteJsInvokeService = new RemoteJsInvokeService(Optional.of(apiUsageStateClient), Optional.of(apiUsageReportClient));
         jsRequestTemplate = mock(TbQueueRequestTemplate.class);
         remoteJsInvokeService.requestTemplate = jsRequestTemplate;
     }
@@ -89,7 +94,7 @@ class RemoteJsInvokeServiceTest {
     public void whenInvokingFunction_thenDoNotSendScriptBody() throws Exception {
         mockJsEvalResponse();
         String scriptBody = "return { a: 'b'};";
-        UUID scriptId = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, JsScriptType.RULE_NODE_SCRIPT, scriptBody).get();
+        UUID scriptId = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, ScriptType.RULE_NODE_SCRIPT, scriptBody).get();
         reset(jsRequestTemplate);
 
         String expectedInvocationResult = "scriptInvocationResult";
@@ -102,7 +107,7 @@ class RemoteJsInvokeServiceTest {
                 .when(jsRequestTemplate).send(any());
 
         ArgumentCaptor<TbProtoJsQueueMsg<RemoteJsRequest>> jsRequestCaptor = ArgumentCaptor.forClass(TbProtoJsQueueMsg.class);
-        Object invocationResult = remoteJsInvokeService.invokeFunction(TenantId.SYS_TENANT_ID, null, scriptId, "{}").get();
+        Object invocationResult = remoteJsInvokeService.invokeScript(TenantId.SYS_TENANT_ID, null, scriptId, "{}").get();
         verify(jsRequestTemplate).send(jsRequestCaptor.capture());
 
         JsInvokeProtos.JsInvokeRequest jsInvokeRequestMade = jsRequestCaptor.getValue().getValue().getInvokeRequest();
@@ -115,7 +120,7 @@ class RemoteJsInvokeServiceTest {
     public void whenInvokingFunctionAndRemoteJsExecutorRemovedScript_thenHandleNotFoundErrorAndMakeInvokeRequestWithScriptBody() throws Exception {
         mockJsEvalResponse();
         String scriptBody = "return { a: 'b'};";
-        UUID scriptId = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, JsScriptType.RULE_NODE_SCRIPT, scriptBody).get();
+        UUID scriptId = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, ScriptType.RULE_NODE_SCRIPT, scriptBody).get();
         reset(jsRequestTemplate);
 
         doReturn(Futures.immediateFuture(new TbProtoJsQueueMsg<>(UUID.randomUUID(), RemoteJsResponse.newBuilder()
@@ -140,7 +145,7 @@ class RemoteJsInvokeServiceTest {
                 }));
 
         ArgumentCaptor<TbProtoJsQueueMsg<RemoteJsRequest>> jsRequestsCaptor = ArgumentCaptor.forClass(TbProtoJsQueueMsg.class);
-        Object invocationResult = remoteJsInvokeService.invokeFunction(TenantId.SYS_TENANT_ID, null, scriptId, "{}").get();
+        Object invocationResult = remoteJsInvokeService.invokeScript(TenantId.SYS_TENANT_ID, null, scriptId, "{}").get();
         verify(jsRequestTemplate, times(2)).send(jsRequestsCaptor.capture());
 
         List<TbProtoJsQueueMsg<RemoteJsRequest>> jsInvokeRequestsMade = jsRequestsCaptor.getAllValues();
@@ -171,19 +176,19 @@ class RemoteJsInvokeServiceTest {
         Set<String> scriptHashes = new HashSet<>();
         String tenant1Script1Hash = null;
         for (int i = 0; i < 3; i++) {
-            UUID scriptUuid = remoteJsInvokeService.eval(tenantId1, JsScriptType.RULE_NODE_SCRIPT, scriptBody1).get();
+            UUID scriptUuid = remoteJsInvokeService.eval(tenantId1, ScriptType.RULE_NODE_SCRIPT, scriptBody1).get();
             tenant1Script1Hash = getScriptHash(scriptUuid);
             scriptHashes.add(tenant1Script1Hash);
         }
         assertThat(scriptHashes).as("Unique scripts ids").size().isOne();
 
         TenantId tenantId2 = TenantId.fromUUID(UUID.randomUUID());
-        UUID scriptUuid = remoteJsInvokeService.eval(tenantId2, JsScriptType.RULE_NODE_SCRIPT, scriptBody1).get();
+        UUID scriptUuid = remoteJsInvokeService.eval(tenantId2, ScriptType.RULE_NODE_SCRIPT, scriptBody1).get();
         String tenant2Script1Id = getScriptHash(scriptUuid);
         assertThat(tenant2Script1Id).isNotEqualTo(tenant1Script1Hash);
 
         String scriptBody2 = scriptBody1 + ";;";
-        scriptUuid = remoteJsInvokeService.eval(tenantId2, JsScriptType.RULE_NODE_SCRIPT, scriptBody2).get();
+        scriptUuid = remoteJsInvokeService.eval(tenantId2, ScriptType.RULE_NODE_SCRIPT, scriptBody2).get();
         String tenant2Script2Id = getScriptHash(scriptUuid);
         assertThat(tenant2Script2Id).isNotEqualTo(tenant2Script1Id);
     }
@@ -192,8 +197,8 @@ class RemoteJsInvokeServiceTest {
     public void whenReleasingScript_thenCheckForHashUsages() throws Exception {
         mockJsEvalResponse();
         String scriptBody = "return { a: 'b'};";
-        UUID scriptId1 = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, JsScriptType.RULE_NODE_SCRIPT, scriptBody).get();
-        UUID scriptId2 = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, JsScriptType.RULE_NODE_SCRIPT, scriptBody).get();
+        UUID scriptId1 = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, ScriptType.RULE_NODE_SCRIPT, scriptBody).get();
+        UUID scriptId2 = remoteJsInvokeService.eval(TenantId.SYS_TENANT_ID, ScriptType.RULE_NODE_SCRIPT, scriptBody).get();
         String scriptHash = getScriptHash(scriptId1);
         assertThat(scriptHash).isEqualTo(getScriptHash(scriptId2));
         reset(jsRequestTemplate);
@@ -214,10 +219,8 @@ class RemoteJsInvokeServiceTest {
         assertThat(remoteJsInvokeService.scriptHashToBodysMap).isEmpty();
     }
 
-    private String getScriptHash(UUID scriptUuid) throws Exception {
-        Field field = AbstractJsInvokeService.class.getDeclaredField("scriptIdToNameAndHashMap");
-        field.setAccessible(true);
-        return ((Map<UUID, Pair<String, String>>) field.get(remoteJsInvokeService)).get(scriptUuid).getSecond();
+    private String getScriptHash(UUID scriptUuid) {
+        return remoteJsInvokeService.getScriptHash(scriptUuid);
     }
 
     private void mockJsEvalResponse() {

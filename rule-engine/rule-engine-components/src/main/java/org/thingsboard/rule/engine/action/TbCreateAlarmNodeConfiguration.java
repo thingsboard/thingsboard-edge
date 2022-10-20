@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.action;
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +55,9 @@ public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfigura
     @Override
     public TbCreateAlarmNodeConfiguration defaultConfiguration() {
         TbCreateAlarmNodeConfiguration configuration = new TbCreateAlarmNodeConfiguration();
+        configuration.setScriptLang(ScriptLanguage.MVEL);
         configuration.setAlarmDetailsBuildJs(ALARM_DETAILS_BUILD_JS_TEMPLATE);
+        configuration.setAlarmDetailsBuildMvel(ALARM_DETAILS_BUILD_MVEL_TEMPLATE);
         configuration.setAlarmType("General Alarm");
         configuration.setSeverity(AlarmSeverity.CRITICAL.name());
         configuration.setPropagate(false);

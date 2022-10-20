@@ -34,8 +34,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.TestPropertySource;
-import org.thingsboard.js.api.JsScriptType;
-import org.thingsboard.js.api.NashornJsInvokeService;
+import org.thingsboard.script.api.ScriptType;
+import org.thingsboard.script.api.js.NashornJsInvokeService;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -103,11 +103,11 @@ class LocalJsInvokeServiceTest extends AbstractControllerTest {
     }
 
     private UUID evalScript(String script) throws ExecutionException, InterruptedException {
-        return jsInvokeService.eval(TenantId.SYS_TENANT_ID,  JsScriptType.RULE_NODE_SCRIPT, script).get();
+        return jsInvokeService.eval(TenantId.SYS_TENANT_ID, ScriptType.RULE_NODE_SCRIPT, script).get();
     }
 
     private String invokeScript(UUID scriptId, String msg) throws ExecutionException, InterruptedException {
-        return jsInvokeService.invokeFunction(TenantId.SYS_TENANT_ID, null, scriptId, msg, "{}", "POST_TELEMETRY_REQUEST").get();
+        return jsInvokeService.invokeScript(TenantId.SYS_TENANT_ID, null, scriptId, msg, "{}", "POST_TELEMETRY_REQUEST").get().toString();
     }
 
 }

@@ -558,11 +558,20 @@ export class AuthService {
     }
   }
 
+  private loadMvelEnabled(authUser: AuthUser): Observable<boolean> {
+    if (authUser.authority === Authority.TENANT_ADMIN) {
+      return this.http.get<boolean>('/api/ruleChain/mvelEnabled', defaultHttpOptions());
+    } else {
+      return of(false);
+    }
+  }
+
   private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
     const sources = [this.loadIsUserTokenAccessEnabled(authPayload.authUser),
                      this.fetchAllowedDashboardIds(authPayload),
                      this.loadIsEdgesSupportEnabled(),
                      this.loadHasRepository(authPayload.authUser),
+                     this.loadMvelEnabled(authPayload.authUser),
                      this.checkIsWhiteLabelingAllowed(authPayload.authUser),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
@@ -575,8 +584,9 @@ export class AuthService {
         const allowedDashboardIds: string[] = data[1] as string[];
         const edgesSupportEnabled: boolean = data[2] as boolean;
         const hasRepository: boolean = data[3] as boolean;
-        const whiteLabelingAllowedInfo = data[4] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
-        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, ...whiteLabelingAllowedInfo};
+        const mvelEnabled: boolean = data[4] as boolean;
+        const whiteLabelingAllowedInfo = data[5] as {whiteLabelingAllowed: boolean, customerWhiteLabelingAllowed: boolean};
+        return {userTokenAccessEnabled, allowedDashboardIds, edgesSupportEnabled, hasRepository, mvelEnabled, ...whiteLabelingAllowedInfo};
       }, catchError((err) => {
         return of({});
       })));

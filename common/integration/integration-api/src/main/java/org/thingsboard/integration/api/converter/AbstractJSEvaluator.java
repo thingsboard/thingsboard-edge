@@ -31,8 +31,8 @@
 package org.thingsboard.integration.api.converter;
 
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.js.api.JsScriptType;
+import org.thingsboard.script.api.ScriptInvokeService;
+import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -41,8 +41,8 @@ import java.util.UUID;
 @Slf4j
 public abstract class AbstractJSEvaluator {
 
-    protected final JsInvokeService jsInvokeService;
-    private final JsScriptType scriptType;
+    protected final ScriptInvokeService scriptInvokeService;
+    private final ScriptType scriptType;
     private final String script;
     protected final TenantId tenantId;
     protected final EntityId entityId;
@@ -51,8 +51,8 @@ public abstract class AbstractJSEvaluator {
     private volatile boolean isErrorScript = false;
 
 
-    public AbstractJSEvaluator(TenantId tenantId, JsInvokeService jsInvokeService, EntityId entityId, JsScriptType scriptType, String script) {
-        this.jsInvokeService = jsInvokeService;
+    public AbstractJSEvaluator(TenantId tenantId, ScriptInvokeService scriptInvokeService, EntityId entityId, ScriptType scriptType, String script) {
+        this.scriptInvokeService = scriptInvokeService;
         this.scriptType = scriptType;
         this.script = script;
         this.tenantId = tenantId;
@@ -61,7 +61,7 @@ public abstract class AbstractJSEvaluator {
 
     public void destroy() {
         if (this.scriptId != null) {
-            this.jsInvokeService.release(this.scriptId);
+            this.scriptInvokeService.release(this.scriptId);
         }
     }
 
@@ -77,7 +77,7 @@ public abstract class AbstractJSEvaluator {
         synchronized (this) {
             if (this.scriptId == null) {
                 try {
-                    this.scriptId = this.jsInvokeService.eval(tenantId, scriptType, script).get();
+                    this.scriptId = this.scriptInvokeService.eval(tenantId, scriptType, script).get();
                 } catch (Exception e) {
                     isErrorScript = true;
                     throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
