@@ -26,16 +26,9 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.*Test"})

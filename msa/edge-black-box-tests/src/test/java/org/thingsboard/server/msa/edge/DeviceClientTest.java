@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -59,7 +58,6 @@ import org.thingsboard.server.common.data.transport.snmp.AuthenticationProtocol;
 import org.thingsboard.server.common.data.transport.snmp.PrivacyProtocol;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -377,6 +375,16 @@ public class DeviceClientTest extends AbstractContainerTest {
                 });
 
         DeviceId provisionedDeviceId = getDeviceByNameAndType(DEVICE_NAME, DEVICE_PROFILE_NAME, cloudRestClient).getId();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(provisionedDeviceId);
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(provisionedDeviceId);
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
         cloudRestClient.deleteDevice(provisionedDeviceId);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
