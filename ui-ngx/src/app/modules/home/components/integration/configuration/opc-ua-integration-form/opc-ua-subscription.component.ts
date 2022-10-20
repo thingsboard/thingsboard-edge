@@ -111,7 +111,7 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
   writeValue(subscriptions: OpcUaSubscription[]) {
     if (isDefinedAndNotNull(subscriptions)) {
       if (this.opcSubscriptionArray.length === subscriptions.length) {
-        this.opcSubscriptionForm.get('subscription').patchValue(subscriptions, {emitEvents: false});
+        this.opcSubscriptionForm.get('subscription').patchValue(subscriptions, {emitEvent: false});
       } else {
         const subscriptionControls: Array<FormGroup> = [];
         subscriptions.forEach((subscription) => {

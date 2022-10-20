@@ -108,7 +108,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   }
 
   writeValue(value: any) {
-    this.integrationConfigurationForm.get('configuration').reset(value, {emitEvents: false});
+    this.integrationConfigurationForm.get('configuration').reset(value, {emitEvent: false});
   }
 
   private updateModel(value: any) {

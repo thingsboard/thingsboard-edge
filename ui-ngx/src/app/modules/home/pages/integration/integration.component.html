@@ -163,5 +163,11 @@
         </section>
       </ng-template>
     </mat-expansion-panel>
+    <button *ngIf="isCheckConnectionAvailable && isEdit"
+            style="margin-bottom: 8px"
+            mat-stroked-button color="primary"
+            (click)="onIntegrationCheck()">
+      {{ 'integration.check-connection' | translate }}
+    </button>
   </section>
 </ng-template>

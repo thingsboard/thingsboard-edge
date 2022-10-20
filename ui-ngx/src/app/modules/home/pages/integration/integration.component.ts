@@ -41,10 +41,9 @@ import {
   Integration,
   IntegrationInfo,
   IntegrationType,
-  IntegrationTypeInfo,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
-import { guid, isDefined, isUndefined } from '@core/utils';
+import { isDefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 import { IntegrationService } from '@core/http/integration.service';
@@ -59,17 +58,11 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
 
   @ViewChild('integrationFormComponent', {static: false}) integrationFormComponent: IntegrationFormComponent;
 
-  integrationType: IntegrationType;
-
   converterType = ConverterType;
 
-  integrationTypes = IntegrationType;
-
-  // integrationForm: FormGroup;
-
-  integrationInfo: IntegrationTypeInfo;
-
   integrationScope: 'tenant' | 'edges' | 'edge';
+
+  private integrationType: IntegrationType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -122,29 +115,8 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       this.integrationType = type;
       this.integrationTypeChanged(form);
     });
-    this.checkIsNewIntegration(entity, form);
     return form;
   }
-
-  // setConfigurationForm(configuration = {}) {
-  //   const configurationForm = this.entityForm.get('configuration') as FormArray;
-  //   configurationForm.controls = [];
-  //   if (this.integrationType) {
-  //     this.integrationInfo = integrationTypeInfoMap.get(this.integrationType);
-  //     const formTemplate = _.cloneDeep(this.integrationInfo.http ? templates.http : templates[this.integrationType]);
-  //     const ignoreNonPrimitiveFields: string[] = formTemplate.ignoreNonPrimitiveFields || [];
-  //     const fieldValidators: {[key: string]: ValidatorFn | ValidatorFn[]} = formTemplate.fieldValidators || {};
-  //     delete formTemplate.ignoreNonPrimitiveFields;
-  //     delete formTemplate.fieldValidators;
-  //     this.integrationForm = this.getIntegrationForm(_.merge(formTemplate, configuration), ignoreNonPrimitiveFields);
-  //     updateIntegrationFormDefaultFields(this.integrationType, this.integrationForm);
-  //     updateIntegrationFormValidators(this.integrationForm, fieldValidators, this.integrationType, this.integrationScope);
-  //     updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
-  //     configurationForm.push(this.integrationForm);
-  //   } else {
-  //     this.integrationForm = null;
-  //   }
-  // }
 
   updateFormState() {
     super.updateFormState();
@@ -152,19 +124,6 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       this.checkIsRemote(this.entityForm);
       this.entityForm.get('routingKey').disable({ emitEvent: false });
       this.entityForm.get('secret').disable({ emitEvent: false });
-    }
-    // if (this.integrationForm) {
-    //   updateIntegrationFormState(this.integrationType, this.integrationInfo, this.integrationForm, !this.isEditValue);
-    //   if (this.integrationFormComponent) {
-    //     this.integrationFormComponent.updateFormState(!this.isEditValue);
-    //   }
-    // }
-  }
-
-  private checkIsNewIntegration(entity: Integration, form: FormGroup) {
-    if (entity && !entity.id) {
-      form.get('routingKey').patchValue(guid(), { emitEvent: false });
-      form.get('secret').patchValue(this.generateSecret(20), { emitEvent: false });
     }
   }
 
@@ -184,8 +143,15 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     }
   }
 
+  private get allowCheckConnection(): boolean {
+    if (integrationTypeInfoMap.has(this.integrationType)) {
+      return integrationTypeInfoMap.get(this.integrationType).checkConnection || false;
+    }
+    return false;
+  }
+
   get isCheckConnectionAvailable(): boolean {
-    return this.integrationScope === 'tenant' && !this.isRemoteIntegration;
+    return this.allowCheckConnection && !this.isEdgeTemplate && !this.isRemoteIntegration;
   }
 
   get isRemoteIntegration(): boolean {
@@ -197,7 +163,6 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
   }
 
   updateForm(entity: Integration) {
-    // this.entityForm.patchValue({ type: entity.type }, { emitEvent: false });
     this.entityForm.patchValue({
       name: entity.name,
       type: entity.type,
@@ -216,51 +181,17 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       },
       {emitEvent: false}
     );
-    // this.entityForm.patchValue({ configuration: entity.configuration });
-    this.checkIsNewIntegration(entity, this.entityForm);
     this.integrationType = entity.type;
-    // this.setConfigurationForm(entity.configuration);
   }
-
-  // getIntegrationForm(form: object, ignoreNonPrimitiveFields: string[] = []): FormGroup {
-  //   const template = {};
-  //   for (const key of Object.keys(form)) {
-  //     if (Array.isArray(form[key]) && !ignoreNonPrimitiveFields.includes(key)) {
-  //       template[key] = this.fb.array(form[key].map(el => this.getIntegrationForm(el, ignoreNonPrimitiveFields)));
-  //     }
-  //     else if (typeof (form[key]) === 'object' && !ignoreNonPrimitiveFields.includes(key)) {
-  //       template[key] = this.getIntegrationForm(form[key], ignoreNonPrimitiveFields);
-  //     }
-  //     else {
-  //       template[key] = this.fb.control(form[key]);
-  //     }
-  //   }
-  //   return this.fb.group(
-  //     template
-  //   );
-  // }
 
   prepareFormValue(formValue: any): any {
     if (!formValue.configuration) {
       formValue.configuration = {};
     }
-    // formValue.configuration = { ...removeEmptyObjects(this.integrationForm.getRawValue()) };
     formValue.configuration.metadata = formValue.metadata || {};
     formValue.name = formValue.name ? formValue.name.trim() : formValue.name;
     delete formValue.metadata;
     return formValue;
-  }
-
-  private generateSecret(length?: number): string {
-    if (isUndefined(length) || length == null) {
-      length = 1;
-    }
-    const l = length > 10 ? 10 : length;
-    const str = Math.random().toString(36).substr(2, l);
-    if (str.length >= length) {
-      return str;
-    }
-    return str.concat(this.generateSecret(length - str.length));
   }
 
   onIntegrationIdCopied() {
@@ -308,7 +239,6 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
           verticalPosition: 'bottom',
           horizontalPosition: 'right'
         }));
-      return;
     });
   }
 }

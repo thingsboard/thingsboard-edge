@@ -3320,7 +3320,9 @@
         "basic-settings": "Basic settings",
         "use-existing": "Use existing",
         "create-new": "Create new",
-        "connection": "Connection"
+        "connection": "Connection",
+        "connected": "Connected",
+        "not-connected": "Not connected"
     },
     "item": {
         "selected": "Selected"

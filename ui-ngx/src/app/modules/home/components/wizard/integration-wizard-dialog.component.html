@@ -204,17 +204,21 @@
     <mat-step optional="true" *ngIf="showCheckConnection">
       <ng-template matStepLabel>{{ "integration.check-connection" | translate }}</ng-template>
       <div fxFlex fxLayout="column" fxLayoutAlign="center center" style="height: 100%">
-        <mat-progress-spinner color="warn"
-                              mode="indeterminate"
-                              strokeWidth="5"
-                              *ngIf="!showCheckSuccess && !checkErrMsg">
+        <mat-progress-spinner color="warn" mode="indeterminate"
+                              strokeWidth="5" *ngIf="!showCheckSuccess && !checkErrMsg">
         </mat-progress-spinner>
         <div *ngIf="showCheckSuccess">
-          Connected
+          <div fxFlex fxLayoutAlign="center center">
+            <mat-icon class="success connection-icon">check_circle</mat-icon>
+          </div>
+          <span class="connection-status success">{{ "integration.connected" | translate }}</span>
         </div>
         <div *ngIf="checkErrMsg">
-          Not connected <br>
-          {{ checkErrMsg }}
+          <div fxFlex fxLayoutAlign="center center">
+            <mat-icon class="error connection-icon">cancel</mat-icon>
+          </div>
+          <div class="connection-status error">{{ "integration.not-connected" | translate }}</div>
+          <div class="error_msg">{{ checkErrMsg }}</div>
         </div>
       </div>
     </mat-step>

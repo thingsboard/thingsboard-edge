@@ -92,7 +92,7 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
 
   writeValue(value: MqttTopicFilter[]) {
     if (this.mqttFiltersFromArray.length === value?.length) {
-      this.mqttTopicFiltersForm.get('filters').patchValue(value, {emitEvents: false});
+      this.mqttTopicFiltersForm.get('filters').patchValue(value, {emitEvent: false});
     } else {
       const filtersControls: Array<AbstractControl> = [];
       if (value) {
@@ -115,6 +115,7 @@ export class MqttTopicFiltersComponent implements ControlValueAccessor, Validato
   registerOnChange(fn: any) {
     this.propagateChange = fn;
   }
+
   registerOnTouched(fn: any) { }
 
   setDisabledState(isDisabled: boolean): void {

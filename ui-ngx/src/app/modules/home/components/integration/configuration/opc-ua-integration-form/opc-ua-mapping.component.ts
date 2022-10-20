@@ -110,7 +110,7 @@ export class OpcUaMappingComponent implements ControlValueAccessor, Validator, O
   writeValue(mappings: OpcUaMapping[]): void {
     if (isDefinedAndNotNull(mappings)) {
       if (this.mapFormArray.length === mappings.length) {
-        this.opcMappingForm.get('map').patchValue(mappings, {emitEvents: false});
+        this.opcMappingForm.get('map').patchValue(mappings, {emitEvent: false});
       } else {
         const mapControls: Array<FormGroup> = [];
         mappings.forEach((map) => {

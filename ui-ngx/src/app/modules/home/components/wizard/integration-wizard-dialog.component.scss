@@ -54,6 +54,36 @@
   .tb-group-button {
     margin-bottom: 8px;
   }
+
+  .connection-status {
+    font-weight: 500;
+    letter-spacing: 0.25px;
+    text-align: center;
+  }
+
+  .connection-icon {
+    height: 32px;
+    font-size: 32px;
+    width: 32px;
+    margin-bottom: 4px;
+  }
+
+  .error_msg {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 130%;
+    letter-spacing: 0.25px;
+    opacity: 0.9;
+  }
+
+  .success {
+    color: #198038;
+  }
+
+  .error {
+    color: #D12730;
+  }
 }
 
 :host ::ng-deep {
