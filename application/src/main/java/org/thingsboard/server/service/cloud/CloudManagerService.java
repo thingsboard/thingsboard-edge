@@ -51,6 +51,7 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -212,6 +213,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private final Map<Integer, UplinkMsg> pendingMsgsMap = new HashMap<>();
 
     private TenantId tenantId;
+    private CustomerId customerId;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event) {
@@ -498,19 +500,21 @@ public class CloudManagerService extends BaseCloudEventService {
         UUID tenantUUID = new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB());
         this.tenantId = tenantCloudProcessor.getOrCreateTenant(new TenantId(tenantUUID)).getTenantId();
 
+        boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
+
         this.currentEdgeSettings = cloudEventService.findEdgeSettings(tenantId);
 
         EdgeSettings newEdgeSetting = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSetting.getEdgeId())) {
-            tenantCloudProcessor.cleanUp();
+            tenantCloudProcessor.cleanUp(this.tenantId);
             this.currentEdgeSettings = newEdgeSetting;
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
         // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
-        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
+        log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
+        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired() | edgeCustomerIdUpdated);
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
@@ -527,10 +531,31 @@ public class CloudManagerService extends BaseCloudEventService {
         initialized = true;
     }
 
-    private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
-        edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
+    private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
+        EdgeId edgeId = getEdgeId(edgeConfiguration);
+        Edge edge = edgeService.findEdgeById(tenantId, edgeId);
+        CustomerId previousCustomerId = null;
+        if (edge != null) {
+            previousCustomerId = edge.getCustomerId();
+        }
+        if (edgeConfiguration.getCustomerIdMSB() != 0 && edgeConfiguration.getCustomerIdLSB() != 0) {
+            UUID customerUUID = new UUID(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+            this.customerId = new CustomerId(customerUUID);
+            return !this.customerId.equals(previousCustomerId);
+        } else {
+            this.customerId = null;
+            return false;
+        }
+    }
+
+    private EdgeId getEdgeId(EdgeConfiguration edgeConfiguration) {
         UUID edgeUUID = new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB());
-        EdgeId edgeId = new EdgeId(edgeUUID);
+        return new EdgeId(edgeUUID);
+    }
+
+    private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
+        EdgeId edgeId = getEdgeId(edgeConfiguration);
+        edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
         saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
     }
@@ -549,7 +574,9 @@ public class CloudManagerService extends BaseCloudEventService {
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        ListenableFuture<List<Void>> future = downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
+        boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
+        ListenableFuture<List<Void>> future =
+                downlinkMessageService.processDownlinkMsg(tenantId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
@@ -558,6 +585,12 @@ public class CloudManagerService extends BaseCloudEventService {
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
                         .setSuccess(true).build();
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
+                if (downlinkMsg.hasEdgeConfiguration()) {
+                    if (edgeCustomerIdUpdated) {
+                        log.info("Edge customer id has been updated. Sending sync request...");
+                        edgeRpcClient.sendSyncRequestMsg(true, false);
+                    }
+                }
             }
 
             @Override
@@ -570,6 +603,14 @@ public class CloudManagerService extends BaseCloudEventService {
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
         }, MoreExecutors.directExecutor());
+    }
+
+    private boolean updateCustomerIdIfRequired(DownlinkMsg downlinkMsg) {
+        if (downlinkMsg.hasEdgeConfiguration()) {
+            return setOrUpdateCustomerId(downlinkMsg.getEdgeConfiguration());
+        } else {
+            return false;
+        }
     }
 
     private void updateConnectivityStatus(boolean activityState) {

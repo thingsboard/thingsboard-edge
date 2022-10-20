@@ -207,7 +207,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 device.setDeviceProfileId(null);
             }
-            device.setCustomerId(getCustomerId(deviceUpdateMsg));
+            device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
             if (deviceDataOpt.isPresent()) {
@@ -247,14 +247,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                     deviceUpdateMsg.getEntityGroupIdLSB());
             EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
             addEntityToGroup(tenantId, entityGroupId, deviceId);
-        }
-    }
-
-    private CustomerId getCustomerId(DeviceUpdateMsg deviceUpdateMsg) {
-        if (deviceUpdateMsg.hasCustomerIdMSB() && deviceUpdateMsg.hasCustomerIdLSB()) {
-            return new CustomerId(new UUID(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
-        } else {
-            return null;
         }
     }
 

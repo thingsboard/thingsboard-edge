@@ -38,8 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.ShortCustomerInfo;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -80,9 +78,7 @@ public class DashboardCloudProcessor extends BaseCloudProcessor {
                     dashboard.setTitle(dashboardUpdateMsg.getTitle());
                     dashboard.setConfiguration(JacksonUtil.toJsonNode(dashboardUpdateMsg.getConfiguration()));
 
-                    CustomerId customerId = safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(),
-                            dashboardUpdateMsg.getCustomerIdLSB());
-                    dashboard.setCustomerId(customerId);
+                    dashboard.setCustomerId(safeGetCustomerId(dashboardUpdateMsg.getCustomerIdMSB(), dashboardUpdateMsg.getCustomerIdLSB()));
                     Dashboard savedDashboard = dashboardService.saveDashboard(dashboard, false);
                     if (created) {
                         entityGroupService.addEntityToEntityGroupAll(savedDashboard.getTenantId(), savedDashboard.getOwnerId(), savedDashboard.getId());

@@ -79,11 +79,14 @@ public class TenantCloudProcessor extends BaseCloudProcessor {
         return savedTenant;
     }
 
-    public void cleanUp() {
+    public void cleanUp(TenantId currentTenantId) {
         log.debug("Starting clean up procedure");
         PageData<Tenant> tenants = tenantService.findTenants(new PageLink(Integer.MAX_VALUE));
         for (Tenant tenant : tenants.getData()) {
             cleanUpTenant(tenant);
+            if (!tenant.getId().equals(currentTenantId)) {
+                tenantService.deleteTenant(tenant.getId());
+            }
         }
 
         Tenant systemTenant = new Tenant();

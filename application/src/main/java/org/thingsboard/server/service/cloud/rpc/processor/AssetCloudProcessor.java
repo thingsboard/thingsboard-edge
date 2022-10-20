@@ -39,7 +39,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
@@ -72,9 +71,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
                     asset.setType(assetUpdateMsg.getType());
                     asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
                     asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-                    CustomerId customerId = safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(),
-                            assetUpdateMsg.getCustomerIdLSB());
-                    asset.setCustomerId(customerId);
+                    asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB()));
                     if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
                         AssetProfileId assetProfileId = new AssetProfileId(
                                 new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
