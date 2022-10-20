@@ -276,7 +276,11 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, boolean notifyCloud) {
-        sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action);
+        sendEntityNotificationMsg(tenantId, entityId, action, null, notifyCloud);
+    }
+
+    private void sendEntityNotificationMsg(TenantId tenantId, EntityId entityId, EdgeEventActionType action, String body, boolean notifyCloud) {
+        sendNotificationMsgToEdge(tenantId, null, entityId, body, null, action);
         if (notifyCloud) {
             sendNotificationMsgToCloud(tenantId, entityId, action);
         }

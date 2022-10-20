@@ -38,8 +38,6 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-import java.util.List;
-
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 abstract public class BaseCustomerEdgeTest extends AbstractEdgeTest {

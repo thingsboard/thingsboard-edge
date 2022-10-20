@@ -104,8 +104,9 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                         saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
                     }
                 }
-//            case CHANGE_OWNER: TODO: @voba
-//                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
+            // case DELETED: TODO: @voba - is it required?
+            // case CHANGE_OWNER: TODO: @voba
+            // return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
             default:
                 return Futures.immediateFuture(null);
         }

@@ -64,30 +64,34 @@ public class EdgeSyncCursor {
 
     int currentIdx = 0;
 
-    public EdgeSyncCursor(EdgeContextComponent ctx, Edge edge) {
-        fetchers.add(new QueuesEdgeEventFetcher(ctx.getQueueService()));
-        fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
-        fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
-        fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
-        fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
-        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-            CustomerId customerId = new CustomerId(edge.getOwnerId().getId());
-            fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), customerId));
-            addCustomerRolesEdgeEventFetchers(ctx, edge.getTenantId(), customerId);
+    public EdgeSyncCursor(EdgeContextComponent ctx, Edge edge, boolean fullSync) {
+        if (fullSync) {
+            fetchers.add(new QueuesEdgeEventFetcher(ctx.getQueueService()));
+            fetchers.add(new RuleChainsEdgeEventFetcher(ctx.getRuleChainService()));
+            fetchers.add(new AdminSettingsEdgeEventFetcher(ctx.getAdminSettingsService(), ctx.getAttributesService()));
+            fetchers.add(new DeviceProfilesEdgeEventFetcher(ctx.getDeviceProfileService()));
+            fetchers.add(new AssetProfilesEdgeEventFetcher(ctx.getAssetProfileService()));
+            if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
+                CustomerId customerId = new CustomerId(edge.getOwnerId().getId());
+                fetchers.add(new CustomerEdgeEventFetcher(ctx.getCustomerService(), customerId));
+                addCustomerRolesEdgeEventFetchers(ctx, edge.getTenantId(), customerId);
+            }
+            fetchers.add(new SysAdminRolesEdgeEventFetcher(ctx.getRoleService()));
+            fetchers.add(new TenantRolesEdgeEventFetcher(ctx.getRoleService()));
+            fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
+            fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
+            fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         }
-        fetchers.add(new SysAdminRolesEdgeEventFetcher(ctx.getRoleService()));
-        fetchers.add(new TenantRolesEdgeEventFetcher(ctx.getRoleService()));
-        fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
-        fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
-        fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DEVICE));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ASSET));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.ENTITY_VIEW));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.DASHBOARD));
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
         fetchers.add(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
-        fetchers.add(new IntegrationEventsEdgeEventFetcher(ctx.getIntegrationService()));
-        fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
+        if (fullSync) {
+            fetchers.add(new IntegrationEventsEdgeEventFetcher(ctx.getIntegrationService()));
+            fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
+        }
     }
 
     private void addCustomerRolesEdgeEventFetchers(EdgeContextComponent ctx, TenantId tenantId, CustomerId customerId) {
