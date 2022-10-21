@@ -43,6 +43,7 @@ import { Component, forwardRef, Input } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationCredentialType, IntegrationCredentialTypeTranslation } from '@shared/models/integration.models';
+import { coerceBooleanProperty } from '@angular/cdk/coercion';
 
 @Component({
   selector: 'tb-integration-credentials',
@@ -73,6 +74,28 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
 
   get allowCredentialTypes(): IntegrationCredentialType[] {
     return this.allowCredentialTypesValue;
+  }
+
+  private ignoreCaCertValue = false;
+  @Input()
+  set ignoreCaCert(value: boolean) {
+    const newVal = coerceBooleanProperty(value);
+    if (this.ignoreCaCertValue !== newVal) {
+      this.ignoreCaCertValue = newVal;
+      if (newVal) {
+        this.integrationCredentialForm.get('caCertFileName').clearValidators();
+        this.integrationCredentialForm.get('caCert').clearValidators();
+      } else {
+        this.integrationCredentialForm.get('caCertFileName').setValidators(Validators.required);
+        this.integrationCredentialForm.get('caCert').setValidators(Validators.required);
+      }
+      this.integrationCredentialForm.get('caCertFileName').updateValueAndValidity({emitEvent: false});
+      this.integrationCredentialForm.get('caCert').updateValueAndValidity({emitEvent: false});
+    }
+  }
+
+  get ignoreCaCert(): boolean {
+    return this.ignoreCaCertValue;
   }
 
   @Input() userNameLabel = 'integration.username';

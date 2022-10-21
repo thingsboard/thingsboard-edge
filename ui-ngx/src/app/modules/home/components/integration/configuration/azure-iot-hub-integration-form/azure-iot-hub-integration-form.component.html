@@ -52,6 +52,7 @@
       </mat-form-field>
     </div>
     <tb-integration-credentials formControlName="credentials"
+                                ignoreCaCert
                                 [allowCredentialTypes]="[IntegrationCredentialType.SAS, IntegrationCredentialType.CertPEM]">
     </tb-integration-credentials>
   </fieldset>
