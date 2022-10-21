@@ -143,6 +143,13 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     }
   }
 
+  get showDownlinkConvector(): boolean {
+    if (integrationTypeInfoMap.has(this.integrationType)) {
+      return !integrationTypeInfoMap.get(this.integrationType).hideDownlink;
+    }
+    return true;
+  }
+
   private get allowCheckConnection(): boolean {
     if (integrationTypeInfoMap.has(this.integrationType)) {
       return integrationTypeInfoMap.get(this.integrationType).checkConnection || false;

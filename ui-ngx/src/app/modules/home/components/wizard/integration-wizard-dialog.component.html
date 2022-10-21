@@ -104,7 +104,7 @@
         </section>
       </form>
     </mat-step>
-    <mat-step [stepControl]="downlinkConverterForm" optional="true">
+    <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
         <section fxLayout="row" fxLayoutAlign="center start" class="tb-group-button">

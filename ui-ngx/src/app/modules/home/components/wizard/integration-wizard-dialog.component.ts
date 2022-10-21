@@ -68,7 +68,7 @@ export class IntegrationWizardDialogComponent extends
 
   @ViewChild('addIntegrationWizardStepper', {static: true}) addIntegrationWizardStepper: MatStepper;
   @ViewChild('uplinkDataConverter', {static: true}) uplinkDataConverterComponent: ConverterComponent;
-  @ViewChild('downlinkDataConverter', {static: true}) downlinkDataConverterComponent: ConverterComponent;
+  @ViewChild('downlinkDataConverter') downlinkDataConverterComponent: ConverterComponent;
 
   selectedIndex = 0;
   converterType = ConverterType;
@@ -77,6 +77,7 @@ export class IntegrationWizardDialogComponent extends
   integrationType = '';
   showCheckSuccess = false;
   checkErrMsg = '';
+  showDownlinkStep = true;
 
   stepperOrientation: Observable<StepperOrientation>;
 
@@ -126,6 +127,7 @@ export class IntegrationWizardDialogComponent extends
       if (integrationTypeInfoMap.has(value)) {
         this.integrationType = this.translate.instant(integrationTypeInfoMap.get(value).name);
         this.checkConnectionAllow = integrationTypeInfoMap.get(value).checkConnection || false;
+        this.showDownlinkStep = !integrationTypeInfoMap.get(value).hideDownlink;
         if (integrationTypeInfoMap.get(value).remote) {
           this.integrationConfigurationForm.get('remote').disable({emitEvent: true});
           this.integrationConfigurationForm.get('remote').setValue(true, {emitEvent: true});
@@ -248,7 +250,7 @@ export class IntegrationWizardDialogComponent extends
   }
 
   private createDownlinkConverter(): Observable<ConverterId> {
-    if (this.downlinkConverterForm.get('downlinkConverterId').pristine &&
+    if (!this.showDownlinkStep || this.downlinkConverterForm.get('downlinkConverterId').pristine &&
       this.downlinkConverterForm.get('newDownlinkConverter').pristine) {
       return of(null);
     } else if (this.downlinkConverterForm.get('converterType').value === 'exist') {
@@ -303,15 +305,19 @@ export class IntegrationWizardDialogComponent extends
     this.dialogRef.close(null);
   }
 
+  private get maxStep(): number {
+    return this.showDownlinkStep ? 3 : 2;
+  }
+
   changeStep($event: StepperSelectionEvent) {
     this.selectedIndex = $event.selectedIndex;
-    if (this.selectedIndex === 3) {
+    if (this.selectedIndex === this.maxStep) {
       this.showCheckConnection = false;
     }
   }
 
   nextStep() {
-    if (this.selectedIndex >= 3) {
+    if (this.selectedIndex >= this.maxStep) {
       this.add();
     } else {
       this.addIntegrationWizardStepper.next();
@@ -319,11 +325,11 @@ export class IntegrationWizardDialogComponent extends
   }
 
   nextStepLabel(): string {
-    if (this.selectedIndex === 2 && this.downlinkConverterForm.get('downlinkConverterId').pristine &&
+    if (this.showDownlinkStep && this.selectedIndex === 2 && this.downlinkConverterForm.get('downlinkConverterId').pristine &&
       this.downlinkConverterForm.get('newDownlinkConverter').pristine) {
       return 'action.skip';
     }
-    if (this.selectedIndex >= 3) {
+    if (this.selectedIndex >= this.maxStep) {
       return 'action.add';
     }
     return 'action.next';

@@ -86,6 +86,7 @@ export interface IntegrationTypeInfo {
   tags?: string[];
   remote?: boolean;
   checkConnection?: boolean;
+  hideDownlink?: boolean;
 }
 
 export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeInfo>(
@@ -103,7 +104,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-ocean-connect',
         description: 'integration.type-ocean-connect-description',
-        icon: 'assets/integration-icon/ocean-connect.svg'
+        icon: 'assets/integration-icon/ocean-connect.svg',
+        hideDownlink: true
       }
     ],
     [
@@ -135,7 +137,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-tmobile-iot-cdp',
         description: 'integration.type-tmobile-iot-cdp-description',
-        icon: 'assets/integration-icon/iotcreators.com.svg'
+        icon: 'assets/integration-icon/iotcreators.com.svg',
+        hideDownlink: true
       }
     ],
     [
@@ -168,7 +171,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-aws-sqs',
         description: 'integration.type-aws-sqs-description',
-        icon: 'assets/integration-icon/aws-sqs.svg'
+        icon: 'assets/integration-icon/aws-sqs.svg',
+        hideDownlink: true
       }
     ],
     [
@@ -261,7 +265,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-kafka',
         description: 'integration.type-kafka-description',
-        icon: 'assets/integration-icon/kafka.svg'
+        icon: 'assets/integration-icon/kafka.svg',
+        hideDownlink: true
       }
     ],
     [
@@ -278,7 +283,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-apache-pulsar',
         description: 'integration.type-apache-pulsar-description',
-        icon: 'assets/integration-icon/apache-pulsar.svg'
+        icon: 'assets/integration-icon/apache-pulsar.svg',
+        hideDownlink: true
       }
     ],
     [
@@ -286,7 +292,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-pubsub',
         description: 'integration.type-pubsub-description',
-        icon: 'assets/integration-icon/pub-sub.svg'
+        icon: 'assets/integration-icon/pub-sub.svg',
+        hideDownlink: true
       }
     ],
     [
@@ -294,7 +301,8 @@ export const integrationTypeInfoMap = new Map<IntegrationType, IntegrationTypeIn
       {
         name: 'integration.type-coap',
         description: 'integration.type-coap-description',
-        icon: 'assets/integration-icon/coap.svg'
+        icon: 'assets/integration-icon/coap.svg',
+        hideDownlink: true
       }
     ],
     [

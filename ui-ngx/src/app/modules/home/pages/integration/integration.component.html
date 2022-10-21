@@ -89,6 +89,7 @@
         </tb-converter-autocomplete>
         <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
                                    labelText="integration.downlink-converter"
+                                   *ngIf="showDownlinkConvector"
                                    [converterType]="converterType.DOWNLINK"
                                    [showDetailsPageLink]="true"
                                    [useFullEntityId]="true"
