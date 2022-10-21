@@ -54,6 +54,7 @@ public abstract class AbstractIntegration extends SearchTextBased<IntegrationId>
     @Length(fieldName = "name")
     private String name;
     private IntegrationType type;
+    private boolean debugMode;
     private Boolean enabled;
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
@@ -72,6 +73,7 @@ public abstract class AbstractIntegration extends SearchTextBased<IntegrationId>
         this.tenantId = integration.getTenantId();
         this.name = integration.getName();
         this.type = integration.getType();
+        this.debugMode = integration.isDebugMode();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -109,6 +111,15 @@ public abstract class AbstractIntegration extends SearchTextBased<IntegrationId>
 
     public void setType(IntegrationType type) {
         this.type = type;
+    }
+
+    @ApiModelProperty(position = 8, value = "Boolean flag to enable/disable saving received messages as debug events")
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
     @ApiModelProperty(position = 9, value = "Boolean flag to enable/disable the integration")
