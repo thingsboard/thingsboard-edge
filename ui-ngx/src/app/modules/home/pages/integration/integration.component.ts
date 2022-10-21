@@ -89,10 +89,11 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
   }
 
   buildForm(entity: Integration): FormGroup {
-    const form = this.fb.group(
+    this.integrationType = entity ? entity.type : null;
+    return this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
-        type: [entity ? entity.type : null, [Validators.required]],
+        type: [{value: this.integrationType, disabled: true}, [Validators.required]],
         enabled: [isDefined(entity?.enabled) ? entity.enabled : true],
         debugMode: [isDefined(entity?.debugMode) ? entity.debugMode : true],
         allowCreateDevicesOrAssets: [entity && isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true],
@@ -110,27 +111,16 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         )
       }
     );
-    this.integrationType = entity ? entity.type : null;
-    form.get('type').valueChanges.subscribe((type: IntegrationType) => {
-      this.integrationType = type;
-      this.integrationTypeChanged(form);
-    });
-    return form;
   }
 
   updateFormState() {
     super.updateFormState();
+    this.entityForm.get('type').disable({ emitEvent: false });
     if (this.isEditValue && this.entityForm) {
       this.checkIsRemote(this.entityForm);
       this.entityForm.get('routingKey').disable({ emitEvent: false });
       this.entityForm.get('secret').disable({ emitEvent: false });
     }
-  }
-
-  private integrationTypeChanged(form: FormGroup) {
-    form.get('configuration').patchValue(null, { emitEvent: false });
-    form.get('metadata').patchValue({}, { emitEvent: false });
-    this.checkIsRemote(form);
   }
 
   private checkIsRemote(form: FormGroup) {

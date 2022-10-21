@@ -32,39 +32,23 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { IntegrationComponent } from '@home/pages/integration/integration.component';
 import { IntegrationTabsComponent } from '@home/pages/integration/integration-tabs.component';
 import { IntegrationRoutingModule } from '@home/pages/integration/integration-routing.module';
-import { integrations } from './configurations';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
-import {
-    MqttIntegrationFormComponent
-} from '@home/pages/integration/configurations/mqtt-integration-form/mqtt-integration-form.component';
-import {
-    HttpIntegrationFormComponent
-} from '@home/pages/integration/configurations/http-integration-form/http-integration-form.component';
-import { MqttTopicFiltersComponent } from '@home/pages/integration/configurations/mqtt-topic-filters/mqtt-topic-filters.component';
 
 @NgModule({
-    declarations: [
-        IntegrationComponent,
-        IntegrationTabsComponent,
-        ...integrations
-    ],
-  exports: [
-    MqttIntegrationFormComponent,
-    HttpIntegrationFormComponent,
-    MqttTopicFiltersComponent
+  declarations: [
+    IntegrationComponent,
+    IntegrationTabsComponent
   ],
-    imports: [
-        CommonModule,
-        SharedModule,
-        HomeComponentsModule,
-        HomeDialogsModule,
-        IntegrationRoutingModule,
-        IntegrationComponentModule
-    ]
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    IntegrationRoutingModule,
+    IntegrationComponentModule
+  ]
 })
 export class IntegrationModule { }
