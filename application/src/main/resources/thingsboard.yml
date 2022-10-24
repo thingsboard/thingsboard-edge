@@ -280,6 +280,8 @@ sql:
     batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}"
     batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}"
     stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}"
+  audit_logs:
+    partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   # Specify whether to sort entities before batch update. Should be enabled for cluster mode to avoid deadlocks
   batch_sort: "${SQL_BATCH_SORT:false}"
   # Specify whether to remove null characters from strValue of attributes and timeseries before insert
@@ -318,6 +320,10 @@ sql:
     rpc:
       enabled: "${SQL_TTL_RPC_ENABLED:true}"
       checking_interval: "${SQL_RPC_TTL_CHECKING_INTERVAL:7200000}" # Number of milliseconds. The current value corresponds to two hours
+    audit_logs:
+      enabled: "${SQL_TTL_AUDIT_LOGS_ENABLED:true}"
+      ttl: "${SQL_TTL_AUDIT_LOGS_SECS:0}" # Disabled by default. Accuracy of the cleanup depends on the sql.audit_logs.partition_size
+      checking_interval_ms: "${SQL_TTL_AUDIT_LOGS_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
   relations:
     max_level: "${SQL_RELATIONS_MAX_LEVEL:50}" # //This value has to be reasonable small to prevent infinite recursion as early as possible
 
@@ -669,6 +675,21 @@ state:
   defaultInactivityTimeoutInSec: "${DEFAULT_INACTIVITY_TIMEOUT:600}"
   defaultStateCheckIntervalInSec: "${DEFAULT_STATE_CHECK_INTERVAL:60}"
   persistToTelemetry: "${PERSIST_STATE_TO_TELEMETRY:false}"
+
+mvel:
+  enabled: "${MVEL_ENABLED:true}"
+  max_total_args_size: "${MVEL_MAX_TOTAL_ARGS_SIZE:100000}"
+  max_result_size: "${MVEL_MAX_RESULT_SIZE:300000}"
+  max_script_body_size: "${MVEL_MAX_SCRIPT_BODY_SIZE:50000}"
+  # Maximum allowed MVEL script execution errors before it will be blacklisted
+  max_errors: "${MVEL_MAX_ERRORS:3}"
+  # MVEL Eval max request timeout in milliseconds. 0 - no timeout
+  max_requests_timeout: "${MVEL_MAX_REQUEST_TIMEOUT:500}"
+  # Maximum time in seconds for black listed function to stay in the list.
+  max_black_list_duration_sec: "${MVEL_MAX_BLACKLIST_DURATION_SEC:60}"
+  stats:
+    enabled: "${TB_MVEL_STATS_ENABLED:false}"
+    print_interval_ms: "${TB_MVEL_STATS_PRINT_INTERVAL_MS:10000}"
 
 js:
   evaluator: "${JS_EVALUATOR:local}" # local/remote
