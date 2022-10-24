@@ -55,6 +55,7 @@ export enum AliasFilterType {
   deviceSearchQuery = 'deviceSearchQuery',
   entityViewSearchQuery = 'entityViewSearchQuery',
   edgeSearchQuery = 'edgeSearchQuery',
+  schedulerEvent = 'schedulerEvent'
 }
 
 export const edgeAliasFilterTypes = new Array<string>(
@@ -84,6 +85,7 @@ export const aliasFilterTypeTranslationMap = new Map<AliasFilterType, string>(
     [ AliasFilterType.deviceSearchQuery, 'alias.filter-type-device-search-query' ],
     [ AliasFilterType.entityViewSearchQuery, 'alias.filter-type-entity-view-search-query' ],
     [ AliasFilterType.edgeSearchQuery, 'alias.filter-type-edge-search-query' ],
+    [ AliasFilterType.schedulerEvent, 'alias.filter-type-scheduler-event' ]
   ]
 );
 
@@ -205,6 +207,14 @@ export interface EdgeSearchQueryFilter extends EntitySearchQueryFilter {
   edgeTypes?: string[];
 }
 
+export interface SchedulerEventFilter {
+  originatorStateEntity?: boolean;
+  stateEntityParamName?: string;
+  defaultStateEntity?: EntityId;
+  originator?: EntityId;
+  eventType?: string;
+}
+
 export type EntityFilters =
   SingleEntityFilter &
   EntityGroupFilter &
@@ -225,7 +235,8 @@ export type EntityFilters =
   DeviceSearchQueryFilter &
   EntityViewSearchQueryFilter &
   EntitySearchQueryFilter &
-  EdgeSearchQueryFilter;
+  EdgeSearchQueryFilter &
+  SchedulerEventFilter;
 
 export interface EntityAliasFilter extends EntityFilters {
   type?: AliasFilterType;

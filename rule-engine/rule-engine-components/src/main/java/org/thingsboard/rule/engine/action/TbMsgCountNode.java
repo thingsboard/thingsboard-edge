@@ -113,7 +113,4 @@ public class TbMsgCountNode implements TbNode {
         ctx.tellSelf(tickMsg, curDelay);
     }
 
-    @Override
-    public void destroy() {
-    }
 }

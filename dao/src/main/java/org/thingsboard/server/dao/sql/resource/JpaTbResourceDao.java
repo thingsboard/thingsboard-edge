@@ -43,6 +43,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.TbResourceEntity;
 import org.thingsboard.server.dao.resource.TbResourceDao;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
 import java.util.Objects;
@@ -50,6 +51,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
+@SqlDao
 public class JpaTbResourceDao extends JpaAbstractSearchTextDao<TbResourceEntity, TbResource> implements TbResourceDao {
 
     private final TbResourceRepository resourceRepository;

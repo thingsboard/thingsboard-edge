@@ -156,7 +156,7 @@ public class SchedulerEventDataValidator extends DataValidator<SchedulerEvent> {
                 throw new DataValidationException("SchedulerEvent Can't assign firmware with different type!");
             }
 
-            EntityId originatorId = getOriginatorId(schedulerEvent.getId(), schedulerEvent.getConfiguration());
+            EntityId originatorId = getOriginatorId(schedulerEvent);
 
             if (originatorId == null) {
                 throw new DataValidationException("SchedulerEvent originatorId should be specified!");

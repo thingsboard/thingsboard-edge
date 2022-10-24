@@ -650,9 +650,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case WIDGET_TYPE:
             case TENANT_PROFILE:
             case DEVICE_PROFILE:
+            case ASSET_PROFILE:
             case API_USAGE_STATE:
             case TB_RESOURCE:
-            case SCHEDULER_EVENT:
             case BLOB_ENTITY:
             case OTA_PACKAGE:
                 break;
@@ -688,6 +688,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case EDGE:
                 hasCustomerId = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                break;
+            case SCHEDULER_EVENT:
+                hasCustomerId = schedulerEventService.findSchedulerEventById(tenantId, new SchedulerEventId(entityId.getId()));
                 break;
         }
         return hasCustomerId != null ? hasCustomerId.getCustomerId() : new CustomerId(NULL_UUID);

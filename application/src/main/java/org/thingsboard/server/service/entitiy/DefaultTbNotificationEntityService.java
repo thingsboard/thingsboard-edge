@@ -108,7 +108,7 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
         if (user != null) {
             entityActionService.logEntityAction(user, entityId, entity, customerId, actionType, e, additionalInfo);
         } else if (e == null) {
-            entityActionService.pushEntityActionToRuleEngine(entityId, entity, tenantId, customerId, actionType, null, additionalInfo);
+            entityActionService.pushEntityActionToRuleEngine(entityId, entity, tenantId, customerId, actionType, additionalInfo);
         }
     }
 

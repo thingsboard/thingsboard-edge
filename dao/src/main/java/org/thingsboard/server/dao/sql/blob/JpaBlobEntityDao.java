@@ -37,10 +37,12 @@ import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.sql.BlobEntityEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.UUID;
 
 @Component
+@SqlDao
 public class JpaBlobEntityDao extends JpaAbstractSearchTextDao<BlobEntityEntity, BlobEntity> implements BlobEntityDao {
 
     @Autowired

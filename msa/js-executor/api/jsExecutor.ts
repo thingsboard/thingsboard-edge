@@ -32,6 +32,7 @@
 import vm, { Script } from 'vm';
 import atob from 'atob';
 import btoa from 'btoa';
+import {TextDecoder} from "util";
 
 export type TbScript = Script | Function;
 
@@ -77,6 +78,7 @@ export class JsExecutor {
                 sandbox.args = args;
                 sandbox.btoa = btoa;
                 sandbox.atob = atob;
+                sandbox.TextDecoder = TextDecoder;
                 const result = script.runInNewContext(sandbox, {timeout: timeout});
                 resolve(result);
             } catch (err) {
@@ -90,7 +92,7 @@ export class JsExecutor {
         return new Promise((resolve, reject) => {
             try {
                 code = "return ("+code+")(...args)";
-                const parsingContext = vm.createContext({btoa: btoa, atob: atob});
+                const parsingContext = vm.createContext({btoa: btoa, atob: atob, TextDecoder: TextDecoder});
                 const func = vm.compileFunction(code, ['args'], {parsingContext: parsingContext});
                 resolve(func);
             } catch (err) {

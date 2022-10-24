@@ -206,6 +206,19 @@ public class ModelConstants {
     public static final String DEVICE_PROFILE_SOFTWARE_ID_PROPERTY = "software_id";
 
     /**
+     * Asset profile constants.
+     */
+    public static final String ASSET_PROFILE_COLUMN_FAMILY_NAME = "asset_profile";
+    public static final String ASSET_PROFILE_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String ASSET_PROFILE_NAME_PROPERTY = "name";
+    public static final String ASSET_PROFILE_IMAGE_PROPERTY = "image";
+    public static final String ASSET_PROFILE_DESCRIPTION_PROPERTY = "description";
+    public static final String ASSET_PROFILE_IS_DEFAULT_PROPERTY = "is_default";
+    public static final String ASSET_PROFILE_DEFAULT_RULE_CHAIN_ID_PROPERTY = "default_rule_chain_id";
+    public static final String ASSET_PROFILE_DEFAULT_DASHBOARD_ID_PROPERTY = "default_dashboard_id";
+    public static final String ASSET_PROFILE_DEFAULT_QUEUE_NAME_PROPERTY = "default_queue_name";
+
+    /**
      * Cassandra entityView constants.
      */
     public static final String ENTITY_VIEW_TABLE_FAMILY_NAME = "entity_view";
@@ -260,6 +273,8 @@ public class ModelConstants {
     public static final String ASSET_TYPE_PROPERTY = "type";
     public static final String ASSET_LABEL_PROPERTY = "label";
     public static final String ASSET_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+
+    public static final String ASSET_ASSET_PROFILE_ID_PROPERTY = "asset_profile_id";
 
     public static final String ASSET_BY_TENANT_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "asset_by_tenant_and_search_text";
     public static final String ASSET_BY_TENANT_BY_TYPE_AND_SEARCH_TEXT_COLUMN_FAMILY_NAME = "asset_by_tenant_by_type_and_search_text";
@@ -519,10 +534,12 @@ public class ModelConstants {
     public static final String SCHEDULER_EVENT_COLUMN_FAMILY_NAME = "scheduler_event";
     public static final String SCHEDULER_EVENT_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY = CUSTOMER_ID_PROPERTY;
+    public static final String SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY = "originator_id";
+    public static final String SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY = "originator_type";
     public static final String SCHEDULER_EVENT_NAME_PROPERTY = "name";
     public static final String SCHEDULER_EVENT_TYPE_PROPERTY = "type";
     public static final String SCHEDULER_EVENT_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
-    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = "configuration";
+    public static final String SCHEDULER_EVENT_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String SCHEDULER_EVENT_SCHEDULE_PROPERTY = "schedule";
 
     public static final String SCHEDULER_EVENT_BY_TENANT_COLUMN_FAMILY_NAME = "scheduler_event_by_tenant";
