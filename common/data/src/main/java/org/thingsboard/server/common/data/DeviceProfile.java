@@ -60,7 +60,7 @@ import static org.thingsboard.server.common.data.SearchTextBasedWithAdditionalIn
 @ToString(exclude = {"image", "profileDataBytes"})
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, ExportableEntity<DeviceProfileId> {
+public class DeviceProfile extends SearchTextBased<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, HasRuleEngineProfile, ExportableEntity<DeviceProfileId> {
 
     private static final long serialVersionUID = 6998485460273302018L;
 
