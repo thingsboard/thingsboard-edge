@@ -31,7 +31,12 @@
 
 import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
-import { Integration, IntegrationType, integrationTypeInfoMap } from '@shared/models/integration.models';
+import {
+  getIntegrationHelpLink,
+  Integration,
+  IntegrationType,
+  integrationTypeInfoMap
+} from '@shared/models/integration.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
@@ -229,6 +234,10 @@ export class IntegrationWizardDialogComponent extends
         }
       );
     }
+  }
+
+  get helpLinkId(): string {
+    return getIntegrationHelpLink(this.integrationWizardForm.value);
   }
 
   private createUplinkConverter(): Observable<ConverterId> {

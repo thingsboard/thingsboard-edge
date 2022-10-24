@@ -33,7 +33,7 @@
 <mat-toolbar color="primary">
   <h2 translate>integration.add</h2>
   <span fxFlex></span>
-  <div tb-help="integration"></div>
+  <div [tb-help]="helpLinkId"></div>
   <button mat-icon-button
           (click)="cancel()"
           type="button">
