@@ -95,7 +95,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
   buildForm(entity: Converter): FormGroup {
     const form = this.fb.group(
       {
-        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
+        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [entity ? entity.type : null, [Validators.required]],
         debugMode: [entity ? entity.debugMode : null],
         configuration: this.fb.group(

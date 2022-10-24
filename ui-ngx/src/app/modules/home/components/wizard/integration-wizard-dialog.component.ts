@@ -47,7 +47,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Converter, ConverterType } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { guid } from '@core/utils';
+import { deepTrim, guid } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
@@ -114,7 +114,7 @@ export class IntegrationWizardDialogComponent extends
       .pipe(map(({matches}) => matches ? 'horizontal' : 'vertical'));
 
     this.integrationWizardForm = this.fb.group({
-      name: ['', [Validators.required, Validators.maxLength(255)]],
+      name: ['', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [null, [Validators.required]],
       enabled: [true],
       debugMode: [true],
@@ -235,7 +235,7 @@ export class IntegrationWizardDialogComponent extends
     if (this.uplinkConverterForm.get('converterType').value === 'exist') {
       return of(this.uplinkConverterForm.get('uplinkConverterId').value);
     } else {
-      const converterConfig: Converter = this.uplinkConverterForm.get('newUplinkConverter').value;
+      const converterConfig: Converter = deepTrim(this.uplinkConverterForm.get('newUplinkConverter').value);
       converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
@@ -256,7 +256,7 @@ export class IntegrationWizardDialogComponent extends
     } else if (this.downlinkConverterForm.get('converterType').value === 'exist') {
       return of(this.downlinkConverterForm.get('downlinkConverterId').value);
     } else {
-      const converterConfig: Converter = this.downlinkConverterForm.get('newDownlinkConverter').value;
+      const converterConfig: Converter = deepTrim(this.downlinkConverterForm.get('newDownlinkConverter').value);
       converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
@@ -281,7 +281,7 @@ export class IntegrationWizardDialogComponent extends
       remote: this.integrationConfigurationForm.value.remote,
       defaultConverterId: uplinkConverterId,
       downlinkConverterId,
-      name: this.integrationWizardForm.value.name,
+      name: this.integrationWizardForm.value.name.trim(),
       type: this.integrationWizardForm.value.type,
       enabled: this.integrationWizardForm.value.enabled,
       debugMode: this.integrationWizardForm.value.debugMode,

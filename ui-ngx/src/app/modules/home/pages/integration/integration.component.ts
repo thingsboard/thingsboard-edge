@@ -92,7 +92,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
     this.integrationType = entity ? entity.type : null;
     return this.fb.group(
       {
-        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
+        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [{value: this.integrationType, disabled: true}, [Validators.required]],
         enabled: [isDefined(entity?.enabled) ? entity.enabled : true],
         debugMode: [isDefined(entity?.debugMode) ? entity.debugMode : true],
