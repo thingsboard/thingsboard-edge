@@ -145,6 +145,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         integration.setName(name);
         integration.setType(type);
+        integration.setDebugMode(debugMode);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
