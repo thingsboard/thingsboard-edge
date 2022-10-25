@@ -118,4 +118,7 @@ public interface DeviceService {
     PageData<Device> findDevicesByTenantIdAndEdgeIdAndType(TenantId tenantId, EdgeId edgeId, String type, PageLink pageLink);
 
     long countByTenantId(TenantId tenantId);
+
+    // @voba - edge related
+    DeviceProfile findDeviceProfileByNameOrDefault(TenantId tenantId, String deviceType);
 }
