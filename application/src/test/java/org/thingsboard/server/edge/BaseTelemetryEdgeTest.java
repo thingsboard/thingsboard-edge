@@ -213,6 +213,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testTimeseriesDeliveryFailuresForever_deliverOnlyDeviceUpdateMsgs() throws Exception {
         int numberOfMsgsToSend = 100;
 

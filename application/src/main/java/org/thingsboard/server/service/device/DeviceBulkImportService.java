@@ -131,7 +131,9 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
         if (deviceCredentials.getCredentialsType() == DeviceCredentialsType.LWM2M_CREDENTIALS) {
             deviceProfile = setUpLwM2mDeviceProfile(entity.getTenantId(), entity);
         } else if (StringUtils.isNotEmpty(entity.getType())) {
-            deviceProfile = deviceProfileService.findOrCreateDeviceProfile(entity.getTenantId(), entity.getType());
+            // TODO: @voba device profiles are not created on edge at the moment
+            // deviceProfile = deviceProfileService.findOrCreateDeviceProfile(entity.getTenantId(), entity.getType());
+            deviceProfile = deviceService.findDeviceProfileByNameOrDefault(entity.getTenantId(), entity.getType());
         } else {
             deviceProfile = deviceProfileService.findDefaultDeviceProfile(entity.getTenantId());
         }
