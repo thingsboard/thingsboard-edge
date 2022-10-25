@@ -29,7 +29,7 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
--------------- AUDIT LOGS MIGRATION --------------
+-- AUDIT LOGS MIGRATION START
 DO
 $$
     DECLARE table_partition RECORD;
@@ -88,10 +88,10 @@ BEGIN
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
 END;
 $$;
--------------- AUDIT LOGS MIGRATION --------------^
+-- AUDIT LOGS MIGRATION END
 
 
--------------- BLOB ENTITIES MIGRATION --------------
+-- BLOB ENTITIES MIGRATION START
 DO
 $$
     DECLARE table_partition RECORD;
@@ -148,5 +148,4 @@ BEGIN
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
 END;
 $$;
--------------- BLOB ENTITIES MIGRATION --------------^
-
+-- BLOB ENTITIES MIGRATION END

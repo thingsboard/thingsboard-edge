@@ -1,8 +1,8 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -51,7 +51,7 @@ public class BlobEntitiesCleanUpService extends AbstractCleanUpService {
     @Autowired
     private SqlPartitioningRepository partitioningRepository;
 
-    @Value("${sql.ttl.blob_entities.ttl}")
+    @Value("${sql.ttl.blob_entities.ttl:0}")
     private long ttlInSec;
     @Value("${sql.blob_entities.partition_size:168}")
     private int partitionSizeInHours;
@@ -63,6 +63,8 @@ public class BlobEntitiesCleanUpService extends AbstractCleanUpService {
     @Scheduled(initialDelayString = "#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${sql.ttl.blob_entities.checking_interval_ms})}",
             fixedDelayString = "${sql.ttl.blob_entities.checking_interval_ms}")
     public void cleanUp() {
+        if (ttlInSec <= 0) return;
+
         long blobEntitiesExpTime = System.currentTimeMillis() - TimeUnit.SECONDS.toMillis(ttlInSec);
         if (isSystemTenantPartitionMine()) {
             blobEntityDao.cleanUpBlobEntities(blobEntitiesExpTime);
