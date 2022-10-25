@@ -698,6 +698,8 @@ js:
   max_script_body_size: "${JS_MAX_SCRIPT_BODY_SIZE:50000}"
   # Built-in JVM JavaScript environment properties
   local:
+    # Specify thread pool size for javascript executor service
+    js_thread_pool_size: "${LOCAL_JS_THREAD_POOL_SIZE:50}"
     # Use Sandboxed (secured) JVM JavaScript environment
     use_js_sandbox: "${USE_LOCAL_JS_SANDBOX:true}"
     # Specify thread pool size for JavaScript sandbox resource monitor
