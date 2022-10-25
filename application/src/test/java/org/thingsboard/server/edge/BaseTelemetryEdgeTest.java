@@ -217,7 +217,7 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
         edgeImitator.setFailureProbability(100);
 
         edgeImitator.expectMessageAmount(numberOfMsgsToSend);
-        Device device = findDeviceByName("Edge Device 1");
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         for (int idx = 1; idx <= numberOfMsgsToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
             JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
