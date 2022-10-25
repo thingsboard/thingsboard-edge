@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
@@ -410,15 +409,6 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             return Futures.transform(cloudEventService.saveEdgeSettings(tenantId, currentEdgeSettings),
                     result -> {
                         log.debug("Full sync required marked as false");
-
-                        // TODO: @voba fixme - this is not required in 3.4.1 once bug with sessionNewEvents fixed
-                        try {
-                            saveCloudEvent(tenantId, CloudEventType.EDGE,
-                                    EdgeEventActionType.ATTRIBUTES_REQUEST, new EdgeId(UUID.fromString(currentEdgeSettings.getEdgeId())), null).get();
-                        } catch (Exception e) {
-                            log.error("Can't save cloud event", e);
-                        }
-
                         return null;
                     },
                     dbCallbackExecutorService);
