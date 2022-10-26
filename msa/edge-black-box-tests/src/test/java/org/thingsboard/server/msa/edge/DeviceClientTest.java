@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.msa.edge;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
@@ -643,6 +644,51 @@ public class DeviceClientTest extends AbstractContainerTest {
         cloudRestClient.deleteUser(savedUser.getId());
         cloudRestClient.deleteCustomer(savedCustomer.getId());
         cloudRestClient.deleteRole(savedRole.getId());
+    }
+
+    @Test
+    public void testSharedAttributeUpdates() throws JsonProcessingException {
+        // create device on cloud and assign to edge
+        Device savedDevice = saveAndAssignDeviceToEdge();
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        Optional<DeviceCredentials> deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(savedDevice.getId());
+
+        Assert.assertTrue(deviceCredentials.isPresent());
+
+        // subscribe to shared attribute updates
+        final ResponseEntity<JsonNode>[] sharedAttributeUpdateRequest = new ResponseEntity[]{null};
+
+        new Thread(() -> {
+            String subscribeToSharedAttributeUpdateUrl = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/attributes/updates?timeout=20000";
+            sharedAttributeUpdateRequest[0] = edgeRestClient.getRestTemplate().getForEntity(subscribeToSharedAttributeUpdateUrl, JsonNode.class);
+        }).start();
+
+        JsonNode deviceAttributes = JacksonUtil.OBJECT_MAPPER.readTree("{\"sharedAttrKey\":\"sharedAttrValue\"}");
+        cloudRestClient.saveEntityAttributesV1(savedDevice.getId(), DataConstants.SHARED_SCOPE, deviceAttributes);
+
+        // verify that shared attribute update was received
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    if (sharedAttributeUpdateRequest[0] == null || sharedAttributeUpdateRequest[0].getBody() == null) {
+                        return false;
+                    }
+                    JsonNode requestBody = sharedAttributeUpdateRequest[0].getBody();
+                    return "sharedAttrValue".equals(requestBody.get("sharedAttrKey").asText());
+                });
+
+        // cleanup
+        cloudRestClient.deleteDevice(savedDevice.getId());
     }
 }
 

@@ -213,7 +213,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
         return result;
     }
 
-    public UplinkMsg processRuleChainMetadataRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+    public UplinkMsg processRuleChainMetadataRequestMsgToCloud(CloudEvent cloudEvent) {
         EntityId ruleChainId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
                 .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
