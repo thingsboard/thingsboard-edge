@@ -344,7 +344,7 @@ public class CloudManagerService {
                     case POST_ATTRIBUTES:
                     case ATTRIBUTES_DELETED:
                     case TIMESERIES_UPDATED:
-                        uplinkMsg = telemetryProcessor.processTelemetryMessageMsgToCloud(cloudEvent);
+                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
                         break;
                     case ATTRIBUTES_REQUEST:
                         uplinkMsg = telemetryProcessor.processAttributesRequestMsgToCloud(cloudEvent);

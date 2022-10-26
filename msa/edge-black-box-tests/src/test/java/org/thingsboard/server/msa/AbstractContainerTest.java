@@ -678,7 +678,7 @@ public abstract class AbstractContainerTest {
         cloudRestClient.assignEdgeToCustomer(savedCustomer.getId(), edge.getId());
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> savedCustomer.getId().equals(cloudRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
+                .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
     }
 
 }
