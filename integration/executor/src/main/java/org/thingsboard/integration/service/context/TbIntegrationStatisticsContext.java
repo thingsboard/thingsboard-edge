@@ -39,7 +39,7 @@ import org.thingsboard.integration.api.IntegrationStatisticsService;
 @Component
 @Data
 @RequiredArgsConstructor
-@ConditionalOnExpression("('${service.type:null}'=='tb-integration' || '${service.type:null}'=='tb-integration-executor')")
+@ConditionalOnExpression("('${service.type:null}'=='tb-integration' || '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
 public class TbIntegrationStatisticsContext  implements TbIntegrationStatisticsContextComponent{
     private final IntegrationStatisticsService integrationStatisticsService;
 }

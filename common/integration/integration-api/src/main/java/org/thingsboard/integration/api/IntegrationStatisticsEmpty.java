@@ -40,7 +40,8 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnExpression("('${metrics.enabled:false}'=='false')")
+@ConditionalOnExpression("('${metrics.enabled:false}'=='false') && ('${service.type:null}'=='tb-integration' " +
+        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
 public class IntegrationStatisticsEmpty implements IntegrationStatisticsService {
     @Override
     public void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName) {
@@ -83,12 +84,12 @@ public class IntegrationStatisticsEmpty implements IntegrationStatisticsService 
     }
 
     @Override
-    public Map getGaugesSuccess() {
+    public Map<String, Long> getGaugesSuccess() {
         return null;
     }
 
     @Override
-    public Map getGaugesFailed() {
+    public Map<String, Long> getGaugesFailed() {
         return null;
     }
 

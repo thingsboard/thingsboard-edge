@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -295,9 +296,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
                 @Override
                 public void onFailure(Throwable t) {
-
+                    onIntegrationMsgsUplinkFailed();
                 }
-            }, context.getCallBackExecutorService());
+            }, MoreExecutors.directExecutor());
             return uplinkDataList;
         } catch (Exception e) {
             onIntegrationMsgsUplinkFailed();

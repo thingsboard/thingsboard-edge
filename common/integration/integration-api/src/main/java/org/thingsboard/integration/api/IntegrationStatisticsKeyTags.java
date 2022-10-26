@@ -30,31 +30,29 @@
  */
 package org.thingsboard.integration.api;
 
-import java.util.Map;
+import org.thingsboard.server.common.stats.StatsType;
 
-public interface IntegrationStatisticsService {
+public enum IntegrationStatisticsKeyTags {
+    STATS_KEY_COUNTER(StatsType.INTEGRATION.getName() + "_stats_counter"),
+    STATS_KEY_GAUGE(StatsType.INTEGRATION.getName() + "_stats_gauge"),
+    NAME("name"),
+    START("start"),
+    MSGS_UPLINK("msgUplink"),
+    MSGS_DOWNLINK("msgDownlink"),
+    INTEGRATION_TYPE("type"),
+    PROCESS_STATE("state"),
+    PROCESS_STATE_SUCCESS("success"),
+    PROCESS_STATE_FAILED("failed");
 
-    void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName);
+    private String name;
 
-    void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName);
+    IntegrationStatisticsKeyTags(String name) {
+        this.name = name;
+    }
 
-    void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration);
+    public String getName() {
+        return name;
 
-    void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration);
+    }
 
-    void onIntegrationMsgsUplinkSuccess(String integrationTypeName);
-
-    void onIntegrationMsgsUplinkFailed (String integrationTypeName);
-
-    void onIntegrationMsgsDownlinkSuccess(String integrationTypeName);
-
-    void onIntegrationMsgsDownlinkFailed (String integrationTypeName);
-
-    Map<String, Long> getGaugesSuccess();
-
-    Map<String, Long> getGaugesFailed();
-
-    void printStats();
-
-    void reset();
 }

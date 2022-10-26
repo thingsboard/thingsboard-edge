@@ -30,66 +30,60 @@
  */
 package org.thingsboard.integration.api;
 
-import io.micrometer.core.instrument.Tags;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.stats.DefaultCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
-import org.thingsboard.server.common.stats.StatsType;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.STATS_KEY_COUNTER;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.STATS_KEY_GAUGE;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.START;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.MSGS_DOWNLINK;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.MSGS_UPLINK;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.PROCESS_STATE_FAILED;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.PROCESS_STATE_SUCCESS;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnExpression("('${metrics.enabled:false}'=='true')")
+@ConditionalOnExpression("('${metrics.enabled:false}'=='true') && ('${service.type:null}'=='tb-integration' " +
+        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
 public class IntegrationStatisticsDefault implements IntegrationStatisticsService {
 
-    private static final String STATS_KEY_COUNTER = StatsType.INTEGRATION.getName() + "_stats_counter";
-    private static final String STATS_KEY_GAUGE = StatsType.INTEGRATION.getName() + "_stats_gauge";
-    private static final String NAME = "name";
-    private static final String START = "start";
-    private static final String MSGS_UPLINK = "msgUplink";
-    private static final String MSGS_DOWNLINK = "msgDownlink";
-    private static final String INTEGRATION_TYPE = "type";
-    private static final String PROCESS_STATE = "state";
-    private static final String PROCESS_STATE_SUCCESS = "success";
-    private static final String PROCESS_STATE_FAILED = "failed";
-
-    private final Map<String, DefaultCounter> counters = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> gauges = new ConcurrentHashMap<>();
+    private final Map<IntegrationStatisticsKey, DefaultCounter> counters = new ConcurrentHashMap<>();
+    private final Map<IntegrationStatisticsKey, AtomicLong> gauges = new ConcurrentHashMap<>();
 
     private final StatsFactory statsFactory;
 
     @Override
     public void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName) {
         try {
-            logMessagesCounterAdd(NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesCounterAdd(new IntegrationStatisticsKey(START.getName(), PROCESS_STATE_SUCCESS.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("onIntegrationStartCounterSuccess type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
-
     }
 
     @Override
     public void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName) {
         try {
-            logMessagesCounterAdd(NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesCounterAdd(new IntegrationStatisticsKey(START.getName(), PROCESS_STATE_FAILED.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("onIntegrationStartCounterFailed type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
-
     }
 
     @Override
     public void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration) {
         try {
-            logMessagesGauge(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesGauge(cntIntegration, new IntegrationStatisticsKey(START.getName(), PROCESS_STATE_SUCCESS.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("onIntegrationStartGaugeSuccess type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
@@ -98,7 +92,7 @@ public class IntegrationStatisticsDefault implements IntegrationStatisticsServic
     @Override
     public void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration) {
         try {
-            logMessagesGauge(cntIntegration, NAME, START, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesGauge(cntIntegration, new IntegrationStatisticsKey(START.getName(), PROCESS_STATE_FAILED.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("onIntegrationStartGaugeFailed type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
@@ -107,7 +101,7 @@ public class IntegrationStatisticsDefault implements IntegrationStatisticsServic
     @Override
     public void onIntegrationMsgsUplinkSuccess(String integrationTypeName) {
         try {
-            logMessagesCounterAdd(NAME, MSGS_UPLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesCounterAdd(new IntegrationStatisticsKey(MSGS_UPLINK.getName(), PROCESS_STATE_SUCCESS.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("onIntegrationMsgsUplink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
@@ -116,7 +110,7 @@ public class IntegrationStatisticsDefault implements IntegrationStatisticsServic
     @Override
     public void onIntegrationMsgsUplinkFailed(String integrationTypeName) {
         try {
-            logMessagesCounterAdd(NAME, MSGS_UPLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesCounterAdd(new IntegrationStatisticsKey(MSGS_UPLINK.getName(), PROCESS_STATE_FAILED.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("onIntegrationMsgsUplink type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
@@ -125,7 +119,7 @@ public class IntegrationStatisticsDefault implements IntegrationStatisticsServic
     @Override
     public void onIntegrationMsgsDownlinkSuccess(String integrationTypeName) {
         try {
-            logMessagesCounterAdd(NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_SUCCESS, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesCounterAdd(new IntegrationStatisticsKey(MSGS_DOWNLINK.getName(), PROCESS_STATE_SUCCESS.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("Type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
@@ -134,22 +128,22 @@ public class IntegrationStatisticsDefault implements IntegrationStatisticsServic
     @Override
     public void onIntegrationMsgsDownlinkFailed(String integrationTypeName) {
         try {
-            logMessagesCounterAdd(NAME, MSGS_DOWNLINK, PROCESS_STATE, PROCESS_STATE_FAILED, INTEGRATION_TYPE, integrationTypeName);
+            logMessagesCounterAdd(new IntegrationStatisticsKey(MSGS_DOWNLINK.getName(), PROCESS_STATE_FAILED.getName(), integrationTypeName));
         } catch (Exception e) {
             log.error("Type:  [{}], error: [{}]", integrationTypeName, e.getMessage());
         }
     }
 
     @Override
-    public Map getGaugesSuccess() {
-        return gauges.entrySet().stream().filter(m -> m.getKey().contains(PROCESS_STATE_SUCCESS)).collect(
-                Collectors.toMap(m -> m.getKey().substring(m.getKey().indexOf(INTEGRATION_TYPE) + 5), m -> m.getValue()));
+    public Map<String, Long> getGaugesSuccess() {
+        return gauges.entrySet().stream().filter(m -> m.getKey().getProcessState().equals(PROCESS_STATE_SUCCESS.getName())).collect(
+                Collectors.toMap(m -> m.getKey().getIntegrationType(), m -> m.getValue().get()));
     }
 
     @Override
-    public Map getGaugesFailed() {
-        return gauges.entrySet().stream().filter(m -> m.getKey().contains(PROCESS_STATE_FAILED)).collect(
-                Collectors.toMap(m -> m.getKey().substring(m.getKey().indexOf(INTEGRATION_TYPE) + 5), m -> m.getValue()));
+    public Map<String, Long> getGaugesFailed() {
+        return gauges.entrySet().stream().filter(m -> m.getKey().getProcessState().equals(PROCESS_STATE_FAILED.getName())).collect(
+                Collectors.toMap(m -> m.getKey().getIntegrationType(), m -> m.getValue().get()));
     }
 
     @Override
@@ -166,33 +160,24 @@ public class IntegrationStatisticsDefault implements IntegrationStatisticsServic
         counters.values().forEach(DefaultCounter::clear);
     }
 
-    private void logMessagesCounterAdd(String... tags) throws Exception {
+    private void logMessagesCounterAdd(IntegrationStatisticsKey tags) throws Exception {
         DefaultCounter counter = getOrCreateStatsCounter(tags);
         counter.increment();
     }
 
-    private void logMessagesGauge(int cntValue, String... tags) throws Exception {
+    private void logMessagesGauge(int cntValue, IntegrationStatisticsKey tags) throws Exception {
         AtomicLong gauge = getOrCreateStatsGauge(tags);
         gauge.set(cntValue);
     }
 
-    private DefaultCounter getOrCreateStatsCounter(String... tags) throws Exception {
-        String statsName = getValidateStatsName(tags);
-        return counters.computeIfAbsent(statsName, s ->
-                statsFactory.createDefaultCounter(STATS_KEY_COUNTER, tags));
+    private DefaultCounter getOrCreateStatsCounter(IntegrationStatisticsKey tags) throws Exception {
+        return counters.computeIfAbsent(tags, s ->
+                statsFactory.createDefaultCounter(STATS_KEY_COUNTER.getName(), tags.getKey()));
     }
 
-    private AtomicLong getOrCreateStatsGauge(String... tags) throws Exception {
-        String statsName = getValidateStatsName(tags);
-        return  gauges.computeIfAbsent(statsName, s ->
-                statsFactory.createGauge(STATS_KEY_GAUGE, new AtomicLong(0), tags));
+    private AtomicLong getOrCreateStatsGauge(IntegrationStatisticsKey tags) throws Exception {
+        return gauges.computeIfAbsent(tags, s ->
+                statsFactory.createGauge(STATS_KEY_GAUGE.getName(), new AtomicLong(0),  tags.getKey()));
     }
 
-    private String getValidateStatsName(String... keyValues) throws Exception {
-        Tags.of(keyValues);
-        if (keyValues.length != 6) {
-            throw new IllegalArgumentException("Length eyValues must be equals 6!");
-        }
-        return String.join("_", keyValues);
-    }
 }

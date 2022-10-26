@@ -30,31 +30,23 @@
  */
 package org.thingsboard.integration.api;
 
-import java.util.Map;
 
-public interface IntegrationStatisticsService {
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-    void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName);
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.INTEGRATION_TYPE;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.NAME;
+import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.PROCESS_STATE;
 
-    void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName);
+@Data
+@AllArgsConstructor
+public class IntegrationStatisticsKey {
 
-    void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration);
+    private String name;
+    private String processState;
+    private String integrationType;
 
-    void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration);
-
-    void onIntegrationMsgsUplinkSuccess(String integrationTypeName);
-
-    void onIntegrationMsgsUplinkFailed (String integrationTypeName);
-
-    void onIntegrationMsgsDownlinkSuccess(String integrationTypeName);
-
-    void onIntegrationMsgsDownlinkFailed (String integrationTypeName);
-
-    Map<String, Long> getGaugesSuccess();
-
-    Map<String, Long> getGaugesFailed();
-
-    void printStats();
-
-    void reset();
+    public String [] getKey () {
+        return new String[]{NAME.getName(), this.name, PROCESS_STATE.getName(), this.processState, INTEGRATION_TYPE.getName(), this.integrationType};
+    }
 }
