@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.util.Map;
 
@@ -44,52 +45,52 @@ import java.util.Map;
         "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
 public class IntegrationStatisticsEmpty implements IntegrationStatisticsService {
     @Override
-    public void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName) {
+    public void onIntegrationMsgsStateSuccessCounterAdd(IntegrationType integrationType) {
 
     }
 
     @Override
-    public void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName) {
+    public void onIntegrationMsgsStateFailedCounterAdd(IntegrationType integrationType) {
 
     }
 
     @Override
-    public void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration) {
+    public void onIntegrationStateSuccessGauge(IntegrationType integrationType, int cntIntegration) {
 
     }
 
     @Override
-    public void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration) {
+    public void onIntegrationStateFailedGauge(IntegrationType integrationType, int cntIntegration) {
 
     }
 
     @Override
-    public void onIntegrationMsgsUplinkSuccess(String integrationTypeName) {
+    public void onIntegrationMsgsUplinkSuccess(IntegrationType integrationType) {
 
     }
 
     @Override
-    public void onIntegrationMsgsUplinkFailed(String integrationTypeName) {
+    public void onIntegrationMsgsUplinkFailed(IntegrationType integrationType) {
 
     }
 
     @Override
-    public void onIntegrationMsgsDownlinkSuccess(String integrationTypeName) {
+    public void onIntegrationMsgsDownlinkSuccess(IntegrationType integrationType) {
 
     }
 
     @Override
-    public void onIntegrationMsgsDownlinkFailed(String integrationTypeName) {
+    public void onIntegrationMsgsDownlinkFailed(IntegrationType integrationType) {
 
     }
 
     @Override
-    public Map<String, Long> getGaugesSuccess() {
+    public Map<IntegrationType, Long> getGaugesSuccess() {
         return null;
     }
 
     @Override
-    public Map<String, Long> getGaugesFailed() {
+    public Map<IntegrationType, Long> getGaugesFailed() {
         return null;
     }
 

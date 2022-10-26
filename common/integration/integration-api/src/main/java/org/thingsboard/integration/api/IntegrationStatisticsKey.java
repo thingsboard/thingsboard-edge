@@ -31,22 +31,20 @@
 package org.thingsboard.integration.api;
 
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.INTEGRATION_TYPE;
-import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.NAME;
-import static org.thingsboard.integration.api.IntegrationStatisticsKeyTags.PROCESS_STATE;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
 @Data
-@AllArgsConstructor
 public class IntegrationStatisticsKey {
 
-    private String name;
-    private String processState;
-    private String integrationType;
+    private final IntegrationStatisticsMetricName integrationStatisticsMetricName;
+    private final boolean processState;
+    private final IntegrationType integrationType;
 
-    public String [] getKey () {
-        return new String[]{NAME.getName(), this.name, PROCESS_STATE.getName(), this.processState, INTEGRATION_TYPE.getName(), this.integrationType};
+    public String [] getTags() {
+        return new String[]{
+                "name", this.integrationStatisticsMetricName.getName(),
+                "state", this.processState ? "success" : "failed",
+                "type", this.integrationType.name()};
     }
 }

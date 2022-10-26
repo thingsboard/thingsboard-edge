@@ -152,22 +152,22 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     @Override
     public void onIntegrationMsgsUplinkSuccess() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkSuccess(configuration.getType().name());
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkSuccess(configuration.getType());
     }
 
     @Override
     public void onIntegrationMsgsUplinkFailed() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType().name());
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType());
     }
 
     @Override
     public void onIntegrationMsgsDownlinkSuccess() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkSuccess(configuration.getType().name());
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkSuccess(configuration.getType());
     }
 
     @Override
     public void onIntegrationMsgsDownlinkFailed() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType().name());
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType());
     }
 
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {

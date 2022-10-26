@@ -30,29 +30,31 @@
  */
 package org.thingsboard.integration.api;
 
+import org.thingsboard.server.common.data.integration.IntegrationType;
+
 import java.util.Map;
 
 public interface IntegrationStatisticsService {
 
-    void onIntegrationMsgsStateSuccessCounterAdd(String integrationTypeName);
+    void onIntegrationMsgsStateSuccessCounterAdd(IntegrationType integrationType);
 
-    void onIntegrationMsgsStateFailedCounterAdd(String integrationTypeName);
+    void onIntegrationMsgsStateFailedCounterAdd(IntegrationType integrationType);
 
-    void onIntegrationStateSuccessGauge(String integrationTypeName, int cntIntegration);
+    void onIntegrationStateSuccessGauge(IntegrationType integrationType, int cntIntegration);
 
-    void onIntegrationStateFailedGauge(String integrationTypeName, int cntIntegration);
+    void onIntegrationStateFailedGauge(IntegrationType integrationType, int cntIntegration);
 
-    void onIntegrationMsgsUplinkSuccess(String integrationTypeName);
+    void onIntegrationMsgsUplinkSuccess(IntegrationType integrationType);
 
-    void onIntegrationMsgsUplinkFailed (String integrationTypeName);
+    void onIntegrationMsgsUplinkFailed (IntegrationType integrationType);
 
-    void onIntegrationMsgsDownlinkSuccess(String integrationTypeName);
+    void onIntegrationMsgsDownlinkSuccess(IntegrationType integrationType);
 
-    void onIntegrationMsgsDownlinkFailed (String integrationTypeName);
+    void onIntegrationMsgsDownlinkFailed (IntegrationType integrationType);
 
-    Map<String, Long> getGaugesSuccess();
+    Map<IntegrationType, Long> getGaugesSuccess();
 
-    Map<String, Long> getGaugesFailed();
+    Map<IntegrationType, Long> getGaugesFailed();
 
     void printStats();
 

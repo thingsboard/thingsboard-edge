@@ -30,23 +30,14 @@
  */
 package org.thingsboard.integration.api;
 
-import org.thingsboard.server.common.stats.StatsType;
-
-public enum IntegrationStatisticsKeyTags {
-    STATS_KEY_COUNTER(StatsType.INTEGRATION.getName() + "_stats_counter"),
-    STATS_KEY_GAUGE(StatsType.INTEGRATION.getName() + "_stats_gauge"),
-    NAME("name"),
+public enum IntegrationStatisticsMetricName {
     START("start"),
     MSGS_UPLINK("msgUplink"),
-    MSGS_DOWNLINK("msgDownlink"),
-    INTEGRATION_TYPE("type"),
-    PROCESS_STATE("state"),
-    PROCESS_STATE_SUCCESS("success"),
-    PROCESS_STATE_FAILED("failed");
+    MSGS_DOWNLINK("msgDownlink");
 
     private String name;
 
-    IntegrationStatisticsKeyTags(String name) {
+    IntegrationStatisticsMetricName(String name) {
         this.name = name;
     }
 

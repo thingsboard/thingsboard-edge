@@ -105,6 +105,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.ACTIVATED;
@@ -701,27 +702,28 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void updateIntegrationStateStatistics() {
-        List<IntegrationType> startSuccess = integrations.values()
-                .stream()
-                .filter(i ->
-                        STARTED.equals(i.getCurrentState()) ||
-                        UPDATED.equals(i.getCurrentState()) ||
-                        ACTIVATED.equals(i.getCurrentState()))
-                .map(integrationState -> integrationState.getConfiguration().getType())
-                .collect(Collectors.toList());
-        Map<String, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
-
-        List<IntegrationType> startFailed = integrations.values()
-                .stream()
-                .filter(i ->
-                    FAILED.equals(i.getCurrentState()))
-                .map(integrationState -> integrationState.getConfiguration().getType())
-                .collect(Collectors.toList());
-        Map<String, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(IntegrationType::name, Collectors.counting()));
-
-        Map<String, Long> gaugesSuccess = integrationStatisticsService.getGaugesSuccess();
-        Map<String, Long> gaugesFailed = integrationStatisticsService.getGaugesFailed();
+        Map<IntegrationType, Long> gaugesSuccess = integrationStatisticsService.getGaugesSuccess();
+        Map<IntegrationType, Long> gaugesFailed = integrationStatisticsService.getGaugesFailed();
         if (gaugesSuccess != null && gaugesFailed != null) {
+            List<IntegrationType> startSuccess = integrations.values()
+                    .stream()
+                    .filter(i ->
+                            STARTED.equals(i.getCurrentState()) ||
+                            UPDATED.equals(i.getCurrentState()) ||
+                            ACTIVATED.equals(i.getCurrentState()))
+                    .map(integrationState -> integrationState.getConfiguration().getType())
+                    .collect(Collectors.toList());
+            Map<IntegrationType, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+            List<IntegrationType> startFailed = integrations.values()
+                    .stream()
+                    .filter(i ->
+                            FAILED.equals(i.getCurrentState()))
+                    .map(integrationState -> integrationState.getConfiguration().getType())
+                    .collect(Collectors.toList());
+            Map<IntegrationType, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+
             gaugesSuccess.entrySet().forEach(m -> mapSuccess.putIfAbsent(m.getKey(), 0L));
             gaugesFailed.entrySet().forEach(m -> mapFailed.putIfAbsent(m.getKey(), 0L));
 
@@ -735,9 +737,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         ComponentLifecycleEvent currentState = state.getCurrentState();
         log.trace("IntegrationType: [{}], IntegrationState: [{}]", type.name(), currentState);
         if (FAILED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationMsgsStateFailedCounterAdd(type.name());
+            integrationStatisticsService.onIntegrationMsgsStateFailedCounterAdd(type);
         } else if (STARTED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationMsgsStateSuccessCounterAdd(type.name());
+            integrationStatisticsService.onIntegrationMsgsStateSuccessCounterAdd(type);
         }
     }
 
