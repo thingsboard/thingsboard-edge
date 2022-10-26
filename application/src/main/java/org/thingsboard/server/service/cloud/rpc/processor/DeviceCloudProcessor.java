@@ -104,9 +104,11 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                 try {
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
                             UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null, queueStartTs);
+                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                deviceId, null, queueStartTs);
                     } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null, 0L);
+                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED,
+                                deviceId, null, 0L);
                     }
                     futureToSet.set(null);
                 } catch (Exception e) {
@@ -255,7 +257,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 body.put("response", response.getResponse().orElse("{}"));
             }
-            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, rpcRequest.getDeviceId(), body, 0L);
+            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
+                    rpcRequest.getDeviceId(), body, 0L);
         } catch (Exception e) {
             String errMsg = String.format("Can't process RPC response [%s] [%s]", rpcRequest, response);
             log.debug(errMsg, e);

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -44,8 +45,6 @@ import java.util.concurrent.Executors;
 @TbCoreComponent
 @Slf4j
 public class DefaultCloudNotificationService implements CloudNotificationService {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private AlarmService alarmService;
@@ -126,12 +125,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         switch (actionType) {
             case DELETED:
-                Alarm deletedAlarm = mapper.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
+                Alarm deletedAlarm = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
                 cloudEventService.saveCloudEvent(tenantId,
                         CloudEventType.ALARM,
                         actionType,
                         alarmId,
-                        mapper.valueToTree(deletedAlarm),
+                        JacksonUtil.OBJECT_MAPPER.valueToTree(deletedAlarm),
                         0L);
                 break;
             default:
@@ -152,12 +151,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     }
 
     private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
-        EntityRelation relation = mapper.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
+        EntityRelation relation = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
         cloudEventService.saveCloudEvent(tenantId,
                 CloudEventType.RELATION,
                 EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                 null,
-                mapper.valueToTree(relation),
+                JacksonUtil.OBJECT_MAPPER.valueToTree(relation),
                 0L);
     }
 }
