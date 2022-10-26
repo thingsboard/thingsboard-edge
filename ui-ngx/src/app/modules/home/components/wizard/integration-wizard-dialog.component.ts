@@ -400,7 +400,7 @@ export class IntegrationWizardDialogComponent extends
 
   private allValid(): boolean {
     if (this.addIntegrationWizardStepper.steps.find((item, index) => {
-      if (item.stepControl.invalid) {
+      if (item.stepControl?.invalid) {
         item.interacted = true;
         this.addIntegrationWizardStepper.selectedIndex = index;
         return true;

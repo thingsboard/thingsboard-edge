@@ -30,6 +30,7 @@
  */
 ::ng-deep {
   .input-icon {
+    margin-right: 6px;
     width: 28px;
     height: 28px;
     vertical-align: middle;
@@ -58,7 +59,7 @@
     }
 
     .integration-type-button {
-      padding: 14px 12px;
+      padding: 6px 0 14px;
       position: relative;
 
       .icon {

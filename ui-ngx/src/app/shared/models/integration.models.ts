@@ -30,7 +30,6 @@
 ///
 
 import { BaseData, ExportableEntity } from '@shared/models/base-data';
-import { TenantId } from '@shared/models/id/tenant-id';
 import { IntegrationId } from '@shared/models/id/integration-id';
 import { ConverterId } from '@shared/models/id/converter-id';
 import { EntityGroupParams } from '@shared/models/entity-group.models';
@@ -348,6 +347,11 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
   ]
 );
 
+export type IntegrationConfiguration = ApachePulsarIntegration | HttpIntegration | ThingParkIntegration | LoriotIntegration |
+  MqttIntegration | AwsIotIntegration | AwsSqsIntegration | AwsKinesisIntegration | IbmWatsonIotIntegration | TtnIntegration |
+  ChipStackIntegration | AzureEventHubIntegration | AzureIotHubIntegration | OpcUaIntegration | UpdIntegration | TcpIntegration |
+  KafkaIntegration | RabbitMqIntegration | PubSubIntegration | CoapIntegration | CustomIntegration;
+
 export function getIntegrationHelpLink(integration: Integration): string {
   if (integration && integration.type) {
     if (integrationHelpLinkMap.has(integration.type)) {
@@ -357,24 +361,26 @@ export function getIntegrationHelpLink(integration: Integration): string {
   return 'integrations';
 }
 
+export interface IntegrationMetaData {
+  metadata?: { [k: string]: string };
+}
+
 export interface IntegrationBasic extends BaseData<IntegrationId>, ExportableEntity<IntegrationId> {
-  tenantId?: TenantId;
-  defaultConverterId: ConverterId;
-  downlinkConverterId?: ConverterId;
-  name: string;
-  routingKey: string;
   type: IntegrationType;
   debugMode: boolean;
   enabled: boolean;
   remote: boolean;
   allowCreateDevicesOrAssets: boolean;
-  secret: string;
-  additionalInfo?: any;
   edgeTemplate: boolean;
 }
 
 export interface Integration extends IntegrationBasic {
-  configuration: any;
+  configuration: IntegrationConfiguration & IntegrationMetaData;
+  defaultConverterId: ConverterId;
+  downlinkConverterId?: ConverterId;
+  routingKey: string;
+  secret: string;
+  additionalInfo?: any;
 }
 
 export interface IntegrationInfo extends IntegrationBasic {
