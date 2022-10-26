@@ -320,7 +320,7 @@ export class IntegrationWizardDialogComponent extends
 
   changeStep($event: StepperSelectionEvent) {
     this.selectedIndex = $event.selectedIndex;
-    if (this.selectedIndex === this.maxStep) {
+    if (this.isConnectionStep) {
       this.showCheckConnection = false;
     }
   }
@@ -382,11 +382,15 @@ export class IntegrationWizardDialogComponent extends
   }
 
   get isCheckConnectionAvailable(): boolean {
-    return !this.isEdgeTemplate && this.checkConnectionAllow && !this.isRemoteIntegration;
+    return !this.isEdgeTemplate && this.checkConnectionAllow && !this.isRemoteIntegration && this.isConnectionStep;
   }
 
   private get isRemoteIntegration(): boolean {
     return this.integrationConfigurationForm.value.remote;
+  }
+
+  private get isConnectionStep(): boolean {
+    return this.selectedIndex === this.maxStep;
   }
 
   private generateSecret(length: number = 1): string {

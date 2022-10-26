@@ -39,7 +39,6 @@
          (keyup.enter)="selectedType()"
          [required]="required"
          [matAutocomplete]="integrationTypesAutocomplete">
-  <img class="input-icon" matPrefix [fxHide]="integrationTypesAutocomplete.isOpen || !modelValue" [src]="modelValue?.icon" alt="icon">
   <button *ngIf="integrationTypeFormGroup.get('type').value && !disabled"
           type="button"
           matSuffix mat-icon-button aria-label="Clear"

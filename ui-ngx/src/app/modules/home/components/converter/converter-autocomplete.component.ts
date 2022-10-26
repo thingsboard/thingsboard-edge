@@ -164,7 +164,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
             this.clear();
           }
         }),
-        map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
+        map(value => value ? (typeof value === 'string' ? value.trim() : value.name) : ''),
         distinctUntilChanged(),
         switchMap(name => this.fetchEntities(name) ),
         share()
@@ -296,7 +296,7 @@ export class ConverterAutocompleteComponent implements ControlValueAccessor, OnI
         disableClose: true,
         panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
         data: {
-          name: converterName,
+          name: converterName.trim(),
           edgeTemplate: this.isEdgeTemplate,
           type: this.converterTypeValue
         }

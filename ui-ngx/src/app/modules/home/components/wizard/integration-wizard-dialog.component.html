@@ -51,7 +51,10 @@
     </ng-template>
     <mat-step [stepControl]="integrationWizardForm">
       <form [formGroup]="integrationWizardForm">
-        <ng-template matStepLabel>{{ "integration.basic-settings" | translate }}<br><span class="mat-step-optional">{{integrationType}}</span></ng-template>
+        <ng-template matStepLabel>
+          {{ "integration.basic-settings" | translate }}<br>
+          <span class="mat-step-optional" [fxHide]="selectedIndex === 0">{{integrationType}}</span>
+        </ng-template>
         <tb-integration-type-select formControlName="type" required fxFlex>
         </tb-integration-type-select>
         <mat-form-field fxFlex class="mat-block">
