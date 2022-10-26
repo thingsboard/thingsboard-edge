@@ -165,21 +165,20 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(UUID tenantId,
-                                                                                              UUID entityId,
-                                                                                              CloudEventType cloudEventType,
-                                                                                              EdgeEventActionType cloudEventAction,
-                                                                                              TimePageLink pageLink) {
-        return DaoUtil.toPageData(
-                cloudEventRepository
-                        .findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
-                                tenantId,
-                                entityId,
-                                cloudEventType,
-                                cloudEventAction,
-                                pageLink.getStartTime(),
-                                pageLink.getEndTime(),
-                                DaoUtil.toPageable(pageLink)));
+    public long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
+                                                                                       UUID entityId,
+                                                                                       CloudEventType cloudEventType,
+                                                                                       EdgeEventActionType cloudEventAction,
+                                                                                       Long startTime,
+                                                                                       Long endTime) {
+        return cloudEventRepository
+                .countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
+                        tenantId,
+                        entityId,
+                        cloudEventType,
+                        cloudEventAction,
+                        startTime,
+                        endTime);
     }
 
     @Override

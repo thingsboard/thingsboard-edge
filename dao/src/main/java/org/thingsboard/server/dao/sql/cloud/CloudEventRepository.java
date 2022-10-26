@@ -39,7 +39,7 @@ public interface CloudEventRepository extends JpaRepository<CloudEventEntity, UU
                                                 @Param("endTime") Long endTime,
                                                 Pageable pageable);
 
-    @Query("SELECT e FROM CloudEventEntity e WHERE " +
+    @Query("SELECT COUNT(e) FROM CloudEventEntity e WHERE " +
             "e.tenantId = :tenantId " +
             "AND e.entityId  = :entityId " +
             "AND e.cloudEventType = :cloudEventType " +
@@ -47,12 +47,10 @@ public interface CloudEventRepository extends JpaRepository<CloudEventEntity, UU
             "AND (:startTime IS NULL OR e.createdTime > :startTime) " +
             "AND (:endTime IS NULL OR e.createdTime <= :endTime) "
     )
-    Page<CloudEventEntity> findEventsByTenantIdAndEntityIdAndCloudEventActionAndCloudEventType(
-            @Param("tenantId") UUID tenantId,
-            @Param("entityId") UUID entityId,
-            @Param("cloudEventType") CloudEventType cloudEventType,
-            @Param("cloudEventAction") EdgeEventActionType cloudEventAction,
-            @Param("startTime") Long startTime,
-            @Param("endTime") Long endTime,
-            Pageable pageable);
+    long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(@Param("tenantId") UUID tenantId,
+                                                                                @Param("entityId") UUID entityId,
+                                                                                @Param("cloudEventType") CloudEventType cloudEventType,
+                                                                                @Param("cloudEventAction") EdgeEventActionType cloudEventAction,
+                                                                                @Param("startTime") Long startTime,
+                                                                                @Param("endTime") Long endTime);
 }

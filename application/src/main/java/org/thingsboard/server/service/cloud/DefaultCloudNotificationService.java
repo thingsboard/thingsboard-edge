@@ -15,14 +15,12 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -35,12 +33,10 @@ import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -57,9 +53,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     @Autowired
     private CloudEventService cloudEventService;
 
-    @Autowired
-    private DbCallbackExecutorService dbCallbackExecutorService;
-
     private ExecutorService tsCallBackExecutor;
 
     @PostConstruct
@@ -72,26 +65,6 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         if (tsCallBackExecutor != null) {
             tsCallBackExecutor.shutdownNow();
         }
-    }
-
-    private void saveCloudEvent(TenantId tenantId,
-                                CloudEventType cloudEventType,
-                                EdgeEventActionType cloudEventAction,
-                                EntityId entityId,
-                                JsonNode entityBody) throws ExecutionException, InterruptedException {
-        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], " +
-                        "cloudEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
-
-        CloudEvent cloudEvent = new CloudEvent();
-        cloudEvent.setTenantId(tenantId);
-        cloudEvent.setType(cloudEventType);
-        cloudEvent.setAction(cloudEventAction);
-        if (entityId != null) {
-            cloudEvent.setEntityId(entityId.getId());
-        }
-        cloudEvent.setEntityBody(entityBody);
-        cloudEventService.saveAsync(cloudEvent).get();
     }
 
     @Override
@@ -139,7 +112,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             case UNASSIGNED_FROM_CUSTOMER:
             case DELETED:
                 try {
-                    saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null);
+                    cloudEventService.saveCloudEvent(tenantId, cloudEventType, cloudEventActionType, entityId, null, 0L);
                 } catch (Exception e) {
                     log.error("[{}] Failed to push event to cloud [{}], cloudEventType [{}], cloudEventActionType [{}], entityId [{}]",
                             tenantId, cloudEventType, cloudEventActionType, entityId, e);
@@ -154,11 +127,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         switch (actionType) {
             case DELETED:
                 Alarm deletedAlarm = mapper.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
-                saveCloudEvent(tenantId,
+                cloudEventService.saveCloudEvent(tenantId,
                         CloudEventType.ALARM,
                         actionType,
                         alarmId,
-                        mapper.valueToTree(deletedAlarm));
+                        mapper.valueToTree(deletedAlarm),
+                        0L);
                 break;
             default:
                 // TODO: @voba - improve performance by using async method properly
@@ -166,11 +140,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 if (alarm != null) {
                     CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
                     if (cloudEventType != null) {
-                        saveCloudEvent(tenantId,
+                        cloudEventService.saveCloudEvent(tenantId,
                                 CloudEventType.ALARM,
                                 EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                                 alarmId,
-                                null);
+                                null,
+                                0L);
                     }
                 }
         }
@@ -178,11 +153,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
 
     private void processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
         EntityRelation relation = mapper.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
-        saveCloudEvent(tenantId,
+        cloudEventService.saveCloudEvent(tenantId,
                 CloudEventType.RELATION,
                 EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
                 null,
-                mapper.valueToTree(relation));
+                mapper.valueToTree(relation),
+                0L);
     }
 }
 

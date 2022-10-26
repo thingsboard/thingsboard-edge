@@ -97,12 +97,10 @@ public class UserCloudProcessor extends BaseCloudProcessor {
                 return handleUnsupportedMsgType(userUpdateMsg.getMsgType());
         }
 
-        ListenableFuture<Boolean> requestFuture = requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs);
-
-        return Futures.transformAsync(requestFuture, ignored -> {
+        return Futures.transformAsync(requestForAdditionalData(tenantId, userUpdateMsg.getMsgType(), userId, queueStartTs), ignored -> {
             if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType()) ||
                     UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(userUpdateMsg.getMsgType())) {
-                return saveCloudEvent(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST, userId, null);
+                return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST, userId, null, queueStartTs);
             } else {
                 return Futures.immediateFuture(null);
             }
