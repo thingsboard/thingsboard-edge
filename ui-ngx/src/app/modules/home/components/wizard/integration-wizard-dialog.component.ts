@@ -287,7 +287,7 @@ export class IntegrationWizardDialogComponent extends
       },
       routingKey: this.integrationConfigurationForm.getRawValue().routingKey,
       secret: this.integrationConfigurationForm.getRawValue().secret,
-      remote: this.integrationConfigurationForm.value.remote,
+      remote: this.integrationConfigurationForm.getRawValue().remote,
       defaultConverterId: uplinkConverterId,
       downlinkConverterId,
       name: this.integrationWizardForm.value.name.trim(),
