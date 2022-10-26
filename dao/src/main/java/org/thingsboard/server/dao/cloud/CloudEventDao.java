@@ -63,12 +63,12 @@ public interface CloudEventDao extends Dao<CloudEvent> {
      */
     PageData<CloudEvent> findCloudEvents(UUID tenantId, TimePageLink pageLink);
 
-    PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
-            UUID tenantId,
-            UUID entityId,
-            CloudEventType cloudEventType,
-            EdgeEventActionType cloudEventAction,
-            TimePageLink pageLink);
+    long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
+                                                                                UUID entityId,
+                                                                                CloudEventType cloudEventType,
+                                                                                EdgeEventActionType cloudEventAction,
+                                                                                Long startTime,
+                                                                                Long endTime);
 
     /**
      * Executes stored procedure to cleanup old cloud events.

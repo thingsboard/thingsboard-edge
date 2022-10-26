@@ -30,29 +30,42 @@
  */
 package org.thingsboard.server.dao.cloud;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public interface CloudEventService {
 
     ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
-    PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
+    void saveCloudEvent(TenantId tenantId,
+                        CloudEventType cloudEventType,
+                        EdgeEventActionType cloudEventAction,
+                        EntityId entityId,
+                        JsonNode entityBody,
+                        EntityGroupId entityGroupId,
+                        Long queueStartTs) throws ExecutionException, InterruptedException;
 
-    PageData<CloudEvent> findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(TenantId tenantId,
-                                                                                       EntityId entityId,
-                                                                                       CloudEventType cloudEventType,
-                                                                                       EdgeEventActionType cloudEventAction,
-                                                                                       TimePageLink pageLink);
+    ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId,
+                                               CloudEventType cloudEventType,
+                                               EdgeEventActionType cloudEventAction,
+                                               EntityId entityId,
+                                               JsonNode entityBody,
+                                               EntityGroupId entityGroupId,
+                                               Long queueStartTs);
+
+    PageData<CloudEvent> findCloudEvents(TenantId tenantId, TimePageLink pageLink);
 
     EdgeSettings findEdgeSettings(TenantId tenantId);
 

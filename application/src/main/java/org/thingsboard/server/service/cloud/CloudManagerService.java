@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -75,7 +76,6 @@ import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
@@ -87,7 +87,6 @@ import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcesso
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -110,7 +109,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
-public class CloudManagerService extends BaseCloudEventService {
+public class CloudManagerService {
 
     private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
 
@@ -164,9 +163,6 @@ public class CloudManagerService extends BaseCloudEventService {
     private DeviceCloudProcessor deviceProcessor;
 
     @Autowired
-    private DeviceProfileCloudProcessor deviceProfileProcessor;
-
-    @Autowired
     private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
@@ -194,7 +190,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private TenantCloudProcessor tenantCloudProcessor;
 
     @Autowired
-    private InstallScripts installScripts;
+    private CloudEventService cloudEventService;
 
     @Autowired
     private ConfigurableApplicationContext context;
@@ -554,8 +550,8 @@ public class CloudManagerService extends BaseCloudEventService {
     private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
         EdgeId edgeId = getEdgeId(edgeConfiguration);
         edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
-        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
-        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
+        cloudEventService.saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null, null, queueStartTs);
+        cloudEventService.saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null, null, queueStartTs);
     }
 
     private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {

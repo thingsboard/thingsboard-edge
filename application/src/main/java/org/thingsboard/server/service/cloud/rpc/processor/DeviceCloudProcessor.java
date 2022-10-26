@@ -122,15 +122,15 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         Futures.addCallback(requestForAdditionalData(tenantId, deviceUpdateMsg.getMsgType(), deviceId, queueStartTs), new FutureCallback<>() {
             @Override
-            public void onSuccess(@Nullable Boolean requestForAdditionalData) {
+            public void onSuccess(Void ignored) {
                 try {
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType()) ||
                             UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                        if (requestForAdditionalData != null && requestForAdditionalData) {
-                            saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null).get();
-                        }
+                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST,
+                                deviceId, null, null, queueStartTs);
                     } else if (UpdateMsgType.ENTITY_MERGE_RPC_MESSAGE.equals(deviceUpdateMsg.getMsgType())) {
-                        saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null).get();
+                        cloudEventService.saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED,
+                                deviceId, null, null, 0L);
                     }
                     futureToSet.set(null);
                 } catch (Exception e) {
@@ -293,7 +293,8 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 body.put("response", response.getResponse().orElse("{}"));
             }
-            saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, rpcRequest.getDeviceId(), body).get();
+            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
+                    rpcRequest.getDeviceId(), body, null, 0L);
         } catch (Exception e) {
             String errMsg = String.format("Can't process RPC response [%s] [%s]", rpcRequest, response);
             log.debug(errMsg, e);

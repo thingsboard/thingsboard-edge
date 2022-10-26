@@ -32,11 +32,9 @@ package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -73,14 +71,17 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
 
     private final Lock entityGroupCreationLock = new ReentrantLock();
 
-    public ListenableFuture<Void> processEntityGroupMsgFromCloud(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg) {
+    public ListenableFuture<Void> processEntityGroupMsgFromCloud(TenantId tenantId, EntityGroupUpdateMsg entityGroupUpdateMsg,
+                                                                 Long queueStartTs) {
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
         switch (entityGroupUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 entityGroupCreationLock.lock();
+                EntityGroup entityGroup = null;
                 try {
-                    EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+                    entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
                     boolean created = false;
                     if (entityGroup == null) {
                         entityGroup = new EntityGroup();
@@ -106,55 +107,34 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
-                Futures.addCallback(entityGroupByIdAsyncFuture, new FutureCallback<EntityGroup>() {
-                    @Override
-                    public void onSuccess(@Nullable EntityGroup entityGroup) {
-                        if (entityGroup != null) {
-                            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
-                            Futures.addCallback(entityIdsFuture, new FutureCallback<List<EntityId>>() {
-                                @Override
-                                public void onSuccess(@Nullable List<EntityId> entityIds) {
-                                    List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
-                                    if (entityIds != null && !entityIds.isEmpty()) {
-                                        for (EntityId entityId : entityIds) {
-                                            ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
-                                            deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
-                                                if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
-                                                    deleteEntityById(tenantId, entityId);
-                                                }
-                                                return null;
-                                            }, dbCallbackExecutor));
+                ListenableFuture<Void> deleteFuture = Futures.transformAsync(entityGroupByIdAsyncFuture, entityGroupFromDb -> {
+                    if (entityGroupFromDb != null) {
+                        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                        return Futures.transformAsync(entityIdsFuture, entityIds -> {
+                            List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
+                            if (entityIds != null && !entityIds.isEmpty()) {
+                                for (EntityId entityId : entityIds) {
+                                    ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
+                                    deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
+                                        if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
+                                            deleteEntityById(tenantId, entityId);
                                         }
-                                    }
-                                    ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
-                                    Futures.addCallback(allFuture, new FutureCallback<List<Void>>() {
-                                        @Override
-                                        public void onSuccess(@Nullable List<Void> voids) {
-                                            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
-                                        }
-
-                                        @Override
-                                        public void onFailure(Throwable t) {
-                                            log.error("Exception during delete entities", t);
-                                        }
-                                    }, dbCallbackExecutor);
+                                        return null;
+                                    }, dbCallbackExecutor));
                                 }
-
-                                @Override
-                                public void onFailure(Throwable t) {
-                                    String errMsg = String.format("Can't find entity ids, entityGroupUpdateMsg [%s]", entityGroupUpdateMsg);
-                                    log.error(errMsg, t);
-                                }
+                            }
+                            ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
+                            return Futures.transform(allFuture, all -> {
+                                entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
+                                return null;
                             }, dbCallbackExecutor);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable t) {
-                        String errMsg = String.format("Can't delete entity group by id, entityGroupUpdateMsg [%s]", entityGroupUpdateMsg);
-                        log.error(errMsg, t);
+                        }, dbCallbackExecutor);
+                    } else {
+                        log.info("[{}] Entity group [{}] was not found!", tenantId, entityGroupId);
+                        return null;
                     }
                 }, dbCallbackExecutor);
+                futures.add(deleteFuture);
                 break;
             case UNRECOGNIZED:
                 return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
@@ -164,10 +144,12 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType())) {
             ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
             body.put("type", entityGroupUpdateMsg.getType());
-            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST, entityGroupId, body);
-            saveCloudEvent(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST, entityGroupId, body);
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST,
+                    entityGroupId, body, null, queueStartTs));
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST,
+                    entityGroupId, body, null, queueStartTs));
         }
-        return Futures.immediateFuture(null);
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutor);
     }
 
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {

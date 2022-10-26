@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
@@ -49,7 +48,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -59,8 +57,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
@@ -98,7 +94,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.EntityDataMsgConstructor;
@@ -258,37 +253,23 @@ public abstract class BaseCloudProcessor {
     @Autowired
     protected DataValidator<Tenant> tenantValidator;
 
-    protected ListenableFuture<Boolean> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
+    protected ListenableFuture<Void> requestForAdditionalData(TenantId tenantId, UpdateMsgType updateMsgType, EntityId entityId, Long queueStartTs) {
+        List<ListenableFuture<Void>> futures = new ArrayList<>();
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(updateMsgType) ||
                 UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE.equals(updateMsgType)) {
             CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
 
-            TimePageLink timePageLink =
-                    CloudEventUtils.createCloudEventTimePageLink(1, queueStartTs);
-
-            PageData<CloudEvent> cloudEventsByEntityIdAndCloudEventActionAndCloudEventType =
-                    cloudEventService.findCloudEventsByEntityIdAndCloudEventActionAndCloudEventType(
-                            tenantId, entityId, cloudEventType, EdgeEventActionType.ATTRIBUTES_REQUEST, timePageLink);
-
-            if (cloudEventsByEntityIdAndCloudEventActionAndCloudEventType.getTotalElements() > 0) {
-                log.info("Skipping adding of ATTRIBUTES_REQUEST/RELATION_REQUEST because it's already present in db {} {}", entityId, cloudEventType);
-                return Futures.immediateFuture(false);
-            } else {
-                log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
-                List<ListenableFuture<Void>> futures = new ArrayList<>();
-                futures.add(saveCloudEvent(tenantId, cloudEventType,
-                        EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null));
-                futures.add(saveCloudEvent(tenantId, cloudEventType,
-                        EdgeEventActionType.RELATION_REQUEST, entityId, null));
-                if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
-                    futures.add(saveCloudEvent(tenantId, cloudEventType,
-                            EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null));
-                }
-                return Futures.transform(Futures.allAsList(futures), voids -> true, dbCallbackExecutor);
+            log.info("Adding ATTRIBUTES_REQUEST/RELATION_REQUEST {} {}", entityId, cloudEventType);
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                    EdgeEventActionType.ATTRIBUTES_REQUEST, entityId, null, null, queueStartTs));
+            futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                    EdgeEventActionType.RELATION_REQUEST, entityId, null, null, queueStartTs));
+            if (CloudEventType.DEVICE.equals(cloudEventType) || CloudEventType.ASSET.equals(cloudEventType)) {
+                futures.add(cloudEventService.saveCloudEventAsync(tenantId, cloudEventType,
+                        EdgeEventActionType.ENTITY_VIEW_REQUEST, entityId, null, null, queueStartTs));
             }
-        } else {
-            return Futures.immediateFuture(true);
         }
+        return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutor);
     }
 
     protected void addEntityToGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
@@ -397,25 +378,6 @@ public abstract class BaseCloudProcessor {
             }
         }
         return result;
-    }
-
-    protected ListenableFuture<Void> saveCloudEvent(TenantId tenantId,
-                                                    CloudEventType cloudEventType,
-                                                    EdgeEventActionType cloudEventAction,
-                                                    EntityId entityId,
-                                                    JsonNode entityBody) {
-        log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
-                tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
-
-        CloudEvent cloudEvent = new CloudEvent();
-        cloudEvent.setTenantId(tenantId);
-        cloudEvent.setType(cloudEventType);
-        cloudEvent.setAction(cloudEventAction);
-        if (entityId != null) {
-            cloudEvent.setEntityId(entityId.getId());
-        }
-        cloudEvent.setEntityBody(entityBody);
-        return cloudEventService.saveAsync(cloudEvent);
     }
 
     protected ListenableFuture<Void> handleUnsupportedMsgType(UpdateMsgType msgType) {
