@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnExpression("('${metrics.enabled:false}'=='true') && ('${service.type:null}'=='tb-integration' " +
-        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
+        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core')")
 public class IntegrationStatisticsDefault implements IntegrationStatisticsService {
 
     private final Map<IntegrationStatisticsKey, DefaultCounter> counters = new ConcurrentHashMap<>();

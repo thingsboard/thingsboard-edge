@@ -42,7 +42,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnExpression("('${metrics.enabled:false}'=='false') && ('${service.type:null}'=='tb-integration' " +
-        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
+        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core')")
 public class IntegrationStatisticsEmpty implements IntegrationStatisticsService {
     @Override
     public void onIntegrationMsgsStateSuccessCounterAdd(IntegrationType integrationType) {
