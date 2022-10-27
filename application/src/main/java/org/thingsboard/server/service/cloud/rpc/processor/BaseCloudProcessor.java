@@ -23,11 +23,18 @@ import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -260,6 +267,32 @@ public abstract class BaseCloudProcessor {
                 return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
             default:
                 throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        }
+    }
+
+    protected EntityId constructEntityId(String entityTypeStr, long entityIdMSB, long entityIdLSB) {
+        EntityType entityType = EntityType.valueOf(entityTypeStr);
+        switch (entityType) {
+            case DEVICE:
+                return new DeviceId(new UUID(entityIdMSB, entityIdLSB));
+            case ASSET:
+                return new AssetId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_VIEW:
+                return new EntityViewId(new UUID(entityIdMSB, entityIdLSB));
+            case DASHBOARD:
+                return new DashboardId(new UUID(entityIdMSB, entityIdLSB));
+            case TENANT:
+                return TenantId.fromUUID(new UUID(entityIdMSB, entityIdLSB));
+            case CUSTOMER:
+                return new CustomerId(new UUID(entityIdMSB, entityIdLSB));
+            case USER:
+                return new UserId(new UUID(entityIdMSB, entityIdLSB));
+            case EDGE:
+                return new EdgeId(new UUID(entityIdMSB, entityIdLSB));
+            default:
+                log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
+                        entityTypeStr, entityIdMSB, entityIdLSB);
+                return null;
         }
     }
 }
