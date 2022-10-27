@@ -63,8 +63,9 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto, EntityId entityId) {
+    public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto) {
         try {
+            EntityId entityId = constructEntityId(customTranslationProto.getEntityType(), customTranslationProto.getEntityIdMSB(), customTranslationProto.getEntityIdLSB());
             CustomTranslation customTranslation = new CustomTranslation();
             if (!customTranslationProto.getTranslationMapMap().isEmpty()) {
                 customTranslation.setTranslationMap(customTranslationProto.getTranslationMapMap());
@@ -90,9 +91,11 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
     }
 
     public ListenableFuture<Void> processLoginWhiteLabelingParamsMsgFromCloud(TenantId tenantId,
-                                                                              LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto,
-                                                                              EntityId entityId) {
+                                                                              LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto) {
         try {
+            EntityId entityId = constructEntityId(loginWhiteLabelingParamsProto.getWhiteLabelingParams().getEntityType(),
+                    loginWhiteLabelingParamsProto.getWhiteLabelingParams().getEntityIdMSB(),
+                    loginWhiteLabelingParamsProto.getWhiteLabelingParams().getEntityIdLSB());
             LoginWhiteLabelingParams loginWhiteLabelingParams = constructLoginWhiteLabelingParams(loginWhiteLabelingParamsProto);
             switch (entityId.getEntityType()) {
                 case TENANT:
@@ -126,9 +129,10 @@ public class WhiteLabelingCloudProcessor extends BaseCloudProcessor {
         return loginWLP;
     }
 
-    public ListenableFuture<Void> processWhiteLabelingParamsMsgFromCloud(TenantId tenantId, WhiteLabelingParamsProto wLPProto, EntityId entityId) {
+    public ListenableFuture<Void> processWhiteLabelingParamsMsgFromCloud(TenantId tenantId, WhiteLabelingParamsProto wLPProto) {
         try {
             WhiteLabelingParams wLP = constructWhiteLabelingParams(wLPProto);
+            EntityId entityId = constructEntityId(wLPProto.getEntityType(), wLPProto.getEntityIdMSB(), wLPProto.getEntityIdLSB());
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {

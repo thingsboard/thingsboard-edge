@@ -325,34 +325,31 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 }
             }
             if (downlinkMsg.hasSystemCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getSystemCustomTranslationMsg(), new TenantId(EntityId.NULL_UUID)));
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getSystemCustomTranslationMsg()));
             }
             if (downlinkMsg.hasTenantCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getTenantCustomTranslationMsg(), tenantId));
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getTenantCustomTranslationMsg()));
             }
             if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg(), customerId));
+                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg()));
             }
             if (downlinkMsg.hasSystemWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemWhiteLabelingParams(), new TenantId(EntityId.NULL_UUID)));
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemWhiteLabelingParams()));
             }
             if (downlinkMsg.hasTenantWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantWhiteLabelingParams(), tenantId));
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantWhiteLabelingParams()));
             }
             if (downlinkMsg.hasCustomerWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerWhiteLabelingParams()));
             }
             if (downlinkMsg.hasSystemLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(
-                        tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams(), new TenantId(EntityId.NULL_UUID)));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getSystemLoginWhiteLabelingParams()));
             }
             if (downlinkMsg.hasTenantLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(
-                        tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams(), tenantId));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getTenantLoginWhiteLabelingParams()));
             }
             if (downlinkMsg.hasCustomerLoginWhiteLabelingParams()) {
-                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(
-                        tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams(), customerId));
+                result.add(whiteLabelingProcessor.processLoginWhiteLabelingParamsMsgFromCloud(tenantId, downlinkMsg.getCustomerLoginWhiteLabelingParams()));
             }
             if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
                 for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
