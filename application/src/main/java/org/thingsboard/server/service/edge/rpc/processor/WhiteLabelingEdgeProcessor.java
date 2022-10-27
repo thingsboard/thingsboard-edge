@@ -64,7 +64,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         WhiteLabelingParamsProto whiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(systemWhiteLabelingParams);
+                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(systemWhiteLabelingParams, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemWhiteLabelingParams(whiteLabelingParamsProto)
@@ -76,7 +76,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         WhiteLabelingParamsProto whiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(tenantWhiteLabelingParams);
+                                whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(tenantWhiteLabelingParams, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantWhiteLabelingParams(whiteLabelingParamsProto)
@@ -91,7 +91,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                         return null;
                     }
                     WhiteLabelingParamsProto whiteLabelingParamsProto =
-                            whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(customerWhiteLabelingParams);
+                            whiteLabelingParamsProtoConstructor.constructWhiteLabelingParamsProto(customerWhiteLabelingParams, customerId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerWhiteLabelingParams(whiteLabelingParamsProto)
@@ -120,7 +120,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(systemLoginWhiteLabelingParams);
+                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(systemLoginWhiteLabelingParams, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
@@ -132,7 +132,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(tenantLoginWhiteLabelingParams);
+                                whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(tenantLoginWhiteLabelingParams, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
@@ -147,7 +147,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                         return null;
                     }
                     LoginWhiteLabelingParamsProto loginWhiteLabelingParamsProto =
-                            whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(customerLoginWhiteLabelingParams);
+                            whiteLabelingParamsProtoConstructor.constructLoginWhiteLabelingParamsProto(customerLoginWhiteLabelingParams, customerId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerLoginWhiteLabelingParams(loginWhiteLabelingParamsProto)
@@ -176,7 +176,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation);
+                                customTranslationProtoConstructor.constructCustomTranslationProto(systemCustomTranslation, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemCustomTranslationMsg(customTranslationProto)
@@ -188,7 +188,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto =
-                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation);
+                                customTranslationProtoConstructor.constructCustomTranslationProto(tenantCustomTranslation, entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantCustomTranslationMsg(customTranslationProto)
@@ -203,7 +203,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                         return null;
                     }
                     CustomTranslationProto customTranslationProto =
-                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation);
+                            customTranslationProtoConstructor.constructCustomTranslationProto(customerCustomTranslation, customerId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerCustomTranslationMsg(customTranslationProto)

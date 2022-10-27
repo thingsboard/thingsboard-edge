@@ -525,11 +525,14 @@ message WhiteLabelingParamsProto {
   optional string faviconChecksum = 6;
   PaletteSettingsProto paletteSettings = 7;
   optional string helpLinkBaseUrl = 8;
-  optional string uiHelpBaseUrl = 13;
   optional bool enableHelpLinks = 9;
   optional bool showNameVersion = 10;
   optional string platformName = 11;
   optional string platformVersion = 12;
+  optional string uiHelpBaseUrl = 13;
+  optional int64 entityIdMSB = 14;
+  optional int64 entityIdLSB = 15;
+  optional string entityType = 16;
 }
 
 message FaviconProto {
@@ -550,6 +553,9 @@ message PaletteProto {
 
 message CustomTranslationProto {
   map<string, string> translationMap = 1;
+  optional int64 entityIdMSB = 2;
+  optional int64 entityIdLSB = 3;
+  optional string entityType = 4;
 }
 
 message RoleProto {
