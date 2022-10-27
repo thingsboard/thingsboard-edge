@@ -28,26 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor;
+package org.thingsboard.server.edge.sql;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.edge.BaseWhiteLabelingEdgeTest;
 
-@Component
-@Slf4j
-public class CustomTranslationProtoConstructor {
+@DaoSqlTest
+public class WhiteLabelingEdgeSqlTest extends BaseWhiteLabelingEdgeTest {
 
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslation customTranslation, EntityId entityId) {
-        CustomTranslationProto.Builder builder = CustomTranslationProto.newBuilder();
-        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name());
-        if (customTranslation.getTranslationMap() != null && !customTranslation.getTranslationMap().isEmpty()) {
-            builder.putAllTranslationMap(customTranslation.getTranslationMap());
-        }
-        return builder.build();
-    }
 }
