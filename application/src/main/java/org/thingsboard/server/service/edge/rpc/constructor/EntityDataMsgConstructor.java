@@ -34,10 +34,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
@@ -81,7 +84,7 @@ public class EntityDataMsgConstructor {
                     } else {
                         builder.setAttributesUpdatedMsg(attributesUpdatedMsg);
                     }
-                    builder.setPostAttributeScope(data.getAsJsonPrimitive("scope").getAsString());
+                    builder.setPostAttributeScope(getScopeOfDefault(data));
                 } catch (Exception e) {
                     log.warn("[{}] Can't convert to AttributesUpdatedMsg proto, entityData [{}]", entityId, entityData, e);
                 }
@@ -91,7 +94,7 @@ public class EntityDataMsgConstructor {
                     JsonObject data = entityData.getAsJsonObject();
                     TransportProtos.PostAttributeMsg postAttributesMsg = JsonConverter.convertToAttributesProto(data.getAsJsonObject("kv"));
                     builder.setPostAttributesMsg(postAttributesMsg);
-                    builder.setPostAttributeScope(data.getAsJsonPrimitive("scope").getAsString());
+                    builder.setPostAttributeScope(getScopeOfDefault(data));
                 } catch (Exception e) {
                     log.warn("[{}] Can't convert to PostAttributesMsg, entityData [{}]", entityId, entityData, e);
                 }
@@ -112,4 +115,14 @@ public class EntityDataMsgConstructor {
         }
         return builder.build();
     }
+
+    private String getScopeOfDefault(JsonObject data) {
+        JsonPrimitive scope = data.getAsJsonPrimitive("scope");
+        String result = DataConstants.SERVER_SCOPE;
+        if (scope != null && StringUtils.isNotBlank(scope.getAsString())) {
+            result = scope.getAsString();
+        }
+        return result;
+    }
+
 }
