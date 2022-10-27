@@ -66,7 +66,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKey;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -92,7 +91,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -110,7 +108,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
     public List<ListenableFuture<Void>> processTelemetryFromCloud(TenantId tenantId, EntityDataProto entityData) {
         log.trace("[{}] processTelemetryFromCloud [{}]", tenantId, entityData);
         List<ListenableFuture<Void>> result = new ArrayList<>();
-        EntityId entityId = constructEntityId(entityData);
+        EntityId entityId = constructEntityId(entityData.getEntityType(), entityData.getEntityIdMSB(), entityData.getEntityIdLSB());
         if ((entityData.hasPostAttributesMsg() || entityData.hasPostTelemetryMsg() || entityData.hasAttributesUpdatedMsg()) && entityId != null) {
             Pair<TbMsgMetaData, CustomerId> pair = getBaseMsgMetadataAndCustomerId(tenantId, entityId);
             TbMsgMetaData metaData = pair.getKey();
@@ -331,33 +329,6 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
             });
         }
         return futureToSet;
-    }
-
-    private EntityId constructEntityId(EntityDataProto entityData) {
-        EntityType entityType = EntityType.valueOf(entityData.getEntityType());
-        switch (entityType) {
-            case DEVICE:
-                return new DeviceId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case ASSET:
-                return new AssetId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case ENTITY_VIEW:
-                return new EntityViewId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case DASHBOARD:
-                return new DashboardId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case TENANT:
-                return new TenantId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case CUSTOMER:
-                return new CustomerId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case USER:
-                return new UserId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case EDGE:
-                return new EdgeId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            case ENTITY_GROUP:
-                return new EntityGroupId(new UUID(entityData.getEntityIdMSB(), entityData.getEntityIdLSB()));
-            default:
-                log.warn("Unsupported entity type [{}] during construct of entity id. EntityDataProto [{}]", entityData.getEntityType(), entityData);
-                return null;
-        }
     }
 
     public UplinkMsg convertTelemetryEventToUplink(CloudEvent cloudEvent) throws Exception {

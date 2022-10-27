@@ -30,38 +30,34 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgDataType;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -73,7 +69,6 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
-import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -344,6 +339,34 @@ public abstract class BaseCloudProcessor {
                 return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
             default:
                 throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        }
+    }
+
+    protected EntityId constructEntityId(String entityTypeStr, long entityIdMSB, long entityIdLSB) {
+        EntityType entityType = EntityType.valueOf(entityTypeStr);
+        switch (entityType) {
+            case DEVICE:
+                return new DeviceId(new UUID(entityIdMSB, entityIdLSB));
+            case ASSET:
+                return new AssetId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_VIEW:
+                return new EntityViewId(new UUID(entityIdMSB, entityIdLSB));
+            case DASHBOARD:
+                return new DashboardId(new UUID(entityIdMSB, entityIdLSB));
+            case TENANT:
+                return TenantId.fromUUID(new UUID(entityIdMSB, entityIdLSB));
+            case CUSTOMER:
+                return new CustomerId(new UUID(entityIdMSB, entityIdLSB));
+            case USER:
+                return new UserId(new UUID(entityIdMSB, entityIdLSB));
+            case EDGE:
+                return new EdgeId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_GROUP:
+                return new EntityGroupId(new UUID(entityIdMSB, entityIdLSB));
+            default:
+                log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
+                        entityTypeStr, entityIdMSB, entityIdLSB);
+                return null;
         }
     }
 }
