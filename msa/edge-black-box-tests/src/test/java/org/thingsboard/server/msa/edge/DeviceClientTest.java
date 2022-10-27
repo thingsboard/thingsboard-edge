@@ -649,7 +649,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     @Test
     public void testSharedAttributeUpdates() throws JsonProcessingException {
         // create device on cloud and assign to edge
-        Device savedDevice = saveAndAssignDeviceToEdge();
+        Device savedDevice = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
