@@ -121,7 +121,7 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
     @Override
     public List<Customer> getCustomersHierarchy(TenantId tenantId, CustomerId customerId) {
         List<Customer> result = new ArrayList<>();
-        if (!customerId.isNullUid()) {
+        if (customerId != null && !customerId.isNullUid()) {
             Customer customerById = customerService.findCustomerById(tenantId, customerId);
             result.add(customerById);
             if (customerById != null) {
