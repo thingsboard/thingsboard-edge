@@ -171,6 +171,22 @@ public class RemoteIntegrationManagerService {
 
     @PostConstruct
     public void init() {
+        if (StringUtils.isBlank(routingKey)) {
+            log.error("The routing key is blank. Please define 'INTEGRATION_ROUTING_KEY' environment variable!");
+            System.exit(-1);
+        }
+        if (StringUtils.isBlank(routingSecret)) {
+            log.error("The routing secret is blank. Please define 'INTEGRATION_SECRET' environment variable!");
+            System.exit(-1);
+        }
+        if ("PUT_YOUR_ROUTING_KEY_HERE".equals(routingKey)) {
+            log.error("The routing key is default. Please define 'INTEGRATION_ROUTING_KEY' environment variable!");
+            System.exit(-1);
+        }
+        if ("PUT_YOUR_SECRET_HERE".equals(routingSecret)) {
+            log.error("The routing secret is default. Please define 'INTEGRATION_SECRET' environment variable!");
+            System.exit(-1);
+        }
         serviceId = "[" + clientId + ":" + port + "]";
         rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
