@@ -33,6 +33,7 @@ package org.thingsboard.server.edge;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
@@ -163,7 +164,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(savedTenant);
 
         CustomTranslation content = new CustomTranslation();
-        content.getTranslationMap().put("key", "sys_admin_value");
+        content.getTranslationMap()
+                .put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(getCustomTranslationHomeObject("sys_admin_value")));
         doPost("/api/customTranslation/customTranslation", content, CustomTranslation.class);
         WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setAppTitle("Sys Admin TB");
@@ -182,7 +184,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
 
         content = new CustomTranslation();
-        content.getTranslationMap().put("key", "tenant_value");
+        content.getTranslationMap()
+                .put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(getCustomTranslationHomeObject("tenant_value")));
         doPost("/api/customTranslation/customTranslation", content, CustomTranslation.class);
         whiteLabelingParams = new WhiteLabelingParams();
         whiteLabelingParams.setAppTitle("Tenant TB");
@@ -855,5 +858,18 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         }
         Assert.assertNotNull(result);
         return result;
+    }
+
+    protected EntityGroupInfo findCustomerAdminsGroup(Customer savedCustomer) throws Exception {
+        return findGroupByOwnerIdTypeAndName(savedCustomer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
+    }
+
+    protected EntityGroupInfo findTenantAdminsGroup() throws Exception {
+        return findGroupByOwnerIdTypeAndName(tenantId, EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
+    }
+
+    protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
+        ObjectNode objectNode = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        return objectNode.put("home", homeValue);
     }
 }
