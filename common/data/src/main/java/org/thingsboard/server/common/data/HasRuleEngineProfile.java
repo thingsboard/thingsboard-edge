@@ -28,15 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.attributes;
+package org.thingsboard.server.common.data;
 
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.server.common.data.id.RuleChainId;
 
-@Repository
-@Transactional
-@SqlDao
-public class SqlAttributesInsertRepository extends AttributeKvInsertRepository {
+public interface HasRuleEngineProfile {
+
+    RuleChainId getDefaultRuleChainId();
+
+    String getDefaultQueueName();
 
 }

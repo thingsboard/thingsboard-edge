@@ -30,76 +30,59 @@
  */
 package org.thingsboard.rule.engine.telemetry;
 
-import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.session.SessionMsgType;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RuleNode(
         type = ComponentType.ACTION,
-        name = "save attributes",
-        configClazz = TbMsgAttributesNodeConfiguration.class,
-        nodeDescription = "Saves attributes data",
-        nodeDetails = "Saves entity attributes based on configurable scope parameter. Expects messages with 'POST_ATTRIBUTES_REQUEST' message type. " +
-                      "If upsert(update/insert) operation is completed successfully, rule node will send the \"Attributes Updated\" " +
-                      "event to the root chain of the message originator and send the incoming message via <b>Success</b> chain, otherwise, <b>Failure</b> chain is used.",
+        name = "delete attributes",
+        configClazz = TbMsgDeleteAttributesConfiguration.class,
+        nodeDescription = "Delete attributes for Message Originator.",
+        nodeDetails = "Attempt to remove attributes by selected keys. If msg originator doesn't have an attribute with " +
+                " a key selected in the configuration, it will be ignored. If delete operation is completed successfully, " +
+                " rule node will send the \"Attributes Deleted\" event to the root chain of the message originator and " +
+                " send the incoming message via <b>Success</b> chain, otherwise, <b>Failure</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
-        configDirective = "tbActionNodeAttributesConfig",
-        icon = "file_upload"
+        configDirective = "tbActionNodeDeleteAttributesConfig",
+        icon = "remove_circle"
 )
-public class TbMsgAttributesNode implements TbNode {
+public class TbMsgDeleteAttributes implements TbNode {
 
-    private TbMsgAttributesNodeConfiguration config;
-
-    private static final String SCOPE = "scope";
+    private TbMsgDeleteAttributesConfiguration config;
+    private String scope;
+    private List<String> keys;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
-        this.config = TbNodeUtils.convert(configuration, TbMsgAttributesNodeConfiguration.class);
-        if (config.getNotifyDevice() == null) {
-            config.setNotifyDevice(true);
-        }
+        this.config = TbNodeUtils.convert(configuration, TbMsgDeleteAttributesConfiguration.class);
+        this.scope = config.getScope();
+        this.keys = config.getKeys();
     }
 
     @Override
-    public void onMsg(TbContext ctx, TbMsg msg) {
-        if (!msg.getType().equals(SessionMsgType.POST_ATTRIBUTES_REQUEST.name())) {
-            ctx.tellFailure(msg, new IllegalArgumentException("Unsupported msg type: " + msg.getType()));
-            return;
-        }
-        String src = msg.getData();
-        String scope = msg.getMetaData().getValue(SCOPE);
-        if (StringUtils.isEmpty(scope)) {
-            scope = config.getScope();
-        }
-        List<AttributeKvEntry> attributes = new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(src)));
-        if (attributes.isEmpty()) {
+    public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
+        List<String> keysToDelete = keys.stream()
+                .map(keyPattern -> TbNodeUtils.processPattern(keyPattern, msg))
+                .distinct()
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
+        if (keysToDelete.isEmpty()) {
             ctx.tellSuccess(msg);
-            return;
+        } else {
+            ctx.getTelemetryService().deleteAndNotify(ctx.getTenantId(), msg.getOriginator(), scope, keysToDelete, new AttributesDeleteNodeCallback(ctx, msg, scope, keysToDelete));
         }
-        String notifyDeviceStr = msg.getMetaData().getValue("notifyDevice");
-        ctx.getTelemetryService().saveAndNotify(
-                ctx.getTenantId(),
-                msg.getOriginator(),
-                scope,
-                attributes,
-                config.getNotifyDevice() || StringUtils.isEmpty(notifyDeviceStr) || Boolean.parseBoolean(notifyDeviceStr),
-                new AttributesUpdateNodeCallback(ctx, msg, config.getScope(), attributes)
-        );
     }
-
 }

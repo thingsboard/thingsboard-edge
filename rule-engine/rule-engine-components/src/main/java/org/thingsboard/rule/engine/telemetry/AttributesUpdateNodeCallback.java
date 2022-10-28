@@ -28,15 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.attributes;
+package org.thingsboard.rule.engine.telemetry;
 
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.msg.TbMsg;
 
-@Repository
-@Transactional
-@SqlDao
-public class SqlAttributesInsertRepository extends AttributeKvInsertRepository {
+import javax.annotation.Nullable;
+import java.util.List;
 
+public class AttributesUpdateNodeCallback extends TelemetryNodeCallback {
+
+    private String scope;
+    private List<AttributeKvEntry> attributes;
+
+    public AttributesUpdateNodeCallback(TbContext ctx, TbMsg msg, String scope, List<AttributeKvEntry> attributes) {
+        super(ctx, msg);
+        this.scope = scope;
+        this.attributes = attributes;
+    }
+
+    @Override
+    public void onSuccess(@Nullable Void result) {
+        TbContext ctx = this.getCtx();
+        TbMsg tbMsg = this.getMsg();
+        ctx.enqueue(ctx.attributesUpdatedActionMsg(tbMsg.getOriginator(), ctx.getSelfId(), scope, attributes),
+                () -> ctx.tellSuccess(tbMsg),
+                throwable -> ctx.tellFailure(tbMsg, throwable));
+    }
 }

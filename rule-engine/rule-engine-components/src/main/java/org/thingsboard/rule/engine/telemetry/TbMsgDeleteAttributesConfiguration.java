@@ -28,15 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.attributes;
+package org.thingsboard.rule.engine.telemetry;
 
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.util.SqlDao;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.DataConstants;
 
-@Repository
-@Transactional
-@SqlDao
-public class SqlAttributesInsertRepository extends AttributeKvInsertRepository {
+import java.util.Collections;
+import java.util.List;
 
+@Data
+public class TbMsgDeleteAttributesConfiguration implements NodeConfiguration<TbMsgDeleteAttributesConfiguration> {
+
+    private String scope;
+    private List<String> keys;
+
+    @Override
+    public TbMsgDeleteAttributesConfiguration defaultConfiguration() {
+        TbMsgDeleteAttributesConfiguration configuration = new TbMsgDeleteAttributesConfiguration();
+        configuration.setScope(DataConstants.SERVER_SCOPE);
+        configuration.setKeys(Collections.emptyList());
+        return configuration;
+    }
 }
