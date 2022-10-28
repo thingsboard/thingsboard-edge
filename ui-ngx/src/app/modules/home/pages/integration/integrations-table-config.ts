@@ -160,7 +160,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       new EntityTableColumn<IntegrationInfo>('type', 'converter.type', '51%', (integration) => {
         return this.translate.instant(integrationTypeInfoMap.get(integration.type).name);
       }),
-      new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-rate', '9%',
+      new ChartEntityTableColumn<IntegrationInfo>('dailyRate', 'integration.daily-activity', '9%',
         (integration) => integration.stats,
         () => ({
           chartRangeMin: '',
@@ -177,7 +177,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       new EntityTableColumn<IntegrationInfo>('status', 'integration.status.status', '80px',
         integration => this.integrationStatus(integration),
         integration => this.integrationStatusStyle(integration), false),
-      new EntityTableColumn<IntegrationInfo>('remote', 'integration.remotely', '60px',
+      new EntityTableColumn<IntegrationInfo>('remote', 'integration.remote', '60px',
         integration => {
             return checkBoxCell(integration.remote);
         }, () => ({}), false)

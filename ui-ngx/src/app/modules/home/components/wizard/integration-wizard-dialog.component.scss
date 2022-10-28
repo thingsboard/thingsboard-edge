@@ -37,6 +37,37 @@
     }
   }
 
+  .tb-radio-button-group {
+    border: 2px solid rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    margin: 12px 0 16px;
+    position: relative;
+
+    .tb-radio-button {
+      margin-bottom: 8px;
+    }
+
+    .tb-radio-button-content {
+      position: relative;
+      padding: 16px 16px 8px;
+    }
+
+    .tb-select-button::before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      background-color: var(--tb-primary-500);
+      opacity: 0.02;
+    }
+
+    .tb-button-divider {
+      border-top-width: 2px;
+    }
+  }
+
   .remote-integration-setting {
     box-shadow: none;
     border: 1px groove rgba(0, 0, 0, .25);
@@ -49,10 +80,6 @@
         height: 48px;
       }
     }
-  }
-
-  .tb-group-button {
-    margin-bottom: 8px;
   }
 
   .connection-status {
@@ -119,20 +146,13 @@
         max-height: 100%;
         width: 100%;;
         overflow-y: auto;
+        scrollbar-gutter: stable both-edges;
         @media #{$mat-gt-sm} {
           min-width: 500px;
         }
       }
       .mat-horizontal-stepper-content[aria-expanded=true] {
         height: 100%;
-      }
-    }
-    .mat-button-toggle-group {
-      border-radius: 4px;
-      border: 2px solid rgba(0, 0, 0, 0.06);
-
-      .mat-button-toggle-label-content {
-        line-height: 38px;
       }
     }
   }
@@ -159,5 +179,9 @@
 
   .mat-stepper-label-position-bottom .mat-horizontal-stepper-header {
     padding: 20px 12px 12px;
+  }
+
+  .tb-js-func {
+    background-color: transparent !important;
   }
 }

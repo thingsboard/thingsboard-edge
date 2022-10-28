@@ -83,55 +83,66 @@
     <mat-step [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
         <ng-template matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
-        <section fxLayout="row" fxLayoutAlign="center start" class="tb-group-button">
-          <mat-button-toggle-group formControlName="converterType">
-            <mat-button-toggle value="exist">{{ "integration.use-existing" | translate }}</mat-button-toggle>
-            <mat-button-toggle value="new">{{ "integration.create-new" | translate }}</mat-button-toggle>
-          </mat-button-toggle-group>
-        </section>
-        <section *ngIf="uplinkConverterForm.get('converterType').value === 'exist'">
-          <tb-converter-autocomplete fxFlex formControlName="uplinkConverterId" required
-                                     labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
-                                     [converterType]="converterType.UPLINK"
-                                     [useFullEntityId]="true"
-                                     [isEdgeTemplate]="isEdgeTemplate">
-          </tb-converter-autocomplete>
-        </section>
-        <section [fxShow]="uplinkConverterForm.get('converterType').value === 'new'">
-          <tb-converter
-            #uplinkDataConverter
-            hideType="true"
-            isEdit="true"
-            [entity]="uplinkConverter"
-          ></tb-converter>
-        </section>
+        <mat-radio-group formControlName="converterType" fxLayout="column" class="tb-radio-button-group">
+          <section class="tb-radio-button-content"
+                   [ngClass]="{'tb-select-button': uplinkConverterForm.get('converterType').value === 'exist'}">
+            <mat-radio-button value="exist" color="primary" class="tb-radio-button">
+              <span translate>integration.existing-uplink-converter</span>
+            </mat-radio-button>
+            <tb-converter-autocomplete fxFlex formControlName="uplinkConverterId" required
+                                       *ngIf="uplinkConverterForm.get('converterType').value === 'exist'"
+                                       labelText="integration.uplink-converter"
+                                       requiredText="integration.uplink-converter-required"
+                                       [converterType]="converterType.UPLINK"
+                                       [useFullEntityId]="true"
+                                       [isEdgeTemplate]="isEdgeTemplate">
+            </tb-converter-autocomplete>
+          </section>
+          <mat-divider class="tb-button-divider"></mat-divider>
+          <section class="tb-radio-button-content"
+                   [ngClass]="{'tb-select-button': uplinkConverterForm.get('converterType').value === 'new'}">
+            <mat-radio-button value="new" color="primary" class="tb-radio-button">
+              <span translate>integration.new-uplink-converter</span>
+            </mat-radio-button>
+            <tb-converter #uplinkDataConverter
+                          [fxShow]="uplinkConverterForm.get('converterType').value === 'new'"
+                          hideType="true"
+                          isEdit="true"
+                          [entity]="uplinkConverter"
+            ></tb-converter>
+          </section>
+        </mat-radio-group>
       </form>
     </mat-step>
     <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
-        <section fxLayout="row" fxLayoutAlign="center start" class="tb-group-button">
-          <mat-button-toggle-group formControlName="converterType">
-            <mat-button-toggle value="exist">{{ "integration.use-existing" | translate }}</mat-button-toggle>
-            <mat-button-toggle value="new">{{ "integration.create-new" | translate }}</mat-button-toggle>
-          </mat-button-toggle-group>
-        </section>
-        <section *ngIf="downlinkConverterForm.get('converterType').value === 'exist'">
-          <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
-                                     labelText="integration.downlink-converter"
-                                     [converterType]="converterType.DOWNLINK"
-                                     [useFullEntityId]="true"
-                                     [isEdgeTemplate]="isEdgeTemplate">
-          </tb-converter-autocomplete>
-        </section>
-        <section [fxShow]="downlinkConverterForm.get('converterType').value === 'new'">
-          <tb-converter
-            #downlinkDataConverter
-            hideType="true"
-            isEdit="true"
-            [entity]="downlinkConverter"
-          ></tb-converter>
-        </section>
+        <mat-radio-group formControlName="converterType" fxLayout="column" class="tb-radio-button-group">
+          <section class="tb-radio-button-content" [ngClass]="{'tb-select-button': downlinkConverterForm.get('converterType').value === 'exist'}">
+            <mat-radio-button value="exist" color="primary" class="tb-radio-button">
+              <span translate>integration.existing-downlink-converter</span>
+            </mat-radio-button>
+            <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+                                       *ngIf="downlinkConverterForm.get('converterType').value === 'exist'"
+                                       labelText="integration.downlink-converter"
+                                       [converterType]="converterType.DOWNLINK"
+                                       [useFullEntityId]="true"
+                                       [isEdgeTemplate]="isEdgeTemplate">
+            </tb-converter-autocomplete>
+          </section>
+          <mat-divider class="tb-button-divider"></mat-divider>
+          <section class="tb-radio-button-content" [ngClass]="{'tb-select-button': downlinkConverterForm.get('converterType').value === 'new'}">
+            <mat-radio-button value="new" color="primary" class="tb-radio-button">
+              <span translate>integration.new-downlink-converter</span>
+            </mat-radio-button>
+            <tb-converter #downlinkDataConverter
+              [fxShow]="downlinkConverterForm.get('converterType').value === 'new'"
+              hideType="true"
+              isEdit="true"
+              [entity]="downlinkConverter"
+            ></tb-converter>
+          </section>
+        </mat-radio-group>
       </form>
     </mat-step>
     <mat-step [stepControl]="integrationConfigurationForm">
