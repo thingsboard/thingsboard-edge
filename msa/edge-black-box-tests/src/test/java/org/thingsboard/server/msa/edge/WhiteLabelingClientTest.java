@@ -33,9 +33,12 @@ package org.thingsboard.server.msa.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -44,6 +47,7 @@ import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -58,6 +62,118 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
 
     @Test
     public void testWhiteLabeling() {
+        testWhiteLabeling_sysAdmin();
+        testWhiteLabeling_tenant();
+        testWhiteLabeling_customer();
+
+        // @TODO:
+        // add test for login wl
+        // add test for custom translation
+        // check what is below and if it's required
+
+//        Awaitility.await()
+//                .atMost(30, TimeUnit.SECONDS)
+//                .until(() -> {
+//                    Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
+//                    Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
+//                    return edgeLoginWhiteLabelParams.isPresent() &&
+//                            cloudLoginWhiteLabelParams.isPresent() &&
+//                            edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
+//                });
+//
+//        Awaitility.await()
+//                .atMost(30, TimeUnit.SECONDS)
+//                .until(() -> {
+//                    Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCustomTranslation();
+//                    Optional<CustomTranslation> cloudCustomTranslationOpt = cloudRestClient.getCustomTranslation();
+//                    if (edgeCustomTranslationOpt.isEmpty() || cloudCustomTranslationOpt.isEmpty()) {
+//                        return false;
+//                    }
+//                    CustomTranslation edgeCustomTranslation = edgeCustomTranslationOpt.get();
+//                    if (edgeCustomTranslation.getTranslationMap().get("en_us") == null) {
+//                        return false;
+//                    }
+//                    JsonNode enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(edgeCustomTranslation.getTranslationMap().get("en_us"));
+//                    if (!"TENANT_HOME".equals(enUsNode.get("home.home").asText())) {
+//                        return false;
+//                    }
+//                    CustomTranslation cloudCustomTranslation = cloudCustomTranslationOpt.get();
+//                    if (cloudCustomTranslation.getTranslationMap().get("en_us") == null) {
+//                        return false;
+//                    }
+//                    enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(cloudCustomTranslation.getTranslationMap().get("en_us"));
+//                    if (!"TENANT_HOME".equals(enUsNode.get("home.home").asText())) {
+//                        return false;
+//                    }
+//                    return edgeCustomTranslation.equals(cloudCustomTranslation);
+//                });
+    }
+
+    private void testWhiteLabeling_sysAdmin() {
+        cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
+        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+
+        Optional<WhiteLabelingParams> currentWhiteLabelParamsOpt = cloudRestClient.getCurrentWhiteLabelParams();
+        Assert.assertTrue(currentWhiteLabelParamsOpt.isPresent());
+        WhiteLabelingParams whiteLabelingParams = currentWhiteLabelParamsOpt.get();
+        whiteLabelingParams.setPlatformName("SYSADMIN_PLATFORM_NAME");
+        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<WhiteLabelingParams> edgeWhiteLabelParams = edgeRestClient.getWhiteLabelParams(null, null);
+                    if (edgeWhiteLabelParams.isEmpty()) {
+                        return false;
+                    }
+                    return "SYSADMIN_PLATFORM_NAME".equals(edgeWhiteLabelParams.get().getPlatformName());
+                });
+    }
+
+    private void testWhiteLabeling_tenant() {
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+        updateAndVerifyWhiteLabelingUpdate("Tenant TB Updated");
+    }
+
+    private void testWhiteLabeling_customer() {
+        // create customer
+        Customer savedCustomer = saveCustomer("Edge Customer A", null);
+
+        // change owner to customer
+        cloudRestClient.changeOwnerToCustomer(savedCustomer.getId(), edge.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isPresent());
+
+        // create user
+        User user = new User();
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setTenantId(edge.getTenantId());
+        user.setCustomerId(savedCustomer.getId());
+        user.setEmail("edgeCustomer@thingsboard.org");
+        User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
+        cloudRestClient.activateUser(savedUser.getId(), "customer", false);
+        loginIntoEdgeWithRetries("edgeCustomer@thingsboard.org", "customer");
+        cloudRestClient.login("edgeCustomer@thingsboard.org", "customer");
+
+        updateAndVerifyWhiteLabelingUpdate("Customer TB Updated");
+
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        edgeRestClient.login("tenant@thingsboard.org", "tenant");
+
+        // change owner to tenant
+        cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
+
+        // delete customer
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
+    }
+
+    private void updateAndVerifyWhiteLabelingUpdate(String updateAppTitle) {
+        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
+        whiteLabelingParams.setAppTitle(updateAppTitle);
+        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
+
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
@@ -66,43 +182,6 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                     return edgeWhiteLabelParams.isPresent() &&
                             cloudWhiteLabelParams.isPresent() &&
                             edgeWhiteLabelParams.get().equals(cloudWhiteLabelParams.get());
-                });
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    Optional<LoginWhiteLabelingParams> edgeLoginWhiteLabelParams = edgeRestClient.getCurrentLoginWhiteLabelParams();
-                    Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
-                    return edgeLoginWhiteLabelParams.isPresent() &&
-                            cloudLoginWhiteLabelParams.isPresent() &&
-                            edgeLoginWhiteLabelParams.get().equals(cloudLoginWhiteLabelParams.get());
-                });
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCustomTranslation();
-                    Optional<CustomTranslation> cloudCustomTranslationOpt = cloudRestClient.getCustomTranslation();
-                    if (edgeCustomTranslationOpt.isEmpty() || cloudCustomTranslationOpt.isEmpty()) {
-                        return false;
-                    }
-                    CustomTranslation edgeCustomTranslation = edgeCustomTranslationOpt.get();
-                    if (edgeCustomTranslation.getTranslationMap().get("en_us") == null) {
-                        return false;
-                    }
-                    JsonNode enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(edgeCustomTranslation.getTranslationMap().get("en_us"));
-                    if (!"TENANT_HOME".equals(enUsNode.get("home.home").asText())) {
-                        return false;
-                    }
-                    CustomTranslation cloudCustomTranslation = cloudCustomTranslationOpt.get();
-                    if (cloudCustomTranslation.getTranslationMap().get("en_us") == null) {
-                        return false;
-                    }
-                    enUsNode = JacksonUtil.OBJECT_MAPPER.readTree(cloudCustomTranslation.getTranslationMap().get("en_us"));
-                    if (!"TENANT_HOME".equals(enUsNode.get("home.home").asText())) {
-                        return false;
-                    }
-                    return edgeCustomTranslation.equals(cloudCustomTranslation);
                 });
     }
 }
