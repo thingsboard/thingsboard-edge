@@ -28,23 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.script.api.js;
 
-import org.mvel2.integration.VariableResolver;
-import org.mvel2.integration.VariableResolverFactory;
-import org.mvel2.integration.impl.StackResetResolverFactory;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.script.api.TbScriptExecutionTask;
 
-public class TbMvelResolverFactory extends StackResetResolverFactory {
+public class JsScriptExecutionTask extends TbScriptExecutionTask {
 
-    public TbMvelResolverFactory(VariableResolverFactory delegate) {
-        super(delegate);
+    public JsScriptExecutionTask(ListenableFuture<Object> resultFuture) {
+        super(resultFuture);
     }
 
     @Override
-    public VariableResolver getVariableResolver(String name) {
-        if (Thread.interrupted()) {
-            throw new RuntimeException("Thread is interrupted!");
-        }
-        return super.getVariableResolver(name);
+    public void stop() {
+        // do nothing
     }
 }

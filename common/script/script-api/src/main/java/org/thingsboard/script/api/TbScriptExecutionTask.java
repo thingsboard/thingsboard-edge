@@ -28,25 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.script.api;
 
-import org.mvel2.ParserConfiguration;
-import org.mvel2.integration.VariableResolverFactory;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public class TbMvelParserConfiguration extends ParserConfiguration {
 
-    private static final long serialVersionUID = 5558151976348875590L;
+@RequiredArgsConstructor
+public abstract class TbScriptExecutionTask {
 
-    TbMvelParserConfiguration() {
-        setClassLoader(new TbMvelClassLoader());
-    }
+    @Getter
+    private final ListenableFuture<Object> resultFuture;
 
-    @Override
-    public VariableResolverFactory getVariableFactory(VariableResolverFactory factory) {
-        if (Thread.interrupted()) {
-            throw new RuntimeException("Thread is interrupted!");
-        }
-        return new TbMvelResolverFactory(factory);
-    }
-
+    public abstract void stop();
 }

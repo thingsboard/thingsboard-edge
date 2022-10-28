@@ -76,8 +76,8 @@ public abstract class AbstractJsInvokeService extends AbstractScriptInvokeServic
     }
 
     @Override
-    protected ListenableFuture<Object> doInvokeFunction(UUID scriptId, Object[] args) {
-        return doInvokeFunction(scriptId, scriptInfoMap.get(scriptId), args);
+    protected JsScriptExecutionTask doInvokeFunction(UUID scriptId, Object[] args) {
+        return new JsScriptExecutionTask(doInvokeFunction(scriptId, scriptInfoMap.get(scriptId), args));
     }
 
     @Override
