@@ -237,7 +237,7 @@ public abstract class AbstractScriptInvokeService implements ScriptInvokeService
                         counter, scriptId, t.getMessage());
             }
         }
-        if(timeout){
+        if (timeout) {
             return new TimeoutException("Script timeout!");
         } else {
             return t;
@@ -282,6 +282,11 @@ public abstract class AbstractScriptInvokeService implements ScriptInvokeService
         for (Object arg : args) {
             if (arg instanceof CharSequence) {
                 totalArgsSize += ((CharSequence) arg).length();
+            } else {
+                var str = JacksonUtil.toString(arg);
+                if (str != null) {
+                    totalArgsSize += str.length();
+                }
             }
         }
         return totalArgsSize > getMaxTotalArgsSize();
