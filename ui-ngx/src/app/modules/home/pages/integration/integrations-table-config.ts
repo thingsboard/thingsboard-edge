@@ -77,6 +77,7 @@ import {
   IntegrationWizardData,
   IntegrationWizardDialogComponent
 } from '@home/components/wizard/integration-wizard-dialog.component';
+import { EventType } from '@shared/models/event.models';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
@@ -125,6 +126,19 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     this.deleteEntity = id => this.integrationService.deleteIntegration(id.id);
 
     this.onEntityAction = action => this.onIntegrationAction(action, this.componentsData);
+
+    this.handleRowClick = (event, entity) => {
+      this.getTable().toggleEntityDetails(event, entity);
+      if ((event.target as HTMLElement).getElementsByClassName('status').length || (event.target as HTMLElement).className === 'status') {
+        setTimeout(() => {
+          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
+          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.LC_EVENT;
+        }, 0);
+      } else {
+        (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = '';
+      }
+      return true;
+    };
 
     this.configureIntegrationScope();
 
@@ -466,7 +480,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       translateKey = 'integration.status.failed';
       backgroundColor = 'rgba(209, 39, 48, 0.08)';
     }
-    return `<div style="border-radius: 16px; height: 32px; line-height: 32px; padding: 0 12px; width: fit-content; background-color: ${backgroundColor}">
+    return `<div class="status" style="border-radius: 16px; height: 32px; line-height: 32px; padding: 0 12px; width: fit-content; background-color: ${backgroundColor}">
                 ${this.translate.instant(translateKey)}
             </div>`;
   }
@@ -474,7 +488,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   private integrationStatusStyle(integration: IntegrationInfo): object {
     const styleObj = {
       fontSize: '14px',
-      color: '#198038'
+      color: '#198038',
+      cursor: 'pointer'
     };
     if (!integration.enabled) {
       styleObj.color = 'rgba(0, 0, 0, 0.54)';

@@ -32,7 +32,7 @@
 -->
 <mat-tab *ngIf="entity"
          label="{{ 'integration.events' | translate }}" #eventsTab="matTab">
-  <tb-event-table [defaultEventType]="debugEventTypes.DEBUG_INTEGRATION"
+  <tb-event-table [defaultEventType]="defaultEventType"
                   [debugEventTypes]="[debugEventTypes.DEBUG_INTEGRATION]"
                   [active]="eventsTab.isActive"
                   [tenantId]="entity.tenantId.id"
