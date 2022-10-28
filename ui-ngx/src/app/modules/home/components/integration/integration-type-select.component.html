@@ -38,6 +38,7 @@
          (focusin)="onFocus()"
          (keyup.enter)="selectedType()"
          [required]="required"
+         placeholder="{{ 'integration.select-integration-type' | translate }}"
          [matAutocomplete]="integrationTypesAutocomplete">
   <button *ngIf="integrationTypeFormGroup.get('type').value && !disabled"
           type="button"

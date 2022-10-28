@@ -119,7 +119,7 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
             this.clear();
           }
         }),
-        map(value => value ? (isString(value) ? value : value.type) : ''),
+        map(value => value ? (isString(value) ? value.trim() : value.type) : ''),
         distinctUntilChanged(),
         mergeMap(name => this.fetchIntegrationTypes(name)),
         share()
@@ -203,6 +203,7 @@ export class IntegrationTypeSelectComponent implements ControlValueAccessor, OnI
   private filterIntegrationType(searchText: string): Array<IntegrationInfo> {
     const regex = new RegExp(searchText, 'i');
     return this.integrationTypesInfo.filter((integrationInfo) =>
-      regex.test(integrationInfo.name) || regex.test(integrationInfo.description) || regex.test(integrationInfo.tags?.toString()));
+      regex.test(integrationInfo.name) || regex.test(integrationInfo.description) ||
+      searchText === integrationInfo.type || regex.test(integrationInfo.tags?.toString()));
   }
 }
