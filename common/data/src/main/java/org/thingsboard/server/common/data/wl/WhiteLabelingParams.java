@@ -34,7 +34,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 @ApiModel
 @Data
@@ -43,7 +43,7 @@ public class WhiteLabelingParams {
 
     @ApiModelProperty(position = 1, value = "Logo image URL", example = "https://company.com/images/logo.png")
     protected String logoImageUrl;
-    @ApiModelProperty(position = 2, value = "Logo image checksum. Used to detect the changes of the logo image.", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Logo image checksum. Used to detect the changes of the logo image.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     protected String logoImageChecksum;
     @ApiModelProperty(position = 3, value = "The height of a logo container. Logo image will be automatically scaled.")
     protected Integer logoImageHeight;
@@ -51,7 +51,7 @@ public class WhiteLabelingParams {
     protected String appTitle;
     @ApiModelProperty(position = 5, value = "JSON object that contains website icon url and type")
     protected Favicon favicon;
-    @ApiModelProperty(position = 6, value = "Favicon image checksum. Used to detect the changes of the website icon", readOnly = true)
+    @ApiModelProperty(position = 6, value = "Favicon image checksum. Used to detect the changes of the website icon", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     protected String faviconChecksum;
     @ApiModelProperty(position = 7, value = "Complex JSON that describes structure of the Angular Material Palette. See [theming](https://material.angular.io/guide/theming) for more details")
     protected PaletteSettings paletteSettings;
@@ -61,7 +61,7 @@ public class WhiteLabelingParams {
     protected String uiHelpBaseUrl;
     @ApiModelProperty(position = 10, value = "Enable or Disable help links")
     protected Boolean enableHelpLinks;
-    @ApiModelProperty(position = 11, value = "Enable white-labeling", readOnly = true)
+    @ApiModelProperty(position = 11, value = "Enable white-labeling", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     protected boolean whiteLabelingEnabled = true;
     @ApiModelProperty(position = 12, value = "Show platform name and version on UI and login screen")
     protected Boolean showNameVersion;

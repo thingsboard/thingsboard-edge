@@ -44,9 +44,10 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.Event;
+import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -85,7 +86,6 @@ import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -342,12 +342,16 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
-            Event event = new Event();
-            event.setTenantId(tenantId);
-            event.setEntityId(entityId);
-            event.setType(proto.getType());
-            event.setUid(proto.getUid());
-            event.setBody(mapper.readTree(proto.getData()));
+            Event event;
+            if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
+                event = FSTUtils.decode(proto.getEvent().toByteArray());
+                event.setTenantId(tenantId);
+                event.setEntityId(entityId.getId());
+            } else {
+                //TODO: support backward compatibility by parsing the incoming data and converting it to the corresponding event.
+                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", configuration.getTenantId(), configuration.getId(), configuration.getName());
+                return;
+            }
             ListenableFuture<Void> future = ctx.getEventService().saveAsync(event);
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
@@ -356,11 +360,11 @@ public final class IntegrationGrpcSession implements Closeable {
 
                 @Override
                 public void onFailure(Throwable th) {
-                    log.error("[{}] Failed to save event!", proto.getData(), th);
+                    log.error("[{}] Failed to save event!", event, th);
                 }
             }, MoreExecutors.directExecutor());
-        } catch (IOException e) {
-            log.warn("[{}] Failed to convert event body to JSON!", proto.getData(), e);
+        } catch (Exception e) {
+            log.warn("[{}] Failed to convert event body!", proto.getEvent(), e);
         }
     }
 

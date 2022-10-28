@@ -45,6 +45,8 @@ public class TbChangeOriginatorNodeConfiguration extends TbTransformNodeConfigur
     private String originatorSource;
 
     private RelationsQuery relationsQuery;
+    private String entityType;
+    private String entityNamePattern;
 
     @Override
     public TbChangeOriginatorNodeConfiguration defaultConfiguration() {

@@ -219,6 +219,9 @@ message DeviceUpdateMsg {
   optional string conflictName = 12;
   optional int64 entityGroupIdMSB = 13;
   optional int64 entityGroupIdLSB = 14;
+  optional int64 firmwareIdMSB = 15;
+  optional int64 firmwareIdLSB = 16;
+  optional bytes deviceDataBytes = 17;
 }
 
 message DeviceProfileUpdateMsg {
@@ -237,6 +240,21 @@ message DeviceProfileUpdateMsg {
   bytes profileDataBytes = 13;
   optional string provisionDeviceKey = 14;
   optional bytes image = 15;
+  optional int64 firmwareIdMSB = 16;
+  optional int64 firmwareIdLSB = 17;
+}
+
+message AssetProfileUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  optional string description = 5;
+  bool default = 6;
+  int64 defaultRuleChainIdMSB = 7;
+  int64 defaultRuleChainIdLSB = 8;
+  string defaultQueueName = 9;
+  optional bytes image = 10;
 }
 
 message DeviceCredentialsUpdateMsg {
@@ -253,12 +271,14 @@ message AssetUpdateMsg {
   int64 idLSB = 3;
   optional int64 customerIdMSB = 4;
   optional int64 customerIdLSB = 5;
-  string name = 6;
-  string type = 7;
-  optional string label = 8;
-  optional string additionalInfo = 9;
-  optional int64 entityGroupIdMSB = 10;
-  optional int64 entityGroupIdLSB = 11;
+  optional int64 assetProfileIdMSB = 6;
+  optional int64 assetProfileIdLSB = 7;
+  string name = 8;
+  string type = 9;
+  optional string label = 10;
+  optional string additionalInfo = 11;
+  optional int64 entityGroupIdMSB = 12;
+  optional int64 entityGroupIdLSB = 13;
 }
 
 message EntityViewUpdateMsg {
@@ -410,6 +430,11 @@ message DeviceCredentialsRequestMsg {
 message DeviceProfileDevicesRequestMsg {
   int64 deviceProfileIdMSB = 1;
   int64 deviceProfileIdLSB = 2;
+}
+
+message AssetProfileAssetsRequestMsg {
+  int64 assetProfileIdMSB = 1;
+  int64 assetProfileIdLSB = 2;
 }
 
 message WidgetBundleTypesRequestMsg {
@@ -656,6 +681,7 @@ message UplinkMsg {
   repeated EntityViewsRequestMsg entityViewsRequestMsg = 15;
   repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 16;
   repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 17;
+  repeated AssetProfileAssetsRequestMsg assetProfileAssetsRequestMsg = 18;
 }
 
 message UplinkResponseMsg {
@@ -709,4 +735,5 @@ message DownlinkMsg {
   repeated IntegrationUpdateMsg integrationMsg = 36;
   repeated OtaPackageUpdateMsg otaPackageUpdateMsg = 37;
   repeated QueueUpdateMsg queueUpdateMsg = 38;
+  repeated AssetProfileUpdateMsg assetProfileUpdateMsg = 39;
 }

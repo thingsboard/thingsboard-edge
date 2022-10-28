@@ -142,7 +142,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
         entityFieldKeys = ['title', 'email', 'country', 'state', 'city', 'address', 'address2', 'zip', 'phone'];
         break;
       case EntityType.ASSET:
-        entityFieldKeys = ['name', 'type', 'label', 'assigned_customer'];
+        entityFieldKeys = ['name', 'asset_profile', 'label', 'assigned_customer'];
         break;
       case EntityType.DEVICE:
         entityFieldKeys = ['name', 'device_profile', 'label', 'assigned_customer'];
@@ -154,7 +154,7 @@ export class EntityGroupColumnComponent extends PageComponent implements Control
         entityFieldKeys = ['title'];
         break;
       case EntityType.EDGE:
-        entityFieldKeys = ['name', 'type', 'label']
+        entityFieldKeys = ['name', 'type', 'label'];
         break;
     }
     for (const fieldKey of entityFieldKeys) {

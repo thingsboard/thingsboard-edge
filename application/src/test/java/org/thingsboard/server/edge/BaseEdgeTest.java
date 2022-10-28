@@ -41,7 +41,7 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
-import org.apache.commons.lang3.RandomStringUtils;
+import io.netty.handler.codec.mqtt.MqttQoS;
 import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
@@ -59,10 +59,12 @@ import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
@@ -73,17 +75,32 @@ import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
+import org.thingsboard.server.common.data.device.data.DeviceData;
+import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
+import org.thingsboard.server.common.data.device.data.PowerMode;
+import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionKeyType;
 import org.thingsboard.server.common.data.device.profile.AlarmRule;
 import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.CoapDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.DefaultCoapDeviceTypeConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileAlarm;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.JsonTransportPayloadConfiguration;
-import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.device.profile.SimpleAlarmConditionSpec;
+import org.thingsboard.server.common.data.device.profile.SnmpDeviceProfileTransportConfiguration;
+import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
+import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingConfiguration;
+import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -92,16 +109,17 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -125,6 +143,9 @@ import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.transport.snmp.SnmpMapping;
+import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
+import org.thingsboard.server.common.data.transport.snmp.config.impl.TelemetryQueryingSnmpCommunicationConfig;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -153,7 +174,6 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
-import org.thingsboard.server.gen.edge.v1.EntityViewsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationRequestMsg;
@@ -172,6 +192,11 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WidgetTypeUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.WidgetsBundleUpdateMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.transport.AbstractTransportIntegrationTest;
+import org.thingsboard.server.transport.lwm2m.AbstractLwM2MIntegrationTest;
+import org.thingsboard.server.transport.mqtt.MqttTestCallback;
+import org.thingsboard.server.transport.mqtt.MqttTestClient;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -183,11 +208,13 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 
 @TestPropertySource(properties = {
         "edges.enabled=true",
+        "transport.mqtt.enabled=true"
 })
 abstract public class BaseEdgeTest extends AbstractControllerTest {
 
@@ -204,6 +231,9 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     @Autowired
     private EdgeEventService edgeEventService;
+
+    @Autowired
+    private DataDecodingEncodingService dataDecodingEncodingService;
 
     @Autowired
     private TbClusterService clusterService;
@@ -255,17 +285,34 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(18);
+        edgeImitator.expectMessageAmount(19);
         edgeImitator.connect();
+
+        requestEdgeRuleChainMetadata();
 
         verifyEdgeConnectionAndInitialData();
     }
 
-    private QueueId getRandomQueueId() throws Exception {
-        List<Queue> ruleEngineQueues = doGetTypedWithPageLink("/api/queues?serviceType={serviceType}&",
-                new TypeReference<PageData<Queue>>() {}, new PageLink(100), ServiceType.TB_RULE_ENGINE.name())
-                .getData();
-        return ruleEngineQueues.get(0).getId();
+    private void requestEdgeRuleChainMetadata() throws Exception {
+        RuleChainId rootRuleChainId = getEdgeRootRuleChainId();
+        RuleChainMetadataRequestMsg.Builder builder = RuleChainMetadataRequestMsg.newBuilder()
+                .setRuleChainIdMSB(rootRuleChainId.getId().getMostSignificantBits())
+                .setRuleChainIdLSB(rootRuleChainId.getId().getLeastSignificantBits());
+        testAutoGeneratedCodeByProtobuf(builder);
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder()
+                .addRuleChainMetadataRequestMsg(builder.build());
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+    }
+
+    private RuleChainId getEdgeRootRuleChainId() throws Exception {
+        List<RuleChain> edgeRuleChains = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/ruleChains?",
+                new TypeReference<PageData<RuleChain>>() {}, new PageLink(100)).getData();
+        for (RuleChain edgeRuleChain : edgeRuleChains) {
+            if (edgeRuleChain.isRoot()) {
+                return edgeRuleChain.getId();
+            }
+        }
+        throw new RuntimeException("Root rule chain not found");
     }
 
     @After
@@ -291,10 +338,8 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
     private void installation() {
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
 
-        MqttDeviceProfileTransportConfiguration transportConfiguration = new MqttDeviceProfileTransportConfiguration();
-        transportConfiguration.setTransportPayloadTypeConfiguration(new JsonTransportPayloadConfiguration());
-
-        DeviceProfile deviceProfile = this.createDeviceProfile(THERMOSTAT_DEVICE_PROFILE_NAME, transportConfiguration);
+        DeviceProfile deviceProfile = this.createDeviceProfile(THERMOSTAT_DEVICE_PROFILE_NAME,
+                createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
         extendDeviceProfileData(deviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
     }
@@ -344,7 +389,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         DeviceProfileUpdateMsg deviceProfileUpdateMsg = deviceProfileUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         UUID deviceProfileUUID = new UUID(deviceProfileUpdateMsg.getIdMSB(), deviceProfileUpdateMsg.getIdLSB());
-        DeviceProfile deviceProfile = doGet("/api/deviceProfile/" + deviceProfileUUID.toString(), DeviceProfile.class);
+        DeviceProfile deviceProfile = doGet("/api/deviceProfile/" + deviceProfileUUID, DeviceProfile.class);
         Assert.assertNotNull(deviceProfile);
         Assert.assertNotNull(deviceProfile.getProfileData());
         Assert.assertNotNull(deviceProfile.getProfileData().getAlarms());
@@ -357,7 +402,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         RuleChainUpdateMsg ruleChainUpdateMsg = ruleChainUpdateMsgOpt.get();
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, ruleChainUpdateMsg.getMsgType());
         UUID ruleChainUUID = new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB());
-        RuleChain ruleChain = doGet("/api/ruleChain/" + ruleChainUUID.toString(), RuleChain.class);
+        RuleChain ruleChain = doGet("/api/ruleChain/" + ruleChainUUID, RuleChain.class);
         Assert.assertNotNull(ruleChain);
         List<RuleChain> edgeRuleChains = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/ruleChains?",
                 new TypeReference<PageData<RuleChain>>() {}, new PageLink(100)).getData();
@@ -376,6 +421,13 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
         List<CustomTranslationProto> customTranslationProtoList = edgeImitator.findAllMessagesByType(CustomTranslationProto.class);
         Assert.assertEquals(2, customTranslationProtoList.size());
+
+        Optional<RuleChainMetadataUpdateMsg> ruleChainMetadataUpdateOpt = edgeImitator.findMessageByType(RuleChainMetadataUpdateMsg.class);
+        Assert.assertTrue(ruleChainMetadataUpdateOpt.isPresent());
+        RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg = ruleChainMetadataUpdateOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, ruleChainMetadataUpdateMsg.getMsgType());
+        Assert.assertEquals(ruleChainUpdateMsg.getIdMSB(), ruleChainMetadataUpdateMsg.getRuleChainIdMSB());
+        Assert.assertEquals(ruleChainUpdateMsg.getIdLSB(), ruleChainMetadataUpdateMsg.getRuleChainIdLSB());
 
         validateAdminSettings();
 
@@ -443,6 +495,21 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
 
         // 2
+        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(deviceProfile.getId());
+        edgeImitator.expectMessageAmount(1);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        deviceProfile.setFirmwareId(firmwareOtaPackageInfo.getId());
+        edgeImitator.expectMessageAmount(1);
+        deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceProfileUpdateMsg);
+        deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) latestMessage;
+        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getFirmwareIdMSB());
+        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getFirmwareIdLSB());
+
+        // 3
         edgeImitator.expectMessageAmount(1);
         doDelete("/api/deviceProfile/" + deviceProfile.getUuidId())
                 .andExpect(status().isOk());
@@ -453,6 +520,226 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
         Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
+    }
+
+    @Test
+    public void testDeviceProfiles_snmp() throws Exception {
+        DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("SNMP", createSnmpDeviceProfileTransportConfiguration());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceProfileUpdateMsg);
+        DeviceProfileUpdateMsg deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
+        Assert.assertEquals(DeviceTransportType.SNMP.name(), deviceProfileUpdateMsg.getTransportType());
+
+        Optional<DeviceProfileData> deviceProfileDataOpt =
+                dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
+
+        Assert.assertTrue(deviceProfileDataOpt.isPresent());
+        DeviceProfileData deviceProfileData = deviceProfileDataOpt.get();
+
+        Assert.assertTrue(deviceProfileData.getTransportConfiguration() instanceof SnmpDeviceProfileTransportConfiguration);
+        SnmpDeviceProfileTransportConfiguration transportConfiguration =
+                (SnmpDeviceProfileTransportConfiguration) deviceProfileData.getTransportConfiguration();
+        Assert.assertEquals(Integer.valueOf(1000), transportConfiguration.getTimeoutMs());
+        Assert.assertEquals(Integer.valueOf(3), transportConfiguration.getRetries());
+
+        Assert.assertFalse(transportConfiguration.getCommunicationConfigs().isEmpty());
+        SnmpCommunicationConfig communicationConfig = transportConfiguration.getCommunicationConfigs().get(0);
+        Assert.assertTrue(communicationConfig instanceof TelemetryQueryingSnmpCommunicationConfig);
+        TelemetryQueryingSnmpCommunicationConfig snmpCommunicationConfig =
+                (TelemetryQueryingSnmpCommunicationConfig) communicationConfig;
+
+        Assert.assertEquals(Long.valueOf(500L), snmpCommunicationConfig.getQueryingFrequencyMs());
+        Assert.assertFalse(snmpCommunicationConfig.getMappings().isEmpty());
+
+        SnmpMapping snmpMapping = snmpCommunicationConfig.getMappings().get(0);
+        Assert.assertEquals("temperature", snmpMapping.getKey());
+        Assert.assertEquals("1.3.3.5.6.7.8.9.1", snmpMapping.getOid());
+        Assert.assertEquals(DataType.DOUBLE, snmpMapping.getDataType());
+
+        removeDeviceProfileAndDoBasicAssert(deviceProfile);
+    }
+
+    @Test
+    public void testDeviceProfiles_lwm2m() throws Exception {
+        DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("LWM2M", createLwm2mDeviceProfileTransportConfiguration());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceProfileUpdateMsg);
+        DeviceProfileUpdateMsg deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
+        Assert.assertEquals(DeviceTransportType.LWM2M.name(), deviceProfileUpdateMsg.getTransportType());
+
+        Optional<DeviceProfileData> deviceProfileDataOpt =
+                dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
+
+        Assert.assertTrue(deviceProfileDataOpt.isPresent());
+        DeviceProfileData deviceProfileData = deviceProfileDataOpt.get();
+
+        Assert.assertTrue(deviceProfileData.getTransportConfiguration() instanceof Lwm2mDeviceProfileTransportConfiguration);
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration =
+                (Lwm2mDeviceProfileTransportConfiguration) deviceProfileData.getTransportConfiguration();
+
+        OtherConfiguration clientLwM2mSettings = transportConfiguration.getClientLwM2mSettings();
+        Assert.assertEquals(PowerMode.DRX, clientLwM2mSettings.getPowerMode());
+        Assert.assertEquals(Integer.valueOf(1), clientLwM2mSettings.getFwUpdateStrategy());
+        Assert.assertEquals(Integer.valueOf(1), clientLwM2mSettings.getSwUpdateStrategy());
+        Assert.assertEquals(Integer.valueOf(1), clientLwM2mSettings.getClientOnlyObserveAfterConnect());
+
+        Assert.assertTrue(transportConfiguration.isBootstrapServerUpdateEnable());
+
+        Assert.assertFalse(transportConfiguration.getBootstrap().isEmpty());
+        LwM2MBootstrapServerCredential lwM2MBootstrapServerCredential = transportConfiguration.getBootstrap().get(0);
+        Assert.assertTrue(lwM2MBootstrapServerCredential instanceof NoSecLwM2MBootstrapServerCredential);
+        NoSecLwM2MBootstrapServerCredential noSecLwM2MBootstrapServerCredential = (NoSecLwM2MBootstrapServerCredential) lwM2MBootstrapServerCredential;
+
+        Assert.assertEquals("PUBLIC_KEY", noSecLwM2MBootstrapServerCredential.getServerPublicKey());
+        Assert.assertEquals(Integer.valueOf(123), noSecLwM2MBootstrapServerCredential.getShortServerId());
+        Assert.assertTrue(noSecLwM2MBootstrapServerCredential.isBootstrapServerIs());
+        Assert.assertEquals("localhost", noSecLwM2MBootstrapServerCredential.getHost());
+        Assert.assertEquals(Integer.valueOf(5687), noSecLwM2MBootstrapServerCredential.getPort());
+
+        TelemetryMappingConfiguration observeAttr = transportConfiguration.getObserveAttr();
+        Assert.assertEquals("batteryLevel", observeAttr.getKeyName().get("/3_1.0/0/9"));
+        Assert.assertTrue(observeAttr.getObserve().isEmpty());
+        Assert.assertTrue(observeAttr.getAttribute().isEmpty());
+        Assert.assertFalse(observeAttr.getTelemetry().isEmpty());
+        Assert.assertTrue(observeAttr.getTelemetry().contains("/3_1.0/0/9"));
+        Assert.assertTrue(observeAttr.getAttributeLwm2m().isEmpty());
+
+        removeDeviceProfileAndDoBasicAssert(deviceProfile);
+    }
+
+    @Test
+    public void testDeviceProfiles_coap() throws Exception {
+        DeviceProfile deviceProfile = createDeviceProfileAndDoBasicAssert("COAP", createCoapDeviceProfileTransportConfiguration());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceProfileUpdateMsg);
+        DeviceProfileUpdateMsg deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
+        Assert.assertEquals(DeviceTransportType.COAP.name(), deviceProfileUpdateMsg.getTransportType());
+
+        Optional<DeviceProfileData> deviceProfileDataOpt =
+                dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
+
+        Assert.assertTrue(deviceProfileDataOpt.isPresent());
+        DeviceProfileData deviceProfileData = deviceProfileDataOpt.get();
+
+        Assert.assertTrue(deviceProfileData.getTransportConfiguration() instanceof CoapDeviceProfileTransportConfiguration);
+        CoapDeviceProfileTransportConfiguration transportConfiguration =
+                (CoapDeviceProfileTransportConfiguration) deviceProfileData.getTransportConfiguration();
+
+        PowerSavingConfiguration clientSettings = transportConfiguration.getClientSettings();
+
+        Assert.assertEquals(PowerMode.DRX, clientSettings.getPowerMode());
+        Assert.assertEquals(Long.valueOf(1L), clientSettings.getEdrxCycle());
+        Assert.assertEquals(Long.valueOf(1L), clientSettings.getPsmActivityTimer());
+        Assert.assertEquals(Long.valueOf(1L), clientSettings.getPagingTransmissionWindow());
+
+        Assert.assertTrue(transportConfiguration.getCoapDeviceTypeConfiguration() instanceof DefaultCoapDeviceTypeConfiguration);
+        DefaultCoapDeviceTypeConfiguration coapDeviceTypeConfiguration =
+                (DefaultCoapDeviceTypeConfiguration) transportConfiguration.getCoapDeviceTypeConfiguration();
+
+        Assert.assertTrue(coapDeviceTypeConfiguration.getTransportPayloadTypeConfiguration() instanceof ProtoTransportPayloadConfiguration);
+
+        ProtoTransportPayloadConfiguration protoTransportPayloadConfiguration =
+                (ProtoTransportPayloadConfiguration) coapDeviceTypeConfiguration.getTransportPayloadTypeConfiguration();
+
+        Assert.assertEquals(AbstractTransportIntegrationTest.DEVICE_TELEMETRY_PROTO_SCHEMA, protoTransportPayloadConfiguration.getDeviceTelemetryProtoSchema());
+        Assert.assertEquals(AbstractTransportIntegrationTest.DEVICE_ATTRIBUTES_PROTO_SCHEMA, protoTransportPayloadConfiguration.getDeviceAttributesProtoSchema());
+        Assert.assertEquals(AbstractTransportIntegrationTest.DEVICE_RPC_RESPONSE_PROTO_SCHEMA, protoTransportPayloadConfiguration.getDeviceRpcResponseProtoSchema());
+        Assert.assertEquals(AbstractTransportIntegrationTest.DEVICE_RPC_REQUEST_PROTO_SCHEMA, protoTransportPayloadConfiguration.getDeviceRpcRequestProtoSchema());
+
+        removeDeviceProfileAndDoBasicAssert(deviceProfile);
+    }
+
+    private DeviceProfile createDeviceProfileAndDoBasicAssert(String deviceProfileName, DeviceProfileTransportConfiguration deviceProfileTransportConfiguration) throws Exception {
+        DeviceProfile deviceProfile = this.createDeviceProfile(deviceProfileName, deviceProfileTransportConfiguration);
+        extendDeviceProfileData(deviceProfile);
+        edgeImitator.expectMessageAmount(1);
+        deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        return deviceProfile;
+    }
+
+    private void removeDeviceProfileAndDoBasicAssert(DeviceProfile deviceProfile) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        doDelete("/api/deviceProfile/" + deviceProfile.getUuidId())
+                .andExpect(status().isOk());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceProfileUpdateMsg);
+        DeviceProfileUpdateMsg deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdMSB(), deviceProfile.getUuidId().getMostSignificantBits());
+        Assert.assertEquals(deviceProfileUpdateMsg.getIdLSB(), deviceProfile.getUuidId().getLeastSignificantBits());
+    }
+
+    private SnmpDeviceProfileTransportConfiguration createSnmpDeviceProfileTransportConfiguration() {
+        SnmpDeviceProfileTransportConfiguration transportConfiguration = new SnmpDeviceProfileTransportConfiguration();
+        List<SnmpCommunicationConfig> communicationConfigs = new ArrayList<>();
+        TelemetryQueryingSnmpCommunicationConfig communicationConfig = new TelemetryQueryingSnmpCommunicationConfig();
+        communicationConfig.setQueryingFrequencyMs(500L);
+        List<SnmpMapping> mappings = new ArrayList<>();
+        mappings.add(new SnmpMapping("1.3.3.5.6.7.8.9.1", "temperature", DataType.DOUBLE));
+        communicationConfig.setMappings(mappings);
+        communicationConfigs.add(communicationConfig);
+        transportConfiguration.setCommunicationConfigs(communicationConfigs);
+        transportConfiguration.setTimeoutMs(1000);
+        transportConfiguration.setRetries(3);
+        return transportConfiguration;
+    }
+
+    private Lwm2mDeviceProfileTransportConfiguration createLwm2mDeviceProfileTransportConfiguration() {
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = new Lwm2mDeviceProfileTransportConfiguration();
+
+        OtherConfiguration clientLwM2mSettings = JacksonUtil.fromString(AbstractLwM2MIntegrationTest.CLIENT_LWM2M_SETTINGS, OtherConfiguration.class);
+        transportConfiguration.setClientLwM2mSettings(clientLwM2mSettings);
+
+        transportConfiguration.setBootstrapServerUpdateEnable(true);
+
+        TelemetryMappingConfiguration observeAttrConfiguration =
+                JacksonUtil.fromString(AbstractLwM2MIntegrationTest.OBSERVE_ATTRIBUTES_WITH_PARAMS, TelemetryMappingConfiguration.class);
+        transportConfiguration.setObserveAttr(observeAttrConfiguration);
+
+        List<LwM2MBootstrapServerCredential> bootstrap = new ArrayList<>();
+        AbstractLwM2MBootstrapServerCredential bootstrapServerCredential = new NoSecLwM2MBootstrapServerCredential();
+        bootstrapServerCredential.setServerPublicKey("PUBLIC_KEY");
+        bootstrapServerCredential.setShortServerId(123);
+        bootstrapServerCredential.setBootstrapServerIs(true);
+        bootstrapServerCredential.setHost("localhost");
+        bootstrapServerCredential.setPort(5687);
+        bootstrap.add(bootstrapServerCredential);
+        transportConfiguration.setBootstrap(bootstrap);
+
+        return transportConfiguration;
+    }
+
+    private CoapDeviceProfileTransportConfiguration createCoapDeviceProfileTransportConfiguration() {
+        CoapDeviceProfileTransportConfiguration transportConfiguration = new CoapDeviceProfileTransportConfiguration();
+        PowerSavingConfiguration clientSettings = new PowerSavingConfiguration();
+        clientSettings.setPowerMode(PowerMode.DRX);
+        clientSettings.setEdrxCycle(1L);
+        clientSettings.setPsmActivityTimer(1L);
+        clientSettings.setPagingTransmissionWindow(1L);
+        transportConfiguration.setClientSettings(clientSettings);
+        DefaultCoapDeviceTypeConfiguration coapDeviceTypeConfiguration = new DefaultCoapDeviceTypeConfiguration();
+        ProtoTransportPayloadConfiguration transportPayloadTypeConfiguration = new ProtoTransportPayloadConfiguration();
+        transportPayloadTypeConfiguration.setDeviceTelemetryProtoSchema(AbstractTransportIntegrationTest.DEVICE_TELEMETRY_PROTO_SCHEMA);
+        transportPayloadTypeConfiguration.setDeviceAttributesProtoSchema(AbstractTransportIntegrationTest.DEVICE_ATTRIBUTES_PROTO_SCHEMA);
+        transportPayloadTypeConfiguration.setDeviceRpcResponseProtoSchema(AbstractTransportIntegrationTest.DEVICE_RPC_RESPONSE_PROTO_SCHEMA);
+        transportPayloadTypeConfiguration.setDeviceRpcRequestProtoSchema(AbstractTransportIntegrationTest.DEVICE_RPC_REQUEST_PROTO_SCHEMA);
+        coapDeviceTypeConfiguration.setTransportPayloadTypeConfiguration(transportPayloadTypeConfiguration);
+        transportConfiguration.setCoapDeviceTypeConfiguration(coapDeviceTypeConfiguration);
+        return transportConfiguration;
     }
 
     @Test
@@ -1234,7 +1521,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         edgeImitator.setFailureProbability(5.0);
 
         edgeImitator.expectMessageAmount(numberOfTimeseriesToSend);
-        Device device = saveDevice(RandomStringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
+        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
             JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
@@ -1309,7 +1596,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
     @Test
     public void testSendDeviceToCloudWithNameThatAlreadyExistsOnCloud() throws Exception {
-        String deviceOnCloudName = RandomStringUtils.randomAlphanumeric(15);
+        String deviceOnCloudName = StringUtils.randomAlphanumeric(15);
         Device deviceOnCloud = saveDevice(deviceOnCloudName, "Default");
 
         UUID uuid = Uuids.timeBased();
@@ -1494,7 +1781,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         String attributeValuesUrl = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/values/attributes/" + DataConstants.SERVER_SCOPE;
         List<Map<String, String>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {});
 
-        Assert.assertEquals(3, attributes.size());
+        Assert.assertEquals(4, attributes.size());
 
         Optional<Map<String, String>> activeAttributeOpt = getAttributeByKey("active", attributes);
         Assert.assertTrue(activeAttributeOpt.isPresent());
@@ -1780,7 +2067,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
 
         Integration integration = new Integration();
         integration.setName("Edge integration");
-        integration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         integration.setDefaultConverterId(savedConverter.getId());
         integration.setType(IntegrationType.HTTP);
         ObjectNode integrationConfiguration = JacksonUtil.OBJECT_MAPPER.createObjectNode();
@@ -2197,13 +2484,53 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(queueUpdateMsg.getIdLSB(), savedQueue.getUuidId().getLeastSignificantBits());
     }
 
+    @Test
+    public void sendUpdateSharedAttributeToCloudAndValidateDeviceSubscription() throws Exception {
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        DeviceCredentials deviceCredentials = doGet("/api/device/" + device.getUuidId() + "/credentials", DeviceCredentials.class);
+
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(deviceCredentials.getCredentialsId());
+        MqttTestCallback onUpdateCallback = new MqttTestCallback();
+        client.setCallback(onUpdateCallback);
+        client.subscribeAndWait("v1/devices/me/attributes", MqttQoS.AT_MOST_ONCE);
+
+        edgeImitator.expectResponsesAmount(1);
+
+        JsonObject attributesData = new JsonObject();
+        String attrKey = "sharedAttrName";
+        String attrValue = "sharedAttrValue";
+        attributesData.addProperty(attrKey, attrValue);
+        UplinkMsg.Builder uplinkMsgBuilder = UplinkMsg.newBuilder();
+        EntityDataProto.Builder entityDataBuilder = EntityDataProto.newBuilder();
+        entityDataBuilder.setEntityType(device.getId().getEntityType().name());
+        entityDataBuilder.setEntityIdMSB(device.getId().getId().getMostSignificantBits());
+        entityDataBuilder.setEntityIdLSB(device.getId().getId().getLeastSignificantBits());
+        entityDataBuilder.setAttributesUpdatedMsg(JsonConverter.convertToAttributesProto(attributesData));
+        entityDataBuilder.setPostAttributeScope(DataConstants.SHARED_SCOPE);
+        uplinkMsgBuilder.addEntityData(entityDataBuilder.build());
+
+        edgeImitator.sendUplinkMsg(uplinkMsgBuilder.build());
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        Assert.assertTrue(onUpdateCallback.getSubscribeLatch().await(5, TimeUnit.SECONDS));
+
+        assertEquals(JacksonUtil.OBJECT_MAPPER.createObjectNode().put(attrKey, attrValue),
+                JacksonUtil.fromBytes(onUpdateCallback.getPayloadBytes()));
+    }
+
     // Utility methods
 
     private Device saveDeviceOnCloudAndVerifyDeliveryToEdge() throws Exception {
         edgeImitator.expectMessageAmount(1);
+        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(thermostatDeviceProfile.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        edgeImitator.expectMessageAmount(1);
         EntityGroup deviceEntityGroup = new EntityGroup();
         deviceEntityGroup.setType(EntityType.DEVICE);
-        deviceEntityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        deviceEntityGroup.setName(StringUtils.randomAlphanumeric(15));
         deviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/entityGroup/" + deviceEntityGroup.getId().toString() + "/" + EntityType.DEVICE.name(), EntityGroup.class);
@@ -2211,16 +2538,48 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         verifyEntityGroupUpdateMsg(edgeImitator.getLatestMessage(), deviceEntityGroup);
 
         edgeImitator.expectMessageAmount(1);
-        Device saveDevice = saveDevice(RandomStringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME, deviceEntityGroup.getId());
+        Device savedDevice = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME, deviceEntityGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
-        return saveDevice;
+
+        edgeImitator.expectMessageAmount(1);
+        savedDevice.setFirmwareId(firmwareOtaPackageInfo.getId());
+
+        DeviceData deviceData = new DeviceData();
+        deviceData.setConfiguration(new DefaultDeviceConfiguration());
+        MqttDeviceTransportConfiguration transportConfiguration = new MqttDeviceTransportConfiguration();
+        transportConfiguration.getProperties().put("topic", "tb_rule_engine.thermostat");
+        deviceData.setTransportConfiguration(transportConfiguration);
+        savedDevice.setDeviceData(deviceData);
+
+        savedDevice = doPost("/api/device", savedDevice, Device.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
+        DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
+        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
+        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
+        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
+        Assert.assertEquals(savedDevice.getType(), deviceUpdateMsg.getType());
+        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getFirmwareIdMSB());
+        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getFirmwareIdLSB());
+        Optional<DeviceData> deviceDataOpt =
+                dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
+        Assert.assertTrue(deviceDataOpt.isPresent());
+        deviceData = deviceDataOpt.get();
+        Assert.assertTrue(deviceData.getTransportConfiguration() instanceof MqttDeviceTransportConfiguration);
+        MqttDeviceTransportConfiguration mqttDeviceTransportConfiguration =
+                (MqttDeviceTransportConfiguration) deviceData.getTransportConfiguration();
+        Assert.assertEquals("tb_rule_engine.thermostat", mqttDeviceTransportConfiguration.getProperties().get("topic"));
+
+        return savedDevice;
     }
 
     private Asset saveAssetOnCloudAndVerifyDeliveryToEdge() throws Exception {
         edgeImitator.expectMessageAmount(1);
         EntityGroup assetEntityGroup = new EntityGroup();
         assetEntityGroup.setType(EntityType.ASSET);
-        assetEntityGroup.setName(RandomStringUtils.randomAlphanumeric(15));
+        assetEntityGroup.setName(StringUtils.randomAlphanumeric(15));
         assetEntityGroup = doPost("/api/entityGroup", assetEntityGroup, EntityGroup.class);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/entityGroup/" + assetEntityGroup.getId().toString() + "/" + EntityType.ASSET.name(), EntityGroup.class);
@@ -2228,7 +2587,7 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         verifyEntityGroupUpdateMsg(edgeImitator.getLatestMessage(), assetEntityGroup);
 
         edgeImitator.expectMessageAmount(1);
-        Asset savedAsset = saveAsset(RandomStringUtils.randomAlphanumeric(15), "Building", assetEntityGroup.getId());
+        Asset savedAsset = saveAsset(StringUtils.randomAlphanumeric(15), "Building", assetEntityGroup.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
         return savedAsset;
     }
@@ -2243,11 +2602,11 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(entityGroupUpdateMsg.getType(), entityGroup.getType().name());
     }
 
-    private Device saveDevice(String deviceName, String type) throws Exception {
+    private Device saveDevice(String deviceName, String type) {
         return saveDevice(deviceName, type, null);
     }
 
-    private Device saveDevice(String deviceName, String type, EntityGroupId entityGroupId) throws Exception {
+    private Device saveDevice(String deviceName, String type, EntityGroupId entityGroupId) {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(type);
@@ -2285,6 +2644,20 @@ abstract public class BaseEdgeTest extends AbstractControllerTest {
         } else {
             return doPost("/api/entityView", entityView, EntityView.class);
         }
+    }
+
+    private OtaPackageInfo saveOtaPackageInfo(DeviceProfileId deviceProfileId) {
+        SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
+        firmwareInfo.setDeviceProfileId(deviceProfileId);
+        firmwareInfo.setType(FIRMWARE);
+        firmwareInfo.setTitle("Firmware Edge " + StringUtils.randomAlphanumeric(3));
+        firmwareInfo.setVersion("v1.0");
+        firmwareInfo.setTag("My firmware #1 v1.0");
+        firmwareInfo.setUsesUrl(true);
+        firmwareInfo.setUrl("http://localhost:8080/v1/package");
+        firmwareInfo.setAdditionalInfo(JacksonUtil.newObjectNode());
+        firmwareInfo.setChecksumAlgorithm(ChecksumAlgorithm.SHA256);
+        return doPost("/api/otaPackage", firmwareInfo, OtaPackageInfo.class);
     }
 
     private EdgeEvent constructEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventActionType edgeEventAction, UUID entityId, EdgeEventType edgeEventType, JsonNode entityBody) {

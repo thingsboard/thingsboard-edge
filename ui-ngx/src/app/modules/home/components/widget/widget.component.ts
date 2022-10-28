@@ -43,7 +43,8 @@ import {
   NgZone,
   OnChanges,
   OnDestroy,
-  OnInit, Renderer2,
+  OnInit,
+  Renderer2,
   SimpleChanges,
   ViewChild,
   ViewContainerRef,
@@ -54,13 +55,15 @@ import {
   defaultLegendConfig,
   LegendConfig,
   LegendData,
-  LegendPosition, MobileActionResult,
+  LegendPosition,
   Widget,
   WidgetActionDescriptor,
   widgetActionSources,
   WidgetActionType,
+  WidgetComparisonSettings,
   WidgetExportType,
-  WidgetComparisonSettings, WidgetMobileActionDescriptor, WidgetMobileActionType,
+  WidgetMobileActionDescriptor,
+  WidgetMobileActionType,
   WidgetResource,
   widgetType,
   WidgetTypeParameters
@@ -82,7 +85,9 @@ import {
   validateEntityId
 } from '@core/utils';
 import {
-  IDynamicWidgetComponent, ShowWidgetHeaderActionFunction, updateEntityParams,
+  IDynamicWidgetComponent,
+  ShowWidgetHeaderActionFunction,
+  updateEntityParams,
   WidgetContext,
   WidgetHeaderAction,
   WidgetInfo,
@@ -128,9 +133,7 @@ import { MobileService } from '@core/services/mobile.service';
 import { DialogService } from '@core/services/dialog.service';
 import { PopoverPlacement } from '@shared/components/popover.models';
 import { TbPopoverService } from '@shared/components/popover.service';
-import {
-  DASHBOARD_PAGE_COMPONENT_TOKEN
-} from '@home/components/tokens';
+import { DASHBOARD_PAGE_COMPONENT_TOKEN } from '@home/components/tokens';
 
 @Component({
   selector: 'tb-widget',
@@ -424,17 +427,17 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   }
 
   private displayWidgetInstance(): boolean {
-    if (this.widget.type !== widgetType.static) {
-      for (const id of Object.keys(this.widgetContext.subscriptions)) {
-        const subscription = this.widgetContext.subscriptions[id];
-        if (subscription.isDataResolved()) {
-          return true;
-        }
-      }
-      return false;
-    } else {
+    if (this.widget.type === widgetType.static || this.typeParameters?.processNoDataByWidget) {
       return true;
     }
+
+    for (const id of Object.keys(this.widgetContext.subscriptions)) {
+      const subscription = this.widgetContext.subscriptions[id];
+      if (subscription.isDataResolved()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private onDestroy() {
@@ -1402,8 +1405,9 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
           }
         ]
       });
-      const component = this.popoverService.displayPopover(trigger, this.renderer,
-        this.widgetContentContainer, this.dashboardPageComponent, preferredPlacement, hideOnClickOutside,
+      const componentRef = this.popoverService.createPopoverRef(this.widgetContentContainer);
+      const component = this.popoverService.displayPopoverWithComponentRef(componentRef, trigger, this.renderer,
+        this.dashboardPageComponent, preferredPlacement, hideOnClickOutside,
         injector,
         {
           embedded: true,
@@ -1412,7 +1416,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
           currentState: objToBase64([stateObject]),
           dashboard,
           parentDashboard: this.widgetContext.parentDashboard ?
-            this.widgetContext.parentDashboard : this.widgetContext.dashboard
+            this.widgetContext.parentDashboard : this.widgetContext.dashboard,
+          popoverComponent: componentRef.instance
         },
         {width: popoverWidth, height: popoverHeight},
         popoverStyle,

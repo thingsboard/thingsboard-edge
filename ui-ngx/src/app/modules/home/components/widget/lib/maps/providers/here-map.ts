@@ -37,13 +37,22 @@ import { WidgetContext } from '@home/models/widget-component.models';
 export class HEREMap extends LeafletMap {
     constructor(ctx: WidgetContext, $container, options: WidgetUnitedMapSettings) {
         super(ctx, $container, options);
+        let mapUuid: string;
+        if (this.ctx.reportService.reportView) {
+          mapUuid = this.ctx.reportService.onWaitForMap();
+        }
         const map = L.map($container, {
-          tap: L.Browser.safari && L.Browser.mobile,
           doubleClickZoom: !this.options.disableDoubleClickZooming,
-          zoomControl: !this.options.disableZoomControl
+          zoomControl: !this.options.disableZoomControl,
+          fadeAnimation: !ctx.reportService.reportView
         }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
         const tileLayer = (L.tileLayer as any).provider(options.mapProviderHere || 'HERE.normalDay', options.credentials);
         tileLayer.addTo(map);
+        if (this.ctx.reportService.reportView) {
+          tileLayer.once('load', () => {
+            this.ctx.reportService.onMapLoaded(mapUuid);
+          });
+        }
         super.setMap(map);
     }
 }

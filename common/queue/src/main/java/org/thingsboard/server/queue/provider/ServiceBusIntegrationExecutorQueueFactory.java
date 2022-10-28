@@ -157,11 +157,7 @@ public class ServiceBusIntegrationExecutorQueueFactory implements TbIntegrationE
         TbQueueProducer<TbProtoQueueMsg<IntegrationApiRequestMsg>> producer = new TbServiceBusProducerTemplate<>(integrationApiAdmin, serviceBusSettings, integrationApiSettings.getRequestsTopic());
         TbQueueConsumer<TbProtoQueueMsg<IntegrationApiResponseMsg>> consumer = new TbServiceBusConsumerTemplate<>(integrationApiAdmin, serviceBusSettings,
                 integrationApiSettings.getResponsesTopic() + "." + serviceInfoProvider.getServiceId(),
-                msg -> {
-                    IntegrationApiResponseMsg.Builder builder = IntegrationApiResponseMsg.newBuilder();
-                    JsonFormat.parser().ignoringUnknownFields().merge(new String(msg.getData(), StandardCharsets.UTF_8), builder);
-                    return new TbProtoQueueMsg<>(msg.getKey(), builder.build(), msg.getHeaders());
-                });
+                msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiResponseMsg.parseFrom(msg.getData()), msg.getHeaders()));
 
         DefaultTbQueueRequestTemplate.DefaultTbQueueRequestTemplateBuilder
                 <TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> builder = DefaultTbQueueRequestTemplate.builder();

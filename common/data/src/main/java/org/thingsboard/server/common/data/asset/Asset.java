@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.SearchTextBasedWithAdditionalInfo;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -68,7 +69,8 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
     @Length(fieldName = "label")
     private String label;
 
-    @ApiModelProperty(position = 100, value = "JSON object with External Id from the VCS", accessMode = ApiModelProperty.AccessMode.READ_ONLY, hidden = true)
+    private AssetProfileId assetProfileId;
+
     @Getter @Setter
     private AssetId externalId;
 
@@ -87,6 +89,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
+        this.assetProfileId = asset.getAssetProfileId();
         this.externalId = asset.getExternalId();
     }
 
@@ -96,6 +99,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.name = asset.getName();
         this.type = asset.getType();
         this.label = asset.getLabel();
+        this.assetProfileId = asset.getAssetProfileId();
         Optional.ofNullable(asset.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
         this.externalId = asset.getExternalId();
     }
@@ -109,7 +113,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the asset creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the asset creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
@@ -124,7 +128,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.tenantId = tenantId;
     }
 
-    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignAssetToCustomer' to change the Customer Id.", readOnly = true)
+    @ApiModelProperty(position = 4, value = "JSON object with Customer Id. Use 'assignAssetToCustomer' to change the Customer Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public CustomerId getCustomerId() {
         return customerId;
     }
@@ -133,7 +137,7 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 9, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 9, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -176,12 +180,22 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         this.label = label;
     }
 
+    @ApiModelProperty(position = 8, required = true, value = "JSON object with Asset Profile Id.")
+    public AssetProfileId getAssetProfileId() {
+        return assetProfileId;
+    }
+
+    public void setAssetProfileId(AssetProfileId assetProfileId) {
+        this.assetProfileId = assetProfileId;
+    }
+
+
     @Override
     public String getSearchText() {
         return getName();
     }
 
-    @ApiModelProperty(position = 8, value = "Additional parameters of the asset", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @ApiModelProperty(position = 9, value = "Additional parameters of the asset", dataType = "com.fasterxml.jackson.databind.JsonNode")
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
@@ -200,6 +214,8 @@ public class Asset extends SearchTextBasedWithAdditionalInfo<AssetId> implements
         builder.append(type);
         builder.append(", label=");
         builder.append(label);
+        builder.append(", assetProfileId=");
+        builder.append(assetProfileId);
         builder.append(", additionalInfo=");
         builder.append(getAdditionalInfo());
         builder.append(", createdTime=");

@@ -92,13 +92,13 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the dashboard creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", readOnly = true)
+    @ApiModelProperty(position = 3, value = "JSON object with Tenant Id. Tenant Id of the dashboard can't be changed.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public TenantId getTenantId() {
         return tenantId;
     }
@@ -116,7 +116,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.customerId = customerId;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 5, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
@@ -140,7 +140,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.title = title;
     }
 
-    @ApiModelProperty(position = 7, value = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", readOnly = true)
+    @ApiModelProperty(position = 7, value = "Thumbnail picture for rendering of the dashboards in a grid view on mobile devices.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public String getImage() {
         return image;
     }
@@ -149,7 +149,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.image = image;
     }
 
-    @ApiModelProperty(position = 8, value = "List of assigned customers with their info.", readOnly = true)
+    @ApiModelProperty(position = 8, value = "List of assigned customers with their info.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public Set<ShortCustomerInfo> getAssignedCustomers() {
         return assignedCustomers;
     }
@@ -158,7 +158,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.assignedCustomers = assignedCustomers;
     }
 
-    @ApiModelProperty(position = 9, value = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", readOnly = true)
+    @ApiModelProperty(position = 9, value = "Hide dashboard from mobile devices. Useful if the dashboard is not designed for small screens.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public boolean isMobileHide() {
         return mobileHide;
     }
@@ -167,7 +167,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         this.mobileHide = mobileHide;
     }
 
-    @ApiModelProperty(position = 10, value = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", readOnly = true)
+    @ApiModelProperty(position = 10, value = "Order on mobile devices. Useful to adjust sorting of the dashboards for mobile applications", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public Integer getMobileOrder() {
         return mobileOrder;
     }
@@ -234,7 +234,7 @@ public class DashboardInfo extends SearchTextBased<DashboardId> implements Group
         }
     }
 
-    @ApiModelProperty(position = 11, value = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", readOnly = true)
+    @ApiModelProperty(position = 11, value = "Same as title of the dashboard. Read-only field. Update the 'title' to change the 'name' of the dashboard.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

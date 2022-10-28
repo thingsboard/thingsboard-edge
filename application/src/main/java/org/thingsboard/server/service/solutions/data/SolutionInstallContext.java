@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.solutions.data;
 
 import lombok.Data;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.Device;
@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
@@ -137,6 +138,11 @@ public class SolutionInstallContext {
     public void register(DeviceProfile deviceProfile) {
         register(deviceProfile.getId());
         createdEntities.put(deviceProfile.getName(), new CreatedEntityInfo(deviceProfile.getName(), "Device profile", "Tenant"));
+    }
+
+    public void register(AssetProfile assetProfile) {
+        register(assetProfile.getId());
+        createdEntities.put(assetProfile.getName(), new CreatedEntityInfo(assetProfile.getName(), "Asset profile", "Tenant"));
     }
 
     public void put(EntitySearchKey entitySearchKey, EntityId entityId) {

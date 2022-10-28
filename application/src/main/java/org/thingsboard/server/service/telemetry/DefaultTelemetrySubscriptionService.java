@@ -34,8 +34,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -132,6 +132,13 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     }
 
     @Override
+    public ListenableFuture<Void> saveAndNotify(TenantId tenantId, EntityId entityId, TsKvEntry ts) {
+        SettableFuture<Void> future = SettableFuture.create();
+        saveAndNotify(tenantId, entityId, Collections.singletonList(ts), new VoidFutureCallback(future));
+        return future;
+    }
+
+    @Override
     public void saveAndNotify(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, FutureCallback<Void> callback) {
         saveAndNotify(tenantId, null, entityId, ts, 0L, callback);
     }
@@ -160,7 +167,6 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         }
     }
 
-    @NotNull
     private FutureCallback<Integer> getCallback(TenantId tenantId, CustomerId customerId, boolean sysTenant, FutureCallback<Void> callback) {
         return new FutureCallback<>() {
             @Override
@@ -349,6 +355,34 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
                 , System.currentTimeMillis())), callback);
     }
 
+    @Override
+    public ListenableFuture<Void> saveAttrAndNotify(TenantId tenantId, EntityId entityId, String scope, String key, long value) {
+        SettableFuture<Void> future = SettableFuture.create();
+        saveAttrAndNotify(tenantId, entityId, scope, key, value, new VoidFutureCallback(future));
+        return future;
+    }
+
+    @Override
+    public ListenableFuture<Void> saveAttrAndNotify(TenantId tenantId, EntityId entityId, String scope, String key, String value) {
+        SettableFuture<Void> future = SettableFuture.create();
+        saveAttrAndNotify(tenantId, entityId, scope, key, value, new VoidFutureCallback(future));
+        return future;
+    }
+
+    @Override
+    public ListenableFuture<Void> saveAttrAndNotify(TenantId tenantId, EntityId entityId, String scope, String key, double value) {
+        SettableFuture<Void> future = SettableFuture.create();
+        saveAttrAndNotify(tenantId, entityId, scope, key, value, new VoidFutureCallback(future));
+        return future;
+    }
+
+    @Override
+    public ListenableFuture<Void> saveAttrAndNotify(TenantId tenantId, EntityId entityId, String scope, String key, boolean value) {
+        SettableFuture<Void> future = SettableFuture.create();
+        saveAttrAndNotify(tenantId, entityId, scope, key, value, new VoidFutureCallback(future));
+        return future;
+    }
+
     private void onAttributesUpdate(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes, boolean notifyDevice) {
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_CORE, tenantId, entityId);
         if (currentPartitions.contains(tpi)) {
@@ -450,6 +484,24 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     private void checkInternalEntity(EntityId entityId) {
         if (EntityType.API_USAGE_STATE.equals(entityId.getEntityType())) {
             throw new RuntimeException("Can't update API Usage State!");
+        }
+    }
+
+    private static class VoidFutureCallback implements FutureCallback<Void> {
+        private final SettableFuture<Void> future;
+
+        public VoidFutureCallback(SettableFuture<Void> future) {
+            this.future = future;
+        }
+
+        @Override
+        public void onSuccess(Void result) {
+            future.set(null);
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+            future.setException(t);
         }
     }
 

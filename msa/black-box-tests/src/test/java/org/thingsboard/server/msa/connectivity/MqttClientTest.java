@@ -41,8 +41,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +51,7 @@ import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientConfig;
 import org.thingsboard.mqtt.MqttHandler;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
@@ -65,8 +66,15 @@ import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class MqttClientTest extends AbstractContainerTest {
@@ -165,7 +173,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         // Add a new client attribute
         JsonObject clientAttributes = new JsonObject();
-        String clientAttributeValue = RandomStringUtils.randomAlphanumeric(8);
+        String clientAttributeValue = StringUtils.randomAlphanumeric(8);
         clientAttributes.addProperty("clientAttr", clientAttributeValue);
         mqttClient.publish("v1/devices/me/attributes", Unpooled.wrappedBuffer(clientAttributes.toString().getBytes())).get();
 
@@ -181,7 +189,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         // Add a new shared attribute
         JsonObject sharedAttributes = new JsonObject();
-        String sharedAttributeValue = RandomStringUtils.randomAlphanumeric(8);
+        String sharedAttributeValue = StringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty("sharedAttr", sharedAttributeValue);
         ResponseEntity sharedAttributesResponse = restClient.getRestTemplate()
                 .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
@@ -230,7 +238,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         // Add a new shared attribute
         JsonObject sharedAttributes = new JsonObject();
-        String sharedAttributeValue = RandomStringUtils.randomAlphanumeric(8);
+        String sharedAttributeValue = StringUtils.randomAlphanumeric(8);
         sharedAttributes.addProperty(sharedAttributeName, sharedAttributeValue);
         ResponseEntity sharedAttributesResponse = restClient.getRestTemplate()
                 .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",
@@ -244,7 +252,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         // Update the shared attribute value
         JsonObject updatedSharedAttributes = new JsonObject();
-        String updatedSharedAttributeValue = RandomStringUtils.randomAlphanumeric(8);
+        String updatedSharedAttributeValue = StringUtils.randomAlphanumeric(8);
         updatedSharedAttributes.addProperty(sharedAttributeName, updatedSharedAttributeValue);
         ResponseEntity updatedSharedAttributesResponse = restClient.getRestTemplate()
                 .postForEntity(HTTPS_URL + "/api/plugins/telemetry/DEVICE/{deviceId}/SHARED_SCOPE",

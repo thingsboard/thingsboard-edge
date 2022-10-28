@@ -143,6 +143,7 @@ export const HelpLinks = {
     ruleNodeRestApiCall: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#rest-api-call-node',
     ruleNodeSendEmail: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-email-node',
     ruleNodeSendSms: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/external-nodes/#send-sms-node',
+    ruleNodeMath: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#math-function-node',
     ruleNodeIntegrationDownlink: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#integration-downlink-node',
     ruleNodeAddToGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#add-to-group-node',
     ruleNodeRemoveFromGroup: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#remove-from-group-node',
@@ -162,6 +163,7 @@ export const HelpLinks = {
     users: helpBaseUrl + '/docs/pe/user-guide/ui/users',
     devices: helpBaseUrl + '/docs/pe/user-guide/ui/devices',
     deviceProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/device-profiles',
+    assetProfiles: helpBaseUrl + '/docs/pe/user-guide/ui/asset-profiles',
     edges: helpBaseUrl + '/docs/user-guide/ui/edges',
     assets: helpBaseUrl + '/docs/pe/user-guide/ui/assets',
     entityViews: helpBaseUrl + '/docs/pe/user-guide/ui/entity-views',
@@ -216,8 +218,9 @@ export const HelpLinks = {
     roles: helpBaseUrl + '/docs/pe/user-guide/ui/roles',
     selfRegistration: helpBaseUrl + '/docs/pe/user-guide/self-registration',
     queue: helpBaseUrl + '/docs/pe/user-guide/queue',
-    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/ui/repository-settings',
-    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/ui/auto-commit-settings',
+    repositorySettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#git-settings-configuration',
+    autoCommitSettings: helpBaseUrl + '/docs/pe/user-guide/version-control/#auto-commit',
+    twoFactorAuthentication: helpBaseUrl + '/docs/pe/user-guide/two-factor-authentication'
   }
 };
 

@@ -48,17 +48,27 @@ export class GoogleMap extends LeafletMap {
 
   constructor(ctx: WidgetContext, $container, options: WidgetUnitedMapSettings) {
     super(ctx, $container, options);
+    let mapUuid: string;
+    if (this.ctx.reportService.reportView) {
+      mapUuid = this.ctx.reportService.onWaitForMap();
+    }
     this.resource = ctx.$injector.get(ResourcesService);
     this.loadGoogle(() => {
       const map = L.map($container, {
         attributionControl: false,
         doubleClickZoom: !this.options.disableDoubleClickZooming,
         zoomControl: !this.options.disableZoomControl,
-        tap: L.Browser.safari && L.Browser.mobile
+        fadeAnimation: !ctx.reportService.reportView
       }).setView(options?.parsedDefaultCenterPosition, options?.defaultZoomLevel || DEFAULT_ZOOM_LEVEL);
-      (L.gridLayer as any).googleMutant({
+      const tileLayer = (L.gridLayer as any).googleMutant({
         type: options?.gmDefaultMapType || 'roadmap'
-      }).addTo(map);
+      });
+      tileLayer.addTo(map);
+      if (this.ctx.reportService.reportView) {
+        tileLayer.once('load', () => {
+          this.ctx.reportService.onMapLoaded(mapUuid);
+        });
+      }
       super.setMap(map);
     }, options.gmApiKey);
   }

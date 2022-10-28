@@ -41,6 +41,10 @@ browser:
   defaultPageNavigationTimeout: "DEFAULT_PAGE_NAVIGATION_TIMEOUT"
   # Generate report request timeout (ms)
   generateReportTimeout: "GENERATE_REPORT_TIMEOUT"
+  # Load dashboard resources timeout (ms)
+  loadDashboardResourcesTimeout: "LOAD_DASHBOARD_RESOURCES_TIMEOUT"
+  # Dashboard idle wait time (ms)
+  dashboardIdleWaitTime: "DASHBOARD_IDLE_WAIT_TIME"
   # Max browser pages
   maxPages: "BROWSER_MAX_PAGES"
 logger:

@@ -41,7 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -212,7 +212,9 @@ public class UserController extends BaseController {
                     "The newly created User Id will be present in the response. " +
                     "Specify existing User Id to update the device. " +
                     "Referencing non-existing User Id will cause 'Not Found' error." +
-                    "\n\nDevice email is unique for entire platform setup.\n\n" + RBAC_WRITE_CHECK)
+                    "\n\nDevice email is unique for entire platform setup.\n\n" +
+                    "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new User entity." +
+                    RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user", method = RequestMethod.POST)
     @ResponseBody

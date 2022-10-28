@@ -32,10 +32,10 @@ package org.thingsboard.server.service.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -77,7 +77,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
             newIntegration.setDownlinkConverterId(downlinkConverter.getId());
         }
         newIntegration.setName(integrationName);
-        newIntegration.setRoutingKey(RandomStringUtils.randomAlphanumeric(15));
+        newIntegration.setRoutingKey(StringUtils.randomAlphanumeric(15));
         newIntegration.setType(type);
         JsonNode clientConfig = createIntegrationClientConfiguration();
         ObjectNode integrationConfiguration = JacksonUtil.newObjectNode();

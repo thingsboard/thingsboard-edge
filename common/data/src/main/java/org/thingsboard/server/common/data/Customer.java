@@ -94,12 +94,12 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
 
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @ApiModelProperty(position = 7, readOnly = true, value = "JSON object with parent Customer Id")
+    @ApiModelProperty(position = 7, accessMode = ApiModelProperty.AccessMode.READ_ONLY, value = "JSON object with parent Customer Id")
     public CustomerId getCustomerId() {
         return parentCustomerId;
     }
 
-    @ApiModelProperty(position = 8, value = "JSON object with Customer or Tenant Id", readOnly = true)
+    @ApiModelProperty(position = 8, value = "JSON object with Customer or Tenant Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public EntityId getOwnerId() {
         return parentCustomerId != null && !parentCustomerId.isNullUid() ? parentCustomerId : tenantId;
@@ -136,7 +136,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the customer creation, in milliseconds", example = "1609459200000", readOnly = true)
+    @ApiModelProperty(position = 2, value = "Timestamp of the customer creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
@@ -212,7 +212,7 @@ public class Customer extends ContactBased<CustomerId> implements GroupEntity<Cu
 
     @Override
     @JsonProperty(access = Access.READ_ONLY)
-    @ApiModelProperty(position = 4, value = "Name of the customer. Read-only, duplicated from title for backward compatibility", example = "Company A", readOnly = true)
+    @ApiModelProperty(position = 4, value = "Name of the customer. Read-only, duplicated from title for backward compatibility", example = "Company A", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     public String getName() {
         return title;
     }

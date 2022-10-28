@@ -33,7 +33,8 @@ import { IDashboardComponent } from '@home/models/dashboard-component.models';
 import {
   DataSet,
   Datasource,
-  DatasourceData, FormattedData,
+  DatasourceData,
+  FormattedData,
   JsonSettingsSchema,
   Widget,
   WidgetActionDescriptor,
@@ -53,7 +54,8 @@ import {
   IStateController,
   IWidgetSubscription,
   IWidgetUtils,
-  RpcApi, StateParams,
+  RpcApi,
+  StateParams,
   SubscriptionEntityInfo,
   TimewindowFunctions,
   WidgetActionsApi,
@@ -101,6 +103,7 @@ import * as RxJS from 'rxjs';
 import * as RxJSOperators from 'rxjs/operators';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
+import { ReportService } from '@core/http/report.service';
 
 export interface IWidgetAction {
   name: string;
@@ -130,7 +133,8 @@ export class WidgetContext {
   constructor(public dashboard: IDashboardComponent,
               private dashboardWidget: IDashboardWidget,
               private widget: Widget,
-              public parentDashboard?: IDashboardComponent) {}
+              public parentDashboard?: IDashboardComponent,
+              public popoverComponent?: TbPopoverComponent) {}
 
   get stateController(): IStateController {
     return this.parentDashboard ? this.parentDashboard.stateController : this.dashboard.stateController;
@@ -196,6 +200,7 @@ export class WidgetContext {
   http: HttpClient;
   sanitizer: DomSanitizer;
   router: Router;
+  reportService: ReportService;
 
   private changeDetectorValue: ChangeDetectorRef;
   private containerChangeDetectorValue: ChangeDetectorRef;

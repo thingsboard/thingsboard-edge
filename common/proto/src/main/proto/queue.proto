@@ -883,9 +883,8 @@ message EntityContentRequestMsg {
 
 message EntityContentResponseMsg {
   string data = 1;
-  string chunkedMsgId = 2;
-  int32 chunkIndex = 3;
-  int32 chunksCount = 4;
+  int32 chunkIndex = 2;
+  int32 chunksCount = 3;
 }
 
 message EntitiesContentRequestMsg {
@@ -902,7 +901,8 @@ message EntitiesContentRequestMsg {
 
 message EntitiesContentResponseMsg {
   EntityContentResponseMsg item = 1;
-  int32 itemsCount = 2;
+  int32 itemIdx = 2;
+  int32 itemsCount = 3;
 }
 
 message VersionsDiffRequestMsg {
@@ -1021,6 +1021,8 @@ message ToCoreNotificationMsg {
   IntegrationDownlinkMsgProto integrationDownlinkMsg = 8;
   RestApiCallResponseMsgProto restApiCallResponseMsg = 9;
   IntegrationValidationResponseProto integrationValidationResponseMsg = 10;
+  bytes toEdgeSyncRequestMsg = 11;
+  bytes fromEdgeSyncResponseMsg = 12;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

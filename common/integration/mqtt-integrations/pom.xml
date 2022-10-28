@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.4.0PE-SNAPSHOT</version>
+        <version>3.4.2PE-SNAPSHOT</version>
         <artifactId>integration</artifactId>
     </parent>
     <groupId>org.thingsboard.common.integration</groupId>
@@ -66,6 +66,10 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
+        </dependency>
+        <dependency> <!-- added because bcprov-jdk15on exluded from org.bouncycastle:bcpkix-jdk15on -->
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-ext-jdk15on</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

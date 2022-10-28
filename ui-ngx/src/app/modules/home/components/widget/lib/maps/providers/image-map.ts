@@ -62,8 +62,13 @@ export class ImageMap extends LeafletMap {
     imageUrl: string;
     posFunction: PosFuncton;
 
+    private mapUuid: string;
+
     constructor(ctx: WidgetContext, $container: HTMLElement, options: WidgetUnitedMapSettings) {
         super(ctx, $container, options);
+        if (this.ctx.reportService.reportView) {
+          this.mapUuid = this.ctx.reportService.onWaitForMap();
+        }
         this.posFunction = parseFunction(options.posFunction, ['origXPos', 'origYPos']) as PosFuncton;
         this.mapImage(options).subscribe((mapImage) => {
           this.imageUrl = mapImage.imageUrl;
@@ -190,6 +195,11 @@ export class ImageMap extends LeafletMap {
             this.imageOverlay.setBounds(bounds);
         } else {
             this.imageOverlay = L.imageOverlay(this.imageUrl, bounds).addTo(this.map);
+            if (this.ctx.reportService.reportView) {
+              this.imageOverlay.once('load', () => {
+                this.ctx.reportService.onMapLoaded(this.mapUuid);
+              });
+            }
         }
         const padding = 200 * maxZoom;
         const southWest = this.pointToLatLng(-padding, h + padding);
@@ -258,7 +268,7 @@ export class ImageMap extends LeafletMap {
           zoom: 1,
           crs: L.CRS.Simple,
           attributionControl: false,
-          tap: L.Browser.safari && L.Browser.mobile
+          fadeAnimation: !this.ctx.reportService.reportView
         });
         this.updateBounds(updateImage);
       }
@@ -369,7 +379,7 @@ export class ImageMap extends LeafletMap {
     }
 
     convertToCircleFormat(circle: CircleData, width = this.width, height = this.height): CircleData {
-      const centerPoint = this.pointToLatLng(circle.longitude * width, circle.latitude * height);
+      const centerPoint = this.pointToLatLng(circle.latitude * width, circle.longitude * height);
       circle.latitude = centerPoint.lat;
       circle.longitude = centerPoint.lng;
       circle.radius = circle.radius * width;

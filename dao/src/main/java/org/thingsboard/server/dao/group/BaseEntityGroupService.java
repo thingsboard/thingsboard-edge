@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
@@ -925,6 +925,12 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
         @Override
         protected void validateCreate(TenantId tenantId, EntityGroup entityGroup) {
+            if (entityGroup.getExternalId() != null) {
+                EntityGroup other = entityGroupDao.findByTenantIdAndExternalId(tenantId.getId(), entityGroup.getExternalId().getId());
+                if (other != null) {
+                    throw new DataValidationException("Entity group with such external id already exists!");
+                }
+            }
         }
 
         @Override

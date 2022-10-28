@@ -82,7 +82,6 @@ export class AuthService {
     private customMenuService: CustomMenuService,
     private customTranslationService: CustomTranslationService,
     private userPermissionsService: UserPermissionsService,
-    private reportService: ReportService,
     private timeService: TimeService,
     private router: Router,
     private route: ActivatedRoute,
@@ -293,7 +292,9 @@ export class AuthService {
   public defaultUrl(isAuthenticated: boolean, authState?: AuthState, path?: string, params?: any, data?: any): UrlTree {
     let result: UrlTree = null;
     if (isAuthenticated) {
-      if (!path || path === 'login' || this.forceDefaultPlace(authState, path, params)) {
+      if (authState.authUser.authority === Authority.PRE_VERIFICATION_TOKEN) {
+        result = this.router.parseUrl('login/mfa');
+      } else if (!path || path === 'login' || this.forceDefaultPlace(authState, path, params)) {
         if (this.redirectUrl) {
           const redirectUrl = this.redirectUrl;
           this.redirectUrl = null;
@@ -330,6 +331,40 @@ export class AuthService {
     return result;
   }
 
+  public loadUserFromPublicId(publicId: string): Observable<AuthPayload> {
+    return this.publicLogin(publicId).pipe(
+      mergeMap((response) => {
+        return this.loadUserFromAccessToken(response.token);
+      }),
+      catchError((err) => {
+        this.notifyUnauthenticated();
+        this.notifyUserLoaded(true);
+        return of(null);
+      })
+    );
+  }
+
+  public loadUserFromAccessToken(accessToken?: string): Observable<AuthPayload> {
+    try {
+      this.updateAndValidateToken(null, 'jwt_token', true);
+      this.updateAndValidateToken(accessToken, 'jwt_token', false);
+    } catch (e) {
+      this.notifyUnauthenticated();
+      this.notifyUserLoaded(true);
+      return of(null);
+    }
+    return this.procceedJwtTokenValidate().pipe(
+      tap((authPayload) => {
+        this.notifyAuthenticated(authPayload);
+        this.notifyUserLoaded(true);
+      }),
+      catchError((e) => {
+        this.notifyUnauthenticated();
+        this.notifyUserLoaded(true);
+        return of(null);
+     }));
+  }
+
   private loadUser(doTokenRefresh): Observable<AuthPayload> {
     const authUser = getCurrentAuthUser(this.store);
     if (!authUser) {
@@ -339,7 +374,6 @@ export class AuthService {
       const username = this.utils.getQueryParam('username');
       const password = this.utils.getQueryParam('password');
       const loginError = this.utils.getQueryParam('loginError');
-      this.reportService.loadReportParams();
       if (publicId) {
         return this.publicLogin(publicId).pipe(
           mergeMap((response) => {

@@ -31,12 +31,12 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -229,7 +229,7 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         for (int i=0;i<143;i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1+suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -241,7 +241,7 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         for (int i=0;i<175;i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2+suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -307,7 +307,7 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         for (int i=0;i<143;i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title1+suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -320,7 +320,7 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
         for (int i=0;i<175;i++) {
             Asset asset = new Asset();
             asset.setTenantId(tenantId);
-            String suffix = RandomStringUtils.randomAlphanumeric(15);
+            String suffix = StringUtils.randomAlphanumeric(15);
             String name = title2+suffix;
             name = i % 2 == 0 ? name.toLowerCase() : name.toUpperCase();
             asset.setName(name);
@@ -380,8 +380,8 @@ public abstract class BaseAssetServiceTest extends AbstractBeforeTest {
 
     @Test
     public void testCleanCacheIfAssetRenamed() {
-        String assetNameBeforeRename = RandomStringUtils.randomAlphanumeric(15);
-        String assetNameAfterRename = RandomStringUtils.randomAlphanumeric(15);
+        String assetNameBeforeRename = StringUtils.randomAlphanumeric(15);
+        String assetNameAfterRename = StringUtils.randomAlphanumeric(15);
 
         Asset asset = new Asset();
         asset.setTenantId(tenantId);

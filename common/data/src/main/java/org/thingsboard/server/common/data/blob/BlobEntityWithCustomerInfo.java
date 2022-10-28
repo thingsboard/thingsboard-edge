@@ -40,7 +40,7 @@ public class BlobEntityWithCustomerInfo extends BlobEntityInfo {
     @ApiModelProperty(position = 10, value = "Title of the customer", example = "Company A")
     private String customerTitle;
 
-    @ApiModelProperty(position = 11, value = "Parameter that specifies if customer is public", readOnly = true,  dataType = "boolean")
+    @ApiModelProperty(position = 11, value = "Parameter that specifies if customer is public", accessMode = ApiModelProperty.AccessMode.READ_ONLY,  dataType = "boolean")
     private boolean customerIsPublic;
 
     public BlobEntityWithCustomerInfo() {

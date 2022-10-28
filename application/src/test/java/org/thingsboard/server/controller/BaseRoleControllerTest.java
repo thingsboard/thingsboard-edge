@@ -31,11 +31,11 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -217,7 +217,7 @@ public abstract class BaseRoleControllerTest extends AbstractControllerTest {
     private List<Role> fillListOf(int limit, String partOfName) throws Exception {
         List<Role> roleNames = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
-            String fullName = partOfName + ' ' + RandomStringUtils.randomAlphanumeric(15);
+            String fullName = partOfName + ' ' + StringUtils.randomAlphanumeric(15);
             fullName = i % 2 == 0 ? fullName.toLowerCase() : fullName.toUpperCase();
             Role role = getNewSavedRole(fullName);
             roleNames.add(doPost("/api/role", role, Role.class));
