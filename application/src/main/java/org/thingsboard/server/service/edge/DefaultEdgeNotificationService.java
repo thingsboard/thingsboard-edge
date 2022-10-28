@@ -74,6 +74,7 @@ import org.thingsboard.server.service.edge.rpc.processor.RoleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.RuleChainEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.SchedulerEventEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.UserEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.WhiteLabelingEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.WidgetBundleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.WidgetTypeEdgeProcessor;
 
@@ -167,6 +168,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private ConverterEdgeProcessor converterProcessor;
+
+    @Autowired
+    private WhiteLabelingEdgeProcessor whiteLabelingProcessor;
 
     @PostConstruct
     public void initExecutor() {
@@ -278,6 +282,11 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                     break;
                 case CONVERTER:
                     future = converterProcessor.processConverterNotification(tenantId, edgeNotificationMsg);
+                    break;
+                case WHITE_LABELING:
+                case LOGIN_WHITE_LABELING:
+                case CUSTOM_TRANSLATION:
+                    future = whiteLabelingProcessor.processNotification(tenantId, edgeNotificationMsg);
                     break;
                 default:
                     log.warn("Edge event type [{}] is not designed to be pushed to edge", type);

@@ -260,14 +260,6 @@ abstract public class BaseUserEdgeTest extends AbstractEdgeTest {
 
     }
 
-    private EntityGroupInfo findCustomerAdminsGroup(Customer savedCustomer) throws Exception {
-        return findGroupByOwnerIdTypeAndName(savedCustomer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
-    }
-
-    private EntityGroupInfo findTenantAdminsGroup() throws Exception {
-        return findGroupByOwnerIdTypeAndName(tenantId, EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME);
-    }
-
     @Test
     @Ignore
     public void testSendUserCredentialsRequestToCloud() throws Exception {
