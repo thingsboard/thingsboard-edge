@@ -48,9 +48,6 @@ $tb-mat-theme: mat.define-light-theme(
 
 $tb-theme: map_merge($tb-mat-theme, (background: $tb-theme-background));
 
-$primary: mat.get-color-from-palette($tb-primary);
-$accent: mat.get-color-from-palette($tb-accent);
-
 .tb-default {
   @include mat.all-component-themes($tb-theme);
   @include mat-datetimepicker-theme($tb-theme);
@@ -59,6 +56,6 @@ $accent: mat.get-color-from-palette($tb-accent);
 
 .tb-default, .tb-dark {
   .tb-primary-background {
-    background-color: $primary;
+    background-color: mat.get-color-from-palette($tb-primary);
   }
 }
