@@ -104,7 +104,8 @@
           ],
           "countAlarmsForPropagationEntities": true,
           "propagationEntityTypes": null,
-          "queueName": "Main"
+          "queueName": "Main",
+          "outMsgType": "POST_TELEMETRY_REQUEST"
         }
       },
       {
