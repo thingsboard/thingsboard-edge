@@ -355,6 +355,7 @@
         "repository-url": "Repository URL",
         "repository-url-required": "Repository URL is required.",
         "default-branch": "Default branch name",
+        "repository-read-only": "Read-only",
         "authentication-settings": "Authentication settings",
         "auth-method": "Authentication method",
         "auth-method-username-password": "Password / access token",
@@ -4702,7 +4703,8 @@
         "entity-groups": "Entity groups",
         "integration-routing-key-conflict": "Failed to load the integration with external id <b>{{entityId}}</b><br/>due to the same integration key is already present in the database for another integration.<br/>Please consider enabling the <b>auto-generate integration key</b> setting in the restore form.",
         "auto-generate-integration-key": "Auto-generate integration key",
-        "runtime-failed": "<b>Failed:</b> {{message}}"
+        "runtime-failed": "<b>Failed:</b> {{message}}",
+        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings."
     },
     "widget": {
         "widget-library": "Widgets Library",
