@@ -26,7 +26,7 @@ import java.util.Arrays;
 @SpringBootConfiguration
 @EnableAsync
 @EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.edge"})
+@ComponentScan({"org.thingsboard.server", "org.thingsboard.script", "org.thingsboard.edge"})
 public class TbEdgeApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
