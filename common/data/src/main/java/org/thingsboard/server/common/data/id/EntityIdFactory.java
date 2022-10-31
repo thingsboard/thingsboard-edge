@@ -98,6 +98,8 @@ public class EntityIdFactory {
                 return new WidgetTypeId(uuid);
             case DEVICE_PROFILE:
                 return new DeviceProfileId(uuid);
+            case ASSET_PROFILE:
+                return new AssetProfileId(uuid);
             case TENANT_PROFILE:
                 return new TenantProfileId(uuid);
             case API_USAGE_STATE:
@@ -128,6 +130,8 @@ public class EntityIdFactory {
                 return new DeviceId(uuid);
             case DEVICE_PROFILE:
                 return new DeviceProfileId(uuid);
+            case ASSET_PROFILE:
+                return new AssetProfileId(uuid);
             case ASSET:
                 return new AssetId(uuid);
             case ALARM:

@@ -145,11 +145,11 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
 
   writeValue(value: SchedulerEventConfiguration | null): void {
     this.modelValue = value;
-    this.updateAttributesFormGroup.reset(undefined,{emitEvent: false});
+    this.updateAttributesFormGroup.reset(undefined, { emitEvent: false });
     let doUpdate = false;
     if (this.modelValue) {
       if (!this.modelValue.msgType) {
-        this.modelValue.msgType = MessageType.POST_ATTRIBUTES_REQUEST
+        this.modelValue.msgType = MessageType.POST_ATTRIBUTES_REQUEST;
         doUpdate = true;
       }
       if (!this.modelValue.metadata || !this.modelValue.metadata.scope) {
@@ -166,7 +166,7 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
         (formValue as any).sharedAttributes = attributes;
       }
       delete formValue.msgBody;
-      this.updateAttributesFormGroup.reset(formValue,{emitEvent: false});
+      this.updateAttributesFormGroup.reset(formValue, { emitEvent: false });
     }
     this.updateValidators();
     if (doUpdate) {

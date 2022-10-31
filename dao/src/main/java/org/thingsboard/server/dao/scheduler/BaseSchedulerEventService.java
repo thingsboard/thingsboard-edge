@@ -242,17 +242,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
-    public static EntityId getOriginatorId(SchedulerEventId eventId, JsonNode configuration) {
-        EntityId originatorId = eventId;
-        if (configuration.has("originatorId") && !configuration.get("originatorId").isNull()) {
-            JsonNode entityId = configuration.get("originatorId");
-            if (entityId != null) {
-                if (entityId.has("entityType") && !entityId.get("entityType").isNull()
-                        && entityId.has("id") && !entityId.get("id").isNull())
-                    originatorId = EntityIdFactory.getByTypeAndId(entityId.get("entityType").asText(), entityId.get("id").asText());
-            }
-        }
-        return originatorId;
+    public static EntityId getOriginatorId(SchedulerEvent event) {
+        return event.getOriginatorId() != null ? event.getOriginatorId() : event.getId();
     }
 
 }

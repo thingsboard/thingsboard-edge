@@ -40,7 +40,7 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import { SchedulerEvent } from '@shared/models/scheduler-event.models';
 import { SchedulerEventService } from '@core/http/scheduler-event.service';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
-import { isObject, isString } from '@core/utils';
+import { deepClone, isObject, isString } from '@core/utils';
 
 export interface SchedulerEventDialogData {
   schedulerEventConfigTypes: {[eventType: string]: SchedulerEventConfigType};
@@ -85,10 +85,14 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
   }
 
   ngOnInit(): void {
+    const configuration = deepClone(this.schedulerEvent.configuration);
+    if (configuration && this.schedulerEvent.originatorId) {
+      configuration.originatorId = this.schedulerEvent.originatorId;
+    }
     this.schedulerEventFormGroup = this.fb.group({
       name: [this.schedulerEvent.name, [Validators.required, Validators.maxLength(255)]],
       type: [this.isAdd ? this.defaultEventType : this.schedulerEvent.type, [Validators.required]],
-      configuration: [this.schedulerEvent.configuration, [Validators.required]],
+      configuration: [configuration, [Validators.required]],
       schedule: [this.schedulerEvent.schedule, [Validators.required]]
     });
     if (this.readonly) {
@@ -123,7 +127,12 @@ export class SchedulerEventDialogComponent extends DialogComponent<SchedulerEven
   save(): void {
     this.submitted = true;
     if (!this.schedulerEventFormGroup.invalid) {
-      this.schedulerEvent = {...this.schedulerEvent, ...this.schedulerEventFormGroup.getRawValue()};
+      const schedulerEventValue = this.schedulerEventFormGroup.getRawValue();
+      this.schedulerEvent.originatorId = schedulerEventValue.configuration?.originatorId;
+      if (schedulerEventValue.configuration?.originatorId) {
+        delete schedulerEventValue.configuration?.originatorId;
+      }
+      this.schedulerEvent = {...this.schedulerEvent, ...schedulerEventValue};
       this.schedulerEventService.saveSchedulerEvent(this.deepTrim(this.schedulerEvent)).subscribe(
         () => {
             this.dialogRef.close(true);

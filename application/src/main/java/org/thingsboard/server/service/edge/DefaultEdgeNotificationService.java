@@ -155,6 +155,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                 case ASSET:
                 case DEVICE:
                 case DEVICE_PROFILE:
+                case ASSET_PROFILE:
                 case ENTITY_VIEW:
                 case DASHBOARD:
                 case CUSTOMER:
