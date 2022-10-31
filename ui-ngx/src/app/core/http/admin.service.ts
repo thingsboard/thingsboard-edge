@@ -30,8 +30,8 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { defaultHttpOptions, defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { Observable, of } from 'rxjs';
+import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
+import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import {
   AdminSettings,
@@ -39,12 +39,12 @@ import {
   MailServerSettings,
   SecuritySettings,
   TestSmsRequest,
-  UpdateMessage, AutoCommitSettings
+  UpdateMessage,
+  AutoCommitSettings,
+  RepositorySettingsInfo
 } from '@shared/models/settings.models';
 import { EntitiesVersionControlService } from '@core/http/entities-version-control.service';
 import { tap } from 'rxjs/operators';
-import { AuthUser } from '@shared/models/user.model';
-import { Authority } from '@shared/models/authority.enum';
 
 @Injectable({
   providedIn: 'root'
@@ -111,6 +111,10 @@ export class AdminService {
   public checkRepositoryAccess(repositorySettings: RepositorySettings,
                                config?: RequestConfig): Observable<void> {
     return this.http.post<void>('/api/admin/repositorySettings/checkAccess', repositorySettings, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getRepositorySettingsInfo(config?: RequestConfig): Observable<RepositorySettingsInfo> {
+    return this.http.get<RepositorySettingsInfo>('/api/admin/repositorySettings/info', defaultHttpOptionsFromConfig(config));
   }
 
   public getAutoCommitSettings(config?: RequestConfig): Observable<AutoCommitSettings> {

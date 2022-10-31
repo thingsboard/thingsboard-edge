@@ -55,7 +55,6 @@
         <module>message</module>
         <module>actor</module>
         <module>queue</module>
-        <module>js</module>
         <module>transport</module>
         <module>integration</module>
         <module>dao-api</module>
@@ -65,6 +64,7 @@
         <module>coap-server</module>
         <module>edge-api</module>
         <module>version-control</module>
+        <module>script</module>
     </modules>
 
 </project>

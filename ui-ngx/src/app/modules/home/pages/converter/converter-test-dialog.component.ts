@@ -58,10 +58,12 @@ import { base64toString, isEqual, stringToBase64 } from '@core/utils';
 import { ConverterService } from '@core/http/converter.service';
 import { beautifyJs } from '@shared/models/beautify.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { ScriptLanguage } from '@shared/models/rule-node.models';
 
 export interface ConverterTestDialogData {
   isDecoder: boolean;
   funcBody: string;
+  scriptLang?: ScriptLanguage;
   debugIn: ConverterDebugInput;
 }
 
@@ -109,6 +111,10 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
   contentTypes = Object.keys(ContentType);
 
   contentTypesInfoMap = contentTypesMap;
+
+  scriptLanguage = ScriptLanguage;
+
+  scriptLang = this.data.scriptLang ? this.data.scriptLang : ScriptLanguage.JS;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -359,8 +365,8 @@ export class ConverterTestDialogComponent extends DialogComponent<ConverterTestD
         inputParams.integrationMetadata = this.converterTestFormGroup.get('integrationMetadata').value;
         inputParams.encoder = this.converterTestFormGroup.get('funcBody').value;
       }
-      const testObservable = this.isDecoder ? this.converterService.testUpLink(inputParams) :
-        this.converterService.testDownLink(inputParams);
+      const testObservable = this.isDecoder ? this.converterService.testUpLink(inputParams, this.scriptLang) :
+        this.converterService.testDownLink(inputParams, this.scriptLang);
       return testObservable.pipe(
         mergeMap((result) => {
           if (result.error) {

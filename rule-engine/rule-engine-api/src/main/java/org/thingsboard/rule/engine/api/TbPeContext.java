@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -100,6 +101,6 @@ public interface TbPeContext {
 
     boolean isLocalEntity(EntityId entityId);
 
-    ScriptEngine createAttributesJsScriptEngine(String script);
+    ScriptEngine createAttributesScriptEngine(ScriptLanguage scriptLang, String script);
 
 }

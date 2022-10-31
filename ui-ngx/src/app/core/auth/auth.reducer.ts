@@ -41,6 +41,7 @@ const emptyUserAuthState: AuthPayload = {
   whiteLabelingAllowed: false,
   customerWhiteLabelingAllowed: false,
   hasRepository: false,
+  mvelEnabled: false,
   allowedDashboardIds: []
 };
 

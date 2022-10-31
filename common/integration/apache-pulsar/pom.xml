@@ -58,8 +58,8 @@
             <artifactId>integration-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thingsboard.common.js</groupId>
-            <artifactId>js-api</artifactId>
+            <groupId>org.thingsboard.common.script</groupId>
+            <artifactId>script-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

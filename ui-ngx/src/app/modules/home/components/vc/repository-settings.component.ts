@@ -95,6 +95,7 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
     this.repositorySettingsForm = this.fb.group({
       repositoryUri: [null, [Validators.required]],
       defaultBranch: ['main', []],
+      readOnly: [false, []],
       authMethod: [RepositoryAuthMethod.USERNAME_PASSWORD, [Validators.required]],
       username: [null, []],
       password: [null, []],
