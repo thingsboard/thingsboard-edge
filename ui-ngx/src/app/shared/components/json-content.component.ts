@@ -233,6 +233,9 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
     if (this.editorResize$) {
       this.editorResize$.disconnect();
     }
+    if (this.jsonEditor) {
+      this.jsonEditor.destroy();
+    }
   }
 
   private onAceEditorResize() {

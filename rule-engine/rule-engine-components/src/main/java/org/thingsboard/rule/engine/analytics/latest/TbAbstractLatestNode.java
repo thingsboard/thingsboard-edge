@@ -40,10 +40,12 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +73,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         this.config = loadMapperNodeConfig(configuration);
         this.queueName = config.getQueueName();
         this.delay = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
-        this.outMsgType = config.getOutMsgType();
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
         scheduleTickMsg(ctx);
     }
 

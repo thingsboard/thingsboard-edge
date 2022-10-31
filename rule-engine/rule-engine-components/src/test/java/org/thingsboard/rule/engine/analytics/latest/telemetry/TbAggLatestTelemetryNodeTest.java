@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.relation.RelationsSearchParameters;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
@@ -189,7 +190,7 @@ public class TbAggLatestTelemetryNodeTest {
 
         String attributesFilterScript = "return Number(attributes['temperature']) > 21;";
 
-        when(peCtx.createAttributesJsScriptEngine(attributesFilterScript)).thenReturn(scriptEngine);
+        when(peCtx.createAttributesScriptEngine(ScriptLanguage.JS, attributesFilterScript)).thenReturn(scriptEngine);
 
         when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
                 (Answer<ListenableFuture<Boolean>>) invocation -> {
@@ -238,6 +239,7 @@ public class TbAggLatestTelemetryNodeTest {
 
         AggLatestMappingFilter filter = new AggLatestMappingFilter();
         filter.setLatestTsKeyNames(Collections.singletonList("temperature"));
+        filter.setScriptLang(ScriptLanguage.JS);
         filter.setFilterFunction("return Number(attributes['temperature']) > 21;");
 
         countMapping.setFilter(filter);
