@@ -103,3 +103,10 @@ CREATE INDEX IF NOT EXISTS idx_api_usage_state_entity_id ON api_usage_state(enti
 
 CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
 
+CREATE INDEX IF NOT EXISTS idx_notification_target_tenant_id_and_created_time ON notification_target(tenant_id, created_time DESC);
+
+CREATE INDEX IF NOT EXISTS idx_notification_request_tenant_id_and_created_time ON notification_request(tenant_id, created_time DESC);
+
+CREATE INDEX IF NOT EXISTS idx_notification_recipient_id_and_created_time ON notification(recipient_id, created_time DESC);
+
+CREATE INDEX IF NOT EXISTS idx_notification_recipient_id_and_status_and_created_time ON notification(recipient_id, status, created_time DESC);

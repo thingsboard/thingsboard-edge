@@ -115,7 +115,7 @@ import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
-import org.thingsboard.server.service.telemetry.exception.ToErrorResponseEntity;
+import org.thingsboard.server.exception.ToErrorResponseEntity;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
