@@ -41,7 +41,7 @@ import java.util.Arrays;
 
 @SpringBootApplication
 @EnableAsync
-@ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api"})
+@ComponentScan({"org.thingsboard.integration", "org.thingsboard.script.api"})
 public class ThingsboardApachePulsarIntegrationApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
