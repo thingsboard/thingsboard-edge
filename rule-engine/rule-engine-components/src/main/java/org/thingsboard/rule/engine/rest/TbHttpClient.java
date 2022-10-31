@@ -54,7 +54,6 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.client.AsyncRestTemplate;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -314,7 +313,7 @@ public class TbHttpClient {
         TbMsgMetaData metaData = origMsg.getMetaData();
         metaData.putValue(ERROR, e.getClass() + ": " + e.getMessage());
         if (e instanceof RestClientResponseException) {
-            RestClientResponseException restClientResponseException = (HttpClientErrorException) e;
+            RestClientResponseException restClientResponseException = (RestClientResponseException) e;
             metaData.putValue(STATUS, restClientResponseException.getStatusText());
             metaData.putValue(STATUS_CODE, restClientResponseException.getRawStatusCode() + "");
             metaData.putValue(ERROR_BODY, restClientResponseException.getResponseBodyAsString());
