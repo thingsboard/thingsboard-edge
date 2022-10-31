@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -108,7 +109,7 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
         JsonNode msgDataNode = JacksonUtil.toJsonNode(msg.getData());
         if (fetchToData) {
             if (!msgDataNode.isObject()) {
-                ctx.tellFailure(msg, new IllegalArgumentException("Msg body is not object!"));
+                ctx.tellFailure(msg, new IllegalArgumentException("Msg body is not an object!"));
                 return;
             }
         }
@@ -123,6 +124,7 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
             if (!failuresMap.isEmpty()) {
                 throw reportFailures(failuresMap);
             }
+            TbMsgMetaData msgMetaData = msg.getMetaData().copy();
             futuresList.stream().filter(Objects::nonNull).forEach(kvEntriesMap -> {
                 kvEntriesMap.forEach((keyScope, kvEntryList) -> {
                     String prefix = getPrefix(keyScope);
@@ -130,15 +132,15 @@ public abstract class TbAbstractGetAttributesNode<C extends TbGetAttributesNodeC
                         if (fetchToData) {
                             JacksonUtil.addKvEntry((ObjectNode) msgDataNode, kvEntry, prefix + kvEntry.getKey());
                         } else {
-                            msg.getMetaData().putValue(prefix + kvEntry.getKey(), kvEntry.getValueAsString());
+                            msgMetaData.putValue(prefix + kvEntry.getKey(), kvEntry.getValueAsString());
                         }
                     });
                 });
             });
             if (fetchToData) {
-                ctx.tellSuccess(TbMsg.transformMsg(msg, msg.getType(), msg.getOriginator(), msg.getMetaData(), JacksonUtil.toString(msgDataNode)));
+                ctx.tellSuccess(TbMsg.transformMsg(msg, msg.getType(), msg.getOriginator(), msgMetaData, JacksonUtil.toString(msgDataNode)));
             } else {
-                ctx.tellSuccess(msg);
+                ctx.tellSuccess(TbMsg.transformMsg(msg, msg.getType(), msg.getOriginator(), msgMetaData, msg.getData()));
             }
         }, t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
     }
