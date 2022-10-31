@@ -77,6 +77,7 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.EntityViewSearchQueryFilter;
 import org.thingsboard.server.common.data.query.EntityViewTypeFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
+import org.thingsboard.server.common.data.query.SchedulerEventFilter;
 import org.thingsboard.server.common.data.query.SingleEntityFilter;
 import org.thingsboard.server.common.data.query.StateEntityOwnerFilter;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -354,6 +355,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         entityTableMap.put(EntityType.EDGE, "edge");
         entityTableMap.put(EntityType.RULE_CHAIN, "rule_chain");
         entityTableMap.put(EntityType.DEVICE_PROFILE, "device_profile");
+        entityTableMap.put(EntityType.ASSET_PROFILE, "asset_profile");
     }
 
     public static EntityType[] RELATION_QUERY_ENTITY_TYPES = new EntityType[]{
@@ -767,6 +769,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case INTEGRATION:
             case CONVERTER:
             case DEVICE_PROFILE:
+            case ASSET_PROFILE:
             case RULE_CHAIN:
             case SCHEDULER_EVENT:
             case TENANT:
@@ -1493,6 +1496,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             case EDGE_SEARCH_QUERY:
             case ENTITY_GROUP:
             case ENTITY_GROUP_NAME:
+            case SCHEDULER_EVENT:
                 return this.defaultPermissionQuery(ctx, entityFilter);
             case API_USAGE_STATE:
                 CustomerId filterCustomerId = ((ApiUsageStateFilter) entityFilter).getCustomerId();
@@ -1547,6 +1551,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 return this.entityNameQuery(ctx, (EntityNameFilter) entityFilter);
             case ENTITY_GROUP_NAME:
                 return this.entityGroupNameQuery(ctx, (EntityGroupNameFilter) entityFilter);
+            case SCHEDULER_EVENT:
+                return this.schedulerEventQuery(ctx, (SchedulerEventFilter) entityFilter);
             case ASSET_TYPE:
             case DEVICE_TYPE:
             case ENTITY_VIEW_TYPE:
@@ -1568,6 +1574,20 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             default:
                 throw new RuntimeException("Not implemented!");
         }
+    }
+
+    private String schedulerEventQuery(QueryContext ctx, SchedulerEventFilter entityFilter) {
+        String query = "";
+        if (StringUtils.isNotBlank(entityFilter.getEventType())) {
+            ctx.addStringParameter("entity_filter_scheduler_event_type", entityFilter.getEventType());
+            query = "e.type=:entity_filter_scheduler_event_type";
+        }
+        if (entityFilter.getOriginator() != null) {
+            ctx.addUuidParameter("entity_filter_scheduler_originator", entityFilter.getOriginator().getId());
+            query = (StringUtils.isEmpty(query) ? "" : query + " AND ") + "e.originator_id=:entity_filter_scheduler_originator";
+        }
+
+        return query;
     }
 
     private String addEntityTableQuery(QueryContext ctx, EntityFilter entityFilter) {
@@ -1988,6 +2008,8 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 return rgf.isMultiRoot() ? rgf.getMultiRootEntitiesType() : rgf.getRootEntity().getEntityType();
             case API_USAGE_STATE:
                 return EntityType.API_USAGE_STATE;
+            case SCHEDULER_EVENT:
+                return EntityType.SCHEDULER_EVENT;
             default:
                 throw new RuntimeException("Not implemented!");
         }

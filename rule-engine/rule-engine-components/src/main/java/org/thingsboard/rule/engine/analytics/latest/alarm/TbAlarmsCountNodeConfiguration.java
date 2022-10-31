@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.analytics.latest.alarm;
 import lombok.Data;
 import org.thingsboard.rule.engine.analytics.latest.ParentEntitiesGroup;
 import org.thingsboard.rule.engine.analytics.latest.TbAbstractLatestNodeConfiguration;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,7 @@ public class TbAlarmsCountNodeConfiguration extends TbAbstractLatestNodeConfigur
 
         configuration.setPeriodTimeUnit(TimeUnit.MINUTES);
         configuration.setPeriodValue(5);
+        configuration.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         return configuration;
     }

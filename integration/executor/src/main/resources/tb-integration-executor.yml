@@ -282,10 +282,31 @@ queue:
     request_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_REQUEST_POLL_INTERVAL_MS:25}"
     response_poll_interval: "${TB_QUEUE_INTEGRATION_EXECUTOR_RESPONSE_POLL_INTERVAL_MS:25}"
 
+mvel:
+  enabled: "${MVEL_ENABLED:true}"
+  max_total_args_size: "${MVEL_MAX_TOTAL_ARGS_SIZE:100000}"
+  max_result_size: "${MVEL_MAX_RESULT_SIZE:300000}"
+  max_script_body_size: "${MVEL_MAX_SCRIPT_BODY_SIZE:50000}"
+  # Maximum allowed MVEL script execution memory
+  max_memory_limit_mb: "${MVEL_MAX_MEMORY_LIMIT_MB: 8}"
+  # Maximum allowed MVEL script execution errors before it will be blacklisted
+  max_errors: "${MVEL_MAX_ERRORS:3}"
+  # MVEL Eval max request timeout in milliseconds. 0 - no timeout
+  max_requests_timeout: "${MVEL_MAX_REQUEST_TIMEOUT:500}"
+  # Maximum time in seconds for black listed function to stay in the list.
+  max_black_list_duration_sec: "${MVEL_MAX_BLACKLIST_DURATION_SEC:60}"
+  # Specify thread pool size for javascript executor service
+  thread_pool_size: "${MVEL_THREAD_POOL_SIZE:50}"
+  stats:
+    enabled: "${TB_MVEL_STATS_ENABLED:false}"
+    print_interval_ms: "${TB_MVEL_STATS_PRINT_INTERVAL_MS:10000}"
+
 js:
   evaluator: "${JS_EVALUATOR:local}" # local/remote
   # Built-in JVM JavaScript environment properties
   local:
+    # Specify thread pool size for javascript executor service
+    js_thread_pool_size: "${LOCAL_JS_THREAD_POOL_SIZE:50}"
     # Use Sandboxed (secured) JVM JavaScript environment
     use_js_sandbox: "${USE_LOCAL_JS_SANDBOX:true}"
     # Specify thread pool size for JavaScript sandbox resource monitor
@@ -380,6 +401,8 @@ coap:
   dtls:
     # Enable/disable DTLS 1.2 support
     enabled: "${COAP_DTLS_ENABLED:false}"
+    # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
+    retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS:9000}"
     # CoAP DTLS bind address
     bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
     # CoAP DTLS bind port

@@ -160,6 +160,9 @@ export class CssComponent implements OnInit, OnDestroy, ControlValueAccessor, Va
     if (this.editorResize$) {
       this.editorResize$.disconnect();
     }
+    if (this.cssEditor) {
+      this.cssEditor.destroy();
+    }
   }
 
   private onAceEditorResize() {

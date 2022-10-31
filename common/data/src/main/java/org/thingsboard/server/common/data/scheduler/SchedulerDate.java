@@ -43,7 +43,7 @@ abstract class SchedulerDate {
             calendar.setTimeInMillis(startTime);
             calendar.add(calendarField, repeatIteration);
             tmp = calendar.getTimeInMillis();
-            if (tmp > ts) {
+            if (tmp > ts && tmp < endsOn) {
                 return tmp;
             }
             repeatIteration++;

@@ -94,6 +94,7 @@
         <zookeeper.version>3.5.5</zookeeper.version>
         <protobuf.version>3.17.2</protobuf.version>
         <grpc.version>1.42.1</grpc.version>
+        <mvel.version>2.4.22TB</mvel.version>
         <lombok.version>1.18.18</lombok.version>
         <paho.client.version>1.2.4</paho.client.version>
         <netty.version>4.1.75.Final</netty.version>
@@ -155,11 +156,12 @@
         <spring-test-dbunit.version>1.3.0</spring-test-dbunit.version> <!-- 2016 -->
         <takari-cpsuite.version>1.2.7</takari-cpsuite.version> <!-- 2015 -->
         <!--      BLACKBOX TEST SCOPE     -->
-        <testcontainers.version>1.16.0</testcontainers.version>
+        <testcontainers.version>1.17.3</testcontainers.version>
         <zeroturnaround.version>1.12</zeroturnaround.version>
         <dotenv-java.version>2.2.0</dotenv-java.version>
         <opensmpp.version>3.0.0</opensmpp.version>
         <jgit.version>6.1.0.202203080745-r</jgit.version>
+        <exp4j.version>0.4.8</exp4j.version>
         <aerogear-otp.version>1.0.0</aerogear-otp.version>
     </properties>
 
@@ -938,16 +940,6 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.thingsboard.common.js</groupId>
-                <artifactId>js-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.thingsboard.common.js</groupId>
-                <artifactId>remote-js-client</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
                 <artifactId>integration-api</artifactId>
                 <version>${project.version}</version>
@@ -1102,6 +1094,16 @@
             <dependency>
                 <groupId>org.thingsboard.common</groupId>
                 <artifactId>coap-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.script</groupId>
+                <artifactId>script-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard.common.script</groupId>
+                <artifactId>remote-js-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1356,7 +1358,6 @@
                 <groupId>com.jayway.jsonpath</groupId>
                 <artifactId>json-path</artifactId>
                 <version>${json-path.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.jayway.jsonpath</groupId>
@@ -1728,6 +1729,11 @@
                 <groupId>io.grpc</groupId>
                 <artifactId>grpc-api</artifactId>
                 <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.thingsboard</groupId>
+                <artifactId>mvel2</artifactId>
+                <version>${mvel.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -2142,6 +2148,11 @@
                 <groupId>org.eclipse.jgit</groupId>
                 <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
                 <version>${jgit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.objecthunter</groupId>
+                <artifactId>exp4j</artifactId>
+                <version>${exp4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
