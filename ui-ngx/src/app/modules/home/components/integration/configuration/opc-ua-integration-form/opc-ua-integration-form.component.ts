@@ -88,7 +88,7 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
       port: [49320, [Validators.required, Validators.min(1), Validators.max(65535)]],
       scanPeriodInSeconds: [10, Validators.required],
       timeoutInMillis: [5000, Validators.required],
-      security: [OpcSecurityType.Basic128Rsa15, Validators.required],
+      security: [OpcSecurityType.None, Validators.required],
       identity: this.fb.group({
         password: [{value: '', disabled: true}, Validators.required],
         username: [{value: '', disabled: true}, Validators.required],
@@ -96,12 +96,12 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
       }),
       mapping: [null, Validators.required],
       keystore: this.fb.group({
-        location: ['', Validators.required],
-        type: [OpcKeystoreType.JKS, Validators.required],
-        fileContent: ['', Validators.required],
-        password: ['secret', Validators.required],
-        alias: ['opc-ua-extension', Validators.required],
-        keyPassword: ['secret', Validators.required]
+        location: [{value: '', disabled: true}, Validators.required],
+        type: [{value: OpcKeystoreType.JKS, disabled: true}, Validators.required],
+        fileContent: [{value: '', disabled: true}, Validators.required],
+        password: [{value: 'secret', disabled: true}, Validators.required],
+        alias: [{value: 'opc-ua-extension', disabled: true}, Validators.required],
+        keyPassword: [{value: 'secret', disabled: true}, Validators.required]
       })
     });
 

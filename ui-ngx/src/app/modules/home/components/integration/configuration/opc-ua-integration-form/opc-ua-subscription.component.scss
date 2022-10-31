@@ -29,18 +29,25 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
-  mat-checkbox  {
+  mat-checkbox {
     margin-bottom: 0;
   }
+
   .fields-group {
     legend + * {
       margin-top: 0;
     }
   }
+
   .no-data-found {
     height: 57px;
   }
+
+  .invisibility {
+    visibility: hidden;
+  }
 }
+
 :host::ng-deep {
   mat-form-field {
     .mat-form-field-infix {

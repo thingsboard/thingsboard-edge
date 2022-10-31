@@ -44,12 +44,12 @@
     position: relative;
 
     .tb-radio-button {
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
     .tb-radio-button-content {
       position: relative;
-      padding: 16px 16px 8px;
+      padding: 16px 16px 4px;
     }
 
     .tb-select-button::before {
@@ -146,7 +146,7 @@
         max-height: 100%;
         width: 100%;;
         overflow-y: auto;
-        scrollbar-gutter: stable both-edges;
+        scrollbar-gutter: stable;
         @media #{$mat-gt-sm} {
           min-width: 500px;
         }
@@ -183,5 +183,9 @@
 
   .tb-js-func {
     background-color: transparent !important;
+  }
+
+  tb-key-val-map {
+    margin-bottom: 6px;
   }
 }

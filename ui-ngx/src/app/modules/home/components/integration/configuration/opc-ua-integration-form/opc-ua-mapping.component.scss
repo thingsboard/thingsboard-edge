@@ -41,10 +41,24 @@
     text-align: center;
     line-height: 28px;
   }
+
   .fields-group {
     padding: 8px 16px 8px;
     margin-bottom: 0;
+    position: relative;
+
+    &::before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      background-color: var(--tb-primary-500);
+      opacity: 0.02;
+    }
   }
+
   .mapping-setting {
     box-shadow: none;
     border: 1px groove rgba(0, 0, 0, .25);
@@ -55,14 +69,21 @@
       padding: 0 24px 0 16px;
     }
   }
+
+  .invisibility {
+    visibility: hidden;
+  }
 }
+
 :host::ng-deep {
   .mapping-setting {
     .mat-content {
       overflow: visible;
     }
+
     .mat-expansion-panel-body {
       padding: 0;
+
       .mapping-setting-content {
         margin: 0 16px 16px;
         overflow-x: auto;

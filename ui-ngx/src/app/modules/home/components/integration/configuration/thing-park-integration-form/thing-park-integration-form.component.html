@@ -48,8 +48,8 @@
            (cbOnSuccess)="onHttpEndpointCopied()"
            [cbContent]="thingParkConfigForm.get('httpEndpoint').value"
            matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button">
-          <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+        <button mat-button mat-icon-button type="button" color="primary">
+          <mat-icon class="tb-mat-20">content_copy</mat-icon>
         </button>
       </div>
     </fieldset>

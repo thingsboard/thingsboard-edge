@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { EntityComponent } from '../../components/entity/entity.component';
@@ -45,7 +45,6 @@ import {
 } from '@shared/models/integration.models';
 import { isDefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
-import { IntegrationFormComponent } from '@home/pages/integration/configurations/integration-form.component';
 import { IntegrationService } from '@core/http/integration.service';
 import { PageLink } from '@shared/models/page/page-link';
 
@@ -55,8 +54,6 @@ import { PageLink } from '@shared/models/page/page-link';
   styleUrls: ['./integration.component.scss']
 })
 export class IntegrationComponent extends EntityComponent<Integration, PageLink, IntegrationInfo> implements OnInit {
-
-  @ViewChild('integrationFormComponent', {static: false}) integrationFormComponent: IntegrationFormComponent;
 
   converterType = ConverterType;
 

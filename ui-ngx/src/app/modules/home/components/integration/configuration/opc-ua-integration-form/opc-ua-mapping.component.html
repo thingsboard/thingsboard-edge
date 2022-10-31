@@ -70,7 +70,9 @@
             </tb-opc-ua-subscription>
           </section>
           <button mat-icon-button class="mat-icon-button" *ngIf="!disabled"
+                  color="primary"
                   (click)="removeMap($index)"
+                  [ngClass]="{'invisibility': mapFormArrayControls.length === 1}"
                   [matTooltip]="'action.remove' | translate" matTooltipPosition="above">
             <mat-icon>close</mat-icon>
           </button>

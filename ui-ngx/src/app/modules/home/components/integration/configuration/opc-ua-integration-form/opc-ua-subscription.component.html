@@ -49,7 +49,9 @@
       </mat-checkbox>
       <button mat-icon-button *ngIf="!disabled"
               type="button"
+              color="primary"
               (click)="removeSubscriptionTag(i)"
+              [ngClass]="{'invisibility': opcSubscriptionArrayControls.length === 1}"
               [matTooltip]="'integration.remove-subscription-tag' | translate"
               matTooltipPosition="above">
         <mat-icon>close</mat-icon>

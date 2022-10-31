@@ -2982,7 +2982,7 @@
         "client-id-required": "Client ID is required.",
         "client-id-range": "Client ID should be in a range from 1 to 23 characters. [MQTT-3.1.3-5]",
         "client-id-pattern": "Client ID should consist of numbers, upper and lower case letters. [MQTT-3.1.3-5]",
-        "client-id-hint": "Hint: Optional. Leave empty for auto-generated client id. Be careful when specifying the Client ID. Majority of the MQTT brokers will not allow multiple connections with the same client id. To connect to such brokers, your mqtt client id must be unique.",
+        "client-id-hint": "Hint: Optional. Leave empty for auto-generated client ID. Be careful when specifying the Client ID. Majority of the MQTT brokers will not allow multiple connections with the same client ID. To connect to such brokers, your MQTT client ID must be unique.",
         "max-bytes-in-message": "Max bytes in message",
         "max-bytes-in-message-range": "Max bytes in message should be in a range from 1 to 256000000.",
         "device-id": "Device ID",

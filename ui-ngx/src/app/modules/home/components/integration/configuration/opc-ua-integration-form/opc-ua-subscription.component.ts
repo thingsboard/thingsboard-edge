@@ -125,7 +125,7 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
         }
       }
     } else {
-      this.addSubscriptionTag();
+      this.addSubscriptionTag(false);
     }
   }
 
@@ -137,8 +137,8 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
     return this.opcSubscriptionArray.controls as FormGroup[];
   }
 
-  addSubscriptionTag() {
-    this.opcSubscriptionArray.push(this.createFormGroup());
+  addSubscriptionTag(emitEvent = true) {
+    this.opcSubscriptionArray.push(this.createFormGroup(), {emitEvent});
   }
 
   private createFormGroup(value?: any): FormGroup {

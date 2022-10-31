@@ -48,8 +48,8 @@
            (cbOnSuccess)="onHttpEndpointCopied()"
            [cbContent]="loriotIntegrationConfigForm.get('httpEndpoint').value"
            matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button">
-          <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+        <button mat-button mat-icon-button type="button" color="primary">
+          <mat-icon class="tb-mat-20">content_copy</mat-icon>
         </button>
       </div>
     </fieldset>
@@ -109,7 +109,10 @@
           </mat-form-field>
         </div>
         <tb-integration-credentials formControlName="credentials"
+                                    style="margin-top: 4px"
                                     *ngIf="loriotIntegrationConfigForm.get('createLoriotOutput').value"
+                                    userNameLabel="integration.email"
+                                    userNameRequired="integration.email-required"
                                     [allowCredentialTypes]="[IntegrationCredentialType.Basic, IntegrationCredentialType.Token]">
         </tb-integration-credentials>
       </section>

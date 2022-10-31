@@ -85,7 +85,8 @@
       <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.opc-ua-keystore-password</mat-label>
-          <input matInput required formControlName="password" autocomplete="new-password">
+          <input matInput required formControlName="password"  autocomplete="new-password" type="password">
+          <tb-toggle-password matSuffix></tb-toggle-password>
           <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.password').hasError('required')">
             integration.opc-ua-keystore-password-required
           </mat-error>
@@ -100,7 +101,8 @@
       </div>
       <mat-form-field class="mat-block">
         <mat-label translate>integration.opc-ua-keystore-key-password</mat-label>
-        <input matInput required formControlName="keyPassword">
+        <input matInput required formControlName="keyPassword" autocomplete="new-password" type="password">
+        <tb-toggle-password matSuffix></tb-toggle-password>
         <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.keyPassword').hasError('required')">
           integration.opc-ua-keystore-key-password-required
         </mat-error>

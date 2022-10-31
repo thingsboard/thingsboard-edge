@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -52,8 +52,6 @@ import {
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
-import { disableFields, enableFields } from '@home/pages/integration/integration-utils';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-coap-integration-form',
@@ -70,7 +68,7 @@ import { Subscription } from 'rxjs';
     multi: true,
   }]
 })
-export class CoapIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit, OnDestroy {
+export class CoapIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
 
   @Input() routingKey;
 
@@ -81,8 +79,6 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
 
   coapIntegrationConfigForm: FormGroup;
 
-  private rxSubscriptions$: Array<Subscription> = [];
-
   private propagateChangePending = false;
 
   private propagateChange = (v: any) => { };
@@ -91,9 +87,6 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
               private store: Store,
               private translate: TranslateService) {
     super();
-  }
-
-  ngOnInit() {
     this.coapIntegrationConfigForm = this.fb.group({
       baseUrl: [coapBaseUrl(false), [Validators.required]],
       dtlsBaseUrl: [coapBaseUrl(true), [Validators.required]],
@@ -106,28 +99,21 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
     ).subscribe(() => {
       this.updateModels(this.coapIntegrationConfigForm.getRawValue());
     });
-    this.rxSubscriptions$.push(
-      this.coapIntegrationConfigForm.get('securityMode').valueChanges.subscribe(value => this.integrationTypeChanged(value))
-    );
-    this.rxSubscriptions$.push(
-      this.coapIntegrationConfigForm.get('baseUrl').valueChanges.subscribe(() => {
-        this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
-      })
-    );
-    this.rxSubscriptions$.push(
-      this.coapIntegrationConfigForm.get('dtlsBaseUrl').valueChanges.subscribe(() => {
-        this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
-      })
-    );
+    this.coapIntegrationConfigForm.get('securityMode').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.integrationTypeChanged(value));
+    this.coapIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
+    });
+    this.coapIntegrationConfigForm.get('dtlsBaseUrl').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
+    });
     this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
     this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
-  }
-
-  ngOnDestroy(): void {
-    this.rxSubscriptions$.forEach((subscription) => {
-      subscription.unsubscribe();
-    });
-    this.rxSubscriptions$.length = 0;
   }
 
   writeValue(value: CoapIntegration) {
@@ -199,15 +185,16 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
   private integrationTypeChanged(value: CoapSecurityMode) {
     switch (value) {
       case CoapSecurityMode.NO_SECURE:
-        disableFields(this.coapIntegrationConfigForm, ['dtlsBaseUrl'], false);
-        enableFields(this.coapIntegrationConfigForm, ['baseUrl']);
+        this.coapIntegrationConfigForm.get('dtlsBaseUrl').disable({emitEvent: false});
+        this.coapIntegrationConfigForm.get('baseUrl').enable({emitEvent: false});
         break;
       case CoapSecurityMode.DTLS:
-        disableFields(this.coapIntegrationConfigForm, ['baseUrl'], false);
-        enableFields(this.coapIntegrationConfigForm, ['dtlsBaseUrl']);
+        this.coapIntegrationConfigForm.get('dtlsBaseUrl').enable({emitEvent: false});
+        this.coapIntegrationConfigForm.get('baseUrl').disable({emitEvent: false});
         break;
       case CoapSecurityMode.MIXED:
-        enableFields(this.coapIntegrationConfigForm, ['baseUrl', 'dtlsBaseUrl']);
+        this.coapIntegrationConfigForm.get('dtlsBaseUrl').enable({emitEvent: false});
+        this.coapIntegrationConfigForm.get('baseUrl').enable({emitEvent: false});
         break;
     }
   }

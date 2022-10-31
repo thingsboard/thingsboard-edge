@@ -69,8 +69,8 @@
            (cbOnSuccess)="onCoapEndpointCopied()"
            [cbContent]="coapIntegrationConfigForm.get('coapEndpoint').value"
            matTooltip="{{'integration.copy-coap-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button">
-          <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+        <button mat-button mat-icon-button type="button" color="primary">
+          <mat-icon class="tb-mat-20">content_copy</mat-icon>
         </button>
       </div>
     </fieldset>
@@ -85,8 +85,8 @@
            (cbOnSuccess)="onDtlsCoapEndpointCopied()"
            [cbContent]="coapIntegrationConfigForm.get('dtlsCoapEndpoint').value"
            matTooltip="{{'integration.copy-coap-dtls-endpoint-url' | translate }}">
-        <button mat-button mat-icon-button type="button">
-          <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+        <button mat-button mat-icon-button type="button" color="primary">
+          <mat-icon class="tb-mat-20">content_copy</mat-icon>
         </button>
       </div>
     </fieldset>

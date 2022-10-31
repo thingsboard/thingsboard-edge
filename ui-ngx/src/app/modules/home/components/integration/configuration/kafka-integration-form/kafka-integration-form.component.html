@@ -52,7 +52,7 @@
       <mat-error translate *ngIf="kafkaIntegrationConfigForm.get('bootstrapServers').hasError('required')">
         integration.bootstrap-servers-required</mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex fxFlex="40" class="mat-block">
+    <mat-form-field fxFlex class="mat-block">
       <mat-label translate>integration.poll-interval</mat-label>
       <input matInput type="number" required formControlName="pollInterval" step="1">
       <mat-error translate *ngIf="kafkaIntegrationConfigForm.get('pollInterval').hasError('required')">
@@ -82,9 +82,10 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <tb-key-val-map titleText="integration.other-properties"
-                      formControlName="otherProperties">
-      </tb-key-val-map>
+      <fieldset class="fields-group">
+        <legend class="group-title" translate>integration.other-properties</legend>
+        <tb-key-val-map formControlName="otherProperties" isStrokedButton="true"></tb-key-val-map>
+      </fieldset>
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
       </ng-container>
     </ng-template>

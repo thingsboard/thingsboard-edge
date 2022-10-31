@@ -59,6 +59,10 @@
 
     &.block {
       margin: 0 0 8px;
+
+      &_last {
+        margin: 0 0 16px;
+      }
     }
 
     .mat-slide-toggle-content {
