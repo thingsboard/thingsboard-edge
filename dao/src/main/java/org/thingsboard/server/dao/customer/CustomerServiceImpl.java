@@ -217,6 +217,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         entityViewService.deleteEntityViewsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         assetService.deleteAssetsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         deviceService.deleteDevicesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
+        edgeService.deleteEdgesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
         schedulerEventService.deleteSchedulerEventsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         blobEntityService.deleteBlobEntitiesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
