@@ -901,7 +901,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     @Override
     public ListenableFuture<UUID> autoCommit(User user, EntityType entityType, EntityGroupId groupId) throws Exception {
         var repositorySettings = repositorySettingsService.get(user.getTenantId());
-        if (repositorySettings == null) {
+        if (repositorySettings == null || repositorySettings.isReadOnly()) {
             return Futures.immediateFuture(null);
         }
         var autoCommitSettings = autoCommitSettingsService.get(user.getTenantId());
