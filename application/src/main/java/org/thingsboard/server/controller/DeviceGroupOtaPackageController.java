@@ -58,45 +58,33 @@ public class DeviceGroupOtaPackageController extends BaseController {
                                                  @PathVariable("firmwareType") String strFirmwareType) throws ThingsboardException {
         checkParameter("groupId", strGroupId);
         checkParameter("firmwareType", strFirmwareType);
-        try {
-            EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
-            checkEntityGroupId(groupId, Operation.READ);
-            return deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(groupId, OtaPackageType.valueOf(strFirmwareType));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        EntityGroupId groupId = new EntityGroupId(toUUID(strGroupId));
+        checkEntityGroupId(groupId, Operation.READ);
+        return deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(groupId, OtaPackageType.valueOf(strFirmwareType));
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/deviceGroupOtaPackage", method = RequestMethod.POST)
     public DeviceGroupOtaPackage saveDeviceGroupOtaPackage(@RequestBody DeviceGroupOtaPackage deviceGroupOtaPackage) throws ThingsboardException {
-        try {
-            checkEntityGroupId(deviceGroupOtaPackage.getGroupId(), Operation.WRITE);
-            DeviceGroupOtaPackage oldDeviceGroupOtaPackage = null;
-            if (deviceGroupOtaPackage.getId() != null) {
-                oldDeviceGroupOtaPackage = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId());
-            }
-            DeviceGroupOtaPackage savedDeviceGroupOtaPackage = deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(getTenantId(), deviceGroupOtaPackage);
-            otaPackageStateService.update(getTenantId(), savedDeviceGroupOtaPackage, oldDeviceGroupOtaPackage);
-            return savedDeviceGroupOtaPackage;
-        } catch (Exception e) {
-            throw handleException(e);
+        checkEntityGroupId(deviceGroupOtaPackage.getGroupId(), Operation.WRITE);
+        DeviceGroupOtaPackage oldDeviceGroupOtaPackage = null;
+        if (deviceGroupOtaPackage.getId() != null) {
+            oldDeviceGroupOtaPackage = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId());
         }
+        DeviceGroupOtaPackage savedDeviceGroupOtaPackage = deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(getTenantId(), deviceGroupOtaPackage);
+        otaPackageStateService.update(getTenantId(), savedDeviceGroupOtaPackage, oldDeviceGroupOtaPackage);
+        return savedDeviceGroupOtaPackage;
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/deviceGroupOtaPackage/{id}", method = RequestMethod.DELETE)
     public void deleteDeviceGroupOtaPackage(@PathVariable("id") String strId) throws ThingsboardException {
         checkParameter("deviceGroupOtaPackageId", strId);
-        try {
-            UUID id = toUUID(strId);
-            DeviceGroupOtaPackage deviceGroupOtaPackage = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(id);
-            checkEntityGroupId(deviceGroupOtaPackage.getGroupId(), Operation.WRITE);
-            deviceGroupOtaPackageService.deleteDeviceGroupOtaPackage(id);
-            otaPackageStateService.update(getTenantId(), null, deviceGroupOtaPackage);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
+        UUID id = toUUID(strId);
+        DeviceGroupOtaPackage deviceGroupOtaPackage = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(id);
+        checkEntityGroupId(deviceGroupOtaPackage.getGroupId(), Operation.WRITE);
+        deviceGroupOtaPackageService.deleteDeviceGroupOtaPackage(id);
+        otaPackageStateService.update(getTenantId(), null, deviceGroupOtaPackage);
     }
 
 }
