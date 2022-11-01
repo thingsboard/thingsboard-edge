@@ -129,6 +129,9 @@ public class UserClientTest extends AbstractContainerTest {
         user.setLastName("Trace");
         User savedUser = cloudRestClient.saveUser(user, false, findCustomerAdminsGroup(savedCustomer).get().getId());
         cloudRestClient.activateUser(savedUser.getId(), "customer", false);
+
+        verifyThatCustomerAdminGroupIsCreatedOnEdge(savedCustomer);
+
         loginIntoEdgeWithRetries("edgeCustomer@thingsboard.org", "customer");
         cloudRestClient.login("edgeCustomer@thingsboard.org", "customer");
 

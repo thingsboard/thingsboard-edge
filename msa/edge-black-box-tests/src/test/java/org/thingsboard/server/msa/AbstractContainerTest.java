@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.msa;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
@@ -72,8 +71,8 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -90,13 +89,12 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
@@ -113,6 +111,7 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
@@ -123,12 +122,9 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import javax.net.ssl.SSLContext;
 import java.io.IOException;
@@ -138,7 +134,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -167,18 +162,6 @@ public abstract class AbstractContainerTest {
             Integer edgePort = ContainerTestSuite.testContainer.getServicePort("tb-edge", 8082);
             edgeUrl = "http://" + edgeHost + ":" + edgePort;
             edgeRestClient = new RestClient(edgeUrl);
-
-            setWhiteLabelingAndCustomTranslation();
-
-            Awaitility.await()
-                    .pollInterval(500, TimeUnit.MILLISECONDS)
-                    .atMost(30, TimeUnit.SECONDS).
-                    until(() -> {
-                                Optional<LoginWhiteLabelingParams> cloudLoginWhiteLabelParams = cloudRestClient.getCurrentLoginWhiteLabelParams();
-                                return cloudLoginWhiteLabelParams.isPresent() &&
-                                        "tenant.org".equals(cloudLoginWhiteLabelParams.get().getDomainName());
-                            });
-
 
             edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
@@ -279,40 +262,6 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createCustomDeviceProfile(String deviceProfileName) {
         return createCustomDeviceProfile(deviceProfileName, null);
-    }
-
-    private static void setWhiteLabelingAndCustomTranslation() throws JsonProcessingException {
-        cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
-
-        CustomTranslation content = new CustomTranslation();
-        ObjectNode enUsSysAdmin = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        enUsSysAdmin.put("home.home", "SYS_ADMIN_HOME");
-        content.getTranslationMap().put("en_us", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsSysAdmin));
-        cloudRestClient.saveCustomTranslation(content);
-
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle("Sys Admin TB");
-        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
-
-        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName("sysadmin.org");
-        cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
-
-        cloudRestClient.login("tenant@thingsboard.org", "tenant");
-
-        content = new CustomTranslation();
-        ObjectNode enUsTenant = JacksonUtil.OBJECT_MAPPER.createObjectNode();
-        enUsTenant.put("home.home", "TENANT_HOME");
-        content.getTranslationMap().put("en_us", JacksonUtil.OBJECT_MAPPER.writeValueAsString(enUsTenant));
-        cloudRestClient.saveCustomTranslation(content);
-
-        whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle("Tenant TB");
-        cloudRestClient.saveWhiteLabelParams(whiteLabelingParams);
-
-        loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName("tenant.org");
-        cloudRestClient.saveLoginWhiteLabelParams(loginWhiteLabelingParams);
     }
 
     @Rule
@@ -882,5 +831,21 @@ public abstract class AbstractContainerTest {
 
     protected Optional<EntityGroupInfo> findCustomerAdminsGroup(Customer customer) {
         return cloudRestClient.getEntityGroupInfoByOwnerAndNameAndType(customer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
+    }
+
+    protected void verifyThatCustomerAdminGroupIsCreatedOnEdge(Customer savedCustomer) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<EntityGroupInfo> customerAdminGroupOpt =
+                            edgeRestClient.getEntityGroupInfoByOwnerAndNameAndType(
+                                    savedCustomer.getId(), EntityType.USER, EntityGroup.GROUP_CUSTOMER_ADMINS_NAME);
+                    if (customerAdminGroupOpt.isEmpty()) {
+                        return false;
+                    }
+                    List<GroupPermissionInfo> entityGroupPermissions = edgeRestClient.getUserGroupPermissions(customerAdminGroupOpt.get().getId());
+                    return entityGroupPermissions.stream().anyMatch(groupPermissionInfo ->
+                            Role.ROLE_CUSTOMER_ADMIN_NAME.equals(groupPermissionInfo.getRole().getName()));
+                });
     }
 }
