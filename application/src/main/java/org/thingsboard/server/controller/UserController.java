@@ -497,7 +497,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "Enable/Disable User credentials (setUserCredentialsEnabled)",
             notes = "Enables or Disables user credentials. Useful when you would like to block user account without deleting it. "
                     + PAGE_DATA_PARAMETERS + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}/userCredentialsEnabled", method = RequestMethod.POST)
     @ResponseBody
     public void setUserCredentialsEnabled(
