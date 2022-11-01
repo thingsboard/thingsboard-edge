@@ -661,8 +661,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
             @Override
             public void onFailure(Throwable th) {
-                String errMsg = String.format("[%s] Failed to find all entity ids, entityGroupId = %s", tenantId, entityGroupId);
-                log.error(errMsg, th);
+                log.error("[{}] Failed to find all entity ids, entityGroupId = {}", tenantId, entityGroupId, th);
             }
         }, dbCallbackExecutor);
     }
