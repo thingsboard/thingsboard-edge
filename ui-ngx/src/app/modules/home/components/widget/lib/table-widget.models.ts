@@ -64,6 +64,7 @@ export interface TableWidgetSettings {
 }
 
 export interface TableWidgetDataKeySettings {
+  customTitle?: string;
   columnWidth?: string;
   useCellStyleFunction: boolean;
   cellStyleFunction?: string;
@@ -496,4 +497,11 @@ export function constructTableCssString(widgetConfig: WidgetConfig): string {
     'color: ' + mdDarkSecondary + ';\n' +
     '}';
   return cssString;
+}
+
+export function getHeaderTitle(dataKey: DataKey, keySettings: TableWidgetDataKeySettings, utils: UtilsService) {
+  if (isDefined(keySettings.customTitle) && isNotEmptyStr(keySettings.customTitle)) {
+    return utils.customTranslation(keySettings.customTitle, keySettings.customTitle);
+  }
+  return dataKey.label;
 }
