@@ -916,7 +916,16 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.error("[{}] Unexpected Exception", sessionId, cause);
+        if (cause instanceof IOException) {
+            if (log.isDebugEnabled()) {
+                log.debug("[{}][{}] IOException: {}", sessionId,
+                        Optional.ofNullable(this.deviceSessionCtx.getDeviceInfo()).map(TransportDeviceInfo::getDeviceName).orElse(""),
+                        cause.getMessage());
+            }
+        } else {
+            log.error("[{}] Unexpected Exception", sessionId, cause);
+        }
+
         ctx.close();
         if (cause instanceof OutOfMemoryError) {
             log.error("Received critical error. Going to shutdown the service.");
