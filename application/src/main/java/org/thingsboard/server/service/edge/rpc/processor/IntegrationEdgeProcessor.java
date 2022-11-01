@@ -110,8 +110,7 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             }
             return JacksonUtil.OBJECT_MAPPER.readTree(updatedConfiguration);
         } catch (Exception e) {
-            String errMsg = String.format("Failed to replace attribute placeholders in configuration [%s]", originalConfiguration);
-            log.warn(errMsg, e);
+            log.warn("Failed to replace attribute placeholders in configuration [{}]", originalConfiguration, e);
             return originalConfiguration;
         }
     }
