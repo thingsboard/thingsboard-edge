@@ -263,31 +263,24 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private boolean validateDomain(String domainName) {
-        String baseUrl = null;
-
         try {
             LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID);
             if (systemParams != null) {
-                baseUrl = systemParams.getBaseUrl();
+                if (isBaseUrlMatchesDomain(systemParams.getBaseUrl(), domainName)) {
+                    return false;
+                }
             }
+            AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
+            String baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
+            return !isBaseUrlMatchesDomain(baseUrl, domainName);
         } catch (Exception e) {
-            log.warn("Failed to fetch SystemLoginWhiteLabelingParams.");
+            log.warn("Failed to validate domain.", e);
+            return false;
         }
+    }
 
-        String sysDomainName;
-
-        if (baseUrl != null) {
-            sysDomainName = URI.create(baseUrl).getHost();
-            if (sysDomainName.equalsIgnoreCase(domainName)) {
-                return false;
-            }
-        }
-
-        AdminSettings generalSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "general");
-        baseUrl = generalSettings.getJsonValue().get("baseUrl").asText();
-
-        sysDomainName = URI.create(baseUrl).getHost();
-        return !sysDomainName.equalsIgnoreCase(domainName);
+    private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
+        return StringUtils.isNotBlank(baseUrl) && URI.create(baseUrl).getHost().equalsIgnoreCase(domainName);
     }
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {
