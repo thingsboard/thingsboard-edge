@@ -422,9 +422,7 @@ export class EntityService {
         observable = this.assetProfileService.getAssetProfilesByIds(entityIds, config);
         break;
       case EntityType.WIDGETS_BUNDLE:
-        observable = this.getEntitiesByIdsObservable(
-          (id) => this.widgetService.getWidgetsBundle(id, config),
-          entityIds);
+        observable = this.widgetService.getWidgetsBundlesByIds(entityIds, config);
         break;
     }
     return observable;

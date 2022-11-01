@@ -28,19 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.blob;
+package org.thingsboard.server.service.integration;
 
-import org.thingsboard.server.common.data.blob.BlobEntity;
-import org.thingsboard.server.dao.Dao;
-
-/**
- * The Interface BlobEntityDao.
- *
- */
-public interface BlobEntityDao extends Dao<BlobEntity> {
-
-    void cleanUpBlobEntities(long expTime);
-
-    void migrateBlobEntities();
-
+public enum IntegrationDebugMessageStatus {
+    SUCCESS, FAILURE, ANY
 }

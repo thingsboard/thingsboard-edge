@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.sql.widget;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,7 @@ import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -106,6 +108,17 @@ public class JpaWidgetsBundleDao extends JpaAbstractSearchTextDao<WidgetsBundleE
                                 NULL_UUID,
                                 Objects.toString(pageLink.getTextSearch(), ""),
                                 DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findSystemWidgetBundlesByIdsAsync(UUID tenantId, List<UUID> widgetsBundleIds) {
+        return service.submit(() -> DaoUtil.convertDataList(widgetsBundleRepository.findSystemWidgetsBundlesByIdIn(NULL_UUID, widgetsBundleIds)));
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetBundlesByTenantIdAndIdsAsync(UUID tenantId, List<UUID> widgetsBundleIds) {
+        return service.submit(() -> DaoUtil.convertDataList(widgetsBundleRepository
+                .findAllTenantWidgetsBundlesByTenantIdAndIdIn(tenantId, NULL_UUID, widgetsBundleIds)));
     }
 
     @Override

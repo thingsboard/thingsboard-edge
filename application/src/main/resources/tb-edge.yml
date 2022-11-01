@@ -222,6 +222,8 @@ sql:
     batch_size: "${SQL_CLOUD_EVENTS_BATCH_SIZE:1000}"
     batch_max_delay: "${SQL_CLOUD_EVENTS_BATCH_MAX_DELAY_MS:100}"
     stats_print_interval_ms: "${SQL_CLOUD_EVENTS_BATCH_STATS_PRINT_MS:10000}"
+  blob_entities:
+    partition_size: "${SQL_BLOB_ENTITIES_PARTITION_SIZE_HOURS:168}"
   # Specify whether to sort entities before batch update. Should be enabled for cluster mode to avoid deadlocks
   batch_sort: "${SQL_BATCH_SORT:true}"
   # Specify whether to remove null characters from strValue of attributes and timeseries before insert
@@ -268,6 +270,10 @@ sql:
       enabled: "${SQL_TTL_CLOUD_EVENTS_ENABLED:true}"
       execution_interval_ms: "${SQL_TTL_CLOUD_EVENTS_EXECUTION_INTERVAL:86400000}" # Number of milliseconds. The current value corresponds to one day
       cloud_events_ttl: "${SQL_TTL_CLOUD_EVENTS_TTL:2628000}" # Number of seconds. The current value corresponds to one month
+    blob_entities:
+      enabled: "${SQL_TTL_BLOB_ENTITIES_ENABLED:false}"
+      ttl: "${SQL_TTL_BLOB_ENTITIES_SECS:0}"
+      checking_interval_ms: "${SQL_TTL_BLOB_ENTITIES_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
   relations:
     max_level: "${SQL_RELATIONS_MAX_LEVEL:50}" # //This value has to be reasonable small to prevent infinite recursion as early as possible
 
@@ -616,7 +622,7 @@ audit-log:
     password: "${AUDIT_LOG_SINK_PASSWORD:}"
 
 state:
-  # Should be greater then transport.sessions.report_timeout
+  # Should be greater than transport.sessions.report_timeout
   defaultInactivityTimeoutInSec: "${DEFAULT_INACTIVITY_TIMEOUT:600}"
   defaultStateCheckIntervalInSec: "${DEFAULT_STATE_CHECK_INTERVAL:60}"
   persistToTelemetry: "${PERSIST_STATE_TO_TELEMETRY:false}"

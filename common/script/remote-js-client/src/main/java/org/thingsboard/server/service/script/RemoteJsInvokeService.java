@@ -68,7 +68,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-@ConditionalOnExpression("'${js.evaluator:null}'=='remote' && ('${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-rule-engine')")
+@ConditionalOnExpression("'${js.evaluator:null}'=='remote' && " +
+        "('${service.type:null}'=='monolith' " +
+        "|| '${service.type:null}'=='tb-core' " +
+        "|| '${service.type:null}'=='tb-rule-engine'" +
+        "|| '${service.type:null}'=='tb-integration-executor')")
 @Service
 public class RemoteJsInvokeService extends AbstractJsInvokeService {
 

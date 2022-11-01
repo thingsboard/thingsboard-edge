@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.widget;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,10 @@ import org.thingsboard.server.dao.service.Validator;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service
 @Slf4j
@@ -164,6 +169,22 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
             }
         } while (pageData.hasNext());
         return widgetsBundles;
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findSystemWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
+        log.trace("Executing findSystemWidgetsBundlesByIdsAsync, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
+        return widgetsBundleDao.findSystemWidgetBundlesByIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
+    }
+
+    @Override
+    public ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
+        log.trace("Executing findAllTenantWidgetsBundlesByIdsAsync, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
+        return widgetsBundleDao.findAllTenantWidgetBundlesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
     }
 
     @Override
