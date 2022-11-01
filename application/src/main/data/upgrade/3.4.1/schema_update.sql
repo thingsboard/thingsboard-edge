@@ -145,7 +145,8 @@ BEGIN
     END LOOP;
 
     INSERT INTO blob_entity
-    SELECT * FROM old_blob_entity
+    SELECT id, created_time, tenant_id, customer_id, name, type, content_type, search_text, data, additional_info
+    FROM old_blob_entity
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
 END;
 $$;
