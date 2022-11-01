@@ -93,6 +93,7 @@
     </ng-container>
     <ng-container *ngSwitchCase="integrationTypes.LORIOT">
       <tb-loriot-integration-form formControlName="configuration"
+                                  [routingKey]="routingKey"
                                   [executeRemotelyTemplate]="executeRemotelyTemplate"
                                   [genericAdditionalInfoTemplate]="genericAdditionalInfoTemplate">
       </tb-loriot-integration-form>

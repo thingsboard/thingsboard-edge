@@ -143,8 +143,8 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
 
     this.ttnIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.ttnIntegrationConfigForm.getRawValue());
     });
   }
 
