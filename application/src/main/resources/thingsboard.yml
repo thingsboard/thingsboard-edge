@@ -282,6 +282,8 @@ sql:
     stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}"
   audit_logs:
     partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
+  blob_entities:
+    partition_size: "${SQL_BLOB_ENTITIES_PARTITION_SIZE_HOURS:168}"
   # Specify whether to sort entities before batch update. Should be enabled for cluster mode to avoid deadlocks
   batch_sort: "${SQL_BATCH_SORT:true}"
   # Specify whether to remove null characters from strValue of attributes and timeseries before insert
@@ -324,6 +326,10 @@ sql:
       enabled: "${SQL_TTL_AUDIT_LOGS_ENABLED:true}"
       ttl: "${SQL_TTL_AUDIT_LOGS_SECS:0}" # Disabled by default. Accuracy of the cleanup depends on the sql.audit_logs.partition_size
       checking_interval_ms: "${SQL_TTL_AUDIT_LOGS_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
+    blob_entities:
+      enabled: "${SQL_TTL_BLOB_ENTITIES_ENABLED:false}"
+      ttl: "${SQL_TTL_BLOB_ENTITIES_SECS:0}"
+      checking_interval_ms: "${SQL_TTL_BLOB_ENTITIES_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
   relations:
     max_level: "${SQL_RELATIONS_MAX_LEVEL:50}" # //This value has to be reasonable small to prevent infinite recursion as early as possible
 
@@ -671,7 +677,7 @@ audit-log:
     password: "${AUDIT_LOG_SINK_PASSWORD:}"
 
 state:
-  # Should be greater then transport.sessions.report_timeout
+  # Should be greater than transport.sessions.report_timeout
   defaultInactivityTimeoutInSec: "${DEFAULT_INACTIVITY_TIMEOUT:600}"
   defaultStateCheckIntervalInSec: "${DEFAULT_STATE_CHECK_INTERVAL:60}"
   persistToTelemetry: "${PERSIST_STATE_TO_TELEMETRY:false}"
