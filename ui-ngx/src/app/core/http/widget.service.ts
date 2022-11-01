@@ -54,6 +54,7 @@ import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { ActivationEnd, Router } from '@angular/router';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { sortEntitiesByIds } from '@shared/models/base-data';
 
 @Injectable({
   providedIn: 'root'
@@ -116,6 +117,13 @@ export class WidgetService {
   public getWidgetsBundle(widgetsBundleId: string,
                           config?: RequestConfig): Observable<WidgetsBundle> {
     return this.http.get<WidgetsBundle>(`/api/widgetsBundle/${widgetsBundleId}`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getWidgetsBundlesByIds(widgetsBundleIds: Array<string>, config?: RequestConfig): Observable<Array<WidgetsBundle>> {
+    return this.http.get<Array<WidgetsBundle>>(`/api/widgetsBundles?widgetsBundleIds=${widgetsBundleIds.join(',')}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+      map((roles) => sortEntitiesByIds(roles, widgetsBundleIds))
+    );
   }
 
   public saveWidgetsBundle(widgetsBundle: WidgetsBundle,
