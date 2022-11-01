@@ -231,22 +231,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     @After
     public void afterTest() throws Exception {
-        try {
-            edgeImitator.disconnect();
-        } catch (Exception ignored) {}
-
         loginSysAdmin();
 
         doDelete("/api/tenant/" + savedTenant.getUuidId())
                 .andExpect(status().isOk());
 
-        revertSysAdminWhiteLabelingAndCustomTranslation();
-    }
-
-    private void revertSysAdminWhiteLabelingAndCustomTranslation() throws Exception {
-        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
-
-        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
+        try {
+            edgeImitator.disconnect();
+        } catch (Exception ignored) {}
     }
 
     private void installation() {

@@ -39,17 +39,24 @@ import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -367,17 +374,21 @@ public abstract class BaseEdgeProcessor {
             do {
                 tenantsIds = tenantService.findTenantsIds(pageLink);
                 for (TenantId tenantId1 : tenantsIds.getData()) {
-                    futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId));
+                    futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, null));
                 }
                 pageLink = pageLink.nextPageLink();
             } while (tenantsIds.hasNext());
         } else {
-            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId);
+            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, null);
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
 
-    private List<ListenableFuture<Void>> processActionForAllEdgesByTenantId(TenantId tenantId, EdgeEventType type, EdgeEventActionType actionType, EntityId entityId) {
+    protected List<ListenableFuture<Void>> processActionForAllEdgesByTenantId(TenantId tenantId,
+                                                                              EdgeEventType type,
+                                                                              EdgeEventActionType actionType,
+                                                                              EntityId entityId,
+                                                                              JsonNode body) {
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<Edge> pageData;
         List<ListenableFuture<Void>> futures = new ArrayList<>();
@@ -385,7 +396,7 @@ public abstract class BaseEdgeProcessor {
             pageData = edgeService.findEdgesByTenantId(tenantId, pageLink);
             if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
                 for (Edge edge : pageData.getData()) {
-                    futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, null));
+                    futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, body));
                 }
                 if (pageData.hasNext()) {
                     pageLink = pageLink.nextPageLink();
@@ -544,6 +555,34 @@ public abstract class BaseEdgeProcessor {
                 return processActionForAllEdges(tenantId, type, actionType, entityId);
             default:
                 return Futures.immediateFuture(null);
+        }
+    }
+
+    protected EntityId constructEntityId(String entityTypeStr, long entityIdMSB, long entityIdLSB) {
+        EntityType entityType = EntityType.valueOf(entityTypeStr);
+        switch (entityType) {
+            case DEVICE:
+                return new DeviceId(new UUID(entityIdMSB, entityIdLSB));
+            case ASSET:
+                return new AssetId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_VIEW:
+                return new EntityViewId(new UUID(entityIdMSB, entityIdLSB));
+            case DASHBOARD:
+                return new DashboardId(new UUID(entityIdMSB, entityIdLSB));
+            case TENANT:
+                return TenantId.fromUUID(new UUID(entityIdMSB, entityIdLSB));
+            case CUSTOMER:
+                return new CustomerId(new UUID(entityIdMSB, entityIdLSB));
+            case USER:
+                return new UserId(new UUID(entityIdMSB, entityIdLSB));
+            case EDGE:
+                return new EdgeId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_GROUP:
+                return new EntityGroupId(new UUID(entityIdMSB, entityIdLSB));
+            default:
+                log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
+                        entityTypeStr, entityIdMSB, entityIdLSB);
+                return null;
         }
     }
 }

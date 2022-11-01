@@ -30,31 +30,21 @@
  */
 package org.thingsboard.server.edge;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.gson.JsonObject;
 import com.google.protobuf.AbstractMessage;
-import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Test;
-import org.thingsboard.server.common.adaptor.JsonConverter;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.gen.edge.v1.AttributeDeleteMsg;
-import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityDataProto;
-import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
 
@@ -62,12 +52,12 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
     public void testTimeseriesWithFailures() throws Exception {
         int numberOfTimeseriesToSend = 1000;
 
+        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
+
         edgeImitator.setRandomFailuresOnTimeseriesDownlink(true);
         // imitator will generate failure in 5% of cases
         edgeImitator.setFailureProbability(5.0);
-
         edgeImitator.expectMessageAmount(numberOfTimeseriesToSend);
-        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
         for (int idx = 1; idx <= numberOfTimeseriesToSend; idx++) {
             String timeseriesData = "{\"data\":{\"idx\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
             JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
@@ -218,4 +208,38 @@ abstract public class BaseTelemetryEdgeTest extends AbstractEdgeTest {
         return false;
     }
 
+    @Test
+    public void testTimeseriesDeliveryFailuresForever_deliverOnlyDeviceUpdateMsgs() throws Exception {
+        int numberOfMsgsToSend = 100;
+
+        Device device = saveDevice(StringUtils.randomAlphanumeric(15), THERMOSTAT_DEVICE_PROFILE_NAME);
+
+        edgeImitator.setRandomFailuresOnTimeseriesDownlink(true);
+        // imitator will generate failure in 100% of timeseries cases
+        edgeImitator.setFailureProbability(100);
+        edgeImitator.expectMessageAmount(numberOfMsgsToSend);
+        for (int idx = 1; idx <= numberOfMsgsToSend; idx++) {
+            String timeseriesData = "{\"data\":{\"idx2\":" + idx + "},\"ts\":" + System.currentTimeMillis() + "}";
+            JsonNode timeseriesEntityData = mapper.readTree(timeseriesData);
+            EdgeEvent failedEdgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.TIMESERIES_UPDATED,
+                    device.getId().getId(), EdgeEventType.DEVICE, timeseriesEntityData);
+            edgeEventService.saveAsync(failedEdgeEvent).get();
+
+            EdgeEvent successEdgeEvent = constructEdgeEvent(tenantId, edge.getId(), EdgeEventActionType.UPDATED,
+                    device.getId().getId(), EdgeEventType.DEVICE, null);
+            edgeEventService.saveAsync(successEdgeEvent).get();
+
+            clusterService.onEdgeEventUpdate(tenantId, edge.getId());
+        }
+
+        Assert.assertTrue(edgeImitator.waitForMessages(120));
+
+        List<EntityDataProto> allTelemetryMsgs = edgeImitator.findAllMessagesByType(EntityDataProto.class);
+        Assert.assertTrue(allTelemetryMsgs.isEmpty());
+
+        List<DeviceUpdateMsg> deviceUpdateMsgs = edgeImitator.findAllMessagesByType(DeviceUpdateMsg.class);
+        Assert.assertEquals(numberOfMsgsToSend, deviceUpdateMsgs.size());
+
+        edgeImitator.setRandomFailuresOnTimeseriesDownlink(false);
+    }
 }
