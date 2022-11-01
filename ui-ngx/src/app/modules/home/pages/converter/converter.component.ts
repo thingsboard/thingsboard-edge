@@ -44,7 +44,9 @@ import {
 } from '@shared/models/converter.models';
 
 import jsDecoderTemplate from '!raw-loader!./js-decoder.raw';
+import mvelDecoderTemplate from '!raw-loader!./mvel-decoder.raw';
 import jsEncoderTemplate from '!raw-loader!./js-encoder.raw';
+import mvelEncoderTemplate from '!raw-loader!./mvel-encoder.raw';
 import { ConverterService } from '@core/http/converter.service';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -52,6 +54,8 @@ import {
   ConverterTestDialogComponent,
   ConverterTestDialogData
 } from '@home/pages/converter/converter-test-dialog.component';
+import { ScriptLanguage } from '@shared/models/rule-node.models';
+import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Component({
   selector: 'tb-converter',
@@ -65,6 +69,10 @@ export class ConverterComponent extends EntityComponent<Converter> {
   converterTypes = Object.keys(ConverterType);
 
   converterTypeTranslations = converterTypeTranslationMap;
+
+  mvelEnabled: boolean;
+
+  scriptLanguage = ScriptLanguage;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -90,6 +98,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
   }
 
   buildForm(entity: Converter): FormGroup {
+    this.mvelEnabled = getCurrentAuthState(this.store).mvelEnabled;
     const form = this.fb.group(
       {
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255)]],
@@ -97,8 +106,11 @@ export class ConverterComponent extends EntityComponent<Converter> {
         debugMode: [entity ? entity.debugMode : null],
         configuration: this.fb.group(
           {
+            scriptLang: [entity && entity.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
             decoder: [entity && entity.configuration ? entity.configuration.decoder : null],
+            mvelDecoder: [entity && entity.configuration ? entity.configuration.mvelDecoder : null],
             encoder: [entity && entity.configuration ? entity.configuration.encoder : null],
+            mvelEncoder: [entity && entity.configuration ? entity.configuration.mvelEncoder : null],
           }
         ),
         additionalInfo: this.fb.group(
@@ -111,15 +123,25 @@ export class ConverterComponent extends EntityComponent<Converter> {
     form.get('type').valueChanges.subscribe(() => {
       this.converterTypeChanged(form);
     });
+    form.get('configuration').get('scriptLang').valueChanges.subscribe(() => {
+      this.converterScriptLangChanged(form);
+    });
     this.checkIsNewConverter(entity, form);
     return form;
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
+      form.get('configuration').get('scriptLang').patchValue(
+        this.mvelEnabled ? ScriptLanguage.MVEL : ScriptLanguage.JS, {emitEvent: false});
       form.get('type').patchValue(ConverterType.UPLINK, {emitEvent: true});
     } else {
       form.get('type').disable({emitEvent: false});
+      let scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
+      if (scriptLang === ScriptLanguage.MVEL && !this.mvelEnabled) {
+        scriptLang = ScriptLanguage.JS;
+        form.get('configuration').get('scriptLang').patchValue(scriptLang, {emitEvent: true});
+      }
     }
   }
 
@@ -128,28 +150,49 @@ export class ConverterComponent extends EntityComponent<Converter> {
     if (converterType) {
       if (converterType === ConverterType.UPLINK) {
         form.get('configuration').get('encoder').patchValue(null, {emitEvent: false});
-        const decoder: string = form.get('configuration').get('decoder').value;
-        if (!decoder || !decoder.length) {
-          form.get('configuration').get('decoder').patchValue(jsDecoderTemplate, {emitEvent: false});
-        }
+        form.get('configuration').get('mvelEncoder').patchValue(null, {emitEvent: false});
       } else {
         form.get('configuration').get('decoder').patchValue(null, {emitEvent: false});
-        const encoder: string = form.get('configuration').get('encoder').value;
-        if (!encoder || !encoder.length) {
-          form.get('configuration').get('encoder').patchValue(jsEncoderTemplate, {emitEvent: false});
-        }
+        form.get('configuration').get('mvelDecoder').patchValue(null, {emitEvent: false});
       }
+      this.setupDefaultScriptBody(form, converterType);
+    }
+  }
+
+  private converterScriptLangChanged(form: FormGroup) {
+    const converterType: ConverterType = form.get('type').value;
+    this.setupDefaultScriptBody(form, converterType);
+  }
+
+  private setupDefaultScriptBody(form: FormGroup, converterType: ConverterType) {
+    const scriptLang: ScriptLanguage = form.get('configuration').get('scriptLang').value;
+    let targetField: string;
+    let targetTemplate: string;
+    if (scriptLang === ScriptLanguage.JS) {
+      targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
+      targetTemplate = converterType === ConverterType.UPLINK ? jsDecoderTemplate : jsEncoderTemplate;
+    } else {
+      targetField = converterType === ConverterType.UPLINK ? 'mvelDecoder' : 'mvelEncoder';
+      targetTemplate = converterType === ConverterType.UPLINK ? mvelDecoderTemplate : mvelEncoderTemplate;
+    }
+    const scriptBody: string = form.get('configuration').get(targetField).value;
+    if (!scriptBody || !scriptBody.length) {
+      form.get('configuration').get(targetField).patchValue(targetTemplate, {emitEvent: false});
     }
   }
 
   updateForm(entity: Converter) {
+    const scriptLang = entity.configuration && entity.configuration.scriptLang ? entity.configuration.scriptLang : ScriptLanguage.JS;
     this.entityForm.patchValue({name: entity.name});
     this.entityForm.patchValue({type: entity.type}, {emitEvent: false});
     this.entityForm.patchValue({debugMode: entity.debugMode});
     this.entityForm.patchValue({configuration:
         {
+          scriptLang,
           decoder: entity.configuration ? entity.configuration.decoder : null,
-          encoder: entity.configuration ? entity.configuration.encoder : null
+          mvelDecoder: entity.configuration ? entity.configuration.mvelDecoder : null,
+          encoder: entity.configuration ? entity.configuration.encoder : null,
+          mvelEncoder: entity.configuration ? entity.configuration.mvelEncoder : null
         }
     });
     this.entityForm.patchValue({additionalInfo: {description: entity.additionalInfo ? entity.additionalInfo.description : ''}});
@@ -180,8 +223,14 @@ export class ConverterComponent extends EntityComponent<Converter> {
   }
 
   showConverterTestDialog(isDecoder: boolean, debugIn: ConverterDebugInput) {
-    const funcBody = isDecoder ? this.entityForm.get('configuration').get('decoder').value :
-      this.entityForm.get('configuration').get('encoder').value;
+    const scriptLang: ScriptLanguage = this.entityForm.get('configuration').get('scriptLang').value;
+    let targetField;
+    if (scriptLang === ScriptLanguage.JS) {
+      targetField = isDecoder ? 'decoder' : 'encoder';
+    } else {
+      targetField = isDecoder ? 'mvelDecoder' : 'mvelEncoder';
+    }
+    const funcBody = this.entityForm.get('configuration').get(targetField).value;
     this.dialog.open<ConverterTestDialogComponent, ConverterTestDialogData, string>(ConverterTestDialogComponent,
       {
         disableClose: true,
@@ -189,18 +238,14 @@ export class ConverterComponent extends EntityComponent<Converter> {
         data: {
           debugIn,
           isDecoder,
-          funcBody
+          funcBody,
+          scriptLang
         }
       })
       .afterClosed().subscribe((result) => {
         if (result !== null) {
-          if (isDecoder) {
-            this.entityForm.get('configuration.decoder').patchValue(result);
-            this.entityForm.get('configuration.decoder').markAsDirty();
-          } else {
-            this.entityForm.get('configuration.encoder').patchValue(result);
-            this.entityForm.get('configuration.encoder').markAsDirty();
-          }
+          this.entityForm.get(`configuration.${targetField}`).patchValue(result);
+          this.entityForm.get(`configuration.${targetField}`).markAsDirty();
           this.entityForm.updateValueAndValidity();
         }
     });

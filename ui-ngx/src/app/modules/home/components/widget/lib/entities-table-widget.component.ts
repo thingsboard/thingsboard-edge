@@ -476,7 +476,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
         this.contentsInfo[dataKey.def].units = dataKey.units;
         this.contentsInfo[dataKey.def].decimals = dataKey.decimals;
         this.columnWidth[dataKey.def] = getColumnWidth(keySettings);
-        this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings);
+        this.columnDefaultVisibility[dataKey.def] = getColumnDefaultVisibility(keySettings, this.ctx);
         this.columnSelectionAvailability[dataKey.def] = getColumnSelectionAvailability(keySettings);
         this.columnExportParameters[dataKey.def] = keySettings.columnExportOption;
         this.columns.push(dataKey);

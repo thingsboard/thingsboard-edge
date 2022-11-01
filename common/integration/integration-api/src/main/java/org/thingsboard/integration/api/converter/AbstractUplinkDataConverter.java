@@ -42,6 +42,8 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
@@ -61,6 +63,10 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
+    public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, MvelInvokeService mvelInvokeService) {
+        super(jsInvokeService, mvelInvokeService);
+    }
+
     @Override
     public void init(Converter configuration) {
         this.configuration = configuration;
@@ -71,8 +77,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
                                                             ExecutorService callBackExecutorService) throws Exception {
         long startTime = System.currentTimeMillis();
         ListenableFuture<String> convertFuture = doConvertUplink(data, metadata);
-        ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, convertResult -> {
-            String rawResult = (String) convertResult;
+        ListenableFuture<List<UplinkData>> result = Futures.transform(convertFuture, rawResult -> {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
             }
