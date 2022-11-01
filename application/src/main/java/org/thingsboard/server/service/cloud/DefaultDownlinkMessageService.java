@@ -25,7 +25,6 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
@@ -79,7 +78,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
-public class DefaultDownlinkMessageService extends BaseCloudEventService implements DownlinkMessageService {
+public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     private final Lock sequenceDependencyLock = new ReentrantLock();
 
@@ -161,7 +160,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getEntityDataCount() > 0) {
                 for (EntityDataProto entityData : downlinkMsg.getEntityDataList()) {
-                    result.addAll(telemetryProcessor.processTelemetryMsgFromCloud(tenantId, entityData));
+                    result.addAll(telemetryProcessor.processTelemetryFromCloud(tenantId, entityData));
                 }
             }
             if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
@@ -206,7 +205,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
                 for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
-                    result.add(ruleChainProcessor.processRuleChainMsgFromCloud(tenantId, ruleChainUpdateMsg));
+                    result.add(ruleChainProcessor.processRuleChainMsgFromCloud(tenantId, ruleChainUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getRuleChainMetadataUpdateMsgCount() > 0) {
@@ -241,7 +240,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             }
             if (downlinkMsg.getWidgetsBundleUpdateMsgCount() > 0) {
                 for (WidgetsBundleUpdateMsg widgetsBundleUpdateMsg : downlinkMsg.getWidgetsBundleUpdateMsgList()) {
-                    result.add(widgetsBundleProcessor.processWidgetsBundleMsgFromCloud(tenantId, widgetsBundleUpdateMsg));
+                    result.add(widgetsBundleProcessor.processWidgetsBundleMsgFromCloud(tenantId, widgetsBundleUpdateMsg, queueStartTs));
                 }
             }
             if (downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
@@ -294,15 +293,6 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
             return Futures.transform(cloudEventService.saveEdgeSettings(tenantId, currentEdgeSettings),
                     result -> {
                         log.debug("Full sync required marked as false");
-
-                        // TODO: @voba fixme - this is not required in 3.4.1 once bug with sessionNewEvents fixed
-                        try {
-                            saveCloudEvent(tenantId, CloudEventType.EDGE,
-                                    EdgeEventActionType.ATTRIBUTES_REQUEST, new EdgeId(UUID.fromString(currentEdgeSettings.getEdgeId())), null).get();
-                        } catch (Exception e) {
-                            log.error("Can't save cloud event", e);
-                        }
-
                         return null;
                     },
                     dbCallbackExecutorService);
@@ -314,7 +304,7 @@ public class DefaultDownlinkMessageService extends BaseCloudEventService impleme
     private ListenableFuture<Void> processDeviceCredentialsRequestMsg(TenantId tenantId, DeviceCredentialsRequestMsg deviceCredentialsRequestMsg) {
         if (deviceCredentialsRequestMsg.getDeviceIdMSB() != 0 && deviceCredentialsRequestMsg.getDeviceIdLSB() != 0) {
             DeviceId deviceId = new DeviceId(new UUID(deviceCredentialsRequestMsg.getDeviceIdMSB(), deviceCredentialsRequestMsg.getDeviceIdLSB()));
-            return saveCloudEvent(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null);
+            return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.CREDENTIALS_UPDATED, deviceId, null, 0L);
         } else {
             return Futures.immediateFuture(null);
         }

@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
@@ -58,7 +59,6 @@ import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.CloudEventUtils;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
@@ -68,18 +68,17 @@ import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcesso
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
-import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -91,10 +90,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
-public class CloudManagerService extends BaseCloudEventService {
+public class CloudManagerService {
 
     private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
-    private static final ReentrantLock pendingMsgsMapLock = new ReentrantLock();
+
+    private static final int MAX_UPLINK_ATTEMPTS = 10; // max number of attemps to send downlink message if edge connected
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
@@ -141,9 +141,6 @@ public class CloudManagerService extends BaseCloudEventService {
     private DeviceCloudProcessor deviceProcessor;
 
     @Autowired
-    private DeviceProfileCloudProcessor deviceProfileProcessor;
-
-    @Autowired
     private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
@@ -165,7 +162,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private TenantCloudProcessor tenantCloudProcessor;
 
     @Autowired
-    private InstallScripts installScripts;
+    private CloudEventService cloudEventService;
 
     @Autowired
     private ConfigurableApplicationContext context;
@@ -182,7 +179,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private ScheduledExecutorService shutdownExecutor;
     private volatile boolean initialized;
 
-    private final Map<Integer, UplinkMsg> pendingMsgsMap = new HashMap<>();
+    private final ConcurrentMap<Integer, UplinkMsg> pendingMsgsMap = new ConcurrentHashMap<>();
 
     private TenantId tenantId;
     private CustomerId customerId;
@@ -289,6 +286,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
         uplinkMsgsPackLock.lock();
         try {
+            int attempt = 1;
             boolean success;
             pendingMsgsMap.clear();
             uplinkMsgsPack.forEach(msg -> pendingMsgsMap.put(msg.getUplinkMsgId(), msg));
@@ -300,22 +298,23 @@ public class CloudManagerService extends BaseCloudEventService {
                     edgeRpcClient.sendUplinkMsg(uplinkMsg);
                 }
                 success = latch.await(10, TimeUnit.SECONDS);
-                if (!success || pendingMsgsMap.values().size() > 0) {
-                    pendingMsgsMapLock.lock();
-                    try {
-                        log.warn("Failed to deliver the batch: {}", pendingMsgsMap.values());
-                    } finally {
-                        pendingMsgsMapLock.unlock();
-                    }
+                if (!success) {
+                    log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgsMap.values(), attempt);
                 }
-                if (initialized && (!success || pendingMsgsMap.values().size() > 0)) {
+                if (initialized && !success) {
                     try {
                         Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
                     } catch (InterruptedException e) {
                         log.error("Error during sleep between batches", e);
                     }
                 }
-            } while (initialized && (!success || pendingMsgsMap.values().size() > 0));
+                attempt++;
+                if (attempt > MAX_UPLINK_ATTEMPTS) {
+                    log.warn("Failed to deliver the batch after {} attempts. Next messages are going to be discarded {}",
+                            MAX_UPLINK_ATTEMPTS, pendingMsgsMap.values());
+                    return true;
+                }
+            } while (initialized && !success);
             return success;
         } finally {
             uplinkMsgsPackLock.unlock();
@@ -345,7 +344,7 @@ public class CloudManagerService extends BaseCloudEventService {
                     case POST_ATTRIBUTES:
                     case ATTRIBUTES_DELETED:
                     case TIMESERIES_UPDATED:
-                        uplinkMsg = telemetryProcessor.processTelemetryMessageMsgToCloud(cloudEvent);
+                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
                         break;
                     case ATTRIBUTES_REQUEST:
                         uplinkMsg = telemetryProcessor.processAttributesRequestMsgToCloud(cloudEvent);
@@ -420,12 +419,7 @@ public class CloudManagerService extends BaseCloudEventService {
     private void onUplinkResponse(UplinkResponseMsg msg) {
         try {
             if (msg.getSuccess()) {
-                pendingMsgsMapLock.lock();
-                try {
-                    pendingMsgsMap.remove(msg.getUplinkMsgId());
-                } finally {
-                    pendingMsgsMapLock.unlock();
-                }
+                pendingMsgsMap.remove(msg.getUplinkMsgId());
                 log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
             } else {
                 log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());
@@ -516,8 +510,8 @@ public class CloudManagerService extends BaseCloudEventService {
     private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws ExecutionException, InterruptedException {
         EdgeId edgeId = getEdgeId(edgeConfiguration);
         edgeCloudProcessor.processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
-        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null).get();
-        saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null).get();
+        cloudEventService.saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null, queueStartTs);
+        cloudEventService.saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null, queueStartTs);
     }
 
     private EdgeSettings constructEdgeSettings(EdgeConfiguration edgeConfiguration) {

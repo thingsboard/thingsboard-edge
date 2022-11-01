@@ -59,7 +59,8 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
     @Autowired
     private RuleChainService ruleChainService;
 
-    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
+    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg,
+                                                               Long queueStartTs) {
         try {
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));
             switch (ruleChainUpdateMsg.getMsgType()) {
@@ -94,7 +95,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-                    return saveCloudEvent(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null);
+                    return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
                     if (ruleChainById != null) {
@@ -197,7 +198,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
         return result;
     }
 
-    public UplinkMsg processRuleChainMetadataRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
+    public UplinkMsg processRuleChainMetadataRequestMsgToCloud(CloudEvent cloudEvent) {
         EntityId ruleChainId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         RuleChainMetadataRequestMsg ruleChainMetadataRequestMsg = RuleChainMetadataRequestMsg.newBuilder()
                 .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
