@@ -120,7 +120,7 @@ export class ConverterComponent extends EntityComponent<Converter> {
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
-      form.get('type').patchValue(ConverterType.UPLINK, {emitEvent: true});
+      form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
     } else {
       form.get('type').disable({emitEvent: false});
     }
