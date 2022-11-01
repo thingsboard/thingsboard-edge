@@ -112,16 +112,14 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
                     }
                     futureToSet.set(null);
                 } catch (Exception e) {
-                    String errMsg = String.format("Failed to save credential updated cloud event, deviceUpdateMsg [%s]", deviceUpdateMsg);
-                    log.error(errMsg, e);
+                    log.error("Failed to save credential updated cloud event, deviceUpdateMsg [{}]", deviceUpdateMsg, e);
                     futureToSet.setException(e);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                String errMsg = String.format("Failed to request for additional data, deviceUpdateMsg [%s]", deviceUpdateMsg);
-                log.error(errMsg, t);
+                log.error("Failed to request for additional data, deviceUpdateMsg [{}]", deviceUpdateMsg, t);
                 futureToSet.setException(t);
             }
         }, dbCallbackExecutor);
@@ -260,8 +258,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
                     rpcRequest.getDeviceId(), body, 0L);
         } catch (Exception e) {
-            String errMsg = String.format("Can't process RPC response [%s] [%s]", rpcRequest, response);
-            log.debug(errMsg, e);
+            log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response, e);
         }
     }
 

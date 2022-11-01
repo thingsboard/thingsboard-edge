@@ -91,8 +91,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                     log.debug("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
             }
         } catch (Exception e) {
-            String errMsg = String.format("Can't push to cloud updates, cloudNotificationMsg [%s]", cloudNotificationMsg);
-            log.error(errMsg, e);
+            log.error("Can't push to cloud updates, cloudNotificationMsg [{}]", cloudNotificationMsg, e);
             callback.onFailure(e);
         } finally {
             callback.onSuccess();
