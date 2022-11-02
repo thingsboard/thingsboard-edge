@@ -83,7 +83,7 @@ public class WhiteLabelingController extends BaseController {
             @ApiParam(value = LOGO_CHECKSUM_DESC)
             @RequestParam(required = false) String logoImageChecksum,
             @ApiParam(value = FAVICON_CHECKSUM_DESC)
-            @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
+            @RequestParam(required = false) String faviconChecksum) throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         WhiteLabelingParams whiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
@@ -171,7 +171,7 @@ public class WhiteLabelingController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public WhiteLabelingParams saveWhiteLabelParams(
             @ApiParam(value = "A JSON value representing the white labeling configuration")
-            @RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException {
+            @RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException, ExecutionException, InterruptedException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
         WhiteLabelingParams savedWhiteLabelingParams = null;
@@ -195,7 +195,7 @@ public class WhiteLabelingController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public LoginWhiteLabelingParams saveLoginWhiteLabelParams(
             @ApiParam(value = "A JSON value representing the login white labeling configuration")
-            @RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws ThingsboardException {
+            @RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
         LoginWhiteLabelingParams savedLoginWhiteLabelingParams = null;
