@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.protobuf.AbstractMessage;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -927,6 +928,10 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
+        for (AbstractMessage downlinkMsg : edgeImitator.getDownlinkMsgs()) {
+            System.out.println("1. <<<<<<_______>>>>>>> " + downlinkMsg);
+        }
+
         assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
@@ -939,6 +944,10 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         edgeImitator.expectMessageAmount(14);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
+
+        for (AbstractMessage downlinkMsg : edgeImitator.getDownlinkMsgs()) {
+            System.out.println("2. <<<<<<_______>>>>>>> " + downlinkMsg);
+        }
 
         assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
