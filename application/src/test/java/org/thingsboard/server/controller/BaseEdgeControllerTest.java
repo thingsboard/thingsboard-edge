@@ -929,6 +929,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
         for (AbstractMessage downlinkMsg : edgeImitator.getDownlinkMsgs()) {
+            System.out.println("1. <<<<<<_______>>>>>>> " + downlinkMsg.getClass().getName());
             System.out.println("1. <<<<<<_______>>>>>>> " + downlinkMsg);
         }
 
@@ -946,6 +947,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
         for (AbstractMessage downlinkMsg : edgeImitator.getDownlinkMsgs()) {
+            System.out.println("2. <<<<<<_______>>>>>>> " + downlinkMsg.getClass().getName());
             System.out.println("2. <<<<<<_______>>>>>>> " + downlinkMsg);
         }
 
