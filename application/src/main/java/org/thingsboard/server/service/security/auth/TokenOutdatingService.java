@@ -32,65 +32,44 @@ package org.thingsboard.server.service.security.auth;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.CacheConstants;
+import org.springframework.util.StringUtils;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
 import org.thingsboard.server.common.data.security.model.JwtToken;
-import org.thingsboard.server.config.JwtSettings;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Service
 @RequiredArgsConstructor
 public class TokenOutdatingService {
-    private final CacheManager cacheManager;
+    private final TbTransactionalCache<String, Long> cache;
     private final JwtTokenFactory tokenFactory;
-    private final JwtSettings jwtSettings;
-    private Cache usersUpdateTimeCache;
-
-    @PostConstruct
-    protected void initCache() {
-        usersUpdateTimeCache = cacheManager.getCache(CacheConstants.USERS_UPDATE_TIME_CACHE);
-    }
 
     @EventListener(classes = UserAuthDataChangedEvent.class)
     public void onUserAuthDataChanged(UserAuthDataChangedEvent event) {
-        usersUpdateTimeCache.put(toKey(event.getUserId()), event.getTs());
+        if (StringUtils.hasText(event.getId())) {
+            cache.put(event.getId(), event.getTs());
+        }
     }
 
     public boolean isOutdated(JwtToken token, UserId userId) {
         Claims claims = tokenFactory.parseTokenClaims(token).getBody();
         long issueTime = claims.getIssuedAt().getTime();
-
-        return Optional.ofNullable(usersUpdateTimeCache.get(toKey(userId), Long.class))
-                .map(outdatageTime -> {
-                    if (System.currentTimeMillis() - outdatageTime <= SECONDS.toMillis(jwtSettings.getRefreshTokenExpTime())) {
-                        return MILLISECONDS.toSeconds(issueTime) < MILLISECONDS.toSeconds(outdatageTime);
-                    } else {
-                        /*
-                         * Means that since the outdating has passed more than
-                         * the lifetime of refresh token (the longest lived)
-                         * and there is no need to store outdatage time anymore
-                         * as all the tokens issued before the outdatage time
-                         * are now expired by themselves
-                         * */
-                        usersUpdateTimeCache.evict(toKey(userId));
-                        return false;
-                    }
-                })
-                .orElse(false);
+        String sessionId = claims.get("sessionId", String.class) == null ? "" : claims.get("sessionId", String.class);
+        return isTokenOutdated(issueTime, userId.toString()) || isTokenOutdated(issueTime, sessionId);
     }
 
-    private String toKey(UserId userId) {
-        return userId.getId().toString();
+    private Boolean isTokenOutdated(long issueTime, String sessionId) {
+        return Optional.ofNullable(cache.get(sessionId)).map(outdatageTime -> isTokenOutdated(issueTime, outdatageTime.get())).orElse(false);
+    }
+
+    private boolean isTokenOutdated(long issueTime, Long outdatageTime) {
+        return MILLISECONDS.toSeconds(issueTime) < MILLISECONDS.toSeconds(outdatageTime);
     }
 }
