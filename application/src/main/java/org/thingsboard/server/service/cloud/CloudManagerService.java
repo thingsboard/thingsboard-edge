@@ -178,6 +178,7 @@ public class CloudManagerService {
     private ScheduledFuture<?> scheduledFuture;
     private ScheduledExecutorService shutdownExecutor;
     private volatile boolean initialized;
+    private volatile boolean syncInProgress = false;
 
     private final ConcurrentMap<Integer, UplinkMsg> pendingMsgsMap = new ConcurrentHashMap<>();
 
@@ -475,6 +476,7 @@ public class CloudManagerService {
         // TODO: voba - should sync be executed in some other cases ???
         log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
         edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired() | edgeCustomerIdUpdated);
+        this.syncInProgress = true;
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
@@ -529,6 +531,9 @@ public class CloudManagerService {
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
         boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
+        if (this.syncInProgress && downlinkMsg.hasSyncCompletedMsg()) {
+            this.syncInProgress = false;
+        }
         ListenableFuture<List<Void>> future =
                 downlinkMessageService.processDownlinkMsg(tenantId, customerId, downlinkMsg, this.currentEdgeSettings, queueStartTs);
         Futures.addCallback(future, new FutureCallback<>() {
@@ -540,9 +545,10 @@ public class CloudManagerService {
                         .setSuccess(true).build();
                 edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
                 if (downlinkMsg.hasEdgeConfiguration()) {
-                    if (edgeCustomerIdUpdated) {
+                    if (edgeCustomerIdUpdated && !syncInProgress) {
                         log.info("Edge customer id has been updated. Sending sync request...");
                         edgeRpcClient.sendSyncRequestMsg(true, false);
+                        syncInProgress = true;
                     }
                 }
             }
