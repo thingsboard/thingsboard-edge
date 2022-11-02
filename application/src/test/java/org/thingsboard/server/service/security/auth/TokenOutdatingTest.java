@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.security.auth;
 
 import org.junit.Before;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.UserId;
@@ -57,7 +55,6 @@ import org.thingsboard.server.common.data.security.event.UserCredentialsInvalida
 import org.thingsboard.server.common.data.security.event.UserSessionInvalidationEvent;
 import org.thingsboard.server.common.data.security.model.JwtToken;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.security.auth.jwt.JwtAuthenticationProvider;
@@ -110,7 +107,7 @@ public class TokenOutdatingTest {
     private SecurityUser securityUser;
 
     @Before
-    public void setUp() {
+    public void setUp() throws ThingsboardException {
         UserId userId = new UserId(UUID.randomUUID());
         securityUser = createMockSecurityUser(userId);
 
@@ -201,7 +198,7 @@ public class TokenOutdatingTest {
     public void testOnlyOneTokenExpired() throws InterruptedException {
         JwtToken jwtToken = tokenFactory.createAccessJwtToken(securityUser);
 
-        SecurityUser anotherSecurityUser = new SecurityUser(securityUser, securityUser.isEnabled(), securityUser.getUserPrincipal());
+        SecurityUser anotherSecurityUser = new SecurityUser(securityUser, securityUser.isEnabled(), securityUser.getUserPrincipal(), securityUser.getUserPermissions());
         JwtToken anotherJwtToken = tokenFactory.createAccessJwtToken(anotherSecurityUser);
 
         assertDoesNotThrow(() -> {
@@ -225,7 +222,7 @@ public class TokenOutdatingTest {
     public void testResetAllSessions() throws InterruptedException {
         JwtToken jwtToken = tokenFactory.createAccessJwtToken(securityUser);
 
-        SecurityUser anotherSecurityUser = new SecurityUser(securityUser, securityUser.isEnabled(), securityUser.getUserPrincipal());
+        SecurityUser anotherSecurityUser = new SecurityUser(securityUser, securityUser.isEnabled(), securityUser.getUserPrincipal(), securityUser.getUserPermissions());
         JwtToken anotherJwtToken = tokenFactory.createAccessJwtToken(anotherSecurityUser);
 
         assertDoesNotThrow(() -> {
