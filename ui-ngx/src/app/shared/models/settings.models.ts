@@ -476,6 +476,11 @@ export interface RepositorySettings {
   privateKeyPassword: string;
 }
 
+export interface RepositorySettingsInfo {
+  configured: boolean;
+  readOnly: boolean;
+}
+
 export interface AutoVersionCreateConfig extends VersionCreateConfig {
   branch: string;
 }

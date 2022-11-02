@@ -71,6 +71,8 @@ export class MarkerClusteringSettingsComponent extends PageComponent implements 
 
   private modelValue: MarkerClusteringSettings;
 
+  functionScopeVariables = this.widgetService.getWidgetScopeVariables();
+
   private propagateChange = null;
 
   public markerClusteringSettingsFormGroup: FormGroup;
@@ -92,7 +94,9 @@ export class MarkerClusteringSettingsComponent extends PageComponent implements 
       spiderfyOnMaxZoom: [null, []],
       showCoverageOnHover: [null, []],
       chunkedLoading: [null, []],
-      removeOutsideVisibleBounds: [null, []]
+      removeOutsideVisibleBounds: [null, []],
+      useIconCreateFunction: [null, []],
+      clusterMarkerFunction: [null, []]
     });
     this.markerClusteringSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();

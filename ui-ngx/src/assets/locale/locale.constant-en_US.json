@@ -355,6 +355,7 @@
         "repository-url": "Repository URL",
         "repository-url-required": "Repository URL is required.",
         "default-branch": "Default branch name",
+        "repository-read-only": "Read-only",
         "authentication-settings": "Authentication settings",
         "auth-method": "Authentication method",
         "auth-method-username-password": "Password / access token",
@@ -3436,7 +3437,22 @@
         "color": "Color",
         "main": "Main",
         "right": "Right",
-        "select": "Select target layout"
+        "left": "Left",
+        "select": "Select target layout",
+        "percentage-width": "Percentage width (%)",
+        "fixed-width": "Fixed width (px)",
+        "left-width": "Left column (%)",
+        "right-width": "Right column (%)",
+        "pick-fixed-side": "Fixed side: ",
+        "layout-fixed-width": "Fixed width (px)",
+        "value-min-error": "Value must be more then {{min}}{{unit}}",
+        "value-max-error": "Value must be less then {{max}}{{unit}}",
+        "layout-fixed-width-required": "Fixed width is required",
+        "right-width-percentage-required": "Right percentage is required",
+        "left-width-percentage-required": "Left percentage is required",
+        "divider": "Divider",
+        "right-side": "Right side layout",
+        "left-side": "Left side layout"
     },
     "legend": {
         "direction": "Legend direction",
@@ -3880,6 +3896,8 @@
         "ui-resources-load-error": "Failed to load configuration ui resources.",
         "invalid-target-rulechain": "Unable to resolve target rule chain!",
         "test-script-function": "Test script function",
+        "script-lang-java-script": "Java Script",
+        "script-lang-mvel": "MVEL",
         "message": "Message",
         "message-type": "Message type",
         "select-message-type": "Select message type",
@@ -4746,7 +4764,8 @@
         "entity-groups": "Entity groups",
         "integration-routing-key-conflict": "Failed to load the integration with external id <b>{{entityId}}</b><br/>due to the same integration key is already present in the database for another integration.<br/>Please consider enabling the <b>auto-generate integration key</b> setting in the restore form.",
         "auto-generate-integration-key": "Auto-generate integration key",
-        "runtime-failed": "<b>Failed:</b> {{message}}"
+        "runtime-failed": "<b>Failed:</b> {{message}}",
+        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings."
     },
     "widget": {
         "widget-library": "Widgets Library",
@@ -4939,6 +4958,7 @@
         "display-legend": "Display legend",
         "datasources": "Datasources",
         "maximum-datasources": "Maximum { count, plural, 1 {1 datasource is allowed.} other {# datasources are allowed} }",
+        "timeseries-key-error": "At least one timeseries data key should be specified",
         "datasource-type": "Type",
         "datasource-parameters": "Parameters",
         "remove-datasource": "Remove datasource",
@@ -5983,7 +6003,10 @@
             "point-color-function": "Point color function",
             "use-point-as-anchor": "Use point as anchor",
             "point-as-anchor-function": "Point as anchor function",
-            "independent-point-tooltip": "Independent point tooltip"
+            "independent-point-tooltip": "Independent point tooltip",
+            "clustering-markers": "Clustering markers",
+            "use-icon-create-function": "Use markers colour function",
+            "marker-color-function": "Marker color function"
         },
         "markdown": {
             "use-markdown-text-function": "Use markdown/HTML value function",
@@ -6029,10 +6052,12 @@
             "entity-label-column-title": "Entity label column title",
             "display-entity-type": "Display entity type column",
             "default-sort-order": "Default sort order",
+            "custom-title": "Custom header title",
             "column-width": "Column width (px or %)",
             "default-column-visibility": "Default column visibility",
             "column-visibility-visible": "Visible",
             "column-visibility-hidden": "Hidden",
+            "column-visibility-hidden-mobile": "Hidden in mobile mode",
             "column-selection-to-display": "Column selection in 'Columns to Display'",
             "column-selection-to-display-enabled": "Enabled",
             "column-selection-to-display-disabled": "Disabled",

@@ -32,11 +32,14 @@ package org.thingsboard.server.actors.ruleChain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.Arrays;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
-import org.thingsboard.js.api.JsScriptType;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
@@ -50,6 +53,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
@@ -59,6 +63,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.HasRuleEngineProfile;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
@@ -75,11 +80,14 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.rule.RuleNodeState;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.TbMsgProcessingStackItem;
@@ -121,8 +129,10 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkM
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -319,11 +329,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public ScriptEngine createAttributesJsScriptEngine(String script) {
-        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsSandbox(), nodeCtx.getSelf().getId(), JsScriptType.ATTRIBUTES_SCRIPT, script);
-    }
-
-    @Override
     public void tellFailure(TbMsg msg, Throwable th) {
         if (nodeCtx.getSelf().isDebugMode()) {
             mainCtx.persistDebugOutput(nodeCtx.getTenantId(), nodeCtx.getSelf().getId(), msg, TbRelationTypes.FAILURE, th);
@@ -367,58 +372,62 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     public TbMsg deviceCreatedMsg(Device device, RuleNodeId ruleNodeId) {
-        RuleChainId ruleChainId = null;
-        String queueName = null;
+        DeviceProfile deviceProfile = null;
         if (device.getDeviceProfileId() != null) {
-            DeviceProfile deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());
-            if (deviceProfile == null) {
-                log.warn("[{}] Device profile is null!", device.getDeviceProfileId());
-            } else {
-                ruleChainId = deviceProfile.getDefaultRuleChainId();
-                queueName = deviceProfile.getDefaultQueueName();
-            }
+            deviceProfile = mainCtx.getDeviceProfileCache().find(device.getDeviceProfileId());
         }
-        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, queueName, ruleChainId);
+        return entityActionMsg(device, device.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, deviceProfile);
     }
 
     public TbMsg assetCreatedMsg(Asset asset, RuleNodeId ruleNodeId) {
-        RuleChainId ruleChainId = null;
-        String queueName = null;
+        AssetProfile assetProfile = null;
         if (asset.getAssetProfileId() != null) {
-            AssetProfile assetProfile = mainCtx.getAssetProfileCache().find(asset.getAssetProfileId());
-            if (assetProfile == null) {
-                log.warn("[{}] Asset profile is null!", asset.getAssetProfileId());
-            } else {
-                ruleChainId = assetProfile.getDefaultRuleChainId();
-                queueName = assetProfile.getDefaultQueueName();
-            }
+            assetProfile = mainCtx.getAssetProfileCache().find(asset.getAssetProfileId());
         }
-        return entityActionMsg(asset, asset.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, queueName, ruleChainId);
+        return entityActionMsg(asset, asset.getId(), ruleNodeId, DataConstants.ENTITY_CREATED, assetProfile);
     }
 
     public TbMsg alarmActionMsg(Alarm alarm, RuleNodeId ruleNodeId, String action) {
-        RuleChainId ruleChainId = null;
-        String queueName = null;
+        HasRuleEngineProfile profile = null;
         if (EntityType.DEVICE.equals(alarm.getOriginator().getEntityType())) {
             DeviceId deviceId = new DeviceId(alarm.getOriginator().getId());
-            DeviceProfile deviceProfile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
-            if (deviceProfile == null) {
-                log.warn("[{}] Device profile is null!", deviceId);
-            } else {
-                ruleChainId = deviceProfile.getDefaultRuleChainId();
-                queueName = deviceProfile.getDefaultQueueName();
-            }
+            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
         } else if (EntityType.ASSET.equals(alarm.getOriginator().getEntityType())) {
             AssetId assetId = new AssetId(alarm.getOriginator().getId());
-            AssetProfile assetProfile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
-            if (assetProfile == null) {
-                log.warn("[{}] Asset profile is null!", assetId);
-            } else {
-                ruleChainId = assetProfile.getDefaultRuleChainId();
-                queueName = assetProfile.getDefaultQueueName();
-            }
+            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
         }
-        return entityActionMsg(alarm, alarm.getId(), ruleNodeId, action, queueName, ruleChainId);
+        return entityActionMsg(alarm, alarm.getOriginator(), ruleNodeId, action, profile);
+    }
+
+    public TbMsg attributesUpdatedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<AttributeKvEntry> attributes) {
+        ObjectNode entityNode = JacksonUtil.newObjectNode();
+        if (attributes != null) {
+            attributes.forEach(attributeKvEntry -> JacksonUtil.addKvEntry(entityNode, attributeKvEntry));
+        }
+        return attributesActionMsg(originator, ruleNodeId, scope, DataConstants.ATTRIBUTES_UPDATED, JacksonUtil.toString(entityNode));
+    }
+
+    public TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys) {
+        ObjectNode entityNode = JacksonUtil.newObjectNode();
+        ArrayNode attrsArrayNode = entityNode.putArray("attributes");
+        if (keys != null) {
+            keys.forEach(attrsArrayNode::add);
+        }
+        return attributesActionMsg(originator, ruleNodeId, scope, DataConstants.ATTRIBUTES_DELETED, JacksonUtil.toString(entityNode));
+    }
+
+    private TbMsg attributesActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, String action, String msgData) {
+        TbMsgMetaData tbMsgMetaData = getActionMetaData(ruleNodeId);
+        tbMsgMetaData.putValue("scope", scope);
+        HasRuleEngineProfile profile = null;
+        if (EntityType.DEVICE.equals(originator.getEntityType())) {
+            DeviceId deviceId = new DeviceId(originator.getId());
+            profile = mainCtx.getDeviceProfileCache().get(getTenantId(), deviceId);
+        } else if (EntityType.ASSET.equals(originator.getEntityType())) {
+            AssetId assetId = new AssetId(originator.getId());
+            profile = mainCtx.getAssetProfileCache().get(getTenantId(), assetId);
+        }
+        return entityActionMsg(originator, tbMsgMetaData, msgData, action, profile);
     }
 
     @Override
@@ -427,15 +436,25 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action) {
-        return entityActionMsg(entity, id, ruleNodeId, action, null, null);
+        return entityActionMsg(entity, id, ruleNodeId, action, null);
     }
 
-    public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, String queueName, RuleChainId ruleChainId) {
+    public <E, I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, String action, K profile) {
         try {
-            return TbMsg.newMsg(queueName, action, id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), ruleChainId, null);
+            return entityActionMsg(id, getActionMetaData(ruleNodeId), mapper.writeValueAsString(mapper.valueToTree(entity)), action, profile);
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new RuntimeException("Failed to process " + id.getEntityType().name().toLowerCase() + " " + action + " msg: " + e);
         }
+    }
+
+    private <I extends EntityId, K extends HasRuleEngineProfile> TbMsg entityActionMsg(I id, TbMsgMetaData msgMetaData, String msgData, String action, K profile) {
+        String defaultQueueName = null;
+        RuleChainId defaultRuleChainId = null;
+        if (profile != null) {
+            defaultQueueName = profile.getDefaultQueueName();
+            defaultRuleChainId = profile.getDefaultRuleChainId();
+        }
+        return TbMsg.newMsg(defaultQueueName, action, id, msgMetaData, msgData, defaultRuleChainId, null);
     }
 
     @Override
@@ -479,8 +498,47 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
+    @Deprecated
     public ScriptEngine createJsScriptEngine(String script, String... argNames) {
-        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsSandbox(), nodeCtx.getSelf().getId(), script, argNames);
+        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);
+    }
+
+    private ScriptEngine createMvelScriptEngine(String script, String... argNames) {
+        if (mainCtx.getMvelInvokeService() == null) {
+            throw new RuntimeException("MVEL execution is disabled!");
+        }
+        return new RuleNodeMvelScriptEngine(getTenantId(), mainCtx.getMvelInvokeService(), script, argNames);
+    }
+
+    @Override
+    public ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames) {
+        return createScriptEngine(scriptLang, ScriptType.RULE_NODE_SCRIPT, script, argNames);
+    }
+
+    @Override
+    public ScriptEngine createAttributesScriptEngine(ScriptLanguage scriptLang, String script) {
+        return createScriptEngine(scriptLang, ScriptType.ATTRIBUTES_SCRIPT, script, "attributes");
+    }
+
+    public ScriptEngine createScriptEngine(ScriptLanguage scriptLang, ScriptType scriptType, String script, String... argNames) {
+        if (scriptLang == null) {
+            scriptLang = ScriptLanguage.JS;
+        }
+        if (StringUtils.isBlank(script)) {
+            throw new RuntimeException(scriptLang.name() + " script is blank!");
+        }
+        switch (scriptLang) {
+            case JS:
+                return createJsScriptEngine(script, argNames);
+            case MVEL:
+                if (Arrays.isNullOrEmpty(argNames)) {
+                    return createMvelScriptEngine(script, "msg", "metadata", "msgType");
+                } else {
+                    return createMvelScriptEngine(script, argNames);
+                }
+            default:
+                throw new RuntimeException("Unsupported script language: " + scriptLang.name());
+        }
     }
 
     @Override
