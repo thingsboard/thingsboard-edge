@@ -742,6 +742,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(customer.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getIdMSB());
         Assert.assertEquals(customer.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getIdLSB());
         Assert.assertEquals(customer.getTitle(), subCustomerAUpdateMsg.getTitle());
+        Assert.assertEquals(EntityType.CUSTOMER.name(), subCustomerAUpdateMsg.getOwnerEntityType());
+        Assert.assertEquals(parentCustomer.getUuidId().getMostSignificantBits(), subCustomerAUpdateMsg.getOwnerIdMSB());
+        Assert.assertEquals(parentCustomer.getUuidId().getLeastSignificantBits(), subCustomerAUpdateMsg.getOwnerIdLSB());
 
         List<RoleProto> roleProtos = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(4, roleProtos.size());
