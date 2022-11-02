@@ -37,7 +37,12 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -49,12 +54,14 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.dashboard.DashboardDao;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -64,12 +71,24 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ContextConfiguration(classes = {BaseDashboardControllerTest.Config.class})
 public abstract class BaseDashboardControllerTest extends AbstractControllerTest {
 
     private IdComparator<DashboardInfo> idComparator = new IdComparator<>();
 
     private Tenant savedTenant;
     private User tenantAdmin;
+
+    @Autowired
+    private DashboardDao dashboardDao;
+
+    static class Config {
+        @Bean
+        @Primary
+        public DashboardDao dashboardDao(DashboardDao dashboardDao) {
+            return Mockito.mock(DashboardDao.class, AdditionalAnswers.delegatesTo(dashboardDao));
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -456,4 +475,23 @@ public abstract class BaseDashboardControllerTest extends AbstractControllerTest
         // Customer user must have access only to a shared dashboard
         Assert.assertEquals(1, customerUserDashboards.size());
     }
+
+    @Test
+    public void testDeleteDashboardWithDeleteRelationsOk() throws Exception {
+        DashboardId dashboardId = createDashboard("Dashboard for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    @Test
+    public void testDeleteDashboardExceptionWithRelationsTransactional() throws Exception {
+        DashboardId dashboardId = createDashboard("Dashboard for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(dashboardDao, savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    private Dashboard createDashboard(String title) {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTitle(title);
+        return doPost("/api/dashboard", dashboard, Dashboard.class);
+    }
+
 }

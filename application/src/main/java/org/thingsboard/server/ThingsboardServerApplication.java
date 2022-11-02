@@ -41,7 +41,7 @@ import java.util.Arrays;
 @SpringBootConfiguration
 @EnableAsync
 @EnableScheduling
-@ComponentScan({"org.thingsboard.server", "org.thingsboard.js", "org.thingsboard.integration"})
+@ComponentScan({"org.thingsboard.server", "org.thingsboard.script", "org.thingsboard.integration"})
 public class ThingsboardServerApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";

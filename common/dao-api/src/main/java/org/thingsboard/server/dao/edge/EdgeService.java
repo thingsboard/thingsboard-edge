@@ -75,6 +75,8 @@ public interface EdgeService {
 
     ListenableFuture<List<Edge>> findEdgesByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<EdgeId> edgeIds);
 
+    void deleteEdgesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
     ListenableFuture<List<Edge>> findEdgesByQuery(TenantId tenantId, EdgeSearchQuery query);
 
     ListenableFuture<List<EntitySubtype>> findEdgeTypesByTenantId(TenantId tenantId);
@@ -83,11 +85,15 @@ public interface EdgeService {
 
     void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId);
 
+    void assignCustomerAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId, CustomerId customerId, CustomerId parentCustomerId);
+
     PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 
     PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(TenantId tenantId, List<EntityId> entityIds, EntityType entityType, PageLink pageLink);
 
     PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupId, EntityType groupType, PageLink pageLink);
+
+    List<EdgeId> findAllRelatedEdgeIds(TenantId tenantId, EntityId entityId);
 
     PageData<EdgeId> findRelatedEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 

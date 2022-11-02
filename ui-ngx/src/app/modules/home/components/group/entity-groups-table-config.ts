@@ -324,7 +324,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         ownerId,
         groupType: this.groupType,
         edgeId: this.params.edgeId,
-        customerId: this.params.customerId,
         addEntityGroupsToEdgeTitle: 'edge.assign-to-edge-title',
         confirmSelectTitle: 'action.assign',
         notFoundText: 'entity-group.no-entity-groups-matching',

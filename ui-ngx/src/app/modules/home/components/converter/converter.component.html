@@ -87,39 +87,51 @@
       <mat-slide-toggle fxFlex formControlName="debugMode" style="margin-bottom: 16px;">
         {{ 'converter.debug-mode' | translate }}
       </mat-slide-toggle>
-      <div formGroupName="configuration" fxLayout="column" *ngIf="entityForm.get('type').value === converterType.UPLINK">
-        <label translate class="tb-title no-padding">converter.decoder</label>
-        <tb-js-func
-          formControlName="decoder"
-          functionName="Decoder"
-          [functionArgs]="['payload', 'metadata']"
-          helpId="converter/decoder_fn"
-          noValidate>
-        </tb-js-func>
+      <div formGroupName="configuration" fxLayout="column">
+        <tb-script-lang formControlName="scriptLang" *ngIf="mvelEnabled"></tb-script-lang>
+        <section *ngIf="entityForm.get('type').value === converterType.UPLINK">
+          <tb-js-func
+            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.JS"
+            formControlName="decoder"
+            functionName="Decoder"
+            [functionArgs]="['payload', 'metadata']"
+            helpId="converter/decoder_fn"
+            noValidate>
+          </tb-js-func>
+          <tb-js-func
+            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.MVEL"
+            formControlName="mvelDecoder"
+            functionName="Decoder"
+            [functionArgs]="['payload', 'metadata']"
+            [disableUndefinedCheck]="true"
+            helpId="converter/decoder_fn"
+            noValidate>
+          </tb-js-func>
+        </section>
+        <section *ngIf="entityForm.get('type').value === converterType.DOWNLINK">
+          <tb-js-func
+            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.JS"
+            formControlName="encoder"
+            functionName="Encoder"
+            [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
+            helpId="converter/encoder_fn"
+            noValidate>
+          </tb-js-func>
+          <tb-js-func
+            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.MVEL"
+            formControlName="mvelEncoder"
+            functionName="Encoder"
+            [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
+            helpId="converter/encoder_fn"
+            noValidate>
+          </tb-js-func>
+        </section>
         <div fxLayout="row">
           <button [fxShow]="isEdit"
                   [disabled]="isLoading$ | async"
                   type="button" mat-button mat-raised-button color="primary"
-                  (click)="openConverterTestDialog(true)">
-            {{ 'converter.test-decoder-fuction' | translate }}
-          </button>
-        </div>
-      </div>
-      <div formGroupName="configuration" fxLayout="column" *ngIf="entityForm.get('type').value === converterType.DOWNLINK">
-        <label translate class="tb-title no-padding">converter.encoder</label>
-        <tb-js-func
-          formControlName="encoder"
-          functionName="Encoder"
-          [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
-          helpId="converter/encoder_fn"
-          noValidate>
-        </tb-js-func>
-        <div fxLayout="row">
-          <button [fxShow]="isEdit"
-                  [disabled]="isLoading$ | async"
-                  type="button" mat-button mat-raised-button color="primary"
-                  (click)="openConverterTestDialog(false)">
-            {{ 'converter.test-encoder-fuction' | translate }}
+                  (click)="openConverterTestDialog(entityForm.get('type').value === converterType.UPLINK)">
+            {{ (entityForm.get('type').value === converterType.UPLINK ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }}
           </button>
         </div>
       </div>

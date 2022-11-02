@@ -62,6 +62,8 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
     private TenantId tenantId;
     @ApiModelProperty(position = 4, value = "JSON object with Customer Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
     private CustomerId customerId;
+    @ApiModelProperty(position = 5, value = "JSON object with Originator Id", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    private EntityId originatorId;
     @NoXss
     @Length(fieldName = "name")
     @ApiModelProperty(position = 6, value = "scheduler event name", example = "Weekly Dashboard Report")

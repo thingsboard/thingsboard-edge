@@ -480,7 +480,7 @@ public class IntegrationController extends AutoCommitController {
     @ApiOperation(value = "Find edge missing attributes for assigned integrations (findEdgeMissingAttributes)",
             notes = "Returns list of edge attribute names that are missing in assigned integrations." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/integration/{edgeId}/missingAttributes", params = {"integrationIds"})
+    @RequestMapping(value = "/edge/integration/{edgeId}/missingAttributes", params = {"integrationIds"}, method = RequestMethod.GET)
     @ResponseBody
     public String findEdgeMissingAttributes(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                             @PathVariable(EDGE_ID) String strEdgeId,
@@ -501,7 +501,7 @@ public class IntegrationController extends AutoCommitController {
     @ApiOperation(value = "Find missing attributes for all related edges (findAllRelatedEdgesMissingAttributes)",
             notes = "Returns list of attribute names of all related edges that are missing in the integration configuration." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/edge/integration/{integrationId}/allMissingAttributes")
+    @RequestMapping(value = "/edge/integration/{integrationId}/allMissingAttributes", method = RequestMethod.GET)
     @ResponseBody
     public String findAllRelatedEdgesMissingAttributes(@ApiParam(value = INTEGRATION_ID_PARAM_DESCRIPTION, required = true)
                                                        @PathVariable("integrationId") String strIntegrationId) throws Exception {

@@ -87,6 +87,8 @@ import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.asset.AssetProfileInfo;
 import org.thingsboard.server.common.data.asset.AssetSearchQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
@@ -97,12 +99,14 @@ import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
+import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -1233,6 +1237,70 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }, params).getBody();
     }
 
+    public Optional<AssetProfile> getAssetProfileById(AssetProfileId assetProfileId) {
+        try {
+            ResponseEntity<AssetProfile> assetProfile = restTemplate.getForEntity(baseURL + "/api/assetProfile/{assetProfileId}", AssetProfile.class, assetProfileId);
+            return Optional.ofNullable(assetProfile.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<AssetProfileInfo> getAssetProfileInfoById(AssetProfileId assetProfileId) {
+        try {
+            ResponseEntity<AssetProfileInfo> assetProfileInfo = restTemplate.getForEntity(baseURL + "/api/assetProfileInfo/{assetProfileId}", AssetProfileInfo.class, assetProfileId);
+            return Optional.ofNullable(assetProfileInfo.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public AssetProfileInfo getDefaultAssetProfileInfo() {
+        return restTemplate.getForEntity(baseURL + "/api/assetProfileInfo/default", AssetProfileInfo.class).getBody();
+    }
+
+    public AssetProfile saveAssetProfile(AssetProfile assetProfile) {
+        return restTemplate.postForEntity(baseURL + "/api/assetProfile", assetProfile, AssetProfile.class).getBody();
+    }
+
+    public void deleteAssetProfile(AssetProfileId assetProfileId) {
+        restTemplate.delete(baseURL + "/api/assetProfile/{assetProfileId}", assetProfileId);
+    }
+
+    public AssetProfile setDefaultAssetProfile(AssetProfileId assetProfileId) {
+        return restTemplate.postForEntity(
+                baseURL + "/api/assetProfile/{assetProfileId}/default",
+                HttpEntity.EMPTY, AssetProfile.class, assetProfileId).getBody();
+    }
+
+    public PageData<AssetProfile> getAssetProfiles(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/assetProfiles?" + getUrlParams(pageLink),
+                HttpMethod.GET, HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<AssetProfile>>() {
+                }, params).getBody();
+    }
+
+    public PageData<AssetProfileInfo> getAssetProfileInfos(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/assetProfileInfos?" + getUrlParams(pageLink),
+                HttpMethod.GET, HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<AssetProfileInfo>>() {
+                }, params).getBody();
+    }
+
     public Long countEntitiesByQuery(EntityCountQuery query) {
         return restTemplate.postForObject(baseURL + "/api/entitiesQuery/count", query, Long.class);
     }
@@ -1484,11 +1552,11 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }).getBody();
     }
 
-    public PageData<EventInfo> getEvents(EntityId entityId, String eventType, TenantId tenantId, TimePageLink pageLink) {
+    public PageData<EventInfo> getEvents(EntityId entityId, EventType eventType, TenantId tenantId, TimePageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("entityType", entityId.getEntityType().name());
         params.put("entityId", entityId.getId().toString());
-        params.put("eventType", eventType);
+        params.put("eventType", eventType.name());
         params.put("tenantId", tenantId.getId().toString());
         addTimePageLinkToParam(params, pageLink);
 
@@ -2375,6 +2443,27 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
         }
     }
 
+    public List<EntityGroupInfo> getAllEdgeEntityGroups(EdgeId edgeId, EntityType groupType) {
+        return restTemplate.exchange(
+                baseURL + "/api/allEntityGroups/edge/{edgeId}/{groupType}",
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<List<EntityGroupInfo>>() {},
+                edgeId.getId(),
+                groupType.name()).getBody();
+    }
+
+    public PageData<EntityGroupInfo> getEdgeEntityGroups(EdgeId edgeId, EntityType groupType, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("edgeId", edgeId.getId().toString());
+        params.put("groupType", groupType.name());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/entityGroups/edge/{edgeId}/{groupType}?" + getUrlParams(pageLink),
+                HttpMethod.GET, HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<EntityGroupInfo>>() {},
+                params).getBody();
+    }
     public PageData<RuleChain> getEdgeRuleChains(EdgeId edgeId, PageLink pageLink) {
         Map<String, String> params = new HashMap<>();
         params.put("edgeId", edgeId.getId().toString());

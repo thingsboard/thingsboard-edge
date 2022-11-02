@@ -211,6 +211,9 @@ import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits
 import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
 import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
 import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
+import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
+import { AssetProfileDialogComponent } from '@home/components/profile/asset-profile-dialog.component';
+import { AssetProfileAutocompleteComponent } from '@home/components/profile/asset-profile-autocomplete.component';
 import { IntegrationWizardDialogComponent } from '@home/components/wizard/integration-wizard-dialog.component';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
@@ -328,6 +331,9 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       DeviceProfileComponent,
       DeviceProfileDialogComponent,
       AddDeviceProfileDialogComponent,
+      AssetProfileComponent,
+      AssetProfileDialogComponent,
+      AssetProfileAutocompleteComponent,
       RuleChainAutocompleteComponent,
       AlarmScheduleInfoComponent,
       DeviceProfileProvisionConfigurationComponent,
@@ -491,6 +497,9 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     AddDeviceProfileDialogComponent,
     RuleChainAutocompleteComponent,
     DeviceWizardDialogComponent,
+    AssetProfileComponent,
+    AssetProfileDialogComponent,
+    AssetProfileAutocompleteComponent,
     AlarmScheduleInfoComponent,
     AlarmScheduleComponent,
     AlarmDynamicValue,

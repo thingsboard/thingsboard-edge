@@ -41,6 +41,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
@@ -103,6 +104,14 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         } else {
             return userDao.findByEmail(tenantId, email.toLowerCase());
         }
+    }
+
+    @Override
+    public User findUserByTenantIdAndEmail(TenantId tenantId, String email) {
+        log.trace("Executing findUserByTenantIdAndEmail [{}][{}]", tenantId, email);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateString(email, "Incorrect email " + email);
+        return userDao.findByTenantIdAndEmail(tenantId, email);
     }
 
     @Override
@@ -231,6 +240,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    @Transactional
     public void deleteUser(TenantId tenantId, UserId userId) {
         log.trace("Executing deleteUser [{}]", userId);
         validateId(userId, INCORRECT_USER_ID + userId);

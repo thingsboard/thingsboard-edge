@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.event.RuleChainDebugEvent;
 import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
 import org.thingsboard.server.common.data.event.StatisticsEvent;
+import org.thingsboard.server.dao.util.SqlDao;
 
 import javax.annotation.PostConstruct;
 import java.sql.PreparedStatement;
@@ -63,6 +64,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @Transactional
+@SqlDao
 public class EventInsertRepository {
 
     private static final ThreadLocal<Pattern> PATTERN_THREAD_LOCAL = ThreadLocal.withInitial(() -> Pattern.compile(String.valueOf(Character.MIN_VALUE)));
@@ -108,7 +110,7 @@ public class EventInsertRepository {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;");
     }
 
-    protected void save(List<Event> entities) {
+    public void save(List<Event> entities) {
         Map<EventType, List<Event>> eventsByType = entities.stream().collect(Collectors.groupingBy(Event::getType, Collectors.toList()));
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override

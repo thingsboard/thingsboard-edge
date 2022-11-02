@@ -35,8 +35,6 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -53,7 +51,6 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -83,8 +80,8 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
@@ -94,6 +91,7 @@ import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
+import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.queue.processing.AbstractConsumerService;
 import org.thingsboard.server.service.queue.processing.IdMsgPair;
@@ -105,7 +103,6 @@ import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
-import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.sync.vc.GitVersionControlQueueService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
@@ -169,13 +166,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCoreDeviceRpcService tbCoreDeviceRpcService,
                                         TbIntegrationDownlinkService downlinkService, IntegrationManagerService integrationManagerService,
                                         RuleEngineCallService ruleEngineCallService, StatsFactory statsFactory, TbDeviceProfileCache deviceProfileCache,
-                                        TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
+                                        TbAssetProfileCache assetProfileCache, TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
                                         EdgeNotificationService edgeNotificationService,
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
                                         PartitionService partitionService) {
-        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
+        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();
@@ -377,13 +374,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.getComponentLifecycleMsg() != null && !toCoreNotification.getComponentLifecycleMsg().isEmpty()) {
             handleComponentLifecycleMsg(id, toCoreNotification.getComponentLifecycleMsg());
             callback.onSuccess();
-        } else if (toCoreNotification.getEdgeEventUpdateMsg() != null && !toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
-            Optional<TbActorMsg> actorMsg = encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray());
-            if (actorMsg.isPresent()) {
-                log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
-                actorContext.tellWithHighPriority(actorMsg.get());
-            }
-            callback.onSuccess();
+        } else if (!toCoreNotification.getEdgeEventUpdateMsg().isEmpty()) {
+            forwardToAppActor(id, encodingService.decode(toCoreNotification.getEdgeEventUpdateMsg().toByteArray()), callback);
+        } else if (!toCoreNotification.getToEdgeSyncRequestMsg().isEmpty()) {
+            forwardToAppActor(id, encodingService.decode(toCoreNotification.getToEdgeSyncRequestMsg().toByteArray()), callback);
+        } else if (!toCoreNotification.getFromEdgeSyncResponseMsg().isEmpty()) {
+            forwardToAppActor(id, encodingService.decode(toCoreNotification.getFromEdgeSyncResponseMsg().toByteArray()), callback);
         } else if (toCoreNotification.hasQueueUpdateMsg()) {
             TransportProtos.QueueUpdateMsg queue = toCoreNotification.getQueueUpdateMsg();
             partitionService.updateQueue(queue);
@@ -671,6 +667,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             stats.log(toDeviceActorMsg);
         }
         actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
+    }
+
+    private void forwardToAppActor(UUID id, Optional<TbActorMsg> actorMsg, TbCallback callback) {
+        if (actorMsg.isPresent()) {
+            log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg.get());
+            actorContext.tell(actorMsg.get());
+        }
+        callback.onSuccess();
     }
 
     private void throwNotHandled(Object msg, TbCallback callback) {

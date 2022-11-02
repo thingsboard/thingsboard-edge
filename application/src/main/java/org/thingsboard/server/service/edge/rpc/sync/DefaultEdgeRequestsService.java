@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.edge.rpc.sync;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -44,16 +43,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -88,7 +88,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -123,8 +123,6 @@ import java.util.stream.Collectors;
 @TbCoreComponent
 @Slf4j
 public class DefaultEdgeRequestsService implements EdgeRequestsService {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     private EdgeEventService edgeEventService;
@@ -226,7 +224,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
 
                 try {
                     Map<String, Object> entityData = new HashMap<>();
-                    ObjectNode attributes = mapper.createObjectNode();
+                    ObjectNode attributes = JacksonUtil.OBJECT_MAPPER.createObjectNode();
                     for (AttributeKvEntry attr : ssAttributes) {
                         if (DefaultDeviceStateService.PERSISTENT_ATTRIBUTES.contains(attr.getKey())) {
                             continue;
@@ -243,7 +241,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                     }
                     entityData.put("kv", attributes);
                     entityData.put("scope", scope);
-                    JsonNode body = mapper.valueToTree(entityData);
+                    JsonNode body = JacksonUtil.OBJECT_MAPPER.valueToTree(entityData);
                     log.debug("Sending attributes data msg, entityId [{}], attributes [{}]", entityId, body);
                     ListenableFuture<Void> future = saveEdgeEvent(tenantId, edge.getId(), type, EdgeEventActionType.ATTRIBUTES_UPDATED, entityId, body, null);
                     Futures.addCallback(future, new FutureCallback<>() {
@@ -305,7 +303,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                                                 EdgeEventType.RELATION,
                                                 EdgeEventActionType.ADDED,
                                                 null,
-                                                mapper.valueToTree(relation)));
+                                                JacksonUtil.OBJECT_MAPPER.valueToTree(relation)));
                                     }
                                 } catch (Exception e) {
                                     String errMsg = String.format("[%s] Exception during loading relation [%s] to edge on sync!", edge.getId(), relation);
@@ -450,8 +448,14 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
         log.trace("[{}] processEntityGroupEntitiesRequest [{}][{}]", tenantId, edge.getName(), entityGroupEntitiesRequestMsg);
         if (entityGroupEntitiesRequestMsg.getEntityGroupIdMSB() != 0 && entityGroupEntitiesRequestMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupEntitiesRequestMsg.getEntityGroupIdMSB(), entityGroupEntitiesRequestMsg.getEntityGroupIdLSB()));
-            // TODO: voba - refactor this to pagination
-            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
+            ListenableFuture<List<EntityId>> entityIdsFuture;
+            try {
+                // TODO: voba - refactor this to pagination
+                entityIdsFuture = entityGroupService.findAllEntityIds(edge.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
+            } catch (IncorrectParameterException e) {
+                log.warn("[{}] Entity group not found to process entityGroupEntitiesRequestMsg {}", tenantId, entityGroupEntitiesRequestMsg, e);
+                return Futures.immediateFuture(null);
+            }
             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                 if (entityIds != null && !entityIds.isEmpty()) {
                     EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());

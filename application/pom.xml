@@ -88,14 +88,6 @@
             <artifactId>version-control</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thingsboard.common.js</groupId>
-            <artifactId>js-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.thingsboard.common.js</groupId>
-            <artifactId>remote-js-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.thingsboard.common.integration</groupId>
             <artifactId>integration-api</artifactId>
         </dependency>
@@ -180,7 +172,15 @@
             <artifactId>queue</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.thingsboard.common</groupId>
+            <groupId>org.thingsboard.common.script</groupId>
+            <artifactId>script-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common.script</groupId>
+            <artifactId>remote-js-client</artifactId>
+        </dependency>
+        <dependency>
+        <groupId>org.thingsboard.common</groupId>
             <artifactId>stats</artifactId>
         </dependency>
         <dependency>
@@ -356,7 +356,6 @@
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
@@ -401,6 +400,10 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
+        </dependency>
+        <dependency> <!-- added because bcprov-jdk15on exluded from org.bouncycastle:bcpkix-jdk15on -->
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-ext-jdk15on</artifactId>
         </dependency>
         <dependency>
             <groupId>org.thingsboard</groupId>

@@ -47,11 +47,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.js.api.JsInvokeService;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -81,6 +82,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -117,6 +119,7 @@ import org.thingsboard.server.service.executors.SharedEventLoopGroupService;
 import org.thingsboard.server.service.integration.PlatformIntegrationService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
 import org.thingsboard.server.service.mail.MailExecutorService;
+import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.service.rpc.TbRpcService;
@@ -206,11 +209,19 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    @Getter
     private TbTenantProfileCache tenantProfileCache;
 
     @Autowired
     @Getter
     private TbDeviceProfileCache deviceProfileCache;
+
+    @Autowired
+    @Getter
+    private TbAssetProfileCache assetProfileCache;
 
     @Autowired
     @Getter
@@ -294,7 +305,11 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private JsInvokeService jsSandbox;
+    private JsInvokeService jsInvokeService;
+
+    @Autowired(required = false)
+    @Getter
+    private MvelInvokeService mvelInvokeService;
 
     @Autowired
     @Getter

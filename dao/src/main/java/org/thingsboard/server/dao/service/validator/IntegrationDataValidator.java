@@ -83,6 +83,9 @@ public class IntegrationDataValidator extends DataValidator<Integration> {
                     if (!d.getId().equals(integration.getId())) {
                         throw new DataValidationException("Integration with such routing key already exists!");
                     }
+                    if (!d.getType().equals(integration.getType())) {
+                        throw new DataValidationException("Integration type can not be changed!");
+                    }
                 }
         );
         return old.orElse(null);
