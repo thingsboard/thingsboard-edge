@@ -84,7 +84,8 @@ BEGIN
     END LOOP;
 
     INSERT INTO audit_log
-    SELECT * FROM old_audit_log
+    SELECT id, created_time, tenant_id, customer_id, entity_id, entity_type, entity_name, user_id, user_name, action_type, action_data, action_status, action_failure_details
+    FROM old_audit_log
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
 END;
 $$;
@@ -144,7 +145,8 @@ BEGIN
     END LOOP;
 
     INSERT INTO blob_entity
-    SELECT * FROM old_blob_entity
+    SELECT id, created_time, tenant_id, customer_id, name, type, content_type, search_text, data, additional_info
+    FROM old_blob_entity
     WHERE created_time >= start_time_ms AND created_time < end_time_ms;
 END;
 $$;

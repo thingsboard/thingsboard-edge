@@ -150,6 +150,12 @@ public class DefaultTbNotificationEntityService implements TbNotificationEntityS
     }
 
     @Override
+    public <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventType edgeEventType,
+                                                                EdgeEventActionType edgeEventActionType) {
+        sendNotificationMsgToEdge(tenantId, null, entityId, null, edgeEventType, edgeEventActionType);
+    }
+
+    @Override
     public <I extends EntityId> void notifySendMsgToEdgeService(TenantId tenantId, I entityId, EdgeEventActionType edgeEventActionType) {
         sendEntityNotificationMsg(tenantId, entityId, edgeEventActionType);
     }

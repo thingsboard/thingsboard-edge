@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -78,10 +80,10 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public WhiteLabelingParams getWhiteLabelParams(
-            @ApiParam(value = LOGO_CHECKSUM_DESC, required = true)
+            @ApiParam(value = LOGO_CHECKSUM_DESC)
             @RequestParam(required = false) String logoImageChecksum,
-            @ApiParam(value = FAVICON_CHECKSUM_DESC, required = true)
-            @RequestParam(required = false) String faviconChecksum) throws Exception {
+            @ApiParam(value = FAVICON_CHECKSUM_DESC)
+            @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         WhiteLabelingParams whiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
@@ -101,9 +103,9 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(
-            @ApiParam(value = LOGO_CHECKSUM_DESC, required = true)
+            @ApiParam(value = LOGO_CHECKSUM_DESC)
             @RequestParam(required = false) String logoImageChecksum,
-            @ApiParam(value = FAVICON_CHECKSUM_DESC, required = true)
+            @ApiParam(value = FAVICON_CHECKSUM_DESC)
             @RequestParam(required = false) String faviconChecksum,
             HttpServletRequest request) throws Exception {
         return whiteLabelingService.getMergedLoginWhiteLabelingParams(TenantId.SYS_TENANT_ID, request.getServerName(), logoImageChecksum, faviconChecksum);
@@ -169,7 +171,7 @@ public class WhiteLabelingController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public WhiteLabelingParams saveWhiteLabelParams(
             @ApiParam(value = "A JSON value representing the white labeling configuration")
-            @RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException, ExecutionException, InterruptedException {
+            @RequestBody WhiteLabelingParams whiteLabelingParams) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
         WhiteLabelingParams savedWhiteLabelingParams = null;
@@ -180,6 +182,8 @@ public class WhiteLabelingController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedWhiteLabelingParams = whiteLabelingService.saveCustomerWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), whiteLabelingParams).get();
         }
+        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
+                getCurrentUser().getOwnerId(), EdgeEventType.WHITE_LABELING, EdgeEventActionType.UPDATED);
         return savedWhiteLabelingParams;
     }
 
@@ -191,7 +195,7 @@ public class WhiteLabelingController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public LoginWhiteLabelingParams saveLoginWhiteLabelParams(
             @ApiParam(value = "A JSON value representing the login white labeling configuration")
-            @RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws Exception {
+            @RequestBody LoginWhiteLabelingParams loginWhiteLabelingParams) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
         LoginWhiteLabelingParams savedLoginWhiteLabelingParams = null;
@@ -202,6 +206,8 @@ public class WhiteLabelingController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             savedLoginWhiteLabelingParams = whiteLabelingService.saveCustomerLoginWhiteLabelingParams(getTenantId(), getCurrentUser().getCustomerId(), loginWhiteLabelingParams);
         }
+        notificationEntityService.notifySendMsgToEdgeService(getCurrentUser().getTenantId(),
+                getCurrentUser().getOwnerId(), EdgeEventType.LOGIN_WHITE_LABELING, EdgeEventActionType.UPDATED);
         return savedLoginWhiteLabelingParams;
     }
 
