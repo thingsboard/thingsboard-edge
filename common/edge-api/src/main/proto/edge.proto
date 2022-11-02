@@ -99,6 +99,7 @@ message ConnectResponseMsg {
 
 message SyncRequestMsg {
   bool syncRequired = 1;
+  optional bool fullSync = 2;
 }
 
 message SyncCompletedMsg {
@@ -219,6 +220,9 @@ message DeviceUpdateMsg {
   optional string conflictName = 12;
   optional int64 entityGroupIdMSB = 13;
   optional int64 entityGroupIdLSB = 14;
+  optional int64 firmwareIdMSB = 15;
+  optional int64 firmwareIdLSB = 16;
+  optional bytes deviceDataBytes = 17;
 }
 
 message DeviceProfileUpdateMsg {
@@ -237,6 +241,23 @@ message DeviceProfileUpdateMsg {
   bytes profileDataBytes = 13;
   optional string provisionDeviceKey = 14;
   optional bytes image = 15;
+  optional int64 firmwareIdMSB = 16;
+  optional int64 firmwareIdLSB = 17;
+}
+
+message AssetProfileUpdateMsg {
+  UpdateMsgType msgType = 1;
+  int64 idMSB = 2;
+  int64 idLSB = 3;
+  string name = 4;
+  optional string description = 5;
+  bool default = 6;
+  int64 defaultRuleChainIdMSB = 7;
+  int64 defaultRuleChainIdLSB = 8;
+  int64 defaultDashboardIdMSB = 9;
+  int64 defaultDashboardIdLSB = 10;
+  optional string defaultQueueName = 11;
+  optional bytes image = 12;
 }
 
 message DeviceCredentialsUpdateMsg {
@@ -259,6 +280,8 @@ message AssetUpdateMsg {
   optional string additionalInfo = 9;
   optional int64 entityGroupIdMSB = 10;
   optional int64 entityGroupIdLSB = 11;
+  optional int64 assetProfileIdMSB = 12;
+  optional int64 assetProfileIdLSB = 13;
 }
 
 message EntityViewUpdateMsg {
@@ -312,6 +335,8 @@ message CustomerUpdateMsg {
   optional string phone = 11;
   optional string email = 12;
   optional string additionalInfo = 13;
+  optional int64 entityGroupIdMSB = 14;
+  optional int64 entityGroupIdLSB = 15;
 }
 
 message RelationUpdateMsg {
@@ -407,6 +432,7 @@ message DeviceCredentialsRequestMsg {
   int64 deviceIdLSB = 2;
 }
 
+// deprecated
 message DeviceProfileDevicesRequestMsg {
   int64 deviceProfileIdMSB = 1;
   int64 deviceProfileIdLSB = 2;
@@ -651,7 +677,7 @@ message UplinkMsg {
   repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 10;
   repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 11;
   repeated DeviceRpcCallMsg deviceRpcCallMsg = 12;
-  repeated DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = 13;
+  repeated DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = 13; // deprecated
   repeated WidgetBundleTypesRequestMsg widgetBundleTypesRequestMsg = 14;
   repeated EntityViewsRequestMsg entityViewsRequestMsg = 15;
   repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 16;
@@ -709,4 +735,6 @@ message DownlinkMsg {
   repeated IntegrationUpdateMsg integrationMsg = 36;
   repeated OtaPackageUpdateMsg otaPackageUpdateMsg = 37;
   repeated QueueUpdateMsg queueUpdateMsg = 38;
+  repeated AssetProfileUpdateMsg assetProfileUpdateMsg = 39;
+  EdgeConfiguration edgeConfiguration = 40;
 }

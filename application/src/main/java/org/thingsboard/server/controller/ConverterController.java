@@ -37,8 +37,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,18 +51,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.JSDownlinkEvaluator;
-import org.thingsboard.integration.api.converter.JSUplinkEvaluator;
+import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
+import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
-import org.thingsboard.js.api.JsInvokeService;
-import org.thingsboard.server.common.data.DataConstants;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.Event;
-import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.script.api.ScriptInvokeService;
+import org.thingsboard.script.api.js.JsInvokeService;
+import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,11 +69,14 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.converter.TbConverterService;
+import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.ArrayList;
@@ -82,6 +84,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.CONVERTER_CONFIGURATION_DESCRIPTION;
@@ -105,15 +108,15 @@ import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LI
 
 @RestController
 @TbCoreComponent
+@RequiredArgsConstructor
 @RequestMapping("/api")
 @Slf4j
 public class ConverterController extends AutoCommitController {
 
-    @Autowired
-    private EventService eventService;
-
-    @Autowired
-    private JsInvokeService jsSandboxService;
+    private final EventService eventService;
+    private final JsInvokeService jsInvokeService;
+    private final Optional<MvelInvokeService> mvelInvokeService;
+    private final TbConverterService tbConverterService;
 
     public static final String CONVERTER_ID = "converterId";
 
@@ -147,35 +150,9 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
     public Converter saveConverter(@ApiParam(required = true, value = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
-        SecurityUser currentUser = getCurrentUser();
-        try {
-            converter.setTenantId(currentUser.getTenantId());
-            boolean created = converter.getId() == null;
-
-            checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
-
-            Converter result = checkNotNull(converterService.saveConverter(converter));
-
-            autoCommit(currentUser, result.getId());
-
-            if (!converter.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(result.getTenantId(), result.getId(),
-                        created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            }
-
-            notificationEntityService.logEntityAction(getTenantId(), result.getId(), result,
-                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser);
-
-            if (converter.isEdgeTemplate() && !created) {
-                sendEntityNotificationMsg(result.getTenantId(), result.getId(), EdgeEventActionType.UPDATED);
-            }
-
-            return result;
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER), converter,
-                    converter.getId() == null ? ActionType.ADDED : ActionType.UPDATED, currentUser, e);
-            throw e;
-        }
+        converter.setTenantId(getCurrentUser().getTenantId());
+        checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
+        return tbConverterService.save(converter, getCurrentUser());
     }
 
     @ApiOperation(value = "Get Converters (getConverters)",
@@ -216,25 +193,9 @@ public class ConverterController extends AutoCommitController {
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteConverter(@ApiParam(required = true, value = CONVERTER_ID_PARAM_DESCRIPTION) @PathVariable(CONVERTER_ID) String strConverterId) throws ThingsboardException {
         checkParameter(CONVERTER_ID, strConverterId);
-        try {
-            ConverterId converterId = new ConverterId(toUUID(strConverterId));
-            Converter converter = checkConverterId(converterId, Operation.DELETE);
-            converterService.deleteConverter(getTenantId(), converterId);
-
-            if (!converter.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(getTenantId(), converterId, ComponentLifecycleEvent.DELETED);
-            }
-
-            notificationEntityService.logEntityAction(getTenantId(), converterId, converter,
-                    null,
-                    ActionType.DELETED, getCurrentUser(), strConverterId);
-
-        } catch (ThingsboardException e) {
-            notificationEntityService.logEntityAction(getTenantId(), emptyId(EntityType.CONVERTER),
-                    ActionType.DELETED, getCurrentUser(), e, strConverterId);
-
-            throw e;
-        }
+        ConverterId converterId = new ConverterId(toUUID(strConverterId));
+        Converter converter = checkConverterId(converterId, Operation.DELETE);
+        tbConverterService.delete(converter, getCurrentUser());
     }
 
     @ApiOperation(value = "Get latest debug input event (getLatestConverterDebugInput)",
@@ -249,10 +210,10 @@ public class ConverterController extends AutoCommitController {
         checkParameter(CONVERTER_ID, strConverterId);
         ConverterId converterId = new ConverterId(toUUID(strConverterId));
         checkConverterId(converterId, Operation.READ);
-        List<Event> events = eventService.findLatestEvents(getTenantId(), converterId, DataConstants.DEBUG_CONVERTER, 1);
+        List<EventInfo> events = eventService.findLatestEvents(getTenantId(), converterId, EventType.DEBUG_CONVERTER, 1);
         JsonNode result = null;
         if (events != null && !events.isEmpty()) {
-            Event event = events.get(0);
+            EventInfo event = events.get(0);
             JsonNode body = event.getBody();
             if (body.has("type")) {
                 String type = body.get("type").asText();
@@ -302,29 +263,32 @@ public class ConverterController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
-    public JsonNode testUpLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
-                                        @RequestBody JsonNode inputParams) throws ThingsboardException {
+    public JsonNode testUpLinkConverter(
+            @ApiParam(value = "Script language: JS or MVEL")
+            @RequestParam(required = false) ScriptLanguage scriptLang,
+            @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+            @RequestBody JsonNode inputParams) throws ThingsboardException {
         String payloadBase64 = inputParams.get("payload").asText();
         byte[] payload = Base64.getDecoder().decode(payloadBase64);
         JsonNode metadata = inputParams.get("metadata");
         String decoder = inputParams.get("decoder").asText();
 
-        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {
+        Map<String, String> metadataMap = objectMapper.convertValue(metadata, new TypeReference<>() {
         });
         UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
 
         String output = "";
         String errorText = "";
-        JSUplinkEvaluator jsUplinkEvaluator = null;
+        ScriptUplinkEvaluator scriptUplinkEvaluator = null;
         try {
-            jsUplinkEvaluator = new JSUplinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), decoder);
-            output = jsUplinkEvaluator.execute(payload, uplinkMetaData).get().toString();
+            scriptUplinkEvaluator = new ScriptUplinkEvaluator(getTenantId(), getScriptInvokeService(scriptLang), getCurrentUser().getId(), decoder);
+            output = scriptUplinkEvaluator.execute(payload, uplinkMetaData).get();
         } catch (Exception e) {
             log.error("Error evaluating JS UpLink Converter function", e);
             errorText = e.getMessage();
         } finally {
-            if (jsUplinkEvaluator != null) {
-                jsUplinkEvaluator.destroy();
+            if (scriptUplinkEvaluator != null) {
+                scriptUplinkEvaluator.destroy();
             }
         }
         ObjectNode result = objectMapper.createObjectNode();
@@ -340,8 +304,11 @@ public class ConverterController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
-    public JsonNode testDownLinkConverter(@ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
-                                          @RequestBody JsonNode inputParams) throws Exception {
+    public JsonNode testDownLinkConverter(
+            @ApiParam(value = "Script language: JS or MVEL")
+            @RequestParam(required = false) ScriptLanguage scriptLang,
+            @ApiParam(required = true, value = "A JSON value representing the input to the converter function.")
+            @RequestBody JsonNode inputParams) throws Exception {
         String data = inputParams.get("msg").asText();
         JsonNode metadata = inputParams.get("metadata");
         String msgType = inputParams.get("msgType").asText();
@@ -357,24 +324,40 @@ public class ConverterController extends AutoCommitController {
 
         JsonNode output = null;
         String errorText = "";
-        JSDownlinkEvaluator jsDownlinkEvaluator = null;
+        ScriptDownlinkEvaluator scriptDownlinkEvaluator = null;
         try {
             TbMsg inMsg = TbMsg.newMsg(msgType, null, new TbMsgMetaData(metadataMap), data);
-            jsDownlinkEvaluator = new JSDownlinkEvaluator(getTenantId(), jsSandboxService, getCurrentUser().getId(), encoder);
-            output = jsDownlinkEvaluator.execute(inMsg, integrationMetaData);
+            scriptDownlinkEvaluator = new ScriptDownlinkEvaluator(getTenantId(), getScriptInvokeService(scriptLang), getCurrentUser().getId(), encoder);
+            output = scriptDownlinkEvaluator.execute(inMsg, integrationMetaData);
             validateDownLinkOutput(output);
         } catch (Exception e) {
             log.error("Error evaluating JS Downlink Converter function", e);
             errorText = e.getMessage();
         } finally {
-            if (jsDownlinkEvaluator != null) {
-                jsDownlinkEvaluator.destroy();
+            if (scriptDownlinkEvaluator != null) {
+                scriptDownlinkEvaluator.destroy();
             }
         }
         ObjectNode result = objectMapper.createObjectNode();
         result.put("output", objectMapper.writeValueAsString(output));
         result.put("error", errorText);
         return result;
+    }
+
+    private ScriptInvokeService getScriptInvokeService(ScriptLanguage scriptLang) {
+        ScriptInvokeService scriptInvokeService;
+        if (scriptLang == null) {
+            scriptLang = ScriptLanguage.JS;
+        }
+        if (ScriptLanguage.JS.equals(scriptLang)) {
+            scriptInvokeService = jsInvokeService;
+        } else {
+            if (mvelInvokeService.isEmpty()) {
+                throw new IllegalArgumentException("MVEL script engine is disabled!");
+            }
+            scriptInvokeService = mvelInvokeService.get();
+        }
+        return scriptInvokeService;
     }
 
     private void validateDownLinkOutput(JsonNode output) throws Exception {

@@ -33,7 +33,7 @@ package org.thingsboard.integration.opcua;
 import lombok.Data;
 import lombok.ToString;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 
 /**
  * Created by Valerii Sosliuk on 4/27/2018.

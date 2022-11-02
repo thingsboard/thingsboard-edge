@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block">
+<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block" [appearance]="appearance">
   <input matInput type="text" placeholder="{{ entityText | translate }}"
          #entityInput
          formControlName="entity"

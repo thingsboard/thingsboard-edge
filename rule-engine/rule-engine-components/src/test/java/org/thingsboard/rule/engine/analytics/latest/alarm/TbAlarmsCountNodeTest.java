@@ -37,7 +37,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +56,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.data.RelationsQuery;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.AlarmFilter;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmQuery;
@@ -235,6 +235,7 @@ public class TbAlarmsCountNodeTest {
 
         config.setPeriodTimeUnit(TimeUnit.MILLISECONDS);
         config.setPeriodValue(0);
+        config.setOutMsgType(SessionMsgType.POST_TELEMETRY_REQUEST.name());
 
         ObjectMapper mapper = new ObjectMapper();
         nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
@@ -365,7 +366,7 @@ public class TbAlarmsCountNodeTest {
             alarm.setCreatedTime(createdTime);
             alarm.setSeverity(AlarmSeverity.CRITICAL);
             alarm.setOriginator(entityId);
-            alarm.setType(RandomStringUtils.randomAlphanumeric(15));
+            alarm.setType(StringUtils.randomAlphanumeric(15));
             alarm.setPropagate(true);
             alarms.add(alarm);
         }

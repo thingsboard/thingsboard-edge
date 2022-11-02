@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -195,7 +196,7 @@ public class TbAlarmNodeTest {
 
         verifyError(msg, "message", NotImplementedException.class);
 
-        verify(ctx).createJsScriptEngine("DETAILS");
+        verify(ctx).createScriptEngine(ScriptLanguage.JS, "DETAILS");
         verify(ctx).getAlarmService();
         verify(ctx, times(3)).getDbCallbackExecutor();
         verify(ctx).logJsEvalRequest();
@@ -410,12 +411,13 @@ public class TbAlarmNodeTest {
         config.setPropagate(true);
         config.setSeverity("$[alarmSeverity]");
         config.setAlarmType("SomeType");
+        config.setScriptLang(ScriptLanguage.JS);
         config.setAlarmDetailsBuildJs("DETAILS");
         config.setDynamicSeverity(true);
         ObjectMapper mapper = new ObjectMapper();
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
 
-        when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
+        when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
         when(ctx.getTenantId()).thenReturn(tenantId);
         when(ctx.getAlarmService()).thenReturn(alarmService);
@@ -471,6 +473,7 @@ public class TbAlarmNodeTest {
     public void testCreateAlarmWithDynamicSeverityFromMetadata() throws Exception {
         TbCreateAlarmNodeConfiguration config = new TbCreateAlarmNodeConfiguration();
         config.setPropagate(true);
+        config.setScriptLang(ScriptLanguage.JS);
         config.setSeverity("${alarmSeverity}");
         config.setAlarmType("SomeType");
         config.setAlarmDetailsBuildJs("DETAILS");
@@ -478,7 +481,7 @@ public class TbAlarmNodeTest {
         ObjectMapper mapper = new ObjectMapper();
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
 
-        when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
+        when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
         when(ctx.getTenantId()).thenReturn(tenantId);
         when(ctx.getAlarmService()).thenReturn(alarmService);
@@ -536,12 +539,13 @@ public class TbAlarmNodeTest {
             config.setPropagateToTenant(true);
             config.setSeverity(CRITICAL.name());
             config.setAlarmType("SomeType" + i);
+            config.setScriptLang(ScriptLanguage.JS);
             config.setAlarmDetailsBuildJs("DETAILS");
             config.setDynamicSeverity(true);
             ObjectMapper mapper = new ObjectMapper();
             TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
 
-            when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
+            when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
             when(ctx.getTenantId()).thenReturn(tenantId);
             when(ctx.getAlarmService()).thenReturn(alarmService);
@@ -599,11 +603,12 @@ public class TbAlarmNodeTest {
             config.setPropagate(true);
             config.setSeverity(CRITICAL.name());
             config.setAlarmType("SomeType");
+            config.setScriptLang(ScriptLanguage.JS);
             config.setAlarmDetailsBuildJs("DETAILS");
             ObjectMapper mapper = new ObjectMapper();
             TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
 
-            when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
+            when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
             when(ctx.getTenantId()).thenReturn(tenantId);
             when(ctx.getAlarmService()).thenReturn(alarmService);
@@ -620,11 +625,12 @@ public class TbAlarmNodeTest {
         try {
             TbClearAlarmNodeConfiguration config = new TbClearAlarmNodeConfiguration();
             config.setAlarmType("SomeType");
+            config.setScriptLang(ScriptLanguage.JS);
             config.setAlarmDetailsBuildJs("DETAILS");
             ObjectMapper mapper = new ObjectMapper();
             TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
 
-            when(ctx.createJsScriptEngine("DETAILS")).thenReturn(detailsJs);
+            when(ctx.createScriptEngine(ScriptLanguage.JS, "DETAILS")).thenReturn(detailsJs);
 
             when(ctx.getTenantId()).thenReturn(tenantId);
             when(ctx.getAlarmService()).thenReturn(alarmService);

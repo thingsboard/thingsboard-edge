@@ -91,7 +91,7 @@ export class EventFilterPanelComponent {
   }
 
   isNumberFields(key: string): string {
-    return ['messagesProcessed', 'errorsOccurred'].includes(key) ? key : '';
+    return ['minMessagesProcessed', 'maxMessagesProcessed', 'minErrorsOccurred', 'maxErrorsOccurred'].includes(key) ? key : '';
   }
 
   selectorValues(key: string): string[] {
@@ -126,7 +126,7 @@ export class EventFilterPanelComponent {
 
   changeIsError(value: boolean | string) {
     if (this.conditionError && value === '') {
-      this.eventFilterFormGroup.get('error').reset('', {emitEvent: false});
+      this.eventFilterFormGroup.get('errorStr').reset('', {emitEvent: false});
     }
   }
 }

@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.processor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -50,10 +51,10 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processWhiteLabelingToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertWhiteLabelingEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
@@ -106,10 +107,10 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new WhiteLabelingParams().equals(whiteLabelingParams);
     }
 
-    public DownlinkMsg processLoginWhiteLabelingToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertLoginWhiteLabelingEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {
@@ -162,10 +163,10 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return new LoginWhiteLabelingParams().equals(loginWhiteLabelingParams);
     }
 
-    public DownlinkMsg processCustomTranslationToEdge(EdgeEvent edgeEvent) {
+    public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg result = null;
         try {
-            EntityId entityId = mapper.convertValue(edgeEvent.getBody(), EntityId.class);
+            EntityId entityId = JacksonUtil.OBJECT_MAPPER.convertValue(edgeEvent.getBody(), EntityId.class);
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (EntityId.NULL_UUID.equals(entityId.getId())) {

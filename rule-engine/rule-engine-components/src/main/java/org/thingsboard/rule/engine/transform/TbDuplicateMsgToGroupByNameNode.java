@@ -113,8 +113,4 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgToOri
         }
     }
 
-    @Override
-    public void destroy() {
-
-    }
 }

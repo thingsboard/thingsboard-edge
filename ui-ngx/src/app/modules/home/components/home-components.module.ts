@@ -206,6 +206,13 @@ import { ComplexVersionLoadComponent } from '@home/components/vc/complex-version
 import { RemoveOtherEntitiesConfirmComponent } from '@home/components/vc/remove-other-entities-confirm.component';
 import { AutoCommitSettingsComponent } from '@home/components/vc/auto-commit-settings.component';
 import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-group-list.component';
+import { RateLimitsComponent } from '@home/components/profile/tenant/rate-limits/rate-limits.component';
+import { RateLimitsTextComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-text.component';
+import { RateLimitsListComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-list.component';
+import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenant/rate-limits/rate-limits-details-dialog.component';
+import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
+import { AssetProfileDialogComponent } from '@home/components/profile/asset-profile-dialog.component';
+import { AssetProfileAutocompleteComponent } from '@home/components/profile/asset-profile-autocomplete.component';
 
 @NgModule({
   declarations:
@@ -318,6 +325,9 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
       DeviceProfileComponent,
       DeviceProfileDialogComponent,
       AddDeviceProfileDialogComponent,
+      AssetProfileComponent,
+      AssetProfileDialogComponent,
+      AssetProfileAutocompleteComponent,
       RuleChainAutocompleteComponent,
       AlarmScheduleInfoComponent,
       DeviceProfileProvisionConfigurationComponent,
@@ -363,7 +373,11 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
       ComplexVersionLoadComponent,
       RemoveOtherEntitiesConfirmComponent,
       AutoCommitSettingsComponent,
-      OwnerEntityGroupListComponent
+      OwnerEntityGroupListComponent,
+      RateLimitsDetailsDialogComponent,
+      RateLimitsComponent,
+      RateLimitsListComponent,
+      RateLimitsTextComponent
     ],
   imports: [
     CommonModule,
@@ -473,6 +487,9 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     AddDeviceProfileDialogComponent,
     RuleChainAutocompleteComponent,
     DeviceWizardDialogComponent,
+    AssetProfileComponent,
+    AssetProfileDialogComponent,
+    AssetProfileAutocompleteComponent,
     AlarmScheduleInfoComponent,
     AlarmScheduleComponent,
     AlarmDynamicValue,
@@ -516,7 +533,11 @@ import { OwnerEntityGroupListComponent } from '@home/components/vc/owner-entity-
     ComplexVersionLoadComponent,
     RemoveOtherEntitiesConfirmComponent,
     AutoCommitSettingsComponent,
-    OwnerEntityGroupListComponent
+    OwnerEntityGroupListComponent,
+    RateLimitsDetailsDialogComponent,
+    RateLimitsComponent,
+    RateLimitsListComponent,
+    RateLimitsTextComponent
   ],
   providers: [
     WidgetComponentService,

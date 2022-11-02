@@ -32,21 +32,21 @@ package org.thingsboard.rule.engine.telemetry;
 
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
-import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.session.SessionMsgType;
+import org.thingsboard.server.common.adaptor.JsonConverter;
 
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
 
 @Slf4j
 @RuleNode(
@@ -54,7 +54,9 @@ import java.util.Set;
         name = "save attributes",
         configClazz = TbMsgAttributesNodeConfiguration.class,
         nodeDescription = "Saves attributes data",
-        nodeDetails = "Saves entity attributes based on configurable scope parameter. Expects messages with 'POST_ATTRIBUTES_REQUEST' message type",
+        nodeDetails = "Saves entity attributes based on configurable scope parameter. Expects messages with 'POST_ATTRIBUTES_REQUEST' message type. " +
+                      "If upsert(update/insert) operation is completed successfully, rule node will send the \"Attributes Updated\" " +
+                      "event to the root chain of the message originator and send the incoming message via <b>Success</b> chain, otherwise, <b>Failure</b> chain is used.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeAttributesConfig",
         icon = "file_upload"
@@ -84,20 +86,20 @@ public class TbMsgAttributesNode implements TbNode {
         if (StringUtils.isEmpty(scope)) {
             scope = config.getScope();
         }
-        Set<AttributeKvEntry> attributes = JsonConverter.convertToAttributes(new JsonParser().parse(src));
+        List<AttributeKvEntry> attributes = new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(src)));
+        if (attributes.isEmpty()) {
+            ctx.tellSuccess(msg);
+            return;
+        }
         String notifyDeviceStr = msg.getMetaData().getValue("notifyDevice");
         ctx.getTelemetryService().saveAndNotify(
                 ctx.getTenantId(),
                 msg.getOriginator(),
                 scope,
-                new ArrayList<>(attributes),
+                attributes,
                 config.getNotifyDevice() || StringUtils.isEmpty(notifyDeviceStr) || Boolean.parseBoolean(notifyDeviceStr),
-                new TelemetryNodeCallback(ctx, msg)
+                new AttributesUpdateNodeCallback(ctx, msg, config.getScope(), attributes)
         );
-    }
-
-    @Override
-    public void destroy() {
     }
 
 }

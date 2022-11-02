@@ -179,4 +179,8 @@ public class QueryContext implements SqlParameterSource {
     public EntityType getEntityType() {
         return securityCtx.getEntityType();
     }
+
+    public boolean isIgnorePermissionCheck() {
+        return securityCtx.isIgnorePermissionCheck();
+    }
 }

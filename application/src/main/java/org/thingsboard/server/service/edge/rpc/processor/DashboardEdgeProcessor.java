@@ -30,18 +30,19 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
@@ -49,17 +50,18 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class DashboardEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processDashboardToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+    public DownlinkMsg convertDashboardEventToDownlink(EdgeEvent edgeEvent) {
         DashboardId dashboardId = new DashboardId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (action) {
+        EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+        switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Dashboard dashboard = dashboardService.findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     DashboardUpdateMsg dashboardUpdateMsg =
                             dashboardMsgConstructor.constructDashboardUpdatedMsg(msgType, dashboard, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
@@ -73,7 +75,7 @@ public class DashboardEdgeProcessor extends BaseEdgeProcessor {
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 DashboardUpdateMsg dashboardUpdateMsg =
-                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId);
+                        dashboardMsgConstructor.constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg)
@@ -83,4 +85,7 @@ public class DashboardEdgeProcessor extends BaseEdgeProcessor {
         return downlinkMsg;
     }
 
+    public ListenableFuture<Void> processDashboardNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        return processEntityNotification(tenantId, edgeNotificationMsg);
+    }
 }

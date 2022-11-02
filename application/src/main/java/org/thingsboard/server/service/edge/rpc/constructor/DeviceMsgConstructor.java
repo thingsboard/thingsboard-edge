@@ -31,19 +31,20 @@
 package org.thingsboard.server.service.edge.rpc.constructor;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.ByteString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RpcRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.UUID;
@@ -52,12 +53,15 @@ import java.util.UUID;
 @TbCoreComponent
 public class DeviceMsgConstructor {
 
-    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
+    @Autowired
+    private DataDecodingEncodingService dataDecodingEncodingService;
+
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device,
                                                      String conflictName) {
-        return constructDeviceUpdatedMsg(msgType, device, customerId, conflictName, null);
+        return constructDeviceUpdatedMsg(msgType, device, conflictName, null);
     }
 
-    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device, CustomerId customerId,
+    public DeviceUpdateMsg constructDeviceUpdatedMsg(UpdateMsgType msgType, Device device,
                                                      String conflictName, EntityGroupId entityGroupId) {
         DeviceUpdateMsg.Builder builder = DeviceUpdateMsg.newBuilder()
                 .setMsgType(msgType)
@@ -83,8 +87,15 @@ public class DeviceMsgConstructor {
         if (device.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
         }
+        if (device.getFirmwareId() != null) {
+            builder.setFirmwareIdMSB(device.getFirmwareId().getId().getMostSignificantBits())
+                    .setFirmwareIdLSB(device.getFirmwareId().getId().getLeastSignificantBits());
+        }
         if (conflictName != null) {
             builder.setConflictName(conflictName);
+        }
+        if (device.getDeviceData() != null) {
+            builder.setDeviceDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(device.getDeviceData())));
         }
         return builder.build();
     }

@@ -46,8 +46,8 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ExceptionUtil;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -63,7 +63,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -94,6 +93,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
         this.integrationStatistics = new IntegrationStatistics();
+    }
+
+    public void setConfiguration(Integration configuration) {
+        this.configuration = configuration;
     }
 
     protected UplinkContentType getDefaultUplinkContentType() {
@@ -180,7 +183,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(data.getDeviceName())
                 .setDeviceType(data.getDeviceType());
-        if (StringUtils.isNotEmpty(data.getDeviceLabel())){
+        if (StringUtils.isNotEmpty(data.getDeviceLabel())) {
             builder.setDeviceLabel(data.getDeviceLabel());
         }
         if (StringUtils.isNotEmpty(data.getCustomerName())) {
@@ -201,7 +204,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
         AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
                 .setAssetName(data.getAssetName()).setAssetType(data.getAssetType());
-        if (StringUtils.isNotEmpty(data.getAssetLabel())){
+        if (StringUtils.isNotEmpty(data.getAssetLabel())) {
             builder.setAssetLabel(data.getAssetLabel());
         }
         if (StringUtils.isNotEmpty(data.getCustomerName())) {
@@ -243,18 +246,19 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void persistDebug(IntegrationContext context, String type, String messageType, String message, String status, Exception exception) {
-        ObjectNode node = mapper.createObjectNode()
-                .put("server", context.getServiceId())
-                .put("type", type)
-                .put("messageType", messageType)
-                .put("message", message)
-                .put("status", status);
-
+        var event = IntegrationDebugEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(configuration.getId().getId())
+                .serviceId(context.getServiceId())
+                .eventType(type)
+                .messageType(messageType)
+                .message(message)
+                .status(status);
         if (exception != null) {
-            node = node.put("error", toString(exception));
+            event.error(toString(exception));
         }
 
-        context.saveEvent(DataConstants.DEBUG_INTEGRATION, UUID.randomUUID().toString(), node, new DebugEventCallback());
+        context.saveEvent(event.build(), new DebugEventCallback());
     }
 
     protected String toString(Exception e) {

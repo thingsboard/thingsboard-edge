@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
@@ -63,13 +64,18 @@ import org.thingsboard.server.common.data.query.EntityTypeFilter;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
 import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
+import org.thingsboard.server.common.data.query.SchedulerEventFilter;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.common.data.scheduler.MonthlyRepeat;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
+import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.transport.util.JsonUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -239,7 +245,6 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
         Assert.assertEquals(10, data2.getTotalPages());
         Assert.assertTrue(data2.hasNext());
         Assert.assertEquals(10, data2.getData().size());
-
     }
 
     @Test
@@ -380,12 +385,14 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
                 .alias("data by query")
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    var data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {});
+                    var data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+                    });
                     var loadedEntities = new ArrayList<>(data.getData());
                     return loadedEntities.size() == numOfDevices;
                 });
 
-        var data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {});
+        var data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+        });
         var loadedEntities = new ArrayList<>(data.getData());
 
         Assert.assertEquals(numOfDevices, loadedEntities.size());
@@ -398,5 +405,135 @@ public abstract class BaseEntityQueryControllerTest extends AbstractControllerTe
             Assert.assertEquals("Device" + i, name);
             Assert.assertEquals("1" + i, alarmActiveTime);
         }
+    }
+
+    @Test
+    public void testCountSchedulerEventsByQuery() throws Exception {
+        List<SchedulerEvent> schedulerEvents = new ArrayList<>();
+        EntityId originator = new DeviceId(UUID.randomUUID());
+        for (int i = 0; i < 97; i++) {
+            schedulerEvents.add(doPost("/api/schedulerEvent", createSchedulerEvent(originator, "CUSTOM", "Name " + i), SchedulerEvent.class));
+            Thread.sleep(1);
+        }
+        SchedulerEventFilter filter = new SchedulerEventFilter();
+
+        EntityCountQuery countQuery = new EntityCountQuery(filter);
+
+        Long count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(97, count.longValue());
+
+        filter.setOriginator(originator);
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(97, count.longValue());
+
+        filter.setEventType("CUSTOM");
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(97, count.longValue());
+
+        filter.setEventType("NOT_CUSTOM");
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(0, count.longValue());
+
+        filter.setEventType("CUSTOM");
+        filter.setOriginator(new DeviceId(UUID.randomUUID()));
+        count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(0, count.longValue());
+    }
+
+    @Test
+    public void testFindSchedulerEventsByQuery() throws Exception {
+        List<SchedulerEvent> schedulerEvents = new ArrayList<>();
+        EntityId originator = new DeviceId(UUID.randomUUID());
+        for (int i = 0; i < 97; i++) {
+            schedulerEvents.add(doPost("/api/schedulerEvent", createSchedulerEvent(originator, "CUSTOM", "Name " + i), SchedulerEvent.class));
+            Thread.sleep(1);
+        }
+
+        SchedulerEventFilter filter = new SchedulerEventFilter();
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> data =
+                doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+                });
+
+        Assert.assertEquals(97, data.getTotalElements());
+        Assert.assertEquals(10, data.getTotalPages());
+        Assert.assertTrue(data.hasNext());
+        Assert.assertEquals(10, data.getData().size());
+
+        List<EntityData> loadedEntities = new ArrayList<>(data.getData());
+        while (data.hasNext()) {
+            query = query.next();
+            data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+            });
+            loadedEntities.addAll(data.getData());
+        }
+        Assert.assertEquals(97, loadedEntities.size());
+
+        List<EntityId> loadedIds = loadedEntities.stream().map(EntityData::getEntityId).collect(Collectors.toList());
+        List<EntityId> originalIds = schedulerEvents.stream().map(SchedulerEvent::getId).collect(Collectors.toList());
+
+        Assert.assertEquals(originalIds, loadedIds);
+//
+        List<String> loadedNames = loadedEntities.stream().map(entityData ->
+                entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue()).collect(Collectors.toList());
+        List<String> originalNames = schedulerEvents.stream().map(SchedulerEvent::getName).collect(Collectors.toList());
+
+        Assert.assertEquals(originalNames, loadedNames);
+
+        sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name"), EntityDataSortOrder.Direction.DESC
+        );
+
+        pageLink = new EntityDataPageLink(10, 0, "Name 1", sortOrder);
+        query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+        data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+        });
+        Assert.assertEquals(11, data.getTotalElements());
+        Assert.assertEquals("Name 19", data.getData().get(0).getLatest().get(EntityKeyType.ENTITY_FIELD).get("name").getValue());
+
+
+        SchedulerEventFilter filter2 = new SchedulerEventFilter();
+        filter2.setOriginator(originator);
+
+        EntityDataSortOrder sortOrder2 = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink2 = new EntityDataPageLink(10, 0, null, sortOrder2);
+        List<EntityKey> entityFields2 = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+
+        EntityDataQuery query2 = new EntityDataQuery(filter2, pageLink2, entityFields2, null, null);
+
+        PageData<EntityData> data2 =
+                doPostWithTypedResponse("/api/entitiesQuery/find", query2, new TypeReference<PageData<EntityData>>() {
+                });
+
+        Assert.assertEquals(97, data2.getTotalElements());
+        Assert.assertEquals(10, data2.getTotalPages());
+        Assert.assertTrue(data2.hasNext());
+        Assert.assertEquals(10, data2.getData().size());
+    }
+
+
+    private SchedulerEvent createSchedulerEvent(EntityId originator, String type, String name) {
+        SchedulerEvent schedulerEvent = new SchedulerEvent();
+        schedulerEvent.setTenantId(tenantId);
+        schedulerEvent.setOriginatorId(originator);
+        schedulerEvent.setName(name);
+        schedulerEvent.setType(type);
+        ObjectNode schedule = mapper.createObjectNode();
+        schedule.put("startTime", System.currentTimeMillis());
+        schedule.put("timezone", "UTC");
+        SchedulerRepeat schedulerRepeat = new MonthlyRepeat();
+        schedule.set("repeat", mapper.valueToTree(schedulerRepeat));
+        schedulerEvent.setSchedule(schedule);
+        return schedulerEvent;
     }
 }

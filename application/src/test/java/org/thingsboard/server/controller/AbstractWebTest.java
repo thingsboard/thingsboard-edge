@@ -41,9 +41,8 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matcher;
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,6 +50,7 @@ import org.junit.Rule;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -71,8 +71,10 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
@@ -84,16 +86,18 @@ import org.thingsboard.server.common.data.device.profile.TransportPayloadTypeCon
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
-import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
+import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.service.mail.TestMailService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
@@ -101,12 +105,15 @@ import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -142,8 +149,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected static final String DIFFERENT_CUSTOMER_USER_EMAIL = "testdifferentcustomer@thingsboard.org";
     private static final String DIFFERENT_CUSTOMER_USER_PASSWORD = "diffcustomer";
 
-    /** See {@link org.springframework.test.web.servlet.DefaultMvcResult#getAsyncResult(long)}
-     *  and {@link org.springframework.mock.web.MockAsyncContext#getTimeout()}
+    /**
+     * See {@link org.springframework.test.web.servlet.DefaultMvcResult#getAsyncResult(long)}
+     * and {@link org.springframework.mock.web.MockAsyncContext#getTimeout()}
      */
     private static final long DEFAULT_TIMEOUT = -1L;
 
@@ -157,6 +165,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected TenantId tenantId;
     protected UserId tenantAdminUserId;
+    protected User tenantAdminUser;
     protected CustomerId tenantAdminCustomerId;
     protected CustomerId customerId;
     protected CustomerId differentCustomerId;
@@ -219,14 +228,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
 
-        User tenantAdmin = new User();
-        tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
-        tenantAdmin.setTenantId(tenantId);
-        tenantAdmin.setEmail(TENANT_ADMIN_EMAIL);
+        tenantAdminUser = new User();
+        tenantAdminUser.setAuthority(Authority.TENANT_ADMIN);
+        tenantAdminUser.setTenantId(tenantId);
+        tenantAdminUser.setEmail(TENANT_ADMIN_EMAIL);
 
-        tenantAdmin = createUserAndLogin(tenantAdmin, TENANT_ADMIN_PASSWORD);
-        tenantAdminUserId = tenantAdmin.getId();
-        tenantAdminCustomerId = tenantAdmin.getCustomerId();
+        tenantAdminUser = createUserAndLogin(tenantAdminUser, TENANT_ADMIN_PASSWORD);
+        tenantAdminUserId = tenantAdminUser.getId();
+        tenantAdminCustomerId = tenantAdminUser.getCustomerId();
 
         Customer customer = new Customer();
         customer.setTitle("Customer");
@@ -391,9 +400,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     protected void login(String username, String password) throws Exception {
-        this.token = null;
-        this.refreshToken = null;
-        this.username = null;
+        logout();
         JsonNode tokenInfo = readResponse(doPost("/api/auth/login", new LoginRequest(username, password)).andExpect(status().isOk()), JsonNode.class);
         validateAndSetJwtToken(tokenInfo, username);
     }
@@ -464,6 +471,15 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         deviceProfile.setDefault(false);
         deviceProfile.setDefaultRuleChainId(null);
         return deviceProfile;
+    }
+
+    protected AssetProfile createAssetProfile(String name) {
+        AssetProfile assetProfile = new AssetProfile();
+        assetProfile.setName(name);
+        assetProfile.setDescription(name + " Test");
+        assetProfile.setDefault(false);
+        assetProfile.setDefaultRuleChainId(null);
+        return assetProfile;
     }
 
     protected MqttDeviceProfileTransportConfiguration createMqttDeviceProfileTransportConfiguration(TransportPayloadTypeConfiguration transportPayloadTypeConfiguration, boolean sendAckOnValidationException) {
@@ -682,7 +698,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     protected <T> T readResponse(ResultActions result, TypeReference<T> type) throws Exception {
-        byte[] content = result.andReturn().getResponse().getContentAsByteArray();
+        return readResponse(result.andReturn(), type);
+    }
+
+    protected <T> T readResponse(MvcResult result, TypeReference<T> type) throws Exception {
+        byte[] content = result.getResponse().getContentAsByteArray();
         return mapper.readerFor(type).readValue(content);
     }
 
@@ -710,9 +730,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         edge.setTenantId(tenantId);
         edge.setName(name);
         edge.setType(type);
-        edge.setSecret(RandomStringUtils.randomAlphanumeric(20));
-        edge.setRoutingKey(RandomStringUtils.randomAlphanumeric(20));
-        edge.setEdgeLicenseKey(RandomStringUtils.randomAlphanumeric(20));
+        edge.setSecret(StringUtils.randomAlphanumeric(20));
+        edge.setRoutingKey(StringUtils.randomAlphanumeric(20));
+        edge.setEdgeLicenseKey(StringUtils.randomAlphanumeric(20));
         edge.setCloudEndpoint("http://localhost:8080");
         return edge;
     }
@@ -732,4 +752,48 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         field.setAccessible(true);
         field.set(target, value);
     }
+    protected void testEntityDaoWithRelationsOk(EntityId entityIdFrom, EntityId entityTo, String urlDelete) throws Exception {
+        createEntityRelation(entityIdFrom, entityTo, "TEST_TYPE");
+        assertThat(findRelationsByTo(entityTo)).hasSize(1);
+
+        doDelete(urlDelete).andExpect(status().isOk());
+
+        assertThat(findRelationsByTo(entityTo)).hasSize(0);
+    }
+
+    protected <T> void testEntityDaoWithRelationsTransactionalException(Dao<T> dao, EntityId entityIdFrom, EntityId entityTo,
+                                                                        String urlDelete) throws Exception {
+        Mockito.doThrow(new ConstraintViolationException("mock message", new SQLException(), "MOCK_CONSTRAINT")).when(dao).removeById(any(), any());
+        try {
+            createEntityRelation(entityIdFrom, entityTo, "TEST_TRANSACTIONAL_TYPE");
+            assertThat(findRelationsByTo(entityTo)).hasSize(1);
+
+            doDelete(urlDelete)
+                    .andExpect(status().isInternalServerError());
+
+            assertThat(findRelationsByTo(entityTo)).hasSize(1);
+        } finally {
+            Mockito.reset(dao);
+        }
+    }
+
+    protected void createEntityRelation(EntityId entityIdFrom, EntityId entityIdTo, String typeRelation) throws Exception {
+        EntityRelation relation = new EntityRelation(entityIdFrom, entityIdTo, typeRelation);
+        doPost("/api/relation", relation);
+    }
+
+    protected List<EntityRelation> findRelationsByTo(EntityId entityId) throws Exception {
+        String url = String.format("/api/relations?toId=%s&toType=%s", entityId.getId(), entityId.getEntityType().name());
+        MvcResult mvcResult = doGet(url).andReturn();
+
+        switch (mvcResult.getResponse().getStatus()) {
+            case 200:
+                return readResponse(mvcResult, new TypeReference<>() {
+                });
+            case 404:
+                return Collections.emptyList();
+        }
+        throw new AssertionError("Unexpected status " + mvcResult.getResponse().getStatus());
+    }
+
 }

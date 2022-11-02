@@ -37,7 +37,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.0PE-SNAPSHOT</version>
+        <version>3.4.2PE-SNAPSHOT</version>
         <artifactId>rule-engine</artifactId>
     </parent>
     <groupId>org.thingsboard.rule-engine</groupId>
@@ -122,6 +122,10 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
         </dependency>
+        <dependency> <!-- added because bcprov-jdk15on exluded from org.bouncycastle:bcpkix-jdk15on -->
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-ext-jdk15on</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.locationtech.spatial4j</groupId>
             <artifactId>spatial4j</artifactId>
@@ -134,6 +138,10 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.objecthunter</groupId>
+            <artifactId>exp4j</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -153,10 +161,12 @@
         <dependency>
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-netty</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-client-java</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -173,6 +183,10 @@
                 </exclusion>
             </exclusions>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
         </dependency>
     </dependencies>
 

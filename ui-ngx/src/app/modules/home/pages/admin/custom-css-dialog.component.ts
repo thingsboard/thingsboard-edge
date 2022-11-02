@@ -121,6 +121,9 @@ export class CustomCssDialogComponent extends DialogComponent<CustomCssDialogCom
     if (this.editorResize$) {
       this.editorResize$.disconnect();
     }
+    if (this.cssEditor) {
+      this.cssEditor.destroy();
+    }
   }
 
   private onAceEditorResize() {

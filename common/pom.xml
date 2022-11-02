@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.0PE-SNAPSHOT</version>
+        <version>3.4.2PE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>common</artifactId>
@@ -55,7 +55,6 @@
         <module>message</module>
         <module>actor</module>
         <module>queue</module>
-        <module>js</module>
         <module>transport</module>
         <module>integration</module>
         <module>dao-api</module>
@@ -65,6 +64,7 @@
         <module>coap-server</module>
         <module>edge-api</module>
         <module>version-control</module>
+        <module>script</module>
     </modules>
 
 </project>

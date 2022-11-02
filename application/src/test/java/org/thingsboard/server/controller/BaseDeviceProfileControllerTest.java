@@ -31,13 +31,17 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -50,6 +54,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -58,6 +63,7 @@ import org.thingsboard.server.common.data.device.profile.MqttDeviceProfileTransp
 import org.thingsboard.server.common.data.device.profile.ProtoTransportPayloadConfiguration;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -69,6 +75,7 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.device.DeviceProfileDao;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
@@ -87,6 +94,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
+@ContextConfiguration(classes = {BaseDeviceProfileControllerTest.Config.class})
 public abstract class BaseDeviceProfileControllerTest extends AbstractControllerTest {
 
     private IdComparator<DeviceProfile> idComparator = new IdComparator<>();
@@ -95,8 +103,19 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
     private Tenant savedTenant;
     private User tenantAdmin;
 
+    @Autowired
+    private DeviceProfileDao deviceProfileDao;
+
     @SpyBean
     private UserPermissionsService userPermissionsService;
+
+    static class Config {
+        @Bean
+        @Primary
+        public DeviceProfileDao deviceProfileDao(DeviceProfileDao deviceProfileDao) {
+            return Mockito.mock(DeviceProfileDao.class, AdditionalAnswers.delegatesTo(deviceProfileDao));
+        }
+    }
 
     @Before
     public void beforeTest() throws Exception {
@@ -162,7 +181,7 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        DeviceProfile createDeviceProfile = this.createDeviceProfile(RandomStringUtils.randomAlphabetic(300));
+        DeviceProfile createDeviceProfile = this.createDeviceProfile(StringUtils.randomAlphabetic(300));
         doPost("/api/deviceProfile", createDeviceProfile)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
@@ -1089,4 +1108,21 @@ public abstract class BaseDeviceProfileControllerTest extends AbstractController
 
         login("customer2@thingsboard.org", "customer");
     }
+    @Test
+    public void testDeleteDeviceProfileWithDeleteRelationsOk() throws Exception {
+        DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelationsOk").getId();
+        testEntityDaoWithRelationsOk(savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
+    }
+
+    @Test
+    public void testDeleteDeviceProfileExceptionWithRelationsTransactional() throws Exception {
+        DeviceProfileId deviceProfileId = savedDeviceProfile("DeviceProfile for Test WithRelations Transactional Exception").getId();
+        testEntityDaoWithRelationsTransactionalException(deviceProfileDao, savedTenant.getId(), deviceProfileId, "/api/deviceProfile/" + deviceProfileId);
+    }
+
+    private DeviceProfile savedDeviceProfile(String name) {
+        DeviceProfile deviceProfile = createDeviceProfile(name);
+        return doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+    }
+
 }

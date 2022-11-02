@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -650,9 +650,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             case WIDGET_TYPE:
             case TENANT_PROFILE:
             case DEVICE_PROFILE:
+            case ASSET_PROFILE:
             case API_USAGE_STATE:
             case TB_RESOURCE:
-            case SCHEDULER_EVENT:
             case BLOB_ENTITY:
             case OTA_PACKAGE:
                 break;
@@ -688,6 +688,9 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                 break;
             case EDGE:
                 hasCustomerId = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
+                break;
+            case SCHEDULER_EVENT:
+                hasCustomerId = schedulerEventService.findSchedulerEventById(tenantId, new SchedulerEventId(entityId.getId()));
                 break;
         }
         return hasCustomerId != null ? hasCustomerId.getCustomerId() : new CustomerId(NULL_UUID);

@@ -36,7 +36,7 @@
 <modelVersion>4.0.0</modelVersion>
 <parent>
     <groupId>org.thingsboard.common</groupId>
-    <version>3.4.0PE-SNAPSHOT</version>
+    <version>3.4.2PE-SNAPSHOT</version>
     <artifactId>integration</artifactId>
 </parent>
 <groupId>org.thingsboard.common.integration</groupId>
@@ -61,8 +61,8 @@
         <artifactId>coap-server</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.thingsboard.common.js</groupId>
-        <artifactId>js-api</artifactId>
+        <groupId>org.thingsboard.common.script</groupId>
+        <artifactId>script-api</artifactId>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>

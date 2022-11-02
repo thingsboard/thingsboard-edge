@@ -33,7 +33,8 @@ import { IDashboardComponent } from '@home/models/dashboard-component.models';
 import {
   DataSet,
   Datasource,
-  DatasourceData, FormattedData,
+  DatasourceData,
+  FormattedData,
   JsonSettingsSchema,
   Widget,
   WidgetActionDescriptor,
@@ -53,7 +54,8 @@ import {
   IStateController,
   IWidgetSubscription,
   IWidgetUtils,
-  RpcApi, StateParams,
+  RpcApi,
+  StateParams,
   SubscriptionEntityInfo,
   TimewindowFunctions,
   WidgetActionsApi,
@@ -92,7 +94,7 @@ import { ResourceService } from '@core/http/resource.service';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { PageLink } from '@shared/models/page/page-link';
+import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { SortOrder } from '@shared/models/page/sort-order';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -102,6 +104,7 @@ import * as RxJSOperators from 'rxjs/operators';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
+import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
 
 export interface IWidgetAction {
   name: string;
@@ -131,7 +134,8 @@ export class WidgetContext {
   constructor(public dashboard: IDashboardComponent,
               private dashboardWidget: IDashboardWidget,
               private widget: Widget,
-              public parentDashboard?: IDashboardComponent) {}
+              public parentDashboard?: IDashboardComponent,
+              public popoverComponent?: TbPopoverComponent) {}
 
   get stateController(): IStateController {
     return this.parentDashboard ? this.parentDashboard.stateController : this.dashboard.stateController;
@@ -414,8 +418,23 @@ export class WidgetContext {
     this.widgetActions = undefined;
   }
 
+  closeDialog(resultData: any = null) {
+    const dialogRef = this.$scope.dialogRef || this.stateController.dashboardCtrl.dashboardCtx.getDashboard().dialogRef;
+    if (dialogRef) {
+      dialogRef.close(resultData);
+    }
+  }
+
   pageLink(pageSize: number, page: number = 0, textSearch: string = null, sortOrder: SortOrder = null): PageLink {
     return new PageLink(pageSize, page, textSearch, sortOrder);
+  }
+
+  timePageLink(startTime: number, endTime: number, pageSize: number, page: number = 0, textSearch: string = null, sortOrder: SortOrder = null) {
+    return new TimePageLink(pageSize, page, textSearch, sortOrder, startTime, endTime);
+  }
+
+  alarmQuery(entityId: EntityId, pageLink: TimePageLink, searchStatus: AlarmSearchStatus, status: AlarmStatus, fetchOriginator: boolean) {
+    return new AlarmQuery(entityId, pageLink, searchStatus, status, fetchOriginator);
   }
 }
 
