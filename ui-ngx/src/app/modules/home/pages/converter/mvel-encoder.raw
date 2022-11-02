@@ -7,16 +7,19 @@
 
 /** Encoder **/
 
+var data = {};
+
 // Process data from incoming message and metadata
 
-var data = {tempFreq: msg.temperatureUploadFrequency};
+data.tempFreq = msg.temperatureUploadFrequency;
 data.humFreq = msg.humidityUploadFrequency;
 
 data.devSerialNumber = metadata['ss_serialNumber'];
 
 // Result object with encoded downlink payload
 var result = {
-    // downlink data content type - JSON / TEXT / BINARY (base64 format)
+
+    // downlink data content type: JSON, TEXT or BINARY (base64 format)
     contentType: "JSON",
 
     // downlink data
@@ -26,6 +29,7 @@ var result = {
     metadata: {
             topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'
     }
+
 };
 
 return result;

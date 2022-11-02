@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
@@ -50,8 +51,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.DataType;
-import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -226,7 +225,7 @@ public class EntityActionService {
                         metaData.putValue(DataConstants.SCOPE, scope);
                         if (attributes != null) {
                             for (AttributeKvEntry attr : attributes) {
-                                addKvEntry(entityNode, attr);
+                                JacksonUtil.addKvEntry(entityNode, attr);
                             }
                         }
                     } else if (actionType == ActionType.ATTRIBUTES_DELETED) {
@@ -276,22 +275,6 @@ public class EntityActionService {
         tbClusterService.sendNotificationMsgToEdge(tenantId, null, entityId, null, null, action, entityId.getEntityType(), entityGroupId);
     }
 
-    private void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) throws Exception {
-        if (kvEntry.getDataType() == DataType.BOOLEAN) {
-            kvEntry.getBooleanValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.DOUBLE) {
-            kvEntry.getDoubleValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.LONG) {
-            kvEntry.getLongValue().ifPresent(value -> entityNode.put(kvEntry.getKey(), value));
-        } else if (kvEntry.getDataType() == DataType.JSON) {
-            if (kvEntry.getJsonValue().isPresent()) {
-                entityNode.set(kvEntry.getKey(), json.readTree(kvEntry.getJsonValue().get()));
-            }
-        } else {
-            entityNode.put(kvEntry.getKey(), kvEntry.getValueAsString());
-        }
-    }
-
     public <E extends HasName, I extends EntityId> void logEntityAction(User user, I entityId, E entity, CustomerId customerId,
                                                                            ActionType actionType, Exception e, Object... additionalInfo) {
         if (customerId == null || customerId.isNullUid()) {
@@ -324,7 +307,7 @@ public class EntityActionService {
                 element.put("ts", entry.getKey());
                 ObjectNode values = element.putObject("values");
                 for (TsKvEntry tsKvEntry : entry.getValue()) {
-                    addKvEntry(values, tsKvEntry);
+                    JacksonUtil.addKvEntry(values, tsKvEntry);
                 }
                 result.add(element);
             }

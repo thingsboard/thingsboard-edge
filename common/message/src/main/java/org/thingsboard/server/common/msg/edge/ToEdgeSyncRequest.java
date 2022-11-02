@@ -41,6 +41,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 public class ToEdgeSyncRequest implements EdgeSessionMsg {
+    private static final long serialVersionUID = -7624597032448212259L;
+
     private final UUID id;
     private final TenantId tenantId;
     private final EdgeId edgeId;

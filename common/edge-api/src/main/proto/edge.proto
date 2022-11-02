@@ -99,6 +99,7 @@ message ConnectResponseMsg {
 
 message SyncRequestMsg {
   bool syncRequired = 1;
+  optional bool fullSync = 2;
 }
 
 message SyncCompletedMsg {
@@ -253,8 +254,10 @@ message AssetProfileUpdateMsg {
   bool default = 6;
   int64 defaultRuleChainIdMSB = 7;
   int64 defaultRuleChainIdLSB = 8;
-  string defaultQueueName = 9;
-  optional bytes image = 10;
+  int64 defaultDashboardIdMSB = 9;
+  int64 defaultDashboardIdLSB = 10;
+  optional string defaultQueueName = 11;
+  optional bytes image = 12;
 }
 
 message DeviceCredentialsUpdateMsg {
@@ -271,14 +274,14 @@ message AssetUpdateMsg {
   int64 idLSB = 3;
   optional int64 customerIdMSB = 4;
   optional int64 customerIdLSB = 5;
-  optional int64 assetProfileIdMSB = 6;
-  optional int64 assetProfileIdLSB = 7;
-  string name = 8;
-  string type = 9;
-  optional string label = 10;
-  optional string additionalInfo = 11;
-  optional int64 entityGroupIdMSB = 12;
-  optional int64 entityGroupIdLSB = 13;
+  string name = 6;
+  string type = 7;
+  optional string label = 8;
+  optional string additionalInfo = 9;
+  optional int64 entityGroupIdMSB = 10;
+  optional int64 entityGroupIdLSB = 11;
+  optional int64 assetProfileIdMSB = 12;
+  optional int64 assetProfileIdLSB = 13;
 }
 
 message EntityViewUpdateMsg {
@@ -332,6 +335,11 @@ message CustomerUpdateMsg {
   optional string phone = 11;
   optional string email = 12;
   optional string additionalInfo = 13;
+  int64 ownerIdMSB = 14;
+  int64 ownerIdLSB = 15;
+  string ownerEntityType = 16;
+  optional int64 entityGroupIdMSB = 17;
+  optional int64 entityGroupIdLSB = 18;
 }
 
 message RelationUpdateMsg {
@@ -427,14 +435,10 @@ message DeviceCredentialsRequestMsg {
   int64 deviceIdLSB = 2;
 }
 
+// deprecated
 message DeviceProfileDevicesRequestMsg {
   int64 deviceProfileIdMSB = 1;
   int64 deviceProfileIdLSB = 2;
-}
-
-message AssetProfileAssetsRequestMsg {
-  int64 assetProfileIdMSB = 1;
-  int64 assetProfileIdLSB = 2;
 }
 
 message WidgetBundleTypesRequestMsg {
@@ -524,11 +528,14 @@ message WhiteLabelingParamsProto {
   optional string faviconChecksum = 6;
   PaletteSettingsProto paletteSettings = 7;
   optional string helpLinkBaseUrl = 8;
-  optional string uiHelpBaseUrl = 13;
   optional bool enableHelpLinks = 9;
   optional bool showNameVersion = 10;
   optional string platformName = 11;
   optional string platformVersion = 12;
+  optional string uiHelpBaseUrl = 13;
+  optional int64 entityIdMSB = 14;
+  optional int64 entityIdLSB = 15;
+  optional string entityType = 16;
 }
 
 message FaviconProto {
@@ -549,6 +556,9 @@ message PaletteProto {
 
 message CustomTranslationProto {
   map<string, string> translationMap = 1;
+  optional int64 entityIdMSB = 2;
+  optional int64 entityIdLSB = 3;
+  optional string entityType = 4;
 }
 
 message RoleProto {
@@ -676,12 +686,11 @@ message UplinkMsg {
   repeated UserCredentialsRequestMsg userCredentialsRequestMsg = 10;
   repeated DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = 11;
   repeated DeviceRpcCallMsg deviceRpcCallMsg = 12;
-  repeated DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = 13;
+  repeated DeviceProfileDevicesRequestMsg deviceProfileDevicesRequestMsg = 13; // deprecated
   repeated WidgetBundleTypesRequestMsg widgetBundleTypesRequestMsg = 14;
   repeated EntityViewsRequestMsg entityViewsRequestMsg = 15;
   repeated EntityGroupRequestMsg entityGroupEntitiesRequestMsg = 16;
   repeated EntityGroupRequestMsg entityGroupPermissionsRequestMsg = 17;
-  repeated AssetProfileAssetsRequestMsg assetProfileAssetsRequestMsg = 18;
 }
 
 message UplinkResponseMsg {
@@ -736,4 +745,5 @@ message DownlinkMsg {
   repeated OtaPackageUpdateMsg otaPackageUpdateMsg = 37;
   repeated QueueUpdateMsg queueUpdateMsg = 38;
   repeated AssetProfileUpdateMsg assetProfileUpdateMsg = 39;
+  EdgeConfiguration edgeConfiguration = 40;
 }

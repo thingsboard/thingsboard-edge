@@ -38,6 +38,7 @@ import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.WidgetsBundleEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -70,5 +71,16 @@ public interface WidgetsBundleRepository extends JpaRepository<WidgetsBundleEnti
 
     @Query("SELECT externalId FROM WidgetsBundleEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+    @Query("SELECT wb FROM WidgetsBundleEntity wb WHERE wb.tenantId = :systemTenantId " +
+            "AND wb.id IN :widgetsBundleIds")
+    List<WidgetsBundleEntity> findSystemWidgetsBundlesByIdIn(@Param("systemTenantId") UUID systemTenantId,
+                                                             @Param("widgetsBundleIds") List<UUID> widgetsBundleIds);
+
+    @Query("SELECT wb FROM WidgetsBundleEntity wb WHERE wb.tenantId IN (:tenantId, :nullTenantId) " +
+            "AND wb.id IN :widgetsBundleIds")
+    List<WidgetsBundleEntity> findAllTenantWidgetsBundlesByTenantIdAndIdIn(@Param("tenantId") UUID tenantId,
+                                                                           @Param("nullTenantId") UUID nullTenantId,
+                                                                           @Param("widgetsBundleIds") List<UUID> widgetsBundleIds);
 
 }

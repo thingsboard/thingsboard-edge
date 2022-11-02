@@ -2,21 +2,6 @@
 // payload - array of bytes
 // metadata - key/value object
 
-/** Helper functions **/
-
-function decodeToString(payload) {
-   return new String(payload);
-}
-
-function decodeToJson(payload) {
-   // covert payload to string.
-   var str = decodeToString(payload);
-
-   // parse string to JSON
-   var data = JSON.parse(str);
-   return data;
-}
-
 /** Decoder **/
 
 // decode payload to string
@@ -36,9 +21,11 @@ var groupName = 'thermostat devices';
 
 // Result object with device/asset attributes/telemetry data
 var result = {
-// Use deviceName and deviceType or assetName and assetType - but not both.
+// Use deviceName and deviceType or assetName and assetType, but not both.
    deviceName: deviceName,
    deviceType: deviceType,
+// assetName: assetName,
+// assetType: assetType,
    customerName: customerName,
    groupName: groupName,
    attributes: {
@@ -52,5 +39,20 @@ var result = {
        rawData: payloadStr
    }
 };
+
+/** Helper functions **/
+
+function decodeToString(payload) {
+   return bytesToString(payload);
+}
+
+function decodeToJson(payload) {
+   // covert payload to string.
+   var str = decodeToString(payload);
+
+   // parse string to JSON
+   var data = JSON.parse(str);
+   return data;
+}
 
 return result;

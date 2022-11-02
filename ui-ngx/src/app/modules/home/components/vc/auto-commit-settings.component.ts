@@ -38,8 +38,8 @@ import { AdminService } from '@core/http/admin.service';
 import { AutoCommitSettings, AutoVersionCreateConfig } from '@shared/models/settings.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DialogService } from '@core/services/dialog.service';
-import { catchError, mergeMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { catchError, map, mergeMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 import {
   EntityTypeVersionCreateConfig,
   exportableEntityTypes,
@@ -61,6 +61,8 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
   settings: AutoCommitSettings = null;
 
   entityTypes = EntityType;
+
+  isReadOnly: Observable<boolean>;
 
   overrideEntityTypeTranslationsMap = overrideEntityTypeTranslations;
 
@@ -101,6 +103,7 @@ export class AutoCommitSettingsComponent extends PageComponent implements OnInit
           this.autoCommitSettingsForm.disable({emitEvent: false});
         }
       });
+    this.isReadOnly = this.adminService.getRepositorySettingsInfo().pipe(map(settings => settings.readOnly));
   }
 
   entityTypesFormGroupArray(): FormGroup[] {

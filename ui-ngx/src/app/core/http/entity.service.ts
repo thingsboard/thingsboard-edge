@@ -420,6 +420,9 @@ export class EntityService {
       case EntityType.ASSET_PROFILE:
         observable = this.assetProfileService.getAssetProfilesByIds(entityIds, config);
         break;
+      case EntityType.WIDGETS_BUNDLE:
+        observable = this.widgetService.getWidgetsBundlesByIds(entityIds, config);
+        break;
     }
     return observable;
   }
@@ -576,6 +579,10 @@ export class EntityService {
       case EntityType.ASSET_PROFILE:
         pageLink.sortOrder.property = 'name';
         entitiesObservable = this.assetProfileService.getAssetProfileInfos(pageLink, config);
+        break;
+      case EntityType.WIDGETS_BUNDLE:
+        pageLink.sortOrder.property = 'title';
+        entitiesObservable = this.widgetService.getWidgetBundles(pageLink, config);
         break;
     }
     return entitiesObservable;

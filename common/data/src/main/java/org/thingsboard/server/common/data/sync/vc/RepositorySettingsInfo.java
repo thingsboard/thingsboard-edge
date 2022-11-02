@@ -28,23 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.server.common.data.sync.vc;
 
-import org.mvel2.integration.VariableResolver;
-import org.mvel2.integration.VariableResolverFactory;
-import org.mvel2.integration.impl.StackResetResolverFactory;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public class TbMvelResolverFactory extends StackResetResolverFactory {
-
-    public TbMvelResolverFactory(VariableResolverFactory delegate) {
-        super(delegate);
-    }
-
-    @Override
-    public VariableResolver getVariableResolver(String name) {
-        if (Thread.interrupted()) {
-            throw new RuntimeException("Thread is interrupted!");
-        }
-        return super.getVariableResolver(name);
-    }
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class RepositorySettingsInfo {
+    private boolean configured;
+    private Boolean readOnly;
 }

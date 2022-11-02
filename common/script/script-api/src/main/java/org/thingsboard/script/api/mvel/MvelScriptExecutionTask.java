@@ -30,51 +30,24 @@
  */
 package org.thingsboard.script.api.mvel;
 
-import org.mvel2.compiler.Accessor;
-import org.mvel2.compiler.ExecutableAccessor;
-import org.mvel2.compiler.ExecutableStatement;
-import org.mvel2.integration.VariableResolverFactory;
-import org.mvel2.optimizers.impl.refl.collection.ExprValueAccessor;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.Data;
+import lombok.Getter;
+import org.mvel2.ExecutionContext;
+import org.thingsboard.script.api.TbScriptExecutionTask;
 
-import java.util.HashMap;
-import java.util.Map;
 
-public class TbMapCreator implements Accessor {
-    private Accessor[] keys;
-    private Accessor[] vals;
-    private int size;
+public class MvelScriptExecutionTask extends TbScriptExecutionTask {
 
-    public Object getValue(Object ctx, Object elCtx, VariableResolverFactory variableFactory) {
-        Map map = new HashMap<>(size * 2);
-        for (int i = size - 1; i != -1; i--) {
-            //noinspection unchecked
-            map.put(getKey(i, ctx, elCtx, variableFactory), vals[i].getValue(ctx, elCtx, variableFactory));
-        }
-        return map;
+    private final ExecutionContext context;
+
+    public MvelScriptExecutionTask(ExecutionContext context, ListenableFuture<Object> resultFuture) {
+        super(resultFuture);
+        this.context = context;
     }
 
-    private Object getKey(int index, Object ctx, Object elCtx, VariableResolverFactory variableFactory) {
-        Accessor keyAccessor = keys[index];
-        if (keyAccessor instanceof ExprValueAccessor) {
-            ExecutableStatement executableStatement = ((ExprValueAccessor) keyAccessor).stmt;
-            if (executableStatement instanceof ExecutableAccessor) {
-                return ((ExecutableAccessor) executableStatement).getNode().getName();
-            }
-        }
-        return keys[index].getValue(ctx, elCtx, variableFactory);
-    }
-
-    public TbMapCreator(Accessor[] keys, Accessor[] vals) {
-        this.size = (this.keys = keys).length;
-        this.vals = vals;
-    }
-
-    public Object setValue(Object ctx, Object elCtx, VariableResolverFactory variableFactory, Object value) {
-        // not implemented
-        return null;
-    }
-
-    public Class getKnownEgressType() {
-        return Map.class;
+    @Override
+    public void stop(){
+        context.stop();
     }
 }

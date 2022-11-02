@@ -28,25 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.rule.engine.telemetry;
 
-import org.mvel2.ParserConfiguration;
-import org.mvel2.integration.VariableResolverFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.msg.TbMsg;
 
-public class TbMvelParserConfiguration extends ParserConfiguration {
+import javax.annotation.Nullable;
+import java.util.List;
 
-    private static final long serialVersionUID = 5558151976348875590L;
+@Slf4j
+public class AttributesDeleteNodeCallback extends TelemetryNodeCallback {
 
-    TbMvelParserConfiguration() {
-        setClassLoader(new TbMvelClassLoader());
+    private String scope;
+    private List<String> keys;
+
+    public AttributesDeleteNodeCallback(TbContext ctx, TbMsg msg, String scope, List<String> keys) {
+        super(ctx, msg);
+        this.scope = scope;
+        this.keys = keys;
     }
 
     @Override
-    public VariableResolverFactory getVariableFactory(VariableResolverFactory factory) {
-        if (Thread.interrupted()) {
-            throw new RuntimeException("Thread is interrupted!");
-        }
-        return new TbMvelResolverFactory(factory);
+    public void onSuccess(@Nullable Void result) {
+        TbContext ctx = this.getCtx();
+        TbMsg tbMsg = this.getMsg();
+        ctx.enqueue(ctx.attributesDeletedActionMsg(tbMsg.getOriginator(), ctx.getSelfId(), scope, keys),
+                () -> ctx.tellSuccess(tbMsg),
+                throwable -> ctx.tellFailure(tbMsg, throwable));
     }
-
 }

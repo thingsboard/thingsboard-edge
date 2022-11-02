@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+import org.thingsboard.server.common.msg.session.SessionMsgType;
 
 import java.util.List;
 import java.util.UUID;
@@ -113,7 +114,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         this.intervals = new TbIntervalTable(ctx, config, gsonParser);
         this.intervalReportCheckPeriod = Math.max(TimeUnit.valueOf(config.getIntervalCheckTimeUnit()).toMillis(config.getIntervalCheckValue()), TimeUnit.MINUTES.toMillis(1));
         this.statePersistCheckPeriod = Math.max(TimeUnit.valueOf(config.getStatePersistenceTimeUnit()).toMillis(config.getStatePersistenceValue()), TimeUnit.MINUTES.toMillis(1));
-        this.outMsgType = config.getOutMsgType();
+        this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
         scheduleReportTickMsg(ctx, null);
         if (StatePersistPolicy.PERIODICALLY.name().equalsIgnoreCase(config.getStatePersistencePolicy())) {
             scheduleStatePersistTickMsg(ctx, null);
