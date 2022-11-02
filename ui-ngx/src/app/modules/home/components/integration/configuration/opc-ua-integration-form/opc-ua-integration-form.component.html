@@ -84,18 +84,18 @@
       </tb-file-input>
       <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
         <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>integration.opc-ua-keystore-alias</mat-label>
+          <input matInput required formControlName="alias">
+          <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.alias').hasError('required')">
+            integration.opc-ua-keystore-alias-required
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.opc-ua-keystore-password</mat-label>
           <input matInput required formControlName="password"  autocomplete="new-password" type="password">
           <tb-toggle-password matSuffix></tb-toggle-password>
           <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.password').hasError('required')">
             integration.opc-ua-keystore-password-required
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
-          <mat-label translate>integration.opc-ua-keystore-alias</mat-label>
-          <input matInput required formControlName="alias">
-          <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.alias').hasError('required')">
-            integration.opc-ua-keystore-alias-required
           </mat-error>
         </mat-form-field>
       </div>

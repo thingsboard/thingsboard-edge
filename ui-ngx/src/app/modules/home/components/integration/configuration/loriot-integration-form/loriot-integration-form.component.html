@@ -151,9 +151,9 @@
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <mat-slide-toggle [aria-label]="'integration.replace-no-content-to-ok' | translate"
+      <mat-slide-toggle class="toggle" [aria-label]="'integration.replace-no-content-to-ok' | translate"
                         formControlName="replaceNoContentToOk">
-        {{ 'integration.replace-no-content-to-ok' |translate }}
+        {{ 'integration.replace-no-content-to-ok' | translate }}
       </mat-slide-toggle>
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
       </ng-container>

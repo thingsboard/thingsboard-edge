@@ -53,13 +53,12 @@
   .mat-expansion-panel.configuration-panel {
     box-shadow: none;
 
-    &.mat-expanded {
-      overflow: visible;
-      height: 48px;
-    }
-
     .mat-expansion-panel-header {
       padding: 0;
+
+      &.mat-expanded {
+        height: 48px;
+      }
 
       &:hover {
         background: none !important;

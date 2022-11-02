@@ -84,9 +84,9 @@
           {{ 'converter.type-required' | translate }}
         </mat-error>
       </mat-form-field>
-      <mat-checkbox fxFlex formControlName="debugMode" style="padding-bottom: 16px;">
+      <mat-slide-toggle fxFlex formControlName="debugMode" style="margin-bottom: 16px;">
         {{ 'converter.debug-mode' | translate }}
-      </mat-checkbox>
+      </mat-slide-toggle>
       <div formGroupName="configuration" fxLayout="column" *ngIf="entityForm.get('type').value === converterType.UPLINK">
         <label translate class="tb-title no-padding">converter.decoder</label>
         <tb-js-func
