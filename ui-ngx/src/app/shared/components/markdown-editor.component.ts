@@ -55,6 +55,8 @@ export class MarkdownEditorComponent implements OnInit, ControlValueAccessor, On
 
   @Input() readonly: boolean;
 
+  @Input() helpId: string;
+
   @ViewChild('markdownEditor', {static: true})
   markdownEditorElmRef: ElementRef;
 
