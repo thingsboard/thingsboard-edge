@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -94,12 +93,8 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                     entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
                     entityGroup.setAdditionalInfo(entityGroupUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()) : null);
 
-                    EntityType ownerEntityType = EntityType.valueOf(entityGroupUpdateMsg.getOwnerEntityType());
-                    EntityId ownerId = tenantId;
-                    if (EntityType.CUSTOMER.equals(ownerEntityType)) {
-                        ownerId = new CustomerId(new UUID(entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB()));
-                    }
-                    entityGroup.setOwnerId(ownerId);
+                    EntityId ownerId = safeGetOwnerId(tenantId, entityGroupUpdateMsg.getOwnerEntityType(),
+                            entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB());
                     entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
                 } finally {
                     entityGroupCreationLock.unlock();

@@ -154,6 +154,7 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
                 if (customer.isSubCustomer()) {
                     result.merge(getCustomerHierarchyLoginWhileLabelingParams(tenantId, customer.getParentCustomerId(), result));
                 }
+                result.merge(getTenantLoginWhiteLabelingParams(customer.getTenantId()));
             }
             result.merge(getSystemLoginWhiteLabelingParams(tenantId));
         } else {

@@ -312,6 +312,15 @@ public abstract class BaseCloudProcessor {
         return customerId;
     }
 
+    protected EntityId safeGetOwnerId(TenantId tenantId, String ownerEntityTypeStr, long mSB, long lSB) {
+        EntityType ownerEntityType = EntityType.valueOf(ownerEntityTypeStr);
+        if (EntityType.CUSTOMER.equals(ownerEntityType)) {
+            return new CustomerId(new UUID(mSB, lSB));
+        } else {
+            return tenantId;
+        }
+    }
+
     protected ListenableFuture<Void> handleUnsupportedMsgType(UpdateMsgType msgType) {
         String errMsg = String.format("Unsupported msg type %s", msgType);
         log.error(errMsg);
