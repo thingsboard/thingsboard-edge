@@ -78,9 +78,9 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public WhiteLabelingParams getWhiteLabelParams(
-            @ApiParam(value = LOGO_CHECKSUM_DESC, required = true)
+            @ApiParam(value = LOGO_CHECKSUM_DESC)
             @RequestParam(required = false) String logoImageChecksum,
-            @ApiParam(value = FAVICON_CHECKSUM_DESC, required = true)
+            @ApiParam(value = FAVICON_CHECKSUM_DESC)
             @RequestParam(required = false) String faviconChecksum) throws ThingsboardException {
         try {
             Authority authority = getCurrentUser().getAuthority();
@@ -105,9 +105,9 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(
-            @ApiParam(value = LOGO_CHECKSUM_DESC, required = true)
+            @ApiParam(value = LOGO_CHECKSUM_DESC)
             @RequestParam(required = false) String logoImageChecksum,
-            @ApiParam(value = FAVICON_CHECKSUM_DESC, required = true)
+            @ApiParam(value = FAVICON_CHECKSUM_DESC)
             @RequestParam(required = false) String faviconChecksum,
             HttpServletRequest request) throws ThingsboardException {
         try {

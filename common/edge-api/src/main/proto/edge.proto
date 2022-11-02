@@ -335,8 +335,11 @@ message CustomerUpdateMsg {
   optional string phone = 11;
   optional string email = 12;
   optional string additionalInfo = 13;
-  optional int64 entityGroupIdMSB = 14;
-  optional int64 entityGroupIdLSB = 15;
+  int64 ownerIdMSB = 14;
+  int64 ownerIdLSB = 15;
+  string ownerEntityType = 16;
+  optional int64 entityGroupIdMSB = 17;
+  optional int64 entityGroupIdLSB = 18;
 }
 
 message RelationUpdateMsg {

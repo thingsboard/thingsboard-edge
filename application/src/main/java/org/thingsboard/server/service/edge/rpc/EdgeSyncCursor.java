@@ -97,7 +97,7 @@ public class EdgeSyncCursor {
     private void addCustomerRolesEdgeEventFetchers(EdgeContextComponent ctx, TenantId tenantId, CustomerId customerId) {
         fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), customerId));
         Customer customerById = ctx.getCustomerService().findCustomerById(tenantId, customerId);
-        if (!customerById.getParentCustomerId().isNullUid()) {
+        if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             addCustomerRolesEdgeEventFetchers(ctx, tenantId, customerById.getParentCustomerId());
         }
     }
