@@ -34,6 +34,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -44,6 +45,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.thingsboard.server.common.data.DataConstants.CLIENT_SCOPE;
+import static org.thingsboard.server.common.data.DataConstants.SERVER_SCOPE;
+import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
+
 @Data
 public class TbAggEntityData {
 
@@ -52,6 +57,7 @@ public class TbAggEntityData {
     private final Map<String, AttributeKvEntry> serverAttributes = new HashMap<>();
     private final Map<String, AttributeKvEntry> sharedAttributes = new HashMap<>();
     private final Map<String, TsKvEntry> latestTs = new HashMap<>();
+    private final Map<String, KvEntry> filterMap = new HashMap<>();
 
     private volatile ListenableFuture<List<TsKvEntry>> tsFuture;
     private volatile ListenableFuture<List<AttributeKvEntry>> clientAttributesFuture;
@@ -63,7 +69,13 @@ public class TbAggEntityData {
         putToMap(clientAttributes, clientAttributesFuture);
         putToMap(serverAttributes, sharedAttributesFuture);
         putToMap(sharedAttributes, serverAttributesFuture);
-
+        putToMap(filterMap, clientAttributesFuture, null);
+        putToMap(filterMap, sharedAttributesFuture, null);
+        putToMap(filterMap, serverAttributesFuture, null);
+        putToMap(filterMap, tsFuture, null);
+        putToMap(filterMap, clientAttributesFuture, "cs_");
+        putToMap(filterMap, sharedAttributesFuture, "shared_");
+        putToMap(filterMap, serverAttributesFuture, "ss_");
     }
 
     @SneakyThrows
@@ -74,6 +86,17 @@ public class TbAggEntityData {
         List<T> kvEntries = future.get();
         if (kvEntries != null) {
             kvEntries.forEach(e -> map.put(e.getKey(), e));
+        }
+    }
+
+    @SneakyThrows
+    private static <T extends KvEntry> void putToMap(Map<String, KvEntry> map, ListenableFuture<List<T>> future, String prefix) {
+        if (future == null) {
+            return;
+        }
+        List<T> kvEntries = future.get();
+        if (kvEntries != null) {
+            kvEntries.forEach(e -> map.put(StringUtils.isNotBlank(prefix) ? prefix + e.getKey() : e.getKey(), e));
         }
     }
 

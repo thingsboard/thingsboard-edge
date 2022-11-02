@@ -312,7 +312,13 @@
               "defaultValue": 0,
               "target": "latestAvgMoisture",
               "aggFunction": "AVG",
-              "filter": null
+              "filter": {
+                "serverAttributeNames": [
+                  "active"
+                ],
+                "scriptLang": "MVEL",
+                "mvelFilterFunction": "attributes.active"
+              }
             }
           ]
         },

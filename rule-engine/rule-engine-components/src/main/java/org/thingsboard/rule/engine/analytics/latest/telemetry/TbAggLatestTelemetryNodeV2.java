@@ -36,9 +36,11 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.rule.engine.api.RuleNode;
+import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
@@ -50,11 +52,13 @@ import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +90,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Set<String> sharedAttributeNames = new HashSet<>();
     private final Set<String> serverAttributeNames = new HashSet<>();
     private final Set<String> latestTsKeyNames = new HashSet<>();
+    private final Map<String, ScriptEngine> attributesScriptEngineMap = new HashMap<>();
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -97,6 +102,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 addAllSafe(sharedAttributeNames, filter.getSharedAttributeNames());
                 addAllSafe(serverAttributeNames, filter.getServerAttributeNames());
                 addAllSafe(latestTsKeyNames, filter.getLatestTsKeyNames());
+                String script = filter.getMvelFilterFunction();
+                attributesScriptEngineMap.put(script, ctx.getPeContext().createAttributesScriptEngine(ScriptLanguage.MVEL, script));
             }
             switch (mapping.getSourceScope()) {
                 case DataConstants.CLIENT_SCOPE:
@@ -230,8 +237,12 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         childDataList.forEach(TbAggEntityData::prepare);
         JsonObject result = new JsonObject();
         for (var aggMapping : config.getAggMappings()) {
+            var filteredDataList = childDataList.stream().filter(ed -> filter(aggMapping.getFilter().getMvelFilterFunction(), ed)).collect(Collectors.toList());
+            if (filteredDataList.isEmpty()) {
+                continue;
+            }
             TbAggFunction aggregation = TbAggFunctionFactory.createAggFunction(aggMapping.getAggFunction());
-            childDataList.forEach(childData -> {
+            filteredDataList.forEach(childData -> {
                 aggregation.update(childData.getValue(aggMapping.getSourceScope(), aggMapping.getSource()), aggMapping.getDefaultValue());
             });
             aggregation.result().ifPresent(aggResult -> result.add(aggMapping.getTarget(), aggResult));
@@ -240,6 +251,12 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         metaData.putValue("ts", Long.toString(ts));
         ctx.enqueueForTellNext(TbMsg.newMsg(config.getQueueName(), config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), SUCCESS);
         ctx.ack(msg);
+    }
+
+    @SneakyThrows
+    private boolean filter(String script, TbAggEntityData ed) {
+        //We use MVEL scripts only, so it is ok to do a blocking call.
+        return attributesScriptEngineMap.get(script).executeAttributesFilterAsync(ed.getFilterMap()).get();
     }
 
     private void scheduleDelayedMsg(TbContext ctx, EntityId entityId, long delayMs) {
