@@ -69,6 +69,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -301,12 +302,14 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
 
     @Override
     public void testRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
-        Path repositoryDirectory = Path.of(repositoriesFolder, tenantId.getId().toString());
-        GitRepository.test(settings, repositoryDirectory.toFile());
+        Path testDirectory = Path.of(repositoriesFolder, "repo-test-" + UUID.randomUUID());
+        GitRepository.test(settings, testDirectory.toFile());
     }
 
     @Override
     public void initRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
+        testRepository(tenantId, settings);
+
         clearRepository(tenantId);
         log.debug("[{}] Init tenant repository started.", tenantId);
         Path repositoryDirectory = Path.of(repositoriesFolder, tenantId.getId().toString());

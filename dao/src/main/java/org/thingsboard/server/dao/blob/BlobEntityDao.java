@@ -39,4 +39,8 @@ import org.thingsboard.server.dao.Dao;
  */
 public interface BlobEntityDao extends Dao<BlobEntity> {
 
+    void cleanUpBlobEntities(long expTime);
+
+    void migrateBlobEntities();
+
 }

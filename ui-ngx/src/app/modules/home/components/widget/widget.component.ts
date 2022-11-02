@@ -477,7 +477,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     for (const id of Object.keys(this.widgetContext.subscriptions)) {
       const subscription = this.widgetContext.subscriptions[id];
       if (!subscription.useDashboardTimewindow) {
-        subscription.updateTimewindowConfig(timewindow);
+        subscription.updateTimewindowConfig(subscription.onTimewindowChangeFunction(timewindow));
       }
     }
   }
@@ -1460,7 +1460,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         title = insertVariable(title, prop + ':entityLabel', params[prop].entityLabel);
       }
     }
-    this.dialog.open(this.embedDashboardDialogComponent, {
+    dashboard.dialogRef = this.dialog.open(this.embedDashboardDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       viewContainerRef: this.widgetContentContainer,

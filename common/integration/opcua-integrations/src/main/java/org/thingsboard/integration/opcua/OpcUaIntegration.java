@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.milo.opcua.sdk.client.api.ServiceFaultListener;
+import org.eclipse.milo.opcua.stack.core.types.structured.ServiceFault;
 import org.thingsboard.server.common.data.StringUtils;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
@@ -421,9 +423,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 connected = false;
                 if (client != null) {
                     try {
+                        if (subscription != null) {
+                            client.deleteSubscriptions(Collections.singletonList(subscription.getSubscriptionId()));
+                        }
                         client.disconnect().get(10, TimeUnit.SECONDS);
                     } finally {
                         client = null;
+                        subscription = null;
                     }
                     log.info("[{}] OPC-UA client disconnected", this.configuration.getId());
                 }

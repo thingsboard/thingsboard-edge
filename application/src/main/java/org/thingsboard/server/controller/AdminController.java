@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
 import org.thingsboard.server.common.data.sync.vc.AutoCommitSettings;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
+import org.thingsboard.server.common.data.sync.vc.RepositorySettingsInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -277,7 +278,6 @@ public class AdminController extends BaseController {
             notes = "Get the repository settings object. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping("/repositorySettings")
-    @ResponseBody
     public RepositorySettings getRepositorySettings() throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
@@ -295,7 +295,6 @@ public class AdminController extends BaseController {
             notes = "Check whether the repository settings exists. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping("/repositorySettings/exists")
-    @ResponseBody
     public Boolean repositorySettingsExists() throws ThingsboardException {
         try {
             if (accessControlService.hasPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ)) {
@@ -305,6 +304,23 @@ public class AdminController extends BaseController {
             }
         } catch (Exception e) {
             throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @GetMapping("/repositorySettings/info")
+    public RepositorySettingsInfo getRepositorySettingsInfo() throws Exception {
+        accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
+        RepositorySettings repositorySettings = versionControlService.getVersionControlSettings(getTenantId());
+        if (repositorySettings != null) {
+            return RepositorySettingsInfo.builder()
+                    .configured(true)
+                    .readOnly(repositorySettings.isReadOnly())
+                    .build();
+        } else {
+            return RepositorySettingsInfo.builder()
+                    .configured(false)
+                    .build();
         }
     }
 
@@ -359,7 +375,6 @@ public class AdminController extends BaseController {
             notes = "Get the auto commit settings object. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping("/autoCommitSettings")
-    @ResponseBody
     public AutoCommitSettings getAutoCommitSettings() throws ThingsboardException {
         try {
             accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
@@ -373,7 +388,6 @@ public class AdminController extends BaseController {
             notes = "Check whether the auto commit settings exists. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping("/autoCommitSettings/exists")
-    @ResponseBody
     public Boolean autoCommitSettingsExists() throws ThingsboardException {
         try {
             if (accessControlService.hasPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ)) {

@@ -41,7 +41,7 @@ import java.util.Arrays;
 
 @SpringBootApplication
 @EnableAsync
-@ComponentScan({"org.thingsboard.integration", "org.thingsboard.js.api", "org.thingsboard.server.coapserver"})
+@ComponentScan({"org.thingsboard.integration", "org.thingsboard.script.api", "org.thingsboard.server.coapserver"})
 public class ThingsboardCoapIntegrationApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";

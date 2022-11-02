@@ -127,6 +127,7 @@ public class EdgeImitator {
         this.routingSecret = routingSecret;
         setEdgeCredentials("rpcHost", host);
         setEdgeCredentials("rpcPort", port);
+        setEdgeCredentials("timeoutSecs", 3);
         setEdgeCredentials("keepAliveTimeSec", 300);
     }
 
@@ -172,22 +173,18 @@ public class EdgeImitator {
         Futures.addCallback(future, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable List<Void> result) {
-                if (connected) {
-                    DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
-                            .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
-                            .setSuccess(true).build();
-                    edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
-                }
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
+                        .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
+                        .setSuccess(true).build();
+                edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
 
             @Override
             public void onFailure(Throwable t) {
-                if (connected) {
-                    DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
-                            .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
-                            .setSuccess(false).setErrorMsg(t.getMessage()).build();
-                    edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
-                }
+                DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
+                        .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
+                        .setSuccess(false).setErrorMsg(t.getMessage()).build();
+                edgeRpcClient.sendDownlinkResponseMsg(downlinkResponseMsg);
             }
         }, MoreExecutors.directExecutor());
     }
@@ -373,6 +370,10 @@ public class EdgeImitator {
                 result.add(saveDownlinkMsg(queueUpdateMsg));
             }
         }
+        if (downlinkMsg.hasEdgeConfiguration()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getEdgeConfiguration()));
+        }
+
         return Futures.allAsList(result);
     }
 
