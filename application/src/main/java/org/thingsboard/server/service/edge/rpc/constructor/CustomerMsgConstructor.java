@@ -48,7 +48,10 @@ public class CustomerMsgConstructor {
                 .setMsgType(msgType)
                 .setIdMSB(customer.getId().getId().getMostSignificantBits())
                 .setIdLSB(customer.getId().getId().getLeastSignificantBits())
-                .setTitle(customer.getTitle());
+                .setTitle(customer.getTitle())
+                .setOwnerIdMSB(customer.getOwnerId().getId().getMostSignificantBits())
+                .setOwnerIdLSB(customer.getOwnerId().getId().getLeastSignificantBits())
+                .setOwnerEntityType(customer.getOwnerId().getEntityType().name());
         if (customer.getCountry() != null) {
             builder.setCountry(customer.getCountry());
         }

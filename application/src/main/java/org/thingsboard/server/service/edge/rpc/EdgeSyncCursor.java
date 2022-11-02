@@ -78,7 +78,7 @@ public class EdgeSyncCursor {
             }
             fetchers.add(new SysAdminRolesEdgeEventFetcher(ctx.getRoleService()));
             fetchers.add(new TenantRolesEdgeEventFetcher(ctx.getRoleService()));
-            fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getWhiteLabelingService(), ctx.getCustomTranslationService()));
+            fetchers.add(new WhiteLabelingEdgeEventFetcher(ctx.getCustomerService()));
             fetchers.add(new SystemWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
             fetchers.add(new TenantWidgetsBundlesEdgeEventFetcher(ctx.getWidgetsBundleService()));
         }
@@ -97,7 +97,7 @@ public class EdgeSyncCursor {
     private void addCustomerRolesEdgeEventFetchers(EdgeContextComponent ctx, TenantId tenantId, CustomerId customerId) {
         fetchers.add(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), customerId));
         Customer customerById = ctx.getCustomerService().findCustomerById(tenantId, customerId);
-        if (!customerById.getParentCustomerId().isNullUid()) {
+        if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             addCustomerRolesEdgeEventFetchers(ctx, tenantId, customerById.getParentCustomerId());
         }
     }

@@ -28,27 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.edge;
+package org.thingsboard.server.edge.sql;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.MsgType;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.edge.BaseWhiteLabelingEdgeTest;
 
-import java.util.UUID;
+@DaoSqlTest
+public class WhiteLabelingEdgeSqlTest extends BaseWhiteLabelingEdgeTest {
 
-@AllArgsConstructor
-@Getter
-public class ToEdgeSyncRequest implements EdgeSessionMsg {
-    private static final long serialVersionUID = -7624597032448212259L;
-
-    private final UUID id;
-    private final TenantId tenantId;
-    private final EdgeId edgeId;
-
-    @Override
-    public MsgType getMsgType() {
-        return MsgType.EDGE_SYNC_REQUEST_TO_EDGE_SESSION_MSG;
-    }
 }
