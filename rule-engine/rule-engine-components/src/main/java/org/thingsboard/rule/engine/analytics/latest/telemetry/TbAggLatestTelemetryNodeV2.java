@@ -79,6 +79,8 @@ import static org.thingsboard.rule.engine.api.TbRelationTypes.SUCCESS;
         nodeDetails = "Performs aggregation of attributes or latest time-series fetched from related entities. " +
                 "Generates outgoing message with aggregated values. By default, an outgoing message generates with 'POST_TELEMETRY_REQUEST' type. " +
                 "The type of the outgoing messages controls under \"<b>Output message type</b>\" configuration parameter.",
+        uiResources = {"static/rulenode/rulenode-core-config.js"},
+        configDirective = "tbAnalyticsNodeAggregateLatestV2Config",
         icon = "functions"
 )
 public class TbAggLatestTelemetryNodeV2 implements TbNode {
