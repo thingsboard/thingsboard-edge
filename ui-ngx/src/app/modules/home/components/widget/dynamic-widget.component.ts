@@ -55,6 +55,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { DialogService } from '@core/services/dialog.service';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
 import { ResourceService } from '@core/http/resource.service';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
@@ -98,6 +99,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.dialogs = $injector.get(DialogService);
     this.ctx.customDialog = $injector.get(CustomDialogService);
     this.ctx.resourceService = $injector.get(ResourceService);
+    this.ctx.telemetryWsService = $injector.get(TelemetryWebsocketService);
     this.ctx.date = $injector.get(DatePipe);
     this.ctx.translate = $injector.get(TranslateService);
     this.ctx.http = $injector.get(HttpClient);
@@ -119,7 +121,9 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
   }
 
   ngOnDestroy(): void {
-
+    if (this.ctx.telemetrySubscribers) {
+      this.ctx.telemetrySubscribers.forEach(item =>  item.unsubscribe());
+    }
   }
 
   clearRpcError() {
