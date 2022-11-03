@@ -676,7 +676,10 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 log.info("Updating schema ...");
                 schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.2pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    loadSql(schemaUpdateFile, conn);
+                    try {
+                        loadSql(schemaUpdateFile, conn);
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {
@@ -774,6 +777,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     } catch (Exception ignored) {}
                     try {
                         conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
                     log.info("Schema updated.");
                 } catch (Exception e) {
