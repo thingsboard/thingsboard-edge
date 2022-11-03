@@ -28,39 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.metadata;
+package org.thingsboard.common.util;
 
-import lombok.Data;
-import org.thingsboard.rule.engine.data.DeviceRelationsQuery;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Assert;
+import org.junit.Test;
 
-import java.util.Collections;
+public class JacksonUtilTest {
 
-@Data
-public class TbGetDeviceAttrNodeConfiguration extends TbGetAttributesNodeConfiguration {
-
-    private DeviceRelationsQuery deviceRelationsQuery;
-
-    @Override
-    public TbGetDeviceAttrNodeConfiguration defaultConfiguration() {
-        TbGetDeviceAttrNodeConfiguration configuration = new TbGetDeviceAttrNodeConfiguration();
-        configuration.setClientAttributeNames(Collections.emptyList());
-        configuration.setSharedAttributeNames(Collections.emptyList());
-        configuration.setServerAttributeNames(Collections.emptyList());
-        configuration.setLatestTsKeyNames(Collections.emptyList());
-        configuration.setTellFailureIfAbsent(true);
-        configuration.setGetLatestValueWithTs(false);
-        configuration.setFetchToData(false);
-
-        DeviceRelationsQuery deviceRelationsQuery = new DeviceRelationsQuery();
-        deviceRelationsQuery.setDirection(EntitySearchDirection.FROM);
-        deviceRelationsQuery.setMaxLevel(1);
-        deviceRelationsQuery.setRelationType(EntityRelation.CONTAINS_TYPE);
-        deviceRelationsQuery.setDeviceTypes(Collections.singletonList("default"));
-
-        configuration.setDeviceRelationsQuery(deviceRelationsQuery);
-
-        return configuration;
+    @Test
+    public void allow_unquoted_field_mapper_test() {
+        String data = "{data: 123}";
+        JsonNode actualResult = JacksonUtil.toJsonNode(data, JacksonUtil.ALLOW_UNQUOTED_FIELD_NAMES_MAPPER); // should be: {"data": 123}
+        ObjectNode expectedResult = JacksonUtil.newObjectNode();
+        expectedResult.put("data", 123); // {"data": 123}
+        Assert.assertEquals(expectedResult, actualResult);
+        Assert.assertThrows(IllegalArgumentException.class, () -> JacksonUtil.toJsonNode(data)); // syntax exception due to missing quotes in the field name!
     }
+
 }
