@@ -60,9 +60,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
@@ -78,7 +75,6 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -895,7 +891,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSyncEdgeEntityGroup() throws Exception {
-        resetSysAdminWhiteLabelingSettings();
+        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
 
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
@@ -964,16 +960,6 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
         doDelete("/api/edge/" + edge.getId().getId().toString())
                 .andExpect(status().isOk());
-    }
-
-    private void resetSysAdminWhiteLabelingSettings() throws Exception {
-        loginSysAdmin();
-
-        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
-        doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
-        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
-
-        loginUser(tenantAdmin.getEmail(), "testPassword1");
     }
 
     @Test

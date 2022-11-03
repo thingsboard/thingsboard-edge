@@ -52,6 +52,7 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         testWhiteLabeling_sysAdmin();
         testWhiteLabeling_tenant();
         testWhiteLabeling_customer();
+        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
     }
 
     private void testWhiteLabeling_sysAdmin() throws Exception {
@@ -103,6 +104,7 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         testLoginWhiteLabeling_sysAdmin();
         testLoginWhiteLabeling_tenant();
         testLoginWhiteLabeling_customer();
+        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
     }
 
     private void testLoginWhiteLabeling_sysAdmin() throws Exception {
@@ -154,6 +156,7 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
         testCustomTranslation_customer();
+        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
     }
 
     private void testCustomTranslation_sysAdmin() throws Exception {
