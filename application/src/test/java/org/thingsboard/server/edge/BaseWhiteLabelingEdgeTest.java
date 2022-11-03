@@ -52,7 +52,6 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         testWhiteLabeling_sysAdmin();
         testWhiteLabeling_tenant();
         testWhiteLabeling_customer();
-        resetSysAdminWhiteLabelingSettings();
     }
 
     private void testWhiteLabeling_sysAdmin() throws Exception {
@@ -104,7 +103,6 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         testLoginWhiteLabeling_sysAdmin();
         testLoginWhiteLabeling_tenant();
         testLoginWhiteLabeling_customer();
-        resetSysAdminWhiteLabelingSettings();
     }
 
     private void testLoginWhiteLabeling_sysAdmin() throws Exception {
@@ -156,7 +154,6 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
         testCustomTranslation_customer();
-        resetSysAdminWhiteLabelingSettings();
     }
 
     private void testCustomTranslation_sysAdmin() throws Exception {
@@ -217,10 +214,4 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(updatedHomeValue, JacksonUtil.OBJECT_MAPPER.readTree(enUsLangObject).get("home").asText());
     }
 
-    private void resetSysAdminWhiteLabelingSettings() throws Exception {
-        loginSysAdmin();
-        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
-        doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
-        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
-    }
 }
