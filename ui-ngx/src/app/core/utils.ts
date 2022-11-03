@@ -38,7 +38,6 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { EntityType, baseDetailsPageByEntityType } from '@shared/models/entity-type.models';
 import { HttpErrorResponse } from '@angular/common/http';
-import { letterSpacing } from 'html2canvas/dist/types/css/property-descriptors/letter-spacing';
 import { TranslateService } from '@ngx-translate/core';
 import { serverErrorCodesTranslations } from '@shared/models/constants';
 
@@ -525,6 +524,18 @@ export function flatFormattedData(input: FormattedData[]): FormattedData {
     result.dsName = sourceData.dsName;
     result.deviceType =  sourceData.deviceType;
   }
+  return result;
+}
+
+export function flatDataWithoutOverride(input: FormattedData[]): FormattedData {
+  const result: FormattedData = {} as FormattedData;
+  input.forEach((data) => {
+    Object.keys(data).forEach((key) => {
+      if (!isDefinedAndNotNull(result[key]) || isEmptyStr(result[key])) {
+        result[key] = data[key];
+      }
+    });
+  });
   return result;
 }
 
