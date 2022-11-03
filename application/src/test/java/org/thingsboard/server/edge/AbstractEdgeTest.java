@@ -93,21 +93,16 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
-import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
@@ -115,7 +110,6 @@ import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.util.ArrayList;
@@ -163,17 +157,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         tenantId = savedTenant.getId();
         Assert.assertNotNull(savedTenant);
 
-        CustomTranslation content = new CustomTranslation();
-        content.getTranslationMap()
-                .put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(getCustomTranslationHomeObject("sys_admin_value")));
-        doPost("/api/customTranslation/customTranslation", content, CustomTranslation.class);
-        WhiteLabelingParams whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle("Sys Admin TB");
-        doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
-        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName("sysadmin.org");
-        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
-
         tenantAdmin = new User();
         tenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         tenantAdmin.setTenantId(savedTenant.getId());
@@ -183,17 +166,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
 
-        content = new CustomTranslation();
-        content.getTranslationMap()
-                .put("en_US", JacksonUtil.OBJECT_MAPPER.writeValueAsString(getCustomTranslationHomeObject("tenant_value")));
-        doPost("/api/customTranslation/customTranslation", content, CustomTranslation.class);
-        whiteLabelingParams = new WhiteLabelingParams();
-        whiteLabelingParams.setAppTitle("Tenant TB");
-        doPost("/api/whiteLabel/whiteLabelParams", whiteLabelingParams, WhiteLabelingParams.class);
-        loginWhiteLabelingParams = new LoginWhiteLabelingParams();
-        loginWhiteLabelingParams.setDomainName("tenant.org");
-        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
-
         // sleep 0.5 second to avoid CREDENTIALS updated message for the user
         // user credentials is going to be stored and updated event pushed to edge notification service
         // while service will be processing this event edge could be already added and additional message will be pushed
@@ -202,7 +174,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(20);
+        edgeImitator.expectMessageAmount(14);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -307,15 +279,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         // 1 message from queue fetcher
         validateQueues();
-
-        // 2 messages - 2 messages from fetcher
-        validateLoginWhiteLabeling();
-
-        // 2 messages - 2 messages from fetcher
-        validateWhiteLabeling();
-
-        // 2 messages - 2 messages from fetcher
-        validateCustomTranslation();
 
         // 2 messages - 2 messages from fetcher
         validateEntityGroups();
@@ -435,21 +398,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(10, queueUpdateMsg.getPartitions());
         Assert.assertEquals(25, queueUpdateMsg.getPollInterval());
         testAutoGeneratedCodeByProtobuf(queueUpdateMsg);
-    }
-
-    private void validateLoginWhiteLabeling() {
-        List<LoginWhiteLabelingParamsProto> loginWlpUpdateMsgList = edgeImitator.findAllMessagesByType(LoginWhiteLabelingParamsProto.class);
-        Assert.assertEquals(2, loginWlpUpdateMsgList.size());
-    }
-
-    private void validateWhiteLabeling() {
-        List<WhiteLabelingParamsProto> wlpUpdateMsgList = edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class);
-        Assert.assertEquals(2, wlpUpdateMsgList.size());
-    }
-
-    private void validateCustomTranslation() {
-        List<CustomTranslationProto> customTranslationProtoList = edgeImitator.findAllMessagesByType(CustomTranslationProto.class);
-        Assert.assertEquals(2, customTranslationProtoList.size());
     }
 
     private void validateEntityGroups() {

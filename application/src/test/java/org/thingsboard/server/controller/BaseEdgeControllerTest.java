@@ -32,7 +32,6 @@ package org.thingsboard.server.controller;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.protobuf.AbstractMessage;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -928,44 +927,24 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
-        try {
-            Thread.sleep(5000);
-        } catch (Exception ignored) {
-        }
-        
-        for (AbstractMessage downlinkMsg : edgeImitator.getDownlinkMsgs()) {
-            System.out.println("1. <<<<<<_______>>>>>>> " + downlinkMsg.getClass().getName());
-            System.out.println("1. <<<<<<_______>>>>>>> " + downlinkMsg);
-        }
-
         assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - two msgs during sync process, four msgs from assign to edge").hasSize(6);
         assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - two msgs during sync process").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling params update").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("sys admin white labeling params update").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
 
         edgeImitator.expectMessageAmount(14);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
-        try {
-            Thread.sleep(5000);
-        } catch (Exception ignored) {
-        }
-
-        for (AbstractMessage downlinkMsg : edgeImitator.getDownlinkMsgs()) {
-            System.out.println("2. <<<<<<_______>>>>>>> " + downlinkMsg.getClass().getName());
-            System.out.println("2. <<<<<<_______>>>>>>> " + downlinkMsg);
-        }
-
         assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(4);
         assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling param proto msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("sys admin white labeling param proto msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
