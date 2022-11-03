@@ -221,6 +221,6 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
         loginSysAdmin();
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
-        doPost("/api/whiteLabel/customTranslation", new CustomTranslation(), CustomTranslation.class);
+        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
     }
 }
