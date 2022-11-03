@@ -290,6 +290,10 @@ public class JacksonUtil {
         }
     }
 
+    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) {
+        addKvEntry(entityNode, kvEntry, kvEntry.getKey());
+    }
+
     public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry, String key) {
         addKvEntry(entityNode, kvEntry, key, OBJECT_MAPPER);
     }
@@ -310,7 +314,4 @@ public class JacksonUtil {
         }
     }
 
-    public static void addKvEntry(ObjectNode entityNode, KvEntry kvEntry) {
-        addKvEntry(entityNode, kvEntry, kvEntry.getKey());
-    }
 }
