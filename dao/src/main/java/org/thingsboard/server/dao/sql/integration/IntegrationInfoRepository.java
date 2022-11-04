@@ -36,7 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
+import org.thingsboard.server.dao.model.sql.IntegrationEntity;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 
 import java.util.List;
@@ -50,4 +50,29 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
     @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.type = :type AND ii.isRemote = :isRemote AND ii.enabled = :enabled AND ii.edgeTemplate = false")
     List<IntegrationInfoEntity> findAllCoreIntegrationInfos(@Param("type") IntegrationType type, @Param("isRemote") boolean remote, @Param("enabled") boolean enabled);
 
+    @Query("SELECT a FROM IntegrationInfoEntity a WHERE a.tenantId = :tenantId " +
+            "AND a.edgeTemplate = :isEdgeTemplate " +
+            "AND LOWER(a.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationInfoEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
+                                                                @Param("searchText") String searchText,
+                                                                @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                                Pageable pageable);
+
+    @Query("SELECT ie FROM IntegrationInfoEntity ie, RelationEntity re WHERE ie.tenantId = :tenantId " +
+            "AND ie.id = re.toId AND re.toType = 'INTEGRATION' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
+            "AND LOWER(ie.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationInfoEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
+                                                    @Param("edgeId") UUID edgeId,
+                                                    @Param("searchText") String searchText,
+                                                    Pageable pageable);
+
+    @Query(value = "SELECT cast(json_agg(element) as varchar) FROM " +
+            "(SELECT SUM(se.e_messages_processed + se.e_errors_occurred) element " +
+            "FROM stats_event se WHERE se.tenant_id = :tenantId " +
+            "AND se.entity_id = :integrationId AND ts >= :startTs " +
+            "GROUP BY ts / 3600000 ORDER BY ts / 3600000) stats", nativeQuery = true)
+    String getIntegrationStats(@Param("tenantId") UUID tenantId,
+                    @Param("integrationId") UUID integrationId,
+                    @Param("startTs") long startTs);
 }

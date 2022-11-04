@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.integration;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,6 +152,22 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
+    public PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate) {
+        log.trace("Executing findTenantIntegrationInfos, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return integrationInfoDao.findByTenantIdAndIsEdgeTemplate(tenantId.getId(), pageLink, isEdgeTemplate);
+    }
+
+    @Override
+    public ListenableFuture<ArrayNode> findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs) {
+        log.trace("Executing findIntegrationStats, tenantId [{}], integrationId [{}], startTs [{}]", tenantId, integrationId, startTs);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, INCORRECT_INTEGRATION_ID + integrationId);
+        return integrationInfoDao.getIntegrationStats(tenantId.getId(), integrationId.getId(), startTs);
+    }
+
+    @Override
     public PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantEdgeTemplateIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
@@ -231,6 +248,15 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
         Validator.validatePageLink(pageLink);
         return integrationDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
+        log.trace("Executing findIntegrationInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
+        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validatePageLink(pageLink);
+        return integrationInfoDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
     private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =

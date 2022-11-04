@@ -83,6 +83,9 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
+    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
+    private boolean debugMode;
+
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
 
@@ -112,6 +115,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         this.name = integration.getName();
         this.type = integration.getType();
+        this.debugMode = integration.isDebugMode();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -141,6 +145,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         integration.setName(name);
         integration.setType(type);
+        integration.setDebugMode(debugMode);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);
