@@ -331,7 +331,9 @@ sql:
       ttl: "${SQL_TTL_BLOB_ENTITIES_SECS:0}"
       checking_interval_ms: "${SQL_TTL_BLOB_ENTITIES_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
   relations:
-    max_level: "${SQL_RELATIONS_MAX_LEVEL:50}" # //This value has to be reasonable small to prevent infinite recursion as early as possible
+    max_level: "${SQL_RELATIONS_MAX_LEVEL:50}" # This value has to be reasonable small to prevent infinite recursion as early as possible
+    pool_size: "${SQL_RELATIONS_POOL_SIZE:4}" # This value has to be reasonable small to prevent relation query blocking all other DB calls
+    query_timeout: "${SQL_RELATIONS_QUERY_TIMEOUT_SEC:20}" # This value has to be reasonable small to prevent relation query blocking all other DB calls
 
 # Actor system parameters
 actors:
