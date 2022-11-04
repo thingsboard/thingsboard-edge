@@ -97,7 +97,7 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
     });
     this.mqttIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(value => this.updateModels(value));
+    ).subscribe(() => this.updateModels(this.mqttIntegrationConfigForm.getRawValue()));
   }
 
   ngOnInit() {

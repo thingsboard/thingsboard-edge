@@ -93,7 +93,7 @@ export class IbmWatsonIotIntegrationFormComponent extends IntegrationForm implem
 
     this.ibmWatsonIotIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(value => this.updateModels(value));
+    ).subscribe(() => this.updateModels(this.ibmWatsonIotIntegrationConfigForm.getRawValue()));
   }
 
   ngOnInit() {

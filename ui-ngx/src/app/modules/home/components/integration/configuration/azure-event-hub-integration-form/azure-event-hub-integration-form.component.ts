@@ -89,8 +89,8 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
     });
     this.azureEventHubIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.azureEventHubIntegrationConfigForm.getRawValue());
     });
   }
 

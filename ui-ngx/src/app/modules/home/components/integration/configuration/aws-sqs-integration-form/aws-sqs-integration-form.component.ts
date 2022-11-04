@@ -77,8 +77,8 @@ export class AwsSqsIntegrationFormComponent extends IntegrationForm implements C
     });
     this.awsSqsIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.awsSqsIntegrationConfigForm.getRawValue());
     });
   }
 

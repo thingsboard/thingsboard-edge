@@ -86,7 +86,7 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationForm impleme
     });
     this.azureIotConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(value => this.updateModels(value));
+    ).subscribe(() => this.updateModels(this.azureIotConfigForm.getRawValue()));
   }
 
   writeValue(value: AzureIotHubIntegration) {

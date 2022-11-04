@@ -85,8 +85,8 @@ export class ApachePulsarIntegrationFormComponent extends IntegrationForm implem
 
     this.apachePulsarIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.apachePulsarIntegrationConfigForm.getRawValue());
     });
   }
 
@@ -95,7 +95,7 @@ export class ApachePulsarIntegrationFormComponent extends IntegrationForm implem
     if (this.propagateChangePending) {
       this.propagateChangePending = false;
       setTimeout(() => {
-        this.updateModels(this.apachePulsarIntegrationConfigForm.value);
+        this.updateModels(this.apachePulsarIntegrationConfigForm.getRawValue());
       }, 0);
     }
   }

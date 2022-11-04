@@ -92,7 +92,7 @@ export class AwsIotIntegrationFormComponent extends IntegrationForm implements C
     });
     this.awsIotIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(value => this.updateModels(value));
+    ).subscribe(() => this.updateModels(this.awsIotIntegrationConfigForm.getRawValue()));
   }
 
   writeValue(value: AwsIotIntegration) {
