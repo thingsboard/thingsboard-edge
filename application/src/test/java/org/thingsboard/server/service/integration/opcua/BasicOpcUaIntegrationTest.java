@@ -67,7 +67,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 @DaoSqlTest
-public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
+public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     private final static String OPCUA_UPLINK_CONVERTER_FILEPATH = "opcua/default_converter_configuration.json";
     private final static String OPCUA_UPLINK_CONVERTER_NAME = "Default test uplink converter";
@@ -124,7 +124,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         startTs = System.currentTimeMillis();
         stopServer();
-        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 120));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 60));
     }
 
     @Test
@@ -132,8 +132,8 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         long startTs = System.currentTimeMillis();
         enableIntegration();
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
-        stopServer();
         startTs = System.currentTimeMillis();
+        stopServer();
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE));
         startServer();
         startTs = System.currentTimeMillis();
@@ -143,8 +143,8 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testIntegrationReconnectToNotStartedServer() throws Exception {
-        stopServer();
         long startTs = System.currentTimeMillis();
+        stopServer();
         enableIntegration();
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 20));
         startTs = System.currentTimeMillis();
@@ -158,9 +158,8 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         long startTs = System.currentTimeMillis();
         enableIntegration();
         Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
-        Thread.sleep(10000);
         long start = System.currentTimeMillis();
-        long end = System.currentTimeMillis() + 5000;
+        long end = System.currentTimeMillis() + 15000;
 
         List<String> actualKeys = null;
         while (start <= end) {
@@ -204,8 +203,19 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         });
         List<EventInfo> integrationDownlinkDebugMessages = getIntegrationDebugMessages(startTs, "Downlink", IntegrationDebugMessageStatus.ANY, 20);
         Assert.assertFalse(integrationDownlinkDebugMessages.isEmpty());
-        Thread.sleep(20000);
-        ObjectNode actualKeys = doGetAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/values/timeseries?keys=String", ObjectNode.class);
+        long start = System.currentTimeMillis();
+        long end = System.currentTimeMillis() + 30000;
+
+        ObjectNode actualKeys = null;
+        while (start <= end) {
+            actualKeys = doGetAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/values/timeseries?keys=String", ObjectNode.class);
+            if (actualKeys.has("String") && "New value".equals(actualKeys.get("String").get(0).get("value").asText())) {
+                break;
+            }
+            Thread.sleep(100);
+            start += 100;
+        }
+        Assert.assertNotNull(actualKeys);
         log.info(actualKeys.toString());
         Assert.assertNotNull(actualKeys);
         Assert.assertTrue(actualKeys.has("String"));
@@ -299,8 +309,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         Device device = new Device();
         device.setName(deviceName);
         device.setType(deviceType);
-        Device savedDevice = doPost("/api/device", device, Device.class);
-        return savedDevice;
+        return doPost("/api/device", device, Device.class);
     }
 
     private void deleteDevice(DeviceId deviceId) throws Exception {

@@ -50,6 +50,7 @@ public class TbGetAttributesNodeConfiguration implements NodeConfiguration<TbGet
 
     private boolean tellFailureIfAbsent;
     private boolean getLatestValueWithTs;
+    private boolean fetchToData;
 
     @Override
     public TbGetAttributesNodeConfiguration defaultConfiguration() {
@@ -60,6 +61,7 @@ public class TbGetAttributesNodeConfiguration implements NodeConfiguration<TbGet
         configuration.setLatestTsKeyNames(Collections.emptyList());
         configuration.setTellFailureIfAbsent(true);
         configuration.setGetLatestValueWithTs(false);
+        configuration.setFetchToData(false);
         return configuration;
     }
 }

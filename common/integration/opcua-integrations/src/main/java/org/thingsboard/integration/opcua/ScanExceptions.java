@@ -28,43 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.common.util;
+package org.thingsboard.integration.opcua;
 
-import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Data;
+import org.eclipse.milo.opcua.stack.core.UaException;
+import org.thingsboard.integration.api.util.ExceptionUtil;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+import java.util.ArrayList;
+import java.util.List;
 
-public class ThingsBoardExecutors {
+@Data
+class ScanExceptions {
 
-    /**
-     * Method forked from ExecutorService to provide thread poll name
-     *
-     * Creates a thread pool that maintains enough threads to support
-     * the given parallelism level, and may use multiple queues to
-     * reduce contention. The parallelism level corresponds to the
-     * maximum number of threads actively engaged in, or available to
-     * engage in, task processing. The actual number of threads may
-     * grow and shrink dynamically. A work-stealing pool makes no
-     * guarantees about the order in which submitted tasks are
-     * executed.
-     *
-     * @param parallelism the targeted parallelism level
-     * @param namePrefix used to define thread name
-     * @return the newly created thread pool
-     * @throws IllegalArgumentException if {@code parallelism <= 0}
-     * @since 1.8
-     */
-    public static ExecutorService newWorkStealingPool(int parallelism, String namePrefix) {
-        return new ForkJoinPool(parallelism,
-                new ThingsBoardForkJoinWorkerThreadFactory(namePrefix),
-                null, true);
+    private OpcUaIntegrationException critical;
+    private final List<OpcUaIntegrationException> other;
+
+    public ScanExceptions() {
+        this.other = new ArrayList<>();
     }
 
-    public static ExecutorService newWorkStealingPool(int parallelism, Class clazz) {
-        return newWorkStealingPool(parallelism, clazz.getSimpleName());
+    public void add(OpcUaIntegrationException e) {
+        UaException uaException = ExceptionUtil.lookupException(e.getCause(), UaException.class);
+        if (uaException != null) {
+            critical = e;
+        } else {
+            other.add(e);
+        }
     }
 
 }
