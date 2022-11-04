@@ -43,7 +43,7 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { filter, takeUntil } from 'rxjs/operators';
 import { IntegrationCredentialType, IntegrationType, LoriotIntegration } from '@shared/models/integration.models';
-import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
+import { integrationEndPointUrl } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -91,7 +91,7 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
     this.loriotIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), Validators.required],
       httpEndpoint: [{
-        value: integrationBaseUrlChanged(this.integrationType, baseUrl(), this.routingKey),
+        value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey),
         disabled: true
       }],
       enableSecurity: [false],
@@ -109,7 +109,7 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
     this.loriotIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
-      const httpEndpoint = integrationBaseUrlChanged(this.integrationType, value, this.routingKey);
+      const httpEndpoint = integrationEndPointUrl(this.integrationType, value, this.routingKey);
       this.loriotIntegrationConfigForm.get('httpEndpoint').patchValue(httpEndpoint);
     });
     this.loriotIntegrationConfigForm.get('server').valueChanges.pipe(
@@ -141,14 +141,14 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
 
   writeValue(value: LoriotIntegration) {
     if (isDefinedAndNotNull(value)) {
-      this.loriotIntegrationConfigForm.reset(value, {emitEvent: false});
+      this.loriotIntegrationConfigForm.patchValue(value, {emitEvent: false});
       this.updatedDownlinkUrl = !value.sendDownlink;
+      if (!this.disabled) {
+        this.updateEnableFields();
+      }
     } else {
       this.propagateChangePending = true;
       this.updatedDownlinkUrl = true;
-    }
-    if (!this.disabled) {
-      this.updateEnableFields();
     }
   }
 

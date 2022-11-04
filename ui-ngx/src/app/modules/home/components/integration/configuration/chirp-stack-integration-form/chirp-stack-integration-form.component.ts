@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -43,7 +43,7 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { ChipStackIntegration, IntegrationType } from '@shared/models/integration.models';
-import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
+import { integrationEndPointUrl } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -65,14 +65,12 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
     multi: true,
   }]
 })
-export class ChirpStackIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
+export class ChirpStackIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator, OnInit {
 
   chirpStackIntegrationConfigForm: FormGroup;
 
   @Input()
   routingKey: string;
-
-  protected integrationType = IntegrationType.CHIRPSTACK;
 
   private propagateChange = (v: any) => { };
 
@@ -80,17 +78,19 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
               private store: Store<AppState>,
               private translate: TranslateService) {
     super();
+  }
+
+  ngOnInit() {
     this.chirpStackIntegrationConfigForm = this.fb.group({
       baseUrl: [baseUrl(), Validators.required],
-      httpEndpoint: [{value: integrationBaseUrlChanged(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
+      httpEndpoint: [{value: this.endPointUrl(baseUrl()), disabled: true}],
       applicationServerUrl: [null, Validators.required],
       applicationServerAPIToken: [null, Validators.required]
     });
     this.chirpStackIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
-      const httpEndpoint = integrationBaseUrlChanged(this.integrationType, value, this.routingKey);
-      this.chirpStackIntegrationConfigForm.get('httpEndpoint').patchValue(httpEndpoint);
+      this.chirpStackIntegrationConfigForm.get('httpEndpoint').patchValue(this.endPointUrl(value));
     });
     this.chirpStackIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
@@ -119,6 +119,10 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
       this.chirpStackIntegrationConfigForm.enable({emitEvent: false});
       this.chirpStackIntegrationConfigForm.get('httpEndpoint').disable({emitEvent: false});
     }
+  }
+
+  private endPointUrl(url: string): string {
+    return integrationEndPointUrl(IntegrationType.CHIRPSTACK, url, this.routingKey);
   }
 
   private updateModels(value) {

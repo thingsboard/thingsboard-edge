@@ -128,8 +128,8 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.opcIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
       if (!this.disabled) {
-        this.updateSecurityTypeValidation(value.clientConfiguration.security);
-        this.updateIdentityTypeValidation(value.clientConfiguration.identity.type);
+        this.opcIntegrationConfigForm.get('security').updateValueAndValidity({onlySelf: true});
+        this.opcIntegrationConfigForm.get('identity.type').updateValueAndValidity({onlySelf: true});
       }
     }
   }
@@ -146,8 +146,8 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
       this.opcIntegrationConfigForm.disable({emitEvent: false});
     } else {
       this.opcIntegrationConfigForm.enable({emitEvent: false});
-      this.updateSecurityTypeValidation(this.opcIntegrationConfigForm.value.security);
-      this.updateIdentityTypeValidation(this.opcIntegrationConfigForm.value.identity.type);
+      this.opcIntegrationConfigForm.get('security').updateValueAndValidity({onlySelf: true});
+      this.opcIntegrationConfigForm.get('identity.type').updateValueAndValidity({onlySelf: true});
     }
   }
 

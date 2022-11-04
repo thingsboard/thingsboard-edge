@@ -43,7 +43,7 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationType, ThingParkIntegration } from '@shared/models/integration.models';
-import { integrationBaseUrlChanged } from '@home/components/integration/integration.models';
+import { integrationEndPointUrl } from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -86,7 +86,7 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
   ngOnInit() {
     this.thingParkConfigForm = this.fb.group({
       baseUrl: [baseUrl(), Validators.required],
-      httpEndpoint: [{value: integrationBaseUrlChanged(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
+      httpEndpoint: [{value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
       enableSecurity: [false],
       replaceNoContentToOk: [false],
       downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink'],
@@ -101,7 +101,7 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
     this.thingParkConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
-      const httpEndpoint = integrationBaseUrlChanged(this.integrationType, value, this.routingKey);
+      const httpEndpoint = integrationEndPointUrl(this.integrationType, value, this.routingKey);
       this.thingParkConfigForm.get('httpEndpoint').patchValue(httpEndpoint);
     });
     this.thingParkConfigForm.get('enableSecurity').valueChanges.pipe(

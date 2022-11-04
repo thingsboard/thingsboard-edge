@@ -76,7 +76,7 @@ export const ttnVersionMap = new Map<ttnVersion, TtnVersionParameter>([
   ]
 ]);
 
-export function integrationBaseUrlChanged(type: IntegrationType, baseUrl: string, key = ''): string {
+export function integrationEndPointUrl(type: IntegrationType, baseUrl: string, key = ''): string {
   return `${baseUrl}/api/v1/integrations/${type.toLowerCase()}/${key}`;
 }
 

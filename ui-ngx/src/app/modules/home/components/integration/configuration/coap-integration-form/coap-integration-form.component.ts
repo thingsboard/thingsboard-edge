@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -43,12 +43,7 @@ import {
 import { coapBaseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
-import {
-  CoapIntegration,
-  CoapSecurityMode,
-  coapSecurityModeTranslationsMap,
-  IntegrationType
-} from '@shared/models/integration.models';
+import { CoapIntegration, CoapSecurityMode, coapSecurityModeTranslationsMap } from '@shared/models/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -68,11 +63,9 @@ import { TranslateService } from '@ngx-translate/core';
     multi: true,
   }]
 })
-export class CoapIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, Validator {
+export class CoapIntegrationFormComponent extends IntegrationForm implements ControlValueAccessor, OnInit, Validator {
 
   @Input() routingKey;
-
-  integrationType: IntegrationType = IntegrationType.COAP;
 
   coapSecurityModes = Object.keys(CoapSecurityMode);
   coapSecurityModeTranslations = coapSecurityModeTranslationsMap;
@@ -87,12 +80,15 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
               private store: Store,
               private translate: TranslateService) {
     super();
+  }
+
+  ngOnInit() {
     this.coapIntegrationConfigForm = this.fb.group({
       baseUrl: [coapBaseUrl(false), [Validators.required]],
       dtlsBaseUrl: [coapBaseUrl(true), [Validators.required]],
       securityMode: [CoapSecurityMode.NO_SECURE, [Validators.required]],
-      coapEndpoint: [{value: '', disabled: true}],
-      dtlsCoapEndpoint: [{value: '', disabled: true}]
+      coapEndpoint: [{value: this.coapEndPointUrl(coapBaseUrl(false), this.routingKey), disabled: true}],
+      dtlsCoapEndpoint: [{value: this.coapEndPointUrl(coapBaseUrl(true), this.routingKey), disabled: true}]
     });
     this.coapIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
@@ -104,21 +100,22 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
     ).subscribe(value => this.integrationTypeChanged(value));
     this.coapIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
+    ).subscribe((value) => {
+      this.coapIntegrationConfigForm.get('coapEndpoint').patchValue(this.coapEndPointUrl(value, this.routingKey));
     });
     this.coapIntegrationConfigForm.get('dtlsBaseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
+    ).subscribe((value) => {
+      this.coapIntegrationConfigForm.get('dtlsCoapEndpoint').patchValue(this.coapEndPointUrl(value, this.routingKey));
     });
-    this.integrationBaseUrlChanged('baseUrl', 'coapEndpoint');
-    this.integrationBaseUrlChanged('dtlsBaseUrl', 'dtlsCoapEndpoint');
   }
 
   writeValue(value: CoapIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
-      this.coapIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
+      this.coapIntegrationConfigForm.patchValue(value.clientConfiguration, {emitEvent: false});
+      if (!this.disabled) {
+        this.coapIntegrationConfigForm.get('securityMode').updateValueAndValidity({onlySelf: true});
+      }
     } else {
       this.propagateChangePending = true;
     }
@@ -169,6 +166,7 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
       this.coapIntegrationConfigForm.enable({emitEvent: false});
       this.coapIntegrationConfigForm.get('coapEndpoint').disable({emitEvent: false});
       this.coapIntegrationConfigForm.get('dtlsCoapEndpoint').disable({emitEvent: false});
+      this.coapIntegrationConfigForm.get('securityMode').updateValueAndValidity({onlySelf: true});
     }
   }
 
@@ -199,11 +197,8 @@ export class CoapIntegrationFormComponent extends IntegrationForm implements Con
     }
   }
 
-  private integrationBaseUrlChanged(baseUrlKey: string, endpointKey: string) {
-    let url = this.coapIntegrationConfigForm.get(baseUrlKey).value;
-    const key = this.routingKey || '';
-    url += `/i/${key}`;
-    this.coapIntegrationConfigForm.get(endpointKey).patchValue(url);
+  private coapEndPointUrl(baseUrl: string, key = ''): string {
+    return `${baseUrl}/i/${key}`;
   }
 
   private onEndpointCopied(key: string) {

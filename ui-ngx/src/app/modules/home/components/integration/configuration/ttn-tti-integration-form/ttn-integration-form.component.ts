@@ -121,18 +121,18 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
       }
     });
 
+    this.apiVersion.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((value: boolean) => {
+      this.updateTtnVersionState(Number(value));
+    });
+
     this.ttnIntegrationConfigForm.get('clientConfiguration.customHost').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.hostEdit.patchValue('');
       this.hostEdit.markAsUntouched();
       this.hostEdit.markAsPristine();
-    });
-
-    this.apiVersion.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((value: boolean) => {
-      this.updateTtnVersionState(Number(value));
     });
 
     this.ttnIntegrationConfigForm.get('clientConfiguration.credentials').valueChanges.pipe(
