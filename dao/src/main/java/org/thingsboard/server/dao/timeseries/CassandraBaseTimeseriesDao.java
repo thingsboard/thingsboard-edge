@@ -671,9 +671,9 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
             stmtCreationLock.lock();
             try {
                 if (saveStmts == null) {
-                    saveStmts = new PreparedStatement[DataType.values().length];
+                    var stmts = new PreparedStatement[DataType.values().length];
                     for (DataType type : DataType.values()) {
-                        saveStmts[type.ordinal()] = prepare(INSERT_INTO + ModelConstants.TS_KV_CF +
+                        stmts[type.ordinal()] = prepare(INSERT_INTO + ModelConstants.TS_KV_CF +
                                 "(" + ModelConstants.ENTITY_TYPE_COLUMN +
                                 "," + ModelConstants.ENTITY_ID_COLUMN +
                                 "," + ModelConstants.KEY_COLUMN +
@@ -682,6 +682,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
                                 "," + getColumnName(type) + ")" +
                                 " VALUES(?, ?, ?, ?, ?, ?)");
                     }
+                    saveStmts = stmts;
                 }
             } finally {
                 stmtCreationLock.unlock();
@@ -695,9 +696,9 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
             stmtCreationLock.lock();
             try {
                 if (saveTtlStmts == null) {
-                    saveTtlStmts = new PreparedStatement[DataType.values().length];
+                    var stmts = new PreparedStatement[DataType.values().length];
                     for (DataType type : DataType.values()) {
-                        saveTtlStmts[type.ordinal()] = prepare(INSERT_INTO + ModelConstants.TS_KV_CF +
+                        stmts[type.ordinal()] = prepare(INSERT_INTO + ModelConstants.TS_KV_CF +
                                 "(" + ModelConstants.ENTITY_TYPE_COLUMN +
                                 "," + ModelConstants.ENTITY_ID_COLUMN +
                                 "," + ModelConstants.KEY_COLUMN +
@@ -706,6 +707,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
                                 "," + getColumnName(type) + ")" +
                                 " VALUES(?, ?, ?, ?, ?, ?) USING TTL ?");
                     }
+                    saveTtlStmts = stmts;
                 }
             } finally {
                 stmtCreationLock.unlock();
