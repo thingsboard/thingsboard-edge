@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.rule.engine.util;
 
@@ -29,6 +44,7 @@ import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -43,29 +59,44 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.queue.Queue;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
+import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -118,6 +149,22 @@ public class TenantIdLoaderTest {
     private RuleEngineRpcService rpcService;
     @Mock
     private RuleEngineApiUsageStateService ruleEngineApiUsageStateService;
+    @Mock
+    private EntityGroupService entityGroupService;
+    @Mock
+    private ConverterService converterService;
+    @Mock
+    private IntegrationService integrationService;
+    @Mock
+    private SchedulerEventService schedulerEventService;
+    @Mock
+    private BlobEntityService blobEntityService;
+    @Mock
+    private RoleService roleService;
+    @Mock
+    private GroupPermissionService groupPermissionService;
+    @Mock
+    private TbPeContext tbPeContext;
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
@@ -136,6 +183,7 @@ public class TenantIdLoaderTest {
         this.tenantProfileId = new TenantProfileId(UUID.randomUUID());
 
         when(ctx.getTenantId()).thenReturn(tenantId);
+        when(ctx.getPeContext()).thenReturn(tbPeContext);
 
         for (EntityType entityType : EntityType.values()) {
             initMocks(entityType, tenantId);
@@ -306,6 +354,66 @@ public class TenantIdLoaderTest {
                 TenantProfile tenantProfile = new TenantProfile(tenantProfileId);
 
                 when(ctx.getTenantProfile()).thenReturn(tenantProfile);
+
+                break;
+            //PE Entities
+            case ENTITY_GROUP:
+                DeviceId deviceId = new DeviceId(UUID.randomUUID());
+
+                EntityGroup entityGroup = new EntityGroup();
+                entityGroup.setOwnerId(deviceId);
+                entityGroup.setTenantId(tenantId);
+
+                when(tbPeContext.getEntityGroupService()).thenReturn(entityGroupService);
+                doReturn(entityGroup).when(entityGroupService).findEntityGroupById(eq(tenantId), any());
+
+                break;
+            case CONVERTER:
+                Converter converter = new Converter();
+                converter.setTenantId(tenantId);
+
+                when(tbPeContext.getConverterService()).thenReturn(converterService);
+                doReturn(converter).when(converterService).findConverterById(eq(tenantId), any());
+
+                break;
+            case INTEGRATION:
+                Integration integration = new Integration();
+                integration.setTenantId(tenantId);
+
+                when(tbPeContext.getIntegrationService()).thenReturn(integrationService);
+                doReturn(integration).when(integrationService).findIntegrationById(eq(tenantId), any());
+
+                break;
+            case SCHEDULER_EVENT:
+                SchedulerEvent schedulerEvent = new SchedulerEvent();
+                schedulerEvent.setTenantId(tenantId);
+
+                when(tbPeContext.getSchedulerEventService()).thenReturn(schedulerEventService);
+                doReturn(schedulerEvent).when(schedulerEventService).findSchedulerEventById(eq(tenantId), any());
+
+                break;
+            case BLOB_ENTITY:
+                BlobEntity blobEntity = new BlobEntity();
+                blobEntity.setTenantId(tenantId);
+
+                when(tbPeContext.getBlobEntityService()).thenReturn(blobEntityService);
+                doReturn(blobEntity).when(blobEntityService).findBlobEntityById(eq(tenantId), any());
+
+                break;
+            case ROLE:
+                Role role = new Role();
+                role.setTenantId(tenantId);
+
+                when(tbPeContext.getRoleService()).thenReturn(roleService);
+                doReturn(role).when(roleService).findRoleById(eq(tenantId), any());
+
+                break;
+            case GROUP_PERMISSION:
+                GroupPermission groupPermission = new GroupPermission();
+                groupPermission.setTenantId(tenantId);
+
+                when(tbPeContext.getGroupPermissionService()).thenReturn(groupPermissionService);
+                doReturn(groupPermission).when(groupPermissionService).findGroupPermissionById(eq(tenantId), any());
 
                 break;
             default:

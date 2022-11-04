@@ -66,6 +66,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -460,6 +461,11 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private WidgetTypeService widgetTypeService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private SchedulerEventService schedulerEventService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
