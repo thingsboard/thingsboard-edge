@@ -91,6 +91,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { CustomDialogService } from '@home/components/widget/dialog/custom-dialog.service';
 import { AuthService } from '@core/auth/auth.service';
 import { ResourceService } from '@core/http/resource.service';
+import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 import { DatePipe } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityGroupService } from '@core/http/entity-group.service';
@@ -105,6 +106,7 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { ReportService } from '@core/http/report.service';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus} from '@app/shared/models/alarm.models';
+import { TelemetrySubscriber } from '@app/shared/public-api';
 
 export interface IWidgetAction {
   name: string;
@@ -196,6 +198,8 @@ export class WidgetContext {
   dialogs: DialogService;
   customDialog: CustomDialogService;
   resourceService: ResourceService;
+  telemetryWsService: TelemetryWebsocketService;
+  telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;
   translate: TranslateService;
   http: HttpClient;
