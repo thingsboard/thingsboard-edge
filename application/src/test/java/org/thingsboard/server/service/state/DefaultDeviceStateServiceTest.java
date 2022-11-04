@@ -130,7 +130,9 @@ public class DefaultDeviceStateServiceTest {
 
         var latest =
                 Map.of(EntityKeyType.TIME_SERIES, Map.of(INACTIVITY_TIMEOUT, new TsValue(0, Long.toString(defaultInactivityTimeoutInSec * 1000))));
-        DeviceStateData deviceStateData = service.toDeviceStateData(new EntityData(deviceId, latest, Map.of()), new DeviceIdInfo(TenantId.SYS_TENANT_ID.getId(), UUID.randomUUID(), deviceUuid));
+        DeviceStateData deviceStateData = service.toDeviceStateData(
+                new EntityData(deviceId, false, false, latest, Map.of()),
+                new DeviceIdInfo(TenantId.SYS_TENANT_ID.getId(), UUID.randomUUID(), deviceUuid));
 
         Mockito.verify(attributesService, times(1)).find(TenantId.SYS_TENANT_ID, deviceId, SERVER_SCOPE, INACTIVITY_TIMEOUT);
 
