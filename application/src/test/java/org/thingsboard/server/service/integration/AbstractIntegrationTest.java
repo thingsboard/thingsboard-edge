@@ -99,7 +99,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         newIntegration.setConfiguration(integrationConfiguration);
         newIntegration.setDebugMode(true);
         newIntegration.setEnabled(false);
-        newIntegration.setAllowCreateDevicesOrAssets(false);
+        newIntegration.setAllowCreateDevicesOrAssets(true);
         integration = doPost("/api/integration", newIntegration, Integration.class);
         Assert.assertNotNull(integration);
     }
