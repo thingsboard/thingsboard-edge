@@ -30,34 +30,23 @@
  */
 package org.thingsboard.server.common.msg;
 
-import lombok.Data;
+import org.junit.jupiter.api.Test;
+import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
-import org.thingsboard.server.common.msg.gen.MsgProtos;
 
-import java.io.Serializable;
 import java.util.UUID;
 
-@Data
-public class TbMsgProcessingStackItem implements Serializable {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private final RuleChainId ruleChainId;
-    private final RuleNodeId ruleNodeId;
+class TbMsgProcessingStackItemTest {
 
-    MsgProtos.TbMsgProcessingStackItemProto toProto() {
-        return MsgProtos.TbMsgProcessingStackItemProto.newBuilder()
-                .setRuleChainIdMSB(ruleChainId.getId().getMostSignificantBits())
-                .setRuleChainIdLSB(ruleChainId.getId().getLeastSignificantBits())
-                .setRuleNodeIdMSB(ruleNodeId.getId().getMostSignificantBits())
-                .setRuleNodeIdLSB(ruleNodeId.getId().getLeastSignificantBits())
-                .build();
-    }
-
-    static TbMsgProcessingStackItem fromProto(MsgProtos.TbMsgProcessingStackItemProto item){
-        return new TbMsgProcessingStackItem(
-                new RuleChainId(new UUID(item.getRuleChainIdMSB(), item.getRuleChainIdLSB())),
-                new RuleNodeId(new UUID(item.getRuleNodeIdMSB(), item.getRuleNodeIdLSB()))
-        );
+    @Test
+    void testSerialization() {
+        TbMsgProcessingStackItem item = new TbMsgProcessingStackItem(new RuleChainId(UUID.randomUUID()), new RuleNodeId(UUID.randomUUID()));
+        byte[] bytes = FSTUtils.encode(item);
+        TbMsgProcessingStackItem itemDecoded = FSTUtils.decode(bytes);
+        assertThat(item).isEqualTo(itemDecoded);
     }
 
 }
