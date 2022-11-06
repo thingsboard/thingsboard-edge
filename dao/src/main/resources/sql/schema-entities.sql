@@ -971,6 +971,10 @@ CREATE TABLE IF NOT EXISTS notification_target (
     configuration varchar(1000) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS notification_rule (
+    id UUID NOT NULL CONSTRAINT notification_rule_pkey PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS notification_request (
     id UUID NOT NULL CONSTRAINT notification_request_pkey PRIMARY KEY,
     created_time BIGINT NOT NULL,
@@ -981,7 +985,9 @@ CREATE TABLE IF NOT EXISTS notification_request (
     notification_info VARCHAR(1000),
     notification_severity VARCHAR(32),
     additional_config VARCHAR(1000),
-    sender_id UUID
+    status VARCHAR(32),
+    rule_id UUID NULL CONSTRAINT fk_notification_request_rule_id REFERENCES notification_rule(id),
+    alarm_id UUID
 );
 
 CREATE TABLE IF NOT EXISTS notification (

@@ -34,5 +34,5 @@ import lombok.Data;
 
 @Data
 public class NotificationRequestConfig {
-    private Long sendingDelayMs;
+    private int sendingDelayInMinutes;
 }

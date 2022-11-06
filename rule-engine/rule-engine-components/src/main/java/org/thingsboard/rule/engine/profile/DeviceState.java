@@ -206,6 +206,7 @@ class DeviceState {
             AlarmState alarmState = alarmStates.computeIfAbsent(alarm.getId(),
                     a -> new AlarmState(this.deviceProfile, deviceId, alarm, getOrInitPersistedAlarmState(alarm), dynamicPredicateValueCtx));
             alarmState.processAckAlarm(alarmNf);
+            // todo: process notification rule
         }
         ctx.tellSuccess(msg);
     }

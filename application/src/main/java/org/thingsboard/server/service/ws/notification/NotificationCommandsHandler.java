@@ -28,20 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.server.service.ws.notification;
 
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.NotificationId;
-import org.thingsboard.server.common.data.id.NotificationRequestId;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationAsReadCmd;
+import org.thingsboard.server.service.ws.notification.cmd.NotificationsSubCmd;
+import org.thingsboard.server.service.ws.notification.cmd.NotificationsCountSubCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
 
-public interface NotificationProcessingService {
+public interface NotificationCommandsHandler {
 
-    NotificationRequest processNotificationRequest(SecurityUser user, NotificationRequest notificationRequest) throws ThingsboardException;
+    void handleUnreadNotificationsSubCmd(WebSocketSessionRef sessionRef, NotificationsSubCmd cmd);
 
-    void markNotificationAsRead(SecurityUser user, NotificationId notificationId);
+    void handleUnreadNotificationsCountSubCmd(WebSocketSessionRef sessionRef, NotificationsCountSubCmd cmd);
 
-    void deleteNotificationRequest(SecurityUser user, NotificationRequestId notificationRequestId);
+    void handleMarkAsReadCmd(WebSocketSessionRef sessionRef, MarkNotificationAsReadCmd cmd);
+
+    void handleUnsubCmd(WebSocketSessionRef sessionRef, UnsubscribeCmd cmd);
 
 }

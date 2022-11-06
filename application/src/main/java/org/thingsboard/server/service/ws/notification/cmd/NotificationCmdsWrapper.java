@@ -31,13 +31,15 @@
 package org.thingsboard.server.service.ws.notification.cmd;
 
 import lombok.Data;
-import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationAsReadCmd;
-import org.thingsboard.server.service.ws.notification.cmd.NotificationsSubCmd;
 
 @Data
 public class NotificationCmdsWrapper {
-    private NotificationsSubCmd unreadSubCmd;
-    private NotificationsUnsubCmd unreadUnsubCmd;
 
+    private NotificationsCountSubCmd unreadCountSubCmd;
+
+    private NotificationsSubCmd unreadSubCmd;
     private MarkNotificationAsReadCmd markAsReadCmd;
+
+    private NotificationsUnsubCmd unsubCmd;
+
 }

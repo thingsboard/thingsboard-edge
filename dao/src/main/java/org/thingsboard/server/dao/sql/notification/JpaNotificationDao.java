@@ -35,10 +35,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.NotificationId;
+import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
+import org.thingsboard.server.common.data.notification.NotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -88,8 +91,23 @@ public class JpaNotificationDao extends JpaAbstractDao<NotificationEntity, Notif
     }
 
     @Override
-    public void updateStatus(TenantId tenantId, NotificationId notificationId, NotificationStatus status) {
-        notificationRepository.updateStatus(notificationId.getId(), status);
+    public boolean updateStatusByIdAndUserId(TenantId tenantId, UserId userId, NotificationId notificationId, NotificationStatus status) {
+        return notificationRepository.updateStatusByIdAndRecipientId(notificationId.getId(), userId.getId(), status) != 0;
+    }
+
+    @Override
+    public int countUnreadByUserId(TenantId tenantId, UserId userId) {
+        return notificationRepository.countByRecipientIdAndStatusNot(userId.getId(), NotificationStatus.READ);
+    }
+
+    @Override
+    public PageData<Notification> findByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, PageLink pageLink) {
+        return DaoUtil.toPageData(notificationRepository.findByRequestId(notificationRequestId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public int updateInfosByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, NotificationInfo notificationInfo) {
+        return notificationRepository.updateInfosByRequestId(notificationRequestId.getId(), JacksonUtil.valueToTree(notificationInfo));
     }
 
     @Override

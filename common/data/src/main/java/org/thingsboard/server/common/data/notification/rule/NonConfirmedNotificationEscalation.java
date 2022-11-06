@@ -30,9 +30,18 @@
  */
 package org.thingsboard.server.common.data.notification.rule;
 
-import java.util.UUID;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
+@Data
 public class NonConfirmedNotificationEscalation {
-    private long delayMs; // delay since initial notification request // if no one from previous escalation item has read the notification, send notifications after this time to other recipients
-    private UUID notificationTargetId;
+
+    @Min(1)
+    private int delayInMinutes; // delay since initial notification request // if no one from previous escalation item has read the notification, send notifications after this time to other recipients
+    @NotNull
+    private NotificationTargetId notificationTargetId;
+
 }

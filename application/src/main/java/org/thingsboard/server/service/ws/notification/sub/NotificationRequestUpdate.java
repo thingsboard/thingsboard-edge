@@ -30,28 +30,19 @@
  */
 package org.thingsboard.server.service.ws.notification.sub;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.Notification;
-import org.thingsboard.server.service.ws.WebSocketSessionRef;
-import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationAsReadCmd;
-import org.thingsboard.server.service.ws.notification.cmd.NotificationsSubCmd;
-import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
+import org.thingsboard.server.common.data.notification.NotificationInfo;
 
-public interface NotificationsSubscriptionService {
-
-    void handleUnreadNotificationsSubCmd(WebSocketSessionRef sessionRef, NotificationsSubCmd cmd);
-
-    void handleMarkAsReadCmd(WebSocketSessionRef sessionRef, MarkNotificationAsReadCmd cmd);
-
-    void handleUnsubCmd(WebSocketSessionRef sessionRef, UnsubscribeCmd cmd);
-
-
-    void onNewNotification(TenantId tenantId, UserId recipientId, Notification notification);
-
-    void onNotificationUpdated(TenantId tenantId, UserId recipientId, Notification notification);
-
-    void onNotificationRequestDeleted(TenantId tenantId, NotificationRequestId notificationRequestId);
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class NotificationRequestUpdate {
+    private NotificationRequestId notificationRequestId;
+    private NotificationInfo notificationInfo;
+    private boolean deleted;
 }

@@ -50,7 +50,7 @@ public class NotificationsSubscription extends TbSubscription<NotificationsSubsc
 
     private final Map<UUID, Notification> unreadNotifications = new LinkedHashMap<>();
     private final int limit;
-    private final AtomicInteger totalUnreadCount = new AtomicInteger();
+    private final AtomicInteger totalUnreadCounter = new AtomicInteger();
 
     @Builder
     public NotificationsSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,
@@ -64,7 +64,7 @@ public class NotificationsSubscription extends TbSubscription<NotificationsSubsc
         return UnreadNotificationsUpdate.builder()
                 .cmdId(getSubscriptionId())
                 .notifications(unreadNotifications.values())
-                .totalUnreadCount(totalUnreadCount.get())
+                .totalUnreadCount(totalUnreadCounter.get())
                 .build();
     }
 
@@ -72,7 +72,7 @@ public class NotificationsSubscription extends TbSubscription<NotificationsSubsc
         return UnreadNotificationsUpdate.builder()
                 .cmdId(getSubscriptionId())
                 .update(notification)
-                .totalUnreadCount(totalUnreadCount.get())
+                .totalUnreadCount(totalUnreadCounter.get())
                 .build();
     }
 

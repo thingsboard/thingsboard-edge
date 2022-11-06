@@ -283,6 +283,8 @@ public interface TbContext {
 
     SmsSenderFactory getSmsSenderFactory();
 
+    RuleEngineNotificationService getNotificationService();
+
     /**
      * Creates JS Script Engine
      * @deprecated

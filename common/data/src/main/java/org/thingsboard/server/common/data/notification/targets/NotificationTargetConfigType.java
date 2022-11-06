@@ -34,6 +34,9 @@ public enum NotificationTargetConfigType {
     SINGLE_USER,
     USER_LIST,
 
+    CUSTOMER_USERS,
+    ALL_USERS
+
 //    USER_GROUP,
 //    USERS_WITH_ROLE,
 //    QUERY // ?

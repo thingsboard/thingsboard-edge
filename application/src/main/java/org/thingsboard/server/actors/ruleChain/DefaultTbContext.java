@@ -45,6 +45,7 @@ import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
+import org.thingsboard.rule.engine.api.RuleEngineNotificationService;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -701,6 +702,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public SmsSenderFactory getSmsSenderFactory() {
         return mainCtx.getSmsSenderFactory();
+    }
+
+    @Override
+    public RuleEngineNotificationService getNotificationService() {
+        return mainCtx.getNotificationService();
     }
 
     @Override

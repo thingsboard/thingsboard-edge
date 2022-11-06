@@ -80,7 +80,9 @@ public enum Resource {
     TB_RESOURCE(EntityType.TB_RESOURCE),
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
     QUEUE(EntityType.QUEUE),
-    VERSION_CONTROL;
+    VERSION_CONTROL,
+    NOTIFICATION_TARGET(EntityType.NOTIFICATION_TARGET),
+    NOTIFICATION_REQUEST(EntityType.NOTIFICATION_REQUEST);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();

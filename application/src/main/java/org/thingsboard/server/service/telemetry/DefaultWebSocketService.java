@@ -37,8 +37,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
@@ -84,12 +84,10 @@ import org.thingsboard.server.service.telemetry.exception.ValidationException;
 import org.thingsboard.server.service.ws.SessionEvent;
 import org.thingsboard.server.service.ws.WebSocketMsgEndpoint;
 import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import org.thingsboard.server.service.ws.WsCmd;
 import org.thingsboard.server.service.ws.WsSessionMetaData;
-import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationAsReadCmd;
+import org.thingsboard.server.service.ws.notification.NotificationCommandsHandler;
 import org.thingsboard.server.service.ws.notification.cmd.NotificationCmdsWrapper;
-import org.thingsboard.server.service.ws.notification.cmd.NotificationsSubCmd;
-import org.thingsboard.server.service.ws.notification.cmd.NotificationsUnsubCmd;
-import org.thingsboard.server.service.ws.notification.sub.DefaultNotificationsSubscriptionService;
 import org.thingsboard.server.service.ws.telemetry.WebSocketService;
 import org.thingsboard.server.service.ws.telemetry.cmd.TelemetryPluginCmdsWrapper;
 import org.thingsboard.server.service.ws.telemetry.cmd.v1.AttributesSubscriptionCmd;
@@ -123,6 +121,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -132,6 +131,7 @@ import java.util.stream.Collectors;
 @Service
 @TbCoreComponent
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultWebSocketService implements WebSocketService {
 
     public static final int NUMBER_OF_PING_ATTEMPTS = 3;
@@ -148,56 +148,58 @@ public class DefaultWebSocketService implements WebSocketService {
 
     private final ConcurrentMap<String, WsSessionMetaData> wsSessionsMap = new ConcurrentHashMap<>();
 
-    @Autowired
-    private TbLocalSubscriptionService oldSubService;
-
-    @Autowired
-    private TbEntityDataSubscriptionService entityDataSubService;
-
-    @Autowired
-    private DefaultNotificationsSubscriptionService notificationsSubService;
-
-    @Autowired
-    private WebSocketMsgEndpoint msgEndpoint;
-
-    @Autowired
-    private AccessValidator accessValidator;
-
-    @Autowired
-    private AccessControlService accessControlService;
-
-    @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
-    private TimeseriesService tsService;
-
-    @Autowired
-    private TbServiceInfoProvider serviceInfoProvider;
-
-    @Autowired
-    private TbTenantProfileCache tenantProfileCache;
+    private final TbLocalSubscriptionService oldSubService;
+    private final TbEntityDataSubscriptionService entityDataSubService;
+    private final NotificationCommandsHandler notificationCmdsHandler;
+    private final WebSocketMsgEndpoint msgEndpoint;
+    private final AccessValidator accessValidator;
+    private final AccessControlService accessControlService;
+    private final AttributesService attributesService;
+    private final TimeseriesService tsService;
+    private final TbServiceInfoProvider serviceInfoProvider;
+    private final TbTenantProfileCache tenantProfileCache;
 
     @Value("${server.ws.ping_timeout:30000}")
     private long pingTimeout;
 
-    private ConcurrentMap<TenantId, Set<String>> tenantSubscriptionsMap = new ConcurrentHashMap<>();
-    private ConcurrentMap<CustomerId, Set<String>> customerSubscriptionsMap = new ConcurrentHashMap<>();
-    private ConcurrentMap<UserId, Set<String>> regularUserSubscriptionsMap = new ConcurrentHashMap<>();
-    private ConcurrentMap<UserId, Set<String>> publicUserSubscriptionsMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<TenantId, Set<String>> tenantSubscriptionsMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<CustomerId, Set<String>> customerSubscriptionsMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<UserId, Set<String>> regularUserSubscriptionsMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<UserId, Set<String>> publicUserSubscriptionsMap = new ConcurrentHashMap<>();
 
     private ExecutorService executor;
+    private ScheduledExecutorService pingExecutor;
     private String serviceId;
 
-    private ScheduledExecutorService pingExecutor;
+    private List<WsCmdListHandler<TelemetryPluginCmdsWrapper, ?>> telemetryCmdsHandlers;
+    private List<WsCmdHandler<NotificationCmdsWrapper, ? extends WsCmd>> notificationCmdsHandlers;
 
     @PostConstruct
-    public void initExecutor() {
+    public void init() {
         serviceId = serviceInfoProvider.getServiceId();
         executor = ThingsBoardExecutors.newWorkStealingPool(50, getClass());
 
         pingExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("telemetry-web-socket-ping"));
         pingExecutor.scheduleWithFixedDelay(this::sendPing, pingTimeout / NUMBER_OF_PING_ATTEMPTS, pingTimeout / NUMBER_OF_PING_ATTEMPTS, TimeUnit.MILLISECONDS);
+
+        telemetryCmdsHandlers = List.of(
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getAttrSubCmds, this::handleWsAttributesSubscriptionCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getTsSubCmds, this::handleWsTimeseriesSubscriptionCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getHistoryCmds, this::handleWsHistoryCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getEntityDataCmds, this::handleWsEntityDataCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getAlarmDataCmds, this::handleWsAlarmDataCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getEntityCountCmds, this::handleWsEntityCountCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getEntityDataUnsubscribeCmds, this::handleWsDataUnsubscribeCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getAlarmDataUnsubscribeCmds, this::handleWsDataUnsubscribeCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getAlarmDataUnsubscribeCmds, this::handleWsDataUnsubscribeCmd),
+                WsCmdListHandler.of(TelemetryPluginCmdsWrapper::getEntityCountUnsubscribeCmds, this::handleWsDataUnsubscribeCmd)
+        );
+        notificationCmdsHandlers = List.of(
+                WsCmdHandler.of(NotificationCmdsWrapper::getUnreadSubCmd, notificationCmdsHandler::handleUnreadNotificationsSubCmd),
+                WsCmdHandler.of(NotificationCmdsWrapper::getUnreadCountSubCmd, notificationCmdsHandler::handleUnreadNotificationsCountSubCmd),
+                WsCmdHandler.of(NotificationCmdsWrapper::getMarkAsReadCmd, notificationCmdsHandler::handleMarkAsReadCmd),
+                WsCmdHandler.of(NotificationCmdsWrapper::getUnsubCmd, notificationCmdsHandler::handleUnsubCmd)
+        );
     }
 
     @PreDestroy
@@ -252,77 +254,30 @@ public class DefaultWebSocketService implements WebSocketService {
         }
     }
 
+
     private void processTelemetryCmds(WebSocketSessionRef sessionRef, String msg) throws JsonProcessingException {
         TelemetryPluginCmdsWrapper cmdsWrapper = jsonMapper.readValue(msg, TelemetryPluginCmdsWrapper.class);
         if (cmdsWrapper == null) {
             return;
         }
-        if (cmdsWrapper.getAttrSubCmds() != null) {
-            cmdsWrapper.getAttrSubCmds().forEach(cmd -> {
-                if (processSubscription(sessionRef, cmd)) {
-                    handleWsAttributesSubscriptionCmd(sessionRef, cmd);
-                }
-            });
-        }
-        if (cmdsWrapper.getTsSubCmds() != null) {
-            cmdsWrapper.getTsSubCmds().forEach(cmd -> {
-                if (processSubscription(sessionRef, cmd)) {
-                    handleWsTimeseriesSubscriptionCmd(sessionRef, cmd);
-                }
-            });
-        }
-        if (cmdsWrapper.getHistoryCmds() != null) {
-            cmdsWrapper.getHistoryCmds().forEach(cmd -> handleWsHistoryCmd(sessionRef, cmd));
-        }
-        if (cmdsWrapper.getEntityDataCmds() != null) {
-            cmdsWrapper.getEntityDataCmds().forEach(cmd -> handleWsEntityDataCmd(sessionRef, cmd));
-        }
-        if (cmdsWrapper.getAlarmDataCmds() != null) {
-            cmdsWrapper.getAlarmDataCmds().forEach(cmd -> handleWsAlarmDataCmd(sessionRef, cmd));
-        }
-        if (cmdsWrapper.getEntityCountCmds() != null) {
-            cmdsWrapper.getEntityCountCmds().forEach(cmd -> handleWsEntityCountCmd(sessionRef, cmd));
-        }
-        if (cmdsWrapper.getEntityDataUnsubscribeCmds() != null) {
-            cmdsWrapper.getEntityDataUnsubscribeCmds().forEach(cmd -> handleWsDataUnsubscribeCmd(sessionRef, cmd));
-        }
-        if (cmdsWrapper.getAlarmDataUnsubscribeCmds() != null) {
-            cmdsWrapper.getAlarmDataUnsubscribeCmds().forEach(cmd -> handleWsDataUnsubscribeCmd(sessionRef, cmd));
-        }
-        if (cmdsWrapper.getEntityCountUnsubscribeCmds() != null) {
-            cmdsWrapper.getEntityCountUnsubscribeCmds().forEach(cmd -> handleWsDataUnsubscribeCmd(sessionRef, cmd));
+        for (WsCmdListHandler<TelemetryPluginCmdsWrapper, ?> cmdHandler : telemetryCmdsHandlers) {
+            List<?> cmds = cmdHandler.extractCmds(cmdsWrapper);
+            if (cmds != null) {
+                cmdHandler.handle(sessionRef, cmds);
+            }
         }
     }
 
     private void processNotificationCmds(WebSocketSessionRef sessionRef, String msg) throws IOException {
         NotificationCmdsWrapper cmdsWrapper = jsonMapper.readValue(msg, NotificationCmdsWrapper.class);
-        if (cmdsWrapper.getUnreadSubCmd() != null) {
-            handleUnreadNotificationsSubCmd(sessionRef, cmdsWrapper.getUnreadSubCmd());
-        } else if (cmdsWrapper.getUnreadUnsubCmd() != null) {
-            handleUnreadNotificationsUnsubCmd(sessionRef, cmdsWrapper.getUnreadUnsubCmd());
-        } else if (cmdsWrapper.getMarkAsReadCmd() != null) {
-            handleMarkNotificationAsReadCmd(sessionRef, cmdsWrapper.getMarkAsReadCmd());
-        }
-    }
-
-    private void handleUnreadNotificationsSubCmd(WebSocketSessionRef sessionRef, NotificationsSubCmd cmd) {
-        String sessionId = sessionRef.getSessionId();
-        if (validateSessionMetadata(sessionRef, cmd.getCmdId(), sessionId)) {
-            notificationsSubService.handleUnreadNotificationsSubCmd(sessionRef, cmd);
-        }
-    }
-
-    private void handleUnreadNotificationsUnsubCmd(WebSocketSessionRef sessionRef, NotificationsUnsubCmd cmd) {
-        String sessionId = sessionRef.getSessionId();
-        if (validateSessionMetadata(sessionRef, cmd.getCmdId(), sessionId)) {
-            notificationsSubService.handleUnsubCmd(sessionRef, cmd);
-        }
-    }
-
-    private void handleMarkNotificationAsReadCmd(WebSocketSessionRef sessionRef, MarkNotificationAsReadCmd cmd) {
-        String sessionId = sessionRef.getSessionId();
-        if (validateSessionMetadata(sessionRef, cmd.getCmdId(), sessionId)) {
-            notificationsSubService.handleMarkAsReadCmd(sessionRef, cmd);
+        for (WsCmdHandler<NotificationCmdsWrapper, ? extends WsCmd> cmdHandler : notificationCmdsHandlers) {
+            WsCmd cmd = cmdHandler.extractCmd(cmdsWrapper);
+            if (cmd != null) {
+                String sessionId = sessionRef.getSessionId();
+                if (validateSessionMetadata(sessionRef, cmd.getCmdId(), sessionId)) {
+                    cmdHandler.handle(sessionRef, cmd); // todo: handle exceptions
+                }
+            }
         }
     }
 
@@ -508,6 +463,10 @@ public class DefaultWebSocketService implements WebSocketService {
     }
 
     private void handleWsAttributesSubscriptionCmd(WebSocketSessionRef sessionRef, AttributesSubscriptionCmd cmd) {
+        if (!processSubscription(sessionRef, cmd)) {
+            return;
+        }
+
         String sessionId = sessionRef.getSessionId();
         log.debug("[{}] Processing: {}", sessionId, cmd);
 
@@ -674,6 +633,10 @@ public class DefaultWebSocketService implements WebSocketService {
     }
 
     private void handleWsTimeseriesSubscriptionCmd(WebSocketSessionRef sessionRef, TimeseriesSubscriptionCmd cmd) {
+        if (!processSubscription(sessionRef, cmd)) {
+            return;
+        }
+
         String sessionId = sessionRef.getSessionId();
         log.debug("[{}] Processing: {}", sessionId, cmd);
 
@@ -1049,4 +1012,37 @@ public class DefaultWebSocketService implements WebSocketService {
     private int getLimit(int limit) {
         return limit == 0 ? DEFAULT_LIMIT : limit;
     }
+
+    @RequiredArgsConstructor(staticName = "of")
+    public static class WsCmdHandler<W, C> {
+        private final java.util.function.Function<W, C> cmdExtractor;
+        private final BiConsumer<WebSocketSessionRef, C> handler;
+
+        public C extractCmd(W cmdsWrapper) {
+            return cmdExtractor.apply(cmdsWrapper);
+        }
+
+        @SuppressWarnings("unchecked")
+        public void handle(WebSocketSessionRef sessionRef, Object cmd) {
+            handler.accept(sessionRef, (C) cmd);
+        }
+    }
+
+    @RequiredArgsConstructor(staticName = "of")
+    public static class WsCmdListHandler<W, C> {
+        private final java.util.function.Function<W, List<C>> cmdExtractor;
+        private final BiConsumer<WebSocketSessionRef, C> handler;
+
+        public List<C> extractCmds(W cmdsWrapper) {
+            return cmdExtractor.apply(cmdsWrapper);
+        }
+
+        @SuppressWarnings("unchecked")
+        public void handle(WebSocketSessionRef sessionRef, List<?> cmds) {
+            cmds.forEach(cmd -> {
+                handler.accept(sessionRef, (C) cmd);
+            });
+        }
+    }
+
 }

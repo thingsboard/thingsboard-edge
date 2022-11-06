@@ -33,8 +33,10 @@ package org.thingsboard.server.common.data.notification.targets;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -44,7 +46,7 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class NotificationTarget extends BaseData<NotificationTargetId> implements HasTenantId, HasName {
+public class NotificationTarget extends BaseData<NotificationTargetId> implements HasName, TenantEntity {
 
     @NotNull
     private TenantId tenantId;
@@ -53,5 +55,10 @@ public class NotificationTarget extends BaseData<NotificationTargetId> implement
     @NotNull
     @Valid
     private NotificationTargetConfig configuration;
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_TARGET;
+    }
 
 }

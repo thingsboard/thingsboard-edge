@@ -30,17 +30,23 @@
  */
 package org.thingsboard.server.common.data.notification;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import javax.validation.Valid;
@@ -52,7 +58,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class NotificationRequest extends BaseData<NotificationRequestId> implements HasTenantId {
+public class NotificationRequest extends BaseData<NotificationRequestId> implements HasName, TenantEntity {
 
     private TenantId tenantId;
     @NotNull(message = "Target is not specified")
@@ -66,9 +72,25 @@ public class NotificationRequest extends BaseData<NotificationRequestId> impleme
     private NotificationInfo notificationInfo;
     private NotificationSeverity notificationSeverity;
     private NotificationRequestConfig additionalConfig;
-    private UserId senderId;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private NotificationRequestStatus status;
+
+    @JsonIgnore
+    private NotificationRuleId ruleId; // maybe move to child class
+    @JsonIgnore
+    private AlarmId alarmId;
 
     public static final String GENERAL_NOTIFICATION_REASON = "General";
     public static final String ALARM_NOTIFICATION_REASON = "Alarm";
+
+    @Override
+    public String getName() {
+        return notificationReason;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_REQUEST;
+    }
 
 }

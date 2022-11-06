@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
+import org.thingsboard.rule.engine.api.RuleEngineNotificationService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -359,6 +360,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private SmsSenderFactory smsSenderFactory;
+
+    @Autowired
+    @Getter
+    private RuleEngineNotificationService notificationService;
 
     @Lazy
     @Autowired(required = false)

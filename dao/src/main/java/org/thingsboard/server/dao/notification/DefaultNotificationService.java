@@ -34,12 +34,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
+import org.thingsboard.server.common.data.notification.NotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationSeverity;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
@@ -49,6 +51,8 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.sql.query.EntityKeyMapping;
 import org.thingsboard.server.exception.DataValidationException;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -61,7 +65,7 @@ public class DefaultNotificationService implements NotificationService {
     private final NotificationRequestValidator notificationRequestValidator = new NotificationRequestValidator();
 
     @Override
-    public NotificationRequest createNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest) {
+    public NotificationRequest saveNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest) {
         if (StringUtils.isBlank(notificationRequest.getNotificationReason())) {
             notificationRequest.setNotificationReason(NotificationRequest.GENERAL_NOTIFICATION_REASON);
         }
@@ -78,33 +82,38 @@ public class DefaultNotificationService implements NotificationService {
     }
 
     @Override
-    public PageData<NotificationRequest> findNotificationRequestsByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink) {
+    public PageData<NotificationRequest> findNotificationRequestsByTenantId(TenantId tenantId, PageLink pageLink) {
         return notificationRequestDao.findByTenantIdAndPageLink(tenantId, pageLink);
+    }
+
+    @Override
+    public List<NotificationRequest> findNotificationRequestsByRuleIdAndAlarmId(TenantId tenantId, NotificationRuleId ruleId, AlarmId alarmId) {
+        return notificationRequestDao.findByRuleIdAndAlarmId(tenantId, ruleId, alarmId);
     }
 
     // ON DELETE CASCADE is used: notifications for request are deleted as well
     @Override
-    public void deleteNotificationRequest(TenantId tenantId, NotificationRequestId id) {
+    public void deleteNotificationRequestById(TenantId tenantId, NotificationRequestId id) {
         notificationRequestDao.removeById(tenantId, id.getId());
     }
 
     @Override
-    public Notification createNotification(TenantId tenantId, Notification notification) {
-        if (notification.getId() != null) {
-            throw new DataValidationException("Notification cannot be updated"); // tmp ?
-        }
+    public Notification saveNotification(TenantId tenantId, Notification notification) {
         return notificationDao.save(tenantId, notification);
     }
 
-    @Transactional
     @Override
-    public Notification updateNotificationStatus(TenantId tenantId, NotificationId notificationId, NotificationStatus status) {
-        notificationDao.updateStatus(tenantId, notificationId, status);
+    public Notification findNotificationById(TenantId tenantId, NotificationId notificationId) {
         return notificationDao.findById(tenantId, notificationId.getId());
     }
 
     @Override
-    public PageData<Notification> findNotificationsByUserIdAndReadStatusAndPageLink(TenantId tenantId, UserId userId, boolean unreadOnly, PageLink pageLink) {
+    public boolean markNotificationAsRead(TenantId tenantId, UserId userId, NotificationId notificationId) {
+        return notificationDao.updateStatusByIdAndUserId(tenantId, userId, notificationId, NotificationStatus.READ);
+    }
+
+    @Override
+    public PageData<Notification> findNotificationsByUserIdAndReadStatus(TenantId tenantId, UserId userId, boolean unreadOnly, PageLink pageLink) {
         if (unreadOnly) {
             return notificationDao.findUnreadByUserIdAndPageLink(tenantId, userId, pageLink);
         } else {
@@ -116,21 +125,23 @@ public class DefaultNotificationService implements NotificationService {
     public PageData<Notification> findLatestUnreadNotificationsByUserId(TenantId tenantId, UserId userId, int limit) {
         SortOrder sortOrder = new SortOrder(EntityKeyMapping.CREATED_TIME, SortOrder.Direction.DESC);
         PageLink pageLink = new PageLink(limit, 0, null, sortOrder);
-        return findNotificationsByUserIdAndReadStatusAndPageLink(tenantId, userId, true, pageLink);
+        return findNotificationsByUserIdAndReadStatus(tenantId, userId, true, pageLink);
+    }
+
+    @Override
+    public int countUnreadNotificationsByUserId(TenantId tenantId, UserId userId) {
+        return notificationDao.countUnreadByUserId(tenantId, userId);
+    }
+
+    @Override
+    public int updateNotificationsInfosByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, NotificationInfo notificationInfo) {
+        return notificationDao.updateInfosByRequestId(tenantId, notificationRequestId, notificationInfo);
     }
 
     private static class NotificationRequestValidator extends DataValidator<NotificationRequest> {
 
         @Override
         protected void validateDataImpl(TenantId tenantId, NotificationRequest notificationRequest) {
-            if (notificationRequest.getId() != null) {
-                throw new DataValidationException("Notification request cannot be changed once created");
-            }
-            if (notificationRequest.getSenderId() != null) {
-                if (notificationRequest.getNotificationReason().equalsIgnoreCase(NotificationRequest.ALARM_NOTIFICATION_REASON)) {
-                    throw new DataValidationException("'Alarm' notification reason is for internal usage");
-                }
-            }
         }
 
     }

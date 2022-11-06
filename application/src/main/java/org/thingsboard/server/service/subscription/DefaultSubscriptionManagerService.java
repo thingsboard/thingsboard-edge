@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.Aggregation;
@@ -57,11 +56,11 @@ import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.service.notification.NotificationRuleProcessingService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.gen.transport.TransportProtos.LocalSubscriptionServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.TbAlarmSubscriptionUpdateProto;
@@ -80,6 +79,8 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.state.DeviceStateService;
+import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
+import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationsSubscriptionUpdate;
 import org.thingsboard.server.service.ws.telemetry.sub.AlarmSubscriptionUpdate;
 import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
@@ -131,6 +132,9 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
 
     @Autowired
     private TbClusterService clusterService;
+
+    @Autowired
+    private NotificationRuleProcessingService notificationRuleProcessingService;
 
     private final Map<EntityId, Set<TbSubscription>> subscriptionsByEntityId = new ConcurrentHashMap<>();
     private final Map<String, Map<Integer, TbSubscription>> subscriptionsByWsSessionId = new ConcurrentHashMap<>();
@@ -342,6 +346,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                 s -> alarm,
                 false
         );
+        notificationRuleProcessingService.onAlarmCreatedOrUpdated(tenantId, alarm);
         callback.onSuccess();
     }
 
@@ -363,14 +368,13 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     }
 
     @Override
-    public void onNotificationUpdate(TenantId tenantId, UserId recipientId, Notification notification, TbCallback callback) {
+    public void onNotificationUpdate(TenantId tenantId, UserId recipientId, NotificationUpdate notificationUpdate, TbCallback callback) {
         Set<TbSubscription> subscriptions = subscriptionsByEntityId.get(recipientId);
         if (subscriptions != null) {
-            NotificationsSubscriptionUpdate subscriptionUpdate = NotificationsSubscriptionUpdate.builder()
-                    .notification(notification)
-                    .build();
+            NotificationsSubscriptionUpdate subscriptionUpdate = new NotificationsSubscriptionUpdate(notificationUpdate);
             subscriptions.stream()
-                    .filter(subscription -> subscription.getType() == TbSubscriptionType.NOTIFICATIONS)
+                    .filter(subscription -> subscription.getType() == TbSubscriptionType.NOTIFICATIONS
+                            || subscription.getType() == TbSubscriptionType.NOTIFICATIONS_COUNT)
                     .forEach(subscription -> {
                         if (serviceId.equals(subscription.getServiceId())) {
                             localSubscriptionService.onSubscriptionUpdate(subscription.getSessionId(),
@@ -387,15 +391,13 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
     }
 
     @Override
-    public void onNotificationRequestDeleted(TenantId tenantId, NotificationRequestId notificationRequestId, TbCallback callback) {
-        NotificationsSubscriptionUpdate subscriptionUpdate = NotificationsSubscriptionUpdate.builder()
-                .notificationRequestDeleted(true)
-                .notificationRequestId(notificationRequestId)
-                .build();
+    public void onNotificationRequestUpdate(TenantId tenantId, NotificationRequestUpdate notificationRequestUpdate, TbCallback callback) {
+        NotificationsSubscriptionUpdate subscriptionUpdate = new NotificationsSubscriptionUpdate(notificationRequestUpdate);
         subscriptionsByEntityId.entrySet().stream()
                 .filter(subEntry -> subEntry.getKey().getEntityType() == EntityType.USER)
                 .flatMap(subEntry -> subEntry.getValue().stream()
-                        .filter(sub -> sub.getType() == TbSubscriptionType.NOTIFICATIONS)
+                        .filter(sub -> sub.getType() == TbSubscriptionType.NOTIFICATIONS
+                                || sub.getType() == TbSubscriptionType.NOTIFICATIONS_COUNT)
                         .filter(sub -> sub.getServiceId().equals(serviceId)))
                 .forEach(subscription -> {
                     localSubscriptionService.onSubscriptionUpdate(subscription.getSessionId(), subscription.getSubscriptionId(), subscriptionUpdate, TbCallback.EMPTY);

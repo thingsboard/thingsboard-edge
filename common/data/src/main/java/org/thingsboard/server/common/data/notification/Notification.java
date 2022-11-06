@@ -35,7 +35,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.SearchTextBased;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.id.UserId;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class Notification extends SearchTextBased<NotificationId> {
+public class Notification extends BaseData<NotificationId> {
 
     private NotificationRequestId requestId;
     private UserId recipientId;
@@ -56,8 +56,4 @@ public class Notification extends SearchTextBased<NotificationId> {
     private NotificationStatus status;
 //    private UserId senderId;
 
-    @Override
-    public String getSearchText() {
-        return text;
-    }
 }
