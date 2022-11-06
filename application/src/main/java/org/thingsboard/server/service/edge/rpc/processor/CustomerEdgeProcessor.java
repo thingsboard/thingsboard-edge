@@ -30,33 +30,47 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
 @TbCoreComponent
 public class CustomerEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processCustomerToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+    public DownlinkMsg convertCustomerEventToDownlink(EdgeEvent edgeEvent) {
         CustomerId customerId = new CustomerId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (action) {
+        switch (edgeEvent.getAction()) {
             case ADDED:
             case UPDATED:
                 Customer customer = customerService.findCustomerById(edgeEvent.getTenantId(), customerId);
                 if (customer != null) {
+                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     CustomerUpdateMsg customerUpdateMsg =
-                            customerMsgConstructor.constructCustomerUpdatedMsg(msgType, customer);
+                            customerMsgConstructor.constructCustomerUpdatedMsg(msgType, customer, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addCustomerUpdateMsg(customerUpdateMsg)
@@ -64,7 +78,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                 }
                 break;
             case DELETED:
-            case CHANGE_OWNER:
+//            case CHANGE_OWNER: TODO: @voba implement
                 CustomerUpdateMsg customerUpdateMsg =
                         customerMsgConstructor.constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()
@@ -74,6 +88,28 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                 break;
         }
         return downlinkMsg;
+    }
+
+    public ListenableFuture<Void> processCustomerNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
+        EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
+        EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
+                new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
+        switch (actionType) {
+            case UPDATED:
+                List<EdgeId> edgesByCustomerId =
+                        customersHierarchyEdgeService.findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
+                if (edgesByCustomerId != null) {
+                    for (EdgeId edgeId : edgesByCustomerId) {
+                        saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                    }
+                }
+            // case DELETED: TODO: @voba - is it required?
+            // case CHANGE_OWNER: TODO: @voba
+            // return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
+            default:
+                return Futures.immediateFuture(null);
+        }
     }
 
 }

@@ -44,6 +44,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -119,6 +122,16 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         TbTestWebSocketClient wsClient = new TbTestWebSocketClient(new URI(WS_URL + wsPort + "/api/ws/plugins/telemetry?token=" + token));
         assertThat(wsClient.connectBlocking(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         return wsClient;
+    }
+
+    protected void resetSysAdminWhiteLabelingSettings(String tenantEmail, String tenantPassword) throws Exception {
+        loginSysAdmin();
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
+        doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
+        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
+
+        loginUser(tenantEmail, tenantPassword);
     }
 
 }

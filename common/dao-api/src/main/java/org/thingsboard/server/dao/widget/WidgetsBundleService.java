@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.widget;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -57,6 +58,10 @@ public interface WidgetsBundleService {
     PageData<WidgetsBundle> findAllTenantWidgetsBundlesByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink);
 
     List<WidgetsBundle> findAllTenantWidgetsBundlesByTenantId(TenantId tenantId);
+
+    ListenableFuture<List<WidgetsBundle>> findSystemWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds);
+
+    ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds);
 
     void deleteWidgetsBundlesByTenantId(TenantId tenantId);
 

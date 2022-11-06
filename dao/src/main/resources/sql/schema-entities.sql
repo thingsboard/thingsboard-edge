@@ -630,7 +630,7 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (
-    id uuid NOT NULL CONSTRAINT blob_entity_pkey PRIMARY KEY,
+    id uuid NOT NULL,
     created_time bigint NOT NULL,
     tenant_id uuid,
     customer_id uuid,
@@ -640,7 +640,7 @@ CREATE TABLE IF NOT EXISTS blob_entity (
     search_text varchar(255),
     data varchar(10485760),
     additional_info varchar
-);
+) PARTITION BY RANGE (created_time);
 
 CREATE TABLE IF NOT EXISTS entity_view (
     id uuid NOT NULL CONSTRAINT entity_view_pkey PRIMARY KEY,

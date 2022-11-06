@@ -15,7 +15,7 @@
     <logger name="org.apache.cassandra" level="WARN"/>
     <logger name="org.cassandraunit" level="INFO"/>
     <logger name="org.eclipse.leshan" level="INFO"/>
-
+    <logger name="org.thingsboard.integration.opcua" level="TRACE"/>
 
     <root level="WARN">
         <appender-ref ref="console"/>

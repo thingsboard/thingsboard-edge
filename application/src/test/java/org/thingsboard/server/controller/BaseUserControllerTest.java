@@ -43,19 +43,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.user.UserDao;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.mail.TestMailService;
 
 import java.util.ArrayList;
@@ -121,7 +127,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 ActionType.ADDED_TO_ENTITY_GROUP, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, 1, 1, 2);
+                ActionType.ADDED, ActionType.ADDED, 1, 0, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
         logout();
@@ -158,9 +164,9 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         doDelete("/api/user/" + savedUser.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        testNotifyEntityOneTimeMsgToEdgeServiceNever(foundUser, foundUser.getId(), foundUser.getId(),
+        testNotifyEntityAllNTimeLogEntityActionEntityEqClass(foundUser, foundUser.getId(), foundUser.getId(),
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.DELETED, foundUser.getId().getId().toString());
+                ActionType.DELETED, 1, 0, SYSTEM_TENANT.getId().toString());
     }
 
     @Test
@@ -257,7 +263,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
 
         doPost("/api/user", tenantAdmin)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "USER" + " '" + tenantAdmin.getEmail() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "USER" + " '" + tenantAdmin.getEmail() + "'!")));
 
         testNotifyEntityNever(tenantAdmin.getId(), tenantAdmin);
 
@@ -449,7 +455,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         String userIdStr = savedUser.getId().getId().toString();
         doGet("/api/user/" + userIdStr)
                 .andExpect(status().isNotFound())
-                .andExpect(statusReason(containsString( msgErrorNoFound("User",userIdStr))));
+                .andExpect(statusReason(containsString(msgErrorNoFound("User", userIdStr))));
     }
 
     @Test
@@ -480,7 +486,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         testManyUser.setTenantId(tenantId);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(testManyUser, testManyUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL,
-                ActionType.ADDED, ActionType.ADDED, cntEntity, cntEntity, cntEntity*2);
+                ActionType.ADDED, ActionType.ADDED, cntEntity, 0, cntEntity * 2);
 
         List<User> loadedTenantAdmins = new ArrayList<>();
         PageLink pageLink = new PageLink(33);
@@ -520,7 +526,9 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         String email1 = "testEmail1";
         List<User> tenantAdminsEmail1 = new ArrayList<>();
 
-        for (int i = 0; i < 124; i++) {
+        final int NUMBER_OF_USERS = 124;
+
+        for (int i = 0; i < NUMBER_OF_USERS; i++) {
             User user = new User();
             user.setAuthority(Authority.TENANT_ADMIN);
             user.setTenantId(tenantId);
@@ -784,6 +792,70 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
     public void testDeleteUserExceptionWithRelationsTransactional() throws Exception {
         UserId userId = createUser().getId();
         testEntityDaoWithRelationsTransactionalException(userDao, tenantId, userId, "/api/user/" + userId);
+    }
+
+    @Test
+    public void testEnableDisableUser() throws Exception {
+        loginSysAdmin();
+
+        User tenantUser = new User();
+        tenantUser.setAuthority(Authority.TENANT_ADMIN);
+        tenantUser.setTenantId(tenantId);
+        tenantUser.setEmail("tenant2@thingsboard.org");
+        tenantUser.setFirstName("Joe");
+        tenantUser.setLastName("Downs");
+
+        tenantUser = createUser(tenantUser, "testPassword1");
+
+        doPost("/api/user/" + tenantUser.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
+                .andExpect(status().isOk());
+
+        loginTenantAdmin();
+        doPost("/api/user/" + tenantUser.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
+                .andExpect(status().isOk());
+
+        Role role = new Role();
+        role.setTenantId(tenantId);
+        role.setCustomerId(customerId);
+        role.setType(RoleType.GENERIC);
+        role.setName("Test customer administrator");
+        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+        role = doPost("/api/role", role, Role.class);
+
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Test customer administrators");
+        entityGroup.setType(EntityType.USER);
+        entityGroup.setOwnerId(customerId);
+        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        GroupPermission groupPermission = new GroupPermission(tenantId, entityGroup.getId(), role.getId(),
+                null, null, false
+        );
+        doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+
+        User customerAdmin = new User();
+        customerAdmin.setEmail("customer1@thingsboard.org");
+        customerAdmin.setTenantId(tenantId);
+        customerAdmin.setCustomerId(customerId);
+        customerAdmin.setFirstName("customer");
+        customerAdmin.setLastName("admin");
+        customerAdmin.setAuthority(Authority.CUSTOMER_USER);
+        customerAdmin = createUser(customerAdmin, "testPassword1", entityGroup.getId());
+
+        User customerUser = new User();
+        customerUser.setAuthority(Authority.CUSTOMER_USER);
+        customerUser.setTenantId(tenantId);
+        customerUser.setCustomerId(customerId);
+        customerUser.setEmail("customer2@thingsboard.org");
+        customerUser = createUser(customerUser, "testPassword1");
+
+        login(customerAdmin.getEmail(), "testPassword1");
+        doPost("/api/user/" + customerUser.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
+                .andExpect(status().isOk());
+
+        login(customerUser.getEmail(), "testPassword1");
+        doPost("/api/user/" + customerAdmin.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
+                .andExpect(status().isForbidden());
     }
 
     private User createUser() throws Exception {

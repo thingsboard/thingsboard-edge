@@ -305,8 +305,7 @@ public class DefaultSubscriptionManagerService extends TbApplicationEventListene
                         EdgeEventType.EDGE,
                         EdgeEventActionType.ATTRIBUTES_UPDATED);
             } catch (Exception e) {
-                String errMsg = String.format("[%s][%s] Can't send edge attributes updated event {%s}", tenantId, entityId.getId(), attributes);
-                log.warn(errMsg, e);
+                log.warn("[{}][{}] Can't send edge attributes updated event [{}]", tenantId, entityId.getId(), attributes, e);
             }
 
         }

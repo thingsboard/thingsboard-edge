@@ -28,37 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.fetch;
+package org.thingsboard.server.common.data.sync.vc;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.edge.Edge;
-import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
+@Data
 @AllArgsConstructor
-@Slf4j
-public class OwnerEdgeEventFetcher implements EdgeEventFetcher {
-
-    @Override
-    public PageLink getPageLink(int pageSize) {
-        return null;
-    }
-
-    @Override
-    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        List<EdgeEvent> result = new ArrayList<>();
-        result.add(EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(),
-                EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null));
-        // @voba - returns PageData object to be in sync with other fetchers
-        return new PageData<>(result, 1, result.size(), false);
-    }
+@NoArgsConstructor
+@Builder
+public class RepositorySettingsInfo {
+    private boolean configured;
+    private Boolean readOnly;
 }

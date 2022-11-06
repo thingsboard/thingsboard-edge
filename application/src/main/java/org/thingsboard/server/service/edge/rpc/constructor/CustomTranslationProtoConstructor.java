@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge.rpc.constructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 
@@ -39,8 +40,11 @@ import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 @Slf4j
 public class CustomTranslationProtoConstructor {
 
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslation customTranslation) {
+    public CustomTranslationProto constructCustomTranslationProto(CustomTranslation customTranslation, EntityId entityId) {
         CustomTranslationProto.Builder builder = CustomTranslationProto.newBuilder();
+        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits())
+                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
+                .setEntityType(entityId.getEntityType().name());
         if (customTranslation.getTranslationMap() != null && !customTranslation.getTranslationMap().isEmpty()) {
             builder.putAllTranslationMap(customTranslation.getTranslationMap());
         }

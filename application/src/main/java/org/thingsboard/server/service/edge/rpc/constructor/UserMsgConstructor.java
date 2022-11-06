@@ -69,18 +69,19 @@ public class UserMsgConstructor {
             builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
                     .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
         }
-        if (user.getCustomerId() != null) {
-            builder.setCustomerIdMSB(user.getCustomerId().getId().getMostSignificantBits())
-                    .setCustomerIdLSB(user.getCustomerId().getId().getLeastSignificantBits());
-        }
         return builder.build();
     }
 
-    public UserUpdateMsg constructUserDeleteMsg(UserId userId) {
-        return UserUpdateMsg.newBuilder()
+    public UserUpdateMsg constructUserDeleteMsg(UserId userId, EntityGroupId entityGroupId) {
+        UserUpdateMsg.Builder builder = UserUpdateMsg.newBuilder()
                 .setMsgType(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE)
                 .setIdMSB(userId.getId().getMostSignificantBits())
-                .setIdLSB(userId.getId().getLeastSignificantBits()).build();
+                .setIdLSB(userId.getId().getLeastSignificantBits());
+        if (entityGroupId != null) {
+            builder.setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
+                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits());
+        }
+        return builder.build();
     }
 
     public UserCredentialsUpdateMsg constructUserCredentialsUpdatedMsg(UserCredentials userCredentials) {

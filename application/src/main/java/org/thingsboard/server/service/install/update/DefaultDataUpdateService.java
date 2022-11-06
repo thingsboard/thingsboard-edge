@@ -116,6 +116,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -253,6 +254,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private AuditLogDao auditLogDao;
 
+    @Autowired
+    private BlobEntityDao blobEntityDao;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -293,13 +297,20 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
                 break;
             case "3.4.1":
+                log.info("Updating data from version 3.4.1 to 3.4.2 ...");
                 boolean skipAuditLogsMigration = getEnv("TB_SKIP_AUDIT_LOGS_MIGRATION", false);
                 if (!skipAuditLogsMigration) {
-                    log.info("Updating data from version 3.4.1 to 3.4.2 ...");
                     log.info("Starting audit logs migration. Can be skipped with TB_SKIP_AUDIT_LOGS_MIGRATION env variable set to true");
                     auditLogDao.migrateAuditLogs();
                 } else {
                     log.info("Skipping audit logs migration");
+                }
+                boolean skipBlobEntitiesMigration = getEnv("TB_SKIP_BLOB_ENTITIES_MIGRATION", false);
+                if (!skipBlobEntitiesMigration) {
+                    log.info("Starting blob entities migration. Can be skipped with TB_SKIP_BLOB_ENTITIES_MIGRATION set to true");
+                    blobEntityDao.migrateBlobEntities();
+                } else {
+                    log.info("Skipping blob entities migration");
                 }
                 break;
             case "3.4.2":

@@ -61,9 +61,10 @@ import java.util.UUID;
 @TbCoreComponent
 public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processGroupPermissionToEdge(EdgeEvent edgeEvent, UpdateMsgType msgType) {
+    public DownlinkMsg convertGroupPermissionEventToDownlink(EdgeEvent edgeEvent) {
         GroupPermissionId groupPermissionId = new GroupPermissionId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
+        UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:

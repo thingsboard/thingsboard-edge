@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
@@ -46,15 +45,13 @@ import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.SortOrder;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.AbstractIntegrationTest;
+import org.thingsboard.server.service.integration.IntegrationDebugMessageStatus;
 import org.thingsboard.server.service.integration.opcua.server.TestServer;
 
 import java.io.InputStream;
@@ -63,24 +60,27 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeoutException;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 @DaoSqlTest
-public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
+public class BasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
     private final static String OPCUA_UPLINK_CONVERTER_FILEPATH = "opcua/default_converter_configuration.json";
     private final static String OPCUA_UPLINK_CONVERTER_NAME = "Default test uplink converter";
     private final static String OPCUA_DOWNLINK_CONVERTER_NAME = "Default test downlink converter";
 
     private final List<String> expectedNodes = Arrays.asList("Boolean", "Byte", "SByte", "Integer", "Int16", "Int32", "Int64", "UInteger", "UInt16", "UInt32", "UInt64", "Float", "Double", "String", "DateTime", "Guid", "ByteString", "XmlElement", "LocalizedText", "QualifiedName", "NodeId", "Variant", "Duration", "UtcTime");
-    protected TestServer server;
+    protected static TestServer server = new TestServer();
 
     @Before
     public void beforeTest() throws Exception {
         loginTenantAdmin();
+        startServer();
+
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(OPCUA_UPLINK_CONVERTER_FILEPATH);
         ObjectNode jsonFile = mapper.readValue(resourceAsStream, ObjectNode.class);
         Assert.assertNotNull(jsonFile);
@@ -95,32 +95,18 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
 
         createIntegration("Test OPC-UA integration", IntegrationType.OPC_UA);
         Assert.assertNotNull(integration);
-
-        server = new TestServer();
-
-        startServer();
-    }
-
-    private void startServer() throws ExecutionException, InterruptedException {
-        server.startup().get();
-        log.info("Server started");
-        Assert.assertTrue(server.getStarted());
-    }
-
-    private void stopServer() throws ExecutionException, InterruptedException {
-        server.shutdown().get();
-        log.info("Server stopped");
-        Assert.assertFalse(server.getStarted());
     }
 
     @After
     public void afterTest() throws Exception {
         try {
-            if (server != null && server.getStarted()) {
+            disableIntegration();
+            removeIntegration(integration);
+            if (server.getStarted()) {
                 stopServer();
             }
         } catch (InterruptedException | ExecutionException e) {
-            log.error("Error during stopping OPC-UA server", e);
+            log.error("Error during removing OPC-UA integration", e);
         }
     }
 
@@ -128,54 +114,52 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
     public void testIntegrationRegularConnect() throws Exception {
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
     }
 
     @Test
     public void testIntegrationRegularDisconnect() throws Exception {
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         startTs = System.currentTimeMillis();
         stopServer();
-        Assert.assertFalse(isIntegrationConnected(startTs, 1, 6000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 60));
     }
 
-    @Ignore("TODO: fix the flaky test.")
     @Test
     public void testIntegrationReconnectAfterServerRestart() throws Exception {
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 3000));
-        stopServer();
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         startTs = System.currentTimeMillis();
-        Assert.assertFalse(isIntegrationConnected(startTs, 1, 6000));
+        stopServer();
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE));
         startServer();
         startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 5, 20000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS));
     }
 
     @Test
     public void testIntegrationReconnectToNotStartedServer() throws Exception {
-        stopServer();
         long startTs = System.currentTimeMillis();
+        stopServer();
         enableIntegration();
-        Assert.assertFalse(isIntegrationConnected(startTs, 1, 15000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.FAILURE, 20));
         startTs = System.currentTimeMillis();
         startServer();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 20000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS));
     }
 
     @Test
     public void testUplinkProcessing() throws Exception {
+        Device savedDevice = createDevice("OPCUA_device", "opcua");
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 5000));
-        Thread.sleep(10000);
-        Device savedDevice = doGet("/api/tenant/devices?deviceName=OPCUA_device", Device.class);
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
         long start = System.currentTimeMillis();
-        long end = System.currentTimeMillis() + 5000;
+        long end = System.currentTimeMillis() + 15000;
 
         List<String> actualKeys = null;
         while (start <= end) {
@@ -193,21 +177,23 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         Set<String> expectedKeySet = new HashSet<>(expectedNodes);
 
         Assert.assertEquals(expectedKeySet, actualKeySet);
+
+        deleteDevice(savedDevice.getId());
     }
 
     @Test
     public void testDownlinkProcessing() throws Exception {
+        Device savedDevice = createDevice("OPCUA_device", "opcua");
         long startTs = System.currentTimeMillis();
         enableIntegration();
-        Assert.assertTrue(isIntegrationConnected(startTs, 1, 5000));
+        Assert.assertTrue(integrationConnectionStatusEquals(startTs, IntegrationDebugMessageStatus.SUCCESS, 20));
 
-
-        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = createIntegrationDownlinkMessage();
+        TransportProtos.IntegrationDownlinkMsgProto downlinkMsgProto = createIntegrationDownlinkMessage(savedDevice.getId());
 
         downlinkService.onRuleEngineDownlinkMsg(integration.getTenantId(), integration.getId(), downlinkMsgProto, new TbCallback() {
             @Override
             public void onSuccess() {
-                log.info("SUCCESS");
+                log.error("SUCCESS");
             }
 
             @Override
@@ -215,23 +201,36 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                 log.error("", t);
             }
         });
-        Thread.sleep(20000);
-        Device savedDevice = doGet("/api/tenant/devices?deviceName=OPCUA_device", Device.class);
-        ObjectNode actualKeys = doGetAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/values/timeseries?keys=String", ObjectNode.class);
+        List<EventInfo> integrationDownlinkDebugMessages = getIntegrationDebugMessages(startTs, "Downlink", IntegrationDebugMessageStatus.ANY, 20);
+        Assert.assertFalse(integrationDownlinkDebugMessages.isEmpty());
+        long start = System.currentTimeMillis();
+        long end = System.currentTimeMillis() + 30000;
+
+        ObjectNode actualKeys = null;
+        while (start <= end) {
+            actualKeys = doGetAsync("/api/plugins/telemetry/DEVICE/" + savedDevice.getId().getId().toString() + "/values/timeseries?keys=String", ObjectNode.class);
+            if (actualKeys.has("String") && "New value".equals(actualKeys.get("String").get(0).get("value").asText())) {
+                break;
+            }
+            Thread.sleep(100);
+            start += 100;
+        }
+        Assert.assertNotNull(actualKeys);
         log.info(actualKeys.toString());
         Assert.assertNotNull(actualKeys);
         Assert.assertTrue(actualKeys.has("String"));
         Assert.assertEquals("New value", actualKeys.get("String").get(0).get("value").asText());
 
+        deleteDevice(savedDevice.getId());
     }
 
     @Override
     protected JsonNode createIntegrationClientConfiguration() {
 
         ObjectNode clientConfiguration = JacksonUtil.newObjectNode();
-        clientConfiguration.put("host", "localhost");
+        clientConfiguration.put("host", "127.0.0.1");
         clientConfiguration.put("port", 12686);
-        clientConfiguration.put("scanPeriodInSeconds", 10);
+        clientConfiguration.put("scanPeriodInSeconds", 5);
         clientConfiguration.put("security", "None");
         clientConfiguration.put("timeoutInMillis", 5000);
 
@@ -276,7 +275,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         return clientConfiguration;
     }
 
-    private TransportProtos.IntegrationDownlinkMsgProto createIntegrationDownlinkMessage() {
+    private TransportProtos.IntegrationDownlinkMsgProto createIntegrationDownlinkMessage(DeviceId originatorId) {
         ObjectNode dataNode = JacksonUtil.newObjectNode();
         ObjectNode writeValuesNode = JacksonUtil.newObjectNode();
         ArrayNode writeValuesArray = JacksonUtil.OBJECT_MAPPER.createArrayNode();
@@ -288,7 +287,7 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
         dataNode.set("data", writeValuesNode);
         TbMsgMetaData tbMsgMetaData = new TbMsgMetaData(new HashMap<>());
 
-        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", new DeviceId(UUID.randomUUID()), tbMsgMetaData, writeValueNode.toString());
+        TbMsg tbMsg = TbMsg.newMsg("INTEGRATION_DOWNLINK", originatorId, tbMsgMetaData, writeValueNode.toString());
         return TransportProtos.IntegrationDownlinkMsgProto.newBuilder()
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
@@ -297,35 +296,37 @@ public class AbstractBasicOpcUaIntegrationTest extends AbstractIntegrationTest {
                 .setData(TbMsg.toByteString(tbMsg)).build();
     }
 
-    private List<EventInfo> getIntegrationDebugConnectionMessages(long startTs, int eventsCount, long timeout) throws Exception {
-        long endTs = startTs + timeout;
-        List<EventInfo> connectionMsgs;
-        do {
-            SortOrder sortOrder = new SortOrder("createdTime", SortOrder.Direction.DESC);
-            TimePageLink pageLink = new TimePageLink(100, 0, null, sortOrder, startTs, endTs);
-            PageData<EventInfo> events = doGetTypedWithTimePageLink("/api/events/INTEGRATION/{entityId}/DEBUG_INTEGRATION?tenantId={tenantId}&",
-                    new TypeReference<PageData<EventInfo>>() {
-                    },
-                    pageLink, integration.getId(), integration.getTenantId());
-            connectionMsgs = events.getData().stream().filter(event -> !"Uplink".equals(event.getBody().get("type").asText())).collect(Collectors.toList());
-            if (connectionMsgs.size() >= eventsCount) {
-                break;
-            }
-            Thread.sleep(100);
-        }
-        while (System.currentTimeMillis() <= endTs);
-        return connectionMsgs;
+    private Boolean integrationConnectionStatusEquals(long startTs, IntegrationDebugMessageStatus expectedStatus) throws Exception {
+        return integrationConnectionStatusEquals(startTs, expectedStatus, 60);
     }
 
-    private Boolean isIntegrationConnected(long startTs, int eventsCount, long timeout) throws Exception {
-        List<EventInfo> eventsList = getIntegrationDebugConnectionMessages(startTs, eventsCount, timeout);
-        if (eventsList.isEmpty()) {
-            return false;
-        }
-        log.error("Events: {}", eventsList);
-        EventInfo event = eventsList.get(0);
-        ObjectNode eventBody = (ObjectNode) event.getBody();
-        return "CONNECT".equals(eventBody.get("type").asText()) && "SUCCESS".equals(eventBody.get("status").asText());
+    private Boolean integrationConnectionStatusEquals(long startTs, IntegrationDebugMessageStatus expectedStatus, long timeout) throws Exception {
+        List<EventInfo> eventsList = getIntegrationDebugMessages(startTs, "CONNECT", expectedStatus, timeout);
+        return !eventsList.isEmpty();
+    }
+
+    private Device createDevice(String deviceName, String deviceType) {
+        Device device = new Device();
+        device.setName(deviceName);
+        device.setType(deviceType);
+        return doPost("/api/device", device, Device.class);
+    }
+
+    private void deleteDevice(DeviceId deviceId) throws Exception {
+        doDelete("/api/device/" + deviceId.getId()).andExpect(status().isOk());
+    }
+
+
+    private static void startServer() throws ExecutionException, InterruptedException, TimeoutException {
+        server.startup().get();
+        log.error("Server started");
+        Assert.assertTrue(server.getStarted());
+    }
+
+    private static void stopServer() throws ExecutionException, InterruptedException, TimeoutException {
+        server.shutdown().get();
+        log.error("Server stopped");
+        Assert.assertFalse(server.getStarted());
     }
 
 }

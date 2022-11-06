@@ -30,19 +30,20 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
@@ -50,17 +51,18 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class UserEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processUserToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType edgeEdgeEventActionType) {
+    public DownlinkMsg convertUserEventToDownlink(EdgeEvent edgeEvent) {
         UserId userId = new UserId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEdgeEventActionType) {
+        EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+        switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 User user = userService.findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addUserUpdateMsg(userMsgConstructor.constructUserUpdatedMsg(msgType, user, entityGroupId))
@@ -73,11 +75,11 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
             case CHANGE_OWNER:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addUserUpdateMsg(userMsgConstructor.constructUserDeleteMsg(userId))
+                        .addUserUpdateMsg(userMsgConstructor.constructUserDeleteMsg(userId, entityGroupId))
                         .build();
                 break;
             case CREDENTIALS_UPDATED:
-                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edge.getTenantId(), userId);
+                UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
                 if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
                     UserCredentialsUpdateMsg userCredentialsUpdateMsg =
                             userMsgConstructor.constructUserCredentialsUpdatedMsg(userCredentialsByUserId);
@@ -90,4 +92,7 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
         return downlinkMsg;
     }
 
+    public ListenableFuture<Void> processUserNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        return processEntityNotification(tenantId, edgeNotificationMsg);
+    }
 }

@@ -30,18 +30,19 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
@@ -49,17 +50,18 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 @TbCoreComponent
 public class EntityViewEdgeProcessor extends BaseEdgeProcessor {
 
-    public DownlinkMsg processEntityViewToEdge(Edge edge, EdgeEvent edgeEvent, UpdateMsgType msgType, EdgeEventActionType action) {
+    public DownlinkMsg convertEntityViewEventToDownlink(EdgeEvent edgeEvent) {
         EntityViewId entityViewId = new EntityViewId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (action) {
+        EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+        switch (edgeEvent.getAction()) {
             case ADDED:
             case ADDED_TO_ENTITY_GROUP:
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 EntityView entityView = entityViewService.findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
-                    EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+                    UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     EntityViewUpdateMsg entityViewUpdateMsg =
                             entityViewMsgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
@@ -73,7 +75,7 @@ public class EntityViewEdgeProcessor extends BaseEdgeProcessor {
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 EntityViewUpdateMsg entityViewUpdateMsg =
-                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId);
+                        entityViewMsgConstructor.constructEntityViewDeleteMsg(entityViewId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg)
@@ -83,4 +85,7 @@ public class EntityViewEdgeProcessor extends BaseEdgeProcessor {
         return downlinkMsg;
     }
 
+    public ListenableFuture<Void> processEntityViewNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
+        return processEntityNotification(tenantId, edgeNotificationMsg);
+    }
 }

@@ -355,6 +355,7 @@
         "repository-url": "Repository URL",
         "repository-url-required": "Repository URL is required.",
         "default-branch": "Default branch name",
+        "repository-read-only": "Read-only",
         "authentication-settings": "Authentication settings",
         "auth-method": "Authentication method",
         "auth-method-username-password": "Password / access token",
@@ -4702,7 +4703,8 @@
         "entity-groups": "Entity groups",
         "integration-routing-key-conflict": "Failed to load the integration with external id <b>{{entityId}}</b><br/>due to the same integration key is already present in the database for another integration.<br/>Please consider enabling the <b>auto-generate integration key</b> setting in the restore form.",
         "auto-generate-integration-key": "Auto-generate integration key",
-        "runtime-failed": "<b>Failed:</b> {{message}}"
+        "runtime-failed": "<b>Failed:</b> {{message}}",
+        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings."
     },
     "widget": {
         "widget-library": "Widgets Library",
@@ -5586,6 +5588,7 @@
         "qr-code": {
             "use-qr-code-text-function": "Use QR code text function",
             "qr-code-text-pattern": "QR code text pattern (for ex. '${entityName} | ${keyName} - some text.')",
+            "qr-code-text-pattern-hint": "QR code text pattern use the value of the first found key in the entities in the entity alias.",
             "qr-code-text-pattern-required": "QR code text pattern is required.",
             "qr-code-text-function": "QR code text function"
         },
@@ -5940,7 +5943,10 @@
             "point-color-function": "Point color function",
             "use-point-as-anchor": "Use point as anchor",
             "point-as-anchor-function": "Point as anchor function",
-            "independent-point-tooltip": "Independent point tooltip"
+            "independent-point-tooltip": "Independent point tooltip",
+            "clustering-markers": "Clustering markers",
+            "use-icon-create-function": "Use markers colour function",
+            "marker-color-function": "Marker color function"
         },
         "markdown": {
             "use-markdown-text-function": "Use markdown/HTML value function",
@@ -5986,6 +5992,7 @@
             "entity-label-column-title": "Entity label column title",
             "display-entity-type": "Display entity type column",
             "default-sort-order": "Default sort order",
+            "custom-title": "Custom header title",
             "column-width": "Column width (px or %)",
             "default-column-visibility": "Default column visibility",
             "column-visibility-visible": "Visible",
