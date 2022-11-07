@@ -209,4 +209,45 @@ CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
 CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
 
 
-
+CREATE OR REPLACE function getIntegrationInfo(tenantId uuid, startTs bigint, searchText text)
+    returns table (
+        created_time                   bigint,
+        id                             uuid,
+        tenant_id                      uuid,
+        name                           text,
+        type                           text,
+        debug_mode                     bool,
+        enabled                        bool,
+        is_remote                      bool,
+        allow_create_devices_or_assets bool,
+        is_edge_template               bool,
+        search_text                    text,
+        stats                          text,
+        status                         text
+  )
+as
+$body$
+SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
+       allow_create_devices_or_assets, is_edge_template, search_text,
+       (SELECT cast(json_agg(element) as varchar)
+        FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
+              FROM stats_event se
+              WHERE se.tenant_id = i.tenant_id
+                AND se.entity_id = i.id
+                AND ts >= startTs
+              GROUP BY ts / 3600000
+              ORDER BY ts / 3600000) stats) as stats,
+       (CASE WHEN i.enabled THEN
+                 (SELECT cast(json_v as varchar)
+                  FROM attribute_kv
+                  WHERE entity_type = 'INTEGRATION'
+                    AND entity_id = i.id
+                    AND attribute_type = 'SERVER_SCOPE'
+                    AND attribute_key LIKE 'integration_status_%'
+                  ORDER BY last_update_ts
+                 LIMIT 1) END) as status
+FROM integration i
+WHERE i.tenant_id = tenantId
+  AND LOWER(i.search_text) LIKE LOWER(CONCAT('%', searchText, '%'));
+$body$
+language sql;

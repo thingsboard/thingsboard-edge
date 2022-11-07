@@ -160,6 +160,14 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
+    public PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, long startTs, PageLink pageLink) {
+        log.trace("Executing findTenantIntegrationInfosWithStats, tenantId [{}], startTs [{}], pageLink [{}]", tenantId, startTs, pageLink);
+        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validatePageLink(pageLink);
+        return integrationInfoDao.findAllIntegrationInfosWithStats(tenantId.getId(), startTs, pageLink);
+    }
+
+    @Override
     public ListenableFuture<ArrayNode> findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs) {
         log.trace("Executing findIntegrationStats, tenantId [{}], integrationId [{}], startTs [{}]", tenantId, integrationId, startTs);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
