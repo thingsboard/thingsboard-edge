@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.test.annotation.DirtiesContext;
@@ -93,8 +94,9 @@ import static org.mockito.Mockito.when;
         "security.jwt.tokenIssuer=test.io",
         "security.jwt.tokenSigningKey=secret",
         "security.jwt.tokenExpirationTime=600",
-        "security.jwt.refreshTokenExpTime=60",
-        "cache.specs.usersUpdateTime.timeToLiveInMinutes=1"
+        "security.jwt.refreshTokenExpTime=15",
+        // explicitly set the wrong value to check that it is NOT used.
+        "cache.specs.userSessionsInvalidation.timeToLiveInMinutes=2"
 })
 public class TokenOutdatingTest {
     private JwtAuthenticationProvider accessTokenAuthenticationProvider;
@@ -102,6 +104,8 @@ public class TokenOutdatingTest {
 
     @Autowired
     private TokenOutdatingService tokenOutdatingService;
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
     @Autowired
     private JwtTokenFactory tokenFactory;
     private SecurityUser securityUser;
@@ -136,8 +140,9 @@ public class TokenOutdatingTest {
     public void testOutdateOldUserTokens() throws Exception {
         JwtToken jwtToken = tokenFactory.createAccessJwtToken(securityUser);
 
-        SECONDS.sleep(1); // need to wait before outdating so that outdatage time is strictly after token issue time
-        tokenOutdatingService.onUserAuthDataChanged(new UserCredentialsInvalidationEvent(securityUser.getId()));
+        // Token outdatage time is rounded to 1 sec. Need to wait before outdating so that outdatage time is strictly after token issue time
+        SECONDS.sleep(1);
+        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
         assertTrue(tokenOutdatingService.isOutdated(jwtToken, securityUser.getId()));
 
         SECONDS.sleep(1);
@@ -155,7 +160,7 @@ public class TokenOutdatingTest {
         });
 
         SECONDS.sleep(1);
-        tokenOutdatingService.onUserAuthDataChanged(new UserCredentialsInvalidationEvent(securityUser.getId()));
+        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
 
         assertThrows(JwtExpiredTokenException.class, () -> {
             accessTokenAuthenticationProvider.authenticate(new JwtAuthenticationToken(accessJwtToken));
@@ -171,28 +176,33 @@ public class TokenOutdatingTest {
         });
 
         SECONDS.sleep(1);
-        tokenOutdatingService.onUserAuthDataChanged(new UserCredentialsInvalidationEvent(securityUser.getId()));
+        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
 
         assertThrows(CredentialsExpiredException.class, () -> {
             refreshTokenAuthenticationProvider.authenticate(new RefreshAuthenticationToken(refreshJwtToken));
         });
     }
 
-    @Test
-    public void testTokensOutdatageTimeRemovalFromCache() throws Exception {
-        JwtToken jwtToken = tokenFactory.createAccessJwtToken(securityUser);
-
-        SECONDS.sleep(1);
-        tokenOutdatingService.onUserAuthDataChanged(new UserCredentialsInvalidationEvent(securityUser.getId()));
-
-        SECONDS.sleep(1);
-
-        assertTrue(tokenOutdatingService.isOutdated(jwtToken, securityUser.getId()));
-
-        SECONDS.sleep(60);
-
-        assertFalse(tokenOutdatingService.isOutdated(jwtToken, securityUser.getId()));
-    }
+    // This test takes too long to run and is basically testing the cache logic
+//    @Test
+//    public void testTokensOutdatageTimeRemovalFromCache() throws Exception {
+//        JwtToken jwtToken = tokenFactory.createAccessJwtToken(securityUser);
+//
+//        SECONDS.sleep(1);
+//        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
+//
+//        SECONDS.sleep(1);
+//
+//        assertTrue(tokenOutdatingService.isOutdated(jwtToken, securityUser.getId()));
+//
+//        SECONDS.sleep(30); // refreshTokenExpTime/2
+//
+//        assertTrue(tokenOutdatingService.isOutdated(jwtToken, securityUser.getId()));
+//
+//        SECONDS.sleep(30 + 1); // refreshTokenExpTime/2 + 1
+//
+//        assertFalse(tokenOutdatingService.isOutdated(jwtToken, securityUser.getId()));
+//    }
 
     @Test
     public void testOnlyOneTokenExpired() throws InterruptedException {
@@ -207,7 +217,7 @@ public class TokenOutdatingTest {
 
         SECONDS.sleep(1);
 
-        tokenOutdatingService.onUserAuthDataChanged(new UserSessionInvalidationEvent(securityUser.getSessionId()));
+        eventPublisher.publishEvent(new UserSessionInvalidationEvent(securityUser.getSessionId()));
 
         assertThrows(JwtExpiredTokenException.class, () -> {
             accessTokenAuthenticationProvider.authenticate(new JwtAuthenticationToken(getRawJwtToken(jwtToken)));
@@ -235,14 +245,14 @@ public class TokenOutdatingTest {
 
         SECONDS.sleep(1);
 
-        tokenOutdatingService.onUserAuthDataChanged(new UserCredentialsInvalidationEvent(securityUser.getId()));
+        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
 
         assertThrows(JwtExpiredTokenException.class, () -> {
-           accessTokenAuthenticationProvider.authenticate(new JwtAuthenticationToken(getRawJwtToken(jwtToken)));
+            accessTokenAuthenticationProvider.authenticate(new JwtAuthenticationToken(getRawJwtToken(jwtToken)));
         });
 
         assertThrows(JwtExpiredTokenException.class, () -> {
-           accessTokenAuthenticationProvider.authenticate(new JwtAuthenticationToken(getRawJwtToken(anotherJwtToken)));
+            accessTokenAuthenticationProvider.authenticate(new JwtAuthenticationToken(getRawJwtToken(anotherJwtToken)));
         });
     }
 
