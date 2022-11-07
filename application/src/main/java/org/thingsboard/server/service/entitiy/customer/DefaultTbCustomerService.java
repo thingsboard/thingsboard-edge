@@ -49,15 +49,10 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
     public Customer save(Customer customer, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = customer.getTenantId();
-        try {
-            Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
-            autoCommit(user, savedCustomer.getId());
-            createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
-            return savedCustomer;
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CUSTOMER), customer, actionType, user, e);
-            throw e;
-        }
+        Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+        autoCommit(user, savedCustomer.getId());
+        createOrUpdateGroupEntity(tenantId, savedCustomer, entityGroup, actionType, user);
+        return savedCustomer;
     }
 
     @Override

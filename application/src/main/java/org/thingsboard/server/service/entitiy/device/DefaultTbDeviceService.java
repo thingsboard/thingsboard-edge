@@ -93,17 +93,10 @@ public class DefaultTbDeviceService extends AbstractTbEntityService implements T
     public Device saveDeviceWithCredentials(Device device, DeviceCredentials credentials, EntityGroup entityGroup, User user) throws ThingsboardException {
         ActionType actionType = device.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = device.getTenantId();
-        try {
-
-            Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
-            createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
-            tbClusterService.onDeviceUpdated(savedDevice, device, false);
-            return savedDevice;
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.DEVICE), device,
-                    actionType, user, e);
-            throw e;
-        }
+        Device savedDevice = checkNotNull(deviceService.saveDeviceWithCredentials(device, credentials));
+        createOrUpdateGroupEntity(tenantId, savedDevice, entityGroup, actionType, user);
+        tbClusterService.onDeviceUpdated(savedDevice, device, false);
+        return savedDevice;
     }
 
     @Override

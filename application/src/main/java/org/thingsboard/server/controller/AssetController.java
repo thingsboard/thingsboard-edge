@@ -141,7 +141,7 @@ public class AssetController extends BaseController {
             @ApiParam(value = "A JSON value representing the asset.", required = true)
             @RequestBody Asset asset,
             @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+            @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
         if (TB_SERVICE_QUEUE.equals(asset.getType())) {
             throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }

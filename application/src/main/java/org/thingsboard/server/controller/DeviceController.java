@@ -611,7 +611,7 @@ public class DeviceController extends BaseController {
         return deviceBulkImportService.processBulkImport(request, getCurrentUser(), (device, savingFunction) -> {
             try {
                 saveGroupEntity(device, request.getEntityGroupId(), savingFunction);
-            } catch (ThingsboardException e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });

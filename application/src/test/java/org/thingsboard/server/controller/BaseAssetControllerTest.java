@@ -164,8 +164,6 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -177,8 +175,6 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -189,8 +185,6 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
     }
@@ -384,9 +378,6 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(),
-                tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new ThingsboardException(msgError,
-                        ThingsboardErrorCode.PERMISSION_DENIED));
         testNotifyEntityEqualsOneTimeServiceNeverError(asset, savedTenant.getId(),
                 tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }

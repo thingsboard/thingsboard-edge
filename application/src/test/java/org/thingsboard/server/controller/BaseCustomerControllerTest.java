@@ -170,8 +170,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -186,8 +184,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -198,8 +194,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
@@ -212,8 +206,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -225,8 +217,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
         Mockito.reset(tbClusterService, auditLogService);
 
@@ -237,8 +227,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
      }
@@ -330,8 +318,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(statusReason(containsString(msgError)));
 
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
     }
 
@@ -348,8 +334,6 @@ public abstract class BaseCustomerControllerTest extends AbstractControllerTest 
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString(msgError)));
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
     }

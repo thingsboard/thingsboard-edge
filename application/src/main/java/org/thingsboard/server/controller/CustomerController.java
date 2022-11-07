@@ -169,7 +169,7 @@ public class CustomerController extends BaseController {
     @ResponseBody
     public Customer saveCustomer(@ApiParam(value = "A JSON value representing the customer.") @RequestBody Customer customer,
                                  @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
-                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
+                                 @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws Exception {
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
             String prevHomeDashboardId = null;
             boolean prevHideDashboardToolbar = true;

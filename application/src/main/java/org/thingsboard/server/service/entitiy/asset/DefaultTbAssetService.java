@@ -61,15 +61,10 @@ public class DefaultTbAssetService extends AbstractTbEntityService implements Tb
     public Asset save(Asset asset, EntityGroup entityGroup, User user) throws Exception {
         ActionType actionType = asset.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = asset.getTenantId();
-        try {
-            Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
-            autoCommit(user, savedAsset.getId());
-            createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
-            return savedAsset;
-        } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.ASSET), asset, actionType, user, e);
-            throw e;
-        }
+        Asset savedAsset = checkNotNull(assetService.saveAsset(asset));
+        autoCommit(user, savedAsset.getId());
+        createOrUpdateGroupEntity(tenantId, savedAsset, entityGroup, actionType, user);
+        return savedAsset;
     }
 
     @Override
