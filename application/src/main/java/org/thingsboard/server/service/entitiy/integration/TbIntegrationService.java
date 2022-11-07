@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.service.entitiy.integration;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
@@ -40,7 +38,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 
 public interface TbIntegrationService {
 
-    void findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate, DeferredResult<ResponseEntity> response);
+    PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
     PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 

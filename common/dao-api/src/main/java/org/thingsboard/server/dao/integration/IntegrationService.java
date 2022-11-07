@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.integration;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -69,7 +68,7 @@ public interface IntegrationService {
 
     PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
-    ListenableFuture<ArrayNode> findIntegrationStats(TenantId tenantId, IntegrationId integrationId, long startTs);
+    PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, PageLink pageLink);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
