@@ -149,7 +149,11 @@ public class TenantIdLoader {
             //PE Entities
             case ENTITY_GROUP:
                 EntityGroup entityGroup = ctx.getPeContext().getEntityGroupService().findEntityGroupById(ctxTenantId, new EntityGroupId(id));
-                return findTenantId(ctx, entityGroup.getOwnerId());
+                if (entityGroup != null) {
+                    return findTenantId(ctx, entityGroup.getOwnerId());
+                } else {
+                    tenantEntity = null;
+                }
             case CONVERTER:
                 tenantEntity = ctx.getPeContext().getConverterService().findConverterById(ctxTenantId, new ConverterId(id));
                 break;

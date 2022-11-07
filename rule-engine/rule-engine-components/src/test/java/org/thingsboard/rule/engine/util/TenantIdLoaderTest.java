@@ -64,7 +64,6 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetProfileId;
-import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -358,10 +357,8 @@ public class TenantIdLoaderTest {
                 break;
             //PE Entities
             case ENTITY_GROUP:
-                DeviceId deviceId = new DeviceId(UUID.randomUUID());
-
                 EntityGroup entityGroup = new EntityGroup();
-                entityGroup.setOwnerId(deviceId);
+                entityGroup.setOwnerId(tenantId);
                 entityGroup.setTenantId(tenantId);
 
                 when(tbPeContext.getEntityGroupService()).thenReturn(entityGroupService);
