@@ -206,7 +206,7 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
-CREATE VIEW integration_info as
+CREATE OR REPLACE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
        allow_create_devices_or_assets, is_edge_template, search_text,
        (SELECT cast(json_agg(element) as varchar)
