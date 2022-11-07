@@ -51,7 +51,7 @@ public class CacheConstants {
     public static final String ASSET_PROFILE_CACHE = "assetProfiles";
     public static final String REMOTE_INTEGRATIONS_CACHE = "remoteIntegrations";
     public static final String ATTRIBUTES_CACHE = "attributes";
-    public static final String USERS_UPDATE_TIME_CACHE = "usersUpdateTime";
+    public static final String USERS_SESSION_INVALIDATION_CACHE = "userSessionsInvalidation";
     public static final String OTA_PACKAGE_CACHE = "otaPackages";
     public static final String OTA_PACKAGE_DATA_CACHE = "otaPackagesData";
     public static final String INTEGRATIONS_CACHE = "integrations";
