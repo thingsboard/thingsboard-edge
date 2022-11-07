@@ -30,41 +30,21 @@
  */
 package org.thingsboard.common.util;
 
-import com.google.common.util.concurrent.MoreExecutors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.Assert;
+import org.junit.Test;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
+public class JacksonUtilTest {
 
-public class ThingsBoardExecutors {
-
-    /**
-     * Method forked from ExecutorService to provide thread poll name
-     *
-     * Creates a thread pool that maintains enough threads to support
-     * the given parallelism level, and may use multiple queues to
-     * reduce contention. The parallelism level corresponds to the
-     * maximum number of threads actively engaged in, or available to
-     * engage in, task processing. The actual number of threads may
-     * grow and shrink dynamically. A work-stealing pool makes no
-     * guarantees about the order in which submitted tasks are
-     * executed.
-     *
-     * @param parallelism the targeted parallelism level
-     * @param namePrefix used to define thread name
-     * @return the newly created thread pool
-     * @throws IllegalArgumentException if {@code parallelism <= 0}
-     * @since 1.8
-     */
-    public static ExecutorService newWorkStealingPool(int parallelism, String namePrefix) {
-        return new ForkJoinPool(parallelism,
-                new ThingsBoardForkJoinWorkerThreadFactory(namePrefix),
-                null, true);
-    }
-
-    public static ExecutorService newWorkStealingPool(int parallelism, Class clazz) {
-        return newWorkStealingPool(parallelism, clazz.getSimpleName());
+    @Test
+    public void allow_unquoted_field_mapper_test() {
+        String data = "{data: 123}";
+        JsonNode actualResult = JacksonUtil.toJsonNode(data, JacksonUtil.ALLOW_UNQUOTED_FIELD_NAMES_MAPPER); // should be: {"data": 123}
+        ObjectNode expectedResult = JacksonUtil.newObjectNode();
+        expectedResult.put("data", 123); // {"data": 123}
+        Assert.assertEquals(expectedResult, actualResult);
+        Assert.assertThrows(IllegalArgumentException.class, () -> JacksonUtil.toJsonNode(data)); // syntax exception due to missing quotes in the field name!
     }
 
 }

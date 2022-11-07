@@ -33,6 +33,7 @@ package org.thingsboard.server.service.integration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Slf4j
 public abstract class AbstractIntegrationTest extends AbstractControllerTest {
 
     @Autowired
@@ -96,12 +98,10 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         integrationConfiguration.set("metadata", JacksonUtil.newObjectNode());
         newIntegration.setConfiguration(integrationConfiguration);
         newIntegration.setDebugMode(true);
-        newIntegration.setEnabled(true);
-        newIntegration.setAllowCreateDevicesOrAssets(false);
+        newIntegration.setEnabled(false);
+        newIntegration.setAllowCreateDevicesOrAssets(true);
         integration = doPost("/api/integration", newIntegration, Integration.class);
         Assert.assertNotNull(integration);
-        disableIntegration();
-        Thread.sleep(2000);
     }
 
     public void enableIntegration() {
@@ -130,21 +130,30 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     public List<EventInfo> getIntegrationDebugMessages(long startTs, String expectedMessageType, IntegrationDebugMessageStatus expectedStatus, long timeout) throws Exception {
         long endTs = startTs + timeout * 1000;
         List<EventInfo> targetMsgs;
+        List<EventInfo> allMsgs;
         do {
             SortOrder sortOrder = new SortOrder("createdTime", SortOrder.Direction.DESC);
             TimePageLink pageLink = new TimePageLink(100, 0, null, sortOrder, startTs, endTs);
             PageData<EventInfo> events = doGetTypedWithTimePageLink("/api/events/INTEGRATION/{entityId}/DEBUG_INTEGRATION?tenantId={tenantId}&",
-                    new TypeReference<>() {},
+                    new TypeReference<>() {
+                    },
                     pageLink, integration.getId(), integration.getTenantId());
+            allMsgs = events.getData();
             targetMsgs = events.getData().stream().filter(event -> expectedMessageType.equals(event.getBody().get("type").asText())
                     && (IntegrationDebugMessageStatus.ANY.equals(expectedStatus)
-                            || expectedStatus.name().equals(event.getBody().get("status").asText()))).collect(Collectors.toList());
+                    || expectedStatus.name().equals(event.getBody().get("status").asText()))).collect(Collectors.toList());
             if (targetMsgs.size() > 0) {
                 break;
             }
             Thread.sleep(100);
         }
         while (System.currentTimeMillis() <= endTs);
+        if (allMsgs == null || allMsgs.isEmpty()) {
+            log.error("[{} - {}] ALL DEBUG EVENTS ARE EMPTY.", startTs, endTs);
+        } else {
+            log.error("[{} - {}] THERE ARE {} DEBUG EVENTS ", startTs, endTs, allMsgs.size());
+            allMsgs.forEach(event -> log.error("DEBUG EVENT: {}", event));
+        }
         return targetMsgs;
     }
 }
