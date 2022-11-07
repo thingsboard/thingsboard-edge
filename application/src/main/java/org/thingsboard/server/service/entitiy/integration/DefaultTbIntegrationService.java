@@ -52,8 +52,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DefaultTbIntegrationService extends AbstractTbEntityService implements TbIntegrationService {
 
-    private static final int DAY_IN_MS = 24 * 60 * 60 * 1000;
-
     private final IntegrationService integrationService;
 
     @Override
@@ -69,8 +67,7 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
             return pageData;
         }
 
-        long startTs = System.currentTimeMillis() - DAY_IN_MS;
-        return integrationService.findTenantIntegrationInfosWithStats(tenantId, startTs, pageLink);
+        return integrationService.findTenantIntegrationInfosWithStats(tenantId, pageLink);
     }
 
     @Override

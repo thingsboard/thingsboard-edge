@@ -206,27 +206,7 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
-CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
-
-
-CREATE OR REPLACE function getIntegrationInfo(tenantId uuid, startTs bigint, searchText text)
-    returns table (
-        created_time                   bigint,
-        id                             uuid,
-        tenant_id                      uuid,
-        name                           text,
-        type                           text,
-        debug_mode                     bool,
-        enabled                        bool,
-        is_remote                      bool,
-        allow_create_devices_or_assets bool,
-        is_edge_template               bool,
-        search_text                    text,
-        stats                          text,
-        status                         text
-  )
-as
-$body$
+CREATE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
        allow_create_devices_or_assets, is_edge_template, search_text,
        (SELECT cast(json_agg(element) as varchar)
@@ -234,7 +214,8 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
               FROM stats_event se
               WHERE se.tenant_id = i.tenant_id
                 AND se.entity_id = i.id
-                AND ts >= startTs
+                AND ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint
+
               GROUP BY ts / 3600000
               ORDER BY ts / 3600000) stats) as stats,
        (CASE WHEN i.enabled THEN
@@ -246,8 +227,4 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
                     AND attribute_key LIKE 'integration_status_%'
                   ORDER BY last_update_ts
                  LIMIT 1) END) as status
-FROM integration i
-WHERE i.tenant_id = tenantId
-  AND LOWER(i.search_text) LIKE LOWER(CONCAT('%', searchText, '%'));
-$body$
-language sql;
+FROM integration i;

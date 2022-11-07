@@ -53,7 +53,6 @@ public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
 
     PageData<IntegrationInfo> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
 
-    PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, long startTs, PageLink pageLink);
+    PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, PageLink pageLink);
 
-    ListenableFuture<ArrayNode> getIntegrationStats(UUID tenantId, UUID integrationId, long startTs);
 }

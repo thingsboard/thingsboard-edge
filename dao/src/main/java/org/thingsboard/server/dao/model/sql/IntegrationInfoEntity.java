@@ -206,10 +206,6 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
 
         if (StringUtils.isNotEmpty(status)) {
             integration.setStatus(JacksonUtil.fromString(status, ObjectNode.class));
-        } else {
-            ObjectNode status = JacksonUtil.newObjectNode();
-            status.put("success", true);
-            integration.setStatus(status);
         }
 
         return integration;
