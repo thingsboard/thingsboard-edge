@@ -235,7 +235,7 @@ public class TbAggLatestTelemetryNodeV2Test {
         config.setAggMappings(aggMappings);
 
         //Mock for filter
-        when(peCtx.createAttributesScriptEngine(any(), anyString())).thenReturn(scriptEngine);
+        when(peCtx.createAttributesScriptEngine(ScriptLanguage.MVEL, FILTER_FUNCTION)).thenReturn(scriptEngine);
         when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
                 (Answer<ListenableFuture<Boolean>>) invocation -> {
                     Map<String, BasicTsKvEntry> attributes = (Map<String, BasicTsKvEntry>) (invocation.getArguments())[0];
