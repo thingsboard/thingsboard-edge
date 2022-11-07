@@ -89,8 +89,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913334,
+                "endTimeMs": 1667836313334
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -254,8 +254,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -547,8 +547,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -827,8 +827,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1139,8 +1139,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1375,8 +1375,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1628,8 +1628,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -1982,8 +1982,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2095,8 +2095,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2370,8 +2370,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -2652,8 +2652,8 @@
               "interval": 1000,
               "timewindowMs": 60000,
               "fixedTimewindow": {
-                "startTimeMs": 1667745263264,
-                "endTimeMs": 1667831663264
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
               },
               "quickInterval": "CURRENT_DAY"
             },
@@ -3191,6 +3191,304 @@
         "row": 0,
         "col": 0,
         "id": "e18122c8-7973-5206-792a-cfa7f924a7b0"
+      },
+      "aaccdb0d-72ff-9f2c-e4ae-55077480a3e6": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "irrigationState",
+                  "type": "timeseries",
+                  "label": "irrigationState",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.11651339023616836
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "useMarkdownTextFunction": true,
+            "markdownTextFunction": "var fieldData = data[0];\nvar irrigationEnabled = data[0]['irrigationState'] === 'ON';\nvar indicatorClass = irrigationEnabled ? 'status-on' : 'status-off';\nvar irrigationStatusText = irrigationEnabled ? 'On' : 'Off';\n\nreturn '<div style=\"height: 100%;\" fxLayout=\"row\" fxLayoutAlign=\"space-between center\">' +\n'<div class=\"irrigation-status-label\">Irrigation status</div>' +\n'<div class=\"irrigation-status\">'+\n  '<span class=\"indicator '+ indicatorClass +'\"></span>'+\n  '<span class=\"irrigation-status-text\">'+irrigationStatusText+'</span>'+\n'</div>' +\n'</div>';\n",
+            "markdownCss": ".irrigation-status-label {\n    font-size: 24px;\n    font-weight: 600;\n    color: #868D9C;\n}\n\n.indicator {\n    width: 24px; \n    height: 24px; \n    border-radius: 12px;\n    display: inline-block; \n    vertical-align: middle;\n    margin-right: 16px;\n}\n\n.indicator.status-on {\n    background: #198038;\n}\n\n.indicator.status-off {\n    background: red;\n}\n\n.irrigation-status-text {\n    display: inline-block; \n    vertical-align: middle;\n    font-size: 24px;\n    font-weight: 500;\n    color: #868D9C;\n}"
+          },
+          "title": "New Markdown/HTML Card",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": true,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "aaccdb0d-72ff-9f2c-e4ae-55077480a3e6"
+      },
+      "55f1e5e9-a36c-313f-bd89-131670979b38": {
+        "isSystemType": true,
+        "bundleAlias": "digital_gauges",
+        "typeAlias": "horizontal_bar_justgage",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 7,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "avgMoisture",
+                  "type": "timeseries",
+                  "label": "Avg moisture",
+                  "color": "#5d5aec",
+                  "settings": {},
+                  "_hash": 0.19606872780730478,
+                  "aggregationType": "NONE",
+                  "units": null,
+                  "decimals": 0,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#ffffff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "minValue": 0,
+            "maxValue": 100,
+            "gaugeType": "horizontalBar",
+            "gaugeWidthScale": 0.3,
+            "neonGlowBrightness": 0,
+            "dashThickness": 0,
+            "roundedLineCap": true,
+            "gaugeColor": "#eeeeee",
+            "useFixedLevelColor": false,
+            "levelColors": [],
+            "showTitle": false,
+            "showUnitTitle": false,
+            "showTimestamp": false,
+            "showValue": true,
+            "valueFont": {
+              "family": "Roboto",
+              "size": 20,
+              "style": "normal",
+              "weight": "700",
+              "color": "#868d9c"
+            },
+            "showMinMax": true,
+            "minMaxFont": {
+              "family": "Roboto",
+              "size": 10,
+              "style": "normal",
+              "weight": "400",
+              "color": "#868d9c"
+            },
+            "showTicks": false,
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "linear"
+          },
+          "title": "Avg moisture",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "enableDataExport": false,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "pageSize": 1024,
+          "units": "%",
+          "noDataDisplayMessage": "",
+          "showLegend": false,
+          "showTitleIcon": false,
+          "titleTooltip": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "55f1e5e9-a36c-313f-bd89-131670979b38"
+      },
+      "2dc3be15-d850-c363-6c49-e511d3778510": {
+        "isSystemType": true,
+        "bundleAlias": "cards",
+        "typeAlias": "markdown_card",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 5,
+        "sizeY": 3.5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "39927380-423a-872a-0843-de34f99264ad",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "waterConsumption",
+                  "type": "timeseries",
+                  "label": "DailyWaterConsumption",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.4383129905545107,
+                  "aggregationType": "SUM",
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": null,
+                  "postFuncBody": null,
+                  "comparisonEnabled": null
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1667749913335,
+                "endTimeMs": 1667836313335
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "useMarkdownTextFunction": false,
+            "markdownTextPattern": "<div class=\"daily-water-consumption\" fxLayout=\"column\" fxLayoutAlign=\"center center\"><div class=\"text\">${DailyWaterConsumption:0} l</div></div>",
+            "markdownCss": ".daily-water-consumption {\n    width: 100%;\n    height: 100%;\n}\n\n.daily-water-consumption .text {\n    font-weight: 700;\n    font-size: 30px;\n    color: #868D9C;\n}"
+          },
+          "title": "Daily water consumption",
+          "showTitleIcon": false,
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "24px",
+          "titleTooltip": "",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "showLegend": false,
+          "useDashboardTimewindow": false,
+          "displayTimewindow": false,
+          "enableDataExport": false,
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": ""
+        },
+        "row": 0,
+        "col": 0,
+        "id": "2dc3be15-d850-c363-6c49-e511d3778510"
       }
     },
     "states": {
@@ -3242,37 +3540,55 @@
                 "sizeX": 10,
                 "sizeY": 5,
                 "row": 0,
-                "col": 0
+                "col": 6
               },
               "8fcd3aed-58d0-0cad-cf63-3a08e1be40a9": {
-                "sizeX": 5,
-                "sizeY": 9,
-                "row": 2,
-                "col": 19
+                "sizeX": 6,
+                "sizeY": 6,
+                "row": 5,
+                "col": 0
               },
               "8345be8d-e581-cbf5-3b22-a95bc191063f": {
                 "sizeX": 10,
                 "sizeY": 6,
                 "row": 5,
-                "col": 0
+                "col": 6
               },
               "338c74b3-0f57-5ab6-38e9-8df68d47ffae": {
-                "sizeX": 9,
+                "sizeX": 8,
                 "sizeY": 5,
                 "row": 0,
-                "col": 10
+                "col": 16
               },
               "fd1083dd-fad3-90c3-8eba-8a8fe0f1d93e": {
-                "sizeX": 5,
+                "sizeX": 6,
                 "sizeY": 2,
-                "row": 0,
-                "col": 19
+                "row": 3,
+                "col": 0
               },
               "e18122c8-7973-5206-792a-cfa7f924a7b0": {
-                "sizeX": 9,
+                "sizeX": 8,
                 "sizeY": 6,
                 "row": 5,
-                "col": 10
+                "col": 16
+              },
+              "aaccdb0d-72ff-9f2c-e4ae-55077480a3e6": {
+                "sizeX": 6,
+                "sizeY": 1,
+                "row": 0,
+                "col": 0
+              },
+              "55f1e5e9-a36c-313f-bd89-131670979b38": {
+                "sizeX": 3,
+                "sizeY": 2,
+                "row": 1,
+                "col": 0
+              },
+              "2dc3be15-d850-c363-6c49-e511d3778510": {
+                "sizeX": 3,
+                "sizeY": 2,
+                "row": 1,
+                "col": 3
               }
             },
             "gridSettings": {
