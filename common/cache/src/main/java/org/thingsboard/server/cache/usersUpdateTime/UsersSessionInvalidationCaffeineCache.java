@@ -28,11 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.event;
+package org.thingsboard.server.cache.usersUpdateTime;
 
-import java.io.Serializable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
 
-public abstract class UserAuthDataChangedEvent implements Serializable {
-    public abstract String getId();
-    public abstract long getTs();
+
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("UsersSessionInvalidation")
+public class UsersSessionInvalidationCaffeineCache extends CaffeineTbTransactionalCache<String, Long> {
+
+    @Autowired
+    public UsersSessionInvalidationCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.USERS_SESSION_INVALIDATION_CACHE);
+    }
 }

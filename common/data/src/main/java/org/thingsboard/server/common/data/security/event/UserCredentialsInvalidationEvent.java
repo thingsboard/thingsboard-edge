@@ -28,26 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.auth.jwt;
+package org.thingsboard.server.common.data.security.event;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.security.model.JwtToken;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.UserId;
 
-@Component
-public class RefreshTokenRepository {
+@EqualsAndHashCode(callSuper = true)
+public class UserCredentialsInvalidationEvent extends UserAuthDataChangedEvent {
+    private final UserId userId;
+    private final long ts;
 
-    private final JwtTokenFactory tokenFactory;
-
-    @Autowired
-    public RefreshTokenRepository(final JwtTokenFactory tokenFactory) {
-        this.tokenFactory = tokenFactory;
+    public UserCredentialsInvalidationEvent(UserId userId) {
+        this.userId = userId;
+        this.ts = System.currentTimeMillis();
     }
 
-    public JwtToken requestRefreshToken(SecurityUser user) {
-        return tokenFactory.createRefreshToken(user);
+    @Override
+    public String getId() {
+        return userId.toString();
     }
 
+    @Override
+    public long getTs() {
+        return ts;
+    }
 }
