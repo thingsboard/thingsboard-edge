@@ -79,8 +79,8 @@ export class CustomIntegrationFormComponent extends IntegrationForm implements C
     });
     this.customIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.customIntegrationConfigForm.getRawValue());
     });
   }
 

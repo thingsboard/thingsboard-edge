@@ -35,7 +35,6 @@ import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -231,7 +229,7 @@ public class IntegrationController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public DeferredResult<ResponseEntity> getIntegratioInfos(
+    public PageData<IntegrationInfo> getIntegratioInfos(
             @ApiParam(value = "Fetch edge template integrations")
             @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")
@@ -247,10 +245,7 @@ public class IntegrationController extends AutoCommitController {
         accessControlService.checkPermission(getCurrentUser(), Resource.INTEGRATION, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        DeferredResult<ResponseEntity> result = new DeferredResult<>();
-        tbIntegrationService.findTenantIntegrationInfos(tenantId, pageLink, isEdgeTemplate, result);
-        return result;
-
+        return tbIntegrationService.findTenantIntegrationInfos(tenantId, pageLink, isEdgeTemplate);
     }
 
     @ApiOperation(value = "Check integration connectivity (checkIntegrationConnection)",

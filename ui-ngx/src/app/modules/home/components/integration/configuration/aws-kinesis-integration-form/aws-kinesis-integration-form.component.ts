@@ -100,8 +100,8 @@ export class AwsKinesisIntegrationFormComponent extends IntegrationForm implemen
     });
     this.awsKinesisConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.awsKinesisConfigForm.getRawValue());
     });
   }
 

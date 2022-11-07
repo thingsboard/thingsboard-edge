@@ -97,8 +97,8 @@ export class UdpIntegrationFormComponent extends IntegrationForm implements Cont
     });
     this.updConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.updConfigForm.getRawValue());
     });
   }
 

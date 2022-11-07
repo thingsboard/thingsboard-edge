@@ -76,8 +76,8 @@ export class PubSubIntegrationFormComponent extends IntegrationForm implements C
     });
     this.pubSubIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.pubSubIntegrationConfigForm.getRawValue());
     });
   }
 

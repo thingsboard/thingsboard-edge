@@ -113,8 +113,8 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
     });
     this.tcpConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.tcpConfigForm.getRawValue());
     });
   }
 

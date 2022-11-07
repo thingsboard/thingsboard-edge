@@ -120,8 +120,6 @@ export class OpcUaSubscriptionComponent implements ControlValueAccessor, Validat
         this.opcSubscriptionForm.setControl('subscription', this.fb.array(subscriptionControls), {emitEvent: false});
         if (this.disabled) {
           this.opcSubscriptionForm.disable({emitEvent: false});
-        } else {
-          this.opcSubscriptionForm.enable({emitEvent: false});
         }
       }
     } else {

@@ -119,8 +119,6 @@ export class OpcUaMappingComponent implements ControlValueAccessor, Validator, O
         this.opcMappingForm.setControl('map', this.fb.array(mapControls), {emitEvent: false});
         if (this.disabled) {
           this.opcMappingForm.disable({emitEvent: false});
-        } else {
-          this.opcMappingForm.enable({emitEvent: false});
         }
       }
     } else {

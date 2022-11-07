@@ -87,8 +87,8 @@ export class RabbitMqIntegrationFormComponent extends IntegrationForm implements
     });
     this.rabbitMqIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.rabbitMqIntegrationConfigForm.getRawValue());
     });
   }
 

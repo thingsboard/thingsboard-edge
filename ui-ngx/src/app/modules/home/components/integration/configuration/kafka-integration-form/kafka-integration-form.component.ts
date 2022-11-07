@@ -79,8 +79,8 @@ export class KafkaIntegrationFormComponent extends IntegrationForm implements Co
     });
     this.kafkaIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.updateModels(value);
+    ).subscribe(() => {
+      this.updateModels(this.kafkaIntegrationConfigForm.getRawValue());
     });
   }
 
