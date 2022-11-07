@@ -56,6 +56,7 @@
       },
       {
         "additionalInfo": {
+          "description": null,
           "layoutX": 927,
           "layoutY": 284
         },
@@ -63,12 +64,15 @@
         "name": "Log RPC from Device",
         "debugMode": false,
         "configuration": {
-          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+          "scriptLang": "MVEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
         },
         "externalId": null
       },
       {
         "additionalInfo": {
+          "description": null,
           "layoutX": 926,
           "layoutY": 345
         },
@@ -76,7 +80,9 @@
         "name": "Log Other",
         "debugMode": false,
         "configuration": {
-          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+          "scriptLang": "MVEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
         },
         "externalId": null
       },
@@ -258,7 +264,9 @@
         "name": "Change msg type",
         "debugMode": false,
         "configuration": {
-          "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
+          "scriptLang": "MVEL",
+          "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
+          "mvelScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
         "externalId": null
       },
@@ -272,7 +280,9 @@
         "name": "Check Field relation",
         "debugMode": false,
         "configuration": {
-          "jsScript": "return msg.type === \"FieldToMoistureSensor\";"
+          "scriptLang": "MVEL",
+          "jsScript": "return msg.type === \"FieldToMoistureSensor\";",
+          "mvelScript": "return msg.type == \"FieldToMoistureSensor\";"
         },
         "externalId": null
       },
@@ -300,8 +310,6 @@
         "name": "Aggregate Latest Moisture",
         "debugMode": false,
         "configuration": {
-          "queueName": "MAIN",
-          "outMsgType": "POST_TELEMETRY_REQUEST",
           "direction": "FROM",
           "relationType": "FieldToMoistureSensor",
           "deduplicationInSec": 10,
@@ -320,7 +328,9 @@
                 "mvelFilterFunction": "attributes.active"
               }
             }
-          ]
+          ],
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": "Main"
         },
         "externalId": null
       }
