@@ -239,7 +239,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         childDataList.forEach(TbAggEntityData::prepare);
         JsonObject result = new JsonObject();
         for (var aggMapping : config.getAggMappings()) {
-            var filteredDataList = childDataList.stream().filter(ed -> filter(aggMapping.getFilter().getMvelFilterFunction(), ed)).collect(Collectors.toList());
+            var filteredDataList = childDataList.stream().filter(ed -> aggMapping.getFilter() == null || filter(aggMapping.getFilter().getMvelFilterFunction(), ed)).collect(Collectors.toList());
             if (filteredDataList.isEmpty()) {
                 continue;
             }
