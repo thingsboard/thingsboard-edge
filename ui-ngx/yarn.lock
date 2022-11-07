@@ -5996,6 +5996,11 @@ jest-worker@^27.0.2, jest-worker@^27.4.5:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
+jquery-sparkline@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/jquery-sparkline/-/jquery-sparkline-2.4.0.tgz#1be8b7b704dd3857152708aefb1d4a4b3a69fb33"
+  integrity sha512-SzjpMkOwlnqZpH4Ni2UbdRU5GxDl/BljgN8Smlun7CXUDqRhjPf2eolJ37KKcaG0/ufsMKY+XDERfPTV1hIcjg==
+
 jquery.terminal@^2.29.4:
   version "2.33.3"
   resolved "https://registry.yarnpkg.com/jquery.terminal/-/jquery.terminal-2.33.3.tgz#ff91e36af55aac4e42094b909b11fb51d6f16e1d"

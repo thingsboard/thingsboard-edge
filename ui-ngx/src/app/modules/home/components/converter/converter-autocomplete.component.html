@@ -53,10 +53,20 @@
     <mat-option *ngFor="let entity of filteredEntities | async" [value]="entity">
       <span [innerHTML]="entity.name | highlight:searchText"></span>
     </mat-option>
-    <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
-      <span>
-          {{ translate.get('converter.no-converters-matching', {entity: searchText}) | async }}
-      </span>
+    <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null" class="tb-not-found">
+      <div class="tb-not-found-content" (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText) || !addNewConverter; else searchNotEmpty">
+          <span translate>converter.no-converters-found</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+              {{ 'converter.no-converters-matching' | translate:{entity: truncate.transform(searchText, true, 6, &apos;...&apos;)} }}
+          </span>
+          <span *ngIf="(resource.CONVERTER | hasGenericPermission: operation.WRITE)">
+            <a translate (click)="createConverter($event, searchText)">converter.create-new-converter</a>
+          </span>
+        </ng-template>
+      </div>
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="selectConverterFormGroup.get('entity').hasError('required')">
