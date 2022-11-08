@@ -252,7 +252,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         customerUser = createUserAndLogin(customerUser, CUSTOMER_USER_PASSWORD);
         customerUserId = customerUser.getId();
 
-        logout();
+        resetTokens();
 
         log.info("Executed web test setup");
     }
@@ -353,7 +353,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Assert.assertNotNull(savedDifferentCustomer);
         differentCustomerId = savedDifferentCustomer.getId();
 
-        logout();
+        resetTokens();
     }
 
     protected void deleteDifferentTenant() throws Exception {
@@ -367,7 +367,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected User createUserAndLogin(User user, String password) throws Exception {
         User savedUser = doPost("/api/user", user, User.class);
-        logout();
+        resetTokens();
         JsonNode activateRequest = getActivateRequest(password);
         JsonNode tokenInfo = readResponse(doPost("/api/noauth/activate", activateRequest).andExpect(status().isOk()), JsonNode.class);
         validateAndSetJwtToken(tokenInfo, user.getEmail());
@@ -436,10 +436,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Assert.assertEquals(username, subject);
     }
 
-    protected void logout() throws Exception {
+    protected void resetTokens() throws Exception {
         this.token = null;
         this.refreshToken = null;
         this.username = null;
+    }
+
+    protected void logout() throws Exception{
+        doPost("/api/auth/logout").andExpect(status().isOk());
     }
 
     protected void setJwtToken(MockHttpServletRequestBuilder request) {

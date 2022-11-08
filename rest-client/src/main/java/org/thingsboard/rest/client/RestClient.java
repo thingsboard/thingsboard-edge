@@ -131,6 +131,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
@@ -3758,6 +3759,18 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 }, params).getBody();
     }
 
+    public PageData<IntegrationInfo> getIntegrationInfos(PageLink pageLink, boolean isEdgeTemplate) {
+        Map<String, String> params = new HashMap<>();
+        params.put("isEdgeTemplate", Boolean.toString(isEdgeTemplate));
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/integrationInfos?isEdgeTemplate={isEdgeTemplate}&" + getUrlParams(pageLink),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<IntegrationInfo>>() {
+                }, params).getBody();
+    }
+
     public void checkIntegrationConnection(Integration integration) {
         restTemplate.postForLocation(baseURL + "/api/integration/check", integration);
     }
@@ -3812,6 +3825,17 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 baseURL + "/api/edge/{edgeId}/integrations?" + getUrlParams(pageLink),
                 HttpMethod.GET, HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<Integration>>() {
+                }, params).getBody();
+    }
+
+    public PageData<IntegrationInfo> getEdgeIntegrationInfos(EdgeId edgeId, PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("edgeId", edgeId.getId().toString());
+        addPageLinkToParam(params, pageLink);
+        return restTemplate.exchange(
+                baseURL + "/api/edge/{edgeId}/integrationInfos?" + getUrlParams(pageLink),
+                HttpMethod.GET, HttpEntity.EMPTY,
+                new ParameterizedTypeReference<PageData<IntegrationInfo>>() {
                 }, params).getBody();
     }
 

@@ -752,7 +752,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
                     integrationRepository.findAll().forEach(integration -> {
-                        if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
+                        if (integration.getType().equals(IntegrationType.LORIOT)) {
+                            ObjectNode credentials = (ObjectNode) integration.getConfiguration().get("credentials");
+                            if (credentials.get("type").asText().equals("basic") && !credentials.has("username")) {
+                                credentials.set("username", credentials.get("email"));
+                                credentials.remove("email");
+                                integrationRepository.save(integration);
+                            }
+
+                        } else if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
                             if (!clientConfiguration.has("connectionString")) {
                                 String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",

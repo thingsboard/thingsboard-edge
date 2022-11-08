@@ -12,44 +12,8 @@
     "externalId": null
   },
   "metadata": {
-    "firstNodeIndex": 2,
+    "firstNodeIndex": 0,
     "nodes": [
-      {
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 260,
-          "layoutY": 114
-        },
-        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "StartVolumeIrrigation",
-        "debugMode": true,
-        "configuration": {
-          "msgCount": 1,
-          "periodInSeconds": 1,
-          "jsScript": "var msg = { \n  \"volumeInLitters\": 25\n};\n\nvar metadata = {  };\nvar msgType = \"START_IRRIGATION\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "724f3260-4487-11ed-84d4-45255688a627",
-          "originatorType": "ASSET"
-        },
-        "externalId": null
-      },
-      {
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 258,
-          "layoutY": 187
-        },
-        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "StartDurationIrrigation",
-        "debugMode": true,
-        "configuration": {
-          "msgCount": 1,
-          "periodInSeconds": 1,
-          "jsScript": "var msg = { \n  \"durationInMinutes\": 2\n};\n\nvar metadata = {  };\nvar msgType = \"START_IRRIGATION\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "724f3260-4487-11ed-84d4-45255688a627",
-          "originatorType": "ASSET"
-        },
-        "externalId": null
-      },
       {
         "additionalInfo": {
           "description": "",
@@ -90,7 +54,9 @@
         "name": "To Irrigation Start",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n}\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};"
+          "scriptLang": "MVEL",
+          "jsScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n}\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};",
+          "mvelScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes != null ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n};\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};"
         },
         "externalId": null
       },
@@ -195,7 +161,9 @@
         "name": "To Turn On RPC call",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
+          "scriptLang": "MVEL",
+          "jsScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "mvelScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: Date.now() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
         },
         "externalId": null
       },
@@ -265,7 +233,9 @@
         "name": "Should Turn Off?",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}"
+          "scriptLang": "MVEL",
+          "jsScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}",
+          "mvelScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif (irrigationTask == null || irrigationTask.value == null) {\n    return true;\n}\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}"
         },
         "externalId": null
       },
@@ -320,7 +290,9 @@
         "name": "To Turn Off RPC call",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
+          "scriptLang": "MVEL",
+          "jsScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "mvelScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: Date.now() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };"
         },
         "externalId": null
       },
@@ -334,7 +306,9 @@
         "name": "To stopped state",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
+          "scriptLang": "MVEL",
+          "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};",
+          "mvelScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
         },
         "externalId": null
       },
@@ -348,7 +322,9 @@
         "name": "Update state",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
+          "scriptLang": "MVEL",
+          "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};",
+          "mvelScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};"
         },
         "externalId": null
       },
@@ -397,9 +373,11 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Is Irrigation On?",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
-          "jsScript": "return metadata.irrigationState === 'ON';"
+          "scriptLang": "MVEL",
+          "jsScript": "return metadata.irrigationState === 'ON';",
+          "mvelScript": "return metadata.irrigationState === 'ON';"
         },
         "externalId": null
       },
@@ -473,7 +451,9 @@
         "name": "To Attributes Update",
         "debugMode": true,
         "configuration": {
-          "jsScript": "var newMsg = {};\nif(msg.maxMoistureThreshold !== undefined) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold !== undefined) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
+          "scriptLang": "MVEL",
+          "jsScript": "var newMsg = {};\nif(msg.maxMoistureThreshold !== undefined) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold !== undefined) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
+          "mvelScript": "var newMsg = {};\nif(msg.maxMoistureThreshold != null) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold != null) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
         "externalId": null
       },
@@ -495,47 +475,52 @@
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 2,
+        "toIndex": 1,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 0,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 0,
+        "toIndex": 22,
+        "type": "Attributes Updated"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 3,
         "type": "Success"
       },
       {
         "fromIndex": 2,
-        "toIndex": 3,
-        "type": "Post telemetry"
-      },
-      {
-        "fromIndex": 2,
-        "toIndex": 6,
-        "type": "Other"
-      },
-      {
-        "fromIndex": 2,
-        "toIndex": 24,
-        "type": "Attributes Updated"
-      },
-      {
-        "fromIndex": 3,
         "toIndex": 5,
         "type": "Success"
       },
       {
+        "fromIndex": 3,
+        "toIndex": 18,
+        "type": "True"
+      },
+      {
         "fromIndex": 4,
+        "toIndex": 2,
+        "type": "True"
+      },
+      {
+        "fromIndex": 5,
         "toIndex": 7,
         "type": "Success"
       },
       {
-        "fromIndex": 5,
-        "toIndex": 20,
-        "type": "True"
-      },
-      {
-        "fromIndex": 6,
-        "toIndex": 4,
-        "type": "True"
-      },
-      {
         "fromIndex": 7,
-        "toIndex": 9,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 6,
         "type": "Success"
       },
       {
@@ -545,47 +530,42 @@
       },
       {
         "fromIndex": 10,
-        "toIndex": 8,
+        "toIndex": 11,
         "type": "Success"
       },
       {
         "fromIndex": 11,
-        "toIndex": 12,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 12,
         "toIndex": 13,
-        "type": "Success"
+        "type": "True"
       },
       {
-        "fromIndex": 13,
+        "fromIndex": 11,
         "toIndex": 15,
         "type": "True"
       },
       {
-        "fromIndex": 13,
-        "toIndex": 17,
-        "type": "True"
-      },
-      {
-        "fromIndex": 13,
-        "toIndex": 18,
+        "fromIndex": 11,
+        "toIndex": 16,
         "type": "False"
       },
       {
-        "fromIndex": 15,
-        "toIndex": 16,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 16,
+        "fromIndex": 13,
         "toIndex": 14,
         "type": "Success"
       },
       {
-        "fromIndex": 17,
-        "toIndex": 19,
+        "fromIndex": 14,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 15,
+        "toIndex": 17,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 17,
         "type": "Success"
       },
       {
@@ -594,33 +574,28 @@
         "type": "Success"
       },
       {
+        "fromIndex": 18,
+        "toIndex": 24,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 19,
+        "toIndex": 9,
+        "type": "True"
+      },
+      {
         "fromIndex": 20,
         "toIndex": 21,
         "type": "Success"
       },
       {
-        "fromIndex": 20,
-        "toIndex": 26,
-        "type": "Failure"
-      },
-      {
-        "fromIndex": 21,
-        "toIndex": 11,
-        "type": "True"
-      },
-      {
         "fromIndex": 22,
         "toIndex": 23,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 24,
-        "toIndex": 25,
         "type": "True"
       },
       {
-        "fromIndex": 25,
-        "toIndex": 22,
+        "fromIndex": 23,
+        "toIndex": 20,
         "type": "Success"
       }
     ],

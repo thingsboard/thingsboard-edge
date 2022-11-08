@@ -35,14 +35,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBased;
-import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -51,7 +48,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ToString(callSuper = true)
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Integration extends IntegrationInfo implements ExportableEntity<IntegrationId> {
+public class Integration extends AbstractIntegration implements ExportableEntity<IntegrationId> {
 
     private static final long serialVersionUID = 4934987577236873728L;
 
@@ -61,7 +58,6 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
     @Length(fieldName = "routingKey")
     private String routingKey;
     private IntegrationType type;
-    private boolean debugMode;
 
     @NoXss
     @Length(fieldName = "secret")
@@ -69,7 +65,8 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
     private JsonNode configuration;
     private JsonNode additionalInfo;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private IntegrationId externalId;
 
     public Integration() {
@@ -86,7 +83,6 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
         this.downlinkConverterId = integration.getDownlinkConverterId();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -135,24 +131,6 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
 
     public void setRoutingKey(String routingKey) {
         this.routingKey = routingKey;
-    }
-
-    @ApiModelProperty(position = 7, required = true, value = "The type of the integration")
-    public IntegrationType getType() {
-        return type;
-    }
-
-    public void setType(IntegrationType type) {
-        this.type = type;
-    }
-
-    @ApiModelProperty(position = 8, value = "Boolean flag to enable/disable saving received messages as debug events")
-    public boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public void setDebugMode(boolean debugMode) {
-        this.debugMode = debugMode;
     }
 
     @ApiModelProperty(position = 12, value = "String value used by the remote integrations. " +
