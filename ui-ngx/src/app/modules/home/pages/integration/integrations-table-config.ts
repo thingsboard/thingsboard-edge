@@ -477,7 +477,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       translateKey = 'integration.status.disabled';
       backgroundColor = 'rgba(0, 0, 0, 0.08)';
     } else if (!integration.status) {
-      translateKey = 'integration.status.disabled';
+      translateKey = 'integration.status.pending';
       backgroundColor = 'rgba(212, 125, 24, 0.08)';
     } else if (!integration.status.success) {
       translateKey = 'integration.status.failed';
