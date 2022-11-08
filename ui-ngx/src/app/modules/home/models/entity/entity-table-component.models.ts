@@ -47,6 +47,7 @@ import {
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { ActivatedRoute } from '@angular/router';
+import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 
 export interface IEntitiesTableComponent {
   entitiesTableConfig: EntityTableConfig<BaseData<HasId>>;
@@ -77,6 +78,7 @@ export interface IEntitiesTableComponent {
   paginator: MatPaginator;
   sort: MatSort;
   route: ActivatedRoute;
+  entityDetailsPanel: EntityDetailsPanelComponent;
 
   addEnabled(): boolean;
   clearSelection(): void;
@@ -100,4 +102,5 @@ export interface IEntitiesTableComponent {
   cellStyle(entity: BaseData<HasId>, column: EntityColumn<BaseData<HasId>>, row: number): any;
   trackByColumnKey(index, column: EntityTableColumn<BaseData<HasId>>): string;
   trackByEntityId(index: number, entity: BaseData<HasId>): string;
+  detectChanges(): void;
 }

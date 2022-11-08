@@ -72,6 +72,7 @@ import org.thingsboard.server.dao.oauth2.OAuth2User;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.service.entitiy.user.TbUserService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -117,6 +118,9 @@ public abstract class AbstractOAuth2ClientMapper {
 
     @Autowired
     private InstallScripts installScripts;
+
+    @Autowired
+    private TbUserService tbUserService;
 
     @Autowired
     protected TbTenantProfileCache tenantProfileCache;
@@ -176,7 +180,7 @@ public abstract class AbstractOAuth2ClientMapper {
 
                     user.setAdditionalInfo(additionalInfo);
 
-                    user = userService.saveUser(user);
+                    user = tbUserService.save(tenantId, customerId, null, user, false, null, null, null, null);
                     if (config.isActivateUser()) {
                         UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
                         userService.activateUserCredentials(user.getTenantId(), userCredentials.getActivateToken(), passwordEncoder.encode(""));

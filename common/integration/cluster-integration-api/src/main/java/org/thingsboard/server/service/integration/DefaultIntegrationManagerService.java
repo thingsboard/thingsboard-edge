@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -51,12 +50,14 @@ import org.thingsboard.integration.api.data.DefaultIntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.IntegrationUtil;
 import org.thingsboard.server.coapserver.CoapServerService;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -103,7 +104,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 
@@ -620,7 +620,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 .orElse(null);
     }
 
-    private boolean isMine(IntegrationInfo integration) {
+    private boolean isMine(AbstractIntegration integration) {
         var type = integration.getType();
         if (supportedIntegrationTypes.contains(type)) {
             return !type.isSingleton()
@@ -669,7 +669,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         long ts = System.currentTimeMillis();
         integrations.forEach((id, integration) -> {
             IntegrationStatistics statistics = integration.getIntegration().popStatistics();
-            IntegrationInfo integrationInfo = integration.getIntegration().getConfiguration();
+            Integration integrationInfo = integration.getIntegration().getConfiguration();
             try {
                 eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integration.getCurrentState());
             } catch (Exception e) {
