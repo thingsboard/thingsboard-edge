@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Immutable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -46,59 +47,27 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
 
 import javax.persistence.Column;
-import javax.persistence.ColumnResult;
-import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.NamedNativeQuery;
-import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_COLUMN_FAMILY_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REMOTE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_VIEW_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SEARCH_TEXT_PROPERTY;
-import static org.thingsboard.server.dao.sql.integration.IntegrationInfoRepository.FIND_ALL_INTEGRATION_INFOS_WITH_STATS_QUERY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = INTEGRATION_COLUMN_FAMILY_NAME)
-@SqlResultSetMapping(
-        name = "integrationInfoMapping",
-        classes = {
-                @ConstructorResult(
-                        targetClass = IntegrationInfoEntity.class,
-                        columns = {
-                                @ColumnResult(name = "id", type = UUID.class),
-                                @ColumnResult(name = "created_time", type = Long.class),
-                                @ColumnResult(name = "tenant_id", type = UUID.class),
-                                @ColumnResult(name = "name", type = String.class),
-                                @ColumnResult(name = "type", type = String.class),
-                                @ColumnResult(name = "debug_mode", type = Boolean.class),
-                                @ColumnResult(name = "enabled", type = Boolean.class),
-                                @ColumnResult(name = "is_remote", type = Boolean.class),
-                                @ColumnResult(name = "allow_create_devices_or_assets", type = Boolean.class),
-                                @ColumnResult(name = "is_edge_template", type = Boolean.class),
-                                @ColumnResult(name = "stats", type = String.class),
-                                @ColumnResult(name = "status", type = String.class)
-                        }
-                )
-        }
-)
-
-@NamedNativeQuery(
-        name = "IntegrationInfoEntity.findAllIntegrationInfosWithStats",
-        query = FIND_ALL_INTEGRATION_INFOS_WITH_STATS_QUERY,
-        resultSetMapping = "integrationInfoMapping")
+@Immutable
+@Table(name = INTEGRATION_VIEW_NAME)
 public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implements SearchTextEntity<IntegrationInfo> {
 
     @Column(name = INTEGRATION_TENANT_ID_PROPERTY)
@@ -129,10 +98,10 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY)
     private Boolean edgeTemplate;
 
-    @Transient
+    @Column(name = ModelConstants.INTEGRATION_VIEW_STATS_PROPERTY)
     private String stats;
 
-    @Transient
+    @Column(name = ModelConstants.INTEGRATION_VIEW_STATUS_PROPERTY)
     private String status;
 
     public IntegrationInfoEntity() {
