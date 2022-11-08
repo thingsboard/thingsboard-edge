@@ -150,7 +150,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     });
 
     this.scheduleConfigFormGroup.get('repeat').valueChanges.subscribe((repeat: boolean) => {
-      if (repeat) {
+      if (repeat && this.scheduleConfigFormGroup.get('startDate').value) {
         this.scheduleConfigFormGroup.get('repeatType').patchValue(SchedulerRepeatType.DAILY, {emitEvent: false});
         const startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
         const endsOnDate = new Date(
@@ -183,7 +183,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
 
   private endsOnDateValidator(startDate: string, endsOnDate: string) {
     return (group: FormGroup): {[key: string]: any} => {
-      if (group.controls[endsOnDate].status === 'VALID') {
+      if (group.controls[endsOnDate].status === 'VALID' && group.controls[startDate].status === 'VALID') {
         if (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime()) {
           return { endsOnDateValidator: true };
         }
