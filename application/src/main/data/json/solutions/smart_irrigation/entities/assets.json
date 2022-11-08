@@ -4,6 +4,7 @@
     "label": "Wheat",
     "type": "SI Field",
     "group": "Smart Irrigation",
+    "emulator": "Field",
     "attributes": {
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
@@ -19,6 +20,7 @@
     "label": "Corn",
     "type": "SI Field",
     "group": "Smart Irrigation",
+    "emulator": "Field",
     "attributes": {
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,

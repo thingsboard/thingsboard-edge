@@ -3,7 +3,7 @@
     "name": "SI Water Meter 1",
     "type": "SI Water Meter",
     "group": "Smart Irrigation",
-    "profile": "Water Meter",
+    "emulator": "Water Meter",
     "attributes": {
       "lowBatteryThreshold": 30.0,
       "lowBatteryAlarmEnabled": true
@@ -22,7 +22,7 @@
     "name": "SI Smart Valve 1",
     "type": "SI Smart Valve",
     "group": "Smart Irrigation",
-    "profile": "Smart Valve",
+    "emulator": "Smart Valve",
     "attributes": {
       "lowBatteryThreshold": 30.0,
       "lowBatteryAlarmEnabled": true
@@ -42,7 +42,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Wheat 1",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
@@ -66,7 +66,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Wheat 2",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
@@ -90,7 +90,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Wheat 3",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
@@ -114,7 +114,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Wheat 4",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 75.0,
       "minMoistureThreshold": 25.0,
@@ -137,7 +137,7 @@
     "name": "SI Water Meter 2",
     "type": "SI Water Meter",
     "group": "Smart Irrigation",
-    "profile": "Water Meter",
+    "emulator": "Water Meter",
     "attributes": {
       "lowBatteryThreshold": 30.0,
       "lowBatteryAlarmEnabled": true
@@ -156,7 +156,7 @@
     "name": "SI Smart Valve 2",
     "type": "SI Smart Valve",
     "group": "Smart Irrigation",
-    "profile": "Smart Valve",
+    "emulator": "Smart Valve",
     "attributes": {
       "lowBatteryThreshold": 30.0,
       "lowBatteryAlarmEnabled": true
@@ -176,7 +176,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Corn 1",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
@@ -200,7 +200,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Corn 2",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
@@ -224,7 +224,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Corn 3",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,
@@ -248,7 +248,7 @@
     "type": "SI Soil Moisture Sensor",
     "label": "Corn 4",
     "group": "Smart Irrigation",
-    "profile": "Soil Moisture",
+    "emulator": "Soil Moisture",
     "attributes": {
       "maxMoistureThreshold": 80.0,
       "minMoistureThreshold": 23.0,

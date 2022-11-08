@@ -28,25 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.definition;
+package org.thingsboard.server.service.solutions.data.emulator;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class DeviceDefinition extends CustomerEntityDefinition {
+public interface Emulator {
 
-    private String type;
-    private String label;
-    private String emulator;
-
-    @Override
-    public EntityType getEntityType() {
-        return EntityType.DEVICE;
-    }
+    void init(EmulatorDefinition emulatorDefinition);
 
 }

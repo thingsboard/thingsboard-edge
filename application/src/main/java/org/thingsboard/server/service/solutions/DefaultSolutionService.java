@@ -57,7 +57,6 @@ import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -107,7 +106,6 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
@@ -134,7 +132,7 @@ import org.thingsboard.server.service.solutions.data.definition.CustomerEntityDe
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardUserDetailsDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
-import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
@@ -143,6 +141,7 @@ import org.thingsboard.server.service.solutions.data.definition.SchedulerEventDe
 import org.thingsboard.server.service.solutions.data.definition.TenantDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserDefinition;
 import org.thingsboard.server.service.solutions.data.definition.UserGroupDefinition;
+import org.thingsboard.server.service.solutions.data.emulator.AssetEmulatorLauncher;
 import org.thingsboard.server.service.solutions.data.emulator.DeviceEmulatorLauncher;
 import org.thingsboard.server.service.solutions.data.names.RandomNameData;
 import org.thingsboard.server.service.solutions.data.names.RandomNameUtil;
@@ -469,7 +468,7 @@ public class DefaultSolutionService implements SolutionService {
 
             provisionCustomers(ctx, customers);
 
-            provisionAssets(ctx);
+            var assets = provisionAssets(ctx);
 
             var devices = provisionDevices(user, ctx);
 
@@ -483,7 +482,7 @@ public class DefaultSolutionService implements SolutionService {
 
             updateRuleChains(ctx);
 
-            launchEmulators(ctx, devices);
+            launchEmulators(ctx, devices, assets);
 
             ctx.getSolutionInstructions().setDetails(prepareInstructions(ctx, request));
 
@@ -819,14 +818,30 @@ public class DefaultSolutionService implements SolutionService {
         return result;
     }
 
-    private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap) throws Exception {
-        Map<String, DeviceEmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<DeviceEmulatorDefinition>>() {
-        }).stream().collect(Collectors.toMap(DeviceEmulatorDefinition::getName, Function.identity()));
+    private void launchEmulators(SolutionInstallContext ctx, Map<Device, DeviceDefinition> devicesMap, Map<Asset, AssetDefinition> assets) throws Exception {
+        Map<String, EmulatorDefinition> deviceEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "device_emulators.json", new TypeReference<List<EmulatorDefinition>>() {
+        }).stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
 
-        for (var entry : devicesMap.entrySet()) {
+        for (var entry : devicesMap.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
             DeviceEmulatorLauncher.builder()
-                    .device(entry.getKey())
-                    .deviceProfile(deviceEmulators.get(entry.getValue().getProfile()))
+                    .entity(entry.getKey())
+                    .emulatorDefinition(deviceEmulators.get(entry.getValue().getEmulator()))
+                    .oldTelemetryExecutor(emulatorExecutor)
+                    .tbClusterService(tbClusterService)
+                    .partitionService(partitionService)
+                    .tbQueueProducerProvider(tbQueueProducerProvider)
+                    .serviceInfoProvider(serviceInfoProvider)
+                    .tsSubService(tsSubService)
+                    .build().launch();
+        }
+
+        Map<String, EmulatorDefinition> assetEmulators = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "asset_emulators.json", new TypeReference<List<EmulatorDefinition>>() {
+        }).stream().collect(Collectors.toMap(EmulatorDefinition::getName, Function.identity()));
+
+        for (var entry : assets.entrySet().stream().filter(e -> StringUtils.isNotBlank(e.getValue().getEmulator())).collect(Collectors.toSet())) {
+            AssetEmulatorLauncher.builder()
+                    .entity(entry.getKey())
+                    .emulatorDefinition(assetEmulators.get(entry.getValue().getEmulator()))
                     .oldTelemetryExecutor(emulatorExecutor)
                     .tbClusterService(tbClusterService)
                     .partitionService(partitionService)
@@ -876,7 +891,8 @@ public class DefaultSolutionService implements SolutionService {
         }
     }
 
-    protected void provisionAssets(SolutionInstallContext ctx) {
+    protected Map<Asset, AssetDefinition> provisionAssets(SolutionInstallContext ctx) {
+        Map<Asset, AssetDefinition> result = new HashMap<>();
         List<AssetDefinition> assets = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "assets.json", new TypeReference<>() {
         });
         for (AssetDefinition entityDef : assets) {
@@ -894,7 +910,9 @@ public class DefaultSolutionService implements SolutionService {
             saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
+            result.put(entity, entityDef);
         }
+        return result;
     }
 
     private void provisionCustomers(SolutionInstallContext ctx, List<CustomerDefinition> customers) throws ExecutionException, InterruptedException {

@@ -31,12 +31,10 @@
 package org.thingsboard.server.service.solutions.data.emulator;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.springframework.data.util.Pair;
 
-public interface DeviceEmulator {
+public interface CustomEmulator extends Emulator {
 
-    void init(DeviceEmulatorDefinition deviceProfile);
-
-    ObjectNode getValue(long ts);
+    Pair<Long, ObjectNode> getNextValue();
 
 }

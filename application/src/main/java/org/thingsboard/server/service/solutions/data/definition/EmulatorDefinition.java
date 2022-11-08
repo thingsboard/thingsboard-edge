@@ -28,30 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.emulator;
+package org.thingsboard.server.service.solutions.data.definition;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
-import org.thingsboard.server.service.solutions.data.values.TelemetryGenerator;
-import org.thingsboard.server.service.solutions.data.values.TelemetryGeneratorFactory;
+import lombok.Data;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
-public class BasicDeviceEmulator implements DeviceEmulator {
-
-    private final Map<String, TelemetryGenerator> tsGenerators = new HashMap<>();
-
-    @Override
-    public void init(DeviceEmulatorDefinition deviceProfile) {
-        deviceProfile.getTelemetryProfiles().forEach(tp -> tsGenerators.put(tp.getKey(), TelemetryGeneratorFactory.create(tp)));
-    }
-
-    @Override
-    public ObjectNode getValue(long ts) {
-        ObjectNode values = JacksonUtil.newObjectNode();
-        tsGenerators.values().forEach(gen -> gen.addValue(ts, values));
-        return values;
-    }
+@Data
+public class EmulatorDefinition {
+    private String name;
+    private String clazz;
+    private int publishPeriodInDays;
+    private int publishFrequencyInSeconds;
+    private int publishPauseInMillis;
+    private long activityPeriodInMillis;
+    private List<TelemetryProfile> telemetryProfiles = Collections.emptyList();
 }

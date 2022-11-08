@@ -28,20 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.definition;
+package org.thingsboard.server.service.solutions.data.emulator;
 
-import lombok.Data;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 
-import java.util.Collections;
-import java.util.List;
+public interface SimpleEmulator extends Emulator {
 
-@Data
-public class DeviceEmulatorDefinition {
-    private String name;
-    private String clazz;
-    private int publishPeriodInDays;
-    private int publishFrequencyInSeconds;
-    private int publishPauseInMillis;
-    private long activityPeriodInMillis;
-    private List<TelemetryProfile> telemetryProfiles = Collections.emptyList();
+    ObjectNode getValue(long ts);
+
 }
