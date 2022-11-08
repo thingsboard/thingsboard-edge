@@ -402,11 +402,6 @@
         "type": "Alarm Severity Updated"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 15,
-        "type": "Alarm Updated"
-      },
-      {
         "fromIndex": 7,
         "toIndex": 13,
         "type": "Success"

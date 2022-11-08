@@ -22,7 +22,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "SwitchEventType",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "version": 0
         },
@@ -36,7 +36,7 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save telemetry",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "defaultTTL": 0,
           "skipLatestPersistence": false,
@@ -52,7 +52,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To Irrigation Start",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var newMsg = {\n    currentIrrigationWaterConsumption: 0,\n    irrigationState: \"ON\",\n    irrigationTask: {\n        startTs: Date.now(), \n        durationThreshold: (msg.durationInMinutes ? msg.durationInMinutes * 60 * 1000 : 0),\n        consumptionThreshold: msg.volumeInLitters,\n        consumption: 0\n    }\n}\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};",
@@ -68,7 +68,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
         "name": "IsMsgFromWaterMeter",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "messageNames": [
             "waterConsumption"
@@ -86,7 +86,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
         "name": "Start Irrigation Using Volume",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "messageTypes": [
             "START_IRRIGATION"
@@ -102,7 +102,7 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "defaultTTL": 0,
           "skipLatestPersistence": false,
@@ -118,7 +118,7 @@
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "Start Irrigation",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "timeoutInSeconds": 60
         },
@@ -132,7 +132,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Smart Valve",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "originatorSource": "RELATED",
           "relationsQuery": {
@@ -159,7 +159,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To Turn On RPC call",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var msg = { method: \"TURN_ON\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
@@ -175,7 +175,7 @@
         },
         "type": "org.thingsboard.rule.engine.math.TbMathNode",
         "name": "calculateIrrigationWaterConsumption",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "operation": "ADD",
           "arguments": [
@@ -210,7 +210,7 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Fetch Task",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "clientAttributeNames": [],
@@ -231,7 +231,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Should Turn Off?",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var irrigationTask = JSON.parse(metadata.irrigationTask);\nif(irrigationTask.value.durationThreshold > 0){\n    return (irrigationTask.value.startTs + irrigationTask.value.durationThreshold) < Date.now();\n} else {\n    return msg.currentIrrigationWaterConsumption >= irrigationTask.value.consumptionThreshold;\n}",
@@ -247,7 +247,7 @@
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "Stop Irrigation",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "timeoutInSeconds": 60
         },
@@ -261,7 +261,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Smart Valve",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "originatorSource": "RELATED",
           "relationsQuery": {
@@ -288,7 +288,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To Turn Off RPC call",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var msg = { method: \"TURN_OFF\", params: {} };\nvar metadata = { \n    expirationTime: new Date().getTime() + 300000,\n    oneway: true,\n    persistent: true\n};\nvar msgType = \"RPC_CALL_FROM_SERVER_TO_DEVICE\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
@@ -304,7 +304,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To stopped state",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nvar newMsg = {\n    irrigationTask: irrigationTask,\n    irrigationState: \"DONE\"\n};\n\nreturn {msg: newMsg, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};",
@@ -320,7 +320,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Update state",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var irrigationTaskJson = JSON.parse(metadata.irrigationTask);\nvar irrigationTask = irrigationTaskJson.value;\nirrigationTask.consumption = msg.currentIrrigationWaterConsumption;\nirrigationTask.duration = Date.now() - irrigationTask.startTs;\n\nreturn {msg: {irrigationTask: irrigationTask}, metadata: {ts:  irrigationTaskJson.ts}, msgType: \"POST_TELEMETRY_REQUEST\"};",
@@ -336,7 +336,7 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "defaultTTL": 0,
           "skipLatestPersistence": false,
@@ -352,7 +352,7 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
         "name": "Fetch Irrigation State",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "tellFailureIfAbsent": true,
           "clientAttributeNames": [],
@@ -389,7 +389,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToRelatedNode",
         "name": "To Moisture Sensor",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "relationsQuery": {
             "fetchLastLevelOnly": false,
@@ -415,7 +415,7 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Thresholds",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scope": "SERVER_SCOPE",
           "notifyDevice": false
@@ -430,7 +430,7 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
         "name": "Has Thresholds?",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "messageNames": [
             "maxMoistureThreshold",
@@ -449,7 +449,7 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "To Attributes Update",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "MVEL",
           "jsScript": "var newMsg = {};\nif(msg.maxMoistureThreshold !== undefined) {\n  newMsg.maxMoistureThreshold = msg.maxMoistureThreshold;\n}\nif(msg.minMoistureThreshold !== undefined) {\n  newMsg.minMoistureThreshold = msg.minMoistureThreshold;\n}\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",

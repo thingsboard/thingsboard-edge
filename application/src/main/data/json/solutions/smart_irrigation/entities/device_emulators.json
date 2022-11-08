@@ -2,7 +2,7 @@
   {
     "name": "Soil Moisture",
     "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 300,
+    "publishFrequencyInSeconds": 600,
     "publishPauseInMillis": 1,
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
@@ -66,7 +66,7 @@
   {
     "name": "Smart Valve",
     "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 300,
+    "publishFrequencyInSeconds": 600,
     "publishPauseInMillis": 1,
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
@@ -96,7 +96,7 @@
   {
     "name": "Water Meter",
     "publishPeriodInDays": 7,
-    "publishFrequencyInSeconds": 300,
+    "publishFrequencyInSeconds": 600,
     "publishPauseInMillis": 1,
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
@@ -119,6 +119,34 @@
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 1.0,
           "decrementOnStart": true
+        }
+      },
+      {
+        "key": "pulseCounter",
+        "valueStrategy": {
+          "type": "schedule",
+          "schedule": [
+            {
+              "startHour": 6,
+              "startMinute": 0,
+              "endHour": 7,
+              "endMinute": 30,
+              "definition": {
+                "type": "inc",
+                "precision": 2,
+                "minStartValue": 1,
+                "maxStartValue": 1,
+                "minEndValue": 100500,
+                "maxEndValue": 100500,
+                "minIncrement": 150,
+                "maxIncrement": 150
+              }
+            }
+          ],
+          "defaultDefinition": {
+            "type": "constant",
+            "value": 0
+          }
         }
       }
     ]

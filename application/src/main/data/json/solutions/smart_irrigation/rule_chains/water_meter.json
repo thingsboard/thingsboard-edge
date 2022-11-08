@@ -16,8 +16,8 @@
     "nodes": [
       {
         "additionalInfo": {
-          "layoutX": 913,
-          "layoutY": 297
+          "layoutX": 1230,
+          "layoutY": 221
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -101,8 +101,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 300,
-          "layoutY": 310
+          "layoutX": 288,
+          "layoutY": 312
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
@@ -116,8 +116,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1204,
-          "layoutY": 294
+          "layoutX": 1231,
+          "layoutY": 314
         },
         "type": "org.thingsboard.rule.engine.metadata.CalculateDeltaNode",
         "name": "Calculate Delta",
@@ -136,28 +136,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 46,
-          "layoutY": 383
-        },
-        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Field 1 Simulator",
-        "debugMode": false,
-        "configuration": {
-          "msgCount": 0,
-          "periodInSeconds": 1,
-          "scriptLang": "MVEL",
-          "jsScript": "var msg = { pulseCounter: prevMsg.pulseCounter +1 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "mvelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "d924ddb0-398c-11ed-af17-3d7337747e91",
-          "originatorType": "DEVICE"
-        },
-        "externalId": null
-      },
-      {
-        "additionalInfo": {
-          "description": "",
-          "layoutX": 1495,
-          "layoutY": 294
+          "layoutX": 1239,
+          "layoutY": 459
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Field",
@@ -185,8 +165,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1730,
-          "layoutY": 293
+          "layoutX": 1239,
+          "layoutY": 527
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Field Rule Chain",
@@ -213,30 +193,47 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 46,
-          "layoutY": 454
+          "layoutX": 1554,
+          "layoutY": 311
         },
-        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
-        "name": "Field 2 Simulator",
+        "type": "org.thingsboard.rule.engine.flow.TbAckNode",
+        "name": "Ignore Failure",
         "debugMode": false,
         "configuration": {
-          "msgCount": 0,
-          "periodInSeconds": 1,
-          "scriptLang": "MVEL",
-          "jsScript": "var msg = { pulseCounter: prevMsg.pulseCounter +1 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "mvelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "originatorId": "d924ddb0-398c-11ed-af17-3d7337747e92",
-          "originatorType": "DEVICE"
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 950,
+          "layoutY": 314
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbCheckpointNode",
+        "name": "Sequential",
+        "debugMode": false,
+        "configuration": {
+          "queueName": "SequentialByOriginator"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1237,
+          "layoutY": 383
+        },
+        "type": "org.thingsboard.rule.engine.flow.TbCheckpointNode",
+        "name": "Main",
+        "debugMode": false,
+        "configuration": {
+          "queueName": "Main"
         },
         "externalId": null
       }
     ],
     "connections": [
-      {
-        "fromIndex": 0,
-        "toIndex": 7,
-        "type": "Success"
-      },
       {
         "fromIndex": 2,
         "toIndex": 0,
@@ -264,13 +261,18 @@
       },
       {
         "fromIndex": 2,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Alarm Acknowledged"
       },
       {
         "fromIndex": 2,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 12,
+        "type": "Post telemetry"
       },
       {
         "fromIndex": 6,
@@ -279,47 +281,42 @@
       },
       {
         "fromIndex": 6,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Alarm Cleared"
       },
       {
         "fromIndex": 6,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Alarm Created"
       },
       {
         "fromIndex": 6,
-        "toIndex": 11,
+        "toIndex": 10,
         "type": "Alarm Severity Updated"
       },
       {
-        "fromIndex": 6,
-        "toIndex": 11,
-        "type": "Alarm Updated"
-      },
-      {
         "fromIndex": 7,
-        "toIndex": 3,
+        "toIndex": 11,
         "type": "Failure"
       },
       {
         "fromIndex": 7,
-        "toIndex": 9,
+        "toIndex": 13,
         "type": "Success"
       },
       {
         "fromIndex": 8,
-        "toIndex": 6,
-        "type": "Success"
-      },
-      {
-        "fromIndex": 9,
-        "toIndex": 10,
+        "toIndex": 9,
         "type": "Success"
       },
       {
         "fromIndex": 12,
-        "toIndex": 6,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 8,
         "type": "Success"
       }
     ],

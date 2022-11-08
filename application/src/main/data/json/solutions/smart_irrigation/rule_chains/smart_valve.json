@@ -183,11 +183,6 @@
         "fromIndex": 6,
         "toIndex": 7,
         "type": "Alarm Severity Updated"
-      },
-      {
-        "fromIndex": 6,
-        "toIndex": 7,
-        "type": "Alarm Updated"
       }
     ],
     "ruleChainConnections": null
