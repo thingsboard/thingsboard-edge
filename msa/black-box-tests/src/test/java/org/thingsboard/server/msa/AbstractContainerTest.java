@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.msa;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
@@ -39,14 +37,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.awaitility.Awaitility;
@@ -82,8 +73,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Listeners;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.DeviceId;
+import java.net.URI;
+import java.util.*;
 
 @Slf4j
+@Listeners(TestListener.class)
 public abstract class AbstractContainerTest {
     protected static final String HTTPS_URL = "https://localhost";
     protected static final String WSS_URL = "wss://localhost";
@@ -91,81 +90,46 @@ public abstract class AbstractContainerTest {
     protected static String TB_TOKEN;
     protected static RestClient restClient;
     protected static RestClient rpcHTTPRestClient;
-
     protected static long timeoutMultiplier = 1;
-
     protected ObjectMapper mapper = new ObjectMapper();
     protected JsonParser jsonParser = new JsonParser();
     protected static final String TELEMETRY_KEY = "temperature";
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;
     protected static final int CONNECT_TIMEOUT_MS = 500;
+    private static final ContainerTestSuite containerTestSuite = ContainerTestSuite.getInstance();
+    protected static TestRestClient testRestClient;
 
-    @BeforeClass
-    public static void before() throws Exception {
+    @BeforeSuite
+    public void beforeSuite() {
         String rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
         Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
         rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
         rpcHTTPRestClient = new RestClient(rpcURLHttp);
-
-        restClient = new RestClient(HTTPS_URL);
-        restClient.getRestTemplate().setRequestFactory(getRequestFactoryForSelfSignedCert());
-
+        if ("false".equals(System.getProperty("runLocal", "false"))) {
+            containerTestSuite.start();
+        }
+        testRestClient = new TestRestClient(TestProperties.getBaseUrl());
         if (!"kafka".equals(System.getProperty("blackBoxTests.queue", "kafka"))) {
             timeoutMultiplier = 10;
         }
     }
 
-    @Rule
-    public TestRule watcher = new TestWatcher() {
-        protected void starting(Description description) {
-            log.info("=================================================");
-            log.info("STARTING TEST: {}", description.getMethodName());
-            log.info("=================================================");
+    @AfterSuite
+    public void afterSuite() {
+        if (containerTestSuite.isActive()) {
+            containerTestSuite.stop();
         }
-
-        /**
-         * Invoked when a test succeeds
-         */
-        protected void succeeded(Description description) {
-            log.info("=================================================");
-            log.info("SUCCEEDED TEST: {}", description.getMethodName());
-            log.info("=================================================");
-        }
-
-        /**
-         * Invoked when a test fails
-         */
-        protected void failed(Throwable e, Description description) {
-            log.info("=================================================");
-            log.info("FAILED TEST: {}", description.getMethodName(), e);
-            log.info("=================================================");
-        }
-    };
-
-    protected Device createGatewayDevice() throws JsonProcessingException {
-        String isGateway = "{\"gateway\":true}";
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode additionalInfo = objectMapper.readTree(isGateway);
-        Device gatewayDeviceTemplate = new Device();
-        gatewayDeviceTemplate.setName("mqtt_gateway");
-        gatewayDeviceTemplate.setType("gateway");
-        gatewayDeviceTemplate.setAdditionalInfo(additionalInfo);
-        return restClient.saveDevice(gatewayDeviceTemplate);
-    }
-
-    protected Device createDevice(String name) {
-        Device device = new Device();
-        device.setName(name + StringUtils.randomAlphanumeric(7));
-        device.setType("DEFAULT");
-        return restClient.saveDevice(device);
     }
 
     protected WsClient subscribeToWebSocket(DeviceId deviceId, String scope, CmdsType property) throws Exception {
-        WsClient wsClient = new WsClient(new URI(WSS_URL + "/api/ws/plugins/telemetry?token=" + restClient.getToken()), timeoutMultiplier);
-        SSLContextBuilder builder = SSLContexts.custom();
-        builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
-        wsClient.setSocketFactory(builder.build().getSocketFactory());
+        String webSocketUrl = TestProperties.getWebSocketUrl();
+        WsClient wsClient = new WsClient(new URI(webSocketUrl + "/api/ws/plugins/telemetry?token=" + testRestClient.getToken()), timeoutMultiplier);
+        if (webSocketUrl.matches("^(wss)://.*$")) {
+            SSLContextBuilder builder = SSLContexts.custom();
+            builder.loadTrustMaterial(null, (TrustStrategy) (chain, authType) -> true);
+            wsClient.setSocketFactory(builder.build().getSocketFactory());
+        }
         wsClient.connectBlocking();
 
         JsonObject cmdsObject = new JsonObject();
