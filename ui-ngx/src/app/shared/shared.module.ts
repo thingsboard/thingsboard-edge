@@ -198,6 +198,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { MultipleImageInputComponent } from '@shared/components/multiple-image-input.component';
 import { BranchAutocompleteComponent } from '@shared/components/vc/branch-autocomplete.component';
 import { PhoneInputComponent } from '@shared/components/phone-input.component';
+import { TbSparkLineComponent } from './components/spark-line/tb-spark-line.component';
 import { CustomDateAdapter } from '@shared/adapter/custom-datatime-adapter';
 import { CustomPaginatorIntl } from '@shared/services/custom-paginator-intl';
 import { TbScriptLangComponent } from '@shared/components/script-lang.component';
@@ -348,6 +349,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ProtobufContentComponent,
     BranchAutocompleteComponent,
     PhoneInputComponent,
+    TbSparkLineComponent,
     TbScriptLangComponent
   ],
   imports: [
@@ -570,6 +572,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ProtobufContentComponent,
     BranchAutocompleteComponent,
     PhoneInputComponent,
+    TbSparkLineComponent,
     TbScriptLangComponent
   ]
 })

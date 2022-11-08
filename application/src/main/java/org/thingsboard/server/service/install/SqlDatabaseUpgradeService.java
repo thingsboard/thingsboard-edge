@@ -661,7 +661,10 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 log.info("Updating schema ...");
                 Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.2pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    loadSql(schemaUpdateFile, conn);
+                    try {
+                        loadSql(schemaUpdateFile, conn);
+                    } catch (Exception e) {
+                    }
                     try {
                         conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception e) {
@@ -734,7 +737,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
                     integrationRepository.findAll().forEach(integration -> {
-                        if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
+                        if (integration.getType().equals(IntegrationType.LORIOT)) {
+                            ObjectNode credentials = (ObjectNode) integration.getConfiguration().get("credentials");
+                            if (credentials.get("type").asText().equals("basic") && !credentials.has("username")) {
+                                credentials.set("username", credentials.get("email"));
+                                credentials.remove("email");
+                                integrationRepository.save(integration);
+                            }
+
+                        } else if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
                             if (!clientConfiguration.has("connectionString")) {
                                 String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
@@ -759,6 +770,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     } catch (Exception ignored) {}
                     try {
                         conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
                     log.info("Schema updated.");
                 } catch (Exception e) {

@@ -157,6 +157,7 @@ import { GroupConfigTableConfigService } from '@home/components/group/group-conf
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { ConverterAutocompleteComponent } from '@home/components/converter/converter-autocomplete.component';
+import { AddConverterDialogComponent } from '@home/components/converter/add-converter-dialog.component';
 import { OperationTypeListComponent } from '@home/components/role/operation-type-list.component';
 import { ResourceTypeAutocompleteComponent } from '@home/components/role/resource-type-autocomplete.component';
 import { PermissionListComponent } from '@home/components/role/permission-list.component';
@@ -215,6 +216,10 @@ import { RateLimitsDetailsDialogComponent } from '@home/components/profile/tenan
 import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
 import { AssetProfileDialogComponent } from '@home/components/profile/asset-profile-dialog.component';
 import { AssetProfileAutocompleteComponent } from '@home/components/profile/asset-profile-autocomplete.component';
+import { IntegrationWizardDialogComponent } from '@home/components/wizard/integration-wizard-dialog.component';
+import { ConverterComponent } from '@home/components/converter/converter.component';
+import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
+import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
 
 @NgModule({
   declarations:
@@ -271,6 +276,7 @@ import { AssetProfileAutocompleteComponent } from '@home/components/profile/asse
       AddWidgetToDashboardDialogComponent,
       TableColumnsAssignmentComponent,
       ConverterAutocompleteComponent,
+      AddConverterDialogComponent,
       OperationTypeListComponent,
       ResourceTypeAutocompleteComponent,
       PermissionListComponent,
@@ -381,7 +387,10 @@ import { AssetProfileAutocompleteComponent } from '@home/components/profile/asse
       RateLimitsDetailsDialogComponent,
       RateLimitsComponent,
       RateLimitsListComponent,
-      RateLimitsTextComponent
+      RateLimitsTextComponent,
+      IntegrationWizardDialogComponent,
+      ConverterComponent,
+      ConverterTestDialogComponent
     ],
   imports: [
     CommonModule,
@@ -393,7 +402,8 @@ import { AssetProfileAutocompleteComponent } from '@home/components/profile/asse
     SnmpDeviceProfileTransportModule,
     StatesControllerModule,
     DeviceCredentialsModule,
-    DeviceProfileCommonModule
+    DeviceProfileCommonModule,
+    IntegrationComponentModule
   ],
   exports: [
     SharedHomeComponentsModule,
@@ -543,7 +553,8 @@ import { AssetProfileAutocompleteComponent } from '@home/components/profile/asse
     RateLimitsDetailsDialogComponent,
     RateLimitsComponent,
     RateLimitsListComponent,
-    RateLimitsTextComponent
+    RateLimitsTextComponent,
+    IntegrationWizardDialogComponent
   ],
   providers: [
     WidgetComponentService,

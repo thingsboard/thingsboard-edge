@@ -76,7 +76,6 @@ import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -946,6 +945,8 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     @Test
     @Ignore
     public void testSyncEdgeEntityGroup() throws Exception {
+        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
+
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
 
         EntityGroup savedDeviceGroup = new EntityGroup();
@@ -977,7 +978,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(17);
+        edgeImitator.expectMessageAmount(16);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
@@ -987,10 +988,9 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - two msgs during sync process, four msgs from assign to edge").hasSize(6);
         assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - two msgs during sync process").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling params update").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
 
-        edgeImitator.expectMessageAmount(14);
+        edgeImitator.expectMessageAmount(13);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
@@ -998,7 +998,6 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(4);
         assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(WhiteLabelingParamsProto.class)).as("white labeling param proto msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);

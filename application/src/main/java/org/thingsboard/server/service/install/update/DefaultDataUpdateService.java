@@ -83,6 +83,7 @@ import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -1223,7 +1224,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         while (hasNext) {
             for (Integration integration : pageData.getData()) {
                 try {
-                    Field enabledField = IntegrationInfo.class.getDeclaredField("enabled");
+                    Field enabledField = AbstractIntegration.class.getDeclaredField("enabled");
                     enabledField.setAccessible(true);
                     Boolean booleanVal = (Boolean) enabledField.get(integration);
                     if (booleanVal == null) {

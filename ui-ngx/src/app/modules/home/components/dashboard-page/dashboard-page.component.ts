@@ -612,7 +612,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public hideFullscreenButton(): boolean {
-    if (this.route.snapshot.routeConfig.path.startsWith('dashboards')) {
+    if (this.route.snapshot.routeConfig?.path.startsWith('dashboards')) {
       return this.widgetEditMode || this.iframeMode || this.forceFullscreen;
     }
     return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.singlePageMode;

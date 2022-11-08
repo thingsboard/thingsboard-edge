@@ -79,6 +79,8 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
 
   @Input() singlePredefinedKey: string;
 
+  @Input() isStrokedButton = false;
+
   kvListFormGroup: FormGroup;
 
   private propagateChange = null;

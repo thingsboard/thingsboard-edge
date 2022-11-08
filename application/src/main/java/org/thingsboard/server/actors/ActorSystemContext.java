@@ -31,6 +31,7 @@
 package org.thingsboard.server.actors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -45,6 +46,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.EventUtil;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
@@ -54,19 +56,22 @@ import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.event.RuleChainDebugEvent;
 import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbActorMsg;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -133,8 +138,7 @@ import org.thingsboard.server.service.transport.TbCoreToTransportService;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -587,19 +591,37 @@ public class ActorSystemContext {
     }
 
     public void persistLifecycleEvent(TenantId tenantId, EntityId entityId, ComponentLifecycleEvent lcEvent, Exception e) {
-        LifecycleEvent.LifecycleEventBuilder event = LifecycleEvent.builder()
+        LifecycleEvent.LifecycleEventBuilder eventBuilder = LifecycleEvent.builder()
                 .tenantId(tenantId)
                 .entityId(entityId.getId())
                 .serviceId(getServiceId())
                 .lcEventType(lcEvent.name());
 
         if (e != null) {
-            event.success(false).error(EventUtil.toString(e));
+            eventBuilder.success(false).error(EventUtil.toString(e));
         } else {
-            event.success(true);
+            eventBuilder.success(true);
         }
 
-        eventService.saveAsync(event.build());
+        LifecycleEvent event = eventBuilder.build();
+
+        eventService.saveAsync(event);
+
+        if (entityId.getEntityType().equals(EntityType.INTEGRATION)) {
+            String key = "integration_status_" + getServiceId().toLowerCase();
+            ObjectNode value = JacksonUtil.newObjectNode();
+
+            if (e == null) {
+                value.put("success", true);
+            } else {
+                value.put("success", false);
+                value.put("serviceId", getServiceId());
+                value.put("error", event.getError());
+            }
+
+            AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+            attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+        }
     }
 
     public TopicPartitionInfo resolve(ServiceType serviceType, TenantId tenantId, EntityId entityId) {
