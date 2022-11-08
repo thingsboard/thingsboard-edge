@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.service.edge.rpc.processor;
 
-import java.util.UUID;
-import java.util.function.Consumer;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-/**
- * Created by ashvayka on 02.04.18.
- */
-public interface RuleEngineRpcService {
-
-    void sendRpcReplyToDevice(String serviceId, UUID sessionId, int requestId, String body);
-
-    void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
-
+@Data
+public class EdgeRpcRequestMetadata {
+    private final TenantId tenantId;
+    private final EdgeId edgeId;
+    private final DeviceId deviceId;
 }

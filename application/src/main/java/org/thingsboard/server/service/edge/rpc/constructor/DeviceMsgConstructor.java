@@ -101,27 +101,52 @@ public class DeviceMsgConstructor {
                 .setIdLSB(deviceId.getId().getLeastSignificantBits()).build();
     }
 
-    public DeviceRpcCallMsg constructDeviceRpcCallMsg(UUID deviceId, JsonNode body) {
+    public DeviceRpcCallMsg constructDeviceRpcRequestMsg(UUID deviceId, JsonNode body) {
+        DeviceRpcCallMsg.Builder builder = constructDeviceRpcMsg(deviceId, body);
+
+        String method = body.get("method").asText();
+        String params = body.get("params").asText();
+        RpcRequestMsg.Builder requestBuilder = RpcRequestMsg.newBuilder();
+        requestBuilder.setMethod(method);
+        requestBuilder.setParams(params);
+        builder.setRequestMsg(requestBuilder.build());
+
+        return builder.build();
+    }
+
+    public DeviceRpcCallMsg constructDeviceRpcResponseMsg(UUID deviceId, JsonNode body) {
+        DeviceRpcCallMsg.Builder builder = constructDeviceRpcMsg(deviceId, body);
+
+        RpcResponseMsg.Builder responseBuilder = RpcResponseMsg.newBuilder();
+        if (body.has("error")) {
+            responseBuilder.setError(body.get("error").asText());
+        } else {
+            responseBuilder.setResponse(body.get("response").asText());
+        }
+        builder.setResponseMsg(responseBuilder.build());
+
+        return builder.build();
+    }
+
+    private DeviceRpcCallMsg.Builder constructDeviceRpcMsg(UUID deviceId, JsonNode body) {
         int requestId = body.get("requestId").asInt();
         boolean oneway = body.get("oneway").asBoolean();
         UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
         long expirationTime = body.get("expirationTime").asLong();
-        String method = body.get("method").asText();
-        String params = body.get("params").asText();
-
-        RpcRequestMsg.Builder requestBuilder = RpcRequestMsg.newBuilder();
-        requestBuilder.setMethod(method);
-        requestBuilder.setParams(params);
-        DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
+        boolean persisted = body.get("persisted").asBoolean();
+        int retries = body.get("retries").asInt();
+        String additionalInfo = body.get("additionalInfo").asText();
+        return DeviceRpcCallMsg.newBuilder()
                 .setDeviceIdMSB(deviceId.getMostSignificantBits())
                 .setDeviceIdLSB(deviceId.getLeastSignificantBits())
                 .setRequestUuidMSB(requestUUID.getMostSignificantBits())
                 .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
-                .setRequestId(requestId)
                 .setExpirationTime(expirationTime)
+                .setRequestId(requestId)
                 .setOneway(oneway)
-                .setRequestMsg(requestBuilder.build());
-        return builder.build();
+                .setPersisted(persisted)
+                .setRetries(retries)
+                .setAdditionalInfo(additionalInfo);
     }
 
     public DeviceRpcCallMsg constructDeviceRpcResponseMsg(DeviceId deviceId, JsonNode body) {
