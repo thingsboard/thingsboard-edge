@@ -384,7 +384,7 @@ export interface Integration extends IntegrationBasic {
 }
 
 export interface IntegrationInfo extends IntegrationBasic {
-  status: IntegrationStatus;
+  status?: IntegrationStatus;
   stats: Array<number>;
 }
 
