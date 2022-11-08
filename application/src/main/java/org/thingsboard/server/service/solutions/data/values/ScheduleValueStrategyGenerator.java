@@ -35,16 +35,19 @@ import org.thingsboard.server.service.solutions.data.definition.TelemetryProfile
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class ScheduleValueStrategyGenerator extends TelemetryGenerator {
 
     private TelemetryGenerator defaultGenerator;
+    private TimeZone timeZone;
     private Map<ValueStrategySchedule, TelemetryGenerator> scheduleGenerators;
     private TelemetryGenerator prevGenerator;
 
     public ScheduleValueStrategyGenerator(TelemetryProfile tp) {
         super(tp);
         var def = (ScheduleValueStrategyDefinition) tp.getValueStrategy();
+        timeZone = TimeZone.getTimeZone(def.getTimeZone());
         defaultGenerator = TelemetryGeneratorFactory.create(new TelemetryProfile(tp.getKey(), def.getDefaultDefinition()));
         scheduleGenerators = new LinkedHashMap<>();
         for (ValueStrategySchedule scheduleItem : def.getSchedule()) {
@@ -54,8 +57,8 @@ public class ScheduleValueStrategyGenerator extends TelemetryGenerator {
 
     @Override
     public void addValue(long ts, ObjectNode values) {
-        int hour = GeneratorTools.getHour(ts);
-        int minute = GeneratorTools.getMinute(ts);
+        int hour = GeneratorTools.getHour(timeZone, ts);
+        int minute = GeneratorTools.getMinute(timeZone, ts);
         TelemetryGenerator generator = scheduleGenerators.entrySet().stream().filter(pair -> {
             var schedule = pair.getKey();
             if (hour == schedule.getStartHour() && hour == schedule.getEndHour()) {

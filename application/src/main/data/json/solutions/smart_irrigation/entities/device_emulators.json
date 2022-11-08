@@ -10,6 +10,7 @@
         "key": "moisture",
         "valueStrategy": {
           "type": "schedule",
+          "timeZone": "America/New_York",
           "schedule": [
             {
               "startHour": 6,
@@ -125,6 +126,7 @@
         "key": "pulseCounter",
         "valueStrategy": {
           "type": "schedule",
+          "timeZone": "America/New_York",
           "schedule": [
             {
               "startHour": 6,

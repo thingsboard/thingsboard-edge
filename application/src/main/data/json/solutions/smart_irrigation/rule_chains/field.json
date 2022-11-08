@@ -170,8 +170,8 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 679,
-          "layoutY": 383
+          "layoutX": 1125,
+          "layoutY": 243
         },
         "type": "org.thingsboard.rule.engine.math.TbMathNode",
         "name": "calculateIrrigationWaterConsumption",
@@ -470,6 +470,99 @@
           "version": 0
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 247,
+          "layoutY": 51
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "Field 1 Water Consumption Simulator",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 60,
+          "scriptLang": "JS",
+          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "mvelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "f19a9530-38d6-11ed-af17-3d7337747e91",
+          "originatorType": "ASSET"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 249,
+          "layoutY": 120
+        },
+        "type": "org.thingsboard.rule.engine.debug.TbMsgGeneratorNode",
+        "name": "Field 1 Water Consumption Simulator",
+        "debugMode": false,
+        "configuration": {
+          "msgCount": 0,
+          "periodInSeconds": 60,
+          "scriptLang": "JS",
+          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "mvelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "originatorId": "f19a9530-38d6-11ed-af17-3d7337747e92",
+          "originatorType": "ASSET"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 547,
+          "layoutY": 74
+        },
+        "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+        "name": "Fetch Irrigation State",
+        "debugMode": false,
+        "configuration": {
+          "tellFailureIfAbsent": true,
+          "clientAttributeNames": [],
+          "sharedAttributeNames": [],
+          "serverAttributeNames": [],
+          "latestTsKeyNames": [
+            "irrigationState"
+          ],
+          "getLatestValueWithTs": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 815,
+          "layoutY": 73
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+        "name": "Is Irrigation On?",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "MVEL",
+          "jsScript": "return metadata.irrigationState === 'ON';",
+          "mvelScript": "return metadata.irrigationState === 'ON';"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1101,
+          "layoutY": 71
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save telemetry",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0,
+          "skipLatestPersistence": false,
+          "useServerTs": false
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -596,6 +689,36 @@
       {
         "fromIndex": 23,
         "toIndex": 20,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 25,
+        "toIndex": 27,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 26,
+        "toIndex": 27,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 27,
+        "toIndex": 24,
+        "type": "Failure"
+      },
+      {
+        "fromIndex": 27,
+        "toIndex": 28,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 28,
+        "toIndex": 29,
+        "type": "True"
+      },
+      {
+        "fromIndex": 29,
+        "toIndex": 9,
         "type": "Success"
       }
     ],

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.solutions.data.values;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
+import java.util.TimeZone;
 
 public class GeneratorTools {
 
@@ -65,16 +66,18 @@ public class GeneratorTools {
         return multiplier;
     }
 
-    public static int getHour(long ts) {
+    public static int getHour(TimeZone tz, long ts) {
         Date date = new Date(ts);
         Calendar c = Calendar.getInstance();
+        c.setTimeZone(tz);
         c.setTime(date);
         return c.get(Calendar.HOUR_OF_DAY);
     }
 
-    public static int getMinute(long ts) {
+    public static int getMinute(TimeZone tz, long ts) {
         Date date = new Date(ts);
         Calendar c = Calendar.getInstance();
+        c.setTimeZone(tz);
         c.setTime(date);
         return c.get(Calendar.MINUTE);
     }

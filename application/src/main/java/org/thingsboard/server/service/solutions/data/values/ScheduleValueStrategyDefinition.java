@@ -41,6 +41,7 @@ import java.util.Map;
 public class ScheduleValueStrategyDefinition implements ValueStrategyDefinition {
 
     private List<ValueStrategySchedule> schedule;
+    private String timeZone;
     private ValueStrategyDefinition defaultDefinition;
 
     @Override
