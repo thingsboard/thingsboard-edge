@@ -96,11 +96,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.query.DynamicValue;
 import org.thingsboard.server.common.data.query.FilterPredicateValue;
-import org.thingsboard.server.common.data.queue.ProcessingStrategy;
-import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
-import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.queue.SubmitStrategy;
-import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+import org.thingsboard.server.common.data.queue.*;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -123,6 +119,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.audit.AuditLogDao;
+import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -257,6 +254,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private BlobEntityDao blobEntityDao;
+    @Autowired
+    private EdgeEventDao edgeEventDao;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -305,6 +304,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     auditLogDao.migrateAuditLogs();
                 } else {
                     log.info("Skipping audit logs migration");
+                }
+                boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
+                if (!skipEdgeEventsMigration) {
+                    log.info("Starting edge events migration. Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
+                    edgeEventDao.migrateEdgeEvents();
+                } else {
+                    log.info("Skipping edge events migration");
                 }
                 boolean skipBlobEntitiesMigration = getEnv("TB_SKIP_BLOB_ENTITIES_MIGRATION", false);
                 if (!skipBlobEntitiesMigration) {
