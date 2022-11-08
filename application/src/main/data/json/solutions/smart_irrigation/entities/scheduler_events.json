@@ -17,7 +17,7 @@
     "configuration": {
       "msgType": "START_IRRIGATION",
       "msgBody": {
-        "durationInMinutes": 30
+        "durationInMinutes": 60
       },
       "metadata": {}
     }
@@ -40,7 +40,7 @@
     "configuration": {
       "msgType": "START_IRRIGATION",
       "msgBody": {
-        "durationInMinutes": 30
+        "durationInMinutes": 60
       },
       "metadata": {}
     }
