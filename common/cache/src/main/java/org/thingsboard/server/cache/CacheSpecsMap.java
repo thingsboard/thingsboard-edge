@@ -45,7 +45,7 @@ import java.util.Map;
 @Data
 public class CacheSpecsMap {
 
-    @Value("${security.jwt.refreshTokenExpTime}")
+    @Value("${security.jwt.refreshTokenExpTime:604800}")
     private int refreshTokenExpTime;
 
     @Getter
