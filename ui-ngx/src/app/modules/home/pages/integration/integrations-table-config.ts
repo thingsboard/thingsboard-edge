@@ -226,7 +226,15 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   }
 
   private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
-    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [];
+    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [{
+      name: '',
+      nameFunction: (entity) =>
+        this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
+      mdiIcon: 'mdi:bug',
+      isEnabled: () => true,
+      mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
+      onAction: ($event, entity) => this.toggleDebugMode($event, entity)
+    }];
     if (params.integrationScope === 'edge') {
       actions.push(
         {
@@ -237,27 +245,14 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         }
       );
     }
-    actions.push(
-      {
-        name: '',
-        nameFunction: (entity) => this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
-        mdiIcon: 'mdi:bug',
-        isEnabled: () => true,
-        mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
-        onAction: ($event, entity) => this.toggleDebugMode($event, entity)
-      }
-    );
     return actions;
   }
 
   private saveIntegration(integration: Integration): Observable<Integration> {
     if (isUndefined(integration.edgeTemplate)) {
-      if (this.componentsData.integrationScope === 'tenant') {
-        integration.edgeTemplate = false;
-      } else if (this.componentsData.integrationScope === 'edges') {
+      if (this.componentsData.integrationScope === 'edges') {
         integration.edgeTemplate = true;
       } else {
-        // safe fallback to default
         integration.edgeTemplate = false;
       }
     }

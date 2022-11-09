@@ -52,7 +52,7 @@
 <div class="mat-padding" fxLayout="column">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
-      <div translate class="tb-hint" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
+      <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
       <div class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>integration.name</mat-label>
