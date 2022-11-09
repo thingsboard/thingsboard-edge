@@ -277,15 +277,12 @@ public class TbAggLatestTelemetryNodeV2Test {
             TbMsgMetaData metaData = (TbMsgMetaData) (invocationOnMock.getArguments())[4];
             String data = (String) (invocationOnMock.getArguments())[5];
             return TbMsg.newMsg(type, originator, metaData.copy(), data);
-        }).when(ctx).newMsg(ArgumentMatchers.isNull(), anyString(), ArgumentMatchers.nullable(EntityId.class),
+        }).when(ctx).newMsg(ArgumentMatchers.isNull(), eq(TB_AGG_LATEST_NODE_MSG), ArgumentMatchers.nullable(EntityId.class),
                 any(), ArgumentMatchers.any(TbMsgMetaData.class), anyString());
 
         doAnswer((Answer<Void>) invocation -> {
-            long delayMs = (long) (invocation.getArguments())[1];
-            if (delayMs > 0) {
-                TbMsg msg = (TbMsg) (invocation.getArguments())[0];
-                node.onMsg(ctx, msg);
-            }
+            TbMsg msg = (TbMsg) (invocation.getArguments())[0];
+            node.onMsg(ctx, msg);
             return null;
         }).when(ctx).tellSelf(any(TbMsg.class), anyLong());
 
