@@ -22,7 +22,7 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
         "name": "Count Alarms",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "alarmsCountMappings": [
             {
