@@ -23,7 +23,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -212,31 +211,49 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return device;
     }
 
-    public ListenableFuture<Void> processDeviceRpcRequestFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcRequestMsg) {
-        DeviceId deviceId = new DeviceId(new UUID(deviceRpcRequestMsg.getDeviceIdMSB(), deviceRpcRequestMsg.getDeviceIdLSB()));
-        boolean oneWay = deviceRpcRequestMsg.getOneway();
-        long expTime = deviceRpcRequestMsg.getExpirationTime();
+    public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+        log.trace("[{}] processDeviceRpcCallFromCloud [{}]", tenantId, deviceRpcCallMsg);
+        if (deviceRpcCallMsg.hasResponseMsg()) {
+            return processDeviceRpcResponseFromCloud(tenantId, deviceRpcCallMsg);
+        } else if (deviceRpcCallMsg.hasRequestMsg()) {
+            return processDeviceRpcRequestFromCloud(tenantId, deviceRpcCallMsg);
+        }
+        return Futures.immediateFuture(null);
+    }
 
-        ToDeviceRpcRequestBody body = new ToDeviceRpcRequestBody(deviceRpcRequestMsg.getRequestMsg().getMethod(),
-                deviceRpcRequestMsg.getRequestMsg().getParams());
+    private ListenableFuture<Void> processDeviceRpcResponseFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+        // TODO: error handling
+        ruleEngineRpcService.sendRpcReplyToDevice(
+                deviceRpcCallMsg.getServiceId(), UUID.fromString(deviceRpcCallMsg.getSessionId()),
+                deviceRpcCallMsg.getRequestId(), deviceRpcCallMsg.getResponseMsg().getResponse());
+        return Futures.immediateFuture(null);
+    }
 
-        UUID requestUUID = new UUID(deviceRpcRequestMsg.getRequestUuidMSB(), deviceRpcRequestMsg.getRequestUuidLSB());
-        // TODO: voba - add retries from the cloud
+    private ListenableFuture<Void> processDeviceRpcRequestFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+        DeviceId deviceId = new DeviceId(new UUID(deviceRpcCallMsg.getDeviceIdMSB(), deviceRpcCallMsg.getDeviceIdLSB()));
+        UUID requestUUID = new UUID(deviceRpcCallMsg.getRequestUuidMSB(), deviceRpcCallMsg.getRequestUuidLSB());
+        boolean oneWay = deviceRpcCallMsg.getOneway();
+        long expTime = deviceRpcCallMsg.getExpirationTime();
+        boolean persisted = deviceRpcCallMsg.hasPersisted() && deviceRpcCallMsg.getPersisted();
+        int retries = deviceRpcCallMsg.hasRetries() ? deviceRpcCallMsg.getRetries() : 1;
+        String additionalInfo = deviceRpcCallMsg.hasAdditionalInfo() ? deviceRpcCallMsg.getAdditionalInfo() : null;
+        ToDeviceRpcRequestBody body = new ToDeviceRpcRequestBody(deviceRpcCallMsg.getRequestMsg().getMethod(),
+                deviceRpcCallMsg.getRequestMsg().getParams());
+
         ToDeviceRpcRequest rpcRequest = new ToDeviceRpcRequest(requestUUID,
                 tenantId,
                 deviceId,
                 oneWay,
                 expTime,
                 body,
-                false,
-                1,
-                null
-        );
+                persisted,
+                retries,
+                additionalInfo);
 
         // @voba - changes to be in sync with cloud version
         SecurityUser dummySecurityUser = new SecurityUser();
         tbCoreDeviceRpcService.processRestApiRpcRequest(rpcRequest,
-                fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcRequestMsg.getRequestId(), fromDeviceRpcResponse),
+                fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcCallMsg.getRequestId(), fromDeviceRpcResponse),
                 dummySecurityUser);
         return Futures.immediateFuture(null);
     }
@@ -255,22 +272,30 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 body.put("response", response.getResponse().orElse("{}"));
             }
-            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
+            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL_RESPONSE,
                     rpcRequest.getDeviceId(), body, 0L);
         } catch (Exception e) {
             log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response, e);
         }
     }
 
-    public UplinkMsg processRpcCallResponseMsgToCloud(CloudEvent cloudEvent) {
-        DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
-        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcResponseMsg(deviceId, cloudEvent.getEntityBody());
+    public UplinkMsg convertRpcCallResponseEventToUplink(CloudEvent cloudEvent) {
+        log.trace("Executing convertRpcCallResponseEventToUplink, cloudEvent [{}]", cloudEvent);
+        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcResponseMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();
     }
 
-    public UplinkMsg processDeviceMsgToCloud(TenantId tenantId, CloudEvent cloudEvent) {
+    public UplinkMsg convertRpcCallRequestEventToUplink(CloudEvent cloudEvent) {
+        log.trace("Executing processRpcCallRequestMsgToCloud, cloudEvent [{}]", cloudEvent);
+        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcRequestMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
+        return UplinkMsg.newBuilder()
+                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
+                .addDeviceRpcCallMsg(rpcResponseMsg).build();
+    }
+
+    public UplinkMsg convertDeviceEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {

@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Device;
@@ -131,6 +132,9 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected TbCoreDeviceRpcService tbCoreDeviceRpcService;
+
+    @Autowired
+    protected RuleEngineRpcService ruleEngineRpcService;
 
     @Autowired
     protected AssetService assetService;

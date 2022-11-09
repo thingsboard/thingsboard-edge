@@ -34,8 +34,8 @@ export interface EdgeSettings {
 }
 
 export interface CloudEvent extends BaseData<CloudEventId> {
-  cloudEventAction: string;
-  cloudEventType: CloudEventType;
+  action: string;
+  type: CloudEventType;
   entityBody: any;
   entityId: EntityId;
   tenantId: TenantId;
@@ -56,7 +56,7 @@ export enum CloudEventType {
   DEVICE_PROFILE = 'DEVICE_PROFILE',
   ENTITY_VIEW = 'ENTITY_VIEW',
   ALARM = 'ALARM',
-  RULE_CHAIN = 'ULE_CHAIN',
+  RULE_CHAIN = 'RULE_CHAIN',
   RULE_CHAIN_METADATA = 'RULE_CHAIN_METADATA',
   USER = 'USER',
   CUSTOMER = 'CUSTOMER',
@@ -116,6 +116,8 @@ export enum CloudEventActionType {
   TIMESERIES_DELETED = 'TIMESERIES_DELETED',
   TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
   RPC_CALL = 'RPC_CALL',
+  RPC_CALL_REQUEST = 'RPC_CALL_REQUEST',
+  RPC_CALL_RESPONSE = 'RPC_CALL_RESPONSE',
   CREDENTIALS_UPDATED = 'CREDENTIALS_UPDATED',
   RELATION_ADD_OR_UPDATE = 'RELATION_ADD_OR_UPDATE',
   RELATION_DELETED = 'RELATION_DELETED',
@@ -187,6 +189,8 @@ export const cloudEventActionTypeTranslations = new Map<string, string>(
     [CloudEventActionType.TIMESERIES_DELETED, 'cloud-event.cloud-event-action-timeseries-deleted'],
     [CloudEventActionType.TIMESERIES_UPDATED, 'cloud-event.cloud-event-action-timeseries-updated'],
     [CloudEventActionType.RPC_CALL, 'cloud-event.cloud-event-action-rpc-call'],
+    [CloudEventActionType.RPC_CALL_REQUEST, 'cloud-event.cloud-event-action-rpc-call-request'],
+    [CloudEventActionType.RPC_CALL_RESPONSE, 'cloud-event.cloud-event-action-rpc-call-request'],
     [CloudEventActionType.CREDENTIALS_UPDATED, 'cloud-event.cloud-event-action-credentials-updated'],
     [CloudEventActionType.RELATION_ADD_OR_UPDATE, 'cloud-event.cloud-event-action-relation-add-or-update'],
     [CloudEventActionType.RELATION_DELETED, 'cloud-event.cloud-event-action-relation-deleted'],

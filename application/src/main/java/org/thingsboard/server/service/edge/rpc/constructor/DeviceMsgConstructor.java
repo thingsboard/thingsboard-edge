@@ -161,24 +161,4 @@ public class DeviceMsgConstructor {
         }
         return builder;
     }
-
-    public DeviceRpcCallMsg constructDeviceRpcResponseMsg(DeviceId deviceId, JsonNode body) {
-        RpcResponseMsg.Builder responseBuilder = RpcResponseMsg.newBuilder();
-        if (body.has("error")) {
-            responseBuilder.setError(body.get("error").asText());
-        } else {
-            responseBuilder.setResponse(body.get("response").asText());
-        }
-        UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
-        DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
-                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
-                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
-                .setRequestUuidMSB(requestUUID.getMostSignificantBits())
-                .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
-                .setExpirationTime(body.get("expirationTime").asLong())
-                .setRequestId(body.get("requestId").asInt())
-                .setOneway(body.get("oneway").asBoolean())
-                .setResponseMsg(responseBuilder.build());
-        return builder.build();
-    }
 }
