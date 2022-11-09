@@ -28,24 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cassandra.guava;
+package org.thingsboard.server.service.install;
 
-import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.context.DriverContext;
-import com.datastax.oss.driver.api.core.session.ProgrammaticArguments;
-import com.datastax.oss.driver.api.core.session.SessionBuilder;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-public class GuavaSessionBuilder extends SessionBuilder<GuavaSessionBuilder, GuavaSession> {
-
-    @Override
-    protected DriverContext buildContext(DriverConfigLoader configLoader, ProgrammaticArguments programmaticArguments) {
-        return new GuavaDriverContext(configLoader, programmaticArguments);
-    }
-
-    @Override
-    protected GuavaSession wrap(@NonNull CqlSession defaultSession) {
-        return new DefaultGuavaSession(defaultSession);
-    }
+public interface NoSqlKeyspaceService extends DatabaseSchemaService {
 }

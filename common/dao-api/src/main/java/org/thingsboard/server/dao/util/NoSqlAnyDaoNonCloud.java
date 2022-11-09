@@ -28,24 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cassandra.guava;
+package org.thingsboard.server.dao.util;
 
-import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.context.DriverContext;
-import com.datastax.oss.driver.api.core.session.ProgrammaticArguments;
-import com.datastax.oss.driver.api.core.session.SessionBuilder;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-public class GuavaSessionBuilder extends SessionBuilder<GuavaSessionBuilder, GuavaSession> {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-    @Override
-    protected DriverContext buildContext(DriverConfigLoader configLoader, ProgrammaticArguments programmaticArguments) {
-        return new GuavaDriverContext(configLoader, programmaticArguments);
-    }
-
-    @Override
-    protected GuavaSession wrap(@NonNull CqlSession defaultSession) {
-        return new DefaultGuavaSession(defaultSession);
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@ConditionalOnExpression("('${database.ts.type}'=='cassandra' || '${database.ts_latest.type}'=='cassandra') " +
+        "&& ('${cassandra.cloud.secure_connect_bundle_path}' == null || '${cassandra.cloud.secure_connect_bundle_path}'.isBlank() )")
+public @interface NoSqlAnyDaoNonCloud {
 }

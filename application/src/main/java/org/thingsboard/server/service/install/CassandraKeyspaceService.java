@@ -28,24 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.cassandra.guava;
+package org.thingsboard.server.service.install;
 
-import com.datastax.oss.driver.api.core.CqlSession;
-import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
-import com.datastax.oss.driver.api.core.context.DriverContext;
-import com.datastax.oss.driver.api.core.session.ProgrammaticArguments;
-import com.datastax.oss.driver.api.core.session.SessionBuilder;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.dao.util.NoSqlAnyDaoNonCloud;
 
-public class GuavaSessionBuilder extends SessionBuilder<GuavaSessionBuilder, GuavaSession> {
-
-    @Override
-    protected DriverContext buildContext(DriverConfigLoader configLoader, ProgrammaticArguments programmaticArguments) {
-        return new GuavaDriverContext(configLoader, programmaticArguments);
-    }
-
-    @Override
-    protected GuavaSession wrap(@NonNull CqlSession defaultSession) {
-        return new DefaultGuavaSession(defaultSession);
+/*
+* Create keyspace for Cassandra NoSQL database for non-cloud deployment.
+* For cloud service like Astra DBaas admin have to create keyspace manually on cloud UI.
+* Then create tokens with database admin role and put it on Thingsboard parameters.
+* Without this service cloud DB will end up with exception like
+* UnauthorizedException: Missing correct permission on thingsboard
+* */
+@Service
+@NoSqlAnyDaoNonCloud
+@Profile("install")
+public class CassandraKeyspaceService extends CassandraAbstractDatabaseSchemaService
+        implements NoSqlKeyspaceService {
+    public CassandraKeyspaceService() {
+        super("schema-keyspace.cql");
     }
 }
