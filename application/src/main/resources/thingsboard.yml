@@ -215,6 +215,14 @@ cassandra:
   username: "${CASSANDRA_USERNAME:}"
   # Specify your password
   password: "${CASSANDRA_PASSWORD:}"
+  # Astra DB connect https://astra.datastax.com/
+  cloud:
+    # /etc/thingsboard/astra/secure-connect-thingsboard.zip
+    secure_connect_bundle_path: "${CASSANDRA_CLOUD_SECURE_BUNDLE_PATH:}"
+    # DucitQPHMzPCBOZqFYexAfKk
+    client_id: "${CASSANDRA_CLOUD_CLIENT_ID:}"
+    # ZnF7FpuHp43FP5BzM+KY8wGmSb4Ql6BhT4Z7sOU13ze+gXQ-n7OkFpNuB,oACUIQObQnK0g4bSPoZhK5ejkcF9F.j6f64j71Sr.tiRe0Fsq2hPS1ZCGSfAaIgg63IydG
+    client_secret: "${CASSANDRA_CLOUD_CLIENT_SECRET:}"
 
   # Cassandra cluster connection socket parameters #
   socket:
@@ -280,6 +288,7 @@ sql:
     batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}"
     batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}"
     stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}"
+    partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
   audit_logs:
     partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   blob_entities:
@@ -612,6 +621,7 @@ spring.servlet.multipart.max-file-size: "50MB"
 spring.servlet.multipart.max-request-size: "50MB"
 
 spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation: "true"
+# Note: as for current Spring JPA version, custom NullHandling for the Sort.Order is ignored and this parameter is used
 spring.jpa.properties.hibernate.order_by.default_null_ordering: "${SPRING_JPA_PROPERTIES_HIBERNATE_ORDER_BY_DEFAULT_NULL_ORDERING:last}"
 
 # SQL DAO Configuration

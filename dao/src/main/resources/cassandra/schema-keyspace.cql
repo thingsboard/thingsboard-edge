@@ -29,33 +29,9 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-CREATE TABLE IF NOT EXISTS asset_profile (
-    id uuid NOT NULL CONSTRAINT asset_profile_pkey PRIMARY KEY,
-    created_time bigint NOT NULL,
-    name varchar(255),
-    image varchar(1000000),
-    description varchar,
-    search_text varchar(255),
-    is_default boolean,
-    tenant_id uuid,
-    default_rule_chain_id uuid,
-    default_dashboard_id uuid,
-    default_queue_name varchar(255),
-    external_id uuid,
-    CONSTRAINT asset_profile_name_unq_key UNIQUE (tenant_id, name),
-    CONSTRAINT asset_profile_external_id_unq_key UNIQUE (tenant_id, external_id),
-    CONSTRAINT fk_default_rule_chain_asset_profile FOREIGN KEY (default_rule_chain_id) REFERENCES rule_chain(id),
-    CONSTRAINT fk_default_dashboard_asset_profile FOREIGN KEY (default_dashboard_id) REFERENCES dashboard(id)
-    );
-
-CREATE OR REPLACE PROCEDURE update_asset_profiles()
-    LANGUAGE plpgsql AS
-$$
-BEGIN
-    UPDATE asset a SET asset_profile_id = COALESCE(
-            (SELECT id from asset_profile p WHERE p.tenant_id = a.tenant_id AND a.type = p.name),
-            (SELECT id from asset_profile p WHERE p.tenant_id = a.tenant_id AND p.name = 'default')
-        )
-    WHERE a.asset_profile_id IS NULL;
-END;
-$$;
+CREATE
+KEYSPACE IF NOT EXISTS thingsboard
+WITH replication = {
+	'class' : 'SimpleStrategy',
+	'replication_factor' : 1
+};

@@ -45,10 +45,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 
 import java.util.Set;
 
@@ -68,6 +70,10 @@ public interface TbPeContext {
     GroupPermissionService getGroupPermissionService();
 
     RoleService getRoleService();
+
+    ConverterService getConverterService();
+
+    SchedulerEventService getSchedulerEventService();
 
     EntityId getOwner(TenantId tenantId, EntityId entityId);
 
