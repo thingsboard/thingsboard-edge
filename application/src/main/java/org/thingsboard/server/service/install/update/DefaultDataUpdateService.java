@@ -507,14 +507,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
         ruleNodeNames.forEach(ruleNodeName -> {
             PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
             ruleNodesIterator.forEach(ruleNode -> {
-                ObjectNode configNode = (ObjectNode) ruleNode.getConfiguration();
-                if (!configNode.has("outMsgType")) {
-                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                    if (targetRuleChain != null) {
-                        TenantId tenantId = targetRuleChain.getTenantId();
-                        configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
-                        ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                        ruleChainService.saveRuleNode(tenantId, ruleNode);
+                JsonNode json = ruleNode.getConfiguration();
+                if (json != null && json.isObject()) {
+                    ObjectNode configNode = (ObjectNode) json;
+                    if (!configNode.has("outMsgType")) {
+                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
+                        if (targetRuleChain != null) {
+                            TenantId tenantId = targetRuleChain.getTenantId();
+                            configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
+                            ruleChainService.saveRuleNode(tenantId, ruleNode);
+                        }
                     }
                 }
             });
