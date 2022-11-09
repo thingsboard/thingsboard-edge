@@ -48,8 +48,8 @@
     "title": "Smart Irrigation",
     "level": "PROTOTYPE",
     "installTimeoutMs": 10000,
-    "previewImageUrl": "https://thingsboard.io/images/solutions/smart_retail/smart-retail-preview.png",
-    "imageUrls": ["https://thingsboard.io/images/solutions/smart_retail/smart-retail-1.png"],
+    "previewImageUrl": "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-1.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-2.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-3.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-4.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-5.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
   }
