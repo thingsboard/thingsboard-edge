@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.security.auth.jwt;
+package org.thingsboard.server.dao.sql.relation;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.security.model.JwtToken;
-import org.thingsboard.server.service.security.model.SecurityUser;
-import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
 @Component
-public class RefreshTokenRepository {
+public class JpaRelationQueryExecutorService extends AbstractListeningExecutor {
 
-    private final JwtTokenFactory tokenFactory;
+    @Value("${sql.relations.pool_size:4}")
+    private int poolSize;
 
-    @Autowired
-    public RefreshTokenRepository(final JwtTokenFactory tokenFactory) {
-        this.tokenFactory = tokenFactory;
-    }
-
-    public JwtToken requestRefreshToken(SecurityUser user) {
-        return tokenFactory.createRefreshToken(user);
+    @Override
+    protected int getThreadPollSize() {
+        return poolSize;
     }
 
 }
