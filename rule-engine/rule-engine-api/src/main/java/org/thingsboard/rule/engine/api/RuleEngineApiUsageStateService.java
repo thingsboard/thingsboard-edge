@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.edge.rpc.processor;
+package org.thingsboard.rule.engine.api;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.id.ApiUsageStateId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
-public class EdgeRpcRequestMetadata {
-    private final TenantId tenantId;
-    private final EdgeId edgeId;
-    private final DeviceId deviceId;
+public interface RuleEngineApiUsageStateService {
+
+    ApiUsageState findApiUsageStateById(TenantId tenantId, ApiUsageStateId id);
+
 }

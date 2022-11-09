@@ -63,6 +63,8 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 
 import java.util.List;
 import java.util.Set;
@@ -198,6 +200,8 @@ public interface TbContext {
      *
      */
 
+    void checkTenantEntity(EntityId entityId);
+
     boolean isLocalEntity(EntityId entityId);
 
     RuleNodeId getSelfId();
@@ -317,4 +321,9 @@ public interface TbContext {
 
     TenantProfile getTenantProfile();
 
+    WidgetsBundleService getWidgetBundleService();
+
+    WidgetTypeService getWidgetTypeService();
+
+    RuleEngineApiUsageStateService getRuleEngineApiUsageStateService();
 }
