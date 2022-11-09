@@ -65,7 +65,7 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupNodeConfiguration.class);
-        validateConfig(config);
+        validateConfig(ctx, config);
         setConfig(config);
     }
 
@@ -86,10 +86,13 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgToOriginato
         }
     }
 
-    private void validateConfig(TbDuplicateMsgToGroupNodeConfiguration conf) {
-        if (!conf.isEntityGroupIsMessageOriginator() && (conf.getEntityGroupId() == null || conf.getEntityGroupId().isNullUid())) {
-            log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
-            throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+    private void validateConfig(TbContext ctx, TbDuplicateMsgToGroupNodeConfiguration conf) {
+        if (!conf.isEntityGroupIsMessageOriginator()) {
+            if (conf.getEntityGroupId() == null || conf.getEntityGroupId().isNullUid()) {
+                log.error("TbDuplicateMsgToGroupNode configuration should have valid Entity Group Id");
+                throw new IllegalArgumentException("Wrong configuration for TbDuplicateMsgToGroupNode: Entity Group Id is missing.");
+            }
+            ctx.checkTenantEntity(conf.getEntityGroupId());
         }
     }
 

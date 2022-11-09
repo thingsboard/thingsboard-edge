@@ -28,30 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.apiusage;
+package org.thingsboard.rule.engine.api;
 
-import org.springframework.context.ApplicationListener;
-import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
-import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.id.ApiUsageStateId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.TenantProfileId;
-import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.common.stats.TbApiUsageStateClient;
-import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
-import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 
-public interface TbApiUsageStateService extends TbApiUsageStateClient, RuleEngineApiUsageStateService, ApplicationListener<PartitionChangeEvent> {
+public interface RuleEngineApiUsageStateService {
 
-    void process(TbProtoQueueMsg<ToUsageStatsServiceMsg> msg, TbCallback callback);
+    ApiUsageState findApiUsageStateById(TenantId tenantId, ApiUsageStateId id);
 
-    void onTenantProfileUpdate(TenantProfileId tenantProfileId);
-
-    void onTenantUpdate(TenantId tenantId);
-
-    void onTenantDelete(TenantId tenantId);
-
-    void onCustomerDelete(CustomerId customerId);
-
-    void onApiUsageStateUpdate(TenantId tenantId);
 }
