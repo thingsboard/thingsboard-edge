@@ -40,7 +40,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableCustomerEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
-import org.thingsboard.server.dao.model.sql.TbPair;
+import org.thingsboard.server.common.data.util.TbPair;
 
 import java.util.List;
 import java.util.Optional;
