@@ -28,20 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.definition;
+package org.thingsboard.server.service.solutions.data.values;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.util.Collections;
-import java.util.List;
-
 @Data
-public class DeviceEmulatorDefinition {
-    private String name;
-    private String clazz;
-    private int publishPeriodInDays;
-    private int publishFrequencyInSeconds;
-    private int publishPauseInMillis;
-    private long activityPeriodInMillis;
-    private List<TelemetryProfile> telemetryProfiles = Collections.emptyList();
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class IncrementValueStrategyDefinition extends IncDecValueStrategyDefinition {
+
+    private double minIncrement;
+    private double maxIncrement;
+
+    @Override
+    public ValueStrategyDefinitionType getStrategyType() {
+        return ValueStrategyDefinitionType.INCREMENT;
+    }
+
 }

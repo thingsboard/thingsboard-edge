@@ -49,4 +49,18 @@ public class ConstantTelemetryGenerator extends TelemetryGenerator {
     public void addValue(long ts, ObjectNode values) {
         values.set(key, value);
     }
+
+    @Override
+    public double getValue() {
+        if (value != null && value.isNumber()) {
+            return value.doubleValue();
+        } else {
+            return super.getValue();
+        }
+    }
+
+    @Override
+    public void setValue(double value) {
+        // do nothing;
+    }
 }

@@ -43,6 +43,7 @@ import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.mvel.MvelInvokeService;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -78,8 +79,30 @@ public class RuleNodeMvelScriptEngine extends RuleNodeScriptEngine<MvelInvokeSer
     }
 
     @Override
-    protected Object prepareAttributes(Map<String, String> attributes) {
-        return attributes != null ? new HashMap<>(attributes) : new HashMap<>();
+    protected Object prepareAttributes(Map<String, KvEntry> attributes) {
+        var result = new HashMap<>();
+        if (attributes != null) {
+            attributes.forEach((k, v) -> {
+                switch (v.getDataType()) {
+                    case STRING:
+                        result.put(k, v.getStrValue().get());
+                        break;
+                    case BOOLEAN:
+                        result.put(k, v.getBooleanValue().get());
+                        break;
+                    case DOUBLE:
+                        result.put(k, v.getDoubleValue().get());
+                        break;
+                    case LONG:
+                        result.put(k, v.getLongValue().get());
+                        break;
+                    case JSON:
+                        result.put(k, JacksonUtil.toJsonNode(v.getJsonValue().get()));
+                        break;
+                }
+            });
+        }
+        return result;
     }
 
     @Override
