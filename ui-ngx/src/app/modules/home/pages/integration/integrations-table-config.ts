@@ -476,6 +476,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     if (!integration.enabled) {
       translateKey = 'integration.status.disabled';
       backgroundColor = 'rgba(0, 0, 0, 0.08)';
+    } else if (!integration.status) {
+      translateKey = 'integration.status.pending';
+      backgroundColor = 'rgba(212, 125, 24, 0.08)';
     } else if (!integration.status.success) {
       translateKey = 'integration.status.failed';
       backgroundColor = 'rgba(209, 39, 48, 0.08)';
@@ -493,6 +496,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     };
     if (!integration.enabled) {
       styleObj.color = 'rgba(0, 0, 0, 0.54)';
+    } else if (!integration.status) {
+      styleObj.color = '#D47D18';
     } else if (!integration.status.success) {
       styleObj.color = '#d12730';
     }

@@ -67,6 +67,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     private UUID nextTickId;
     protected String queueName;
     protected String outMsgType;
+    private ParentEntitiesQuery parentEntitiesQuery;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
@@ -74,6 +75,8 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
         this.queueName = config.getQueueName();
         this.delay = config.getPeriodTimeUnit().toMillis(config.getPeriodValue());
         this.outMsgType = StringUtils.isNotBlank(config.getOutMsgType()) ? config.getOutMsgType() : SessionMsgType.POST_TELEMETRY_REQUEST.name();
+        this.parentEntitiesQuery = config.getParentEntitiesQuery();
+        validateConfig(ctx);
         scheduleTickMsg(ctx);
     }
 
@@ -102,7 +105,7 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
     }
 
     private ListenableFuture<List<TbMsg>> aggregate(TbContext ctx) {
-        ListenableFuture<List<EntityId>> parentEntityIdsFuture = this.config.getParentEntitiesQuery().getParentEntitiesAsync(ctx);
+        ListenableFuture<List<EntityId>> parentEntityIdsFuture = parentEntitiesQuery.getParentEntitiesAsync(ctx);
         return Futures.transformAsync(parentEntityIdsFuture, parentEntityIds -> {
             List<ListenableFuture<TbMsg>> msgFutures = new ArrayList<>();
             String dataTs = Long.toString(System.currentTimeMillis());
@@ -142,4 +145,13 @@ public abstract class TbAbstractLatestNode<C extends TbAbstractLatestNodeConfigu
 
     protected abstract Map<EntityId, List<ListenableFuture<Optional<JsonObject>>>> doParentAggregations(TbContext ctx, EntityId parentEntityId);
 
+    private void validateConfig(TbContext ctx) {
+        if (parentEntitiesQuery instanceof ParentEntitiesSingleEntity) {
+            ctx.checkTenantEntity(((ParentEntitiesSingleEntity) parentEntitiesQuery).getEntityId());
+        } else if (parentEntitiesQuery instanceof  ParentEntitiesGroup) {
+            ctx.checkTenantEntity(((ParentEntitiesGroup) parentEntitiesQuery).getEntityGroupId());
+        } else if (parentEntitiesQuery instanceof  ParentEntitiesRelationsQuery) {
+            ctx.checkTenantEntity(((ParentEntitiesRelationsQuery) parentEntitiesQuery).getRootEntityId());
+        }
+    }
 }
