@@ -756,16 +756,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public SchedulerEventService getSchedulerEventService() {
-        return mainCtx.getSchedulerEventService();
-    }
-
-    @Override
-    public ConverterService getConverterService() {
-        return mainCtx.getConverterService();
-    }
-
-    @Override
     public EntityId getOwner(TenantId tenantId, EntityId entityId) {
         return mainCtx.getOwnersCacheService().getOwner(tenantId, entityId);
     }

@@ -350,10 +350,6 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private SchedulerEventService schedulerEventService;
-
-    @Autowired
-    @Getter
     private DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
