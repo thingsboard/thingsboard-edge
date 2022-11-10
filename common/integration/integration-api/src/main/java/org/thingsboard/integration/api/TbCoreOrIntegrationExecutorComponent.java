@@ -30,24 +30,12 @@
  */
 package org.thingsboard.integration.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-    private final IntegrationContext context;
-
-    private final Integration configuration;
-
-    private final TBUplinkDataConverter uplinkConverter;
-
-    private final TBDownlinkDataConverter downlinkConverter;
+@Retention(RetentionPolicy.RUNTIME)
+@ConditionalOnExpression("'${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-integration-executor'")
+public @interface TbCoreOrIntegrationExecutorComponent {
 }

@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -165,6 +166,11 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
         return ctx.getScheduledExecutorService();
+    }
+
+    @Override
+    public IntegrationStatisticsService getIntegrationStatisticsService() {
+        return ctx.getIntegrationStatisticsService();
     }
 
     @Override

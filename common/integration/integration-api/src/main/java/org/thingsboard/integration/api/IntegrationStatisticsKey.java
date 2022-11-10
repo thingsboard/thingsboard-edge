@@ -28,14 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.queue.util;
+package org.thingsboard.integration.api;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import lombok.Data;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-@Retention(RetentionPolicy.RUNTIME)
-@ConditionalOnExpression("'${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-integration-executor'")
-public @interface TbCoreOrIntegrationExecutorComponent {
+@Data
+public class IntegrationStatisticsKey {
+
+    private final IntegrationStatisticsMetricName integrationStatisticsMetricName;
+    private final boolean processState;
+    private final IntegrationType integrationType;
+
+    public String [] getTags() {
+        return new String[]{
+                "name", this.integrationStatisticsMetricName.getName(),
+                "state", this.processState ? "success" : "failed",
+                "type", this.integrationType.name()};
+    }
 }

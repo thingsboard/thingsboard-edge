@@ -30,24 +30,20 @@
  */
 package org.thingsboard.integration.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+public enum IntegrationStatisticsMetricName {
+    START("start"),
+    MSGS_UPLINK("msgUplink"),
+    MSGS_DOWNLINK("msgDownlink");
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
+    private String name;
 
-    private final IntegrationContext context;
+    IntegrationStatisticsMetricName(String name) {
+        this.name = name;
+    }
 
-    private final Integration configuration;
+    public String getName() {
+        return name;
 
-    private final TBUplinkDataConverter uplinkConverter;
+    }
 
-    private final TBDownlinkDataConverter downlinkConverter;
 }

@@ -42,6 +42,8 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
+import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -84,7 +86,6 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
@@ -94,6 +95,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -104,8 +106,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.ACTIVATED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.FAILED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STARTED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.UPDATED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -128,6 +136,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final Optional<RemoteIntegrationRpcService> remoteRpcService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
+    private final IntegrationStatisticsService integrationStatisticsService;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reInitEnabled;
@@ -143,6 +152,9 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
+
+    @Value("${metrics.enabled:false}")
+    private Boolean metricsEnabled;
 
     private ExecutorService commandExecutorService;
     private ScheduledExecutorService statisticsExecutorService;
@@ -492,6 +504,10 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         } else {
             lifecycleExecutorService.schedule(() -> tryUpdate(id), 10, TimeUnit.SECONDS);
         }
+        if (metricsEnabled) {
+            updateIntegrationStateStatistics();
+            updateIntegrationProcessStatistics(state);
+        }
     }
 
     private void update(IntegrationState state) throws Exception {
@@ -683,6 +699,48 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             throw (RuntimeException) e;
         } else {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void updateIntegrationStateStatistics() {
+        Map<IntegrationType, Long> gaugesSuccess = integrationStatisticsService.getGaugesSuccess();
+        Map<IntegrationType, Long> gaugesFailed = integrationStatisticsService.getGaugesFailed();
+        if (gaugesSuccess != null && gaugesFailed != null) {
+            List<IntegrationType> startSuccess = integrations.values()
+                    .stream()
+                    .filter(i ->
+                            STARTED.equals(i.getCurrentState()) ||
+                            UPDATED.equals(i.getCurrentState()) ||
+                            ACTIVATED.equals(i.getCurrentState()))
+                    .map(integrationState -> integrationState.getConfiguration().getType())
+                    .collect(Collectors.toList());
+            Map<IntegrationType, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+            List<IntegrationType> startFailed = integrations.values()
+                    .stream()
+                    .filter(i ->
+                            FAILED.equals(i.getCurrentState()))
+                    .map(integrationState -> integrationState.getConfiguration().getType())
+                    .collect(Collectors.toList());
+            Map<IntegrationType, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+
+            gaugesSuccess.entrySet().forEach(m -> mapSuccess.putIfAbsent(m.getKey(), 0L));
+            gaugesFailed.entrySet().forEach(m -> mapFailed.putIfAbsent(m.getKey(), 0L));
+
+            mapSuccess.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStateSuccessGauge(s.getKey(), s.getValue().intValue()));
+            mapFailed.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStateFailedGauge(s.getKey(), s.getValue().intValue()));
+        }
+    }
+
+    private void updateIntegrationProcessStatistics(IntegrationState state) {
+        IntegrationType type = state.getIntegration().getConfiguration().getType();
+        ComponentLifecycleEvent currentState = state.getCurrentState();
+        log.trace("IntegrationType: [{}], IntegrationState: [{}]", type.name(), currentState);
+        if (FAILED.equals(currentState)) {
+            integrationStatisticsService.onIntegrationMsgsStateFailedCounterAdd(type);
+        } else if (STARTED.equals(currentState)) {
+            integrationStatisticsService.onIntegrationMsgsStateSuccessCounterAdd(type);
         }
     }
 

@@ -34,7 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -55,6 +58,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -148,6 +152,26 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         IntegrationStatistics statistics = this.integrationStatistics;
         this.integrationStatistics = new IntegrationStatistics();
         return statistics;
+    }
+
+    @Override
+    public void onIntegrationMsgsUplinkSuccess() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkSuccess(configuration.getType());
+    }
+
+    @Override
+    public void onIntegrationMsgsUplinkFailed() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType());
+    }
+
+    @Override
+    public void onIntegrationMsgsDownlinkSuccess() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkSuccess(configuration.getType());
+    }
+
+    @Override
+    public void onIntegrationMsgsDownlinkFailed() {
+        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType());
     }
 
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
@@ -267,8 +291,21 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
-            return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
+            ListenableFuture<List<UplinkData>> uplinkDataList =  this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
+            Futures.addCallback(uplinkDataList, new FutureCallback<>() {
+                @Override
+                public void onSuccess(@Nullable List<UplinkData> result) {
+                    onIntegrationMsgsUplinkSuccess();
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    onIntegrationMsgsUplinkFailed();
+                }
+            }, MoreExecutors.directExecutor());
+            return uplinkDataList;
         } catch (Exception e) {
+            onIntegrationMsgsUplinkFailed();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
             }
@@ -281,6 +318,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
+        onIntegrationMsgsDownlinkSuccess();
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
@@ -298,6 +336,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
         if (!status.equals("OK")) {
+            onIntegrationMsgsDownlinkFailed();
             integrationStatistics.incErrorsOccurred();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());

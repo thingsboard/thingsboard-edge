@@ -42,6 +42,7 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
@@ -146,6 +147,9 @@ public class RemoteIntegrationManagerService {
 
     @Autowired(required = false)
     private CoapServerService coapServerService;
+
+    @Autowired(required = false)
+    private IntegrationStatisticsService integrationStatisticsService;
 
     private ThingsboardPlatformIntegration<?> integration;
     private ComponentLifecycleEvent integrationEvent;
@@ -264,7 +268,8 @@ public class RemoteIntegrationManagerService {
             }
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService, configuration, clientId, port),
+                    new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
+                            configuration, clientId, port, integrationStatisticsService),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);

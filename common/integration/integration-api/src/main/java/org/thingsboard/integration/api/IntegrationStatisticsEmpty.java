@@ -28,33 +28,79 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.context;
+package org.thingsboard.integration.api;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
-import org.thingsboard.integration.api.IntegrationContext;
-import org.thingsboard.integration.api.util.LogSettingsComponent;
-import org.thingsboard.integration.service.api.IntegrationApiService;
-import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
-import org.thingsboard.server.service.integration.IntegrationContextProvider;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-@TbIntegrationExecutorComponent
+import java.util.Map;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class TbIntegrationExecutorContextProvider implements IntegrationContextProvider {
-
-    private final TbServiceInfoProvider serviceInfoProvider;
-    private final IntegrationApiService apiService;
-    private final TbIntegrationExecutorContextComponent contextComponent;
-    private final TbIntegrationStatisticsContextComponent statisticsContextComponent;
-    private final LogSettingsComponent logSettingsComponent;
-
+@ConditionalOnExpression("('${metrics.enabled:false}'=='false') && ('${service.type:null}'=='tb-integration' " +
+        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core')")
+public class IntegrationStatisticsEmpty implements IntegrationStatisticsService {
     @Override
-    public IntegrationContext buildIntegrationContext(Integration configuration) {
-        return new TbIntegrationExecutorIntegrationContext(serviceInfoProvider.getServiceId(), apiService,
-                contextComponent, logSettingsComponent, configuration, statisticsContextComponent);
+    public void onIntegrationMsgsStateSuccessCounterAdd(IntegrationType integrationType) {
+
     }
 
+    @Override
+    public void onIntegrationMsgsStateFailedCounterAdd(IntegrationType integrationType) {
+
+    }
+
+    @Override
+    public void onIntegrationStateSuccessGauge(IntegrationType integrationType, int cntIntegration) {
+
+    }
+
+    @Override
+    public void onIntegrationStateFailedGauge(IntegrationType integrationType, int cntIntegration) {
+
+    }
+
+    @Override
+    public void onIntegrationMsgsUplinkSuccess(IntegrationType integrationType) {
+
+    }
+
+    @Override
+    public void onIntegrationMsgsUplinkFailed(IntegrationType integrationType) {
+
+    }
+
+    @Override
+    public void onIntegrationMsgsDownlinkSuccess(IntegrationType integrationType) {
+
+    }
+
+    @Override
+    public void onIntegrationMsgsDownlinkFailed(IntegrationType integrationType) {
+
+    }
+
+    @Override
+    public Map<IntegrationType, Long> getGaugesSuccess() {
+        return null;
+    }
+
+    @Override
+    public Map<IntegrationType, Long> getGaugesFailed() {
+        return null;
+    }
+
+    @Override
+    public void printStats() {
+
+    }
+
+    @Override
+    public void reset() {
+
+    }
 }

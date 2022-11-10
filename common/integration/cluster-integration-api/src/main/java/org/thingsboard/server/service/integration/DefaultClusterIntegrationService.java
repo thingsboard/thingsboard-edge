@@ -36,8 +36,6 @@ import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -57,7 +55,7 @@ import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFacto
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 

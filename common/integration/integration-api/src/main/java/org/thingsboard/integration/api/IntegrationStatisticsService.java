@@ -30,24 +30,33 @@
  */
 package org.thingsboard.integration.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
+import java.util.Map;
 
-    private final IntegrationContext context;
+public interface IntegrationStatisticsService {
 
-    private final Integration configuration;
+    void onIntegrationMsgsStateSuccessCounterAdd(IntegrationType integrationType);
 
-    private final TBUplinkDataConverter uplinkConverter;
+    void onIntegrationMsgsStateFailedCounterAdd(IntegrationType integrationType);
 
-    private final TBDownlinkDataConverter downlinkConverter;
+    void onIntegrationStateSuccessGauge(IntegrationType integrationType, int cntIntegration);
+
+    void onIntegrationStateFailedGauge(IntegrationType integrationType, int cntIntegration);
+
+    void onIntegrationMsgsUplinkSuccess(IntegrationType integrationType);
+
+    void onIntegrationMsgsUplinkFailed (IntegrationType integrationType);
+
+    void onIntegrationMsgsDownlinkSuccess(IntegrationType integrationType);
+
+    void onIntegrationMsgsDownlinkFailed (IntegrationType integrationType);
+
+    Map<IntegrationType, Long> getGaugesSuccess();
+
+    Map<IntegrationType, Long> getGaugesFailed();
+
+    void printStats();
+
+    void reset();
 }

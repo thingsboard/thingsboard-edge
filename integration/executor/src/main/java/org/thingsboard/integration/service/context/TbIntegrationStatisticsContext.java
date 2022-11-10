@@ -28,26 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api;
+package org.thingsboard.integration.service.context;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Component;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
+@Component
 @Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
-
-    private final IntegrationContext context;
-
-    private final Integration configuration;
-
-    private final TBUplinkDataConverter uplinkConverter;
-
-    private final TBDownlinkDataConverter downlinkConverter;
+@RequiredArgsConstructor
+@ConditionalOnExpression("('${service.type:null}'=='tb-integration' || '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith')")
+public class TbIntegrationStatisticsContext  implements TbIntegrationStatisticsContextComponent{
+    private final IntegrationStatisticsService integrationStatisticsService;
 }
