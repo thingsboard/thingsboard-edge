@@ -96,32 +96,42 @@ public class TbAlarmsCountNodeV2 implements TbNode {
         String msgType = msg.getType();
         EntityType entityType = msg.getOriginator().getEntityType();
 
+        Alarm alarm = null;
         var processAlarmsCount = false;
         if (msgType.equals(DataConstants.ENTITY_CREATED) || msgType.equals(DataConstants.ENTITY_UPDATED)) {
             if (entityType.equals(EntityType.ALARM)) {
+                alarm = convertMsgDataToAlarm(msg);
                 processAlarmsCount = true;
             } else {
                 JsonNode jsonData = JacksonUtil.toJsonNode(msg.getData());
                 var msgDataHasAlarmFields = ALARM_FIELDS.stream().allMatch(jsonData::has);
                 if (msgDataHasAlarmFields) {
-                    Alarm alarm = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
+                    alarm = JacksonUtil.treeToValue(jsonData, AlarmInfo.class);
                     log.debug("[{}] Msg data was successfully parsed to alarm object {}", ctx.getTenantId(), alarm);
                     processAlarmsCount = true;
                 }
             }
         } else if (msgType.equals(DataConstants.ALARM) || msgType.equals(DataConstants.ALARM_ACK) || msgType.equals(DataConstants.ALARM_CLEAR)) {
+            alarm = convertMsgDataToAlarm(msg);
             processAlarmsCount = true;
         }
 
         if (processAlarmsCount) {
-            process(ctx, msg);
+            process(ctx, msg, alarm);
         } else {
             ctx.tellSuccess(msg);
         }
     }
 
-    private void process(TbContext ctx, TbMsg msg) {
-        Alarm alarm = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
+    private AlarmInfo convertMsgDataToAlarm(TbMsg msg) {
+        return JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
+    }
+
+    private void process(TbContext ctx, TbMsg msg, Alarm alarm) {
+        if (alarm == null) {
+            ctx.tellFailure(msg, new RuntimeException("Failed to process alarms count since the msg data could not be converted to alarm!"));
+            return;
+        }
         Map<EntityId, ObjectNode> result = new HashMap<>();
         getPropagationEntityIds(ctx, alarm).forEach(entityId -> result.put(entityId, countAlarms(ctx, entityId)));
 
