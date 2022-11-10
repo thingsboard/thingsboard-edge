@@ -353,7 +353,7 @@ public class CloudManagerService {
     private List<UplinkMsg> convertToUplinkMsgsPack(List<CloudEvent> cloudEvents) {
         List<UplinkMsg> result = new ArrayList<>();
         for (CloudEvent cloudEvent : cloudEvents) {
-            log.trace("Processing cloud event [{}]", cloudEvent);
+            log.trace("Converting cloud event [{}]", cloudEvent);
             UplinkMsg uplinkMsg = null;
             try {
                 switch (cloudEvent.getAction()) {
@@ -367,7 +367,7 @@ public class CloudManagerService {
                     case RELATION_DELETED:
                     case ADDED_TO_ENTITY_GROUP:
                     case REMOVED_FROM_ENTITY_GROUP:
-                        uplinkMsg = processEntityMessage(this.tenantId, cloudEvent);
+                        uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
                         break;
                     case ATTRIBUTES_UPDATED:
                     case POST_ATTRIBUTES:
@@ -376,16 +376,16 @@ public class CloudManagerService {
                         uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(cloudEvent);
                         break;
                     case ATTRIBUTES_REQUEST:
-                        uplinkMsg = telemetryProcessor.processAttributesRequestMsgToCloud(cloudEvent);
+                        uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
                         break;
                     case RELATION_REQUEST:
-                        uplinkMsg = relationProcessor.processRelationRequestMsgToCloud(cloudEvent);
+                        uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
                         break;
                     case RULE_CHAIN_METADATA_REQUEST:
-                        uplinkMsg = ruleChainProcessor.processRuleChainMetadataRequestMsgToCloud(cloudEvent);
+                        uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
                         break;
                     case CREDENTIALS_REQUEST:
-                        uplinkMsg = entityProcessor.processCredentialsRequestMsgToCloud(cloudEvent);
+                        uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
                         break;
                     case GROUP_ENTITIES_REQUEST:
                         uplinkMsg = entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
@@ -394,17 +394,17 @@ public class CloudManagerService {
                         uplinkMsg = groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                         break;
                     case RPC_CALL:
-                        uplinkMsg = deviceProcessor.processRpcCallResponseMsgToCloud(cloudEvent);
+                        uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
                         break;
                     case WIDGET_BUNDLE_TYPES_REQUEST:
-                        uplinkMsg = widgetBundleProcessor.processWidgetBundleTypesRequestMsgToCloud(cloudEvent);
+                        uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
                         break;
                     case ENTITY_VIEW_REQUEST:
-                        uplinkMsg = entityViewProcessor.processEntityViewRequestMsgToCloud(cloudEvent);
+                        uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
                         break;
                 }
             } catch (Exception e) {
-                log.error("Exception during processing events from queue, skipping event [{}]", cloudEvent, e);
+                log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
             }
             if (uplinkMsg != null) {
                 result.add(uplinkMsg);
@@ -413,16 +413,16 @@ public class CloudManagerService {
         return result;
     }
 
-    private UplinkMsg processEntityMessage(TenantId tenantId, CloudEvent cloudEvent)
+    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent)
             throws ExecutionException, InterruptedException {
-        log.trace("Executing processEntityMessage, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
+        log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
         switch (cloudEvent.getType()) {
             case DEVICE:
-                return deviceProcessor.processDeviceMsgToCloud(tenantId, cloudEvent);
+                return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent);
             case ALARM:
-                return alarmProcessor.processAlarmMsgToCloud(tenantId, cloudEvent);
+                return alarmProcessor.convertAlarmEventToUplink(tenantId, cloudEvent);
             case RELATION:
-                return relationProcessor.processRelationMsgToCloud(cloudEvent);
+                return relationProcessor.convertRelationEventToUplink(cloudEvent);
             default:
                 log.warn("Unsupported cloud event type [{}]", cloudEvent);
                 return null;

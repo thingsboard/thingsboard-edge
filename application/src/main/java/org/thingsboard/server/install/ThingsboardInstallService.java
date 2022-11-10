@@ -262,6 +262,7 @@ public class ThingsboardInstallService {
                             // reset full sync required - to upload latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
+                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
                             dataUpdateService.updateData("3.4.2");
 
                             // @voba - system widgets update is not required - uploaded from cloud

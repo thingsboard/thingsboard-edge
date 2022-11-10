@@ -40,14 +40,12 @@ import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsRequestMsg;
 
-import java.io.IOException;
-
 @Component
 @Slf4j
 public class EntityCloudProcessor extends BaseCloudProcessor {
 
-    public UplinkMsg processCredentialsRequestMsgToCloud(CloudEvent cloudEvent) throws IOException {
-        log.trace("Executing processCredentialsRequest, cloudEvent [{}]", cloudEvent);
+    public UplinkMsg convertCredentialsRequestEventToUplink(CloudEvent cloudEvent) {
+        log.trace("Executing convertCredentialsRequestEventToUplink, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (entityId.getEntityType()) {

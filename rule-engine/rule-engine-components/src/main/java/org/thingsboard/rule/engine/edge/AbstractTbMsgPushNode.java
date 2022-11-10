@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.edge;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +87,7 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
         }
     }
 
-    protected S buildEvent(TbMsg msg, TbContext ctx) {
+    protected S buildEvent(TbMsg msg, TbContext ctx) throws JsonProcessingException {
         String msgType = msg.getType();
         if (DataConstants.ALARM.equals(msgType)) {
             return buildEvent(ctx.getTenantId(), EdgeEventActionType.ADDED, getUUIDFromMsgData(msg), getAlarmEventType(), null);
@@ -113,6 +114,9 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
                     entityBody.put("data", dataJson);
                     entityBody.put("ts", msg.getMetaDataTs());
                     break;
+                case RPC_CALL:
+                    addRpcRequestsDetailsIntoEventBody(entityBody, msg, metadata);
+                    break;
             }
             return buildEvent(ctx.getTenantId(),
                     actionType,
@@ -120,6 +124,15 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
                     getEventTypeByEntityType(msg.getOriginator().getEntityType()),
                     JacksonUtil.valueToTree(entityBody));
         }
+    }
+
+    private void addRpcRequestsDetailsIntoEventBody(Map<String, Object> entityBody, TbMsg msg, Map<String, String> metadata) throws JsonProcessingException {
+        entityBody.put("requestId", metadata.get("requestId"));
+        entityBody.put("serviceId", metadata.get("serviceId"));
+        entityBody.put("sessionId", metadata.get("sessionId"));
+        JsonNode data = JacksonUtil.OBJECT_MAPPER.readTree(msg.getData());
+        entityBody.put("method", data.get("method").asText());
+        entityBody.put("params", JacksonUtil.OBJECT_MAPPER.writeValueAsString(data.get("params")));
     }
 
     abstract S buildEvent(TenantId tenantId, EdgeEventActionType eventAction, UUID entityId, U eventType, JsonNode entityBody);
@@ -159,6 +172,8 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
             actionType = EdgeEventActionType.POST_ATTRIBUTES;
         } else if (DataConstants.ATTRIBUTES_DELETED.equals(msgType)) {
             actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
+        } else if (SessionMsgType.TO_SERVER_RPC_REQUEST.name().equals(msgType)) {
+            actionType = EdgeEventActionType.RPC_CALL;
         } else {
             log.warn("Unsupported msg type [{}]", msgType);
             throw new IllegalArgumentException("Unsupported msg type: " + msgType);
@@ -172,7 +187,8 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
                 || DataConstants.ATTRIBUTES_UPDATED.equals(msgType)
                 || DataConstants.ATTRIBUTES_DELETED.equals(msgType)
                 || DataConstants.TIMESERIES_UPDATED.equals(msgType)
-                || DataConstants.ALARM.equals(msgType);
+                || DataConstants.ALARM.equals(msgType)
+                || SessionMsgType.TO_SERVER_RPC_REQUEST.name().equals(msgType);
     }
 
     protected boolean isSupportedOriginator(EntityType entityType) {

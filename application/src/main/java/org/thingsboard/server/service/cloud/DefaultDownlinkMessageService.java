@@ -220,7 +220,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcRequestMsg : downlinkMsg.getDeviceRpcCallMsgList()) {
-                    result.add(deviceProcessor.processDeviceRpcRequestFromCloud(tenantId, deviceRpcRequestMsg));
+                    result.add(deviceProcessor.processDeviceRpcCallFromCloud(tenantId, deviceRpcRequestMsg));
                 }
             }
             if (downlinkMsg.getDeviceCredentialsRequestMsgCount() > 0) {

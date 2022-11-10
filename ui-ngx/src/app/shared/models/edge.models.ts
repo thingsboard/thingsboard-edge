@@ -51,8 +51,8 @@ export interface EdgeSettings {
 }
 
 export interface CloudEvent extends BaseData<CloudEventId> {
-  cloudEventAction: string;
-  cloudEventType: CloudEventType;
+  action: string;
+  type: CloudEventType;
   entityBody: any;
   entityGroupId: EntityGroupId;
   entityId: EntityId;
@@ -74,7 +74,7 @@ export enum CloudEventType {
   DEVICE_PROFILE = 'DEVICE_PROFILE',
   ENTITY_VIEW = 'ENTITY_VIEW',
   ALARM = 'ALARM',
-  RULE_CHAIN = 'ULE_CHAIN',
+  RULE_CHAIN = 'RULE_CHAIN',
   RULE_CHAIN_METADATA = 'RULE_CHAIN_METADATA',
   USER = 'USER',
   CUSTOMER = 'CUSTOMER',
