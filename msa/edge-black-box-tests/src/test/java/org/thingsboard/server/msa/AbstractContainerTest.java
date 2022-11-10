@@ -163,6 +163,9 @@ public abstract class AbstractContainerTest {
             edgeUrl = "http://" + edgeHost + ":" + edgePort;
             edgeRestClient = new RestClient(edgeUrl);
 
+            updateRootRuleChain();
+            updateEdgeRootRuleChain();
+
             edge = createEdge("test", "280629c7-f853-ee3d-01c0-fffbb6f2ef38", "g9ta4soeylw6smqkky8g");
 
             loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
@@ -170,8 +173,6 @@ public abstract class AbstractContainerTest {
             Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
             Assert.assertTrue(tenant.isPresent());
             Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
-
-            updateRootRuleChain();
 
             createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME);
 
@@ -234,8 +235,23 @@ public abstract class AbstractContainerTest {
         }
     }
 
-    protected static void updateRootRuleChain() throws IOException {
-        PageData<RuleChain> ruleChains = cloudRestClient.getRuleChains(new PageLink(100));
+    private static void updateRootRuleChain() throws IOException {
+        // Modifications:
+        // - add rule node 'script' to create RPC reply message
+        // - add rule node 'rpc call reply' to send RPC reply
+        // - add connection - from 'RPC from Device' to 'script'
+        // - add connection - from 'script' to 'rpc call reply'
+        updateRootRuleChain(RuleChainType.CORE, "Updated_RootRuleChainMetadata.json");
+    }
+
+    private static void updateEdgeRootRuleChain() throws IOException {
+        // Modifications:
+        // - add connection - from 'RPC from Device' to 'Push to cloud'
+        updateRootRuleChain(RuleChainType.EDGE, "Updated_EdgeRootRuleChainMetadata.json");
+    }
+
+    private static void updateRootRuleChain(RuleChainType ruleChainType, String updatedRootRuleChainFileName) throws IOException {
+        PageData<RuleChain> ruleChains = cloudRestClient.getRuleChains(ruleChainType, new PageLink(100));
         RuleChainId rootRuleChainId = null;
         for (RuleChain datum : ruleChains.getData()) {
             if (datum.isRoot()) {
@@ -244,7 +260,7 @@ public abstract class AbstractContainerTest {
             }
         }
         Assert.assertNotNull(rootRuleChainId);
-        JsonNode configuration = JacksonUtil.OBJECT_MAPPER.readTree(AbstractContainerTest.class.getClassLoader().getResourceAsStream("PushToEdgeRootRuleChainMetadata.json"));
+        JsonNode configuration = JacksonUtil.OBJECT_MAPPER.readTree(AbstractContainerTest.class.getClassLoader().getResourceAsStream(updatedRootRuleChainFileName));
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(rootRuleChainId);
         ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
