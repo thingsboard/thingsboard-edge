@@ -128,26 +128,56 @@ public class DeviceMsgConstructor {
     }
 
     public DeviceRpcCallMsg constructDeviceRpcCallMsg(UUID deviceId, JsonNode body) {
-        int requestId = body.get("requestId").asInt();
-        boolean oneway = body.get("oneway").asBoolean();
-        UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
-        long expirationTime = body.get("expirationTime").asLong();
-        String method = body.get("method").asText();
-        String params = body.get("params").asText();
+        DeviceRpcCallMsg.Builder builder = constructDeviceRpcMsg(deviceId, body);
+        if (body.has("error") || body.has("response")) {
+            RpcResponseMsg.Builder responseBuilder = RpcResponseMsg.newBuilder();
+            if (body.has("error")) {
+                responseBuilder.setError(body.get("error").asText());
+            } else {
+                responseBuilder.setResponse(body.get("response").asText());
+            }
+            builder.setResponseMsg(responseBuilder.build());
+        } else {
+            RpcRequestMsg.Builder requestBuilder = RpcRequestMsg.newBuilder();
+            requestBuilder.setMethod(body.get("method").asText());
+            requestBuilder.setParams(body.get("params").asText());
+            builder.setRequestMsg(requestBuilder.build());
+        }
+        return builder.build();
+    }
 
-        RpcRequestMsg.Builder requestBuilder = RpcRequestMsg.newBuilder();
-        requestBuilder.setMethod(method);
-        requestBuilder.setParams(params);
+    private DeviceRpcCallMsg.Builder constructDeviceRpcMsg(UUID deviceId, JsonNode body) {
         DeviceRpcCallMsg.Builder builder = DeviceRpcCallMsg.newBuilder()
                 .setDeviceIdMSB(deviceId.getMostSignificantBits())
                 .setDeviceIdLSB(deviceId.getLeastSignificantBits())
-                .setRequestUuidMSB(requestUUID.getMostSignificantBits())
-                .setRequestUuidLSB(requestUUID.getLeastSignificantBits())
-                .setRequestId(requestId)
-                .setExpirationTime(expirationTime)
-                .setOneway(oneway)
-                .setRequestMsg(requestBuilder.build());
-        return builder.build();
+                .setRequestId(body.get("requestId").asInt());
+        if (body.get("oneway") != null) {
+            builder.setOneway(body.get("oneway").asBoolean());
+        }
+        if (body.get("requestUUID") != null) {
+            UUID requestUUID = UUID.fromString(body.get("requestUUID").asText());
+            builder.setRequestUuidMSB(requestUUID.getMostSignificantBits())
+                    .setRequestUuidLSB(requestUUID.getLeastSignificantBits());
+        }
+        if (body.get("expirationTime") != null) {
+            builder.setExpirationTime(body.get("expirationTime").asLong());
+        }
+        if (body.get("persisted") != null) {
+            builder.setPersisted(body.get("persisted").asBoolean());
+        }
+        if (body.get("retries") != null) {
+            builder.setRetries(body.get("retries").asInt());
+        }
+        if (body.get("additionalInfo") != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(body.get("additionalInfo")));
+        }
+        if (body.get("serviceId") != null) {
+            builder.setServiceId(body.get("serviceId").asText());
+        }
+        if (body.get("sessionId") != null) {
+            builder.setSessionId(body.get("sessionId").asText());
+        }
+        return builder;
     }
 
     public DeviceRpcCallMsg constructDeviceRpcResponseMsg(DeviceId deviceId, JsonNode body) {
