@@ -13,23 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.service.install;
 
-import org.thingsboard.server.common.data.id.RpcId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.rpc.Rpc;
-
-import java.util.UUID;
-import java.util.function.Consumer;
-
-/**
- * Created by ashvayka on 02.04.18.
- */
-public interface RuleEngineRpcService {
-
-    void sendRpcReplyToDevice(String serviceId, UUID sessionId, int requestId, String body);
-
-    void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
-
-    Rpc findRpcById(TenantId tenantId, RpcId id);
+public interface NoSqlKeyspaceService extends DatabaseSchemaService {
 }

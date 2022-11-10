@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.dao.util;
 
-import org.thingsboard.server.common.data.id.RpcId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.rpc.Rpc;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-import java.util.UUID;
-import java.util.function.Consumer;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-/**
- * Created by ashvayka on 02.04.18.
- */
-public interface RuleEngineRpcService {
-
-    void sendRpcReplyToDevice(String serviceId, UUID sessionId, int requestId, String body);
-
-    void sendRpcRequestToDevice(RuleEngineDeviceRpcRequest request, Consumer<RuleEngineDeviceRpcResponse> consumer);
-
-    Rpc findRpcById(TenantId tenantId, RpcId id);
+@Retention(RetentionPolicy.RUNTIME)
+@ConditionalOnExpression("('${database.ts.type}'=='cassandra' || '${database.ts_latest.type}'=='cassandra') " +
+        "&& ('${cassandra.cloud.secure_connect_bundle_path}' == null || '${cassandra.cloud.secure_connect_bundle_path}'.isBlank() )")
+public @interface NoSqlAnyDaoNonCloud {
 }
