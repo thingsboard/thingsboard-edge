@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.data.DeviceData;
@@ -47,6 +48,7 @@ import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
@@ -222,10 +224,23 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
     }
 
     private ListenableFuture<Void> processDeviceRpcResponseFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
-        // TODO: error handling
-        ruleEngineRpcService.sendRpcReplyToDevice(
-                deviceRpcCallMsg.getServiceId(), UUID.fromString(deviceRpcCallMsg.getSessionId()),
-                deviceRpcCallMsg.getRequestId(), deviceRpcCallMsg.getResponseMsg().getResponse());
+        UUID sessionId = UUID.fromString(deviceRpcCallMsg.getSessionId());
+        String serviceId = deviceRpcCallMsg.getServiceId();
+        int requestId = deviceRpcCallMsg.getRequestId();
+        TransportProtos.ToServerRpcResponseMsg.Builder responseMsgBuilder = TransportProtos.ToServerRpcResponseMsg.newBuilder()
+                .setRequestId(requestId);
+        if (StringUtils.isNotBlank(deviceRpcCallMsg.getResponseMsg().getError())) {
+            responseMsgBuilder.setError(deviceRpcCallMsg.getResponseMsg().getError());
+        } else {
+            responseMsgBuilder.setPayload(deviceRpcCallMsg.getResponseMsg().getResponse());
+        }
+        TransportProtos.ToTransportMsg msg = TransportProtos.ToTransportMsg.newBuilder()
+                .setSessionIdMSB(sessionId.getMostSignificantBits())
+                .setSessionIdLSB(sessionId.getLeastSignificantBits())
+                .setToServerResponse(responseMsgBuilder.build())
+                .build();
+        tbClusterService.pushNotificationToTransport(serviceId, msg, null);
+
         return Futures.immediateFuture(null);
     }
 
@@ -272,24 +287,16 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 body.put("response", response.getResponse().orElse("{}"));
             }
-            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL_RESPONSE,
+            cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
                     rpcRequest.getDeviceId(), body, 0L);
         } catch (Exception e) {
             log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response, e);
         }
     }
 
-    public UplinkMsg convertRpcCallResponseEventToUplink(CloudEvent cloudEvent) {
-        log.trace("Executing convertRpcCallResponseEventToUplink, cloudEvent [{}]", cloudEvent);
-        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcResponseMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
-        return UplinkMsg.newBuilder()
-                .setUplinkMsgId(EdgeUtils.nextPositiveInt())
-                .addDeviceRpcCallMsg(rpcResponseMsg).build();
-    }
-
-    public UplinkMsg convertRpcCallRequestEventToUplink(CloudEvent cloudEvent) {
-        log.trace("Executing processRpcCallRequestMsgToCloud, cloudEvent [{}]", cloudEvent);
-        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcRequestMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
+    public UplinkMsg convertRpcCallEventToUplink(CloudEvent cloudEvent) {
+        log.trace("Executing convertRpcCallEventToUplink, cloudEvent [{}]", cloudEvent);
+        DeviceRpcCallMsg rpcResponseMsg = deviceMsgConstructor.constructDeviceRpcCallMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();

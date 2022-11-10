@@ -359,11 +359,8 @@ public class CloudManagerService {
                     case CREDENTIALS_REQUEST:
                         uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
                         break;
-                    case RPC_CALL_RESPONSE:
-                        uplinkMsg = deviceProcessor.convertRpcCallResponseEventToUplink(cloudEvent);
-                        break;
-                    case RPC_CALL_REQUEST:
-                        uplinkMsg = deviceProcessor.convertRpcCallRequestEventToUplink(cloudEvent);
+                    case RPC_CALL:
+                        uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
                         break;
                     case WIDGET_BUNDLE_TYPES_REQUEST:
                         uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);

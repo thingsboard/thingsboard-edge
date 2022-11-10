@@ -79,7 +79,7 @@ public class DefaultTbAlarmServiceTest {
         when(alarmSubscriptionService.createOrUpdateAlarm(alarm)).thenReturn(alarm);
         service.save(alarm, new User());
 
-        verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
+        verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any(), true);
         verify(alarmSubscriptionService, times(1)).createOrUpdateAlarm(eq(alarm));
     }
 
@@ -90,7 +90,7 @@ public class DefaultTbAlarmServiceTest {
         when(alarmSubscriptionService.ackAlarm(any(), any(), anyLong())).thenReturn(Futures.immediateFuture(true));
         service.ack(alarm, new User());
 
-        verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
+        verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any(), true);
         verify(alarmSubscriptionService, times(1)).ackAlarm(any(), any(), anyLong());
     }
 
@@ -101,7 +101,7 @@ public class DefaultTbAlarmServiceTest {
         when(alarmSubscriptionService.clearAlarm(any(), any(), any(), anyLong())).thenReturn(Futures.immediateFuture(true));
         service.clear(alarm, new User());
 
-        verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
+        verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any(), true);
         verify(alarmSubscriptionService, times(1)).clearAlarm(any(), any(), any(), anyLong());
     }
 

@@ -99,7 +99,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
                     entityBody.put("data", dataJson);
                     entityBody.put("ts", msg.getMetaDataTs());
                     break;
-                case RPC_CALL_REQUEST:
+                case RPC_CALL:
                     addRpcRequestsDetailsIntoEventBody(entityBody, msg, metadata);
                     break;
             }
@@ -158,7 +158,7 @@ public abstract class AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigura
         } else if (DataConstants.ATTRIBUTES_DELETED.equals(msgType)) {
             actionType = EdgeEventActionType.ATTRIBUTES_DELETED;
         } else if (SessionMsgType.TO_SERVER_RPC_REQUEST.name().equals(msgType)) {
-            actionType = EdgeEventActionType.RPC_CALL_REQUEST;
+            actionType = EdgeEventActionType.RPC_CALL;
         } else {
             log.warn("Unsupported msg type [{}]", msgType);
             throw new IllegalArgumentException("Unsupported msg type: " + msgType);
