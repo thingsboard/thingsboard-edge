@@ -4,15 +4,16 @@
     {
       "additionalInfo": {
         "description": "",
-        "layoutX": 1101,
-        "layoutY": 68
+        "layoutX": 1132,
+        "layoutY": 51
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
       "name": "Push to Edge",
       "debugMode": true,
       "configuration": {
         "scope": "CLIENT_SCOPE"
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -26,7 +27,8 @@
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -39,7 +41,8 @@
       "debugMode": true,
       "configuration": {
         "defaultTTL": 7776000
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -51,7 +54,8 @@
       "debugMode": false,
       "configuration": {
         "scope": "CLIENT_SCOPE"
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -63,7 +67,8 @@
       "debugMode": true,
       "configuration": {
         "version": 0
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -75,7 +80,8 @@
       "debugMode": false,
       "configuration": {
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -87,7 +93,8 @@
       "debugMode": true,
       "configuration": {
         "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -99,7 +106,40 @@
       "debugMode": false,
       "configuration": {
         "timeoutInSeconds": 60
-      }
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1086,
+        "layoutY": 206
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Create RPC reply",
+      "debugMode": false,
+      "configuration": {
+        "scriptLang": "MVEL",
+        "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+        "mvelScript": "var rpcResponse;\nif (msg.method === \"getCurrentTime\"){\n   rpcResponse = {\"currentTime\": new Date().getTime()};\n} else {\n   rpcResponse = \"Unknown RPC request method: \" + msg.method;  \n}\nreturn {msg: rpcResponse, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1088,
+        "layoutY": 317
+      },
+      "type": "org.thingsboard.rule.engine.rpc.TbSendRPCReplyNode",
+      "name": "Reply",
+      "debugMode": false,
+      "configuration": {
+        "serviceIdMetaDataAttribute": "serviceId",
+        "sessionIdMetaDataAttribute": "sessionId",
+        "requestIdMetaDataAttribute": "requestId"
+      },
+      "externalId": null
     }
   ],
   "connections": [
@@ -130,13 +170,13 @@
     },
     {
       "fromIndex": 4,
-      "toIndex": 6,
-      "type": "Other"
+      "toIndex": 0,
+      "type": "Timeseries Deleted"
     },
     {
       "fromIndex": 4,
-      "toIndex": 3,
-      "type": "Post attributes"
+      "toIndex": 0,
+      "type": "Timeseries Updated"
     },
     {
       "fromIndex": 4,
@@ -145,8 +185,18 @@
     },
     {
       "fromIndex": 4,
+      "toIndex": 3,
+      "type": "Post attributes"
+    },
+    {
+      "fromIndex": 4,
       "toIndex": 5,
       "type": "RPC Request from Device"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 6,
+      "type": "Other"
     },
     {
       "fromIndex": 4,
@@ -154,14 +204,14 @@
       "type": "RPC Request to Device"
     },
     {
-      "fromIndex": 4,
-      "toIndex": 0,
-      "type": "Timeseries Deleted"
+      "fromIndex": 5,
+      "toIndex": 8,
+      "type": "Success"
     },
     {
-      "fromIndex": 4,
-      "toIndex": 0,
-      "type": "Timeseries Updated"
+      "fromIndex": 8,
+      "toIndex": 9,
+      "type": "Success"
     }
   ],
   "ruleChainConnections": null

@@ -530,6 +530,37 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
+    public void testClientRpcCallToCloud() {
+        // create device on cloud and assign to edge
+        Device device = saveAndAssignDeviceToEdge();
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<DeviceCredentials> edgeDeviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    Optional<DeviceCredentials> cloudDeviceCredentials = cloudRestClient.getDeviceCredentialsByDeviceId(device.getId());
+                    return edgeDeviceCredentials.isPresent() &&
+                            cloudDeviceCredentials.isPresent() &&
+                            edgeDeviceCredentials.get().getCredentialsId().equals(cloudDeviceCredentials.get().getCredentialsId());
+                });
+
+        Optional<DeviceCredentials> deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
+
+        Assert.assertTrue(deviceCredentials.isPresent());
+
+        // send request from device to cloud over edge
+        ObjectNode requestBody = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+        requestBody.put("method", "getCurrentTime");
+        requestBody.put("params", "{}");
+
+        String rpcRequest = edgeUrl + "/api/v1/" + deviceCredentials.get().getCredentialsId() + "/rpc";
+        ResponseEntity<String> responseEntity = edgeRestClient.getRestTemplate().postForEntity(rpcRequest, requestBody, String.class);
+
+        Assert.assertNotNull(responseEntity.getBody());
+        Assert.assertTrue(responseEntity.getBody().contains("currentTime"));
+    }
+
+    @Test
     public void sendDeviceWithNameThatAlreadyExistsOnCloud() {
         String deviceName = RandomStringUtils.randomAlphanumeric(15);
         Device savedDeviceOnCloud = saveDeviceOnCloud(deviceName, "default");
