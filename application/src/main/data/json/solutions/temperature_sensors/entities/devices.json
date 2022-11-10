@@ -3,7 +3,7 @@
     "name": "Sensor T1",
     "type": "Temperature Sensor",
     "group": "Temperature & Humidity sensors",
-    "profile": "sensor",
+    "emulator": "sensor",
     "attributes": {
       "latitude": 34.015672,
       "longitude": -118.4497,
@@ -19,7 +19,7 @@
     "type": "Temperature Sensor",
     "customer": "Customer D",
     "group": "Temperature & Humidity sensors",
-    "profile": "sensor",
+    "emulator": "sensor",
     "attributes": {
       "latitude": 37.7576,
       "longitude": -122.4726,

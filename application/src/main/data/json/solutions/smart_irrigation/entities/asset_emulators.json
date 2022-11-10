@@ -1,0 +1,6 @@
+[
+  {
+    "name": "Field",
+    "clazz": "org.thingsboard.server.service.solutions.data.emulator.FieldIrrigationStateEmulator"
+  }
+]

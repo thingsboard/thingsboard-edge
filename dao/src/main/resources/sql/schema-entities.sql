@@ -893,7 +893,7 @@ CREATE TABLE IF NOT EXISTS edge (
 );
 
 CREATE TABLE IF NOT EXISTS edge_event (
-    id uuid NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,
+    id uuid NOT NULL,
     created_time bigint NOT NULL,
     edge_id uuid,
     edge_event_type varchar(255),
@@ -904,7 +904,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     tenant_id uuid,
     entity_group_id uuid,
     ts bigint NOT NULL
-);
+) PARTITION BY RANGE(created_time);
 
 CREATE TABLE IF NOT EXISTS device_group_ota_package (
     id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,

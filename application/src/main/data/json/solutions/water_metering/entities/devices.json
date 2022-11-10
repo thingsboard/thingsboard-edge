@@ -4,7 +4,7 @@
     "type": "Water Meter",
     "customer": "Water Metering Customer A",
     "group": "Water Meters",
-    "profile": "WaterMeter",
+    "emulator": "WaterMeter",
     "attributes": {
       "active": true,
       "latitude": 34.015672,
@@ -27,7 +27,7 @@
     "type": "Water Meter",
     "customer": "Water Metering Customer A",
     "group": "Water Meters",
-    "profile": "WaterMeter",
+    "emulator": "WaterMeter",
     "attributes": {
       "active": true,
       "latitude": 34.025672,
@@ -50,7 +50,7 @@
     "type": "Water Meter",
     "customer": "Water Metering Customer B",
     "group": "Water Meters",
-    "profile": "WaterMeter",
+    "emulator": "WaterMeter",
     "attributes": {
       "active": true,
       "latitude": 34.035672,

@@ -43,13 +43,16 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.sql.JpaAbstractSearchTextDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -168,7 +171,7 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
     @Override
     public PageData<AssetId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
         Page<UUID> page;
-        if(customerId == null){
+        if (customerId == null) {
             page = assetRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
         } else {
             page = assetRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));
@@ -205,6 +208,13 @@ public class JpaAssetDao extends JpaAbstractSearchTextDao<AssetEntity, Asset> im
             }
         }
         return list;
+    }
+
+    @Override
+    public PageData<TbPair<UUID, String>> getAllAssetTypes(PageLink pageLink) {
+        log.debug("Try to find all asset types and pageLink [{}]", pageLink);
+        return DaoUtil.pageToPageData(assetRepository.getAllAssetTypes(
+                DaoUtil.toPageable(pageLink, Arrays.asList(new SortOrder("tenantId"), new SortOrder("type")))));
     }
 
     @Override
