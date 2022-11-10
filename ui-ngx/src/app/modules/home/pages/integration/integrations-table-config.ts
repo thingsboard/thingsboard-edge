@@ -226,7 +226,15 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   }
 
   private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
-    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [];
+    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [{
+      name: '',
+      nameFunction: (entity) =>
+        this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
+      mdiIcon: 'mdi:bug',
+      isEnabled: () => true,
+      mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
+      onAction: ($event, entity) => this.toggleDebugMode($event, entity)
+    }];
     if (params.integrationScope === 'edge') {
       actions.push(
         {
@@ -237,27 +245,14 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         }
       );
     }
-    actions.push(
-      {
-        name: '',
-        nameFunction: (entity) => this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
-        mdiIcon: 'mdi:bug',
-        isEnabled: () => true,
-        mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
-        onAction: ($event, entity) => this.toggleDebugMode($event, entity)
-      }
-    );
     return actions;
   }
 
   private saveIntegration(integration: Integration): Observable<Integration> {
     if (isUndefined(integration.edgeTemplate)) {
-      if (this.componentsData.integrationScope === 'tenant') {
-        integration.edgeTemplate = false;
-      } else if (this.componentsData.integrationScope === 'edges') {
+      if (this.componentsData.integrationScope === 'edges') {
         integration.edgeTemplate = true;
       } else {
-        // safe fallback to default
         integration.edgeTemplate = false;
       }
     }
@@ -476,6 +471,9 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     if (!integration.enabled) {
       translateKey = 'integration.status.disabled';
       backgroundColor = 'rgba(0, 0, 0, 0.08)';
+    } else if (!integration.status) {
+      translateKey = 'integration.status.pending';
+      backgroundColor = 'rgba(212, 125, 24, 0.08)';
     } else if (!integration.status.success) {
       translateKey = 'integration.status.failed';
       backgroundColor = 'rgba(209, 39, 48, 0.08)';
@@ -493,6 +491,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     };
     if (!integration.enabled) {
       styleObj.color = 'rgba(0, 0, 0, 0.54)';
+    } else if (!integration.status) {
+      styleObj.color = '#D47D18';
     } else if (!integration.status.success) {
       styleObj.color = '#d12730';
     }

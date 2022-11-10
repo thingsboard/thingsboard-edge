@@ -3449,7 +3449,8 @@
             "status": "Status",
             "active": "Active",
             "disabled": "Disabled",
-            "failed": "Failed"
+            "failed": "Failed",
+            "pending": "Pending"
         },
         "daily-activity": "Daily activity",
         "enable-debug-mode": "Enable debug mode",

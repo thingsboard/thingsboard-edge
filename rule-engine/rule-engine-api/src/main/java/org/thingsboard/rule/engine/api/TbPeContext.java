@@ -71,9 +71,9 @@ public interface TbPeContext {
 
     RoleService getRoleService();
 
-    SchedulerEventService getSchedulerEventService();
-
     ConverterService getConverterService();
+
+    SchedulerEventService getSchedulerEventService();
 
     EntityId getOwner(TenantId tenantId, EntityId entityId);
 

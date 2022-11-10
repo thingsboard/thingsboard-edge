@@ -107,6 +107,8 @@ import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -462,6 +464,21 @@ public class ActorSystemContext {
     @Autowired(required = false)
     @Getter
     private QueueService queueService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private WidgetsBundleService widgetsBundleService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private WidgetTypeService widgetTypeService;
+
+    @Lazy
+    @Autowired(required = false)
+    @Getter
+    private SchedulerEventService schedulerEventService;
 
     @Value("${actors.session.max_concurrent_sessions_per_device:1}")
     @Getter
