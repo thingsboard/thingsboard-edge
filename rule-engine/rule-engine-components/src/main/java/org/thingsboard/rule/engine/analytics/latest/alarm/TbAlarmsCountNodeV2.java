@@ -30,6 +30,7 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.alarm;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
@@ -77,6 +78,8 @@ import java.util.Set;
 )
 public class TbAlarmsCountNodeV2 implements TbNode {
 
+    private static final List<String> ALARM_FIELDS = List.of("originator", "severity", "status", "ackTs", "clearTs", "details");
+
     private TbAlarmsCountNodeV2Configuration config;
     private String queueName;
     private String outMsgType;
@@ -92,11 +95,25 @@ public class TbAlarmsCountNodeV2 implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) {
         String msgType = msg.getType();
         EntityType entityType = msg.getOriginator().getEntityType();
-        if ((msgType.equals(DataConstants.ENTITY_CREATED) && entityType.equals(EntityType.ALARM))
-                || (msgType.equals(DataConstants.ENTITY_UPDATED) && entityType.equals(EntityType.ALARM))
-                || msgType.equals(DataConstants.ALARM)
-                || msgType.equals(DataConstants.ALARM_ACK)
-                || msgType.equals(DataConstants.ALARM_CLEAR)) {
+
+        var processAlarmsCount = false;
+        if (msgType.equals(DataConstants.ENTITY_CREATED) || msgType.equals(DataConstants.ENTITY_UPDATED)) {
+            if (entityType.equals(EntityType.ALARM)) {
+                processAlarmsCount = true;
+            } else {
+                JsonNode jsonData = JacksonUtil.toJsonNode(msg.getData());
+                var msgDataHasAlarmFields = ALARM_FIELDS.stream().allMatch(jsonData::has);
+                if (msgDataHasAlarmFields) {
+                    Alarm alarm = JacksonUtil.fromString(msg.getData(), AlarmInfo.class);
+                    log.debug("[{}] Msg data was successfully parsed to alarm object {}", ctx.getTenantId(), alarm);
+                    processAlarmsCount = true;
+                }
+            }
+        } else if (msgType.equals(DataConstants.ALARM) || msgType.equals(DataConstants.ALARM_ACK) || msgType.equals(DataConstants.ALARM_CLEAR)) {
+            processAlarmsCount = true;
+        }
+
+        if (processAlarmsCount) {
             process(ctx, msg);
         } else {
             ctx.tellSuccess(msg);
