@@ -224,6 +224,11 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, TbQueueCallback callback) {
+        pushMsgToRuleEngine(tenantId, entityId, tbMsg, false, callback);
+    }
+
+    @Override
+    public void pushMsgToRuleEngine(TenantId tenantId, EntityId entityId, TbMsg tbMsg, boolean useCustomQueue, TbQueueCallback callback) {
         if (tenantId == null || tenantId.isNullUid()) {
             if (entityId.getEntityType().equals(EntityType.TENANT)) {
                 tenantId = TenantId.fromUUID(entityId.getId());
@@ -233,13 +238,13 @@ public class DefaultTbClusterService implements TbClusterService {
             }
         } else {
             if (entityId.getEntityType().equals(EntityType.DEVICE)) {
-                tbMsg = transformMsg(tbMsg, deviceProfileCache.get(tenantId, new DeviceId(entityId.getId())));
+                tbMsg = transformMsg(tbMsg, deviceProfileCache.get(tenantId, new DeviceId(entityId.getId())), useCustomQueue);
             } else if (entityId.getEntityType().equals(EntityType.DEVICE_PROFILE)) {
-                tbMsg = transformMsg(tbMsg, deviceProfileCache.get(tenantId, new DeviceProfileId(entityId.getId())));
+                tbMsg = transformMsg(tbMsg, deviceProfileCache.get(tenantId, new DeviceProfileId(entityId.getId())), useCustomQueue);
             } else if (entityId.getEntityType().equals(EntityType.ASSET)) {
-                tbMsg = transformMsg(tbMsg, assetProfileCache.get(tenantId, new AssetId(entityId.getId())));
+                tbMsg = transformMsg(tbMsg, assetProfileCache.get(tenantId, new AssetId(entityId.getId())), useCustomQueue);
             } else if (entityId.getEntityType().equals(EntityType.ASSET_PROFILE)) {
-                tbMsg = transformMsg(tbMsg, assetProfileCache.get(tenantId, new AssetProfileId(entityId.getId())));
+                tbMsg = transformMsg(tbMsg, assetProfileCache.get(tenantId, new AssetProfileId(entityId.getId())), useCustomQueue);
             }
         }
         TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, entityId);
@@ -252,19 +257,19 @@ public class DefaultTbClusterService implements TbClusterService {
         toRuleEngineMsgs.incrementAndGet();
     }
 
-    private TbMsg transformMsg(TbMsg tbMsg, DeviceProfile deviceProfile) {
+    private TbMsg transformMsg(TbMsg tbMsg, DeviceProfile deviceProfile, boolean useCustomQueue) {
         if (deviceProfile != null) {
             RuleChainId targetRuleChainId = deviceProfile.getDefaultRuleChainId();
-            String targetQueueName = deviceProfile.getDefaultQueueName();
+            String targetQueueName = useCustomQueue ? tbMsg.getQueueName() : deviceProfile.getDefaultQueueName();
             tbMsg = transformMsg(tbMsg, targetRuleChainId, targetQueueName);
         }
         return tbMsg;
     }
 
-    private TbMsg transformMsg(TbMsg tbMsg, AssetProfile assetProfile) {
+    private TbMsg transformMsg(TbMsg tbMsg, AssetProfile assetProfile, boolean useCustomQueue) {
         if (assetProfile != null) {
             RuleChainId targetRuleChainId = assetProfile.getDefaultRuleChainId();
-            String targetQueueName = assetProfile.getDefaultQueueName();
+            String targetQueueName = useCustomQueue ? tbMsg.getQueueName() : assetProfile.getDefaultQueueName();
             tbMsg = transformMsg(tbMsg, targetRuleChainId, targetQueueName);
         }
         return tbMsg;

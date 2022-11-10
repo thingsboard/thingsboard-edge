@@ -80,10 +80,10 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
     }
 
     @Override
-    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, Consumer<TbMsg> consumer) {
+    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useCustomQueue, Consumer<TbMsg> consumer) {
         log.trace("[{}] Processing REST API call to rule engine [{}]", tenantId, request.getOriginator());
         requests.put(requestId, consumer);
-        sendRequestToRuleEngine(tenantId, request);
+        sendRequestToRuleEngine(tenantId, request, useCustomQueue);
         scheduleTimeout(request, requestId, requests);
     }
 
@@ -99,8 +99,8 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         callback.onSuccess();
     }
 
-    private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg) {
-        clusterService.pushMsgToRuleEngine(tenantId, msg.getOriginator(), msg, null);
+    private void sendRequestToRuleEngine(TenantId tenantId, TbMsg msg, boolean useCustomQueue) {
+        clusterService.pushMsgToRuleEngine(tenantId, msg.getOriginator(), msg, useCustomQueue, null);
     }
 
     private void scheduleTimeout(TbMsg request, UUID requestId, ConcurrentMap<UUID, Consumer<TbMsg>> requestsMap) {
