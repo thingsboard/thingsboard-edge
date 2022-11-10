@@ -3961,6 +3961,19 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
                 timeout).getBody();
     }
 
+    public JsonNode handleRuleEngineRequest(EntityId entityId, int timeout, String queueName, JsonNode requestBody) {
+        return restTemplate.exchange(
+                baseURL + "/api/rule-engine/{entityType}/{entityId}/{timeout}/{queueName}",
+                HttpMethod.POST,
+                new HttpEntity<>(requestBody),
+                new ParameterizedTypeReference<JsonNode>() {
+                },
+                entityId.getEntityType(),
+                entityId.getId(),
+                timeout,
+                queueName).getBody();
+    }
+
     public Optional<SchedulerEventInfo> getSchedulerEventInfoById(SchedulerEventId schedulerEventId) {
         try {
             ResponseEntity<SchedulerEventInfo> schedulerEventInfo = restTemplate.getForEntity(baseURL + "/api/schedulerEvent/info/{schedulerEventId}", SchedulerEventInfo.class, schedulerEventId.getId());
