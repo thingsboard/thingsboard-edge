@@ -101,7 +101,7 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
         return Futures.transform(requestForAdditionalData(tenantId, entityViewUpdateMsg.getMsgType(), entityViewId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
-    public UplinkMsg processEntityViewRequestMsgToCloud(CloudEvent cloudEvent) {
+    public UplinkMsg convertEntityViewRequestEventToUplink(CloudEvent cloudEvent) {
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         EntityViewsRequestMsg entityViewsRequestMsg = EntityViewsRequestMsg.newBuilder()
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())

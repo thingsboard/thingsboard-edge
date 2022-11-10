@@ -105,7 +105,7 @@ public class AlarmCloudProcessor extends BaseCloudProcessor {
         }
     }
 
-    public UplinkMsg processAlarmMsgToCloud(TenantId tenantId, CloudEvent cloudEvent)
+    public UplinkMsg convertAlarmEventToUplink(TenantId tenantId, CloudEvent cloudEvent)
             throws ExecutionException, InterruptedException {
         AlarmId alarmId = new AlarmId(cloudEvent.getEntityId());
         UplinkMsg msg = null;

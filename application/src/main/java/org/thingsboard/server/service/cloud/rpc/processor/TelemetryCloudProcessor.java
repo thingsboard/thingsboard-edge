@@ -347,8 +347,8 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                 .build();
     }
 
-    public UplinkMsg processAttributesRequestMsgToCloud(CloudEvent cloudEvent) {
-        log.trace("Executing processAttributesRequestMsgToCloud, cloudEvent [{}]", cloudEvent);
+    public UplinkMsg convertAttributesRequestEventToUplink(CloudEvent cloudEvent) {
+        log.trace("Executing convertAttributesRequestEventToUplink, cloudEvent [{}]", cloudEvent);
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         try {
             List<AttributesRequestMsg> allAttributesRequestMsg = new ArrayList<>();

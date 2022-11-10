@@ -110,7 +110,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
 
     }
 
-    public UplinkMsg processRelationRequestMsgToCloud(CloudEvent cloudEvent) {
+    public UplinkMsg convertRelationRequestEventToUplink(CloudEvent cloudEvent) {
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         RelationRequestMsg relationRequestMsg = RelationRequestMsg.newBuilder()
                 .setEntityIdMSB(entityId.getId().getMostSignificantBits())
@@ -123,7 +123,7 @@ public class RelationCloudProcessor extends BaseCloudProcessor {
         return builder.build();
     }
 
-    public UplinkMsg processRelationMsgToCloud(CloudEvent cloudEvent) {
+    public UplinkMsg convertRelationEventToUplink(CloudEvent cloudEvent) {
         UplinkMsg msg = null;
         UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
         EntityRelation entityRelation = JacksonUtil.OBJECT_MAPPER.convertValue(cloudEvent.getEntityBody(), EntityRelation.class);

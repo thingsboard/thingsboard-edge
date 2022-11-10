@@ -1378,7 +1378,7 @@ export class EntityService {
   public getCloudEventByType(entity: any): Observable<any> {
     let entityObservable: Observable<any>;
     const entityId: string = entity.entityId;
-    const entityType: any = entity.cloudEventType;
+    const entityType: any = entity.type;
     switch (entityType) {
       case CloudEventType.DASHBOARD:
       case CloudEventType.ALARM:
