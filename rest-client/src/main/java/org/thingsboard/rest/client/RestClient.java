@@ -505,7 +505,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Asset saveAsset(Asset asset) {
-        return restTemplate.postForEntity(baseURL + "/api/asset", asset, Asset.class).getBody();
+        return saveAsset(asset, null);
+    }
+
+    public Asset saveAsset(Asset asset, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/asset", asset, Asset.class).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/asset?entityGroupId={entityGroupId}",
+                    asset, Asset.class, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteAsset(AssetId assetId) {
@@ -921,7 +930,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Dashboard saveDashboard(Dashboard dashboard) {
-        return restTemplate.postForEntity(baseURL + "/api/dashboard", dashboard, Dashboard.class).getBody();
+        return saveDashboard(dashboard, null);
+    }
+
+    public Dashboard saveDashboard(Dashboard dashboard, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/dashboard", dashboard, Dashboard.class).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/dashboard?entityGroupId={entityGroupId}",
+                    dashboard, Dashboard.class, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteDashboard(DashboardId dashboardId) {
@@ -972,7 +990,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public Device saveDevice(Device device, String accessToken) {
-        return restTemplate.postForEntity(baseURL + "/api/device?accessToken={accessToken}", device, Device.class, accessToken).getBody();
+        return saveDevice(device, accessToken, null);
+    }
+
+    public Device saveDevice(Device device, String accessToken, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/device?accessToken={accessToken}", device, Device.class, accessToken).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/device?accessToken={accessToken}&entityGroupId={entityGroupId}",
+                    device, Device.class, accessToken, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteDevice(DeviceId deviceId) {
@@ -1497,7 +1524,16 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public EntityView saveEntityView(EntityView entityView) {
-        return restTemplate.postForEntity(baseURL + "/api/entityView", entityView, EntityView.class).getBody();
+        return saveEntityView(entityView, null);
+    }
+
+    public EntityView saveEntityView(EntityView entityView, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/entityView", entityView, EntityView.class).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/entityView?entityGroupId={entityGroupId}",
+                    entityView, EntityView.class, entityGroupId.getId()).getBody();
+        }
     }
 
     public void deleteEntityView(EntityViewId entityViewId) {
@@ -2157,7 +2193,15 @@ public class RestClient implements ClientHttpRequestInterceptor, Closeable {
     }
 
     public User saveUser(User user, boolean sendActivationMail) {
-        return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}", user, User.class, sendActivationMail).getBody();
+        return saveUser(user, sendActivationMail, null);
+    }
+
+    public User saveUser(User user, boolean sendActivationMail, EntityGroupId entityGroupId) {
+        if (entityGroupId == null) {
+            return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}", user, User.class, sendActivationMail).getBody();
+        } else {
+            return restTemplate.postForEntity(baseURL + "/api/user?sendActivationMail={sendActivationMail}&entityGroupId={entityGroupId}", user, User.class, sendActivationMail, entityGroupId.getId()).getBody();
+        }
     }
 
     public void sendActivationEmail(String email) {
