@@ -57,7 +57,7 @@
 
     <logger name="org.thingsboard.server" level="INFO" />
 
-<!--    <logger name="org.thingsboard.server.service.edge" level="TRACE" />-->
+ <!--    <logger name="org.thingsboard.server.service.edge" level="TRACE" />-->
 
     <logger name="com.google.common.util.concurrent.AggregateFuture" level="OFF" />
 

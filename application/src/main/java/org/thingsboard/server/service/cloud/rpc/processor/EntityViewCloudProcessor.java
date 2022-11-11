@@ -78,7 +78,6 @@ public class EntityViewCloudProcessor extends BaseCloudProcessor {
                         entityView.setTenantId(tenantId);
                         entityView.setId(entityViewId);
                         entityView.setCreatedTime(Uuids.unixTimestamp(entityViewId.getId()));
-                        created = true;
                     }
                     EntityId entityId = null;
                     switch (entityViewUpdateMsg.getEntityType()) {

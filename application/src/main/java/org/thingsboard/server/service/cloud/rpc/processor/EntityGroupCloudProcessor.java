@@ -78,23 +78,22 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
                 entityGroupCreationLock.lock();
-                EntityGroup entityGroup = null;
+                EntityGroup entityGroup;
                 try {
                     entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-                    boolean created = false;
                     if (entityGroup == null) {
                         entityGroup = new EntityGroup();
                         entityGroup.setId(entityGroupId);
                         entityGroup.setCreatedTime(Uuids.unixTimestamp(entityGroupId.getId()));
-                        created = true;
+                        entityGroup.setTenantId(tenantId);
                     }
                     entityGroup.setName(entityGroupUpdateMsg.getName());
                     entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
                     entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
                     entityGroup.setAdditionalInfo(entityGroupUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()) : null);
-
                     EntityId ownerId = safeGetOwnerId(tenantId, entityGroupUpdateMsg.getOwnerEntityType(),
                             entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB());
+                    entityGroup.setOwnerId(ownerId);
                     entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
                 } finally {
                     entityGroupCreationLock.unlock();

@@ -73,9 +73,7 @@ public class GroupPermissionCloudProcessor extends BaseCloudProcessor {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     GroupPermission groupPermission = groupPermissionService.findGroupPermissionById(tenantId, groupPermissionId);
-                    boolean created = false;
                     if (groupPermission == null) {
-                        created = true;
                         groupPermission = new GroupPermission();
                         groupPermission.setId(groupPermissionId);
                         groupPermission.setCreatedTime(Uuids.unixTimestamp(groupPermissionId.getId()));

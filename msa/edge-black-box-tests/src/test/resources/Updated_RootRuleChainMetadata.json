@@ -1,19 +1,6 @@
 {
-  "firstNodeIndex": 10,
+  "firstNodeIndex": 9,
   "nodes": [
-    {
-      "additionalInfo": {
-        "description": "",
-        "layoutX": 1358,
-        "layoutY": 317
-      },
-      "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
-      "name": "Push to Edge",
-      "debugMode": false,
-      "configuration": {
-        "scope": "CLIENT_SCOPE"
-      }
-    },
     {
       "additionalInfo": {
         "layoutX": 999,
@@ -24,34 +11,35 @@
       "debugMode": false,
       "configuration": {
         "defaultTTL": 0
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
-        "description": null,
         "layoutX": 1000,
         "layoutY": 167
       },
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
       "name": "Save Attributes",
-      "debugMode": true,
+      "debugMode": false,
       "configuration": {
         "scope": "CLIENT_SCOPE",
         "notifyDevice": "false"
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
-        "description": null,
         "layoutX": 566,
         "layoutY": 302
       },
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
       "name": "Message Type Switch",
-      "debugMode": true,
+      "debugMode": false,
       "configuration": {
         "version": 0
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -62,8 +50,11 @@
       "name": "Log RPC from Device",
       "debugMode": false,
       "configuration": {
-        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      }
+        "scriptLang": "MVEL",
+        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+        "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -74,8 +65,11 @@
       "name": "Log Other",
       "debugMode": false,
       "configuration": {
-        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      }
+        "scriptLang": "MVEL",
+        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+        "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -87,7 +81,8 @@
       "debugMode": false,
       "configuration": {
         "timeoutInSeconds": 60
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -101,7 +96,8 @@
         "originatorTypes": [
           "ENTITY_GROUP"
         ]
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -116,7 +112,8 @@
           "POST_ATTRIBUTES_REQUEST",
           "RPC_CALL_FROM_SERVER_TO_DEVICE"
         ]
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -129,7 +126,8 @@
       "configuration": {
         "entityGroupId": null,
         "entityGroupIsMessageOriginator": true
-      }
+      },
+      "externalId": null
     },
     {
       "additionalInfo": {
@@ -143,68 +141,149 @@
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
-      }
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "description": "Forwards message to the \"Generate Report\" rule chain",
+        "layoutX": 1004,
+        "layoutY": 690
+      },
+      "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
+      "name": "Generate Report",
+      "debugMode": false,
+      "configuration": {
+        "ruleChainId": "ec7bcce0-60ef-11ed-b8ec-6b31dce9b0ca"
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1217,
+        "layoutY": 303
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Create RPC reply",
+      "debugMode": false,
+      "configuration": {
+        "scriptLang": "MVEL",
+        "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+        "mvelScript": "var rpcResponse;\nif (msg.method === \"getCurrentTime\"){\n   rpcResponse = {\"currentTime\": new Date().getTime()};\n} else {\n   rpcResponse = \"Unknown RPC request method: \" + msg.method;  \n}\nreturn {msg: rpcResponse, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1223,
+        "layoutY": 421
+      },
+      "type": "org.thingsboard.rule.engine.rpc.TbSendRPCReplyNode",
+      "name": "Reply",
+      "debugMode": false,
+      "configuration": {
+        "serviceIdMetaDataAttribute": "serviceId",
+        "sessionIdMetaDataAttribute": "sessionId",
+        "requestIdMetaDataAttribute": "requestId"
+      },
+      "externalId": null
+    },
+    {
+      "additionalInfo": {
+        "description": "",
+        "layoutX": 1225,
+        "layoutY": 181
+      },
+      "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
+      "name": "Push to Edge",
+      "debugMode": false,
+      "configuration": {
+        "scope": "CLIENT_SCOPE"
+      },
+      "externalId": null
     }
   ],
   "connections": [
     {
+      "fromIndex": 0,
+      "toIndex": 13,
+      "type": "Success"
+    },
+    {
       "fromIndex": 1,
-      "toIndex": 0,
+      "toIndex": 13,
       "type": "Success"
     },
     {
       "fromIndex": 2,
       "toIndex": 0,
-      "type": "Success"
-    },
-    {
-      "fromIndex": 3,
-      "toIndex": 5,
-      "type": "Other"
-    },
-    {
-      "fromIndex": 3,
-      "toIndex": 2,
-      "type": "Post attributes"
-    },
-    {
-      "fromIndex": 3,
-      "toIndex": 1,
       "type": "Post telemetry"
     },
     {
-      "fromIndex": 3,
-      "toIndex": 4,
+      "fromIndex": 2,
+      "toIndex": 1,
+      "type": "Post attributes"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 3,
       "type": "RPC Request from Device"
     },
     {
-      "fromIndex": 3,
-      "toIndex": 6,
+      "fromIndex": 2,
+      "toIndex": 4,
+      "type": "Other"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 5,
       "type": "RPC Request to Device"
     },
     {
-      "fromIndex": 3,
-      "toIndex": 0,
-      "type": "Attributes Updated"
+      "fromIndex": 2,
+      "toIndex": 10,
+      "type": "Generate Report"
     },
     {
-      "fromIndex": 3,
-      "toIndex": 0,
+      "fromIndex": 2,
+      "toIndex": 13,
       "type": "Attributes Deleted"
     },
     {
-      "fromIndex": 3,
-      "toIndex": 0,
+      "fromIndex": 2,
+      "toIndex": 13,
+      "type": "Attributes Updated"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 13,
+      "type": "Timeseries Deleted"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 13,
       "type": "Timeseries Updated"
     },
     {
       "fromIndex": 3,
-      "toIndex": 0,
-      "type": "Timeseries Deleted"
+      "toIndex": 11,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 6,
+      "toIndex": 2,
+      "type": "False"
+    },
+    {
+      "fromIndex": 6,
+      "toIndex": 7,
+      "type": "True"
     },
     {
       "fromIndex": 7,
-      "toIndex": 3,
+      "toIndex": 2,
       "type": "False"
     },
     {
@@ -214,38 +293,19 @@
     },
     {
       "fromIndex": 8,
-      "toIndex": 3,
-      "type": "False"
-    },
-    {
-      "fromIndex": 8,
-      "toIndex": 9,
-      "type": "True"
+      "toIndex": 2,
+      "type": "Success"
     },
     {
       "fromIndex": 9,
-      "toIndex": 3,
+      "toIndex": 6,
       "type": "Success"
     },
     {
-      "fromIndex": 10,
-      "toIndex": 7,
+      "fromIndex": 11,
+      "toIndex": 12,
       "type": "Success"
     }
   ],
-  "ruleChainConnections": [
-    {
-      "fromIndex": 3,
-      "targetRuleChainId": {
-        "entityType": "RULE_CHAIN",
-        "id": "6fdc93e0-ebca-11eb-854e-6b5f3e0d6389"
-      },
-      "additionalInfo": {
-        "layoutX": 1004,
-        "layoutY": 690,
-        "ruleChainNodeId": "rule-chain-node-13"
-      },
-      "type": "Generate Report"
-    }
-  ]
+  "ruleChainConnections": null
 }
