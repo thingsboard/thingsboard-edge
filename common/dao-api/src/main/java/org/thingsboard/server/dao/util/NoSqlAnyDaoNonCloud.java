@@ -28,15 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.emulator;
+package org.thingsboard.server.dao.util;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-public interface DeviceEmulator {
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-    void init(DeviceEmulatorDefinition deviceProfile);
-
-    ObjectNode getValue(long ts);
-
+@Retention(RetentionPolicy.RUNTIME)
+@ConditionalOnExpression("('${database.ts.type}'=='cassandra' || '${database.ts_latest.type}'=='cassandra') " +
+        "&& ('${cassandra.cloud.secure_connect_bundle_path}' == null || '${cassandra.cloud.secure_connect_bundle_path}'.isBlank() )")
+public @interface NoSqlAnyDaoNonCloud {
 }

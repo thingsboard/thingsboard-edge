@@ -39,6 +39,7 @@ import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 
 import javax.script.ScriptException;
@@ -106,14 +107,14 @@ public abstract class RuleNodeScriptEngine<T extends ScriptInvokeService, R> imp
     }
 
     @Override
-    public ListenableFuture<Boolean> executeAttributesFilterAsync(Map<String, String> attributes) {
+    public ListenableFuture<Boolean> executeAttributesFilterAsync(Map<String, KvEntry> attributes) {
         Object inArgs = prepareAttributes(attributes);
         return Futures.transformAsync(executeScriptAsync(null, inArgs),
                 this::executeFilterTransform,
                 MoreExecutors.directExecutor());
     }
 
-    protected abstract Object prepareAttributes(Map<String, String> attributes);
+    protected abstract Object prepareAttributes(Map<String, KvEntry> attributes);
 
     protected abstract ListenableFuture<String> executeToStringTransform(R result);
 
