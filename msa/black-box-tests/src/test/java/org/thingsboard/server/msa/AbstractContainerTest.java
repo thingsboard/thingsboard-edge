@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.msa;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
@@ -37,18 +39,22 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.awaitility.Awaitility;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Listeners;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rest.client.RestClient;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
@@ -56,60 +62,52 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.event.EventType;
-import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLContext;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Listeners;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.DeviceId;
-import java.net.URI;
-import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Listeners(TestListener.class)
 public abstract class AbstractContainerTest {
     protected static final String HTTPS_URL = "https://localhost";
-    protected static final String WSS_URL = "wss://localhost";
-    protected static String rpcURLHttp;
-    protected static String TB_TOKEN;
-    protected static RestClient restClient;
-    protected static RestClient rpcHTTPRestClient;
     protected static long timeoutMultiplier = 1;
     protected ObjectMapper mapper = new ObjectMapper();
-    protected JsonParser jsonParser = new JsonParser();
     protected static final String TELEMETRY_KEY = "temperature";
     protected static final String TELEMETRY_VALUE = "42";
     protected static final int CONNECT_TRY_COUNT = 50;
     protected static final int CONNECT_TIMEOUT_MS = 500;
-    private static final ContainerTestSuite containerTestSuite = ContainerTestSuite.getInstance();
+    protected static final ContainerTestSuite containerTestSuite = ContainerTestSuite.getInstance();
     protected static TestRestClient testRestClient;
+    protected static TestRestClient remoteHttpClient;
 
     @BeforeSuite
     public void beforeSuite() {
-        String rpcHost = ContainerTestSuite.getTestContainer().getServiceHost("tb-pe-http-integration", 8082);
-        Integer rpcPort = ContainerTestSuite.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
-        rpcURLHttp = "http://" + rpcHost + ":" + rpcPort;
-        rpcHTTPRestClient = new RestClient(rpcURLHttp);
         if ("false".equals(System.getProperty("runLocal", "false"))) {
             containerTestSuite.start();
         }
         testRestClient = new TestRestClient(TestProperties.getBaseUrl());
+        remoteHttpClient = new TestRestClient(TestProperties.getRemoteHttpUrl());
         if (!"kafka".equals(System.getProperty("blackBoxTests.queue", "kafka"))) {
             timeoutMultiplier = 10;
         }
@@ -199,7 +197,7 @@ public abstract class AbstractContainerTest {
         JsonObject values = new JsonObject();
         values.addProperty("stringKey", "value1");
         values.addProperty("booleanKey", true);
-        values.addProperty("doubleKey", 42.0);
+        values.addProperty("doubleKey", 42.6);
         values.addProperty("longKey", 73L);
 
         return values;
@@ -210,14 +208,7 @@ public abstract class AbstractContainerTest {
         converter.setName("My converter" + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(config);
-        return restClient.saveConverter(converter);
-    }
-
-    protected void deleteAllObject(Device device, Integration integration) {
-        restClient.deleteDevice(device.getId());
-        ConverterId idForDelete = integration.getDefaultConverterId();
-        restClient.deleteIntegration(integration.getId());
-        restClient.deleteConverter(idForDelete);
+        return testRestClient.postConverter(converter);
     }
 
     protected enum CmdsType {
@@ -253,6 +244,14 @@ public abstract class AbstractContainerTest {
         return new HttpComponentsClientHttpRequestFactory(httpClient);
     }
 
+    protected JsonNode createPayloadForUplink(Device device, String temperatureValue) throws JsonProcessingException {
+        JsonObject values = new JsonObject();
+        values.addProperty("deviceName", device.getName());
+        values.addProperty("deviceType", device.getType());
+        values.addProperty(TELEMETRY_KEY, temperatureValue);
+        return mapper.readTree(values.toString());
+    }
+
     protected JsonNode createPayloadForUplink() {
         ObjectNode values = JacksonUtil.newObjectNode();
         values.put(TELEMETRY_KEY, TELEMETRY_VALUE);
@@ -274,17 +273,22 @@ public abstract class AbstractContainerTest {
         integration.setDebugMode(true);
         integration.setAllowCreateDevicesOrAssets(true);
 
-        integration = restClient.saveIntegration(integration);
+        integration = testRestClient.postIntegration(integration);
 
         IntegrationId integrationId = integration.getId();
         TenantId tenantId = integration.getTenantId();
 
+        waitUntilIntegrationStarted(integrationId, tenantId);
+        return integration;
+    }
+
+    protected static void waitUntilIntegrationStarted(IntegrationId integrationId, TenantId tenantId) {
         Awaitility
                 .await()
                 .alias("Get integration events")
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
-                    PageData<EventInfo> events = restClient.getEvents(integrationId, EventType.LC_EVENT, tenantId, new TimePageLink(1024));
+                    PageData<EventInfo> events = testRestClient.getEvents(integrationId, EventType.LC_EVENT, tenantId, new TimePageLink(1024));
                     if (events.getData().isEmpty()) {
                         return false;
                     }
@@ -294,7 +298,67 @@ public abstract class AbstractContainerTest {
                             && "STARTED".equals(event.getBody().get("event").asText())
                             && "true".equals(event.getBody().get("success").asText());
                 });
+    }
 
-        return integration;
+    protected static void waitForIntegrationEvent(Integration integration, String eventType, int count) {
+        if (containerTestSuite.isActive() && !integration.getType().isSingleton() && !integration.isRemote()) {
+            count = count * 2;
+        }
+        int finalCount = count;
+        Awaitility
+                .await()
+                .alias("Get integration events")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = testRestClient.getEvents(integration.getId(), EventType.LC_EVENT, integration.getTenantId(), new TimePageLink(1024));
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    List<EventInfo> eventInfos = events.getData().stream().filter(eventInfo ->
+                                 eventType.equals(eventInfo.getBody().get("event").asText()) &&
+                                        "true".equals(eventInfo.getBody().get("success").asText()))
+                            .collect(Collectors.toList());
+
+                    return eventInfos.size() == finalCount;
+                });
+    }
+
+    protected static void waitTillRuleNodeReceiveMsg(EntityId entityId, EventType eventType, TenantId tenantId, String msgType) {
+        Awaitility
+                .await()
+                .alias("Get integration events")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<EventInfo> events = testRestClient.getEvents(entityId, eventType, tenantId, new TimePageLink(1024));
+                    if (events.getData().isEmpty()) {
+                        return false;
+                    }
+
+                    EventInfo event = events.getData().stream().max(Comparator.comparingLong(EventInfo::getCreatedTime)).orElse(null);
+                    return event != null
+                            && msgType.equals(event.getBody().get("msgType").asText());
+                });
+    }
+
+    protected RuleChainId createRootRuleChainWithIntegrationDownlinkNode(IntegrationId integrationId) throws Exception {
+        RuleChain newRuleChain = new RuleChain();
+        newRuleChain.setName("testRuleChain");
+        RuleChain ruleChain = testRestClient.saveRuleChain(newRuleChain);
+
+        JsonNode configuration = mapper.readTree(this.getClass().getClassLoader().getResourceAsStream("DownlinkRuleChainMetadata.json"));
+        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
+        ruleChainMetaData.setRuleChainId(ruleChain.getId());
+        ruleChainMetaData.setFirstNodeIndex(configuration.get("firstNodeIndex").asInt());
+        ruleChainMetaData.setNodes(Arrays.asList(mapper.treeToValue(configuration.get("nodes"), RuleNode[].class)));
+        RuleNode integrationNode  = ruleChainMetaData.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
+        integrationNode.setConfiguration(mapper.createObjectNode().put("integrationId", integrationId.toString()));
+        ruleChainMetaData.setConnections(Arrays.asList(mapper.treeToValue(configuration.get("connections"), NodeConnectionInfo[].class)));
+
+        testRestClient.postRuleChainMetadata(ruleChainMetaData);
+
+        // make rule chain root
+        testRestClient.setRootRuleChain(ruleChain.getId());
+        return ruleChain.getId();
     }
 }

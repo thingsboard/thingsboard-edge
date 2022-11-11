@@ -1,26 +1,39 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.restassured.RestAssured;
-import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.config.HeaderConfig;
-import io.restassured.config.HttpClientConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
@@ -28,15 +41,22 @@ import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
-import io.restassured.specification.ResponseSpecification;
-import org.hamcrest.Matchers;
-import org.springframework.http.HttpStatus;
+import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -48,30 +68,27 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
-import static org.apache.http.params.CoreConnectionPNames.CONNECTION_TIMEOUT;
-import static org.apache.http.params.CoreConnectionPNames.SO_TIMEOUT;
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.AnyOf.anyOf;
 import static org.thingsboard.server.common.data.StringUtils.isEmpty;
 
 public class TestRestClient {
     private static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
-    private final String baseURL;
+    private static final String CONTENT_TYPE_HEADER = "Content-Type";
+    private final RequestSpecification requestSpec;
     private String token;
     private String refreshToken;
-    private RequestSpecification requestSpec;
-    private ResponseSpecification responseSpec;
-    protected static final String ACTIVATE_TOKEN_REGEX = "/api/noauth/activate?activateToken=";
 
     public TestRestClient(String url) {
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
 
-        baseURL = url;
-        requestSpec = given().baseUri(baseURL)
+        requestSpec = given().baseUri(url)
                 .contentType(ContentType.JSON)
                 .config(RestAssuredConfig.config()
                         .headerConfig(HeaderConfig.headerConfig()
-                                .overwriteHeadersWithName(JWT_TOKEN_HEADER_PARAM)));
+                                .overwriteHeadersWithName(JWT_TOKEN_HEADER_PARAM, CONTENT_TYPE_HEADER)));
 
         if (url.matches("^(https)://.*$")) {
             requestSpec.relaxedHTTPSValidation();
@@ -83,7 +100,8 @@ public class TestRestClient {
         loginRequest.put("username", username);
         loginRequest.put("password", password);
 
-        JsonPath jsonPath = given().relaxedHTTPSValidation().body(loginRequest).post(baseURL + "/api/auth/login")
+        JsonPath jsonPath = given().spec(requestSpec).body(loginRequest)
+                .post( "/api/auth/login")
                 .getBody().jsonPath();
         token = jsonPath.get("token");
         refreshToken = jsonPath.get("refreshToken");
@@ -95,7 +113,7 @@ public class TestRestClient {
                 .pathParams("accessToken", accessToken)
                 .post("/api/device?accessToken={accessToken}")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(Device.class);
     }
@@ -108,7 +126,7 @@ public class TestRestClient {
                 .statusCode(statusCode);
     }
     public Device getDeviceById(DeviceId deviceId) {
-        return  getDeviceById(deviceId, HttpStatus.OK.value())
+        return  getDeviceById(deviceId, HTTP_OK)
                 .extract()
                 .as(Device.class);
     }
@@ -116,7 +134,7 @@ public class TestRestClient {
         return given().spec(requestSpec).get("/api/device/{deviceId}/credentials", deviceId.getId())
                     .then()
                     .assertThat()
-                    .statusCode(HttpStatus.OK.value())
+                    .statusCode(HTTP_OK)
                     .extract()
                     .as(DeviceCredentials.class);
     }
@@ -125,34 +143,34 @@ public class TestRestClient {
          return  given().spec(requestSpec).body(telemetry)
                  .post("/api/v1/{credentialsId}/telemetry", credentialsId)
                  .then()
-                 .statusCode(HttpStatus.OK.value());
+                 .statusCode(HTTP_OK);
     }
 
     public ValidatableResponse deleteDevice(DeviceId deviceId) {
         return  given().spec(requestSpec)
                 .delete("/api/device/{deviceId}", deviceId.getId())
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HTTP_OK);
     }
     public ValidatableResponse deleteDeviceIfExists(DeviceId deviceId) {
         return  given().spec(requestSpec)
                 .delete("/api/device/{deviceId}", deviceId.getId())
                 .then()
-                .statusCode(anyOf(is(HttpStatus.OK.value()),is(HttpStatus.NOT_FOUND.value())));
+                .statusCode(anyOf(is(HTTP_OK),is(HTTP_NOT_FOUND)));
     }
 
     public ValidatableResponse postTelemetryAttribute(String entityType, DeviceId deviceId, String scope, JsonNode attribute) {
         return  given().spec(requestSpec).body(attribute)
                 .post("/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", entityType, deviceId.getId(), scope)
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HTTP_OK);
     }
 
     public ValidatableResponse postAttribute(String accessToken, JsonNode attribute) {
         return  given().spec(requestSpec).body(attribute)
                 .post("/api/v1/{accessToken}/attributes/", accessToken)
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HTTP_OK);
     }
 
     public JsonNode getAttributes(String accessToken, String clientKeys, String sharedKeys) {
@@ -161,7 +179,7 @@ public class TestRestClient {
                 .queryParam("sharedKeys", sharedKeys)
                 .get("/api/v1/{accessToken}/attributes", accessToken)
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(JsonNode.class);
     }
@@ -172,7 +190,7 @@ public class TestRestClient {
         return given().spec(requestSpec).queryParams(params)
                 .get("/api/ruleChains")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(new TypeRef<PageData<RuleChain>>() {});
     }
@@ -182,7 +200,7 @@ public class TestRestClient {
                 .body(ruleChain)
                 .post("/api/ruleChain")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(RuleChain.class);
     }
@@ -192,7 +210,7 @@ public class TestRestClient {
                 .body(ruleChainMetaData)
                 .post("/api/ruleChain/metadata")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(RuleChainMetaData.class);
     }
@@ -201,14 +219,14 @@ public class TestRestClient {
         given().spec(requestSpec)
                 .post("/api/ruleChain/{ruleChainId}/root", ruleChainId.getId())
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HTTP_OK);
     }
 
     public void deleteRuleChain(RuleChainId ruleChainId) {
         given().spec(requestSpec)
                 .delete("/api/ruleChain/{ruleChainId}", ruleChainId.getId())
                 .then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HTTP_OK);
     }
 
     private String getUrlParams(PageLink pageLink) {
@@ -244,7 +262,7 @@ public class TestRestClient {
                 .pathParams(params)
                 .get("/api/relations?fromId={fromId}&fromType={fromType}&relationTypeGroup={relationTypeGroup}")
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(new TypeRef<List<EntityRelation>>() {});
     }
@@ -254,11 +272,170 @@ public class TestRestClient {
                 .body(serverRpcPayload)
                 .post("/api/rpc/twoway/{deviceId}", deviceId.getId())
                 .then()
-                .statusCode(HttpStatus.OK.value())
+                .statusCode(HTTP_OK)
                 .extract()
                 .as(JsonNode.class);
     }
 
+    public RuleChainMetaData getRuleChainMetadata(RuleChainId ruleChainId) {
+        return given().spec(requestSpec)
+                .get("/api/ruleChain/{ruleChainId}/metadata", ruleChainId.getId())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(RuleChainMetaData.class);
+    }
+    public Converter postConverter(Converter converter) {
+        return given().spec(requestSpec)
+                .body(converter)
+                .post("/api/converter")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Converter.class);
+    }
+
+    public void deleteIntegration(IntegrationId integrationId) {
+        given().spec(requestSpec)
+                .delete("/api/integration/{integrationId}", integrationId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public void deleteConverter(ConverterId converterId) {
+        given().spec(requestSpec)
+                .delete("/api/converter/{converterId}", converterId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public ValidatableResponse postUplinkPayloadForHttpIntegration(String integrationKey, JsonNode jsonNode) {
+        return given().spec(requestSpec)
+                .body(jsonNode)
+                .post("/api/v1/integrations/http/" + integrationKey)
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public ValidatableResponse postUplinkPayloadForHttpIntegration(String integrationKey, JsonNode jsonNode, Map<String, Object> headers) {
+        return given().spec(requestSpec)
+                .headers(headers)
+                .body(jsonNode)
+                .post("/api/v1/integrations/http/" + integrationKey)
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public PageData<EventInfo> getEvents(EntityId entityId, EventType eventType, TenantId tenantId, TimePageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityType", entityId.getEntityType().name());
+        params.put("entityId", entityId.getId().toString());
+        params.put("eventType", eventType.name());
+        params.put("tenantId", tenantId.getId().toString());
+        addTimePageLinkToParam(params, pageLink);
+
+        return given().spec(requestSpec)
+                .get("/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + getTimeUrlParams(pageLink), params)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<PageData<EventInfo>>() {});
+    }
+
+    public PageData<EventInfo> getEvents(EntityId entityId, TenantId tenantId, TimePageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        params.put("entityType", entityId.getEntityType().name());
+        params.put("entityId", entityId.getId().toString());
+        params.put("tenantId", tenantId.getId().toString());
+        addTimePageLinkToParam(params, pageLink);
+
+        return given().spec(requestSpec)
+                .params(params)
+                .get("/api/events/{entityType}/{entityId}/{eventType}?tenantId={tenantId}&" + getTimeUrlParams(pageLink))
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<PageData<EventInfo>>() {});
+    }
+
+    private void addTimePageLinkToParam(Map<String, String> params, TimePageLink pageLink) {
+        this.addPageLinkToParam(params, pageLink);
+        if (pageLink.getStartTime() != null) {
+            params.put("startTime", String.valueOf(pageLink.getStartTime()));
+        }
+        if (pageLink.getEndTime() != null) {
+            params.put("endTime", String.valueOf(pageLink.getEndTime()));
+        }
+    }
+
+    private String getTimeUrlParams(TimePageLink pageLink) {
+        String urlParams = getUrlParams(pageLink);
+        if (pageLink.getStartTime() != null) {
+            urlParams += "&startTime={startTime}";
+        }
+        if (pageLink.getEndTime() != null) {
+            urlParams += "&endTime={endTime}";
+        }
+        return urlParams;
+    }
+
+    public Integration postIntegration(Integration integration) {
+        return given().spec(requestSpec)
+                .body(integration)
+                .post("/api/integration")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Integration.class);
+    }
+
+    public void saveEntityAttributes(String entityType, String entityId, String scope, JsonNode request) {
+        given().spec(requestSpec)
+                .body(request)
+                .post("/api/plugins/telemetry/{entityType}/{entityId}/attributes/{scope}", entityType, entityId, scope)
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public RuleChain saveRuleChain(RuleChain ruleChain) {
+        return  given().spec(requestSpec)
+                .body(ruleChain)
+                .post("/api/ruleChain")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(RuleChain.class);
+    }
+
+    public List<TsKvEntry> getLatestTimeseries(EntityId entityId, List<String> keys) {
+        return getLatestTimeseries(entityId, keys, true);
+    }
+
+    public List<TsKvEntry> getLatestTimeseries(EntityId entityId, List<String> keys, boolean useStrictDataTypes) {
+        Map<String, List<JsonNode>> timeseries = given().spec(requestSpec)
+                .get("/api/plugins/telemetry/{entityType}/{entityId}/values/timeseries?keys={keys}&useStrictDataTypes={useStrictDataTypes}",
+                        entityId.getEntityType().name(),
+                        entityId.getId().toString(),
+                        String.join(",", keys),
+                        useStrictDataTypes)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<Map<String, List<JsonNode>>>() {});
+
+        return RestJsonConverter.toTimeseries(timeseries);
+    }
+
+    public List<String> getTimeseriesKeys(EntityId entityId) {
+        return given().spec(requestSpec)
+                .get("/api/plugins/telemetry/{entityType}/{entityId}/keys/timeseries",
+                        entityId.getEntityType().name(),
+                        entityId.getId().toString())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<String>>() {});
+    }
     public String getToken() {
         return token;
     }

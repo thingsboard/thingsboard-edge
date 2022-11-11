@@ -34,14 +34,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
+
+import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
 @Slf4j
 public class OpcUaIntegrationTest extends AbstractContainerTest {
@@ -103,14 +107,25 @@ public class OpcUaIntegrationTest extends AbstractContainerTest {
             "\n" +
             "return result;";
 
+    private Device device;
+    private Integration integration;
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        testRestClient.login(LOGIN, PASSWORD);
+        device = testRestClient.postDevice("", defaultDevicePrototype("opc_ua_"));
+    }
+    @AfterMethod
+    public void tearDown() throws Exception {
+        testRestClient.deleteDevice(device.getId());
+        testRestClient.deleteIntegration(integration.getId());
+        testRestClient.deleteConverter(integration.getDefaultConverterId());
+    }
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("opc_ua_");
-
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
+        integration = createIntegration(
                 IntegrationType.OPC_UA, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
 
@@ -120,8 +135,6 @@ public class OpcUaIntegrationTest extends AbstractContainerTest {
 
         Assert.assertEquals(1, actualLatestTelemetry.getData().size());
         Assert.assertEquals(Sets.newHashSet("boilerStatus"), actualLatestTelemetry.getLatestValues().keySet());
-
-        deleteAllObject(device, integration);
     }
 
 }

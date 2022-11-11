@@ -79,7 +79,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.fail;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
-import static org.thingsboard.server.msa.TestProperties.HTTPS_URL;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
 @Slf4j
@@ -89,7 +88,7 @@ public class MqttClientTest extends AbstractContainerTest {
     @BeforeMethod
     public void setUp() throws Exception {
         testRestClient.login("tenant@thingsboard.org", "tenant");
-        device = testRestClient.postDevice("", defaultDevicePrototype("http_"));
+        device = testRestClient.postDevice("", defaultDevicePrototype("mqtt_"));
     }
 
     @AfterMethod
@@ -112,7 +111,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(actualLatestTelemetry.getDataValuesByKey("booleanKey").get(1)).isEqualTo(Boolean.TRUE.toString());
         assertThat(actualLatestTelemetry.getDataValuesByKey("stringKey").get(1)).isEqualTo("value1");
-        assertThat(actualLatestTelemetry.getDataValuesByKey("doubleKey").get(1)).isEqualTo(Double.toString(42.0));
+        assertThat(actualLatestTelemetry.getDataValuesByKey("doubleKey").get(1)).isEqualTo(Double.toString(42.6));
         assertThat(actualLatestTelemetry.getDataValuesByKey("longKey").get(1)).isEqualTo(Long.toString(73));
     }
 
@@ -133,7 +132,7 @@ public class MqttClientTest extends AbstractContainerTest {
 
         assertThat(actualLatestTelemetry.getDataValuesByKey("booleanKey").get(1)).isEqualTo(Boolean.TRUE.toString());
         assertThat(actualLatestTelemetry.getDataValuesByKey("stringKey").get(1)).isEqualTo("value1");
-        assertThat(actualLatestTelemetry.getDataValuesByKey("doubleKey").get(1)).isEqualTo(Double.toString(42.0));
+        assertThat(actualLatestTelemetry.getDataValuesByKey("doubleKey").get(1)).isEqualTo(Double.toString(42.6));
         assertThat(actualLatestTelemetry.getDataValuesByKey("longKey").get(1)).isEqualTo(Long.toString(73));
     }
 

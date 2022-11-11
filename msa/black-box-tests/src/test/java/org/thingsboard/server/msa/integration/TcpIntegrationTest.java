@@ -42,8 +42,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -53,6 +55,7 @@ import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.net.InetSocketAddress;
 
+import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 @Slf4j
 public class TcpIntegrationTest extends AbstractContainerTest {
     private static final String ROUTING_KEY = "routing-key-tcp";
@@ -96,14 +99,25 @@ public class TcpIntegrationTest extends AbstractContainerTest {
             "}\n" +
             "return result;";
 
+    private Device device;
+    private Integration integration;
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        testRestClient.login(LOGIN, PASSWORD);
+        device = testRestClient.postDevice("", defaultDevicePrototype("tcp_"));
+    }
+    @AfterMethod
+    public void tearDown() throws Exception {
+        testRestClient.deleteDevice(device.getId());
+        testRestClient.deleteIntegration(integration.getId());
+        testRestClient.deleteConverter(integration.getDefaultConverterId());
+    }
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("tcp_");
-
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
+        integration = createIntegration(
                 IntegrationType.TCP, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
@@ -119,8 +133,6 @@ public class TcpIntegrationTest extends AbstractContainerTest {
                 actualLatestTelemetry.getLatestValues().keySet());
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
-
-        deleteAllObject(device, integration);
     }
 
     private void sendMessageToIntegration() throws InterruptedException {

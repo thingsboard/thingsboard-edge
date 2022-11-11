@@ -30,31 +30,77 @@
  */
 package org.thingsboard.server.msa.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.awaitility.Awaitility;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.AbstractContainerTest;
-import org.thingsboard.server.msa.ContainerTestSuite;
+import org.thingsboard.server.msa.TestProperties;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Provider;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.thingsboard.server.common.data.DataConstants.DEVICE;
+import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
+import static org.thingsboard.server.common.data.integration.IntegrationType.MQTT;
+import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
+import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
+import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
+import static org.thingsboard.server.msa.prototypes.MQTTIntegrationPrototypes.configWithBasicCreds;
+import static org.thingsboard.server.msa.prototypes.MQTTIntegrationPrototypes.defaultConfig;
 
 @Slf4j
 public class MqttIntegrationTest extends AbstractContainerTest {
@@ -65,28 +111,8 @@ public class MqttIntegrationTest extends AbstractContainerTest {
     private static final String LOGIN = "tenant@thingsboard.org";
     private static final String PASSWORD = "tenant";
     private static final String TOPIC = "tb/mqtt/device";
-    private static final String CONFIG_INTEGRATION = "{\n" +
-            "  \"clientConfiguration\": {\n" +
-            "    \"host\": \"" + SERVICE_NAME + "\",\n" +
-            "    \"port\":" + SERVICE_PORT + " ,\n" +
-            "    \"cleanSession\": true,\n" +
-            "    \"ssl\": false,\n" +
-            "    \"connectTimeoutSec\": 30,\n" +
-            "    \"clientId\": \"\",\n" +
-            "    \"maxBytesInMessage\": 32368,\n" +
-            "    \"credentials\": {\n" +
-            "      \"type\": \"anonymous\"\n" +
-            "    }\n" +
-            "  },\n" +
-            "  \"downlinkTopicPattern\": \"${topic}\",\n" +
-            "  \"topicFilters\": [\n" +
-            "    {\n" +
-            "      \"filter\": \"" + TOPIC + "\",\n" +
-            "      \"qos\": 0\n" +
-            "    }\n" +
-            "  ],\n" +
-            "  \"metadata\": {}\n" +
-            "}";
+    private static final String DOWNLINK_TOPIC = "tb/mqtt/device/upload";
+
     private static final String CONFIG_CONVERTER = "var payloadStr = decodeToString(payload);\n" +
             "var data = JSON.parse(payloadStr);\n" +
             "var topicPattern = '" + TOPIC + "';\n" +
@@ -112,83 +138,234 @@ public class MqttIntegrationTest extends AbstractContainerTest {
             "   return data;\n" +
             "}\n" +
             "return result;";
-    private String host;
-    private Integer port;
 
-    @Before
+    private final JsonNode DOWNLINK_CONVERTER_CONFIGURATION = mapper
+            .createObjectNode().put("encoder", "var data = {};\n" +
+                    "data.booleanKey = msg.booleanKey;\n" +
+                    "data.stringKey = msg.stringKey;\n" +
+                    "data.doubleKey = msg.doubleKey;\n" +
+                    "data.longKey = msg.longKey;\n" +
+                    "\n" +
+                    "data.devSerialNumber = metadata['ss_serialNumber'];\n" +
+                    "var result = {\n" +
+                    "    contentType: \"JSON\",\n" +
+                    "    data: JSON.stringify(data),\n" +
+                    "    metadata: {\n" +
+                    "            topic: metadata['deviceType']+'/'+metadata['deviceName']+'/upload'\n" +
+                    "    }\n" +
+                    "};\n" +
+                    "return result;");
+
+    private Device device;
+    private Integration integration;
+    private Converter uplinkConverter;
+    private Converter downlinkConverter;
+    private final String[] arrivedMessage = new String[1];
+
+
+    @BeforeMethod
     public void setUp() throws Exception {
-        host = ContainerTestSuite.getTestContainer().getServiceHost(SERVICE_NAME, SERVICE_PORT);
-        port = ContainerTestSuite.getTestContainer().getServicePort(SERVICE_NAME, SERVICE_PORT);
+        testRestClient.login(LOGIN, PASSWORD);
+        device = testRestClient.postDevice("", defaultDevicePrototype("mqtt_"));
+        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
+                CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
+        uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
+        downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
+    }
+    @AfterMethod
+    public void tearDown() throws Exception {
+        testRestClient.deleteDevice(device.getId());
+        testRestClient.deleteIntegration(integration.getId());
+        testRestClient.deleteConverter(integration.getDefaultConverterId());
     }
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
+                .defaultConverterId(uplinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
 
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("mqtt_");
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
-                CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
-                IntegrationType.MQTT, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
 
         sendMessageToBroker();
 
         boolean hasTelemetry = false;
         for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
             Thread.sleep(CONNECT_TIMEOUT_MS);
-            if (restClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            if (testRestClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
             hasTelemetry = true;
             break;
         }
-        Assert.assertTrue("Device doesn't has telemetry", hasTelemetry);
+        Assert.assertTrue(hasTelemetry);
 
-        List<TsKvEntry> latestTimeseries = restClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
+        List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
         Assert.assertFalse(latestTimeseries.isEmpty());
         Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
         Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
-
-        deleteAllObject(device, integration);
     }
-
     @Test
-    public void telemetryUploadWithRemoteIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("mqtt_");
-        JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
-                CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
-                IntegrationType.MQTT, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
-        sendMessageToBroker();
+    public void telemetryUploadWithBasicCreds() throws Exception {
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(configWithBasicCreds(SERVICE_NAME, SERVICE_PORT, TOPIC))
+                .defaultConverterId(uplinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
 
-        boolean hasTelemetry = false;
-        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
-            Thread.sleep(CONNECT_TIMEOUT_MS);
-            if (restClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
-            hasTelemetry = true;
-            break;
-        }
-        Assert.assertTrue("Device doesn't has telemetry", hasTelemetry);
-
-        List<TsKvEntry> latestTimeseries = restClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
-        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
-        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
-
-        deleteAllObject(device, integration);
-    }
-
-    void sendMessageToBroker() throws MqttException, InterruptedException, JsonProcessingException {
-        String content = createPayloadForUplink().toString();
-        int qos = 0;
-
-        String broker = "tcp://" + host + ":" + port;
-        String subClientId = StringUtils.randomAlphanumeric(10);
-        MemoryPersistence persistence = new MemoryPersistence();
-
-        MqttClient sampleClientSubs = new MqttClient(broker, subClientId, persistence);
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setKeepAliveInterval(30);
         connOpts.setCleanSession(true);
+        connOpts.setUserName("userName");
+        connOpts.setPassword("pass".toCharArray());
+
+        sendMessageToBroker(connOpts);
+
+        boolean hasTelemetry = false;
+        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
+            Thread.sleep(CONNECT_TIMEOUT_MS);
+            if (testRestClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            hasTelemetry = true;
+            break;
+        }
+        Assert.assertTrue(hasTelemetry);
+
+        List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
+        Assert.assertFalse(latestTimeseries.isEmpty());
+        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
+        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+    }
+
+    @Test
+    public void telemetryUploadWithRemoteIntegration() throws Exception {
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, TOPIC))
+                .defaultConverterId(uplinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+
+        sendMessageToBroker();
+
+        boolean hasTelemetry = false;
+        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
+            Thread.sleep(CONNECT_TIMEOUT_MS);
+            if (testRestClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            hasTelemetry = true;
+            break;
+        }
+        Assert.assertTrue(hasTelemetry);
+
+        List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
+        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
+        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+    }
+    @Test
+    public void checkDownlinkMessageWasSent() throws Exception {
+        integration = Integration.builder()
+                .type(MQTT)
+                .name("mqtt" + RandomStringUtils.randomAlphanumeric(7))
+                .configuration(defaultConfig(SERVICE_NAME, SERVICE_PORT, DOWNLINK_TOPIC))
+                .defaultConverterId(uplinkConverter.getId())
+                .downlinkConverterId(downlinkConverter.getId())
+                .routingKey(ROUTING_KEY)
+                .secret(SECRET_KEY)
+                .isRemote(false)
+                .enabled(true)
+                .debugMode(true)
+                .allowCreateDevicesOrAssets(true)
+                .build();
+
+        integration = testRestClient.postIntegration(integration);
+        waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
+
+        sendMessageToBroker();
+
+        boolean hasTelemetry = false;
+        for (int i = 0; i < CONNECT_TRY_COUNT; i++) {
+            Thread.sleep(CONNECT_TIMEOUT_MS);
+            if (testRestClient.getTimeseriesKeys(device.getId()).isEmpty()) continue;
+            hasTelemetry = true;
+            break;
+        }
+        Assert.assertTrue(hasTelemetry);
+
+        List<TsKvEntry> latestTimeseries = testRestClient.getLatestTimeseries(device.getId(), List.of(TELEMETRY_KEY));
+        Assert.assertEquals(TELEMETRY_KEY, latestTimeseries.get(0).getKey());
+        Assert.assertEquals(TELEMETRY_VALUE, latestTimeseries.get(0).getValue().toString());
+
+        //checjk downlink uoaded after attribute updated
+        MqttMessageListener messageListener = new MqttMessageListener();
+        MqttClient client = new MqttClient(TestProperties.getMqttBrokerUrl(), StringUtils.randomAlphanumeric(10), new MemoryPersistence());
+        client.connect();
+        client.subscribe(DOWNLINK_TOPIC, messageListener);
+
+        RuleChainId ruleChainId = createRootRuleChainWithIntegrationDownlinkNode(integration.getId());
+
+        JsonNode attributes = mapper.readTree(createPayload().toString());
+        testRestClient.saveEntityAttributes(DEVICE, device.getId().toString(), SHARED_SCOPE, attributes);
+
+        RuleChainMetaData ruleChainMetadata = testRestClient.getRuleChainMetadata(ruleChainId);
+        RuleNode integrationNode  = ruleChainMetadata.getNodes().stream().filter(ruleNode -> ruleNode.getType().equals("org.thingsboard.rule.engine.integration.TbIntegrationDownlinkNode")).findFirst().get();
+        waitTillRuleNodeReceiveMsg(integrationNode.getId(), EventType.DEBUG_RULE_NODE, integration.getTenantId(), "ATTRIBUTES_UPDATED");
+
+        //check downlink
+        Awaitility
+                .await()
+                .alias("Get integration events")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> { return messageListener.getEvents().size() == 1; });;
+        BlockingQueue<MqttEvent> events = messageListener.getEvents();
+        JsonNode actual = JacksonUtil.toJsonNode(Objects.requireNonNull(events.poll()).message);
+
+        assertThat(actual.get("stringKey")).isEqualTo(attributes.get("stringKey"));
+        assertThat(actual.get("booleanKey")).isEqualTo(attributes.get("booleanKey"));
+        assertThat(actual.get("doubleKey")).isEqualTo(attributes.get("doubleKey"));
+        assertThat(actual.get("longKey")).isEqualTo(attributes.get("longKey"));
+    }
+
+    void sendMessageToBroker() throws MqttException, InterruptedException {
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setKeepAliveInterval(30);
+        connOpts.setCleanSession(true);
+
+        sendMessageToBroker(connOpts);
+    }
+    void sendMessageToBroker(MqttConnectOptions connOpts) throws MqttException, InterruptedException {
+        String content = createPayloadForUplink().toString();
+        int qos = 0;
+
+        String subClientId = StringUtils.randomAlphanumeric(10);
+        MemoryPersistence persistence = new MemoryPersistence();
+
+        MqttClient sampleClientSubs = new MqttClient(TestProperties.getMqttBrokerUrl(), subClientId, persistence);
 
         sampleClientSubs.connect(connOpts);
         AtomicBoolean check = new AtomicBoolean(false);
@@ -215,7 +392,7 @@ public class MqttIntegrationTest extends AbstractContainerTest {
 
         try {
             String prodClientId = StringUtils.randomAlphanumeric(10);
-            MqttClient sampleClient = new MqttClient(broker, prodClientId, persistence);
+            MqttClient sampleClient = new MqttClient(TestProperties.getMqttBrokerUrl(), prodClientId, persistence);
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             sampleClient.connect(options);
@@ -232,7 +409,72 @@ public class MqttIntegrationTest extends AbstractContainerTest {
             Thread.sleep(CONNECT_TIMEOUT_MS);
             if (check.get()) break;
         }
-        Assert.assertTrue("Broker doesn't get message", check.get());
+        Assert.assertTrue(check.get());
     }
+
+    @Data
+    private class MqttMessageListener implements IMqttMessageListener {
+        private final BlockingQueue<MqttEvent> events;
+
+        private MqttMessageListener() {
+            events = new ArrayBlockingQueue<>(100);
+        }
+
+        @Override
+        public void messageArrived(String s, MqttMessage mqttMessage) {
+            log.info("MQTT message [{}], topic [{}]", mqttMessage.toString(), s);
+            events.add(new MqttEvent(s, mqttMessage.toString()));
+        }
+
+        public BlockingQueue<MqttEvent> getEvents() {
+            return events;
+        }
+    }
+
+    @Data
+    private class MqttEvent {
+        private final String topic;
+        private final String message;
+    }
+
+    public static Certificate selfSign() throws OperatorCreationException, CertificateException, IOException, CertIOException, NoSuchAlgorithmException, NoSuchProviderException {
+        // generate a key pair
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
+        keyPairGenerator.initialize(4096, new SecureRandom());
+        KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+        Provider bcProvider = new BouncyCastleProvider();
+        Security.addProvider(bcProvider);
+
+        long now = System.currentTimeMillis();
+        Date startDate = new Date(now);
+
+        X500Name dnName = new X500Name("dc=name");
+        BigInteger certSerialNumber = new BigInteger(Long.toString(now)); // <-- Using the current timestamp as the certificate serial number
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.YEAR, 1); // <-- 1 Yr validity
+
+        Date endDate = calendar.getTime();
+
+        String signatureAlgorithm = "SHA256WithRSA"; // <-- Use appropriate signature algorithm based on your keyPair algorithm.
+
+        ContentSigner contentSigner = new JcaContentSignerBuilder(signatureAlgorithm).build(keyPair.getPrivate());
+
+        JcaX509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(dnName, certSerialNumber, startDate, endDate, dnName, keyPair.getPublic());
+
+        // Extensions --------------------------
+
+        // Basic Constraints
+        BasicConstraints basicConstraints = new BasicConstraints(true); // <-- true for CA, false for EndEntity
+
+        certBuilder.addExtension(new ASN1ObjectIdentifier("2.5.29.19"), true, basicConstraints); // Basic Constraints is usually marked as critical.
+
+        // -------------------------------------
+
+        return new JcaX509CertificateConverter().setProvider(bcProvider).getCertificate(certBuilder.build(contentSigner));
+    }
+
 
 }

@@ -71,9 +71,12 @@ public class ContainerTestSuite {
 
     private  DockerComposeContainer<?> testContainer;
     private  ThingsBoardDbInstaller installTb;
-    public  boolean isActive;
+    private  boolean isActive;
 
     private static ContainerTestSuite containerTestSuite;
+
+    private ContainerTestSuite() {
+    }
 
     public boolean isActive() {
         return isActive;
@@ -83,7 +86,8 @@ public class ContainerTestSuite {
         isActive = active;
     }
 
-    private ContainerTestSuite() {
+    public DockerComposeContainer<?> getTestContainer() {
+        return testContainer;
     }
 
     public static ContainerTestSuite getInstance() {
