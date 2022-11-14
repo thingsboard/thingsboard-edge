@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Kyiv",
+    "type": "AQI City",
+    "group": "Air Quality Monitoring",
+    "attributes": {},
+    "relations": [],
+    "jsonId": "203624e0-641a-11ed-90f3-052710537c9f"
+  }
+]

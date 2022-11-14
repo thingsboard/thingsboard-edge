@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Air Quality Sensor 1",
+    "label": "City center",
+    "type": "AQI Sensor",
+    "group": "Air Quality Monitoring",
+    "emulator": "AQI Emulator",
+    "attributes": {
+      "latitude": 50.4501,
+      "longitude": 30.5234
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Kyiv",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  }
+]

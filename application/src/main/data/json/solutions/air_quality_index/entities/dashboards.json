@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Air Quality Monitoring",
+    "file": "aqi.json",
+    "group": "Air Quality Monitoring",
+    "main": true
+  }
+]

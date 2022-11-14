@@ -1,0 +1,256 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "Air Quality Monitoring",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 6,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 822,
+          "layoutY": 294
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 824,
+          "layoutY": 221
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 494,
+          "layoutY": 309
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 824,
+          "layoutY": 383
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "MVEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 823,
+          "layoutY": 444
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "MVEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 822,
+          "layoutY": 507
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 209,
+          "layoutY": 307
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1153,
+          "layoutY": 296
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
+        "name": "Has AQI",
+        "debugMode": false,
+        "configuration": {
+          "messageNames": [
+            "aqi"
+          ],
+          "metadataNames": [],
+          "checkAllKeys": true
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1153,
+          "layoutY": 368
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "To Asset",
+        "debugMode": false,
+        "configuration": {
+          "originatorSource": "RELATED",
+          "entityType": null,
+          "entityNamePattern": null,
+          "relationsQuery": {
+            "fetchLastLevelOnly": true,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "Contains",
+                "entityTypes": [
+                  "ASSET"
+                ]
+              }
+            ]
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 1149,
+          "layoutY": 527
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1154,
+          "layoutY": 448
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
+        "name": "Agg Latest",
+        "debugMode": false,
+        "configuration": {
+          "direction": "FROM",
+          "relationType": "Contains",
+          "deduplicationInSec": 10,
+          "aggMappings": [
+            {
+              "sourceScope": "LATEST_TELEMETRY",
+              "source": "aqi",
+              "defaultValue": 0,
+              "aggFunction": "AVG",
+              "target": "avgAqi"
+            }
+          ],
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 0,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 8,
+        "type": "True"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 9,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}
