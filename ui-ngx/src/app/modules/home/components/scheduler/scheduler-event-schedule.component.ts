@@ -152,7 +152,7 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     this.scheduleConfigFormGroup.get('repeat').valueChanges.subscribe((repeat: boolean) => {
       if (repeat) {
         this.scheduleConfigFormGroup.get('repeatType').patchValue(SchedulerRepeatType.DAILY, {emitEvent: false});
-        const startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
+        const startDate: Date | null = this.scheduleConfigFormGroup.get('startDate').value;
         if (startDate) {
           const endsOnDate = new Date(
             startDate.getFullYear(),
