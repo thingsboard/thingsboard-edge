@@ -159,6 +159,11 @@ public abstract class BaseAssetServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAssetTypesByTenantId() throws Exception {
+        // TODO: @voba asset profiles are not created on edge at the moment
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeA");
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeB");
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeC");
+
         List<Asset> assets = new ArrayList<>();
         try {
             for (int i=0;i<3;i++) {
@@ -329,6 +334,10 @@ public abstract class BaseAssetServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAssetsByTenantIdAndType() {
+        // TODO: @voba asset profiles are not created on edge at the moment
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeA");
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeB");
+
         String title1 = "Asset title 1";
         String type1 = "typeA";
         List<Asset> assetsType1 = new ArrayList<>();
@@ -545,6 +554,9 @@ public abstract class BaseAssetServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAssetsByTenantIdCustomerIdAndType() {
+        // TODO: @voba asset profiles are not created on edge at the moment
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeC");
+        assetProfileService.findOrCreateAssetProfile(tenantId, "typeD");
 
         Customer customer = new Customer();
         customer.setTitle("Test customer");

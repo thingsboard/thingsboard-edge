@@ -179,6 +179,11 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
             deviceProfileService.findOrCreateDeviceProfile(tenantId, "default" + i);
         }
 
+        // TODO: @voba asset profiles are not created on edge at the moment
+        for (int i = 0; i < ENTITY_COUNT; i++) {
+            assetProfileService.findOrCreateAssetProfile(tenantId, "type" + i);
+        }
+
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
@@ -1793,6 +1798,15 @@ public abstract class BaseEntityServiceTest extends AbstractServiceTest {
     private void createMultiRootHierarchy(List<Asset> buildings, List<Asset> apartments,
                                           Map<String, Map<UUID, String>> entityNameByTypeMap,
                                           Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
+        // TODO: @voba device profiles are not created on edge at the moment
+        deviceProfileService.findOrCreateDeviceProfile(tenantId, "heatmeter");
+        deviceProfileService.findOrCreateDeviceProfile(tenantId, "energymeter");
+
+        // TODO: @voba asset profiles are not created on edge at the moment
+        assetProfileService.findOrCreateAssetProfile(tenantId, "building");
+        assetProfileService.findOrCreateAssetProfile(tenantId, "apartment");
+
+
         for (int k = 0; k < 3; k++) {
             Asset building = new Asset();
             building.setTenantId(tenantId);

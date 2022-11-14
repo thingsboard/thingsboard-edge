@@ -723,9 +723,11 @@ public abstract class BaseDeviceServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    @Ignore
-    // TODO: @voba device profiles are not created on edge at the moment
     public void testFindDevicesByTenantIdCustomerIdAndType() {
+
+        // TODO: @voba device profiles are not created on edge at the moment
+        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeC");
+        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeD");
 
         Customer customer = new Customer();
         customer.setTitle("Test customer");
