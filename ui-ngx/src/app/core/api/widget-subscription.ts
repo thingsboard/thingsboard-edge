@@ -1181,15 +1181,15 @@ export class WidgetSubscription implements IWidgetSubscription {
       if (this.data.length) {
         const tsRows: {[ts: string]: {[key: string]: any}} = {};
         const allKeys: {[key: string]: boolean} = {};
-        let latest: {[key: string]: any} = {};
+        let latest: {[datasourceName: string]: {[key: string]: any}} = {};
         if (this.latestData.length) {
-          this.latestData.forEach(lat => {
-            if (!latest[lat.datasource.name]) {
-              latest[lat.datasource.name] = {};
+          this.latestData.forEach(latestRow => {
+            if (!latest[latestRow.datasource.name]) {
+              latest[latestRow.datasource.name] = {};
             }
-            latest[lat.datasource.name][lat.dataKey.name] = lat.data[0][1];
-            if (!allKeys[lat.dataKey.name]) {
-              allKeys[lat.dataKey.name] = true;
+            latest[latestRow.datasource.name][latestRow.dataKey.name] = latestRow.data[0][1];
+            if (!allKeys[latestRow.dataKey.name]) {
+              allKeys[latestRow.dataKey.name] = true;
             }
           });
         }
