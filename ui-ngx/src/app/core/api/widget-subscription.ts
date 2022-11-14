@@ -1181,12 +1181,19 @@ export class WidgetSubscription implements IWidgetSubscription {
       if (this.data.length) {
         const tsRows: {[ts: string]: {[key: string]: any}} = {};
         const allKeys: {[key: string]: boolean} = {};
-        let latest: {[key: string]: any};
+        let latest: {[key: string]: any} = {};
+        if (this.latestData.length) {
+          this.latestData.forEach(lat => {
+            if (!latest[lat.datasource.name]) {
+              latest[lat.datasource.name] = {};
+            }
+            latest[lat.datasource.name][lat.dataKey.name] = lat.data[0][1];
+            if (!allKeys[lat.dataKey.name]) {
+              allKeys[lat.dataKey.name] = true;
+            }
+          });
+        }
         this.data.forEach((datasourceData, index) => {
-          if (this.latestData.length) {
-            latest = {};
-            latest[this.latestData[index].dataKey.name] = this.latestData[index].data[0][1];
-          }
           datasourceData.data.forEach((row) => {
             let key = datasourceData.dataKey.label;
             const ts = row[0];
@@ -1197,7 +1204,7 @@ export class WidgetSubscription implements IWidgetSubscription {
             const value = row[1];
             let tsRow = tsRows[tsKey];
             if (!tsRow) {
-              tsRow = this.latestData.length ? deepClone(latest) : {};
+              tsRow = this.latestData.length ? deepClone(latest[datasourceData.datasource.name]) : {};
               tsRow.Timestamp = this.ctx.datePipe.transform(ts, 'yyyy-MM-dd HH:mm:ss');
               tsRow['Entity Name'] = datasourceData.datasource.entityName;
               tsRows[tsKey] = tsRow;
@@ -1205,10 +1212,6 @@ export class WidgetSubscription implements IWidgetSubscription {
             key = this.checkProperty(tsRow, key);
             if (!allKeys[key]) {
               allKeys[key] = true;
-              allKeys['latitude'] = true;
-            }
-            if (this.latestData.length && !allKeys[this.latestData[index].dataKey.name]) {
-              allKeys[this.latestData[index].dataKey.name] = true;
             }
             tsRow[key] = value;
           });
