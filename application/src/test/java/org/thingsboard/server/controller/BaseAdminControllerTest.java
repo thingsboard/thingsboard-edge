@@ -41,8 +41,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.config.jwt.JwtSettings;
-import org.thingsboard.server.config.jwt.JwtSettingsService;
+import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.service.mail.DefaultMailService;
 
 import java.nio.charset.StandardCharsets;
@@ -58,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @Slf4j
 public abstract class BaseAdminControllerTest extends AbstractControllerTest {
-    final JwtSettings defaultJwtSettings = new JwtSettings(9000, "thingsboard.io", "thingsboardDefaultSigningKey", 604800);
+    final JwtSettings defaultJwtSettings = new JwtSettings(9000, 604800, "thingsboard.io", "thingsboardDefaultSigningKey");
 
     @Autowired
     MailService mailService;
