@@ -110,7 +110,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         rpcCallBackExecutor.schedule(() -> {
             Consumer<TbMsg> consumer = requestsMap.remove(requestId);
             if (consumer != null) {
-                log.trace("[{}] detected request timeout: [{}]", this.hashCode(), requestId);
+                log.trace("[{}] request timeout detected: [{}]", this.hashCode(), requestId);
                 consumer.accept(null);
             }
         }, timeout, TimeUnit.MILLISECONDS);
