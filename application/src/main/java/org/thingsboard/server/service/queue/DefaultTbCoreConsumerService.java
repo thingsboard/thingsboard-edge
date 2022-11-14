@@ -175,7 +175,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
                                         PartitionService partitionService,
                                         Optional<JwtSettingsService> jwtSettingsService) {
-        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
+        super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();

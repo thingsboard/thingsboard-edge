@@ -73,7 +73,7 @@ public class JwtTokenFactoryTest {
         JwtSettingsService jwtSettingsService = mock(JwtSettingsService.class);
         willReturn(jwtSettings).given(jwtSettingsService).getJwtSettings();
 
-        tokenFactory = new JwtTokenFactory(jwtSettingsService, , Mockito.mock(UserPermissionsService.class));
+        tokenFactory = new JwtTokenFactory(jwtSettingsService, Mockito.mock(UserPermissionsService.class));
     }
 
     @Test

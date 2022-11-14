@@ -83,8 +83,6 @@ import org.thingsboard.server.service.mail.MailTemplates;
 import org.thingsboard.server.service.security.model.JwtTokenPair;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.sync.vc.autocommit.TbAutoCommitSettingsService;
