@@ -183,9 +183,9 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     });
   }
 
-  private endsOnDateValidator(startDate: string, endsOnDate: string) {
+  private endsOnDateValidator(startDate: string | null, endsOnDate: string | null) {
     return (group: FormGroup): {[key: string]: any} => {
-      if ((group.controls[startDate].valid && group.controls[endsOnDate].valid) &&
+      if (group.controls[startDate].valid && group.controls[endsOnDate].valid &&
         (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime())) {
         return { endsOnDateValidator: true };
       }
