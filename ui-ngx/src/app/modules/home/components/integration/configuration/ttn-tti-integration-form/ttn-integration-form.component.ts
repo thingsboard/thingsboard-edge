@@ -152,9 +152,8 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
     if (isDefinedAndNotNull(value)) {
       this.ttnIntegrationConfigForm.reset(value, {emitEvent: false});
       if (isDefinedAndNotNull(value.clientConfiguration)) {
-        if (value.clientConfiguration.customHost === !!ThingsStartHostType.Custom) {
-          this.hostEdit.patchValue('', {emitEvent: false});
-        } else if (value.clientConfiguration.host && value.clientConfiguration.host.endsWith(this.hostRegionSuffix)) {
+        if (value.clientConfiguration.customHost === !!ThingsStartHostType.Region &&
+          value.clientConfiguration.host.endsWith(this.hostRegionSuffix)) {
           this.hostEdit.patchValue(value.clientConfiguration.host.slice(0, -this.hostRegionSuffix.length), {emitEvent: false});
         } else {
           this.hostEdit.patchValue(value.clientConfiguration.host, {emitEvent: false});
