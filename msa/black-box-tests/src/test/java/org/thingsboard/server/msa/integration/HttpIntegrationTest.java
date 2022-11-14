@@ -244,7 +244,7 @@ public class HttpIntegrationTest extends AbstractContainerTest {
                 .until(() -> wsClient.getMessage().getDataValuesByKey(TELEMETRY_KEY).get(1).equals(temperatureValue3));
     }
 
-    @Test
+    @Test(enabled = false)
     public void checkTelemetryUploadedAfterRemoteIntegrationConfigUpdated() throws Exception {
         JsonNode config = defaultConfigWithSecurityHeader(HTTPS_URL);
         integration = Integration.builder()
