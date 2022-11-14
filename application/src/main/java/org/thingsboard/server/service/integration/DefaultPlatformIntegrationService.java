@@ -324,6 +324,11 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public void processUplinkData(AbstractIntegration configuration, AssetUplinkDataProto data, IntegrationCallback<Void> callback) {
         Asset asset = getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
 
+        if (asset == null) {
+            // TODO: @voba assets are not created on edge at the moment
+            return;
+        }
+
         if (data.hasPostTelemetryMsg()) {
             process(asset, data.getPostTelemetryMsg(), callback);
         }
@@ -501,6 +506,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     @Override
     public Asset getOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
+
+        if (asset == null) {
+            log.error("[{}] Asset [{}] not found! Assets are not created on the edge. Please create it on the cloud and assign to edge first.",
+                    integration.getTenantId(), assetName);
+            // TODO: @voba assets are not created on edge at the moment
+            return null;
+        }
+
         if (asset == null) {
             entityCreationLock.lock();
             try {
@@ -516,6 +529,14 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
     public EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, EntityViewDataProto proto) {
         String entityViewName = proto.getViewName();
         EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
+
+        if (entityView == null) {
+            log.error("[{}] Entity view [{}] not found! Entity views are not created on the edge. Please create it on the cloud and assign to edge first.",
+                    configuration.getTenantId(), entityViewName);
+            // TODO: @voba entity views are not created on edge at the moment
+            return null;
+        }
+
         if (entityView == null) {
             entityCreationLock.lock();
             try {
