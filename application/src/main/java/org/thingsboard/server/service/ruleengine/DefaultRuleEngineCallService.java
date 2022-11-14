@@ -81,7 +81,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     @Override
     public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useCustomQueue, Consumer<TbMsg> consumer) {
-        log.trace("[{}] Processing REST API call to rule engine [{}]", tenantId, request.getOriginator());
+        log.trace("[{}] Processing REST API call to rule engine: [{}] for entity: [{}]", tenantId, requestId, request.getOriginator());
         requests.put(requestId, consumer);
         sendRequestToRuleEngine(tenantId, request, useCustomQueue);
         scheduleTimeout(request, requestId, requests);
@@ -108,9 +108,9 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         long timeout = Math.max(0, expirationTime - System.currentTimeMillis());
         log.trace("[{}] processing the request: [{}]", this.hashCode(), requestId);
         rpcCallBackExecutor.schedule(() -> {
-            log.trace("[{}] timeout the request: [{}]", this.hashCode(), requestId);
             Consumer<TbMsg> consumer = requestsMap.remove(requestId);
             if (consumer != null) {
+                log.trace("[{}] detected request timeout: [{}]", this.hashCode(), requestId);
                 consumer.accept(null);
             }
         }, timeout, TimeUnit.MILLISECONDS);
