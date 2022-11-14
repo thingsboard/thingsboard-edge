@@ -34,7 +34,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -174,7 +178,11 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     }
 
     @Builder
-    public Integration(TenantId tenantId, String name, IntegrationType type, Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets, boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId, String routingKey, IntegrationType type1, boolean debugMode, String secret, JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId) {
+    public Integration(TenantId tenantId, String name, IntegrationType type,
+                       Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
+                       boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
+                       String routingKey, IntegrationType type1, boolean debugMode, String secret,
+                       JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId) {
         super(tenantId, name, type, debugMode, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate);
         this.defaultConverterId = defaultConverterId;
         this.downlinkConverterId = downlinkConverterId;
