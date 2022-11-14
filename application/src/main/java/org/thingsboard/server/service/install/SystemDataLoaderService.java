@@ -41,6 +41,8 @@ public interface SystemDataLoaderService {
 
     void createAdminSettings() throws Exception;
 
+    void createJwtAdminSettings() throws Exception;
+
     void loadMailTemplates() throws Exception;
 
     void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;

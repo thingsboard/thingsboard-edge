@@ -51,6 +51,8 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
+import org.thingsboard.server.config.jwt.JwtSettingsService;
+import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -171,7 +173,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
-                                        PartitionService partitionService) {
+                                        PartitionService partitionService,
+                                        Optional<JwtSettingsService> jwtSettingsService) {
         super(actorContext, encodingService, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer());
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
