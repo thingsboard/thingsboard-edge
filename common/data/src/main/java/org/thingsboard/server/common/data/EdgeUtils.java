@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Throwables;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -51,6 +52,7 @@ public final class EdgeUtils {
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("(\\$\\{\\{)(.*?)(}})");
     private static final String ATTRIBUTE_PLACEHOLDER_PATTERN = "${{%s}}";
     private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{\\{%s}}";
+    private static final int STACK_TRACE_LIMIT = 10;
 
     private EdgeUtils() {
     }
@@ -157,5 +159,21 @@ public final class EdgeUtils {
 
     public static String formatAttributeKeyToRegexpPlaceholderFormat(String attributeKey) {
         return String.format(ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN, attributeKey);
+    }
+
+    public static String createErrorMsgFromRootCauseAndStackTrace(Throwable t) {
+        Throwable rootCause = Throwables.getRootCause(t);
+        StringBuilder errorMsg = new StringBuilder(rootCause.getMessage() != null ? rootCause.getMessage() : "");
+        if (rootCause.getStackTrace().length > 0) {
+            int idx = 0;
+            for (StackTraceElement stackTraceElement : rootCause.getStackTrace()) {
+                errorMsg.append("\n").append(stackTraceElement.toString());
+                idx++;
+                if (idx > STACK_TRACE_LIMIT) {
+                    break;
+                }
+            }
+        }
+        return errorMsg.toString();
     }
 }
