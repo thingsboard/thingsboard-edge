@@ -34,16 +34,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ContextConfiguration;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
@@ -255,6 +252,13 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindAssetTypesByTenantId() throws Exception {
+
+        // TODO: @voba asset profiles are not created on edge at the moment
+        doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeC"), AssetProfile.class);
+
+
         List<Asset> assets = new ArrayList<>();
 
         Mockito.reset(tbClusterService, auditLogService);
@@ -517,6 +521,11 @@ public abstract class BaseAssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantAssetsByType() throws Exception {
+
+        // TODO: @voba asset profiles are not created on edge at the moment
+        doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
+        doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
+
         String title1 = "Asset title 1";
         String type1 = "typeA";
         List<Asset> assetsType1 = new ArrayList<>();
