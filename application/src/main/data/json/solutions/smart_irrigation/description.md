@@ -1,7 +1,6 @@
 ### Solution description
 
-With a Smart Retail template you get the tool for effective smart supermarket solutions.
-You may easily adopt the template to your needs and monitor other types of retail facilities.  
+With a Smart Irrigation template you get the tool for effective field irrigation solutions. 
 We share this and other templates with you to make the on-boarding faster and simpler.
 
 #### Benefits
@@ -11,16 +10,11 @@ One-click install and uninstall of the template.
 
 #### What’s available?
 
-As a Tenant Administrator, you get a "Smart Supermarket Administration" dashboard to provision multiple customers.
-We assume you have manufactured or acquired different types of devices listed below. 
-You will be able to connect real devices to the platform and assign them to your Customers.
-Either you our your customers will upload the floor plan of the supermarket and position sensors on the plan.
-Customer users are also able to configure the thresholds to raise the alarms.
+As a Tenant Administrator, you get an "Irrigation Management" dashboard to provision multiple fields and sensors.
+The solution is based on three different types of IoT devices listed below:
 
-We have configured the platform to raise alarms on data that arrives from various devices using device profiles:
-
-* "Smart Shelf" devices generate alarm when shelf weight is below a defined threshold;
-* "Chiller" and "Freezer" devices generate alarm when temperature is above the defined threshold;
+* "Soil Moisture Sensor" device measures the soil moisture level. Each field may have multiple sensors;
+* "Water Meter" reports the water consumption. The logic to stop the irrigation is based on the water con;
 * "Smart bin" sensor generates alarm when the bin level is above the defined threshold;
 * "Door" and "Motion" sensors raise alerts if someone is in the store after working hours;
 * "Smoke Sensor" devices react on smoke and fire;
