@@ -34,6 +34,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -299,6 +300,7 @@ public class CloudManagerService {
                     edgeRpcClient.sendUplinkMsg(uplinkMsg);
                 }
                 success = latch.await(10, TimeUnit.SECONDS);
+                success = success && pendingMsgsMap.isEmpty();
                 if (!success) {
                     log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgsMap.values(), attempt);
                 }
@@ -556,7 +558,7 @@ public class CloudManagerService {
             @Override
             public void onFailure(Throwable t) {
                 log.error("[{}] Failed to process DownlinkMsg! DownlinkMsgId {}", routingKey, downlinkMsg.getDownlinkMsgId());
-                String errorMsg = t.getMessage() != null ? t.getMessage() : "";
+                String errorMsg = EdgeUtils.createErrorMsgFromRootCauseAndStackTrace(t);
                 DownlinkResponseMsg downlinkResponseMsg = DownlinkResponseMsg.newBuilder()
                         .setDownlinkMsgId(downlinkMsg.getDownlinkMsgId())
                         .setSuccess(false).setErrorMsg(errorMsg).build();
