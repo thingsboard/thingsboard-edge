@@ -700,28 +700,32 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     }
 
     private void onIntegrationStateUpdate(IntegrationState state, ComponentLifecycleEvent oldState, boolean success) {
-        if (state.getConfiguration() != null) {
-            var integrationType = state.getConfiguration().getType();
-            if (integrationType != null && state.getCurrentState() != null) {
-                integrationStatisticsService.onIntegrationStateUpdate(integrationType, state.getCurrentState(), success);
-            }
-            if (oldState == null || !oldState.equals(state.getCurrentState())) {
-                int startedCount = (int) integrations.values()
-                        .stream()
-                        .filter(i -> i.getCurrentState() != null)
-                        .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
-                        .filter(i -> STARTED.equals(i.getCurrentState()))
-                        .count();
+        try {
+            if (state.getConfiguration() != null) {
+                var integrationType = state.getConfiguration().getType();
+                if (integrationType != null && state.getCurrentState() != null) {
+                    integrationStatisticsService.onIntegrationStateUpdate(integrationType, state.getCurrentState(), success);
+                }
+                if (oldState == null || !oldState.equals(state.getCurrentState())) {
+                    int startedCount = (int) integrations.values()
+                            .stream()
+                            .filter(i -> i.getCurrentState() != null)
+                            .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
+                            .filter(i -> STARTED.equals(i.getCurrentState()))
+                            .count();
 
-                int failedCount = (int) integrations.values()
-                        .stream()
-                        .filter(i -> i.getCurrentState() != null)
-                        .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
-                        .filter(i ->  FAILED.equals(i.getCurrentState()))
-                        .count();
+                    int failedCount = (int) integrations.values()
+                            .stream()
+                            .filter(i -> i.getCurrentState() != null)
+                            .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
+                            .filter(i -> FAILED.equals(i.getCurrentState()))
+                            .count();
 
-                integrationStatisticsService.onIntegrationsCountUpdate(integrationType, startedCount, failedCount);
+                    integrationStatisticsService.onIntegrationsCountUpdate(integrationType, startedCount, failedCount);
+                }
             }
+        } catch (Exception e) {
+            log.warn("[{}][{}][{}] Failed to process integration update event", state.getId(), oldState, success, e);
         }
     }
 
