@@ -705,7 +705,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             if (integrationType != null && state.getCurrentState() != null) {
                 integrationStatisticsService.onIntegrationStateUpdate(integrationType, state.getCurrentState(), success);
             }
-            if (oldState != null && !oldState.equals(state.getCurrentState())) {
+            if (oldState == null || !oldState.equals(state.getCurrentState())) {
                 int startedCount = (int) integrations.values()
                         .stream()
                         .filter(i -> i.getCurrentState() != null)
