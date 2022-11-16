@@ -99,7 +99,7 @@ public class DefaultStatsFactory implements StatsFactory {
 
     @Override
     public <T extends Number> T createGauge(String key, T number, String... tags) {
-        return meterRegistry.gauge(key, Tags.of(tags), number);
+        return metricsEnabled ? meterRegistry.gauge(key, Tags.of(tags), number) : number;
     }
 
     @Override

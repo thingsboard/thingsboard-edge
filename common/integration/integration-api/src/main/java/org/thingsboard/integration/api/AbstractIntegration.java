@@ -96,7 +96,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             mdMap.put(md.getKey(), md.getValue().asText());
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
-        this.integrationStatistics = new IntegrationStatistics();
+        this.integrationStatistics = new IntegrationStatistics(context);
     }
 
     public void setConfiguration(Integration configuration) {
@@ -150,28 +150,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     @Override
     public IntegrationStatistics popStatistics() {
         IntegrationStatistics statistics = this.integrationStatistics;
-        this.integrationStatistics = new IntegrationStatistics();
+        this.integrationStatistics = new IntegrationStatistics(context);
         return statistics;
-    }
-
-    @Override
-    public void onIntegrationMsgsUplinkSuccess() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkSuccess(configuration.getType());
-    }
-
-    @Override
-    public void onIntegrationMsgsUplinkFailed() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsUplinkFailed(configuration.getType());
-    }
-
-    @Override
-    public void onIntegrationMsgsDownlinkSuccess() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkSuccess(configuration.getType());
-    }
-
-    @Override
-    public void onIntegrationMsgsDownlinkFailed() {
-        context.getIntegrationStatisticsService().onIntegrationMsgsDownlinkFailed(configuration.getType());
     }
 
     protected <T> T getClientConfiguration(Integration configuration, Class<T> clazz) {
@@ -291,21 +271,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
         try {
-            ListenableFuture<List<UplinkData>> uplinkDataList =  this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
-            Futures.addCallback(uplinkDataList, new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable List<UplinkData> result) {
-                    onIntegrationMsgsUplinkSuccess();
-                }
-
-                @Override
-                public void onFailure(Throwable t) {
-                    onIntegrationMsgsUplinkFailed();
-                }
-            }, MoreExecutors.directExecutor());
-            return uplinkDataList;
+            return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
         } catch (Exception e) {
-            onIntegrationMsgsUplinkFailed();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply uplink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), Base64Utils.encodeToString(data), md);
             }
@@ -318,7 +285,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
-        onIntegrationMsgsDownlinkSuccess();
+        context.onDownlinkMessageProcessed(true);
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
@@ -336,7 +303,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
         if (!status.equals("OK")) {
-            onIntegrationMsgsDownlinkFailed();
+            context.onDownlinkMessageProcessed(false);
             integrationStatistics.incErrorsOccurred();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());

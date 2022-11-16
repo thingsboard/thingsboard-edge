@@ -55,7 +55,7 @@ import org.thingsboard.server.queue.provider.TbCoreIntegrationExecutorQueueFacto
 import org.thingsboard.server.queue.settings.TbQueueIntegrationNotificationSettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 

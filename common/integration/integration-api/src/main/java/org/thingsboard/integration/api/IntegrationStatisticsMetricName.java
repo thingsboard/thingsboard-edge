@@ -30,20 +30,18 @@
  */
 package org.thingsboard.integration.api;
 
+import lombok.Getter;
+
 public enum IntegrationStatisticsMetricName {
     START("start"),
     MSGS_UPLINK("msgUplink"),
     MSGS_DOWNLINK("msgDownlink");
 
-    private String name;
+    @Getter
+    private final String name;
 
     IntegrationStatisticsMetricName(String name) {
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
-
     }
 
 }

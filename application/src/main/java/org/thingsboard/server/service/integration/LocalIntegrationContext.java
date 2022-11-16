@@ -169,11 +169,6 @@ public class LocalIntegrationContext implements IntegrationContext {
     }
 
     @Override
-    public IntegrationStatisticsService getIntegrationStatisticsService() {
-        return ctx.getIntegrationStatisticsService();
-    }
-
-    @Override
     public ExecutorService getExecutorService() {
         return ctx.getGeneralExecutorService();
     }
@@ -186,5 +181,19 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public boolean isExceptionStackTraceEnabled() {
         return ctx.isExceptionStackTraceEnabled();
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            ctx.getIntegrationStatisticsService().onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            ctx.getIntegrationStatisticsService().onUplinkMsg(configuration.getType(), success);
+        }
     }
 }

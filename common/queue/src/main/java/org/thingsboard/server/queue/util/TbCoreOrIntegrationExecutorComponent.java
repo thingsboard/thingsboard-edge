@@ -28,10 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.service.context;
+package org.thingsboard.server.queue.util;
 
-import org.thingsboard.integration.api.IntegrationStatisticsService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-public interface TbIntegrationStatisticsContextComponent {
-    IntegrationStatisticsService getIntegrationStatisticsService();
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.RUNTIME)
+@ConditionalOnExpression("'${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core' || '${service.type:null}'=='tb-integration-executor'")
+public @interface TbCoreOrIntegrationExecutorComponent {
 }

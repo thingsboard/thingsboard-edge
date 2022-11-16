@@ -112,8 +112,6 @@ public interface IntegrationContext {
      */
     ScheduledExecutorService getScheduledExecutorService();
 
-    IntegrationStatisticsService getIntegrationStatisticsService();
-
     /**
      * Provides access to ExecutorService to submit tasks.
      * Allows using N threads per M integrations instead of using N threads per integration.
@@ -141,4 +139,7 @@ public interface IntegrationContext {
 
     boolean isExceptionStackTraceEnabled();
 
+    void onUplinkMessageProcessed(boolean success);
+
+    void onDownlinkMessageProcessed(boolean success);
 }

@@ -148,9 +148,6 @@ public class RemoteIntegrationManagerService {
     @Autowired(required = false)
     private CoapServerService coapServerService;
 
-    @Autowired(required = false)
-    private IntegrationStatisticsService integrationStatisticsService;
-
     private ThingsboardPlatformIntegration<?> integration;
     private ComponentLifecycleEvent integrationEvent;
 
@@ -269,7 +266,7 @@ public class RemoteIntegrationManagerService {
 
             TbIntegrationInitParams params = new TbIntegrationInitParams(
                     new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
-                            configuration, clientId, port, integrationStatisticsService),
+                            configuration, clientId, port),
                     configuration,
                     uplinkDataConverter,
                     downlinkDataConverter);

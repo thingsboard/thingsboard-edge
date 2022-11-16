@@ -31,32 +31,22 @@
 package org.thingsboard.integration.api;
 
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
 import java.util.Map;
 
 public interface IntegrationStatisticsService {
 
-    void onIntegrationMsgsStateSuccessCounterAdd(IntegrationType integrationType);
+    void onIntegrationStateUpdate(IntegrationType integrationType, ComponentLifecycleEvent state, boolean success);
 
-    void onIntegrationMsgsStateFailedCounterAdd(IntegrationType integrationType);
+    void onIntegrationsCountUpdate(IntegrationType integrationType, int started, int failed);
 
-    void onIntegrationStateSuccessGauge(IntegrationType integrationType, int cntIntegration);
+    void onUplinkMsg(IntegrationType integrationType, boolean success);
 
-    void onIntegrationStateFailedGauge(IntegrationType integrationType, int cntIntegration);
-
-    void onIntegrationMsgsUplinkSuccess(IntegrationType integrationType);
-
-    void onIntegrationMsgsUplinkFailed (IntegrationType integrationType);
-
-    void onIntegrationMsgsDownlinkSuccess(IntegrationType integrationType);
-
-    void onIntegrationMsgsDownlinkFailed (IntegrationType integrationType);
-
-    Map<IntegrationType, Long> getGaugesSuccess();
-
-    Map<IntegrationType, Long> getGaugesFailed();
+    void onDownlinkMsg(IntegrationType integrationType, boolean success);
 
     void printStats();
 
     void reset();
+
 }

@@ -159,7 +159,6 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         Exception exception = null;
         try {
             doProcess(context, msg);
-            onIntegrationMsgsUplinkSuccess();
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
@@ -167,7 +166,6 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
             status = "ERROR";
         }
         if (!status.equals("OK")) {
-            onIntegrationMsgsUplinkFailed();
             integrationStatistics.incErrorsOccurred();
         }
         if (configuration.isDebugMode()) {

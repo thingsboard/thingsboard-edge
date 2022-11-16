@@ -43,7 +43,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
-import org.thingsboard.integration.api.TbCoreOrIntegrationExecutorComponent;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -152,9 +152,6 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
 
     @Value("${integrations.allow_Local_network_hosts:true}")
     private boolean allowLocalNetworkHosts;
-
-    @Value("${metrics.enabled:false}")
-    private Boolean metricsEnabled;
 
     private ExecutorService commandExecutorService;
     private ScheduledExecutorService statisticsExecutorService;
@@ -490,6 +487,8 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         }
         boolean locked = state.getUpdateLock().tryLock();
         if (locked) {
+            boolean success = true;
+            var old = state.getCurrentState();
             try {
                 update(state);
             } catch (Throwable e) {
@@ -498,15 +497,13 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 } else {
                     log.warn("[{}] Failed to update state due to: {}. Enabled debug level to get more details.", id, e.getMessage());
                 }
+                success = false;
             } finally {
                 state.getUpdateLock().unlock();
             }
+            onIntegrationStateUpdate(state, old, success);
         } else {
             lifecycleExecutorService.schedule(() -> tryUpdate(id), 10, TimeUnit.SECONDS);
-        }
-        if (metricsEnabled) {
-            updateIntegrationStateStatistics();
-            updateIntegrationProcessStatistics(state);
         }
     }
 
@@ -702,45 +699,29 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         }
     }
 
-    private void updateIntegrationStateStatistics() {
-        Map<IntegrationType, Long> gaugesSuccess = integrationStatisticsService.getGaugesSuccess();
-        Map<IntegrationType, Long> gaugesFailed = integrationStatisticsService.getGaugesFailed();
-        if (gaugesSuccess != null && gaugesFailed != null) {
-            List<IntegrationType> startSuccess = integrations.values()
-                    .stream()
-                    .filter(i ->
-                            STARTED.equals(i.getCurrentState()) ||
-                            UPDATED.equals(i.getCurrentState()) ||
-                            ACTIVATED.equals(i.getCurrentState()))
-                    .map(integrationState -> integrationState.getConfiguration().getType())
-                    .collect(Collectors.toList());
-            Map<IntegrationType, Long> mapSuccess = startSuccess.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    private void onIntegrationStateUpdate(IntegrationState state, ComponentLifecycleEvent oldState, boolean success) {
+        if (state.getConfiguration() != null) {
+            var integrationType = state.getConfiguration().getType();
+            if (integrationType != null && state.getCurrentState() != null) {
+                integrationStatisticsService.onIntegrationStateUpdate(integrationType, state.getCurrentState(), success);
+            }
+            if (oldState != null && !oldState.equals(state.getCurrentState())) {
+                int startedCount = (int) integrations.values()
+                        .stream()
+                        .filter(i -> i.getCurrentState() != null)
+                        .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
+                        .filter(i -> STARTED.equals(i.getCurrentState()))
+                        .count();
 
-            List<IntegrationType> startFailed = integrations.values()
-                    .stream()
-                    .filter(i ->
-                            FAILED.equals(i.getCurrentState()))
-                    .map(integrationState -> integrationState.getConfiguration().getType())
-                    .collect(Collectors.toList());
-            Map<IntegrationType, Long> mapFailed = startFailed.stream().collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+                int failedCount = (int) integrations.values()
+                        .stream()
+                        .filter(i -> i.getCurrentState() != null)
+                        .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
+                        .filter(i ->  FAILED.equals(i.getCurrentState()))
+                        .count();
 
-
-            gaugesSuccess.entrySet().forEach(m -> mapSuccess.putIfAbsent(m.getKey(), 0L));
-            gaugesFailed.entrySet().forEach(m -> mapFailed.putIfAbsent(m.getKey(), 0L));
-
-            mapSuccess.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStateSuccessGauge(s.getKey(), s.getValue().intValue()));
-            mapFailed.entrySet().forEach(s -> integrationStatisticsService.onIntegrationStateFailedGauge(s.getKey(), s.getValue().intValue()));
-        }
-    }
-
-    private void updateIntegrationProcessStatistics(IntegrationState state) {
-        IntegrationType type = state.getIntegration().getConfiguration().getType();
-        ComponentLifecycleEvent currentState = state.getCurrentState();
-        log.trace("IntegrationType: [{}], IntegrationState: [{}]", type.name(), currentState);
-        if (FAILED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationMsgsStateFailedCounterAdd(type);
-        } else if (STARTED.equals(currentState)) {
-            integrationStatisticsService.onIntegrationMsgsStateSuccessCounterAdd(type);
+                integrationStatisticsService.onIntegrationsCountUpdate(integrationType, startedCount, failedCount);
+            }
         }
     }
 

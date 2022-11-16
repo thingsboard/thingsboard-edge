@@ -77,11 +77,10 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ScheduledExecutorService scheduledExecutorService;
     protected final ExecutorService generalExecutorService;
     protected final ExecutorService callBackExecutorService;
-    protected final IntegrationStatisticsService integrationStatisticsService;
 
     public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService,
-                                    ExecutorService generalExecutorService, ExecutorService callBackExecutorService, Integration configuration, String clientId,
-                                    int port, IntegrationStatisticsService integrationStatisticsService) {
+                                    ExecutorService generalExecutorService, ExecutorService callBackExecutorService,
+                                    Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
         this.clientId = clientId;
@@ -91,7 +90,6 @@ public class RemoteIntegrationContext implements IntegrationContext {
         this.scheduledExecutorService = scheduledExecutorService;
         this.generalExecutorService = generalExecutorService;
         this.callBackExecutorService = callBackExecutorService;
-        this.integrationStatisticsService = integrationStatisticsService;
     }
 
     @Override
@@ -178,6 +176,16 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public boolean isExceptionStackTraceEnabled() {
         return true;
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        // Statistics for remote integrations is not supported
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        // Statistics for remote integrations is not supported
     }
 
     private void doSaveEvent(TbEventSource tbEventSource, Event event, String deviceName, IntegrationCallback<Void> callback) {

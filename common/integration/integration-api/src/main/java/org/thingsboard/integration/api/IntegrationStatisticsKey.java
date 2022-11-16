@@ -38,13 +38,13 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 public class IntegrationStatisticsKey {
 
     private final IntegrationStatisticsMetricName integrationStatisticsMetricName;
-    private final boolean processState;
+    private final boolean success;
     private final IntegrationType integrationType;
 
     public String [] getTags() {
         return new String[]{
                 "name", this.integrationStatisticsMetricName.getName(),
-                "state", this.processState ? "success" : "failed",
+                "state", this.success ? "success" : "failed",
                 "type", this.integrationType.name()};
     }
 }

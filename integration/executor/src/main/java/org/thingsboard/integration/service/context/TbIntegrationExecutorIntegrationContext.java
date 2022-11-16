@@ -69,22 +69,22 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     private final String serviceId;
     private final IntegrationApiService apiService;
+    private final IntegrationStatisticsService statisticsService;
     private final TbIntegrationExecutorContextComponent contextComponent;
-    private final TbIntegrationStatisticsContextComponent statisticsContextComponent;
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
     private final LogSettingsComponent logSettingsComponent;
 
-    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService,
+    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, IntegrationStatisticsService statisticsService,
                                                    TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
-                                                   Integration configuration, TbIntegrationStatisticsContextComponent statisticsContextComponent) {
+                                                   Integration configuration) {
         this.serviceId = serviceId;
         this.apiService = apiService;
+        this.statisticsService = statisticsService;
         this.contextComponent = contextComponent;
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
         this.integrationInfoProto = IntegrationProtoUtil.toProto(configuration);
-        this.statisticsContextComponent = statisticsContextComponent;
     }
 
     @Override
@@ -152,8 +152,17 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     }
 
     @Override
-    public IntegrationStatisticsService getIntegrationStatisticsService() {
-        return this.statisticsContextComponent.getIntegrationStatisticsService();
+    public void onUplinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            statisticsService.onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            statisticsService.onUplinkMsg(configuration.getType(), success);
+        }
     }
 
     @Override
