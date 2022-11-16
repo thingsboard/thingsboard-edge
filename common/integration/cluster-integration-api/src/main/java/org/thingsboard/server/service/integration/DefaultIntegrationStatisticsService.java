@@ -28,18 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.integration.api;
+package org.thingsboard.server.service.integration;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
+import org.thingsboard.integration.api.IntegrationStatisticsKey;
+import org.thingsboard.integration.api.IntegrationStatisticsMetricName;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.stats.DefaultCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,10 +52,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-//TODO: move to the cluster-integration-api module.
-@ConditionalOnExpression("('${metrics.enabled:false}'=='true') && ('${service.type:null}'=='tb-integration' " +
-        "|| '${service.type:null}'=='tb-integration-executor' || '${service.type:null}'=='monolith' || '${service.type:null}'=='tb-core')")
-public class IntegrationStatisticsDefault implements IntegrationStatisticsService {
+@TbCoreOrIntegrationExecutorComponent
+public class DefaultIntegrationStatisticsService implements IntegrationStatisticsService {
 
     private final Map<IntegrationStatisticsKey, DefaultCounter> counters = new ConcurrentHashMap<>();
     private final Map<IntegrationStatisticsKey, AtomicLong> gauges = new ConcurrentHashMap<>();
