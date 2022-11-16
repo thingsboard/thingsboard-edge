@@ -41,7 +41,9 @@ public interface SystemDataLoaderService {
 
     void createAdminSettings() throws Exception;
 
-    void createJwtAdminSettings() throws Exception;
+    void createRandomJwtSettings() throws Exception;
+
+    void saveLegacyYmlSettings() throws Exception;
 
     void loadMailTemplates() throws Exception;
 

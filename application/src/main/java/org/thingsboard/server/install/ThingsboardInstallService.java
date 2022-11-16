@@ -296,7 +296,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
-                systemDataLoaderService.createJwtAdminSettings();
+                systemDataLoaderService.createRandomJwtSettings();
                 systemDataLoaderService.loadSystemWidgets();
                 systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
