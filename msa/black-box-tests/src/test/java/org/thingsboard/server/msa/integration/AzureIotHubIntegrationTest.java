@@ -40,27 +40,18 @@ import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.Assert;
 import org.testng.SkipException;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
-
 @Slf4j
-public class AzureIotHubIntegrationTest extends AbstractContainerTest {
+public class AzureIotHubIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-azure-iot";
     private static final String SECRET_KEY = "secret-key-azure-iot";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final String HOST_NAME = System.getProperty("blackBoxTests.azureIotHubHostName", "");
     private static final String SAS_KEY = System.getProperty("blackBoxTests.azureIotHubSasKey", "");
     private static final String DEVICE_ID = System.getProperty("blackBoxTests.azureIotHubDeviceId", "");
@@ -103,25 +94,11 @@ public class AzureIotHubIntegrationTest extends AbstractContainerTest {
             "}\n" +
             "return result;";
 
-    private Device device;
-    private Integration integration;
     @BeforeClass
     public static void beforeClass() {
         if (Boolean.parseBoolean(System.getProperty("blackBoxTests.integrations.skip", "true"))) {
             throw new SkipException("AzurIotHubIntegrationTest is skipped");
         }
-    }
-
-    @BeforeMethod
-    public void setUp() throws Exception {
-        testRestClient.login(LOGIN, PASSWORD);
-        device = testRestClient.postDevice("", defaultDevicePrototype("azure_iot_"));
-    }
-    @AfterMethod
-    public void tearDown() throws Exception {
-        testRestClient.deleteDevice(device.getId());
-        testRestClient.deleteIntegration(integration.getId());
-        testRestClient.deleteConverter(integration.getDefaultConverterId());
     }
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
@@ -166,4 +143,8 @@ public class AzureIotHubIntegrationTest extends AbstractContainerTest {
         return serviceClient;
     }
 
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "azure_iot_";
+    }
 }

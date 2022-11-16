@@ -43,25 +43,16 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.net.InetSocketAddress;
-
-import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 @Slf4j
-public class TcpIntegrationTest extends AbstractContainerTest {
+public class TcpIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-tcp";
     private static final String SECRET_KEY = "secret-key-tcp";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final int PORT = 10560;
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"port\":" + PORT + "," +
@@ -99,20 +90,6 @@ public class TcpIntegrationTest extends AbstractContainerTest {
             "}\n" +
             "return result;";
 
-    private Device device;
-    private Integration integration;
-
-    @BeforeMethod
-    public void setUp() throws Exception {
-        testRestClient.login(LOGIN, PASSWORD);
-        device = testRestClient.postDevice("", defaultDevicePrototype("tcp_"));
-    }
-    @AfterMethod
-    public void tearDown() throws Exception {
-        testRestClient.deleteDevice(device.getId());
-        testRestClient.deleteIntegration(integration.getId());
-        testRestClient.deleteConverter(integration.getDefaultConverterId());
-    }
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
@@ -157,4 +134,8 @@ public class TcpIntegrationTest extends AbstractContainerTest {
         }
     }
 
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "tcp_";
+    }
 }

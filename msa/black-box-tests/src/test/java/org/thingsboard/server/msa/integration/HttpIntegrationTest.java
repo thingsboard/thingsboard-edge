@@ -30,35 +30,26 @@
  */
 package org.thingsboard.server.msa.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.gson.JsonObject;
 import io.restassured.path.json.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
-import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,7 +58,6 @@ import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.HTTP;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfig;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfigWithSecurityEnabled;
 import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototypes.defaultConfigWithSecurityHeader;
@@ -75,12 +65,9 @@ import static org.thingsboard.server.msa.prototypes.HttpIntegrationConfigPrototy
 
 
 @Slf4j
-public class HttpIntegrationTest extends AbstractContainerTest {
-
+public class HttpIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-123456";
     private static final String SECRET_KEY = "secret-key-123456";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
 
     private final JsonNode CUSTOM_CONVERTER_CONFIGURATION = mapper
             .createObjectNode().put("decoder", "var data = decodeToJson(payload);\n" +
@@ -123,16 +110,12 @@ public class HttpIntegrationTest extends AbstractContainerTest {
                     "};\n" +
                     "return result;");
 
-    private Device device;
     private Converter uplinkConverter;
     private Converter downlinkConverter;
-    private Integration integration;
     private WsClient wsClient;
     private RuleChainId defaultRuleChainId;
     @BeforeMethod
-    public void setUp() throws Exception {
-        testRestClient.login(LOGIN, PASSWORD);
-        device = testRestClient.postDevice("", defaultDevicePrototype("http_"));
+    public void setUp()  {
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(CUSTOM_CONVERTER_CONFIGURATION));
         downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
 
@@ -140,10 +123,6 @@ public class HttpIntegrationTest extends AbstractContainerTest {
     }
     @AfterMethod
     public void tearDown() throws Exception {
-        testRestClient.deleteDevice(device.getId());
-        testRestClient.deleteIntegration(integration.getId());
-        testRestClient.deleteConverter(uplinkConverter.getId());
-        testRestClient.deleteConverter(downlinkConverter.getId());
         testRestClient.setRootRuleChain(defaultRuleChainId);
         if (wsClient != null) {
             wsClient.closeBlocking();
@@ -340,25 +319,9 @@ public class HttpIntegrationTest extends AbstractContainerTest {
         assertThat(uplinkResponse2.getString("doubleKey")).isEqualTo(attributes.get("doubleKey").asText());
         assertThat(uplinkResponse2.getString("longKey")).isEqualTo(attributes.get("longKey").asText());
     }
-
-    private RuleChainId getDefaultRuleChainId() {
-        PageData<RuleChain> ruleChains = testRestClient.getRuleChains(new PageLink(40, 0));
-        Optional<RuleChain> defaultRuleChain = ruleChains.getData()
-                .stream()
-                .filter(RuleChain::isRoot)
-                .findFirst();
-        if (!defaultRuleChain.isPresent()) {
-            Assert.fail("Root rule chain wasn't found");
-        }
-        return defaultRuleChain.get().getId();
-    }
-
-     private JsonNode createPayloadForUplink(String name, String type) throws JsonProcessingException {
-        JsonObject values = new JsonObject();
-        values.addProperty("deviceName", name);
-        values.addProperty("deviceType", type);
-        values.addProperty(TELEMETRY_KEY, TELEMETRY_VALUE);
-        return mapper.readTree(values.toString());
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "http_";
     }
 
 }

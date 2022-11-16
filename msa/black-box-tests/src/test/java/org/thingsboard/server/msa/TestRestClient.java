@@ -95,7 +95,7 @@ public class TestRestClient {
         }
     }
 
-    public void login(String username, String password) throws Exception {
+    public void login(String username, String password)  {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", username);
         loginRequest.put("password", password);

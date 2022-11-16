@@ -50,7 +50,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
@@ -59,7 +58,6 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.TestProperties;
 
 import java.util.List;
@@ -75,18 +73,15 @@ import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.MQTT;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 import static org.thingsboard.server.msa.prototypes.MQTTIntegrationPrototypes.configWithBasicCreds;
 import static org.thingsboard.server.msa.prototypes.MQTTIntegrationPrototypes.defaultConfig;
 
 @Slf4j
-public class MqttIntegrationTest extends AbstractContainerTest {
+public class MqttIntegrationTest extends AbstractIntegrationTest {
     public static final String SERVICE_NAME = "broker";
     public static final int SERVICE_PORT = 1883;
     private static final String ROUTING_KEY = "routing-key-1234567";
     private static final String SECRET_KEY = "secret-key-1234567";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final String TOPIC = "tb/mqtt/device";
     private static final String DOWNLINK_TOPIC = "tb/mqtt/device/upload";
 
@@ -133,27 +128,23 @@ public class MqttIntegrationTest extends AbstractContainerTest {
                     "};\n" +
                     "return result;");
 
-    private Device device;
-    private Integration integration;
     private Converter uplinkConverter;
     private Converter downlinkConverter;
+    private RuleChainId defaultRuleChainId;
 
     @BeforeMethod
-    public void setUp() throws Exception {
-        testRestClient.login(LOGIN, PASSWORD);
-        device = testRestClient.postDevice("", defaultDevicePrototype("mqtt_"));
+    public void setUp() {
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
         uplinkConverter = testRestClient.postConverter(uplinkConverterPrototype(configConverter));
         downlinkConverter = testRestClient.postConverter(downlinkConverterPrototype(DOWNLINK_CONVERTER_CONFIGURATION));
-    }
-    @AfterMethod
-    public void tearDown() throws Exception {
-        testRestClient.deleteDevice(device.getId());
-        testRestClient.deleteIntegration(integration.getId());
-        testRestClient.deleteConverter(integration.getDefaultConverterId());
+        defaultRuleChainId = getDefaultRuleChainId();
     }
 
+    @AfterMethod
+    public void tearDown()  {
+        testRestClient.setRootRuleChain(defaultRuleChainId);
+    }
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
         integration = Integration.builder()
@@ -411,5 +402,8 @@ public class MqttIntegrationTest extends AbstractContainerTest {
         private final String topic;
         private final String message;
     }
-
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "mqtt_";
+    }
 }
