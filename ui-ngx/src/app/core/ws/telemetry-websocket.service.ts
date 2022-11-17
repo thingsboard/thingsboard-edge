@@ -271,7 +271,7 @@ export class TelemetryWebsocketService implements TelemetryService {
             },
             () => {
               this.isOpening = false;
-              this.authService.logout(true);
+              this.authService.logout(true, true);
             }
           );
         }
