@@ -39,7 +39,7 @@ public interface JwtSettingsService {
 
     JwtSettings getJwtSettings();
 
-    void reloadJwtSettings();
+    JwtSettings reloadJwtSettings();
 
     void createRandomJwtSettings();
 

@@ -71,66 +71,32 @@ public class DefaultJwtSettingsService implements JwtSettingsService {
 
     private volatile JwtSettings jwtSettings = null; //lazy init
 
-    @Override
-    public void reloadJwtSettings() {
-        AdminSettings adminJwtSettings = findJwtAdminSettings();
-        if (adminJwtSettings != null) {
-            log.info("Reloading the JWT admin settings from database");
-            synchronized (this) {
-                this.jwtSettings = mapAdminToJwtSettings(adminJwtSettings);
-            }
-        }
-
-        if (hasDefaultTokenSigningKey()) {
-            log.warn("WARNING: The platform is configured to use default JWT Signing Key. " +
-                    "This is a security issue that needs to be resolved. Please change the JWT Signing Key using the Web UI. " +
-                    "Navigate to \"System settings -> Security settings\" while logged in as a System Administrator.");
-        }
-    }
-
-    JwtSettings mapAdminToJwtSettings(AdminSettings adminSettings) {
-        Objects.requireNonNull(adminSettings, "adminSettings for JWT is null");
-        return JacksonUtil.treeToValue(adminSettings.getJsonValue(), JwtSettings.class);
-    }
-
-    AdminSettings mapJwtToAdminSettings(JwtSettings jwtSettings) {
-        Objects.requireNonNull(jwtSettings, "jwtSettings is null");
-        AdminSettings adminJwtSettings = new AdminSettings();
-        adminJwtSettings.setTenantId(TenantId.SYS_TENANT_ID);
-        adminJwtSettings.setKey(ADMIN_SETTINGS_JWT_KEY);
-        adminJwtSettings.setJsonValue(JacksonUtil.valueToTree(jwtSettings));
-        return adminJwtSettings;
-    }
-
-    boolean hasDefaultTokenSigningKey() {
-        return TOKEN_SIGNING_KEY_DEFAULT.equals(getJwtSettings().getTokenSigningKey());
-    }
-
     /**
      * Create JWT admin settings is intended to be called from Install scripts only
-     * */
+     */
     @Override
     public void createRandomJwtSettings() {
-        log.info("Creating JWT admin settings...");
-        Objects.requireNonNull(getJwtSettings(), "JWT settings is null");
-
-        if (hasDefaultTokenSigningKey()) {
-            log.info("JWT token signing key is default. Generating a new random key");
-            getJwtSettings().setTokenSigningKey(Base64.getEncoder().encodeToString(
-                    RandomStringUtils.randomAlphanumeric(64).getBytes(StandardCharsets.UTF_8)));
+        if (getJwtSettingsFromDb() == null) {
+            log.info("Creating JWT admin settings...");
+            this.jwtSettings = getJwtSettingsFromYml();
+            if (isSigningKeyDefault(jwtSettings)) {
+                this.jwtSettings.setTokenSigningKey(Base64.getEncoder().encodeToString(
+                        RandomStringUtils.randomAlphanumeric(64).getBytes(StandardCharsets.UTF_8)));
+            }
+            saveJwtSettings(jwtSettings);
+        } else {
+            log.info("Skip creating JWT admin settings because they already exist.");
         }
-        saveJwtSettings(getJwtSettings());
     }
 
     /**
      * Create JWT admin settings is intended to be called from Upgrade scripts only
-     * */
+     */
     @Override
     public void saveLegacyYmlSettings() {
         log.info("Saving legacy JWT admin settings from YML...");
-        Objects.requireNonNull(getJwtSettings(), "JWT settings is null");
-        if (isJwtAdminSettingsNotExists()) {
-            saveJwtSettings(getJwtSettings());
+        if (getJwtSettingsFromDb() == null) {
+            saveJwtSettings(getJwtSettingsFromYml());
         }
     }
 
@@ -147,29 +113,63 @@ public class DefaultJwtSettingsService implements JwtSettingsService {
         adminSettingsService.saveAdminSettings(TenantId.SYS_TENANT_ID, adminJwtSettings);
 
         tbClusterService.ifPresent(cs -> cs.broadcastEntityStateChangeEvent(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, ComponentLifecycleEvent.UPDATED));
+        return reloadJwtSettings();
+    }
 
-        reloadJwtSettings();
+    @Override
+    public JwtSettings reloadJwtSettings() {
+        synchronized (this) {
+            this.jwtSettings = null;
+        }
         return getJwtSettings();
     }
 
-    boolean isJwtAdminSettingsNotExists() {
-        return findJwtAdminSettings() == null;
-    }
-
-    AdminSettings findJwtAdminSettings() {
-        return adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, ADMIN_SETTINGS_JWT_KEY);
-    }
-
+    @Override
     public JwtSettings getJwtSettings() {
         if (this.jwtSettings == null) {
             synchronized (this) {
                 if (this.jwtSettings == null) {
-                    this.jwtSettings = new JwtSettings(this.tokenExpirationTime, this.refreshTokenExpTime, this.tokenIssuer, this.tokenSigningKey);
-                    reloadJwtSettings();
+                    this.jwtSettings = getJwtSettingsFromDb();
+                    if (this.jwtSettings == null) {
+                        this.jwtSettings = getJwtSettingsFromYml();
+                        log.warn("Loading the JWT settings from YML since there are no settings in DB. Looks like the upgrade script was not applied.");
+                    }
+                    if (isSigningKeyDefault(jwtSettings)) {
+                        log.warn("WARNING: The platform is configured to use default JWT Signing Key. " +
+                                "This is a security issue that needs to be resolved. Please change the JWT Signing Key using the Web UI. " +
+                                "Navigate to \"System settings -> Security settings\" while logged in as a System Administrator.");
+                    }
                 }
             }
         }
         return this.jwtSettings;
+    }
+
+    private JwtSettings getJwtSettingsFromYml() {
+        return new JwtSettings(this.tokenExpirationTime, this.refreshTokenExpTime, this.tokenIssuer, this.tokenSigningKey);
+    }
+
+    private JwtSettings getJwtSettingsFromDb() {
+        AdminSettings adminJwtSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, ADMIN_SETTINGS_JWT_KEY);
+        return adminJwtSettings != null ? mapAdminToJwtSettings(adminJwtSettings) : null;
+    }
+
+    private JwtSettings mapAdminToJwtSettings(AdminSettings adminSettings) {
+        Objects.requireNonNull(adminSettings, "adminSettings for JWT is null");
+        return JacksonUtil.treeToValue(adminSettings.getJsonValue(), JwtSettings.class);
+    }
+
+    private AdminSettings mapJwtToAdminSettings(JwtSettings jwtSettings) {
+        Objects.requireNonNull(jwtSettings, "jwtSettings is null");
+        AdminSettings adminJwtSettings = new AdminSettings();
+        adminJwtSettings.setTenantId(TenantId.SYS_TENANT_ID);
+        adminJwtSettings.setKey(ADMIN_SETTINGS_JWT_KEY);
+        adminJwtSettings.setJsonValue(JacksonUtil.valueToTree(jwtSettings));
+        return adminJwtSettings;
+    }
+
+    private boolean isSigningKeyDefault(JwtSettings settings) {
+        return TOKEN_SIGNING_KEY_DEFAULT.equals(settings.getTokenSigningKey());
     }
 
 }
