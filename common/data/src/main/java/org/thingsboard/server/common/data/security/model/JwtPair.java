@@ -28,35 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.config;
+package org.thingsboard.server.common.data.security.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.security.model.JwtToken;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.security.Authority;
 
-@Component
-@ConfigurationProperties(prefix = "security.jwt")
+@ApiModel(value = "JWT Pair")
 @Data
-public class JwtSettings {
-    /**
-     * {@link JwtToken} will expire after this time.
-     */
-    private Integer tokenExpirationTime;
+@NoArgsConstructor
+public class JwtPair {
 
-    /**
-     * Token issuer.
-     */
-    private String tokenIssuer;
+    @ApiModelProperty(position = 1, value = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
+    private String token;
+    @ApiModelProperty(position = 1, value = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
+    private String refreshToken;
 
-    /**
-     * Key is used to sign {@link JwtToken}.
-     */
-    private String tokenSigningKey;
+    private Authority scope;
 
-    /**
-     * {@link JwtToken} can be refreshed during this timeframe.
-     */
-    private Integer refreshTokenExpTime;
+    public JwtPair(String token, String refreshToken) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+    }
 
 }

@@ -28,36 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.common.data.security.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface SystemDataLoaderService {
+@ApiModel(value = "JWT Settings")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class JwtSettings {
 
-    void createSysAdmin() throws Exception;
+    /**
+     * {@link JwtToken} will expire after this time.
+     */
+    @ApiModelProperty(position = 1, value = "The JWT will expire after seconds.", example = "9000")
+    private Integer tokenExpirationTime;
 
-    void createDefaultTenantProfiles() throws Exception;
+    /**
+     * {@link JwtToken} can be refreshed during this timeframe.
+     */
+    @ApiModelProperty(position = 2, value = "The JWT can be refreshed during seconds.", example = "604800")
+    private Integer refreshTokenExpTime;
 
-    void createAdminSettings() throws Exception;
+    /**
+     * Token issuer.
+     */
+    @ApiModelProperty(position = 3, value = "The JWT issuer.", example = "thingsboard.io")
+    private String tokenIssuer;
 
-    void createRandomJwtSettings() throws Exception;
+    /**
+     * Key is used to sign {@link JwtToken}.
+     * Base64 encoded
+     */
+    @ApiModelProperty(position = 4, value = "The JWT key is used to sing token. Base64 encoded.", example = "cTU4WnNqemI2aU5wbWVjdm1vYXRzanhjNHRUcXliMjE=")
+    private String tokenSigningKey;
 
-    void saveLegacyYmlSettings() throws Exception;
-
-    void loadMailTemplates() throws Exception;
-
-    void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;
-
-    void createOAuth2Templates() throws Exception;
-
-    void loadSystemWidgets() throws Exception;
-
-    void updateSystemWidgets() throws Exception;
-
-    void loadDemoData() throws Exception;
-
-    void deleteSystemWidgetBundle(String bundleAlias) throws Exception;
-
-    void createQueues();
 }

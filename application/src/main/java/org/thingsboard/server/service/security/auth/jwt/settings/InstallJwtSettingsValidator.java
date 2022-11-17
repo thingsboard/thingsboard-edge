@@ -28,36 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.service.security.auth.jwt.settings;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.AdminSettingsId;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.security.model.JwtSettings;
 
-public interface SystemDataLoaderService {
+/**
+ * During Install or upgrade the validation is suppressed to keep existing data
+ * */
 
-    void createSysAdmin() throws Exception;
+@Primary
+@Profile("install")
+@Component
+@RequiredArgsConstructor
+public class InstallJwtSettingsValidator implements JwtSettingsValidator {
 
-    void createDefaultTenantProfiles() throws Exception;
+    @Override
+    public void validate(JwtSettings jwtSettings) {
 
-    void createAdminSettings() throws Exception;
+    }
 
-    void createRandomJwtSettings() throws Exception;
-
-    void saveLegacyYmlSettings() throws Exception;
-
-    void loadMailTemplates() throws Exception;
-
-    void updateMailTemplates(AdminSettingsId adminSettingsId, JsonNode value) throws Exception;
-
-    void createOAuth2Templates() throws Exception;
-
-    void loadSystemWidgets() throws Exception;
-
-    void updateSystemWidgets() throws Exception;
-
-    void loadDemoData() throws Exception;
-
-    void deleteSystemWidgetBundle(String bundleAlias) throws Exception;
-
-    void createQueues();
 }
