@@ -39,21 +39,16 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.elements.exception.ConnectorException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.io.IOException;
 
 @Slf4j
-public class CoapIntegrationTest extends AbstractContainerTest {
+public class CoapIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-coap";
     private static final String SECRET_KEY = "secret-key-coap";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final String TOKEN = ROUTING_KEY;
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"baseUrl\":\"coap://localhost\"," +
@@ -86,15 +81,11 @@ public class CoapIntegrationTest extends AbstractContainerTest {
             "   return data;\n" +
             "}\n" +
             "return result;";
-
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("coap_");
-
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
+        integration = createIntegration(
                 IntegrationType.COAP, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
@@ -110,8 +101,6 @@ public class CoapIntegrationTest extends AbstractContainerTest {
                 actualLatestTelemetry.getLatestValues().keySet());
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
-
-        deleteAllObject(device, integration);
     }
 
     private void sendMessageToIntegration() throws ConnectorException, IOException {
@@ -119,4 +108,8 @@ public class CoapIntegrationTest extends AbstractContainerTest {
         coapClient.post(createPayloadForUplink().toString().getBytes(), MediaTypeRegistry.APPLICATION_JSON);
     }
 
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "coap_";
+    }
 }
