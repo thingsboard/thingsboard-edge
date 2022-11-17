@@ -39,16 +39,14 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.server.common.data.StringUtils;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
@@ -66,7 +64,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     private ScheduledFuture<?> taskFuture;
     private volatile boolean stopped;
 
-    @PostConstruct
+    @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         stopped = false;
@@ -148,8 +146,8 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         }
     }
 
-    @PreDestroy
-    public void stop() {
+    @Override
+    public void destroy() {
         stopped = true;
         if (sqs != null) {
             sqs.shutdown();

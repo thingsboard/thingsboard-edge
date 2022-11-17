@@ -407,26 +407,34 @@ public class DefaultPlatformIntegrationService implements PlatformIntegrationSer
 
             ListenableFuture<Void> saveEventFuture = eventService.saveAsync(event);
 
-            if (entityId.getEntityType().equals(EntityType.INTEGRATION) || event.getType().equals(EventType.LC_EVENT)) {
+            if (entityId.getEntityType().equals(EntityType.INTEGRATION) && event.getType().equals(EventType.LC_EVENT)) {
                 LifecycleEvent lcEvent = (LifecycleEvent) event;
 
                 String key = "integration_status_" + event.getServiceId().toLowerCase();
-                ObjectNode value = JacksonUtil.newObjectNode();
 
-                if (lcEvent.isSuccess()) {
-                    value.put("success", true);
-                } else {
-                    value.put("success", false);
-                    value.put("serviceId", lcEvent.getServiceId());
-                    value.put("error", lcEvent.getError());
+                if (lcEvent.getLcEventType().equals("STARTED") || lcEvent.getLcEventType().equals("UPDATED")) {
+                    ObjectNode value = JacksonUtil.newObjectNode();
+
+                    if (lcEvent.isSuccess()) {
+                        value.put("success", true);
+                    } else {
+                        value.put("success", false);
+                        value.put("serviceId", lcEvent.getServiceId());
+                        value.put("error", lcEvent.getError());
+                    }
+
+                    AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+
+                    saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
+                        attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        return null;
+                    }, MoreExecutors.directExecutor());
+                } else if (lcEvent.getLcEventType().equals("STOPPED")){
+                    saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
+                        attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        return null;
+                    }, MoreExecutors.directExecutor());
                 }
-
-                AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
-
-                saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
-                    attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
-                    return null;
-                }, MoreExecutors.directExecutor());
             }
 
             DonAsynchron.withCallback(saveEventFuture, callback::onSuccess, callback::onError);

@@ -363,26 +363,32 @@ public final class IntegrationGrpcSession implements Closeable {
             }
             ListenableFuture<Void> future = ctx.getEventService().saveAsync(event);
 
-            if (entityId.getEntityType().equals(EntityType.INTEGRATION) || event.getType().equals(EventType.LC_EVENT)) {
+            if (entityId.getEntityType().equals(EntityType.INTEGRATION) && event.getType().equals(EventType.LC_EVENT)) {
                 LifecycleEvent lcEvent = (LifecycleEvent) event;
-
                 String key = "integration_status_" + event.getServiceId().toLowerCase();
-                ObjectNode value = JacksonUtil.newObjectNode();
+                if (lcEvent.getLcEventType().equals("STARTED") || lcEvent.getLcEventType().equals("UPDATED")) {
+                    ObjectNode value = JacksonUtil.newObjectNode();
 
-                if (lcEvent.isSuccess()) {
-                    value.put("success", true);
-                } else {
-                    value.put("success", false);
-                    value.put("serviceId", lcEvent.getServiceId());
-                    value.put("error", lcEvent.getError());
+                    if (lcEvent.isSuccess()) {
+                        value.put("success", true);
+                    } else {
+                        value.put("success", false);
+                        value.put("serviceId", lcEvent.getServiceId());
+                        value.put("error", lcEvent.getError());
+                    }
+
+                    AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+
+                    future = Futures.transform(future, v -> {
+                        ctx.getAttributesService().save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        return null;
+                    }, MoreExecutors.directExecutor());
+                } else if (lcEvent.getLcEventType().equals("STOPPED")) {
+                    future = Futures.transform(future, v -> {
+                        ctx.getAttributesService().removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        return null;
+                    }, MoreExecutors.directExecutor());
                 }
-
-                AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
-
-                future = Futures.transformAsync(future, v -> {
-                    ctx.getAttributesService().save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
-                    return null;
-                }, MoreExecutors.directExecutor());
             }
 
             Futures.addCallback(future, new FutureCallback<>() {
