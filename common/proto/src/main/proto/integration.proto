@@ -78,6 +78,7 @@ message ConverterUpdateMsg {
 message ConnectRequestMsg {
   string integrationRoutingKey = 1;
   string integrationSecret = 2;
+  string serviceId = 3;
 }
 
 enum ConnectResponseCode {

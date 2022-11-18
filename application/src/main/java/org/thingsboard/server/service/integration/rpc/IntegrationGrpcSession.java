@@ -123,6 +123,7 @@ public final class IntegrationGrpcSession implements Closeable {
     private StreamObserver<RequestMsg> inputStream;
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
+    private String serviceId;
 
     IntegrationGrpcSession(IntegrationContextComponent ctx, StreamObserver<ResponseMsg> outputStream
             , BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener
@@ -148,6 +149,7 @@ public final class IntegrationGrpcSession implements Closeable {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     } else {
                         connected = true;
+                        serviceId = requestMsg.getConnectRequestMsg().getServiceId();
                     }
                 }
                 if (connected) {
