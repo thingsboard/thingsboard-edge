@@ -74,64 +74,67 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
                                                                  Long queueStartTs) {
         EntityGroupId entityGroupId = new EntityGroupId(new UUID(entityGroupUpdateMsg.getIdMSB(), entityGroupUpdateMsg.getIdLSB()));
         List<ListenableFuture<Void>> futures = new ArrayList<>();
-        switch (entityGroupUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                entityGroupCreationLock.lock();
-                EntityGroup entityGroup;
-                try {
-                    entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-                    if (entityGroup == null) {
-                        entityGroup = new EntityGroup();
-                        entityGroup.setId(entityGroupId);
-                        entityGroup.setCreatedTime(Uuids.unixTimestamp(entityGroupId.getId()));
-                        entityGroup.setTenantId(tenantId);
+        boolean edgeGroupAll = EdgeUtils.isEdgeGroupAll(entityGroupUpdateMsg.getName());
+        if (!edgeGroupAll) {
+            switch (entityGroupUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    entityGroupCreationLock.lock();
+                    EntityGroup entityGroup;
+                    try {
+                        entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+                        if (entityGroup == null) {
+                            entityGroup = new EntityGroup();
+                            entityGroup.setId(entityGroupId);
+                            entityGroup.setCreatedTime(Uuids.unixTimestamp(entityGroupId.getId()));
+                            entityGroup.setTenantId(tenantId);
+                        }
+                        entityGroup.setName(entityGroupUpdateMsg.getName());
+                        entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
+                        entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
+                        entityGroup.setAdditionalInfo(entityGroupUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()) : null);
+                        EntityId ownerId = safeGetOwnerId(tenantId, entityGroupUpdateMsg.getOwnerEntityType(),
+                                entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB());
+                        entityGroup.setOwnerId(ownerId);
+                        entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
+                    } finally {
+                        entityGroupCreationLock.unlock();
                     }
-                    entityGroup.setName(entityGroupUpdateMsg.getName());
-                    entityGroup.setType(EntityType.valueOf(entityGroupUpdateMsg.getType()));
-                    entityGroup.setConfiguration(JacksonUtil.toJsonNode(entityGroupUpdateMsg.getConfiguration()));
-                    entityGroup.setAdditionalInfo(entityGroupUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(entityGroupUpdateMsg.getAdditionalInfo()) : null);
-                    EntityId ownerId = safeGetOwnerId(tenantId, entityGroupUpdateMsg.getOwnerEntityType(),
-                            entityGroupUpdateMsg.getOwnerIdMSB(), entityGroupUpdateMsg.getOwnerIdLSB());
-                    entityGroup.setOwnerId(ownerId);
-                    entityGroupService.saveEntityGroup(tenantId, ownerId, entityGroup, false);
-                } finally {
-                    entityGroupCreationLock.unlock();
-                }
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
-                ListenableFuture<Void> deleteFuture = Futures.transformAsync(entityGroupByIdAsyncFuture, entityGroupFromDb -> {
-                    if (entityGroupFromDb != null) {
-                        ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
-                        return Futures.transformAsync(entityIdsFuture, entityIds -> {
-                            List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
-                            if (entityIds != null && !entityIds.isEmpty()) {
-                                for (EntityId entityId : entityIds) {
-                                    ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
-                                    deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
-                                        if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
-                                            deleteEntityById(tenantId, entityId);
-                                        }
-                                        return null;
-                                    }, dbCallbackExecutor));
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+                    ListenableFuture<Void> deleteFuture = Futures.transformAsync(entityGroupByIdAsyncFuture, entityGroupFromDb -> {
+                        if (entityGroupFromDb != null) {
+                            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIds(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                            return Futures.transformAsync(entityIdsFuture, entityIds -> {
+                                List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
+                                if (entityIds != null && !entityIds.isEmpty()) {
+                                    for (EntityId entityId : entityIds) {
+                                        ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntity(tenantId, entityId);
+                                        deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
+                                            if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
+                                                deleteEntityById(tenantId, entityId);
+                                            }
+                                            return null;
+                                        }, dbCallbackExecutor));
+                                    }
                                 }
-                            }
-                            ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
-                            return Futures.transform(allFuture, all -> {
-                                entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
-                                return null;
+                                ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
+                                return Futures.transform(allFuture, all -> {
+                                    entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
+                                    return null;
+                                }, dbCallbackExecutor);
                             }, dbCallbackExecutor);
-                        }, dbCallbackExecutor);
-                    } else {
-                        log.info("[{}] Entity group [{}] was not found!", tenantId, entityGroupId);
-                        return null;
-                    }
-                }, dbCallbackExecutor);
-                futures.add(deleteFuture);
-                break;
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
+                        } else {
+                            log.info("[{}] Entity group [{}] was not found!", tenantId, entityGroupId);
+                            return null;
+                        }
+                    }, dbCallbackExecutor);
+                    futures.add(deleteFuture);
+                    break;
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(entityGroupUpdateMsg.getMsgType());
+            }
         }
 
         if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(entityGroupUpdateMsg.getMsgType()) ||
@@ -140,8 +143,10 @@ public class EntityGroupCloudProcessor extends BaseCloudProcessor {
             body.put("type", entityGroupUpdateMsg.getType());
             futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_ENTITIES_REQUEST,
                     entityGroupId, body, null, queueStartTs));
-            futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST,
-                    entityGroupId, body, null, queueStartTs));
+            if (!edgeGroupAll) {
+                futures.add(cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ENTITY_GROUP, EdgeEventActionType.GROUP_PERMISSIONS_REQUEST,
+                        entityGroupId, body, null, queueStartTs));
+            }
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutor);
     }

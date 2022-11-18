@@ -34,7 +34,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -286,14 +285,15 @@ public abstract class BaseCloudProcessor {
             ListenableFuture<EntityGroup> entityGroupFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
             Futures.addCallback(entityGroupFuture, new FutureCallback<EntityGroup>() {
                 @Override
-                public void onSuccess(@Nullable EntityGroup EntityGroup) {
-                    if (EntityGroup != null) {
+                public void onSuccess(EntityGroup entityGroup) {
+                    if (entityGroup != null) {
                         entityGroupService.addEntityToEntityGroup(tenantId, entityGroupId, entityId);
                     }
                 }
 
                 @Override
                 public void onFailure(Throwable t) {
+                    log.warn("[{}] Failed to add entity to group: {}", entityId, t.getMessage(), t);
                 }
             }, dbCallbackExecutor);
         }
