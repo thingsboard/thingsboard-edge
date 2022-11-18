@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.common.stats;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Timer;
 
 public interface StatsFactory {
@@ -42,4 +44,6 @@ public interface StatsFactory {
     MessagesStats createMessagesStats(String key);
 
     Timer createTimer(String key, String... tags);
+
+    Meter remove (Counter counter);
 }

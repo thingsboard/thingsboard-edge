@@ -92,12 +92,14 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                     log.trace("[{}] Processing uplink data", data);
                 }
             }
+            integrationStatistics.incMessagesProcessed();
             if (configuration.isDebugMode()) {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(),
                         ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
         }
     }

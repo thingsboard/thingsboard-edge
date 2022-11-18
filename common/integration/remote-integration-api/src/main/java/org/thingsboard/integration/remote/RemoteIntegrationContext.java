@@ -30,15 +30,16 @@
  */
 package org.thingsboard.integration.remote;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
@@ -61,6 +62,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @Data
 @Slf4j
+@RequiredArgsConstructor
 public class RemoteIntegrationContext implements IntegrationContext {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -76,7 +78,8 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ExecutorService generalExecutorService;
     protected final ExecutorService callBackExecutorService;
 
-    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService, ExecutorService generalExecutorService, ExecutorService callBackExecutorService,
+    public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService,
+                                    ExecutorService generalExecutorService, ExecutorService callBackExecutorService,
                                     Integration configuration, String clientId, int port) {
         this.eventStorage = eventStorage;
         this.configuration = configuration;
@@ -173,6 +176,16 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public boolean isExceptionStackTraceEnabled() {
         return true;
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        // Statistics for remote integrations is not supported
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        // Statistics for remote integrations is not supported
     }
 
     private void doSaveEvent(TbEventSource tbEventSource, Event event, String deviceName, IntegrationCallback<Void> callback) {
