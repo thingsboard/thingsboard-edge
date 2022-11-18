@@ -30,24 +30,21 @@
  */
 package org.thingsboard.integration.api;
 
-import lombok.AllArgsConstructor;
+
 import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
 @Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
+public class IntegrationStatisticsKey {
 
-    private final IntegrationContext context;
+    private final IntegrationStatisticsMetricName integrationStatisticsMetricName;
+    private final boolean success;
+    private final IntegrationType integrationType;
 
-    private final Integration configuration;
-
-    private final TBUplinkDataConverter uplinkConverter;
-
-    private final TBDownlinkDataConverter downlinkConverter;
+    public String [] getTags() {
+        return new String[]{
+                "name", this.integrationStatisticsMetricName.getName(),
+                "state", this.success ? "success" : "failed",
+                "type", this.integrationType.name()};
+    }
 }

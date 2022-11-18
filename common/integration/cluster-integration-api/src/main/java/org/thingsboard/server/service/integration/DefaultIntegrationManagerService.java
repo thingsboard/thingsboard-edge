@@ -42,6 +42,8 @@ import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationStatistics;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
+import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
@@ -84,7 +86,6 @@ import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
-import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.integration.state.IntegrationState;
 import org.thingsboard.server.service.integration.state.ValidationTask;
@@ -94,6 +95,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -104,8 +106,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.ACTIVATED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.FAILED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STARTED;
+import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.UPDATED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -128,6 +136,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private final Optional<RemoteIntegrationRpcService> remoteRpcService;
     private final Set<IntegrationType> supportedIntegrationTypes = new HashSet<>();
     private final ConcurrentMap<UUID, ValidationTask> pendingValidationTasks = new ConcurrentHashMap<>();
+    private final IntegrationStatisticsService integrationStatisticsService;
 
     @Value("${integrations.reinit.enabled:false}")
     private boolean reInitEnabled;
@@ -478,6 +487,8 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
         }
         boolean locked = state.getUpdateLock().tryLock();
         if (locked) {
+            boolean success = true;
+            var old = state.getCurrentState();
             try {
                 update(state);
             } catch (Throwable e) {
@@ -486,9 +497,11 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 } else {
                     log.warn("[{}] Failed to update state due to: {}. Enabled debug level to get more details.", id, e.getMessage());
                 }
+                success = false;
             } finally {
                 state.getUpdateLock().unlock();
             }
+            onIntegrationStateUpdate(state, old, success);
         } else {
             lifecycleExecutorService.schedule(() -> tryUpdate(id), 10, TimeUnit.SECONDS);
         }
@@ -683,6 +696,36 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             throw (RuntimeException) e;
         } else {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void onIntegrationStateUpdate(IntegrationState state, ComponentLifecycleEvent oldState, boolean success) {
+        try {
+            if (state.getConfiguration() != null) {
+                var integrationType = state.getConfiguration().getType();
+                if (integrationType != null && state.getCurrentState() != null) {
+                    integrationStatisticsService.onIntegrationStateUpdate(integrationType, state.getCurrentState(), success);
+                }
+                if (oldState == null || !oldState.equals(state.getCurrentState())) {
+                    int startedCount = (int) integrations.values()
+                            .stream()
+                            .filter(i -> i.getCurrentState() != null)
+                            .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
+                            .filter(i -> STARTED.equals(i.getCurrentState()))
+                            .count();
+
+                    int failedCount = (int) integrations.values()
+                            .stream()
+                            .filter(i -> i.getCurrentState() != null)
+                            .filter(i -> i.getConfiguration() != null && i.getConfiguration().getType().equals(integrationType))
+                            .filter(i -> FAILED.equals(i.getCurrentState()))
+                            .count();
+
+                    integrationStatisticsService.onIntegrationsCountUpdate(integrationType, startedCount, failedCount);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[{}][{}][{}] Failed to process integration update event", state.getId(), oldState, success, e);
         }
     }
 
