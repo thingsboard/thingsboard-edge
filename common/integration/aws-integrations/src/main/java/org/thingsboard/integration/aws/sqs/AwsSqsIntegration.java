@@ -90,11 +90,11 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     }
 
     private void pollMessages() {
-        if (stopped) {
-            return;
-        }
         pollLock.lock();
         try {
+            if (stopped) {
+                return;
+            }
             ReceiveMessageRequest sqsRequest = new ReceiveMessageRequest();
             sqsRequest.setQueueUrl(sqsConfiguration.getQueueUrl());
             sqsRequest.setMaxNumberOfMessages(10);
