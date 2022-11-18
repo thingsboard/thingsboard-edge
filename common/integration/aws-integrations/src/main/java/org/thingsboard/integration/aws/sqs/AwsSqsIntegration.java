@@ -51,6 +51,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /*
  * Created by Valerii Sosliuk on 30.05.19
@@ -63,6 +65,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     private AmazonSQS sqs;
     private ScheduledFuture<?> taskFuture;
     private volatile boolean stopped;
+    private final Lock pollLock = new ReentrantLock();
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -90,6 +93,7 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
         if (stopped) {
             return;
         }
+        pollLock.lock();
         try {
             ReceiveMessageRequest sqsRequest = new ReceiveMessageRequest();
             sqsRequest.setQueueUrl(sqsConfiguration.getQueueUrl());
@@ -116,6 +120,8 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
             log.trace(e.getMessage(), e);
             persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
             schedulePoll();
+        } finally {
+            pollLock.unlock();
         }
     }
 
@@ -149,11 +155,16 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
     @Override
     public void destroy() {
         stopped = true;
-        if (sqs != null) {
-            sqs.shutdown();
-        }
-        if (taskFuture != null) {
-            taskFuture.cancel(true);
+        pollLock.lock();
+        try {
+            if (sqs != null) {
+                sqs.shutdown();
+            }
+            if (taskFuture != null) {
+                taskFuture.cancel(true);
+            }
+        } finally {
+            pollLock.unlock();
         }
     }
 }
