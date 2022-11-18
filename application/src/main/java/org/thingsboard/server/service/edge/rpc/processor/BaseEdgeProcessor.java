@@ -98,9 +98,9 @@ import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.AdminSettingsMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AlarmMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.AssetMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ConverterProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomTranslationProtoConstructor;
-import org.thingsboard.server.service.edge.rpc.constructor.AssetProfileMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.CustomerMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DashboardMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.DeviceMsgConstructor;
@@ -482,7 +482,7 @@ public abstract class BaseEdgeProcessor {
         if (edgeNotificationMsg.getEntityGroupIdMSB() != 0 && edgeNotificationMsg.getEntityGroupIdLSB() != 0) {
             EntityGroupId entityGroupId = new EntityGroupId(new UUID(edgeNotificationMsg.getEntityGroupIdMSB(), edgeNotificationMsg.getEntityGroupIdLSB()));
             EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-            if (entityGroup.isEdgeGroupAll()) {
+            if (EdgeUtils.isEdgeGroupAll(entityGroup.getName())) {
                 return null;
             } else {
                 return entityGroupId;

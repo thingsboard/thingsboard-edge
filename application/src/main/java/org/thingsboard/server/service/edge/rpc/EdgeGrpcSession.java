@@ -242,18 +242,6 @@ public final class EdgeGrpcSession implements Closeable {
         }
     }
 
-//    private void syncEdgeOwner(TenantId tenantId, Edge edge) {
-//        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType())) {
-//            EdgeEvent customerEdgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edge.getId(),
-//                    EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, edge.getOwnerId(), null);
-//            DownlinkMsg customerDownlinkMsg = convertToDownlinkMsg(customerEdgeEvent);
-//            sendDownlinkMsgsPack(Collections.singletonList(customerDownlinkMsg));
-//
-//            startProcessingEdgeEvents(new CustomerRolesEdgeEventFetcher(ctx.getRoleService(), new CustomerId(edge.getOwnerId().getId())));
-//        }
-//    }
-
-
     private void onUplinkMsg(UplinkMsg uplinkMsg) {
         ListenableFuture<List<Void>> future = processUplinkMsg(uplinkMsg);
         Futures.addCallback(future, new FutureCallback<>() {
