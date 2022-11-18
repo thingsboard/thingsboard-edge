@@ -167,6 +167,8 @@
         <jgit.version>6.1.0.202203080745-r</jgit.version>
         <exp4j.version>0.4.8</exp4j.version>
         <aerogear-otp.version>1.0.0</aerogear-otp.version>
+        <aws-iot-device-sdk.version>1.3.9</aws-iot-device-sdk.version>
+        <aws-iot-device-sdk-samples.version>1.2.0</aws-iot-device-sdk-samples.version>
     </properties>
 
     <modules>
@@ -2181,6 +2183,18 @@
                 <groupId>net.objecthunter</groupId>
                 <artifactId>exp4j</artifactId>
                 <version>${exp4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-iot-device-sdk-java</artifactId>
+                <version>${aws-iot-device-sdk.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-iot-device-sdk-java-samples</artifactId>
+                <version>${aws-iot-device-sdk.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

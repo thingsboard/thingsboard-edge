@@ -78,6 +78,10 @@ public class TestProperties {
         return getProperties().getProperty("mqtt.broker");
     }
 
+    public static String getAwsIotEndpoint(){
+        return getProperties().getProperty("aws.iot.endpoint");
+    }
+
     private static Properties getProperties() {
         if (properties == null) {
             try (InputStream input = TestProperties.class.getClassLoader().getResourceAsStream("config.properties")) {
