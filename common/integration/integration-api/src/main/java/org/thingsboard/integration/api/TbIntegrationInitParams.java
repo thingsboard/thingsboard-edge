@@ -50,5 +50,4 @@ public class TbIntegrationInitParams {
     private final TBUplinkDataConverter uplinkConverter;
 
     private final TBDownlinkDataConverter downlinkConverter;
-
 }

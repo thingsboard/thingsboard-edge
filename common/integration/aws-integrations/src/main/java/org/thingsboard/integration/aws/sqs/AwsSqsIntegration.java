@@ -143,11 +143,13 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                     log.trace("[{}] Processing uplink data", data);
                 }
             }
+            integrationStatistics.incMessagesProcessed();
             if (configuration.isDebugMode()) {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), mapper.writeValueAsString(message.getJson()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
         }
     }

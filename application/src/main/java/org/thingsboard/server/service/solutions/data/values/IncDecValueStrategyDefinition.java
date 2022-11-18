@@ -28,30 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.emulator;
+package org.thingsboard.server.service.solutions.data.values;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.service.solutions.data.definition.DeviceEmulatorDefinition;
-import org.thingsboard.server.service.solutions.data.values.TelemetryGenerator;
-import org.thingsboard.server.service.solutions.data.values.TelemetryGeneratorFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Data;
 
-public class BasicDeviceEmulator implements DeviceEmulator {
+@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
+public abstract class IncDecValueStrategyDefinition implements ValueStrategyDefinition {
 
-    private final Map<String, TelemetryGenerator> tsGenerators = new HashMap<>();
+    private int precision;
+    private double minStartValue;
+    private double maxStartValue;
+    private double minEndValue;
+    private double maxEndValue;
 
-    @Override
-    public void init(DeviceEmulatorDefinition deviceProfile) {
-        deviceProfile.getTelemetryProfiles().forEach(tp -> tsGenerators.put(tp.getKey(), TelemetryGeneratorFactory.create(tp)));
-    }
-
-    @Override
-    public ObjectNode getValue(long ts) {
-        ObjectNode values = JacksonUtil.newObjectNode();
-        tsGenerators.values().forEach(gen -> gen.addValue(ts, values));
-        return values;
-    }
 }

@@ -118,6 +118,10 @@ public class WsClient extends WebSocketClient {
         }
     }
 
+    public WsTelemetryResponse getMessage() {
+        return this.message;
+    }
+
     @Override
     protected void onSetSSLParameters(SSLParameters sslParameters) {
         sslParameters.setEndpointIdentificationAlgorithm(null);

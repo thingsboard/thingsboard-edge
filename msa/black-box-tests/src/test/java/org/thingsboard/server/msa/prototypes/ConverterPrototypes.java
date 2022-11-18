@@ -28,35 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.config;
+package org.thingsboard.server.msa.prototypes;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.security.model.JwtToken;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 
-@Component
-@ConfigurationProperties(prefix = "security.jwt")
-@Data
-public class JwtSettings {
-    /**
-     * {@link JwtToken} will expire after this time.
-     */
-    private Integer tokenExpirationTime;
+public class ConverterPrototypes {
 
-    /**
-     * Token issuer.
-     */
-    private String tokenIssuer;
+    public static Converter uplinkConverterPrototype(JsonNode config){
+        Converter converter = new Converter();
+        converter.setName("Uplink converter " + StringUtils.randomAlphanumeric(7));
+        converter.setType(ConverterType.UPLINK);
+        converter.setConfiguration(config);
+        return converter;
+    }
 
-    /**
-     * Key is used to sign {@link JwtToken}.
-     */
-    private String tokenSigningKey;
-
-    /**
-     * {@link JwtToken} can be refreshed during this timeframe.
-     */
-    private Integer refreshTokenExpTime;
-
+    public static Converter downlinkConverterPrototype(JsonNode config){
+        Converter converter = new Converter();
+        converter.setName("Downlink converter " + StringUtils.randomAlphanumeric(7));
+        converter.setType(ConverterType.DOWNLINK);
+        converter.setConfiguration(config);
+        return converter;
+    }
 }

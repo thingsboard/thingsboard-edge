@@ -134,6 +134,11 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
           this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
           (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.LC_EVENT;
         }, 0);
+      } else if ((event.target as HTMLElement).getElementsByTagName('TB-SPARK-LINE').length || (event as any).path.some(el => el.tagName === 'TB-SPARK-LINE')) {
+        setTimeout(() => {
+          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
+          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.STATS;
+        }, 0);
       } else {
         (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = '';
       }
@@ -226,7 +231,15 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   }
 
   private configureCellActions(params: IntegrationParams): Array<CellActionDescriptor<IntegrationInfo>> {
-    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [];
+    const actions: Array<CellActionDescriptor<IntegrationInfo>> = [{
+      name: '',
+      nameFunction: (entity) =>
+        this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
+      mdiIcon: 'mdi:bug',
+      isEnabled: () => true,
+      mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
+      onAction: ($event, entity) => this.toggleDebugMode($event, entity)
+    }];
     if (params.integrationScope === 'edge') {
       actions.push(
         {
@@ -237,27 +250,14 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         }
       );
     }
-    actions.push(
-      {
-        name: '',
-        nameFunction: (entity) => this.translate.instant(entity.debugMode ? 'integration.disable-debug-mode' : 'integration.enable-debug-mode'),
-        mdiIcon: 'mdi:bug',
-        isEnabled: () => true,
-        mdiIconFunction: (entity) => entity.debugMode ? 'mdi:bug' : 'mdi:bug-outline',
-        onAction: ($event, entity) => this.toggleDebugMode($event, entity)
-      }
-    );
     return actions;
   }
 
   private saveIntegration(integration: Integration): Observable<Integration> {
     if (isUndefined(integration.edgeTemplate)) {
-      if (this.componentsData.integrationScope === 'tenant') {
-        integration.edgeTemplate = false;
-      } else if (this.componentsData.integrationScope === 'edges') {
+      if (this.componentsData.integrationScope === 'edges') {
         integration.edgeTemplate = true;
       } else {
-        // safe fallback to default
         integration.edgeTemplate = false;
       }
     }

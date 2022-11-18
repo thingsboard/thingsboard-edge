@@ -28,30 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.security.model;
+package org.thingsboard.server.service.install;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.security.Authority;
-
-@ApiModel(value = "JWT Token Pair")
-@Data
-@NoArgsConstructor
-public class JwtTokenPair {
-
-    @ApiModelProperty(position = 1, value = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
-    private String token;
-    @ApiModelProperty(position = 1, value = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
-    private String refreshToken;
-
-    private Authority scope;
-
-    public JwtTokenPair(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
-    }
-
+public interface NoSqlKeyspaceService extends DatabaseSchemaService {
 }

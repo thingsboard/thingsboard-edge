@@ -145,9 +145,6 @@ public class AssetController extends BaseController {
             @RequestBody Asset asset,
             @ApiParam(value = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId) throws ThingsboardException {
-        if (TB_SERVICE_QUEUE.equals(asset.getType())) {
-            throw new ThingsboardException("Unable to save asset with type " + TB_SERVICE_QUEUE, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(asset, strEntityGroupId, (asset1, entityGroup) -> {
             try {

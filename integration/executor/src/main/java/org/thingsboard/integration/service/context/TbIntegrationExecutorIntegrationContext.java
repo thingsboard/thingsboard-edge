@@ -35,25 +35,22 @@ import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
+import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.Event;
-import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -72,16 +69,18 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     private final String serviceId;
     private final IntegrationApiService apiService;
+    private final IntegrationStatisticsService statisticsService;
     private final TbIntegrationExecutorContextComponent contextComponent;
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
     private final LogSettingsComponent logSettingsComponent;
 
-    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService,
+    public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, IntegrationStatisticsService statisticsService,
                                                    TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
                                                    Integration configuration) {
         this.serviceId = serviceId;
         this.apiService = apiService;
+        this.statisticsService = statisticsService;
         this.contextComponent = contextComponent;
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
@@ -150,6 +149,20 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
         return contextComponent.getScheduledExecutorService();
+    }
+
+    @Override
+    public void onUplinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            statisticsService.onUplinkMsg(configuration.getType(), success);
+        }
+    }
+
+    @Override
+    public void onDownlinkMessageProcessed(boolean success) {
+        if (configuration != null) {
+            statisticsService.onUplinkMsg(configuration.getType(), success);
+        }
     }
 
     @Override

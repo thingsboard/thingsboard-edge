@@ -28,20 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.solutions.data.definition;
+package org.thingsboard.server.msa.prototypes;
 
-import lombok.Data;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Device;
 
-import java.util.Collections;
-import java.util.List;
+public class DevicePrototypes {
+    public static Device defaultDevicePrototype(String name){
+        Device device = new Device();
+        device.setName(name + RandomStringUtils.randomAlphanumeric(7));
+        device.setType("DEFAULT");
+        return device;
+    }
 
-@Data
-public class DeviceEmulatorDefinition {
-    private String name;
-    private String clazz;
-    private int publishPeriodInDays;
-    private int publishFrequencyInSeconds;
-    private int publishPauseInMillis;
-    private long activityPeriodInMillis;
-    private List<TelemetryProfile> telemetryProfiles = Collections.emptyList();
+    public static Device defaultGatewayPrototype() {
+        String isGateway = "{\"gateway\":true}";
+        JsonNode additionalInfo = JacksonUtil.toJsonNode(isGateway);
+        Device gatewayDeviceTemplate = new Device();
+        gatewayDeviceTemplate.setName("mqtt_gateway_" + RandomStringUtils.randomAlphanumeric(5));
+        gatewayDeviceTemplate.setType("gateway");
+        gatewayDeviceTemplate.setAdditionalInfo(additionalInfo);
+        return gatewayDeviceTemplate;
+    }
 }

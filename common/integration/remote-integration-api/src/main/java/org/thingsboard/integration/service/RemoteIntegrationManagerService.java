@@ -265,7 +265,8 @@ public class RemoteIntegrationManagerService {
                 }
 
                 TbIntegrationInitParams params = new TbIntegrationInitParams(
-                        new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService, configuration, clientId, port),
+                        new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
+                                configuration, clientId, port),
                         configuration,
                         uplinkDataConverter,
                         downlinkDataConverter);

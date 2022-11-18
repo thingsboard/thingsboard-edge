@@ -148,6 +148,7 @@
     <mat-step [stepControl]="integrationConfigurationForm">
       <ng-template matStepLabel>{{ "integration.connection" | translate }}</ng-template>
       <form [formGroup]="integrationConfigurationForm">
+        <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
         <tb-integration-configuration
           formControlName="configuration"
           [routingKey]="integrationConfigurationForm.get('routingKey').value"

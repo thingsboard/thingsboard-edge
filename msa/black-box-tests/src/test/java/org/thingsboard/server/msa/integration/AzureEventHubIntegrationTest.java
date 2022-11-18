@@ -38,23 +38,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.testng.Assert;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 @Slf4j
-public class AzureEventHubIntegrationTest extends AbstractContainerTest {
+public class AzureEventHubIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-azure-event";
     private static final String SECRET_KEY = "secret-key-azure-event";
     private static final String CONNECTION_STRING = System.getProperty("blackBoxTests.azureEventHubConnectionString", "");
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"connectTimeoutSec\":10," +
             "\"connectionString\":\"" + CONNECTION_STRING + "\"," +
@@ -86,18 +82,16 @@ public class AzureEventHubIntegrationTest extends AbstractContainerTest {
             "return result;";
 
     @BeforeClass
-    public static void setUp() {
-        org.junit.Assume.assumeFalse(Boolean.parseBoolean(System.getProperty("blackBoxTests.integrations.skip", "true")));
+    public static void beforeClass() {
+        if (Boolean.parseBoolean(System.getProperty("blackBoxTests.integrations.skip", "true"))) {
+            throw new SkipException("AzureventHubIntegrationTest is skipped");
+        }
     }
-
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("azure_event_");
-
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
+        integration = createIntegration(
                 IntegrationType.AZURE_EVENT_HUB, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, false);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
@@ -113,8 +107,6 @@ public class AzureEventHubIntegrationTest extends AbstractContainerTest {
                 actualLatestTelemetry.getLatestValues().keySet());
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
-
-        deleteAllObject(device, integration);
     }
 
     void sendMessageToHub() {
@@ -131,4 +123,8 @@ public class AzureEventHubIntegrationTest extends AbstractContainerTest {
         producer.send(eventDataBatch);
     }
 
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "azure_event_";
+    }
 }

@@ -272,7 +272,7 @@ public final class EdgeGrpcSession implements Closeable {
 
             @Override
             public void onFailure(Throwable t) {
-                String errorMsg = t.getMessage() != null ? t.getMessage() : "";
+                String errorMsg = EdgeUtils.createErrorMsgFromRootCauseAndStackTrace(t);
                 UplinkResponseMsg uplinkResponseMsg = UplinkResponseMsg.newBuilder()
                         .setUplinkMsgId(uplinkMsg.getUplinkMsgId())
                         .setSuccess(false).setErrorMsg(errorMsg).build();
@@ -658,7 +658,7 @@ public final class EdgeGrpcSession implements Closeable {
             }
             if (uplinkMsg.getDeviceRpcCallMsgCount() > 0) {
                 for (DeviceRpcCallMsg deviceRpcCallMsg : uplinkMsg.getDeviceRpcCallMsgList()) {
-                    result.add(ctx.getDeviceProcessor().processDeviceRpcCallResponseFromEdge(edge.getTenantId(), deviceRpcCallMsg));
+                    result.add(ctx.getDeviceProcessor().processDeviceRpcCallFromEdge(edge.getTenantId(), edge, deviceRpcCallMsg));
                 }
             }
             if (uplinkMsg.getWidgetBundleTypesRequestMsgCount() > 0) {

@@ -29,12 +29,6 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-CREATE KEYSPACE IF NOT EXISTS thingsboard
-WITH replication = {
-	'class' : 'SimpleStrategy',
-	'replication_factor' : 1
-};
-
 CREATE TABLE IF NOT EXISTS thingsboard.ts_kv_latest_cf (
     entity_type text, // (DEVICE, CUSTOMER, TENANT)
     entity_id timeuuid,
