@@ -188,7 +188,8 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'left',
+        target: 'integrationRoot'
       }));
   }
 

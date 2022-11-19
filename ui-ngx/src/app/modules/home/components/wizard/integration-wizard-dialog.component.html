@@ -147,7 +147,7 @@
     </mat-step>
     <mat-step [stepControl]="integrationConfigurationForm">
       <ng-template matStepLabel>{{ "integration.connection" | translate }}</ng-template>
-      <form [formGroup]="integrationConfigurationForm">
+      <form [formGroup]="integrationConfigurationForm" tb-toast toastTarget="integrationRoot">
         <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
         <tb-integration-configuration
           formControlName="configuration"

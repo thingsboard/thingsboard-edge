@@ -49,66 +49,64 @@
     </button>
   </div>
 </div>
-<div class="mat-padding" fxLayout="column">
-  <form [formGroup]="entityForm">
-    <fieldset [disabled]="(isLoading$ | async) || !isEdit">
-      <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
-      <div class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex class="mat-block">
-          <mat-label translate>integration.name</mat-label>
-          <input matInput formControlName="name" required>
-          <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
-            {{ 'integration.name-required' | translate }}
-          </mat-error>
-          <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
-            {{ 'integration.name-max-length' | translate }}
-          </mat-error>
-        </mat-form-field>
-        <tb-integration-type-select formControlName="type" required fxFlex>
-        </tb-integration-type-select>
-      </div>
-      <div class="row" fxLayout="column" fxLayoutGap="8px">
-        <mat-slide-toggle formControlName="enabled">
-          {{ 'integration.enabled' | translate }}
-        </mat-slide-toggle>
-        <mat-slide-toggle formControlName="debugMode">
-          {{ 'integration.debug-mode' | translate }}
-        </mat-slide-toggle>
-        <mat-slide-toggle formControlName="allowCreateDevicesOrAssets">
-          {{ 'integration.allow-create-devices-or-assets' | translate }}
-        </mat-slide-toggle>
-      </div>
-      <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
-        <tb-converter-autocomplete fxFlex formControlName="defaultConverterId" required
-                                   labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
-                                   [converterType]="converterType.UPLINK"
-                                   [showDetailsPageLink]="true"
-                                   [useFullEntityId]="true"
-                                   [addNewConverter]="true"
-                                   [isEdgeTemplate]="integrationScope === 'edges'">
-        </tb-converter-autocomplete>
-        <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
-                                   labelText="integration.downlink-converter"
-                                   *ngIf="showDownlinkConvector"
-                                   [converterType]="converterType.DOWNLINK"
-                                   [showDetailsPageLink]="true"
-                                   [useFullEntityId]="true"
-                                   [addNewConverter]="true"
-                                   [isEdgeTemplate]="integrationScope === 'edges'">
-        </tb-converter-autocomplete>
-      </div>
-      <tb-integration-configuration
-        formControlName="configuration"
-        [routingKey]="entityForm.get('routingKey').value"
-        [genericAdditionalInfoTemplate]="genericAdditionalInfo"
-        [executeRemotelyTemplate]="executeRemotely"
-        [integrationType]="entityForm.get('type').value"
-        [isSetDownlink]="!!entityForm.get('downlinkConverterId').value"
-        [isEdgeTemplate]="isEdgeTemplate"
-      ></tb-integration-configuration>
-    </fieldset>
-  </form>
-</div>
+<form [formGroup]="entityForm" class="mat-padding" tb-toast toastTarget="integrationRoot">
+  <fieldset [disabled]="(isLoading$ | async)">
+    <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
+    <div class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+      <mat-form-field fxFlex class="mat-block">
+        <mat-label translate>integration.name</mat-label>
+        <input matInput formControlName="name" required>
+        <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
+          {{ 'integration.name-required' | translate }}
+        </mat-error>
+        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+          {{ 'integration.name-max-length' | translate }}
+        </mat-error>
+      </mat-form-field>
+      <tb-integration-type-select formControlName="type" required fxFlex>
+      </tb-integration-type-select>
+    </div>
+    <div class="row" fxLayout="column" fxLayoutGap="8px">
+      <mat-slide-toggle formControlName="enabled">
+        {{ 'integration.enabled' | translate }}
+      </mat-slide-toggle>
+      <mat-slide-toggle formControlName="debugMode">
+        {{ 'integration.debug-mode' | translate }}
+      </mat-slide-toggle>
+      <mat-slide-toggle formControlName="allowCreateDevicesOrAssets">
+        {{ 'integration.allow-create-devices-or-assets' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
+      <tb-converter-autocomplete fxFlex formControlName="defaultConverterId" required
+                                 labelText="integration.uplink-converter" requiredText="integration.uplink-converter-required"
+                                 [converterType]="converterType.UPLINK"
+                                 [showDetailsPageLink]="true"
+                                 [useFullEntityId]="true"
+                                 [addNewConverter]="true"
+                                 [isEdgeTemplate]="integrationScope === 'edges'">
+      </tb-converter-autocomplete>
+      <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+                                 labelText="integration.downlink-converter"
+                                 *ngIf="showDownlinkConvector"
+                                 [converterType]="converterType.DOWNLINK"
+                                 [showDetailsPageLink]="true"
+                                 [useFullEntityId]="true"
+                                 [addNewConverter]="true"
+                                 [isEdgeTemplate]="integrationScope === 'edges'">
+      </tb-converter-autocomplete>
+    </div>
+    <tb-integration-configuration
+      formControlName="configuration"
+      [routingKey]="entityForm.get('routingKey').value"
+      [genericAdditionalInfoTemplate]="genericAdditionalInfo"
+      [executeRemotelyTemplate]="executeRemotely"
+      [integrationType]="entityForm.get('type').value"
+      [isSetDownlink]="!!entityForm.get('downlinkConverterId').value"
+      [isEdgeTemplate]="isEdgeTemplate"
+    ></tb-integration-configuration>
+  </fieldset>
+</form>
 <ng-template #genericAdditionalInfo>
   <section [formGroup]="entityForm">
     <div formGroupName="additionalInfo" fxLayout="column">
@@ -142,7 +140,7 @@
               <mat-label translate>integration.integration-key</mat-label>
               <input matInput formControlName="routingKey">
             </mat-form-field>
-            <button mat-button  mat-icon-button ngxClipboard type="button" color="primary"
+            <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
                     (cbOnSuccess)="onIntegrationInfoCopied('key')"
                     [cbContent]="entityForm?.get('routingKey').value"
                     matTooltip="{{'integration.copy-integration-key' | translate}}">
