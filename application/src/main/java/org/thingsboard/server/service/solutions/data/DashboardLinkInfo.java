@@ -40,5 +40,6 @@ public class DashboardLinkInfo {
     private final String name;
     private final EntityGroupId entityGroupId;
     private final DashboardId dashboardId;
+    private final boolean isPublic;
 
 }

@@ -16,6 +16,7 @@
         "direction": "FROM",
         "type": "Contains"
       }
-    ]
+    ],
+    "makePublic": true
   }
 ]
