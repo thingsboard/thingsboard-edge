@@ -30,24 +30,23 @@
  */
 package org.thingsboard.integration.api;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
-import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 
-/**
- * Created by ashvayka on 05.12.17.
- */
-@Data
-@AllArgsConstructor
-public class TbIntegrationInitParams {
+import java.util.Map;
 
-    private final IntegrationContext context;
+public interface IntegrationStatisticsService {
 
-    private final Integration configuration;
+    void onIntegrationStateUpdate(IntegrationType integrationType, ComponentLifecycleEvent state, boolean success);
 
-    private final TBUplinkDataConverter uplinkConverter;
+    void onIntegrationsCountUpdate(IntegrationType integrationType, int started, int failed);
 
-    private final TBDownlinkDataConverter downlinkConverter;
+    void onUplinkMsg(IntegrationType integrationType, boolean success);
+
+    void onDownlinkMsg(IntegrationType integrationType, boolean success);
+
+    void printStats();
+
+    void reset();
+
 }

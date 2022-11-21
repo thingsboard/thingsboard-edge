@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 
 public interface IntegrationRpcClient {
 
-    void connect(String integrationKey, String integrationSecret, Consumer<IntegrationConfigurationProto> onIntegrationUpdate,
+    void connect(String integrationKey, String integrationSecret, String serviceId, Consumer<IntegrationConfigurationProto> onIntegrationUpdate,
                  Consumer<ConverterConfigurationProto> onConverterUpdate, Consumer<DeviceDownlinkDataProto> onDownlink, Consumer<Exception> onError);
 
     void disconnect() throws InterruptedException;
