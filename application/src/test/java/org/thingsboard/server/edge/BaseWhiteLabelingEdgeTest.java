@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -48,6 +49,7 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testWhiteLabeling() throws Exception {
         testWhiteLabeling_sysAdmin();
         testWhiteLabeling_tenant();
@@ -100,6 +102,7 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testLoginWhiteLabeling() throws Exception {
         testLoginWhiteLabeling_sysAdmin();
         testLoginWhiteLabeling_tenant();
@@ -152,6 +155,7 @@ abstract public class BaseWhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testCustomTranslation() throws Exception {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
