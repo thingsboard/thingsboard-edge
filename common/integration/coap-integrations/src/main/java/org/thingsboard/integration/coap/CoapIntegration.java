@@ -85,7 +85,6 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
 
     @Override
     public void destroy() {
-        super.destroy();
         if (this.integrationResource != null) {
             this.integrationResource.delete();
         }

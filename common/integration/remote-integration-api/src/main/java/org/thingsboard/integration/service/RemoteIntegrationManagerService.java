@@ -42,7 +42,6 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationStatistics;
-import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
@@ -189,7 +188,7 @@ public class RemoteIntegrationManagerService {
             System.exit(-1);
         }
         serviceId = "[" + clientId + ":" + port + "]";
-        rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
+        rpcClient.connect(routingKey, routingSecret, serviceId, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
         reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-reconnect"));
         schedulerService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-scheduler"));
@@ -253,30 +252,36 @@ public class RemoteIntegrationManagerService {
         }
         try {
             Integration configuration = createIntegrationConfiguration(integrationConfigurationProto);
-            integration = IntegrationUtil.createPlatformIntegration(IntegrationType.valueOf(integrationConfigurationProto.getType()), configuration.getConfiguration(), true, coapServerService);
-            integration.validateConfiguration(configuration, allowLocalNetworkHosts);
+            if (configuration.isEnabled()) {
+                integration = IntegrationUtil.createPlatformIntegration(IntegrationType.valueOf(integrationConfigurationProto.getType()), configuration.getConfiguration(), true, coapServerService);
+                integration.validateConfiguration(configuration, allowLocalNetworkHosts);
 
-            if (uplinkDataConverter == null || !uplinkDataConverter.getName().equals(integrationConfigurationProto.getUplinkConverter().getName())) {
-                uplinkDataConverter = createUplinkConverter(integrationConfigurationProto.getUplinkConverter());
-            }
+                if (uplinkDataConverter == null || !uplinkDataConverter.getName().equals(integrationConfigurationProto.getUplinkConverter().getName())) {
+                    uplinkDataConverter = createUplinkConverter(integrationConfigurationProto.getUplinkConverter());
+                }
 
-            if (downlinkDataConverter == null || !downlinkDataConverter.getName().equals(integrationConfigurationProto.getDownlinkConverter().getName())) {
-                downlinkDataConverter = createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter());
-            }
+                if (downlinkDataConverter == null || !downlinkDataConverter.getName().equals(integrationConfigurationProto.getDownlinkConverter().getName())) {
+                    downlinkDataConverter = createDownlinkConverter(integrationConfigurationProto.getDownlinkConverter());
+                }
 
-            TbIntegrationInitParams params = new TbIntegrationInitParams(
-                    new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
-                            configuration, clientId, port),
-                    configuration,
-                    uplinkDataConverter,
-                    downlinkDataConverter);
-            integration.init(params);
-            if (updatingIntegration) {
-                integrationEvent = ComponentLifecycleEvent.UPDATED;
-                persistLifecycleEvent(ComponentLifecycleEvent.UPDATED, null);
-            } else {
-                integrationEvent = ComponentLifecycleEvent.STARTED;
-                persistLifecycleEvent(ComponentLifecycleEvent.STARTED, null);
+                TbIntegrationInitParams params = new TbIntegrationInitParams(
+                        new RemoteIntegrationContext(eventStorage, schedulerService, generalExecutorService, callBackExecutorService,
+                                configuration, clientId, port),
+                        configuration,
+                        uplinkDataConverter,
+                        downlinkDataConverter);
+                integration.init(params);
+                if (updatingIntegration) {
+                    integrationEvent = ComponentLifecycleEvent.UPDATED;
+                    persistLifecycleEvent(ComponentLifecycleEvent.UPDATED, null);
+                } else {
+                    integrationEvent = ComponentLifecycleEvent.STARTED;
+                    persistLifecycleEvent(ComponentLifecycleEvent.STARTED, null);
+                }
+            } else if (!ComponentLifecycleEvent.STOPPED.equals(integrationEvent)) {
+                integrationEvent = ComponentLifecycleEvent.STOPPED;
+                persistLifecycleEvent(ComponentLifecycleEvent.STOPPED, null);
+                integration = null;
             }
             initialized = true;
         } catch (Exception e) {
@@ -388,7 +393,7 @@ public class RemoteIntegrationManagerService {
                 } catch (Exception ex) {
                     log.error("Exception during disconnect: {}", ex.getMessage());
                 }
-                rpcClient.connect(routingKey, routingSecret, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
+                rpcClient.connect(routingKey, routingSecret, serviceId, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
             }, 0, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }
     }

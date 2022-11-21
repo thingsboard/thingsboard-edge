@@ -101,4 +101,8 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
 
     protected abstract String getTypeUplink(T msg);
 
+    @Override
+    public void destroy() {
+
+    }
 }
