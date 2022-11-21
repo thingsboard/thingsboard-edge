@@ -27,7 +27,7 @@ public final class CloudEventUtils {
         return new TimePageLink(pageSize,
                 0,
                 null,
-                new SortOrder("id", SortOrder.Direction.ASC),
+                new SortOrder("createdTime", SortOrder.Direction.ASC),
                 startTs,
                 System.currentTimeMillis());
     }
