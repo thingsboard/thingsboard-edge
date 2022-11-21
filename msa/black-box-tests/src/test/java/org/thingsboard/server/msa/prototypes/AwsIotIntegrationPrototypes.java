@@ -36,7 +36,7 @@ import org.thingsboard.common.util.JacksonUtil;
 public class AwsIotIntegrationPrototypes {
     private static final String CONFIG_INTEGRATION = "{\n" +
             "  \"clientConfiguration\": {\n" +
-            "    \"host\": \"auc98gzujrpb0-ats.iot.eu-west-1.amazonaws.com\",\n" +
+            "    \"host\": \"%s\",\n" +
             "    \"port\": 8883,\n" +
             "    \"clientId\": \"\",\n" +
             "    \"connectTimeoutSec\": 10,\n" +
@@ -63,7 +63,7 @@ public class AwsIotIntegrationPrototypes {
             "  \"metadata\": {}\n" +
             "}";
 
-    public static JsonNode defaultConfig(String caCert, String cert, String privateKey){
-        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION, caCert, cert, privateKey));
+    public static JsonNode defaultConfig(String endpoint, String caCert, String cert, String privateKey){
+        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION, endpoint, caCert, cert, privateKey));
     }
 }

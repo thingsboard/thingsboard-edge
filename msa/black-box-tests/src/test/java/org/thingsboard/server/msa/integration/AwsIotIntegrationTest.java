@@ -33,7 +33,6 @@ package org.thingsboard.server.msa.integration;
 import com.amazonaws.services.iot.client.AWSIotMessage;
 import com.amazonaws.services.iot.client.AWSIotMqttClient;
 import com.amazonaws.services.iot.client.AWSIotQos;
-import com.amazonaws.services.iot.client.AWSIotTopic;
 import com.amazonaws.services.iot.client.sample.pubSub.TestTopicListener;
 import com.amazonaws.services.iot.client.sample.sampleUtil.SampleUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,18 +41,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.awaitility.Awaitility;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.hyperic.sigar.cmd.Top;
-import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -61,35 +54,25 @@ import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.msa.AbstractContainerTest;
-import org.thingsboard.server.msa.TestProperties;
-import org.thingsboard.server.msa.prototypes.MQTTIntegrationPrototypes;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.DataConstants.DEVICE;
 import static org.thingsboard.server.common.data.DataConstants.SHARED_SCOPE;
 import static org.thingsboard.server.common.data.integration.IntegrationType.AWS_IOT;
-import static org.thingsboard.server.common.data.integration.IntegrationType.MQTT;
-import static org.thingsboard.server.msa.TestProperties.getAwsIotEndpoint;
 import static org.thingsboard.server.msa.prototypes.AwsIotIntegrationPrototypes.defaultConfig;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.downlinkConverterPrototype;
 import static org.thingsboard.server.msa.prototypes.ConverterPrototypes.uplinkConverterPrototype;
-import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
 @Slf4j
 public class AwsIotIntegrationTest extends AbstractIntegrationTest {
-    private static final String ROOT_CA_NAME = "rootCA.pem";
-    private static final String CERTIFICATE_NAME = "cert.crt";
-    private static final String PRIVATE_KEY_NAME = "private.key";
     private static final String ROUTING_KEY = "routing-key-1234599";
     private static final String SECRET_KEY = "secret-key-1234599";
 
@@ -132,6 +115,22 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
     private Converter uplinkConverter;
     private Converter downlinkConverter;
     private RuleChainId defaultRuleChainId;
+    private String clientEndpoint;
+    private String rootCA;
+    private String certificate;
+    private String privateKey;
+    @BeforeClass
+    public void beforeClass() {
+        clientEndpoint = System.getProperty("blackBoxTests.aws.endpoint", "");
+        rootCA = System.getProperty("blackBoxTests.aws.rootCA", "");
+        certificate = System.getProperty("blackBoxTests.aws.cert", "");
+        privateKey = System.getProperty("blackBoxTests.aws.privateKey", "");
+
+        if (clientEndpoint.isEmpty() || rootCA.isEmpty() || certificate.isEmpty() ||
+                privateKey.isEmpty()) {
+            throw new SkipException("Aws iot integration tests are skipped");
+        }
+    }
 
     @BeforeMethod
     public void setUp() {
@@ -148,7 +147,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        JsonNode configuration = getIntegrationConfig(ROOT_CA_NAME, CERTIFICATE_NAME, PRIVATE_KEY_NAME);
+        JsonNode configuration = getIntegrationConfig(clientEndpoint, rootCA, certificate, privateKey);
         integration = Integration.builder()
                 .type(AWS_IOT)
                 .name("aws_iot_" + RandomStringUtils.randomAlphanumeric(7))
@@ -169,8 +168,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
         String content = createPayloadForUplink(value).toString();
 
         //send payload to aws iot instance
-        String clientEndpoint = getAwsIotEndpoint();
-        AWSIotMqttClient awsIotClient = getAwsIotClient(clientEndpoint, CERTIFICATE_NAME, PRIVATE_KEY_NAME);
+        AWSIotMqttClient awsIotClient = getAwsIotClient(clientEndpoint, certificate, privateKey);
         awsIotClient.connect();
         awsIotClient.publish("sensors/" + device.getName() + "/temperature", content);
 
@@ -199,7 +197,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDownlinkMessageWasSent() throws Exception {
-        JsonNode configuration = getIntegrationConfig(ROOT_CA_NAME, CERTIFICATE_NAME, PRIVATE_KEY_NAME);
+        JsonNode configuration = getIntegrationConfig(clientEndpoint, rootCA, certificate, privateKey);
         integration = Integration.builder()
                 .type(AWS_IOT)
                 .name("aws_iot_" + RandomStringUtils.randomAlphanumeric(7))
@@ -218,8 +216,7 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
         waitUntilIntegrationStarted(integration.getId(), integration.getTenantId());
 
         //subscribe for aws iot topic
-        String clientEndpoint = getAwsIotEndpoint();
-        AWSIotMqttClient awsIotClient = getAwsIotClient(clientEndpoint, CERTIFICATE_NAME, PRIVATE_KEY_NAME);
+        AWSIotMqttClient awsIotClient = getAwsIotClient(clientEndpoint, certificate, privateKey);
         awsIotClient.connect();
 
         TopicListener topicListener = new TopicListener("sensors/device/upload", AWSIotQos.QOS0);
@@ -269,28 +266,21 @@ public class AwsIotIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    private JsonNode getIntegrationConfig(String rootCAName, String certName, String privateKeyName) throws IOException {
-        String rootCA = new String(Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream(rootCAName))
-                .readAllBytes(), UTF_8).replace("\n", "\\n");
-        String cert = new String(Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream(certName))
-                .readAllBytes(), UTF_8).replace("\n", "\\n");
-        String privateKey = new String(Objects.requireNonNull(this.getClass().getClassLoader().getResourceAsStream(privateKeyName))
-                .readAllBytes(), UTF_8).replace("\n", "\\n");
-
-        return defaultConfig(rootCA, cert, privateKey);
+    private JsonNode getIntegrationConfig(String clientEndpoint, String rootCAName, String certName, String privateKeyName) throws IOException {
+        String rootCA =new String(Files.readAllBytes(Paths.get(rootCAName))).replace("\n", "\\n");
+        String cert = new String(Files.readAllBytes(Paths.get(certName))).replace("\n", "\\n");
+        String privateKey = new String(Files.readAllBytes(Paths.get(privateKeyName))).replace("\n", "\\n");
+        return defaultConfig(clientEndpoint, rootCA, cert, privateKey);
     }
     private JsonNode createPayloadForUplink(String value) {
         ObjectNode values = JacksonUtil.newObjectNode();
         values.put("value", value);
         return values;
     }
-    private AWSIotMqttClient getAwsIotClient(String clientEndpoint, String certificateName, String privateKeyName) {
+    private AWSIotMqttClient getAwsIotClient(String clientEndpoint, String certificatePath, String privateKeyPath) {
         String clientId = RandomStringUtils.randomAlphanumeric(10);
 
-        String certificateFile = Objects.requireNonNull(this.getClass().getClassLoader().getResource(certificateName)).getFile();
-        String privateKeyFile = Objects.requireNonNull(this.getClass().getClassLoader().getResource(privateKeyName)).getFile();
-
-        SampleUtil.KeyStorePasswordPair pair = SampleUtil.getKeyStorePasswordPair(certificateFile, privateKeyFile);
+        SampleUtil.KeyStorePasswordPair pair = SampleUtil.getKeyStorePasswordPair(certificatePath, privateKeyPath);
         AWSIotMqttClient awsIotClient = new AWSIotMqttClient(clientEndpoint, clientId, pair.keyStore, pair.keyPassword);
 
         if (awsIotClient == null) {
