@@ -138,11 +138,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void destroy() {
-
-    }
-
-    @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg msg) {
 
     }

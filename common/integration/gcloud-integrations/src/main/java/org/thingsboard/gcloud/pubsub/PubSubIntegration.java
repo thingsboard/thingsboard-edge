@@ -43,8 +43,6 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.ConvertUtil;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +56,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
     private Subscriber subscriber;
     private volatile boolean stopped;
 
-    @PostConstruct
+    @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         stopped = false;
@@ -104,8 +102,8 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
         }
     }
 
-    @PreDestroy
-    public void stop() {
+    @Override
+    public void destroy() {
         stopped = true;
         if (subscriber != null) {
             subscriber.stopAsync();
