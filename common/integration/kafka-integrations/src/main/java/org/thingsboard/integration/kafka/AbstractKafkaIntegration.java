@@ -62,7 +62,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName() + "-loop"));
         this.ctx = params.getContext();
         kafkaConsumerConfiguration = getClientConfiguration(configuration, KafkaConsumerConfiguration.class);
     }
@@ -89,12 +89,6 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
                 log.warn("Failed to persist debug message", e);
             }
         }
-    }
-
-    @Override
-    public void update(TbIntegrationInitParams params) throws Exception {
-        destroy();
-        init(params);
     }
 
     @Override
@@ -132,7 +126,7 @@ public abstract class AbstractKafkaIntegration<T extends KafkaIntegrationMsg> ex
         try {
             kafkaConsumer.subscribe(Collections.singletonList(configuration.getTopics()));
             kafkaConsumer.partitionsFor(configuration.getTopics());
-        } catch(Exception | ThingsboardKafkaClientError e) {
+        } catch (Exception | ThingsboardKafkaClientError e) {
             throw new RuntimeException("Connection to node could not be established. Broker may not be available.", e);
         } finally {
             kafkaLock.unlock();

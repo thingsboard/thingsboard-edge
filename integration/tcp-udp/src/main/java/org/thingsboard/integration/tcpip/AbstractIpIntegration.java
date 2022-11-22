@@ -98,9 +98,6 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
             initCache(params);
         }
         this.ctx = params.getContext();
-        if (serverChannel != null) {
-            destroy();
-        }
     }
 
     private void initCache(TbIntegrationInitParams params) {

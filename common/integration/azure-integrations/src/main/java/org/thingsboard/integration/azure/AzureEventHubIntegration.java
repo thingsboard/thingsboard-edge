@@ -42,7 +42,6 @@ import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
 import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -52,6 +51,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
@@ -84,12 +84,6 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (downlinkConverter != null) {
             serviceClient = initServiceClient(clientConfiguration);
         }
-    }
-
-    @Override
-    public void update(TbIntegrationInitParams params) throws Exception {
-        destroy();
-        init(params);
     }
 
     @Override

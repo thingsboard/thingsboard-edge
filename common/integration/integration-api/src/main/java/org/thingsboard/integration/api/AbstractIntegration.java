@@ -109,6 +109,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     @Override
     public void update(TbIntegrationInitParams params) throws Exception {
+        destroy();
         init(params);
     }
 

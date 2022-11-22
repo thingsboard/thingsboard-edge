@@ -42,12 +42,12 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.ShutdownSignalException;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -86,7 +86,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName() + "-loop"));
         producerExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
         this.ctx = params.getContext();
         rabbitMQConsumerConfiguration = getClientConfiguration(configuration, RabbitMQConsumerConfiguration.class);
@@ -117,12 +117,6 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                 log.warn("Failed to persist debug message", e);
             }
         }
-    }
-
-    @Override
-    public void update(TbIntegrationInitParams params) throws Exception {
-        destroy();
-        init(params);
     }
 
     @Override
@@ -231,7 +225,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         rabbitMQConsumer = new DefaultConsumer(channel);
         rabbitMQLock.lock();
         try {
-            routingKeys.forEach( (topic) -> {
+            routingKeys.forEach((topic) -> {
                 createTopicIfNotExists(topic, null);
             });
         } finally {
@@ -244,7 +238,7 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
         connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(rabbitMQConsumerConfiguration.getHost());
         connectionFactory.setPort(rabbitMQConsumerConfiguration.getPort());
-        if (!StringUtils.isEmpty(rabbitMQConsumerConfiguration.getVirtualHost())){
+        if (!StringUtils.isEmpty(rabbitMQConsumerConfiguration.getVirtualHost())) {
             connectionFactory.setVirtualHost(rabbitMQConsumerConfiguration.getVirtualHost());
         }
         if (!StringUtils.isEmpty(rabbitMQConsumerConfiguration.getUsername())) {
