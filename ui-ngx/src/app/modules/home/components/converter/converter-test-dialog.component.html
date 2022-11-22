@@ -117,7 +117,7 @@
                                              converterTestFormGroup.get('integrationMetadata').value]"
               [disableUndefinedCheck]="scriptLang === scriptLanguage.TBEL"
               resultType="object"
-              helpId="{{isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn'}}"
+              helpId="{{scriptLang === scriptLanguage.TBEL ? (isDecoder ? 'converter/tbel/decoder_fn' : 'converter/tbel/encoder_fn') : (isDecoder ? 'converter/decoder_fn' : 'converter/encoder_fn')}}"
               [fillHeight]="true">
             </tb-js-func>
           </div>
