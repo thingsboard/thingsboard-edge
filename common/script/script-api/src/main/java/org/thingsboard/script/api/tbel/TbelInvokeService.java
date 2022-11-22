@@ -28,16 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.script.api.tbel;
 
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 
-public interface MvelInvokeService extends ScriptInvokeService {
+public interface TbelInvokeService extends ScriptInvokeService {
 
     @Override
     default ScriptLanguage getLanguage() {
-        return ScriptLanguage.MVEL;
+        return ScriptLanguage.TBEL;
     }
 
 }

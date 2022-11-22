@@ -35,7 +35,7 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 
@@ -47,8 +47,8 @@ public class ScriptUplinkDataConverter extends AbstractUplinkDataConverter {
     private final LogSettingsComponent logSettings;
     private ScriptUplinkEvaluator evaluator;
 
-    public ScriptUplinkDataConverter(JsInvokeService jsInvokeService, MvelInvokeService mvelInvokeService, LogSettingsComponent logSettings) {
-        super(jsInvokeService, mvelInvokeService);
+    public ScriptUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService, LogSettingsComponent logSettings) {
+        super(jsInvokeService, tbelInvokeService);
         this.logSettings = logSettings;
     }
 
@@ -56,7 +56,7 @@ public class ScriptUplinkDataConverter extends AbstractUplinkDataConverter {
     public void init(Converter configuration) {
         super.init(configuration);
         ScriptInvokeService scriptInvokeService = getScriptInvokeService(configuration);
-        String decoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "decoder" : "mvelDecoder";
+        String decoderField = ScriptLanguage.JS.equals(scriptInvokeService.getLanguage()) ? "decoder" : "tbelDecoder";
         String decoder = configuration.getConfiguration().get(decoderField).asText();
         this.evaluator = new ScriptUplinkEvaluator(configuration.getTenantId(), scriptInvokeService, configuration.getId(), decoder);
     }

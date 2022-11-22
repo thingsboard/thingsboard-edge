@@ -50,9 +50,9 @@
         "name": "If send email",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "return msg.sendEmail === true;",
-          "mvelScript": "return msg.sendEmail === true;"
+          "tbelScript": "return msg.sendEmail === true;"
         }
       },
       {
@@ -64,9 +64,9 @@
         "name": "Prepare email metadata",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "metadata['emailFrom'] = msg.emailConfig.from;\nmetadata['emailTo'] = msg.emailConfig.to;\nmetadata['emailCc'] = msg.emailConfig.cc || \"\";\nmetadata['emailBcc'] = msg.emailConfig.bcc || \"\";\nmetadata['emailSubject'] = msg.emailConfig.subject;\nmetadata['emailBody'] = msg.emailConfig.body;\nmetadata['emailTimezone'] = msg.reportConfig.timezone;\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};",
-          "mvelScript": "metadata['emailFrom'] = msg.emailConfig.from;\nmetadata['emailTo'] = msg.emailConfig.to;\nmetadata['emailCc'] = msg.emailConfig.cc != null ? msg.emailConfig.cc : \"\";\nmetadata['emailBcc'] = msg.emailConfig.bcc != null ? msg.emailConfig.bcc : \"\";\nmetadata['emailSubject'] = msg.emailConfig.subject;\nmetadata['emailBody'] = msg.emailConfig.body;\nmetadata['emailTimezone'] = msg.reportConfig.timezone;\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
+          "tbelScript": "metadata['emailFrom'] = msg.emailConfig.from;\nmetadata['emailTo'] = msg.emailConfig.to;\nmetadata['emailCc'] = msg.emailConfig.cc != null ? msg.emailConfig.cc : \"\";\nmetadata['emailBcc'] = msg.emailConfig.bcc != null ? msg.emailConfig.bcc : \"\";\nmetadata['emailSubject'] = msg.emailConfig.subject;\nmetadata['emailBody'] = msg.emailConfig.body;\nmetadata['emailTimezone'] = msg.reportConfig.timezone;\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
         }
       },
       {

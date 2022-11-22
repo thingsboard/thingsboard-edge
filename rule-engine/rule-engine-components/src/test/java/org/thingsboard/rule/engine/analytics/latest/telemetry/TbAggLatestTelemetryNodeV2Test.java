@@ -227,15 +227,15 @@ public class TbAggLatestTelemetryNodeV2Test {
 
         AggLatestMappingFilter filter = new AggLatestMappingFilter();
         filter.setLatestTsKeyNames(Collections.singletonList("temperature"));
-        filter.setScriptLang(ScriptLanguage.MVEL);
-        filter.setMvelFilterFunction(FILTER_FUNCTION);
+        filter.setScriptLang(ScriptLanguage.TBEL);
+        filter.setTbelFilterFunction(FILTER_FUNCTION);
         sumMapping.setFilter(filter);
 
         aggMappings.add(sumMapping);
         config.setAggMappings(aggMappings);
 
         //Mock for filter
-        when(peCtx.createAttributesScriptEngine(ScriptLanguage.MVEL, FILTER_FUNCTION)).thenReturn(scriptEngine);
+        when(peCtx.createAttributesScriptEngine(ScriptLanguage.TBEL, FILTER_FUNCTION)).thenReturn(scriptEngine);
         when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
                 (Answer<ListenableFuture<Boolean>>) invocation -> {
                     Map<String, BasicTsKvEntry> attributes = (Map<String, BasicTsKvEntry>) (invocation.getArguments())[0];

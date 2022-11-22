@@ -28,26 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.script.api.tbel;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.Data;
-import lombok.Getter;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.mvel2.ExecutionContext;
-import org.thingsboard.script.api.TbScriptExecutionTask;
+import org.mvel2.util.ArgsRepackUtil;
+import org.thingsboard.common.util.JacksonUtil;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
-public class MvelScriptExecutionTask extends TbScriptExecutionTask {
+public class TbJson {
 
-    private final ExecutionContext context;
-
-    public MvelScriptExecutionTask(ExecutionContext context, ListenableFuture<Object> resultFuture) {
-        super(resultFuture);
-        this.context = context;
+    public static String stringify(Object value) {
+        return value != null ? JacksonUtil.toString(value) : "null";
     }
 
-    @Override
-    public void stop(){
-        context.stop();
+    public static Object parse(ExecutionContext ctx, String value) throws IOException {
+        if (value != null) {
+            JsonNode node = JacksonUtil.toJsonNode(value);
+            if (node.isObject()) {
+                return ArgsRepackUtil.repack(ctx, JacksonUtil.convertValue(node, Map.class));
+            } else if (node.isArray()) {
+                return ArgsRepackUtil.repack(ctx, JacksonUtil.convertValue(node, List.class));
+            } else if (node.isDouble()) {
+                return node.doubleValue();
+            } else if (node.isLong()) {
+                return node.longValue();
+            } else if (node.isInt()) {
+                return node.intValue();
+            } else if (node.isBoolean()) {
+                return node.booleanValue();
+            } else if (node.isTextual()) {
+                return node.asText();
+            } else if (node.isBinary()) {
+                return node.binaryValue();
+            } else if (node.isNull()) {
+                return null;
+            } else {
+                return node.asText();
+            }
+        } else {
+            return null;
+        }
     }
 }

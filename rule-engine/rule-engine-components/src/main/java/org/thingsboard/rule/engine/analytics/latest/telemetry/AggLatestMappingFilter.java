@@ -61,7 +61,7 @@ public class AggLatestMappingFilter {
 
     private ScriptLanguage scriptLang;
     private String filterFunction;
-    private String mvelFilterFunction;
+    private String tbelFilterFunction;
 
     public ListenableFuture<List<EntityId>> filterEntityIds(TbContext ctx, Map<String, ScriptEngine> attributesScriptEngineMap, List<EntityId> entityIds) {
         List<ListenableFuture<Optional<EntityId>>> resultFutures = new ArrayList<>();
@@ -79,7 +79,7 @@ public class AggLatestMappingFilter {
             prepareAttributes(ctx, attributes, entityId, SHARED_SCOPE, sharedAttributeNames, "shared_");
             prepareAttributes(ctx, attributes, entityId, SERVER_SCOPE, serverAttributeNames, "ss_");
             prepareTimeseries(ctx, attributes, entityId, latestTsKeyNames);
-            String script = (scriptLang == null || ScriptLanguage.JS.equals(scriptLang)) ? filterFunction : mvelFilterFunction;
+            String script = (scriptLang == null || ScriptLanguage.JS.equals(scriptLang)) ? filterFunction : tbelFilterFunction;
             ScriptEngine attributesScriptEngine = attributesScriptEngineMap.computeIfAbsent(script,
                     function -> ctx.getPeContext().createAttributesScriptEngine(scriptLang, function));
             return Futures.transform(attributesScriptEngine.executeAttributesFilterAsync(attributes), res ->

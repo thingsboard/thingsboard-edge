@@ -39,8 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.script.api.RuleNodeScriptFactory;
 import org.thingsboard.script.api.ScriptType;
-import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -60,13 +59,13 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-public class RuleNodeMvelScriptEngine extends RuleNodeScriptEngine<MvelInvokeService, Object> {
+public class RuleNodeTbelScriptEngine extends RuleNodeScriptEngine<TbelInvokeService, Object> {
 
-    public RuleNodeMvelScriptEngine(TenantId tenantId, MvelInvokeService scriptInvokeService, String script, String... argNames) {
+    public RuleNodeTbelScriptEngine(TenantId tenantId, TbelInvokeService scriptInvokeService, String script, String... argNames) {
         this(tenantId, scriptInvokeService, ScriptType.RULE_NODE_SCRIPT, script, argNames);
     }
 
-    public RuleNodeMvelScriptEngine(TenantId tenantId, MvelInvokeService scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
+   public RuleNodeTbelScriptEngine(TenantId tenantId, TbelInvokeService scriptInvokeService, ScriptType scriptType, String script, String... argNames) {
         super(tenantId, scriptInvokeService, scriptType, script, argNames);
     }
 

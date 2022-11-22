@@ -28,28 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.script.api.mvel;
+package org.thingsboard.script.api.tbel;
 
-import lombok.Data;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.mvel2.ExecutionContext;
+import org.thingsboard.script.api.TbScriptExecutionTask;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
-@Data
-public class MvelScript {
+public class TbelScriptExecutionTask extends TbScriptExecutionTask {
 
-    private final String scriptBody;
-    private final String[] argNames;
+    private final ExecutionContext context;
 
-    public Map createVars(Object[] args) {
-        if (args == null || args.length != argNames.length) {
-            throw new IllegalArgumentException("Invalid number of argument values");
-        }
-        var result = new HashMap<>();
-        for (int i = 0; i < argNames.length; i++) {
-            result.put(argNames[i], args[i]);
-        }
-        return result;
+    public TbelScriptExecutionTask(ExecutionContext context, ListenableFuture<Object> resultFuture) {
+        super(resultFuture);
+        this.context = context;
+    }
+
+    @Override
+    public void stop(){
+        context.stop();
     }
 }
