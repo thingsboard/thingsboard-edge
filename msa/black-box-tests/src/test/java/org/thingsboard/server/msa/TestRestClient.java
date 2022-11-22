@@ -1,32 +1,17 @@
 /**
- * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ * Copyright © 2016-2022 The Thingsboard Authors
  *
- * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * NOTICE: All information contained herein is, and remains
- * the property of ThingsBoard, Inc. and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to ThingsBoard, Inc.
- * and its suppliers and may be covered by U.S. and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Dissemination of this information or reproduction of this material is strictly forbidden
- * unless prior written permission is obtained from COMPANY.
- *
- * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
- * managers or contractors who have executed Confidentiality and Non-disclosure agreements
- * explicitly covering such access.
- *
- * The copyright notice above does not evidence any actual or intended publication
- * or disclosure  of  this source code, which includes
- * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
- * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
- * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
- * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
- * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
- * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
- * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
- * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.thingsboard.server.msa;
 
@@ -47,7 +32,9 @@ import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -95,7 +82,7 @@ public class TestRestClient {
         }
     }
 
-    public void login(String username, String password)  {
+    public void login(String username, String password) {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", username);
         loginRequest.put("password", password);
@@ -112,6 +99,15 @@ public class TestRestClient {
         return  given().spec(requestSpec).body(device)
                 .pathParams("accessToken", accessToken)
                 .post("/api/device?accessToken={accessToken}")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Device.class);
+    }
+
+    public Device getDeviceByName(String deviceName) {
+        return given().spec(requestSpec).pathParam("deviceName", deviceName)
+                .get("/api/tenant/devices?deviceName={deviceName}")
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
@@ -436,6 +432,24 @@ public class TestRestClient {
                 .extract()
                 .as(new TypeRef<List<String>>() {});
     }
+    public DeviceProfile getDeviceProfileById(DeviceProfileId deviceProfileId) {
+        return  given().spec(requestSpec).get("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
+                .then()
+                .assertThat()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceProfile.class);
+    }
+
+    public DeviceProfile postDeviceProfile(DeviceProfile deviceProfile) {
+        return given().spec(requestSpec).body(deviceProfile)
+                .post("/api/deviceProfile")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceProfile.class);
+    }
+
     public String getToken() {
         return token;
     }
