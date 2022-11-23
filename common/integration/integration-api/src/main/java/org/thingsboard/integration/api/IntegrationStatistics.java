@@ -65,4 +65,8 @@ public class IntegrationStatistics {
         return errorsOccurred.get();
     }
 
+    public boolean isEmpty() {
+        return getMessagesProcessed() == 0 && getErrorsOccurred() == 0;
+    }
+
 }

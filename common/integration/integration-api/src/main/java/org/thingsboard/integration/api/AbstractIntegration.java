@@ -96,7 +96,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             mdMap.put(md.getKey(), md.getValue().asText());
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
-        this.integrationStatistics = new IntegrationStatistics(context);
+
+        if (integrationStatistics == null) {
+            this.integrationStatistics = new IntegrationStatistics(context);
+        }
     }
 
     public void setConfiguration(Integration configuration) {
