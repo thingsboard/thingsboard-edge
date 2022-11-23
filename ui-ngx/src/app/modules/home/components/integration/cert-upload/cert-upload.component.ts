@@ -41,6 +41,8 @@ export class CertUploadComponent {
 
   @Input() form: FormGroup;
 
+  @Input() disabled: boolean;
+
   @Input() ignoreCaCert = false;
 
   constructor() {

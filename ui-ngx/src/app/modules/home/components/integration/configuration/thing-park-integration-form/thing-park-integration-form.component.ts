@@ -204,7 +204,8 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'left',
+        target: 'integrationRoot'
       }));
   }
 }

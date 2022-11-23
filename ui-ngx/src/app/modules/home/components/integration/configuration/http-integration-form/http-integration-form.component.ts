@@ -152,7 +152,8 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'left',
+        target: 'integrationRoot'
       }));
   }
 }

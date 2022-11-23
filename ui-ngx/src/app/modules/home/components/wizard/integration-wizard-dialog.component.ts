@@ -357,7 +357,8 @@ export class IntegrationWizardDialogComponent extends
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'right'
+        horizontalPosition: 'right',
+        target: 'integrationRoot'
       }));
   }
 
