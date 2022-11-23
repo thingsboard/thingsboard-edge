@@ -621,9 +621,9 @@ public class EdgeController extends BaseController {
     }
 
     @ApiOperation(value = "Get Edge Docker Install Instructions (getEdgeDockerInstallInstructions)",
-            notes = "Get a docker install instructions for provided edge id." + TENANT_AUTHORITY_PARAGRAPH,
+            notes = "Get a docker install instructions for provided edge id." + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/instructions/{edgeId}", method = RequestMethod.GET)
     @ResponseBody
     public String getEdgeDockerInstallInstructions(
