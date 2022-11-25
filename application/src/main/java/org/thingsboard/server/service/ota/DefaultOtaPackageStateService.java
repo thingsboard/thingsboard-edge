@@ -496,15 +496,13 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     private void remove(Device device, OtaPackageType otaPackageType) {
         remove(device, otaPackageType, OtaPackageUtil.getAttributeKeys(otaPackageType));
         String idKey = OtaPackageUtil.getAttributeKey(otaPackageType, ID);
-
-        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, Collections.singletonList(idKey),
+        List<String> idKeyList = Collections.singletonList(idKey);
+        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, idKeyList,
                 new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
                         log.trace("[{}] Success remove OtaPackage id attribute!", device.getId());
-                        Set<AttributeKey> keysToNotify = new HashSet<>();
-                        keysToNotify.add(new AttributeKey(DataConstants.SERVER_SCOPE, idKey));
-                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), keysToNotify), null);
+                        tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, idKeyList), null);
                     }
 
                     @Override
