@@ -95,7 +95,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -106,14 +105,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.ACTIVATED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.DELETED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.FAILED;
 import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.STARTED;
-import static org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent.UPDATED;
 
 @Slf4j
 @TbCoreOrIntegrationExecutorComponent
@@ -532,6 +527,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                 case STOPPED:
                 case SUSPENDED:
                 case DELETED:
+                    persistCurrentStatistics(state);
                     processStop(state, pendingEvent);
                     break;
             }
@@ -580,6 +576,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
                     eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), ComponentLifecycleEvent.UPDATED, null);
                     state.setCurrentState(ComponentLifecycleEvent.STARTED);
                 } else {
+                    persistCurrentStatistics(state);
                     processStop(state, ComponentLifecycleEvent.STOPPED);
                 }
             } catch (Exception e) {
@@ -681,14 +678,27 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
     private void persistStatistics() {
         long ts = System.currentTimeMillis();
         integrations.forEach((id, integration) -> {
-            IntegrationStatistics statistics = integration.getIntegration().popStatistics();
-            Integration integrationInfo = integration.getIntegration().getConfiguration();
-            try {
-                eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integration.getCurrentState());
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist statistics: {}", id, statistics, e);
-            }
+            doPersistStatistics(integration, ts, false);
         });
+    }
+
+    private void persistCurrentStatistics(IntegrationState integrationState) {
+        if (statisticsEnabled) {
+            doPersistStatistics(integrationState, System.currentTimeMillis(), true);
+        }
+    }
+
+    private void doPersistStatistics(IntegrationState integrationState, long ts, boolean skipEmptyStatistics) {
+            IntegrationStatistics statistics = integrationState.getIntegration().popStatistics();
+            if (skipEmptyStatistics && statistics.isEmpty()) {
+                return;
+            }
+            Integration integrationInfo = integrationState.getIntegration().getConfiguration();
+            try {
+                eventStorageService.persistStatistics(integrationInfo.getTenantId(), integrationInfo.getId(), ts, statistics, integrationState.getCurrentState());
+            } catch (Exception e) {
+                log.warn("[{}] Failed to persist statistics: {}", integrationInfo.getId(), statistics, e);
+            }
     }
 
     private RuntimeException handleException(Exception e) {

@@ -279,6 +279,9 @@ public class RemoteIntegrationManagerService {
                     persistLifecycleEvent(ComponentLifecycleEvent.STARTED, null);
                 }
             } else if (!ComponentLifecycleEvent.STOPPED.equals(integrationEvent)) {
+                if (statisticsEnabled) {
+                    persistStatistics();
+                }
                 integrationEvent = ComponentLifecycleEvent.STOPPED;
                 persistLifecycleEvent(ComponentLifecycleEvent.STOPPED, null);
                 integration = null;
