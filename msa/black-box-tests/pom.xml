@@ -216,8 +216,15 @@
             <artifactId>snmp</artifactId>
             <type>docker-info</type>
         </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-iot-device-sdk-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-iot-device-sdk-java-samples</artifactId>
+        </dependency>
     </dependencies>
-
     <profiles>
         <profile>
             <id>do-nothing</id>

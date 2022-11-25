@@ -31,26 +31,39 @@
 package org.thingsboard.server.msa.prototypes;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.common.util.JacksonUtil;
 
-public class ConverterPrototypes {
+public class AwsIotIntegrationPrototypes {
+    private static final String CONFIG_INTEGRATION = "{\n" +
+            "  \"clientConfiguration\": {\n" +
+            "    \"host\": \"%s\",\n" +
+            "    \"port\": 8883,\n" +
+            "    \"clientId\": \"\",\n" +
+            "    \"connectTimeoutSec\": 10,\n" +
+            "    \"ssl\": true,\n" +
+            "    \"maxBytesInMessage\": 32368,\n" +
+            "    \"credentials\": {\n" +
+            "      \"type\": \"cert.PEM\",\n" +
+            "      \"caCertFileName\": \"rootCA.pem\",\n" +
+            "      \"caCert\": \"%s\",\n" +
+            "      \"certFileName\": \"cert.crt\",\n" +
+            "      \"cert\": \"%s\",\n" +
+            "      \"privateKeyFileName\": \"private.key\",\n" +
+            "      \"privateKey\": \"%s\",\n" +
+            "      \"password\": \"\"\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"downlinkTopicPattern\": \"${topic}\",\n" +
+            "  \"topicFilters\": [\n" +
+            "    {\n" +
+            "      \"filter\": \"sensors/+/temperature\",\n" +
+            "      \"qos\": 0\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"metadata\": {}\n" +
+            "}";
 
-    public static Converter uplinkConverterPrototype(JsonNode config){
-        Converter converter = new Converter();
-        converter.setName("Uplink converter " + StringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.UPLINK);
-        converter.setConfiguration(config);
-        converter.setDebugMode(true);
-        return converter;
-    }
-
-    public static Converter downlinkConverterPrototype(JsonNode config){
-        Converter converter = new Converter();
-        converter.setName("Downlink converter " + StringUtils.randomAlphanumeric(7));
-        converter.setType(ConverterType.DOWNLINK);
-        converter.setConfiguration(config);
-        return converter;
+    public static JsonNode defaultConfig(String endpoint, String caCert, String cert, String privateKey){
+        return JacksonUtil.toJsonNode(String.format(CONFIG_INTEGRATION, endpoint, caCert, cert, privateKey));
     }
 }
