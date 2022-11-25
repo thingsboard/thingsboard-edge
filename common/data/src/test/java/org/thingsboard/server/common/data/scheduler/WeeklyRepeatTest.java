@@ -30,45 +30,33 @@
  */
 package org.thingsboard.server.common.data.scheduler;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-import java.util.Calendar;
-import java.util.List;
+import java.text.ParseException;
+import java.util.Collections;
 
-/**
- * Created by ashvayka on 28.11.17.
- */
-@Data
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class WeeklyRepeat implements SchedulerRepeat {
+import static org.apache.commons.lang3.time.DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private long endsOn;
-    private List<Integer> repeatOn;
+public class WeeklyRepeatTest {
 
-    @Override
-    public SchedulerRepeatType getType() {
-        return SchedulerRepeatType.WEEKLY;
-    }
+    public static final String TIMEZONE = "Europe/Kyiv";
 
-    @Override
-    public long getNext(long startTime, long ts, String timezone) {
-        Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
-        long tmp = startTime;
+    @Test
+    public void getNextTest() throws ParseException {
+        long startTime = ISO_DATETIME_TIME_ZONE_FORMAT.parse("2022-09-10T01:22:00+03:00Z").getTime();
+        long ts = ISO_DATETIME_TIME_ZONE_FORMAT.parse("2022-11-24T01:00:00+02:00Z").getTime();
+        long nextTs = ISO_DATETIME_TIME_ZONE_FORMAT.parse("2023-04-03T01:00:00+03:00Z").getTime();
+        long endTs = ISO_DATETIME_TIME_ZONE_FORMAT.parse("2023-11-24T01:00:00+02:00Z").getTime();
 
-        calendar.setTimeInMillis(tmp);
+        WeeklyRepeat weeklyRepeat = new WeeklyRepeat();
+        weeklyRepeat.setRepeatOn(Collections.singletonList(4));
+        weeklyRepeat.setEndsOn(endTs);
 
-        while (tmp < endsOn) {
-            if (tmp > ts) {
-                int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-                dayOfWeek = dayOfWeek - 1; // The UI calendar starts from 0;
-                if (repeatOn.contains(dayOfWeek)) {
-                    return tmp;
-                }
-            }
-            calendar.add(Calendar.DAY_OF_YEAR, 1);
-            tmp = calendar.getTimeInMillis();
-        }
-        return 0L;
+        assertThat(weeklyRepeat.getNext(startTime, ts, TIMEZONE)).isEqualTo(
+                ISO_DATETIME_TIME_ZONE_FORMAT.parse("2022-11-24T01:22:00+02:00Z").getTime());
+
+        assertThat(weeklyRepeat.getNext(startTime, nextTs, TIMEZONE)).isEqualTo(
+                ISO_DATETIME_TIME_ZONE_FORMAT.parse("2023-04-06T01:22:00+03:00Z").getTime());
     }
 }
