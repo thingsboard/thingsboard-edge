@@ -37,6 +37,9 @@
     <mat-error translate *ngIf="loriotIntegrationConfigForm.get('baseUrl').hasError('required')">
       integration.base-url-required
     </mat-error>
+    <mat-error translate *ngIf="loriotIntegrationConfigForm.get('baseUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
   </mat-form-field>
   <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
     <mat-form-field class="mat-block" fxFlex>
@@ -93,6 +96,9 @@
             <input required matInput formControlName="loriotDownlinkUrl">
             <mat-error translate *ngIf="loriotIntegrationConfigForm.get('loriotDownlinkUrl').hasError('required')">
               integration.downlink-url-required
+            </mat-error>
+            <mat-error translate *ngIf="loriotIntegrationConfigForm.get('loriotDownlinkUrl').hasError('privateNetwork')">
+              integration.url-private
             </mat-error>
           </mat-form-field>
           <mat-form-field fxFlex class="mat-block">

@@ -37,6 +37,9 @@
     <mat-error translate *ngIf="chirpStackIntegrationConfigForm.get('baseUrl').hasError('required')">
       integration.base-url-required
     </mat-error>
+    <mat-error translate *ngIf="chirpStackIntegrationConfigForm.get('baseUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
   </mat-form-field>
   <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
     <mat-form-field class="mat-block" fxFlex>

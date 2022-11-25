@@ -43,7 +43,10 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { filter, takeUntil } from 'rxjs/operators';
 import { IntegrationCredentialType, IntegrationType, LoriotIntegration } from '@shared/models/integration.models';
-import { integrationEndPointUrl } from '@home/components/integration/integration.models';
+import {
+  integrationEndPointUrl,
+  privateNetworkAddressValidator
+} from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -88,8 +91,12 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
   }
 
   ngOnInit() {
+    const baseURLValidators = [Validators.required];
+    if (!this.allowLocalNetwork) {
+      baseURLValidators.push(privateNetworkAddressValidator);
+    }
     this.loriotIntegrationConfigForm = this.fb.group({
-      baseUrl: [baseUrl(), Validators.required],
+      baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{
         value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey),
         disabled: true
@@ -104,7 +111,7 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
       appId: [{value: '', disabled: true}, Validators.required],
       token: [{value: '', disabled: true}, Validators.required],
       credentials: [{value: {type: IntegrationCredentialType.Basic}, disabled: true}],
-      loriotDownlinkUrl: [{value: 'https://eu1.loriot.io/1/rest', disabled: true}, Validators.required]
+      loriotDownlinkUrl: [{value: 'https://eu1.loriot.io/1/rest', disabled: true}, baseURLValidators]
     });
     this.loriotIntegrationConfigForm.get('baseUrl').valueChanges.pipe(
       takeUntil(this.destroy$)
@@ -226,6 +233,20 @@ export class LoriotIntegrationFormComponent extends IntegrationForm implements C
     } else {
       this.loriotIntegrationConfigForm.get('loriotDownlinkUrl').disable({emitEvent: false});
       this.loriotIntegrationConfigForm.get('token').disable({emitEvent: false});
+    }
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.loriotIntegrationConfigForm) {
+      if (this.allowLocalNetwork) {
+        this.loriotIntegrationConfigForm.get('baseUrl').removeValidators(privateNetworkAddressValidator);
+        this.loriotIntegrationConfigForm.get('loriotDownlinkUrl').removeValidators(privateNetworkAddressValidator);
+      } else {
+        this.loriotIntegrationConfigForm.get('baseUrl').addValidators(privateNetworkAddressValidator);
+        this.loriotIntegrationConfigForm.get('loriotDownlinkUrl').addValidators(privateNetworkAddressValidator);
+      }
+      this.loriotIntegrationConfigForm.get('baseUrl').updateValueAndValidity({emitEvent: false});
+      this.loriotIntegrationConfigForm.get('loriotDownlinkUrl').updateValueAndValidity({emitEvent: false});
     }
   }
 }
