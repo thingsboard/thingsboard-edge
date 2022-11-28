@@ -44,6 +44,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { ApachePulsarIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-apache-pulsar-integration-form',
@@ -128,5 +129,14 @@ export class ApachePulsarIntegrationFormComponent extends IntegrationForm implem
 
   private updateModels(value) {
     this.propagateChange({clientConfiguration: value});
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.apachePulsarIntegrationConfigForm.get('serviceUrl').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.apachePulsarIntegrationConfigForm.get('serviceUrl').addValidators(privateNetworkAddressValidator);
+    }
+    this.apachePulsarIntegrationConfigForm.get('serviceUrl').updateValueAndValidity({emitEvent: false});
   }
 }

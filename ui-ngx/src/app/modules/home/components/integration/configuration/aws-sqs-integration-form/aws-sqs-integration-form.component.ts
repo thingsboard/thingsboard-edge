@@ -44,6 +44,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { AwsSqsIntegration } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-aws-sqs-integration-form',
@@ -111,5 +112,14 @@ export class AwsSqsIntegrationFormComponent extends IntegrationForm implements C
     return this.awsSqsIntegrationConfigForm.valid ? null : {
       awsSqsIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.awsSqsIntegrationConfigForm.get('queueUrl').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.awsSqsIntegrationConfigForm.get('queueUrl').addValidators(privateNetworkAddressValidator);
+    }
+    this.awsSqsIntegrationConfigForm.get('queueUrl').updateValueAndValidity({emitEvent: false});
   }
 }

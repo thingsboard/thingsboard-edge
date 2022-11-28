@@ -45,6 +45,7 @@ import { isDefinedAndNotNull, isNumber } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
+  privateNetworkAddressValidator,
   ThingsStartHostType,
   ThingsStartHostTypeTranslation,
   ttnVersion,
@@ -221,5 +222,17 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
       pattern = this.downlinkPattern.replace('${applicationId}', name);
     }
     this.ttnIntegrationConfigForm.get('downlinkTopicPattern').patchValue(pattern, {emitEvent});
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.ttnIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+      this.hostEdit.removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.ttnIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+      this.hostEdit.addValidators(privateNetworkAddressValidator);
+    }
+    this.ttnIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
+    this.hostEdit.updateValueAndValidity({emitEvent: false});
   }
 }
