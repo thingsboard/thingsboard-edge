@@ -67,8 +67,8 @@ public class UplinkConverterScriptFactory {
             "        var payload = [];" +
             "        for (var i = 0; i < binary_string.length; i++) {" +
             "            var c = binary_string.charCodeAt(i);" +
-            "            if (c === 65533) {" + // failed to properly decode as UTF-8, returning raw payload
-            "                return Array.from(raw_payload);" +
+            "            if (c === 65533) {" + // 65533 is a replacement char for an unknown char in UTF-8
+            "                return Array.from(raw_payload);" + // we failed to properly decode input as text, returning raw payload
             "            }" +
             "            payload.push(c)" +
             "        }" +
