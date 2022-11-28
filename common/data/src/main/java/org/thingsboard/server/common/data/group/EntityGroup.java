@@ -41,6 +41,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableNoTenantIdEntity;
 import org.thingsboard.server.common.data.HasName;
@@ -131,6 +132,12 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     @ApiModelProperty(position = 8, value = "Indicates special group 'All' that contains all entities and can't be deleted.")
     public boolean isGroupAll() {
         return GROUP_ALL_NAME.equals(name);
+    }
+
+    @ApiModelProperty(position = 9, value = "Indicates special edge group 'All' that contains all entities and can't be deleted.",
+            accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    public boolean isEdgeGroupAll() {
+        return EdgeUtils.isEdgeGroupAll(name);
     }
 
     @JsonIgnore

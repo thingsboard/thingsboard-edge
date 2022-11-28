@@ -39,6 +39,9 @@
         <mat-error translate *ngIf="azureIotConfigForm.get('clientConfiguration.host').hasError('required')">
           integration.hostname-required
         </mat-error>
+        <mat-error translate *ngIf="azureIotConfigForm.get('clientConfiguration.host').hasError('privateNetwork')">
+          integration.host-private
+        </mat-error>
       </mat-form-field>
       <mat-form-field fxflex class="mat-block">
         <mat-label translate>integration.device-id</mat-label>

@@ -133,7 +133,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkM
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 
 import java.util.Collections;
 import java.util.List;
@@ -507,11 +507,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);
     }
 
-    private ScriptEngine createMvelScriptEngine(String script, String... argNames) {
-        if (mainCtx.getMvelInvokeService() == null) {
-            throw new RuntimeException("MVEL execution is disabled!");
+    private ScriptEngine createTbelScriptEngine(String script, String... argNames) {
+        if (mainCtx.getTbelInvokeService() == null) {
+            throw new RuntimeException("TBEL execution is disabled!");
         }
-        return new RuleNodeMvelScriptEngine(getTenantId(), mainCtx.getMvelInvokeService(), script, argNames);
+        return new RuleNodeTbelScriptEngine(getTenantId(), mainCtx.getTbelInvokeService(), script, argNames);
     }
 
     @Override
@@ -534,11 +534,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
         switch (scriptLang) {
             case JS:
                 return createJsScriptEngine(script, argNames);
-            case MVEL:
+            case TBEL:
                 if (Arrays.isNullOrEmpty(argNames)) {
-                    return createMvelScriptEngine(script, "msg", "metadata", "msgType");
+                    return createTbelScriptEngine(script, "msg", "metadata", "msgType");
                 } else {
-                    return createMvelScriptEngine(script, argNames);
+                    return createTbelScriptEngine(script, argNames);
                 }
             default:
                 throw new RuntimeException("Unsupported script language: " + scriptLang.name());

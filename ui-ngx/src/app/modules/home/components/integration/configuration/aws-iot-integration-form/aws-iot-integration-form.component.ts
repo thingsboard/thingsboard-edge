@@ -42,7 +42,8 @@ import {
 } from '@angular/forms';
 import {
   mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator
+  mqttClientIdPatternValidator,
+  privateNetworkAddressValidator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -122,7 +123,16 @@ export class AwsIotIntegrationFormComponent extends IntegrationForm implements C
 
   validate(): ValidationErrors | null {
     return this.awsIotIntegrationConfigForm.valid ? null : {
-      mqttIntegrationConfigForm: {valid: false}
+      aswIotIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.awsIotIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.awsIotIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+    }
+    this.awsIotIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
   }
 }

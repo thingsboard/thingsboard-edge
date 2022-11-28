@@ -38,6 +38,9 @@
       <mat-error translate *ngIf="awsIotIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">
         integration.aws-iot-endpoint-required
       </mat-error>
+      <mat-error translate *ngIf="awsIotIntegrationConfigForm.get('clientConfiguration.host').hasError('privateNetwork')">
+        integration.host-private
+      </mat-error>
     </mat-form-field>
     <tb-integration-credentials formControlName="credentials"
       [allowCredentialTypes]="[IntegrationCredentialType.CertPEM]">

@@ -164,6 +164,7 @@
       }
       .mat-horizontal-stepper-content[aria-expanded=true] {
         height: 100%;
+        position: relative;
       }
     }
   }

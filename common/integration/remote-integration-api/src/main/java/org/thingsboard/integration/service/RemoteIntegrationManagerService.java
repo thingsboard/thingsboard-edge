@@ -56,7 +56,7 @@ import org.thingsboard.integration.remote.RemoteIntegrationContext;
 import org.thingsboard.integration.rpc.IntegrationRpcClient;
 import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.coapserver.CoapServerService;
 import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.StringUtils;
@@ -139,7 +139,7 @@ public class RemoteIntegrationManagerService {
     private JsInvokeService jsInvokeService;
 
     @Autowired(required = false)
-    private MvelInvokeService mvelInvokeService;
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     private LogSettingsComponent logSettingsComponent;
@@ -279,6 +279,9 @@ public class RemoteIntegrationManagerService {
                     persistLifecycleEvent(ComponentLifecycleEvent.STARTED, null);
                 }
             } else if (!ComponentLifecycleEvent.STOPPED.equals(integrationEvent)) {
+                if (statisticsEnabled) {
+                    persistStatistics();
+                }
                 integrationEvent = ComponentLifecycleEvent.STOPPED;
                 persistLifecycleEvent(ComponentLifecycleEvent.STOPPED, null);
                 integration = null;
@@ -320,7 +323,7 @@ public class RemoteIntegrationManagerService {
     }
 
     private TBUplinkDataConverter createUplinkConverter(ConverterConfigurationProto uplinkConverter) throws IOException {
-        ScriptUplinkDataConverter uplinkDataConverter = new ScriptUplinkDataConverter(jsInvokeService, mvelInvokeService, logSettingsComponent);
+        ScriptUplinkDataConverter uplinkDataConverter = new ScriptUplinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
         Converter converter = constructConverter(uplinkConverter, ConverterType.UPLINK);
         uplinkConverterId = converter.getId();
         uplinkDataConverter.init(converter);
@@ -329,7 +332,7 @@ public class RemoteIntegrationManagerService {
 
     private TBDownlinkDataConverter createDownlinkConverter(ConverterConfigurationProto downLinkConverter) throws IOException {
         if (!StringUtils.isEmpty(downLinkConverter.getConfiguration())) {
-            ScriptDownlinkDataConverter downlinkDataConverter = new ScriptDownlinkDataConverter(jsInvokeService, mvelInvokeService, logSettingsComponent);
+            ScriptDownlinkDataConverter downlinkDataConverter = new ScriptDownlinkDataConverter(jsInvokeService, tbelInvokeService, logSettingsComponent);
             Converter converter = constructConverter(downLinkConverter, ConverterType.DOWNLINK);
             downlinkConverterId = converter.getId();
             downlinkDataConverter.init(converter);

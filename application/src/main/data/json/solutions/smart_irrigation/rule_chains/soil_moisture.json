@@ -64,9 +64,9 @@
         "name": "Log RPC from Device",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
         },
         "externalId": null
       },
@@ -80,9 +80,9 @@
         "name": "Log Other",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+          "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
         },
         "externalId": null
       },
@@ -264,9 +264,9 @@
         "name": "Change msg type",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
-          "mvelScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
+          "tbelScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};"
         },
         "externalId": null
       },
@@ -280,9 +280,9 @@
         "name": "Check Field relation",
         "debugMode": false,
         "configuration": {
-          "scriptLang": "MVEL",
+          "scriptLang": "TBEL",
           "jsScript": "return msg.type === \"FieldToMoistureSensor\";",
-          "mvelScript": "return msg.type == \"FieldToMoistureSensor\";"
+          "tbelScript": "return msg.type == \"FieldToMoistureSensor\";"
         },
         "externalId": null
       },
@@ -324,8 +324,8 @@
                 "serverAttributeNames": [
                   "active"
                 ],
-                "scriptLang": "MVEL",
-                "mvelFilterFunction": "attributes.active"
+                "scriptLang": "TBEL",
+                "tbelFilterFunction": "attributes.active"
               }
             }
           ],
