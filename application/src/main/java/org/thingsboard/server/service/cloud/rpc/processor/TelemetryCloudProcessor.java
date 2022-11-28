@@ -307,15 +307,11 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                                                              String entityType) {
         SettableFuture<Void> futureToSet = SettableFuture.create();
         String scope = attributeDeleteMsg.getScope();
-        List<String> attributeNames = attributeDeleteMsg.getAttributeNamesList();
-        attributesService.removeAll(tenantId, entityId, scope, attributeNames);
+        List<String> attributeKeys = attributeDeleteMsg.getAttributeNamesList();
+        attributesService.removeAll(tenantId, entityId, scope, attributeKeys);
         if (EntityType.DEVICE.name().equals(entityType)) {
-            Set<AttributeKey> attributeKeys = new HashSet<>();
-            for (String attributeName : attributeNames) {
-                attributeKeys.add(new AttributeKey(scope, attributeName));
-            }
             tbClusterService.pushMsgToCore(DeviceAttributesEventNotificationMsg.onDelete(
-                    tenantId, (DeviceId) entityId, attributeKeys), new TbQueueCallback() {
+                    tenantId, (DeviceId) entityId, scope, attributeKeys), new TbQueueCallback() {
                 @Override
                 public void onSuccess(TbQueueMsgMetadata metadata) {
                     futureToSet.set(null);
