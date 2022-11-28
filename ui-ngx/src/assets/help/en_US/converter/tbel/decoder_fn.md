@@ -5,7 +5,7 @@
 
 *function Decoder(payload, metadata): object | object[]*
 
-JavaScript function used to parse and transform uplink message from the integration to the common format used by the platform.
+[TBEL{:target="_blank"}](${siteBaseUrl}/docs/user-guide/tbel/) function used to parse and transform uplink message from the integration to the common format used by the platform.
 
 **Parameters:**
 

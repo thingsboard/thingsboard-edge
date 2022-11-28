@@ -4,6 +4,7 @@
 {
   "deviceName": "SN-111",
   "deviceType": "Thermostat",
+  "deviceLabel": "Kitchen Thermostat",
   "telemetry": {
     "ts": 1637504859000,
     "values": {

@@ -21,15 +21,6 @@ var result = {
     }
 };
 
-/** Helper function to decode raw payload bytes to string**/
-function decodeToString(payload) {
-    return String.fromCharCode.apply(String, payload);
-}
-/** Helper function to decode raw payload bytes to JSON object**/
-function decodeToJson(payload) {
-    return JSON.parse(decodeToString(payload));
-}
-
 return result;
 {:copy-code}
 ```

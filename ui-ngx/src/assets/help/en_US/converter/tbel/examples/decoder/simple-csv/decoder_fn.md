@@ -18,11 +18,6 @@ var result = {
     }
 };
 
-/** Helper function to decode raw payload bytes to string**/
-function decodeToString(payload) {
-    return String.fromCharCode.apply(String, payload);
-}
-
 return result;
 {:copy-code}
 ```
