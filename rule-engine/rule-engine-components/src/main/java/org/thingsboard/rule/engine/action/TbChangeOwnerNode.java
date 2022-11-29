@@ -44,6 +44,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -129,8 +130,8 @@ public class TbChangeOwnerNode implements TbNode {
             if (newOwnerId == null) {
 //                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'.");
                 // TODO: @voba customers are not created on the edge at the moment
-                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'. " +
-                        "Please create it on the cloud first - customer creation is not supported at the edg e at the moment!");
+                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'. "
+                        + DataConstants.ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING);
             }
             return newOwnerId;
         });

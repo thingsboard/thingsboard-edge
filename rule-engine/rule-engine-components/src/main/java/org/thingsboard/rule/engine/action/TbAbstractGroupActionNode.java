@@ -43,6 +43,7 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -105,7 +106,8 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             Optional<EntityGroupId> groupId = groupIdCache.get(key);
             if (!groupId.isPresent()) {
-                throw new RuntimeException("No entity group found with type '" + key.getGroupType() + " ' and name '" + key.getGroupName() + "'.");
+                throw new RuntimeException("No entity group found with type '" + key.getGroupType() + " ' and name '" + key.getGroupName() + "'."
+                        + DataConstants.ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING);
             }
             return groupId.get();
         });
@@ -143,12 +145,14 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
                     service.findEntityGroupByTypeAndNameAsync(ctx.getTenantId(), key.getOwnerId(), key.getGroupType(), key.getGroupName()).get();
             if (entityGroup.isPresent()) {
                 return Optional.of(entityGroup.get().getId());
-            } else if (createIfNotExists) {
-                EntityGroup newGroup = new EntityGroup();
-                newGroup.setName(key.getGroupName());
-                newGroup.setType(key.getGroupType());
-                return Optional.of(service.saveEntityGroup(ctx.getTenantId(), key.getOwnerId(), newGroup).getId());
             }
+            // TODO: @voba entity groups are not created on the edge at the moment
+            // else if (createIfNotExists) {
+            //     EntityGroup newGroup = new EntityGroup();
+            //     newGroup.setName(key.getGroupName());
+            //     newGroup.setType(key.getGroupType());
+            //     return Optional.of(service.saveEntityGroup(ctx.getTenantId(), key.getOwnerId(), newGroup).getId());
+            // }
             return Optional.empty();
         }
     }
