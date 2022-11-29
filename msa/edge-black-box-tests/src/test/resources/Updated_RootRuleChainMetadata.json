@@ -119,9 +119,9 @@
       "name": "Create RPC reply",
       "debugMode": false,
       "configuration": {
-        "scriptLang": "MVEL",
+        "scriptLang": "TBEL",
         "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-        "mvelScript": "var rpcResponse;\nif (msg.method === \"getCurrentTime\"){\n   rpcResponse = {\"currentTime\": new Date().getTime()};\n} else {\n   rpcResponse = \"Unknown RPC request method: \" + msg.method;  \n}\nreturn {msg: rpcResponse, metadata: metadata, msgType: msgType};"
+        "tbelScript": "var rpcResponse;\nif (msg.method === \"getCurrentTime\"){\n   rpcResponse = {\"currentTime\": new Date().getTime()};\n} else {\n   rpcResponse = \"Unknown RPC request method: \" + msg.method;  \n}\nreturn {msg: rpcResponse, metadata: metadata, msgType: msgType};"
       },
       "externalId": null
     },
