@@ -44,6 +44,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -99,7 +100,8 @@ public abstract class TbAbstractCustomerActionNode<C extends TbAbstractCustomerA
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             Optional<CustomerId> customerId = customerIdCache.get(key);
             if (!customerId.isPresent()) {
-                throw new RuntimeException("No customer found with name '" + key.getCustomerTitle() + "'.");
+                throw new RuntimeException("No customer found with name '" + key.getCustomerTitle() + "'."
+                        + DataConstants.ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING);
             }
             return customerId.get();
         });
