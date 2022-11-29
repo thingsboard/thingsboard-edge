@@ -58,7 +58,6 @@ public class IntegrationProtoConstructor {
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
                 .setConfiguration(JacksonUtil.toString(configuration));
-
         if (integration.getAdditionalInfo() != null) {
             builder.setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
         }
