@@ -34,6 +34,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.integration.api.data.UplinkContentType;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class StringHttpIntegrationMsg extends HttpIntegrationMsg<String> {
@@ -49,6 +50,6 @@ public class StringHttpIntegrationMsg extends HttpIntegrationMsg<String> {
 
     @Override
     public byte[] getMsgInBytes() {
-        return msg.getBytes();
+        return msg.getBytes(StandardCharsets.UTF_8);
     }
 }
