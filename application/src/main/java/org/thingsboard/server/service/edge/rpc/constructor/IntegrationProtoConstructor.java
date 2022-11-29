@@ -57,9 +57,11 @@ public class IntegrationProtoConstructor {
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
-                .setConfiguration(JacksonUtil.toString(configuration))
-                .setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
+                .setConfiguration(JacksonUtil.toString(configuration));
 
+        if (integration.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(integration.getAdditionalInfo()));
+        }
         if (integration.getSecret() != null) {
             builder.setSecret(integration.getSecret());
         }
