@@ -120,16 +120,18 @@ public abstract class TbAbstractCustomerActionNode<C extends TbAbstractCustomerA
                     service.findCustomerByTenantIdAndTitle(ctx.getTenantId(), key.getCustomerTitle());
             if (customerOptional.isPresent()) {
                 return Optional.of(customerOptional.get().getId());
-            } else if (createIfNotExists) {
-                Customer newCustomer = new Customer();
-                newCustomer.setTitle(key.getCustomerTitle());
-                newCustomer.setTenantId(ctx.getTenantId());
-                Customer savedCustomer = service.saveCustomer(newCustomer);
-                ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
-                        () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
-                        throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
-                return Optional.of(savedCustomer.getId());
             }
+            // TODO: @voba customers are not created on the edge at the moment
+            // else if (createIfNotExists) {
+            //    Customer newCustomer = new Customer();
+            //    newCustomer.setTitle(key.getCustomerTitle());
+            //    newCustomer.setTenantId(ctx.getTenantId());
+            //    Customer savedCustomer = service.saveCustomer(newCustomer);
+            //    ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
+            //            () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
+            //            throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
+            //    return Optional.of(savedCustomer.getId());
+            //}
             return Optional.empty();
         }
 

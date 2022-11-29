@@ -204,33 +204,37 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                     Asset asset = assetService.findAssetByTenantIdAndName(ctx.getTenantId(), entitykey.getEntityName());
                     if (asset != null) {
                         targetEntity.setEntityId(asset.getId());
-                    } else if (createIfNotExists) {
-                        Asset newAsset = new Asset();
-                        newAsset.setName(entitykey.getEntityName());
-                        newAsset.setType(entitykey.getType());
-                        newAsset.setTenantId(ctx.getTenantId());
-                        Asset savedAsset = assetService.saveAsset(newAsset);
-                        ctx.enqueue(ctx.assetCreatedMsg(savedAsset, ctx.getSelfId()),
-                                () -> log.trace("Pushed Asset Created message: {}", savedAsset),
-                                throwable -> log.warn("Failed to push Asset Created message: {}", savedAsset, throwable));
-                        targetEntity.setEntityId(savedAsset.getId());
                     }
+                    // TODO: @voba assets are not created on the edge at the moment
+                    //else if (createIfNotExists) {
+                    //    Asset newAsset = new Asset();
+                    //    newAsset.setName(entitykey.getEntityName());
+                    //    newAsset.setType(entitykey.getType());
+                    //    newAsset.setTenantId(ctx.getTenantId());
+                    //    Asset savedAsset = assetService.saveAsset(newAsset);
+                    //    ctx.enqueue(ctx.assetCreatedMsg(savedAsset, ctx.getSelfId()),
+                    //            () -> log.trace("Pushed Asset Created message: {}", savedAsset),
+                    //            throwable -> log.warn("Failed to push Asset Created message: {}", savedAsset, throwable));
+                    //    targetEntity.setEntityId(savedAsset.getId());
+                    //}
                     break;
                 case CUSTOMER:
                     CustomerService customerService = ctx.getCustomerService();
                     Optional<Customer> customerOptional = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), entitykey.getEntityName());
                     if (customerOptional.isPresent()) {
                         targetEntity.setEntityId(customerOptional.get().getId());
-                    } else if (createIfNotExists) {
-                        Customer newCustomer = new Customer();
-                        newCustomer.setTitle(entitykey.getEntityName());
-                        newCustomer.setTenantId(ctx.getTenantId());
-                        Customer savedCustomer = customerService.saveCustomer(newCustomer);
-                        ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
-                                () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
-                                throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
-                        targetEntity.setEntityId(savedCustomer.getId());
                     }
+                    // TODO: @voba customers are not created on the edge at the moment
+                    //else if (createIfNotExists) {
+                    //    Customer newCustomer = new Customer();
+                    //    newCustomer.setTitle(entitykey.getEntityName());
+                    //    newCustomer.setTenantId(ctx.getTenantId());
+                    //    Customer savedCustomer = customerService.saveCustomer(newCustomer);
+                    //    ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
+                    //            () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
+                    //            throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
+                    //    targetEntity.setEntityId(savedCustomer.getId());
+                    //}
                     break;
                 case TENANT:
                     targetEntity.setEntityId(ctx.getTenantId());
