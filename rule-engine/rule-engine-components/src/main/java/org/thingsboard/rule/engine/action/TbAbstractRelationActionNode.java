@@ -32,6 +32,7 @@ import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.util.EntityContainer;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DashboardInfo;
+import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -114,7 +115,8 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
             EntityContainer entityContainer = entityIdCache.get(key);
             if (entityContainer.getEntityId() == null) {
-                throw new RuntimeException("No entity found with type '" + key.getEntityType() + "' and name '" + key.getEntityName() + "'.");
+                throw new RuntimeException("No entity found with type '" + key.getEntityType() + "' and name '" + key.getEntityName() + "'."
+                        + DataConstants.ENTITY_CREATION_ON_EDGE_NOT_SUPPORTED_WARNING);
             }
             return entityContainer;
         });
