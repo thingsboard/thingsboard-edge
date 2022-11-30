@@ -42,7 +42,23 @@ export abstract class IntegrationForm implements OnDestroy {
   @Input()
   disabled: boolean;
 
+  private allowLocalNetworkValue = true;
+
+  get allowLocalNetwork(): boolean {
+    return this.allowLocalNetworkValue;
+  }
+
+  @Input()
+  set allowLocalNetwork(value: boolean) {
+    if (this.allowLocalNetworkValue !== value) {
+      this.allowLocalNetworkValue = value;
+      this.updatedValidationPrivateNetwork();
+    }
+  }
+
   protected destroy$ = new Subject();
+
+  protected updatedValidationPrivateNetwork() {}
 
   ngOnDestroy() {
     this.destroy$.next();

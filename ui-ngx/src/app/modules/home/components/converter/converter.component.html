@@ -88,7 +88,7 @@
         {{ 'converter.debug-mode' | translate }}
       </mat-slide-toggle>
       <div formGroupName="configuration" fxLayout="column">
-        <tb-script-lang formControlName="scriptLang" *ngIf="mvelEnabled"></tb-script-lang>
+        <tb-script-lang formControlName="scriptLang" *ngIf="tbelEnabled"></tb-script-lang>
         <section *ngIf="entityForm.get('type').value === converterType.UPLINK">
           <tb-js-func
             *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.JS"
@@ -99,12 +99,12 @@
             noValidate>
           </tb-js-func>
           <tb-js-func
-            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.MVEL"
-            formControlName="mvelDecoder"
+            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
+            formControlName="tbelDecoder"
             functionName="Decoder"
             [functionArgs]="['payload', 'metadata']"
             [disableUndefinedCheck]="true"
-            helpId="converter/decoder_fn"
+            helpId="converter/tbel/decoder_fn"
             noValidate>
           </tb-js-func>
         </section>
@@ -118,11 +118,11 @@
             noValidate>
           </tb-js-func>
           <tb-js-func
-            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.MVEL"
-            formControlName="mvelEncoder"
+            *ngIf="entityForm.get('configuration').get('scriptLang').value === scriptLanguage.TBEL"
+            formControlName="tbelEncoder"
             functionName="Encoder"
             [functionArgs]="['msg', 'metadata', 'msgType', 'integrationMetadata']"
-            helpId="converter/encoder_fn"
+            helpId="converter/tbel/encoder_fn"
             noValidate>
           </tb-js-func>
         </section>

@@ -36,7 +36,11 @@
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>integration.host</mat-label>
         <input matInput required formControlName="host">
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">integration.host-required
+        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">
+          integration.host-required
+        </mat-error>
+        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('privateNetwork')">
+          integration.host-private
         </mat-error>
       </mat-form-field>
       <mat-form-field fxFlex class="mat-block">

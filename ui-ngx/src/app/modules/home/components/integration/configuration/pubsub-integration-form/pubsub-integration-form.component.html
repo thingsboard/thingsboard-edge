@@ -50,14 +50,16 @@
         </mat-error>
       </mat-form-field>
     </div>
-    <tb-file-input [existingFileName]="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').value"
-                   formControlName="serviceAccountKey"
-                   required
-                   dropLabel="{{ 'integration.drop-file-or' | translate }}"
-                   label="{{ 'integration.service-account-key' | translate }}"
-                   (fileNameChanged)="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').setValue($event)"
-                   inputId="service-account-key">
-    </tb-file-input>
+    <fieldset [disabled]="disabled">
+      <tb-file-input [existingFileName]="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').value"
+                     formControlName="serviceAccountKey"
+                     required
+                     dropLabel="{{ 'integration.drop-file-or' | translate }}"
+                     label="{{ 'integration.service-account-key' | translate }}"
+                     (fileNameChanged)="pubSubIntegrationConfigForm.get('serviceAccountKeyFileName').setValue($event)"
+                     inputId="service-account-key">
+      </tb-file-input>
+    </fieldset>
   </fieldset>
 
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">

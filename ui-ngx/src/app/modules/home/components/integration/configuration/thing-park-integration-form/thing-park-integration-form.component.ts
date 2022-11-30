@@ -43,7 +43,10 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationType, ThingParkIntegration } from '@shared/models/integration.models';
-import { integrationEndPointUrl } from '@home/components/integration/integration.models';
+import {
+  integrationEndPointUrl,
+  privateNetworkAddressValidator
+} from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -84,12 +87,17 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
   }
 
   ngOnInit() {
+    const baseURLValidators = [Validators.required];
+    if (!this.allowLocalNetwork) {
+      baseURLValidators.push(privateNetworkAddressValidator);
+    }
     this.thingParkConfigForm = this.fb.group({
-      baseUrl: [baseUrl(), Validators.required],
+      baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
       enableSecurity: [false],
       replaceNoContentToOk: [false],
-      downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink'],
+      downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink',
+        [!this.allowLocalNetwork ? privateNetworkAddressValidator : null]],
       enableSecurityNew: [{value: false, disabled: true}],
       asId: [{value: '', disabled: true}, Validators.required],
       asIdNew: [{value: '', disabled: true}, Validators.required],
@@ -204,7 +212,22 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'left',
+        target: 'integrationRoot'
       }));
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.thingParkConfigForm) {
+      if (this.allowLocalNetwork) {
+        this.thingParkConfigForm.get('baseUrl').removeValidators(privateNetworkAddressValidator);
+        this.thingParkConfigForm.get('downlinkUrl').removeValidators(privateNetworkAddressValidator);
+      } else {
+        this.thingParkConfigForm.get('baseUrl').addValidators(privateNetworkAddressValidator);
+        this.thingParkConfigForm.get('downlinkUrl').addValidators(privateNetworkAddressValidator);
+      }
+      this.thingParkConfigForm.get('baseUrl').updateValueAndValidity({emitEvent: false});
+      this.thingParkConfigForm.get('downlinkUrl').updateValueAndValidity({emitEvent: false});
+    }
   }
 }

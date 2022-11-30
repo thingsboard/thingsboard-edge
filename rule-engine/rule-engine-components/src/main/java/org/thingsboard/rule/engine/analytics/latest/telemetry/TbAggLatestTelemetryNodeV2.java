@@ -104,8 +104,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 addAllSafe(sharedAttributeNames, filter.getSharedAttributeNames());
                 addAllSafe(serverAttributeNames, filter.getServerAttributeNames());
                 addAllSafe(latestTsKeyNames, filter.getLatestTsKeyNames());
-                String script = filter.getMvelFilterFunction();
-                attributesScriptEngineMap.put(script, ctx.getPeContext().createAttributesScriptEngine(ScriptLanguage.MVEL, script));
+                String script = filter.getTbelFilterFunction();
+                attributesScriptEngineMap.put(script, ctx.getPeContext().createAttributesScriptEngine(ScriptLanguage.TBEL, script));
             }
             switch (mapping.getSourceScope()) {
                 case DataConstants.CLIENT_SCOPE:
@@ -239,7 +239,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         childDataList.forEach(TbAggEntityData::prepare);
         JsonObject result = new JsonObject();
         for (var aggMapping : config.getAggMappings()) {
-            var filteredDataList = childDataList.stream().filter(ed -> aggMapping.getFilter() == null || filter(aggMapping.getFilter().getMvelFilterFunction(), ed)).collect(Collectors.toList());
+            var filteredDataList = childDataList.stream().filter(ed -> aggMapping.getFilter() == null || filter(aggMapping.getFilter().getTbelFilterFunction(), ed)).collect(Collectors.toList());
             if (filteredDataList.isEmpty()) {
                 continue;
             }
@@ -257,7 +257,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
 
     @SneakyThrows
     private boolean filter(String script, TbAggEntityData ed) {
-        //We use MVEL scripts only, so it is ok to do a blocking call.
+        //We use TBEL scripts only, so it is ok to do a blocking call.
         return attributesScriptEngineMap.get(script).executeAttributesFilterAsync(ed.getFilterMap()).get();
     }
 

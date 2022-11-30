@@ -43,7 +43,7 @@ import org.thingsboard.integration.api.data.UplinkContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
@@ -63,8 +63,8 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
 
     private static final String DEFAULT_DEVICE_TYPE = "default";
 
-    public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, MvelInvokeService mvelInvokeService) {
-        super(jsInvokeService, mvelInvokeService);
+    public AbstractUplinkDataConverter(JsInvokeService jsInvokeService, TbelInvokeService tbelInvokeService) {
+        super(jsInvokeService, tbelInvokeService);
     }
 
     @Override

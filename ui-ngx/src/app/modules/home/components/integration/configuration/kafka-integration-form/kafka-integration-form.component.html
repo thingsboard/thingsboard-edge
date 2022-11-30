@@ -50,7 +50,11 @@
       <mat-label translate>integration.bootstrap-servers</mat-label>
       <input matInput formControlName="bootstrapServers" required>
       <mat-error translate *ngIf="kafkaIntegrationConfigForm.get('bootstrapServers').hasError('required')">
-        integration.bootstrap-servers-required</mat-error>
+        integration.bootstrap-servers-required
+      </mat-error>
+      <mat-error translate *ngIf="kafkaIntegrationConfigForm.get('bootstrapServers').hasError('privateNetwork')">
+        integration.host-private
+      </mat-error>
     </mat-form-field>
     <mat-form-field fxFlex class="mat-block">
       <mat-label translate>integration.poll-interval</mat-label>
