@@ -50,6 +50,6 @@ public class StringHttpIntegrationMsg extends HttpIntegrationMsg<String> {
 
     @Override
     public byte[] getMsgInBytes() {
-        return msg.getBytes(StandardCharsets.UTF_8);
+        return msg.getBytes();
     }
 }
