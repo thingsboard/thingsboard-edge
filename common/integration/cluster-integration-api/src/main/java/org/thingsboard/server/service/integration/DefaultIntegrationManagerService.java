@@ -329,7 +329,7 @@ public class DefaultIntegrationManagerService implements IntegrationManagerServi
             return Futures.immediateFailedFuture(new DataValidationException("Integration routing key should be specified!"));
         }
         try {
-            if (configuration.getType().isRemoteOnly()) {
+            if (configuration.getType().isRemoteOnly() || configuration.isRemote()) {
                 return Futures.immediateFuture(null);
             }
             if (configuration.getId() == null) {

@@ -75,6 +75,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Getter
     private List<ServiceType> serviceTypes;
     private ServiceInfo serviceInfo;
 

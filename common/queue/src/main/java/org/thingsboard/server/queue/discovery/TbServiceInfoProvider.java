@@ -44,6 +44,8 @@ public interface TbServiceInfoProvider {
 
     String getServiceType();
 
+    List<ServiceType> getServiceTypes();
+
     ServiceInfo getServiceInfo();
 
     boolean isService(ServiceType serviceType);
