@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     action_failure_details varchar(1000000)
 ) PARTITION BY RANGE (created_time);
 CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_id_and_created_time ON audit_log(tenant_id, created_time DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_id ON audit_log(id);
 
 CREATE OR REPLACE PROCEDURE migrate_audit_logs(IN start_time_ms BIGINT, IN end_time_ms BIGINT, IN partition_size_ms BIGINT)
     LANGUAGE plpgsql AS
@@ -188,6 +189,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     ts bigint NOT NULL
     ) PARTITION BY RANGE (created_time);
 CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_and_created_time ON edge_event(tenant_id, created_time DESC);
+CREATE INDEX IF NOT EXISTS idx_edge_event_id ON edge_event(id);
 
 CREATE OR REPLACE PROCEDURE migrate_edge_event(IN start_time_ms BIGINT, IN end_time_ms BIGINT, IN partition_size_ms BIGINT)
     LANGUAGE plpgsql AS
