@@ -40,9 +40,9 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
+import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
-import static org.thingsboard.server.msa.ui.utils.Const.URL;
 
 public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
 
@@ -51,7 +51,7 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openUrl(URL);
+        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
         testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);
@@ -99,6 +99,6 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         String entityGroupName = customerPage.getEntityGroupName();
         customerPage.doubleClickOnEntityGroup(entityGroupName);
 
-        Assert.assertEquals(getUrl(), URL + "/customerGroups");
+        Assert.assertEquals(getUrl(), getBaseUiUrl() + "/customerGroups");
     }
 }

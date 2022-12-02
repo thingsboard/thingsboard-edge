@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.msa.ui.pages;
 
@@ -26,14 +41,16 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     }
 
     private static final String CUSTOMER = "//mat-row//span[contains(text(),'%s')]";
-    private static final String EMAIL = ENTITY + "/../..//mat-cell[contains(@class,'email')]/span";
-    private static final String COUNTRY = ENTITY + "/../..//mat-cell[contains(@class,'country')]/span";
-    private static final String CITY = ENTITY + "/../..//mat-cell[contains(@class,'city')]/span";
-    private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-title')]/span";
+    private static final String EMAIL = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column2')]/span";
+    private static final String COUNTRY = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column3')]/span";
+    private static final String CITY = ENTITY + "/../..//mat-cell[contains(@class, 'mat-column-column4')]/span";
+    private static final String TITLES = "//mat-cell[contains(@class,'cdk-column-column1')]/span";
     protected static final String EDIT_MENU_DASHBOARD_FIELD = "//input[@formcontrolname='dashboard']";
     private static final String EDIT_MENU_DASHBOARD = "//div[@class='cdk-overlay-pane']//span/span";
     private static final String MANAGE_CUSTOMERS_USERS_BTN = ENTITY + "/../..//mat-icon[contains(text(),' account_circle')]/../..";
     private static final String MANAGE_CUSTOMERS_ASSETS_BTN = ENTITY + "/../..//mat-icon[contains(text(),' domain')]/../..";
+    private static final String MANAGE_CUSTOMERS_GROUPS_BTN = ENTITY + "/../..//mat-icon[contains(text(),'supervisor_account')]/../..";
+    private static final String MANAGE_CUSTOMER_ENTITY_VIEW_BTN = ENTITY + "/../..//mat-icon[contains(text(),'view_quilt')]/../..";
     private static final String MANAGE_CUSTOMERS_DEVICES_BTN = ENTITY + "/../..//mat-icon[contains(text(),' devices_other')]/../..";
     private static final String MANAGE_CUSTOMERS_DASHBOARDS_BTN = ENTITY + "/../..//mat-icon[contains(text(),' dashboard')]/../..";
     private static final String MANAGE_CUSTOMERS_EDGE_BTN = ENTITY + "/../..//mat-icon[contains(text(),' router')]/../..";
@@ -57,20 +74,23 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     private static final String HIDE_HOME_DASHBOARD_TOOLBAR = "//mat-checkbox[@formcontrolname='homeDashboardHideToolbar']/label";
     private static final String FILTER_BTN = "//tb-filters-edit";
     private static final String TIME_BTN = "//tb-timewindow";
-    private static final String CUSTOMER_ICON_HEADER = "//tb-breadcrumb//span[contains(text(),'Customer %s')]";
-    private static final String CUSTOMER_USER_ICON_HEADER = "Users";
+    private static final String CUSTOMER_ICON_HEADER = "//div[@class='tb-breadcrumb']/span[3]/span";
+    private static final String CUSTOMER_USER_ICON_HEADER = "User groups";
     private static final String CUSTOMER_ASSETS_ICON_HEADER = "Assets";
     private static final String CUSTOMER_DEVICES_ICON_HEADER = "Devices";
     private static final String CUSTOMER_DASHBOARD_ICON_HEADER = "Dashboards";
     private static final String CUSTOMER_EDGE_ICON_HEADER = "edge instances";
     private static final String CUSTOMER_USER_ICON_HEAD = "(//mat-drawer-content//span[contains(@class,'tb-entity-table')])[1]";
     private static final String MANAGE_BTN_VIEW = "//span[contains(text(),'%s')]";
-    private static final String MANAGE_CUSTOMERS_USERS_BTN_VIEW = "Manage users";
-    private static final String MANAGE_CUSTOMERS_ASSETS_BTN_VIEW = "Manage assets";
-    private static final String MANAGE_CUSTOMERS_DEVICE_BTN_VIEW = "Manage devices";
-    private static final String MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW = "Manage dashboards";
-    private static final String MANAGE_CUSTOMERS_EDGE_BTN_VIEW = "Manage edges ";
+    private static final String MANAGE_CUSTOMERS_USER_GROUPS_BTN_VIEW = "Manage user groups";
+    private static final String MANAGE_CUSTOMERS_ASSET_GROUP_BTN_VIEW = "Manage asset groups";
+    private static final String MANAGE_CUSTOMERS_GROUP_BTN_VIEW = "Manage customer groups";
+    private static final String MANAGE_CUSTOMER_ENTITY_VIEW_BTN_VIEW = "Manage entity view groups";
+    private static final String MANAGE_CUSTOMERS_DEVICE_GROUPS_BTN_VIEW = "Manage device groups";
+    private static final String MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW = "Manage dashboard groups";
+    private static final String MANAGE_CUSTOMERS_EDGE_BTN_VIEW = "Manage edge groups";
     private static final String DELETE_FROM_VIEW_BTN = "//tb-customer//span[contains(text(),' Delete')]";
+    private static final String HEADER_NAME_VIEW = "(//header//div[@class='tb-details-title']/span)[2]";
 
     public WebElement titleFieldAddEntityView() {
         return waitUntilElementToBeClickable(ADD_ENTITY_VIEW + String.format(INPUT_FIELD, INPUT_FIELD_NAME_TITLE));
@@ -120,11 +140,19 @@ public class CustomerPageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMERS_USERS_BTN, title));
     }
 
-    public WebElement manageCustomersAssetsBtn(String title) {
+    public WebElement manageCustomersAssetGroupsBtn(String title) {
         return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMERS_ASSETS_BTN, title));
     }
 
-    public WebElement manageCustomersDevicesBtn(String title) {
+    public WebElement manageCustomerGroupsBtn(String title) {
+        return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMERS_GROUPS_BTN, title));
+    }
+
+    public WebElement manageCustomerEntityViewBtn(String title) {
+        return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMER_ENTITY_VIEW_BTN, title));
+    }
+
+    public WebElement manageCustomersDeviceGroupsBtn(String title) {
         return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMERS_DEVICES_BTN, title));
     }
 
@@ -132,7 +160,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
         return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMERS_DASHBOARDS_BTN, title));
     }
 
-    public WebElement manageCustomersEdgeBtn(String title) {
+    public WebElement manageCustomersEdgeGroupsBtn(String title) {
         return waitUntilElementToBeClickable(String.format(MANAGE_CUSTOMERS_EDGE_BTN, title));
     }
 
@@ -233,7 +261,7 @@ public class CustomerPageElements extends OtherPageElementsHelper {
     }
 
     public WebElement customerUserIconHeader() {
-        return waitUntilVisibilityOfElementLocated(String.format(CUSTOMER_ICON_HEADER, CUSTOMER_USER_ICON_HEADER));
+        return waitUntilVisibilityOfElementLocated(CUSTOMER_ICON_HEADER);
     }
 
     public WebElement customerAssetsIconHeader() {
@@ -256,27 +284,39 @@ public class CustomerPageElements extends OtherPageElementsHelper {
         return waitUntilVisibilityOfElementLocated(CUSTOMER_USER_ICON_HEAD);
     }
 
-    public WebElement manageCustomersUserBtnView() {
-        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_USERS_BTN_VIEW));
+    public WebElement manageCustomersUserGroupsBtnView() {
+        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_USER_GROUPS_BTN_VIEW));
     }
 
-    public WebElement manageCustomersAssetsBtnView() {
-        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_ASSETS_BTN_VIEW));
+    public WebElement manageCustomersAssetGroupsBtnView() {
+        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_ASSET_GROUP_BTN_VIEW));
     }
 
-    public WebElement manageCustomersDeviceBtnView() {
-        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_DEVICE_BTN_VIEW));
+    public WebElement manageCustomerGroupsBtnView() {
+        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_GROUP_BTN_VIEW));
+    }
+
+    public WebElement manageEntityViewBtnView() {
+        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMER_ENTITY_VIEW_BTN_VIEW));
+    }
+
+    public WebElement manageCustomersDeviceGroupsBtnView() {
+        return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_DEVICE_GROUPS_BTN_VIEW));
     }
 
     public WebElement manageCustomersDashboardsBtnView() {
         return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_DASHBOARD_BTN_VIEW));
     }
 
-    public WebElement manageCustomersEdgeBtnView() {
+    public WebElement manageCustomersEdgeGroupsBtnView() {
         return waitUntilElementToBeClickable(String.format(MANAGE_BTN_VIEW, MANAGE_CUSTOMERS_EDGE_BTN_VIEW));
     }
 
     public WebElement customerViewDeleteBtn() {
         return waitUntilElementToBeClickable(DELETE_FROM_VIEW_BTN);
+    }
+
+    public WebElement headerNameCustomerView() {
+        return waitUntilVisibilityOfElementLocated(HEADER_NAME_VIEW);
     }
 }

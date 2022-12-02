@@ -64,6 +64,7 @@
         <module>tb-node</module>
         <module>transport</module>
         <module>integration</module>
+        <module>black-box-tests</module>
     </modules>
 
     <profiles>

@@ -45,13 +45,17 @@ import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -462,23 +466,6 @@ public class TestRestClient {
                 .extract()
                 .as(new TypeRef<List<String>>() {});
     }
-    public DeviceProfile getDeviceProfileById(DeviceProfileId deviceProfileId) {
-        return  given().spec(requestSpec).get("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
-                .then()
-                .assertThat()
-                .statusCode(HTTP_OK)
-                .extract()
-                .as(DeviceProfile.class);
-    }
-
-    public DeviceProfile postDeviceProfile(DeviceProfile deviceProfile) {
-        return given().spec(requestSpec).body(deviceProfile)
-                .post("/api/deviceProfile")
-                .then()
-                .statusCode(HTTP_OK)
-                .extract()
-                .as(DeviceProfile.class);
-    }
 
     public Customer postCustomer(Customer customer) {
         return given().spec(requestSpec)
@@ -517,6 +504,51 @@ public class TestRestClient {
                 .extract()
                 .as(new TypeRef<PageData<Customer>>() {
                 });
+    }
+
+    public List<EntityGroupInfo> getEntityGroups(EntityType groupType) {
+        return given().spec(requestSpec)
+                .get("/api/entityGroups/{groupType}", groupType)
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<List<EntityGroupInfo>>() {
+                });
+    }
+
+    public EntityGroupInfo postEntityGroup(EntityGroup entityGroup) {
+        return given().spec(requestSpec)
+                .body(entityGroup)
+                .post("/api/entityGroup")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(EntityGroupInfo.class);
+    }
+
+    public void deleteEntityGroup(EntityGroupId entityGroupId) {
+        given().spec(requestSpec)
+                .delete("/api/entityGroup/{entityGroupId}", entityGroupId.getId())
+                .then()
+                .statusCode(HTTP_OK);
+    }
+
+    public DeviceProfile getDeviceProfileById(DeviceProfileId deviceProfileId) {
+        return  given().spec(requestSpec).get("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
+                .then()
+                .assertThat()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceProfile.class);
+    }
+
+    public DeviceProfile postDeviceProfile(DeviceProfile deviceProfile) {
+        return given().spec(requestSpec).body(deviceProfile)
+                .post("/api/deviceProfile")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceProfile.class);
     }
 
     public String getToken() {

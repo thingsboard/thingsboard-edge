@@ -46,7 +46,6 @@ import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 import static org.thingsboard.server.msa.ui.utils.Const.SAME_NAME_WARNING_ENTITY_GROUP_MESSAGE;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
-import static org.thingsboard.server.msa.ui.utils.Const.URL;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultCustomerPrototype;
 import static org.thingsboard.server.msa.ui.utils.EntityPrototypes.defaultEntityGroupPrototype;
 
@@ -58,7 +57,7 @@ public class CustomerAddToGroupTest extends AbstractDriverBaseTest {
 
     @BeforeMethod
     public void login() {
-        openUrl(URL);
+        openLocalhost();
         new LoginPageHelper(driver).authorizationTenant();
         testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
         sideBarMenuView = new SideBarMenuViewElements(driver);

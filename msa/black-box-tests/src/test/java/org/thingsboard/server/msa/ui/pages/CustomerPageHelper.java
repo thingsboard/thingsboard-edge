@@ -48,6 +48,15 @@ public class CustomerPageHelper extends CustomerPageElements {
     private String customerEmail;
     private String customerCountry;
     private String customerCity;
+    private String headerName;
+
+    public void setCustomerHeaderName() {
+        this.headerName = headerNameCustomerView().getText();
+    }
+
+    public String getCustomerHeaderName() {
+        return headerName;
+    }
 
     public void setCustomerName() {
         this.customerName = entityTitles().get(0).getText();
@@ -142,6 +151,7 @@ public class CustomerPageHelper extends CustomerPageElements {
     }
 
     public void assignedDashboard() {
+        new DashboardPageElements(driver).openDashboardCroupBtn().get(0).click();
         plusBtn().click();
         assignedField().click();
         setDashboard();
@@ -155,5 +165,19 @@ public class CustomerPageHelper extends CustomerPageElements {
 
     public void sortByTitleDown() {
         doubleClick(sortByTitleBtn());
+    }
+
+    public boolean doneBtnIsEnable() {
+        waitUntilAttributeContains(doneBtnEditViewVisible(), "disabled", "true");
+        return doneBtnEditViewVisible().isEnabled();
+    }
+
+    public void enterPhoneNumber(String number) {
+        phoneNumberEntityView().click();
+        phoneNumberEntityView().sendKeys(number);
+    }
+
+    public void waitUntilCustomerNotVisible(String customerName) {
+        waitUntilInvisibilityOfElementLocated(entity(customerName));
     }
 }

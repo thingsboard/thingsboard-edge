@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.msa.ui.tests.customerSmoke;
 
@@ -59,7 +74,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomer() {
         String customerName = ENTITY_NAME;
 
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.addBtnC().click();
@@ -78,7 +93,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         String email = "email@mail.com";
         String number = "12015550123";
 
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.selectCountryAddEntityView();
@@ -117,7 +132,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerWithoutName() {
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.plusBtn().click();
 
         Assert.assertFalse(customerPage.addBtnV().isEnabled());
@@ -126,7 +141,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerWithOnlySpace() {
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(" ");
         customerPage.addBtnC().click();
@@ -141,7 +156,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerSameName() {
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.setCustomerName();
         String customerName = customerPage.getCustomerName();
         customerPage.plusBtn().click();
@@ -160,7 +175,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomerWithoutRefresh() {
         String customerName = ENTITY_NAME;
 
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.addBtnC().click();
@@ -173,9 +188,9 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 40, groups = "smoke")
     @Description
     public void documentation() {
-        String urlPath = "docs/user-guide/ui/customers/";
+        String urlPath = "/docs/pe/user-guide/ui/customers/";
 
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.setCustomerName();
         customerPage.customer(customerPage.getCustomerName()).click();
         customerPage.goToHelpPage();

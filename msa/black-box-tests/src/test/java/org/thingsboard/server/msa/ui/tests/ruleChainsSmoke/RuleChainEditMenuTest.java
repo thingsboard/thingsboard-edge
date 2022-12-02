@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.msa.ui.tests.ruleChainsSmoke;
 
@@ -65,14 +80,15 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
         ruleChainsPage.notRootRuleChainsNames().get(0).click();
         ruleChainsPage.setHeaderName();
         String nameBefore = ruleChainsPage.getHeaderName();
-        ruleChainsPage.editPencilBtn().click();
-        ruleChainsPage.changeNameEditMenu(name);
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
+        ruleChainsPage.changeNameEditMenu(ruleChainName);
+        ruleChainsPage.doneBtnEditRuleChainView().click();
         ruleChainsPage.setHeaderName();
         String nameAfter = ruleChainsPage.getHeaderName();
+        ruleChainName = name;
 
         Assert.assertNotEquals(nameBefore, nameAfter);
-        Assert.assertEquals(name, nameAfter);
+        Assert.assertEquals(ruleChainName, nameAfter);
     }
 
     @Test(priority = 20, groups = "smoke")
@@ -80,10 +96,10 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
     public void deleteName() {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.notRootRuleChainsNames().get(0).click();
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.changeNameEditMenu("");
 
-        Assert.assertFalse(ruleChainsPage.doneBtnEditViewVisible().isEnabled());
+        Assert.assertFalse(ruleChainsPage.doneBtnEditRuleChainViewVisible().isEnabled());
     }
 
     @Test(priority = 20, groups = "smoke")
@@ -91,9 +107,9 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
     public void saveOnlyWithSpace() {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.notRootRuleChainsNames().get(0).click();
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.changeNameEditMenu(" ");
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.doneBtnEditRuleChainView().click();
 
         Assert.assertNotNull(ruleChainsPage.warningMessage());
         Assert.assertTrue(ruleChainsPage.warningMessage().isDisplayed());
@@ -109,17 +125,17 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.notRootRuleChainsNames().get(0).click();
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.descriptionEntityView().sendKeys(description);
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.doneBtnEditRuleChainView().click();
         String description1 = ruleChainsPage.descriptionEntityView().getAttribute("value");
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.descriptionEntityView().sendKeys(description);
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.doneBtnEditRuleChainView().click();
         String description2 = ruleChainsPage.descriptionEntityView().getAttribute("value");
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.changeDescription("");
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.doneBtnEditRuleChainView().click();
 
         Assert.assertTrue(ruleChainsPage.descriptionEntityView().getAttribute("value").isEmpty());
         Assert.assertEquals(description, description1);
@@ -134,13 +150,13 @@ public class RuleChainEditMenuTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.notRootRuleChainsNames().get(0).click();
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.debugCheckboxEdit().click();
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.doneBtnEditRuleChainView().click();
         boolean debugMode = Boolean.parseBoolean(ruleChainsPage.debugCheckboxView().getAttribute("aria-checked"));
-        ruleChainsPage.editPencilBtn().click();
+        ruleChainsPage.editPencilRuleChainViewBtn().click();
         ruleChainsPage.debugCheckboxEdit().click();
-        ruleChainsPage.doneBtnEditView().click();
+        ruleChainsPage.doneBtnEditRuleChainView().click();
 
         Assert.assertFalse(Boolean.parseBoolean(ruleChainsPage.debugCheckboxView().getAttribute("aria-checked")));
         Assert.assertTrue(debugMode);
