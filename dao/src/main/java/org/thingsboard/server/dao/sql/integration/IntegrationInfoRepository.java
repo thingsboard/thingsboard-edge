@@ -63,9 +63,12 @@ public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfo
                                                         @Param("searchText") String searchText,
                                                         Pageable pageable);
 
-    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId " +
+            "AND ii.edgeTemplate = :isEdgeTemplate " +
+            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
     Page<IntegrationInfoEntity> findAllIntegrationInfosWithStats(@Param("tenantId") UUID tenantId,
                                                                  @Param("searchText") String searchText,
+                                                                 @Param("isEdgeTemplate") boolean isEdgeTemplate,
                                                                  Pageable pageable);
 
 }

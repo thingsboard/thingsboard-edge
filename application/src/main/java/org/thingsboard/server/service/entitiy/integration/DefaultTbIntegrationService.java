@@ -67,7 +67,7 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
             return pageData;
         }
 
-        return integrationService.findTenantIntegrationInfosWithStats(tenantId, pageLink);
+        return integrationService.findTenantIntegrationInfosWithStats(tenantId, isEdgeTemplate, pageLink);
     }
 
     @Override
