@@ -159,11 +159,11 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
-    public PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findTenantIntegrationInfosWithStats, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, boolean isEdgeTemplate, PageLink pageLink) {
+        log.trace("Executing findTenantIntegrationInfosWithStats, tenantId [{}], isEdgeTemplate [{}], pageLink [{}]", tenantId, isEdgeTemplate, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
-        return integrationInfoDao.findAllIntegrationInfosWithStats(tenantId.getId(), pageLink);
+        return integrationInfoDao.findAllIntegrationInfosWithStats(tenantId.getId(), isEdgeTemplate, pageLink);
     }
 
     @Override
