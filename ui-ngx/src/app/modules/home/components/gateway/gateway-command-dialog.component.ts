@@ -29,36 +29,45 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { CopyDeviceCredentialsComponent } from '@home/components/device/copy-device-credentials.component';
-import { DeviceCredentialsComponent } from '@home/components/device/device-credentials.component';
-import { DeviceCredentialsLwm2mComponent } from '@home/components/device/device-credentials-lwm2m.component';
-import { DeviceCredentialsLwm2mServerComponent } from '@home/components/device/device-credentials-lwm2m-server.component';
-import { DeviceCredentialsMqttBasicComponent } from '@home/components/device/device-credentials-mqtt-basic.component';
-import {DeviceGatewayCommandComponent} from "@home/components/device/device-gateway-command.component";
+import {Component, Inject, OnInit} from '@angular/core';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {Store} from '@ngrx/store';
+import {AppState} from '@core/core.state';
+import {Router} from '@angular/router';
+import {DialogComponent} from '@app/shared/components/dialog.component';
+import {TranslateService} from '@ngx-translate/core';
+import {Device, DeviceCredentials} from "@shared/models/device.models";
 
-@NgModule({
-  declarations: [
-    CopyDeviceCredentialsComponent,
-    DeviceCredentialsComponent,
-    DeviceCredentialsLwm2mComponent,
-    DeviceCredentialsLwm2mServerComponent,
-    DeviceCredentialsMqttBasicComponent,
-    DeviceGatewayCommandComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule
-  ],
-  exports: [
-    CopyDeviceCredentialsComponent,
-    DeviceCredentialsComponent,
-    DeviceCredentialsLwm2mComponent,
-    DeviceCredentialsLwm2mServerComponent,
-    DeviceCredentialsMqttBasicComponent,
-    DeviceGatewayCommandComponent
-  ]
+export interface GatewayCommandDialogData {
+  device: Device,
+  credentials: DeviceCredentials
+}
+
+enum OsType {
+  linux = 'linux',
+  macos = 'macos',
+  windows = 'win'
+}
+
+@Component({
+  selector: 'tb-gateway-command-dialog',
+  templateUrl: './gateway-command-dialog.component.html',
+  styleUrls: []
 })
-export class DeviceCredentialsModule { }
+export class GatewayCommandDialogComponent extends DialogComponent<GatewayCommandDialogComponent> implements OnInit {
+
+  constructor(protected router: Router,
+              protected store: Store<AppState>,
+              @Inject(MAT_DIALOG_DATA) public data: GatewayCommandDialogData,
+              public dialogRef: MatDialogRef<GatewayCommandDialogComponent, boolean>,) {
+    super(store, router, dialogRef);
+  }
+
+  ngOnInit() {
+  }
+
+  close(): void {
+    this.dialogRef.close();
+  }
+
+}

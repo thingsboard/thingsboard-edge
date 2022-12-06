@@ -29,36 +29,50 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { CopyDeviceCredentialsComponent } from '@home/components/device/copy-device-credentials.component';
-import { DeviceCredentialsComponent } from '@home/components/device/device-credentials.component';
-import { DeviceCredentialsLwm2mComponent } from '@home/components/device/device-credentials-lwm2m.component';
-import { DeviceCredentialsLwm2mServerComponent } from '@home/components/device/device-credentials-lwm2m-server.component';
-import { DeviceCredentialsMqttBasicComponent } from '@home/components/device/device-credentials-mqtt-basic.component';
-import {DeviceGatewayCommandComponent} from "@home/components/device/device-gateway-command.component";
+import {Component, OnInit} from '@angular/core';
+import {UtilsService} from '@core/services/utils.service';
+import {TranslateService} from '@ngx-translate/core';
+import {DeviceService} from '@core/http/device.service';
+import {AttributeService} from '@core/http/attribute.service';
+import {GatewayListTableConfig} from "@home/components/gateway/gateway-list-table-config";
+import {DatePipe} from "@angular/common";
+import {MatDialog} from "@angular/material/dialog";
+import {Store} from "@ngrx/store";
+import {AppState} from "@core/core.state";
+import {EntityService} from "@core/http/entity.service";
 
-@NgModule({
-  declarations: [
-    CopyDeviceCredentialsComponent,
-    DeviceCredentialsComponent,
-    DeviceCredentialsLwm2mComponent,
-    DeviceCredentialsLwm2mServerComponent,
-    DeviceCredentialsMqttBasicComponent,
-    DeviceGatewayCommandComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule
-  ],
-  exports: [
-    CopyDeviceCredentialsComponent,
-    DeviceCredentialsComponent,
-    DeviceCredentialsLwm2mComponent,
-    DeviceCredentialsLwm2mServerComponent,
-    DeviceCredentialsMqttBasicComponent,
-    DeviceGatewayCommandComponent
-  ]
+@Component({
+  selector: 'tb-gateway-list',
+  templateUrl: './gateway-list.component.html',
+  styleUrls: ['./gateway-list.component.scss']
 })
-export class DeviceCredentialsModule { }
+
+
+export class GatewayListComponent implements OnInit {
+  gatewayListTableConfig: GatewayListTableConfig;
+
+  constructor(
+    protected store: Store<AppState>,
+    private utils: UtilsService,
+    private translate: TranslateService,
+    private datePipe: DatePipe,
+    private deviceService: DeviceService,
+    private entityService: EntityService,
+    private attributeService: AttributeService,
+    private dialog: MatDialog,
+  ) {
+  }
+
+  ngOnInit(): void {
+    this.gatewayListTableConfig = new GatewayListTableConfig(
+      this.store,
+      this.deviceService,
+      this.attributeService,
+      this.entityService,
+      this.datePipe,
+      this.translate,
+      this.utils,
+      this.dialog
+    );
+  }
+}

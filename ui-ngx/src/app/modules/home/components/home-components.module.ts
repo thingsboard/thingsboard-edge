@@ -218,6 +218,7 @@ import { IntegrationWizardDialogComponent } from '@home/components/wizard/integr
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTestDialogComponent } from '@home/components/converter/converter-test-dialog.component';
 import { IntegrationComponentModule } from '@home/components/integration/integration-component.module';
+import { GatewayListComponent } from "@home/components/gateway/gateway-list.component";
 
 @NgModule({
   declarations:
@@ -240,6 +241,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
       RelationFiltersComponent,
       AlarmTableHeaderComponent,
       AlarmTableComponent,
+      GatewayListComponent,
       AttributeTableComponent,
       AddAttributeDialogComponent,
       EditAttributeValuePanelComponent,
@@ -415,6 +417,7 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     RelationTableComponent,
     RelationFiltersComponent,
     AlarmTableComponent,
+    GatewayListComponent,
     AttributeTableComponent,
     AliasesEntitySelectComponent,
     AliasesEntityAutocompleteComponent,

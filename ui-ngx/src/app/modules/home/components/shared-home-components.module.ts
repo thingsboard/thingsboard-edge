@@ -36,6 +36,8 @@ import { AlarmDetailsDialogComponent } from '@home/components/alarm/alarm-detail
 import { SchedulerEventModule } from '@home/components/scheduler/scheduler-event.module';
 import { BlobEntitiesComponent } from '@home/components/blob-entity/blob-entities.component';
 import { SHARED_HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
+import { DeviceCredentialsModule } from "@home/components/device/device-credentials.module";
+import { GatewayCommandDialogComponent } from "@home/components/gateway/gateway-command-dialog.component";
 
 @NgModule({
   providers: [
@@ -44,17 +46,20 @@ import { SHARED_HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
   declarations:
     [
       AlarmDetailsDialogComponent,
-      BlobEntitiesComponent
+      BlobEntitiesComponent,
+      GatewayCommandDialogComponent
     ],
   imports: [
     CommonModule,
     SharedModule,
-    SchedulerEventModule
+    SchedulerEventModule,
+    DeviceCredentialsModule
   ],
   exports: [
     AlarmDetailsDialogComponent,
     BlobEntitiesComponent,
-    SchedulerEventModule
+    SchedulerEventModule,
+    GatewayCommandDialogComponent
   ]
 })
 export class SharedHomeComponentsModule { }
