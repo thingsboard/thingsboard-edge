@@ -67,8 +67,10 @@ import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
@@ -890,7 +892,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testSyncEdgeEntityGroup() throws Exception {
+    public void testSyncEdge_tenantLevel() throws Exception {
         resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
 
         Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
@@ -947,6 +949,97 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
+
+        edgeImitator.allowIgnoredTypes();
+        try {
+            edgeImitator.disconnect();
+        } catch (Exception ignored) {
+        }
+
+        doDelete("/api/device/" + savedDevice.getId().getId().toString())
+                .andExpect(status().isOk());
+        doDelete("/api/asset/" + savedAsset.getId().getId().toString())
+                .andExpect(status().isOk());
+        doDelete("/api/edge/" + edge.getId().getId().toString())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testSyncEdge_customerLevel() throws Exception {
+        resetSysAdminWhiteLabelingSettings(tenantAdmin.getEmail(), "testPassword1");
+
+        Edge edge = doPost("/api/edge", constructEdge("Sync Test EG Edge", "test"), Edge.class);
+
+        // create customer
+        Customer customer = new Customer();
+        customer.setTitle("Edge Customer");
+        Customer savedCustomerA = doPost("/api/customer", customer, Customer.class);
+
+        doPost("/api/owner/CUSTOMER/" + savedCustomerA.getId().getId() + "/EDGE/" + edge.getId().getId());
+
+        EntityGroup savedDeviceGroup = new EntityGroup();
+        savedDeviceGroup.setType(EntityType.DEVICE);
+        savedDeviceGroup.setName("DeviceGroup");
+        savedDeviceGroup.setOwnerId(savedCustomerA.getId());
+        savedDeviceGroup = doPost("/api/entityGroup", savedDeviceGroup, EntityGroup.class);
+
+        Device device = new Device();
+        device.setName("Sync Test EG Edge Device 1");
+        device.setType("default");
+        device.setOwnerId(savedCustomerA.getId());
+        Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
+
+        EntityGroup savedAssetGroup = new EntityGroup();
+        savedAssetGroup.setType(EntityType.ASSET);
+        savedAssetGroup.setName("AssetGroup");
+        savedAssetGroup.setOwnerId(savedCustomerA.getId());
+        savedAssetGroup = doPost("/api/entityGroup", savedAssetGroup, EntityGroup.class);
+
+        Asset asset = new Asset();
+        asset.setName("Sync Test EG Edge Asset 1");
+        asset.setType("test");
+        asset.setOwnerId(savedCustomerA.getId());
+        Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
+
+        EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
+        edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
+
+        edgeImitator.expectMessageAmount(25);
+        edgeImitator.connect();
+        assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
+
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("one msg during sync process").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class))
+                .as("entity group - two msgs during sync process, four msgs from assign to edge, " +
+                        "two msgs of customer user groups during sync, " +
+                        "two msgs of customer user groups during change edge owner")
+                .hasSize(10);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - four msgs during sync process - two tenant's - two customer's").hasSize(4);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process, another from change edge owner").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(EdgeConfiguration.class)).as("one msg during change edge owner").hasSize(1);
+
+        edgeImitator.expectMessageAmount(18);
+        doPost("/api/edge/sync/" + edge.getId());
+        assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
+
+        assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(6);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(4);
+        assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("customer update msg after sync").hasSize(1);
 
         edgeImitator.allowIgnoredTypes();
         try {
