@@ -7,23 +7,63 @@
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
       {
-        "key": "aqi",
+        "key": "co",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 12.4,
+          "minLowValue": 0.5,
+          "maxLowValue": 5.5,
+          "minHighValue":5.6,
+          "maxHighValue": 12.4,
+          "minIncrement": 0.1,
+          "maxIncrement": 0.3,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.3,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "temperature",
         "valueStrategy": {
           "type": "natural",
           "precision": 1,
           "minStartValue": 20,
-          "maxStartValue": 30,
-          "minLowValue": 10,
-          "maxLowValue": 15,
-          "minHighValue": 80,
-          "maxHighValue": 90,
+          "maxStartValue": 23,
+          "minLowValue": 20,
+          "maxLowValue": 20,
+          "minHighValue": 28,
+          "maxHighValue": 35,
           "minIncrement": 0.1,
-          "maxIncrement": 0.5,
-          "minDecrement": 0.7,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
           "maxDecrement": 0.8,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 2.0,
-          "nightHoursMultiplier": 1.0
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "humidity",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 50,
+          "maxStartValue": 53,
+          "minLowValue": 40,
+          "maxLowValue": 40,
+          "minHighValue": 62,
+          "maxHighValue": 72,
+          "minIncrement": 0.1,
+          "maxIncrement": 1.6,
+          "minDecrement": 0.1,
+          "maxDecrement": 0.8,
+          "holidayMultiplier": 2.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 0.3
         }
       },
       {

@@ -16,8 +16,8 @@
     "nodes": [
       {
         "additionalInfo": {
-          "layoutX": 822,
-          "layoutY": 294
+          "layoutX": 1118,
+          "layoutY": 303
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -113,31 +113,68 @@
       },
       {
         "additionalInfo": {
-          "description": "",
-          "layoutX": 1153,
-          "layoutY": 296
+          "description": null,
+          "layoutX": 1438,
+          "layoutY": 451
         },
-        "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
-        "name": "Has AQI",
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
         "debugMode": false,
         "configuration": {
-          "messageNames": [
-            "aqi"
-          ],
-          "metadataNames": [],
-          "checkAllKeys": true
+          "defaultTTL": 0
         },
         "externalId": null
       },
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1153,
-          "layoutY": 368
+          "layoutX": 1438,
+          "layoutY": 378
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
+        "name": "Agg Latest",
+        "debugMode": true,
+        "configuration": {
+          "direction": "FROM",
+          "relationType": "Contains",
+          "deduplicationInSec": 10,
+          "aggMappings": [
+            {
+              "sourceScope": "LATEST_TELEMETRY",
+              "source": "temperature",
+              "defaultValue": 0,
+              "aggFunction": "AVG",
+              "target": "temperature"
+            },
+            {
+              "sourceScope": "LATEST_TELEMETRY",
+              "source": "humidity",
+              "defaultValue": 0,
+              "aggFunction": "AVG",
+              "target": "humidity"
+            },
+            {
+              "sourceScope": "LATEST_TELEMETRY",
+              "source": "aqi",
+              "defaultValue": 0,
+              "aggFunction": "MAX",
+              "target": "aqi"
+            }
+          ],
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1432,
+          "layoutY": 304
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Asset",
-        "debugMode": false,
+        "debugMode": true,
         "configuration": {
           "originatorSource": "RELATED",
           "entityType": null,
@@ -160,41 +197,17 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 1149,
-          "layoutY": 527
-        },
-        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
-        "name": "Save Timeseries",
-        "debugMode": false,
-        "configuration": {
-          "defaultTTL": 0
-        },
-        "externalId": null
-      },
-      {
-        "additionalInfo": {
           "description": "",
-          "layoutX": 1154,
-          "layoutY": 448
+          "layoutX": 828,
+          "layoutY": 301
         },
-        "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
-        "name": "Agg Latest",
-        "debugMode": false,
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "AQI Calculation",
+        "debugMode": true,
         "configuration": {
-          "direction": "FROM",
-          "relationType": "Contains",
-          "deduplicationInSec": 10,
-          "aggMappings": [
-            {
-              "sourceScope": "LATEST_TELEMETRY",
-              "source": "aqi",
-              "defaultValue": 0,
-              "aggFunction": "AVG",
-              "target": "avgAqi"
-            }
-          ],
-          "outMsgType": "POST_TELEMETRY_REQUEST",
-          "queueName": null
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var aqiMapping = [\n    {\"low\": 0, \"high\": 50},\n    {\"low\": 51, \"high\": 100},\n    {\"low\": 101, \"high\": 150},\n    {\"low\": 151, \"high\": 200},\n    {\"low\": 201, \"high\": 300},\n    {\"low\": 301, \"high\": 400},\n    {\"low\": 401, \"high\": 500}\n];\n\nvar coAqiMapping = [\n    {\"low\": 0.0, \"high\": 4.4},\n    {\"low\": 4.5, \"high\": 9.4},\n    {\"low\": 9.5, \"high\": 12.4},\n    {\"low\": 12.5, \"high\": 15.4},\n    {\"low\": 15.5, \"high\": 30.4},\n    {\"low\": 30.5, \"high\": 40.4},\n    {\"low\": 40.5, \"high\": 50.4}\n];\n\nvar so2AqiMapping = [\n    {\"low\": 0, \"high\": 35},\n    {\"low\": 36, \"high\": 75},\n    {\"low\": 76, \"high\": 185},\n    {\"low\": 186, \"high\": 304},\n    {\"low\": 305, \"high\": 604},\n    {\"low\": 605, \"high\": 804},\n    {\"low\": 805, \"high\": 1004}\n];\n\n\nfunction calculateAqi(value, vMapping, aMapping){\n    var bpLow = null;\n    var bpHigh = null;\n    var aqiLow = null;\n    var aqiHigh = null;\n    for(var i = 0; i < vMapping.length; i++){\n        bpLow = vMapping[i].low;\n        bpHigh = vMapping[i].high;\n        if(value >= bpLow && value <= bpHigh){\n            aqiLow = aMapping[i].low;\n            aqiHigh = aMapping[i].high;\n            return (int)(((aqiHigh - aqiLow) / (bpHigh - bpLow)) * (value - bpLow) + aqiLow);\n        }\n    }\n}\n\nvar aqi = -1;\n\nif (msg.co != null) {\n    msg.coAqi = calculateAqi(msg.co, coAqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.coAqi);\n}\nif (msg.so2 != null) {\n    msg.so2Aqi = calculateAqi(msg.so2, so2AqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.so2Aqi);\n}\n\nif(aqi >= 0){\n msg.aqi = aqi;\n}\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
         },
         "externalId": null
       }
@@ -202,13 +215,8 @@
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 7,
+        "toIndex": 9,
         "type": "Success"
-      },
-      {
-        "fromIndex": 2,
-        "toIndex": 0,
-        "type": "Post telemetry"
       },
       {
         "fromIndex": 2,
@@ -231,23 +239,28 @@
         "type": "RPC Request to Device"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 10,
+        "type": "Post telemetry"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
       },
       {
-        "fromIndex": 7,
-        "toIndex": 8,
-        "type": "True"
+        "fromIndex": 8,
+        "toIndex": 7,
+        "type": "Success"
       },
       {
-        "fromIndex": 8,
-        "toIndex": 10,
+        "fromIndex": 9,
+        "toIndex": 8,
         "type": "Success"
       },
       {
         "fromIndex": 10,
-        "toIndex": 9,
+        "toIndex": 0,
         "type": "Success"
       }
     ],

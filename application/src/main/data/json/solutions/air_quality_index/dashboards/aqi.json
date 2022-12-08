@@ -6096,7 +6096,7 @@
           "resolveMultiple": false,
           "singleEntity": {
             "entityType": "ASSET",
-            "id": "f8624140-65dd-11ed-b906-91023eb201a8"
+            "id": "203624e0-641a-11ed-90f3-052710537c9f"
           }
         }
       },
@@ -6111,7 +6111,7 @@
           "defaultStateEntity": null,
           "rootEntity": {
             "entityType": "ASSET",
-            "id": "f8624140-65dd-11ed-b906-91023eb201a8"
+            "id": "203624e0-641a-11ed-90f3-052710537c9f"
           },
           "direction": "FROM",
           "maxLevel": 1,
