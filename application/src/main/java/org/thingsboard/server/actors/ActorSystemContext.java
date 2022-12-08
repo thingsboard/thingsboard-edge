@@ -52,7 +52,7 @@ import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -312,7 +312,7 @@ public class ActorSystemContext {
 
     @Autowired(required = false)
     @Getter
-    private MvelInvokeService mvelInvokeService;
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     @Getter
@@ -617,18 +617,23 @@ public class ActorSystemContext {
 
         if (entityId.getEntityType().equals(EntityType.INTEGRATION)) {
             String key = "integration_status_" + getServiceId().toLowerCase();
-            ObjectNode value = JacksonUtil.newObjectNode();
 
-            if (e == null) {
-                value.put("success", true);
-            } else {
-                value.put("success", false);
-                value.put("serviceId", getServiceId());
-                value.put("error", event.getError());
+            if (event.getLcEventType().equals("STARTED") || event.getLcEventType().equals("UPDATED")) {
+                ObjectNode value = JacksonUtil.newObjectNode();
+
+                if (e == null) {
+                    value.put("success", true);
+                } else {
+                    value.put("success", false);
+                    value.put("serviceId", getServiceId());
+                    value.put("error", event.getError());
+                }
+
+                AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+                attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+            } else if (event.getLcEventType().equals("STOPPED")) {
+                attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
             }
-
-            AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
-            attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
         }
     }
 

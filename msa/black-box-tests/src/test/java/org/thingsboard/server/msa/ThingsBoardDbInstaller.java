@@ -33,7 +33,6 @@ package org.thingsboard.server.msa;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvEntry;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.rules.ExternalResource;
 import org.testcontainers.utility.Base58;
 import org.thingsboard.server.common.data.StringUtils;
 
@@ -47,7 +46,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Slf4j
-public class ThingsBoardDbInstaller extends ExternalResource {
+public class ThingsBoardDbInstaller {
 
     final static boolean IS_REDIS_CLUSTER = Boolean.parseBoolean(System.getProperty("blackBoxTests.redisCluster"));
     final static boolean IS_HYBRID_MODE = Boolean.parseBoolean(System.getProperty("blackBoxTests.hybridMode"));
@@ -159,8 +158,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         return env;
     }
 
-    @Override
-    protected void before() throws Throwable {
+    public void createVolumes()  {
         try {
 
             dockerCompose.withCommand("volume create " + postgresDataVolume);
@@ -230,8 +228,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
         }
     }
 
-    @Override
-    protected void after() {
+    public void savaLogsAndRemoveVolumes() {
         copyLogs(tbLogVolume, "./target/tb-logs/");
         copyLogs(tbIntegrationExecutorLogVolume, "./target/tb-integration-executor-logs/");
         copyLogs(tbCoapTransportLogVolume, "./target/tb-coap-transport-logs/");

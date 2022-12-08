@@ -43,7 +43,10 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { ChipStackIntegration, IntegrationType } from '@shared/models/integration.models';
-import { integrationEndPointUrl } from '@home/components/integration/integration.models';
+import {
+  integrationEndPointUrl,
+  privateNetworkAddressValidator
+} from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -81,8 +84,12 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
   }
 
   ngOnInit() {
+    const baseURLValidators = [Validators.required];
+    if (!this.allowLocalNetwork) {
+      baseURLValidators.push(privateNetworkAddressValidator);
+    }
     this.chirpStackIntegrationConfigForm = this.fb.group({
-      baseUrl: [baseUrl(), Validators.required],
+      baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{value: this.endPointUrl(baseUrl()), disabled: true}],
       applicationServerUrl: [null, Validators.required],
       applicationServerAPIToken: [null, Validators.required]
@@ -142,7 +149,17 @@ export class ChirpStackIntegrationFormComponent extends IntegrationForm implemen
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'left',
+        target: 'integrationRoot'
       }));
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.chirpStackIntegrationConfigForm?.get('baseUrl').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.chirpStackIntegrationConfigForm?.get('baseUrl').addValidators(privateNetworkAddressValidator);
+    }
+    this.chirpStackIntegrationConfigForm?.get('baseUrl').updateValueAndValidity({emitEvent: false});
   }
 }

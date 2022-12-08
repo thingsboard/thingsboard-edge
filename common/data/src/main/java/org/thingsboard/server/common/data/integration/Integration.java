@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,6 +43,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
@@ -173,6 +175,23 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;
+    }
+
+    @Builder
+    public Integration(TenantId tenantId, String name, IntegrationType type,
+                       Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
+                       boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
+                       String routingKey, IntegrationType type1, boolean debugMode, String secret,
+                       JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId) {
+        super(tenantId, name, type, debugMode, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate);
+        this.defaultConverterId = defaultConverterId;
+        this.downlinkConverterId = downlinkConverterId;
+        this.routingKey = routingKey;
+        this.type = type1;
+        this.secret = secret;
+        this.configuration = configuration;
+        this.additionalInfo = additionalInfo;
+        this.externalId = externalId;
     }
 
 }

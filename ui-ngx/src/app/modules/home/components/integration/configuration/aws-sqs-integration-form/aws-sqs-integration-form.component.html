@@ -38,6 +38,9 @@
     <mat-error translate *ngIf="awsSqsIntegrationConfigForm.get('queueUrl').hasError('required')">
       integration.aws-sqs-queue-url-required
     </mat-error>
+    <mat-error translate *ngIf="awsSqsIntegrationConfigForm.get('queueUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
   </mat-form-field>
   <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap.gt-sm="8px">
     <mat-form-field fxFlex class="mat-block">

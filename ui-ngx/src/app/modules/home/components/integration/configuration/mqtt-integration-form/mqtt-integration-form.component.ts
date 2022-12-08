@@ -42,7 +42,8 @@ import {
 } from '@angular/forms';
 import {
   mqttClientIdMaxLengthValidator,
-  mqttClientIdPatternValidator
+  mqttClientIdPatternValidator,
+  privateNetworkAddressValidator
 } from '@home/components/integration/integration.models';
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -136,5 +137,14 @@ export class MqttIntegrationFormComponent extends IntegrationForm implements OnI
     return this.mqttIntegrationConfigForm.valid ? null : {
       mqttIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.mqttIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.mqttIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+    }
+    this.mqttIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
   }
 }

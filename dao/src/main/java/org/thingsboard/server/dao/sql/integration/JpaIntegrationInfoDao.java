@@ -101,12 +101,13 @@ public class JpaIntegrationInfoDao extends JpaAbstractSearchTextDao<IntegrationI
     }
 
     @Override
-    public PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, PageLink pageLink) {
+    public PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, boolean isEdgeTemplate, PageLink pageLink) {
         log.debug("Try to find integrations with stats by tenantId [{}] and pageLink [{}]", tenantId, pageLink);
         return DaoUtil.toPageData(integrationInfoRepository
                 .findAllIntegrationInfosWithStats(
                         tenantId,
                         Objects.toString(pageLink.getTextSearch(), ""),
+                        isEdgeTemplate,
                         DaoUtil.toPageable(pageLink)));
     }
 

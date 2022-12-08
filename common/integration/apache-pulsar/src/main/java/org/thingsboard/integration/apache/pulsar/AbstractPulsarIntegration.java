@@ -60,7 +60,7 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
-        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName()+"-loop"));
+        loopExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(getClass().getSimpleName() + "-loop"));
         this.ctx = params.getContext();
         pulsarConfiguration = getClientConfiguration(configuration, PulsarConfiguration.class);
 
@@ -106,12 +106,6 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
                 log.warn("Failed to persist debug message", e);
             }
         }
-    }
-
-    @Override
-    public void update(TbIntegrationInitParams params) throws Exception {
-        destroy();
-        init(params);
     }
 
     @Override

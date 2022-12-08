@@ -134,6 +134,11 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
           this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
           (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.LC_EVENT;
         }, 0);
+      } else if ((event.target as HTMLElement).getElementsByTagName('TB-SPARK-LINE').length || (event as any).path.some(el => el.tagName === 'TB-SPARK-LINE')) {
+        setTimeout(() => {
+          this.getTable().entityDetailsPanel.matTabGroup.selectedIndex = 1;
+          (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = EventType.STATS;
+        }, 0);
       } else {
         (this.getTable().entityDetailsPanel.entityTabsComponent as any).defaultEventType = '';
       }

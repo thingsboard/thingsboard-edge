@@ -47,6 +47,13 @@ As result, in REPOSITORY column, next images should be present:
 
         mvn clean install -DblackBoxTests.skip=false -DblackBoxTests.integrations.skip=false
 
+  Note: for AWS IOT integration add next VM options:
+
+  -DblackBoxTests.aws.endpoint=YOUR_AWAZON_CLIENT_ENDPOINT
+  -DblackBoxTests.aws.rootCA=PATH_TO_ROOT_CA_PEM
+  -DblackBoxTests.aws.cert=PATH_TO_CERT
+  -DblackBoxTests.aws.privateKey=PATH_TO_PRIVATE_KEY
+  
   Note: for Azure IoT Hub integration add next VM options:
         
   -DblackBoxTests.azureIotHubHostName=YOUR_HOST_NAME
@@ -58,3 +65,8 @@ As result, in REPOSITORY column, next images should be present:
  Note: for Azure Event Hub integration add next VM options:
 
   -DblackBoxTests.azureEventHubConnectionString=YOUR_CONNECTION_STRING
+
+To run the black box tests with using local env run tests in the [msa/black-box-tests](../black-box-tests) directory with runLocal property:
+
+        mvn clean install -DblackBoxTests.skip=false -DrunLocal=true
+

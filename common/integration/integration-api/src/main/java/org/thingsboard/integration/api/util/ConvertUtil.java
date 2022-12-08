@@ -59,12 +59,12 @@ public class ConvertUtil {
         }
     }
 
-    public static void putJson(ObjectNode root, byte[] payload){
+    public static void putJson(ObjectNode root, byte[] payload) {
         try {
             JsonNode payloadJson = JacksonUtil.fromBytes(payload);
             root.set("payload", payloadJson);
         } catch (IllegalArgumentException e) {
-            root.put("payload", payload);
+            root.put("payload", toDebugMessage("JSON", payload));
         }
     }
 

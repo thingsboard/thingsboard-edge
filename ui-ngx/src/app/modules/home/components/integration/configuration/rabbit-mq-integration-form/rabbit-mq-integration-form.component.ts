@@ -44,6 +44,7 @@ import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { RabbitMqIntegration } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-rabbit-mq-integration-form',
@@ -121,5 +122,14 @@ export class RabbitMqIntegrationFormComponent extends IntegrationForm implements
     return this.rabbitMqIntegrationConfigForm.valid ? null : {
       rabbitMqIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.rabbitMqIntegrationConfigForm.get('host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.rabbitMqIntegrationConfigForm.get('host').addValidators(privateNetworkAddressValidator);
+    }
+    this.rabbitMqIntegrationConfigForm.get('host').updateValueAndValidity({emitEvent: false});
   }
 }

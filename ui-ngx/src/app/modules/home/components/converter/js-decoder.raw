@@ -12,7 +12,7 @@ var payloadStr = decodeToString(payload);
 
 var deviceName = 'Device A';
 var deviceType = 'thermostat';
-var customerName = 'customer';
+var customerName = 'Customer C';
 var groupName = 'thermostat devices';
 // use assetName and assetType instead of deviceName and deviceType
 // to automatically create assets instead of devices.
@@ -26,7 +26,7 @@ var result = {
    deviceType: deviceType,
 // assetName: assetName,
 // assetType: assetType,
-   customerName: customerName,
+// customerName: customerName,
    groupName: groupName,
    attributes: {
        model: 'Model A',

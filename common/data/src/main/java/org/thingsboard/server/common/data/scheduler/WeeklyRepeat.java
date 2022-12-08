@@ -43,8 +43,6 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WeeklyRepeat implements SchedulerRepeat {
 
-    public static final long _1DAY = 1000 * 60 * 60 * 24;
-
     private long endsOn;
     private List<Integer> repeatOn;
 
@@ -56,16 +54,20 @@ public class WeeklyRepeat implements SchedulerRepeat {
     @Override
     public long getNext(long startTime, long ts, String timezone) {
         Calendar calendar = SchedulerUtils.getCalendarWithTimeZone(timezone);
+        long tmp = startTime;
 
-        for (long tmp = startTime; tmp < endsOn; tmp += _1DAY) {
+        calendar.setTimeInMillis(tmp);
+
+        while (tmp < endsOn) {
             if (tmp > ts) {
-                calendar.setTimeInMillis(tmp);
                 int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
                 dayOfWeek = dayOfWeek - 1; // The UI calendar starts from 0;
                 if (repeatOn.contains(dayOfWeek)) {
                     return tmp;
                 }
             }
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+            tmp = calendar.getTimeInMillis();
         }
         return 0L;
     }

@@ -1181,7 +1181,19 @@ export class WidgetSubscription implements IWidgetSubscription {
       if (this.data.length) {
         const tsRows: {[ts: string]: {[key: string]: any}} = {};
         const allKeys: {[key: string]: boolean} = {};
-        this.data.forEach((datasourceData) => {
+        let latest: {[datasourceName: string]: {[key: string]: any}} = {};
+        if (this.latestData.length) {
+          this.latestData.forEach(latestRow => {
+            if (!latest[latestRow.datasource.name]) {
+              latest[latestRow.datasource.name] = {};
+            }
+            latest[latestRow.datasource.name][latestRow.dataKey.label] = latestRow.data[0][1];
+            if (!allKeys[latestRow.dataKey.label]) {
+              allKeys[latestRow.dataKey.label] = true;
+            }
+          });
+        }
+        this.data.forEach((datasourceData, index) => {
           datasourceData.data.forEach((row) => {
             let key = datasourceData.dataKey.label;
             const ts = row[0];
@@ -1192,7 +1204,7 @@ export class WidgetSubscription implements IWidgetSubscription {
             const value = row[1];
             let tsRow = tsRows[tsKey];
             if (!tsRow) {
-              tsRow = {};
+              tsRow = this.latestData.length ? deepClone(latest[datasourceData.datasource.name]) : {};
               tsRow.Timestamp = this.ctx.datePipe.transform(ts, 'yyyy-MM-dd HH:mm:ss');
               tsRow['Entity Name'] = datasourceData.datasource.entityName;
               tsRows[tsKey] = tsRow;

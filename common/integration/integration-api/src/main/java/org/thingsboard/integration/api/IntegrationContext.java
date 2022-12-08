@@ -139,4 +139,7 @@ public interface IntegrationContext {
 
     boolean isExceptionStackTraceEnabled();
 
+    void onUplinkMessageProcessed(boolean success);
+
+    void onDownlinkMessageProcessed(boolean success);
 }
