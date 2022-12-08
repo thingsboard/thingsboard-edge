@@ -28,31 +28,56 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.msa;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.integration.IntegrationInfo;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.californium.core.CoapHandler;
+import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.coap.CoAP;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
-/**
- * The Interface IntegrationDao.
- *
- */
-public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
+@Slf4j
+@Data
+public class TestCoapClientCallback implements CoapHandler {
 
-    List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+    protected final CountDownLatch latch;
+    protected Integer observe;
+    protected byte[] payloadBytes;
+    protected CoAP.ResponseCode responseCode;
 
-    PageData<IntegrationInfo> findByTenantIdAndIsEdgeTemplate(UUID tenantId, PageLink pageLink, boolean isEdgeTemplate);
+    public TestCoapClientCallback() {
+        this.latch = new CountDownLatch(1);
+    }
 
-    PageData<IntegrationInfo> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
+    public TestCoapClientCallback(int subscribeCount) {
+        this.latch = new CountDownLatch(subscribeCount);
+    }
 
-    PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, boolean isEdgeTemplate, PageLink pageLink);
+    public Integer getObserve() {
+        return observe;
+    }
+
+    public byte[] getPayloadBytes() {
+        return payloadBytes;
+    }
+
+    public CoAP.ResponseCode getResponseCode() {
+        return responseCode;
+    }
+
+    @Override
+    public void onLoad(CoapResponse response) {
+        observe = response.getOptions().getObserve();
+        payloadBytes = response.getPayload();
+        responseCode = response.getCode();
+        latch.countDown();
+    }
+
+    @Override
+    public void onError() {
+        log.warn("Command Response Ack Error, No connect");
+    }
 
 }

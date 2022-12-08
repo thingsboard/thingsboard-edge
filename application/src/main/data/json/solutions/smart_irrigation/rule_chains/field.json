@@ -483,9 +483,9 @@
         "configuration": {
           "msgCount": 0,
           "periodInSeconds": 60,
-          "scriptLang": "JS",
-          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "tbelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = {waterConsumption: 60};\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = {waterConsumption: 60};\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
           "originatorId": "f19a9530-38d6-11ed-af17-3d7337747e91",
           "originatorType": "ASSET"
         },
@@ -503,9 +503,9 @@
         "configuration": {
           "msgCount": 0,
           "periodInSeconds": 60,
-          "scriptLang": "JS",
-          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
-          "tbelScript": "var msg = { pulseCounter: (prevMsg.pulseCounter != null ? prevMsg.pulseCounter + 1 : 0) };\nvar metadata = { data: 40 };\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "scriptLang": "TBEL",
+          "jsScript": "var msg = { waterConsumption: 60 };\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
+          "tbelScript": "var msg = { waterConsumption: 60 };\nvar metadata = {};\nvar msgType = \"POST_TELEMETRY_REQUEST\";\nreturn { msg: msg, metadata: metadata, msgType: msgType };",
           "originatorId": "f19a9530-38d6-11ed-af17-3d7337747e92",
           "originatorType": "ASSET"
         },

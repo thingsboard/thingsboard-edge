@@ -39,7 +39,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationCredentialType, IntegrationCredentialTypeTranslation } from '@shared/models/integration.models';
@@ -60,7 +60,7 @@ import { coerceBooleanProperty } from '@angular/cdk/coercion';
     multi: true,
   }]
 })
-export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator {
+export class IntegrationCredentialsComponent implements ControlValueAccessor, Validator, OnInit, OnDestroy {
 
   integrationCredentialForm: FormGroup;
   hideSelectType = false;
@@ -102,6 +102,14 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input() userNameRequired = 'integration.username-required';
   @Input() passwordLabel = 'integration.password';
   @Input() passwordRequired = 'integration.password-required';
+  private passwordOptionalValue = false;
+  get passwordOptional(): boolean {
+    return this.passwordOptionalValue;
+  }
+  @Input()
+  set passwordOptional(value: boolean) {
+    this.passwordOptionalValue = coerceBooleanProperty(value);
+  }
 
   IntegrationCredentialTypeTranslation = IntegrationCredentialTypeTranslation;
   IntegrationCredentialType = IntegrationCredentialType;
@@ -113,10 +121,13 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   private propagateChange = (v: any) => { };
 
   constructor(private fb: FormBuilder) {
+  }
+
+  ngOnInit() {
     this.integrationCredentialForm = this.fb.group({
       type: ['', Validators.required],
       username: [{value: '', disabled: true}, Validators.required],
-      password: [{value: '', disabled: true}, Validators.required],
+      password: [{value: '', disabled: true}, this.passwordOptional ? null : Validators.required],
       caCertFileName: [{value: '', disabled: true}, Validators.required],
       caCert: [{value: '', disabled: true}, Validators.required],
       certFileName: [{value: '', disabled: true}, Validators.required],
@@ -133,6 +144,11 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
     this.integrationCredentialForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => this.updateModel(value));
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   registerOnChange(fn: any) {
