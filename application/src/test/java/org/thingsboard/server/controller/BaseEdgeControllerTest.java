@@ -973,39 +973,39 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         // create customer
         Customer customer = new Customer();
         customer.setTitle("Edge Customer");
-        Customer savedCustomerA = doPost("/api/customer", customer, Customer.class);
+        Customer savedCustomer = doPost("/api/customer", customer, Customer.class);
 
-        doPost("/api/owner/CUSTOMER/" + savedCustomerA.getId().getId() + "/EDGE/" + edge.getId().getId());
+        doPost("/api/owner/CUSTOMER/" + savedCustomer.getId().getId() + "/EDGE/" + edge.getId().getId());
 
-        EntityGroup savedDeviceGroup = new EntityGroup();
-        savedDeviceGroup.setType(EntityType.DEVICE);
-        savedDeviceGroup.setName("DeviceGroup");
-        savedDeviceGroup.setOwnerId(savedCustomerA.getId());
-        savedDeviceGroup = doPost("/api/entityGroup", savedDeviceGroup, EntityGroup.class);
+        EntityGroup savedCustomerDeviceGroup = new EntityGroup();
+        savedCustomerDeviceGroup.setType(EntityType.DEVICE);
+        savedCustomerDeviceGroup.setName("CustomerDeviceGroup");
+        savedCustomerDeviceGroup.setOwnerId(savedCustomer.getId());
+        savedCustomerDeviceGroup = doPost("/api/entityGroup", savedCustomerDeviceGroup, EntityGroup.class);
 
-        Device device = new Device();
-        device.setName("Sync Test EG Edge Device 1");
-        device.setType("default");
-        device.setOwnerId(savedCustomerA.getId());
-        Device savedDevice = doPost("/api/device", device, Device.class, "entityGroupId", savedDeviceGroup.getId().getId().toString());
-
-        doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
-
-        EntityGroup savedAssetGroup = new EntityGroup();
-        savedAssetGroup.setType(EntityType.ASSET);
-        savedAssetGroup.setName("AssetGroup");
-        savedAssetGroup.setOwnerId(savedCustomerA.getId());
-        savedAssetGroup = doPost("/api/entityGroup", savedAssetGroup, EntityGroup.class);
-
-        Asset asset = new Asset();
-        asset.setName("Sync Test EG Edge Asset 1");
-        asset.setType("test");
-        asset.setOwnerId(savedCustomerA.getId());
-        Asset savedAsset = doPost("/api/asset", asset, Asset.class, "entityGroupId", savedAssetGroup.getId().getId().toString());
+        Device customerDevice = new Device();
+        customerDevice.setName("Sync Test EG Edge Customer Device 1");
+        customerDevice.setType("default");
+        customerDevice.setOwnerId(savedCustomer.getId());
+        Device savedDevice = doPost("/api/device", customerDevice, Device.class, "entityGroupId", savedCustomerDeviceGroup.getId().getId().toString());
 
         doPost("/api/edge/" + edge.getId().getId().toString()
-                + "/entityGroup/" + savedAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
+                + "/entityGroup/" + savedCustomerDeviceGroup.getId().getId().toString() + "/DEVICE", EntityGroup.class);
+
+        EntityGroup savedCustomerAssetGroup = new EntityGroup();
+        savedCustomerAssetGroup.setType(EntityType.ASSET);
+        savedCustomerAssetGroup.setName("CustomerAssetGroup");
+        savedCustomerAssetGroup.setOwnerId(savedCustomer.getId());
+        savedCustomerAssetGroup = doPost("/api/entityGroup", savedCustomerAssetGroup, EntityGroup.class);
+
+        Asset customerAsset = new Asset();
+        customerAsset.setName("Sync Test EG Edge Customer Asset 1");
+        customerAsset.setType("test");
+        customerAsset.setOwnerId(savedCustomer.getId());
+        Asset savedAsset = doPost("/api/asset", customerAsset, Asset.class, "entityGroupId", savedCustomerAssetGroup.getId().getId().toString());
+
+        doPost("/api/edge/" + edge.getId().getId().toString()
+                + "/entityGroup/" + savedCustomerAssetGroup.getId().getId().toString() + "/ASSET", EntityGroup.class);
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
@@ -1019,11 +1019,13 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class))
-                .as("entity group - two msgs during sync process, four msgs from assign to edge, " +
+                .as("entity group - " +
+                        "two msgs during sync process, " +
+                        "four msgs from assign to edge, " +
                         "two msgs of customer user groups during sync, " +
                         "two msgs of customer user groups during change edge owner")
                 .hasSize(10);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - four msgs during sync process - two tenant's - two customer's").hasSize(4);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - four msgs during sync process (two tenant's and two customer's)").hasSize(4);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process, another from change edge owner").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(EdgeConfiguration.class)).as("one msg during change edge owner").hasSize(1);
