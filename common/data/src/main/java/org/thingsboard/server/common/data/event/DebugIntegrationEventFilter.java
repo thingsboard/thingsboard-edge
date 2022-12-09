@@ -42,10 +42,10 @@ public class DebugIntegrationEventFilter extends DebugEventFilter {
 
     private String type;
     private String message;
-    private String status;
+    private String statusIntegration;
 
     @Override
     public boolean isNotEmpty() {
-        return super.isNotEmpty() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(message) || !StringUtils.isEmpty(status);
+        return super.isNotEmpty() || !StringUtils.isEmpty(type) || !StringUtils.isEmpty(message) || !StringUtils.isEmpty(statusIntegration);
     }
 }

@@ -195,7 +195,8 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'right'
+        horizontalPosition: 'right',
+        target: 'integrationRoot'
       }));
   }
 
@@ -208,7 +209,8 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'right'
+        horizontalPosition: 'right',
+        target: 'integrationRoot'
       }));
   }
 
@@ -221,7 +223,8 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         type: 'success',
         duration: 5000,
         verticalPosition: 'bottom',
-        horizontalPosition: 'right'
+        horizontalPosition: 'right',
+        target: 'integrationRoot'
       }));
     },
     error => {
@@ -231,7 +234,8 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
           type: 'error',
           duration: 5000,
           verticalPosition: 'bottom',
-          horizontalPosition: 'right'
+          horizontalPosition: 'right',
+          target: 'integrationRoot'
         }));
     });
   }

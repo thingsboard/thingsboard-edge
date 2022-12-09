@@ -43,7 +43,10 @@ import {
 import { baseUrl, isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { HttpIntegration, IntegrationType } from '@shared/models/integration.models';
-import { integrationEndPointUrl } from '@home/components/integration/integration.models';
+import {
+  integrationEndPointUrl,
+  privateNetworkAddressValidator
+} from '@home/components/integration/integration.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -85,8 +88,12 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
   }
 
   ngOnInit() {
+    const baseURLValidators = [Validators.required];
+    if (!this.allowLocalNetwork) {
+      baseURLValidators.push(privateNetworkAddressValidator);
+    }
     this.baseHttpIntegrationConfigForm = this.fb.group({
-      baseUrl: [baseUrl(), Validators.required],
+      baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
       enableSecurity: [false],
       headersFilter: [{}],
@@ -152,7 +159,17 @@ export class HttpIntegrationFormComponent extends IntegrationForm implements Con
         type: 'success',
         duration: 750,
         verticalPosition: 'bottom',
-        horizontalPosition: 'left'
+        horizontalPosition: 'left',
+        target: 'integrationRoot'
       }));
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.baseHttpIntegrationConfigForm?.get('baseUrl').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.baseHttpIntegrationConfigForm?.get('baseUrl').addValidators(privateNetworkAddressValidator);
+    }
+    this.baseHttpIntegrationConfigForm?.get('baseUrl').updateValueAndValidity({emitEvent: false});
   }
 }

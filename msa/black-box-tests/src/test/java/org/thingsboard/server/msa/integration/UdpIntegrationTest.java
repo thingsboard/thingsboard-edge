@@ -42,23 +42,17 @@ import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.handler.codec.string.StringEncoder;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.integration.Integration;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.msa.AbstractContainerTest;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.net.InetSocketAddress;
-
 @Slf4j
-public class UdpIntegrationTest extends AbstractContainerTest {
+public class UdpIntegrationTest extends AbstractIntegrationTest {
     private static final String ROUTING_KEY = "routing-key-udp";
     private static final String SECRET_KEY = "secret-key-udp";
-    private static final String LOGIN = "tenant@thingsboard.org";
-    private static final String PASSWORD = "tenant";
     private static final int PORT = 11560;
     private static final String CONFIG_INTEGRATION = "{\"clientConfiguration\":{" +
             "\"port\":" + PORT + "," +
@@ -95,12 +89,9 @@ public class UdpIntegrationTest extends AbstractContainerTest {
 
     @Test
     public void telemetryUploadWithLocalIntegration() throws Exception {
-        restClient.login(LOGIN, PASSWORD);
-        Device device = createDevice("udp_");
-
         JsonNode configConverter = new ObjectMapper().createObjectNode().put("decoder",
                 CONFIG_CONVERTER.replaceAll("DEVICE_NAME", device.getName()));
-        Integration integration = createIntegration(
+        integration = createIntegration(
                 IntegrationType.UDP, CONFIG_INTEGRATION, configConverter, ROUTING_KEY, SECRET_KEY, true);
 
         WsClient wsClient = subscribeToWebSocket(device.getId(), "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
@@ -116,8 +107,6 @@ public class UdpIntegrationTest extends AbstractContainerTest {
                 actualLatestTelemetry.getLatestValues().keySet());
 
         Assert.assertTrue(verify(actualLatestTelemetry, TELEMETRY_KEY, TELEMETRY_VALUE));
-
-        deleteAllObject(device, integration);
     }
 
     private void sendMessageToIntegration() throws InterruptedException {
@@ -142,4 +131,8 @@ public class UdpIntegrationTest extends AbstractContainerTest {
         }
     }
 
+    @Override
+    protected String getDevicePrototypeSufix() {
+        return "udp_";
+    }
 }

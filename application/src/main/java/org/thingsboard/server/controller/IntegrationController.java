@@ -229,7 +229,7 @@ public class IntegrationController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
-    public PageData<IntegrationInfo> getIntegratioInfos(
+    public PageData<IntegrationInfo> getIntegrationInfos(
             @ApiParam(value = "Fetch edge template integrations")
             @RequestParam(value = "isEdgeTemplate", required = false, defaultValue = "false") boolean isEdgeTemplate,
             @ApiParam(required = true, value = PAGE_SIZE_DESCRIPTION, allowableValues = "range[1, infinity]")

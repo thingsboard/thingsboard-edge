@@ -72,6 +72,7 @@ export class IntegrationConfigurationComponent implements ControlValueAccessor, 
   @Input() routingKey: string;
   @Input() integrationType: IntegrationType;
   @Input() isEdgeTemplate: boolean;
+  @Input() allowLocalNetwork = true;
 
   @Input() disabled: boolean;
 

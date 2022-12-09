@@ -39,9 +39,6 @@ import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -70,32 +67,11 @@ public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
         List<EdgeEvent> result = new ArrayList<>();
         if (!pageData.getData().isEmpty()) {
             for (EntityGroup entityGroup : pageData.getData()) {
-                if (!entityGroup.isEdgeGroupAll()) {
-                    result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_GROUP,
-                            EdgeEventActionType.ADDED, entityGroup.getId(), null, null));
-                } else {
-                    result.addAll(getEdgeEventForEdgeGroupAll(tenantId, edge.getId(), entityGroup.getId()));
-                }
+                result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.ENTITY_GROUP,
+                        EdgeEventActionType.ADDED, entityGroup.getId(), null, null));
             }
         }
         return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
-    }
-
-    private List<EdgeEvent> getEdgeEventForEdgeGroupAll(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId) {
-        List<EdgeEvent> result = new ArrayList<>();
-        PageLink pageLink = new PageLink(1024);
-        PageData<EntityId> pageData;
-        do {
-            pageData = entityGroupService.findEntityIds(tenantId, groupType, entityGroupId, pageLink);
-            for (EntityId entityId : pageData.getData()) {
-                result.add(EdgeUtils.constructEdgeEvent(tenantId, edgeId, EdgeEventType.valueOf(groupType.name()),
-                        EdgeEventActionType.ADDED, entityId, null, null));
-            }
-            if (pageData.hasNext()) {
-                pageLink = pageLink.nextPageLink();
-            }
-        } while (pageData.hasNext());
-        return result;
     }
 }
 

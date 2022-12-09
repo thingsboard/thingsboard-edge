@@ -75,9 +75,9 @@ export const selectHasRepository = createSelector(
   (state: AuthState) => state.hasRepository
 );
 
-export const selectMvelEnabled = createSelector(
+export const selectTbelEnabled = createSelector(
   selectAuthState,
-  (state: AuthState) => state.mvelEnabled
+  (state: AuthState) => state.tbelEnabled
 );
 
 export function getCurrentAuthState(store: Store<AppState>): AuthState {

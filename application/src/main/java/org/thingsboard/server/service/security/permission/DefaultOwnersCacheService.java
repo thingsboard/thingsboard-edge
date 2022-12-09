@@ -184,12 +184,7 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     public void changeUserOwner(TenantId tenantId, EntityId targetOwnerId, User user) throws ThingsboardException {
         userPermissionsService.onUserUpdatedOrRemoved(user);
         changeEntityOwner(tenantId, targetOwnerId, user.getId(), user, targetUser -> {
-            if (EntityType.CUSTOMER.equals(targetOwnerId.getEntityType())) {
-                targetUser.setAuthority(Authority.CUSTOMER_USER);
-            } else if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
-                targetUser.setAuthority(Authority.TENANT_ADMIN);
-            }
-            userService.saveUser(targetUser);
+            userService.changeOwner(targetUser, targetOwnerId);
         });
     }
 

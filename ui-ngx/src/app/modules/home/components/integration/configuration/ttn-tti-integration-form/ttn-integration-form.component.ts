@@ -45,6 +45,7 @@ import { isDefinedAndNotNull, isNumber } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import {
+  privateNetworkAddressValidator,
   ThingsStartHostType,
   ThingsStartHostTypeTranslation,
   ttnVersion,
@@ -152,9 +153,8 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
     if (isDefinedAndNotNull(value)) {
       this.ttnIntegrationConfigForm.reset(value, {emitEvent: false});
       if (isDefinedAndNotNull(value.clientConfiguration)) {
-        if (value.clientConfiguration.customHost === !!ThingsStartHostType.Custom) {
-          this.hostEdit.patchValue('', {emitEvent: false});
-        } else if (value.clientConfiguration.host && value.clientConfiguration.host.endsWith(this.hostRegionSuffix)) {
+        if (value.clientConfiguration.customHost === !!ThingsStartHostType.Region &&
+          value.clientConfiguration.host.endsWith(this.hostRegionSuffix)) {
           this.hostEdit.patchValue(value.clientConfiguration.host.slice(0, -this.hostRegionSuffix.length), {emitEvent: false});
         } else {
           this.hostEdit.patchValue(value.clientConfiguration.host, {emitEvent: false});
@@ -222,5 +222,17 @@ export class TtnIntegrationFormComponent extends IntegrationForm implements Cont
       pattern = this.downlinkPattern.replace('${applicationId}', name);
     }
     this.ttnIntegrationConfigForm.get('downlinkTopicPattern').patchValue(pattern, {emitEvent});
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.ttnIntegrationConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+      this.hostEdit.removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.ttnIntegrationConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+      this.hostEdit.addValidators(privateNetworkAddressValidator);
+    }
+    this.ttnIntegrationConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
+    this.hostEdit.updateValueAndValidity({emitEvent: false});
   }
 }

@@ -49,8 +49,10 @@ public class ConverterProtoConstructor {
                 .setName(converter.getName())
                 .setType(converter.getType().name())
                 .setDebugMode(converter.isDebugMode())
-                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+                .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
+        if (converter.getAdditionalInfo() != null) {
+            builder.setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        }
         return builder.build();
     }
 }

@@ -60,4 +60,8 @@ public class DefaultCounter {
         aiCounter.addAndGet(delta);
         micrometerCounter.increment(delta);
     }
+
+    public Counter getMicrometerCounter() {
+        return this.micrometerCounter;
+    }
 }
