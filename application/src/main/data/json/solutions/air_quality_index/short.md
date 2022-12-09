@@ -1,6 +1,11 @@
-Template for temperature and humidity sensors demonstrating common platform capabilities.
+A template for air pollution measurement sensors demonstrating the general capabilities of the platform.
 
-* Dashboard with ability to manage sensors and visualize collected data;
-* Rules to generate temperature alarms.
+* A convenient dashboard to display the AQI value and general recommendations for vulnerable groups of people
+* Interactive map with location labels of devices
+* Display of indicators of specific pollutants
+* Easily accessible AQI value change history
+* Device management
 
-Press install button to get started!
+Everyone will be able to easily use the public dashboard to place on their own resource and use all the possibilities of this solution for their own needs.
+
+Press the Install button to get started!
