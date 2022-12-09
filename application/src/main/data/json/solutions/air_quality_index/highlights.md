@@ -1,12 +1,15 @@
-Temperature & Humidity sensors template represents a generic monitoring solution suitable for multiple applications.
-With this template you get an interactive dashboard with ability to manage sensors and user-friendly alarms configuration.
+The AIR Quality Monitoring template represents a solution for general air pollution monitoring and provides general recommendations in a user-friendly manner. The main metric for controlling the level of air pollution is AQI.
 
-Solution automatically creates a customer and two customer users. 
-Those users will have the dashboard assigned to them and the user will see the dashboard in full screen mode.
+In our specific solution, we base it on the US AQI. If you want to use a specific value, we can configure them exclusively according to your requirements. Please contact us for more information.
+
+Also, when installing this solution, the possibility of managing air quality control devices will be provided.
+
 
 #### Solution structure
 
-* "Temperature & Humidity" dashboard;
-* "Read only" role;  
-* Two "Temperature Sensor" devices and their device profile;
-* Customer with two users.
+* AQI dashboard of a specific city;
+* AQI set of specific pollutants;  
+* Interactive map with mapped devices;
+* Pollution statistic;
+* Public dashboard;
+
