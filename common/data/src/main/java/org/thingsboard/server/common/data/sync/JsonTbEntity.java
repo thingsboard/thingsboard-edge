@@ -73,6 +73,6 @@ import java.lang.annotation.Target;
         @Type(name = "INTEGRATION", value = Integration.class),
         @Type(name = "ROLE", value = Role.class)
 })
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(value = {"tenantId", "createdTime"}, ignoreUnknown = true)
 public @interface JsonTbEntity {
 }
