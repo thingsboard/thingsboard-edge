@@ -1,17 +1,32 @@
 /**
- * Copyright © 2016-2022 The Thingsboard Authors
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 package org.thingsboard.server.msa.ui.pages;
 
@@ -26,26 +41,31 @@ public class OtherPageElements extends AbstractBasePage {
         super(driver);
     }
 
-    protected static final String ENTITY = "//mat-row//span[contains(text(),'%s')]";
+    protected static final String ENTITY = "//mat-row//span[text() = '%s']";
     protected static final String DELETE_BTN = ENTITY + "/../..//mat-icon[contains(text(),' delete')]/../..";
     private static final String ENTITY_COUNT = "//div[@class='mat-paginator-range-label']";
-    private static final String WARNING_DELETE_POPUP_YES = "//tb-confirm-dialog//button[2]";
+    private static final String CONFIRM_DIALOG = "//tb-confirm-dialog";
+    private static final String WARNING_DELETE_POPUP_YES = CONFIRM_DIALOG + "//button[2]";
+    private static final String WARNING_DELETE_POPUP_NO = CONFIRM_DIALOG + "//button[1]";
     private static final String WARNING_DELETE_POPUP_TITLE = "//tb-confirm-dialog/h2";
     private static final String REFRESH_BTN = "//mat-icon[contains(text(),'refresh')]/..";
-    private static final String HELP_BTN = "//mat-icon[contains(text(),'help')]/..";
+    private static final String HELP_BTN = "(//mat-icon[contains(text(),'help')]/../..)[2]";
+    private static final String HELP_BTN_ENTITY_GROUP = "//mat-icon[contains(text(),'help')]/../..";
     private static final String CHECKBOX = "//mat-row//span[contains(text(),'%s')]/../..//mat-checkbox";
     private static final String CHECKBOXES = "//tbody//mat-checkbox";
-    private static final String DELETE_SELECTED_BTN = "//span[contains(text(),'selected')]//..//mat-icon/../..";
+    private static final String DELETE_SELECTED_BTN = "//span[contains(text(),'selected')]//..//mat-icon[contains(text(),'delete')]/../..";
     private static final String DELETE_BTNS = "//mat-icon[contains(text(),' delete')]/../..";
     private static final String MARKS_CHECKBOX = "//mat-row[contains (@class,'mat-selected')]//mat-checkbox[contains(@class, 'checked')]";
     private static final String SELECT_ALL_CHECKBOX = "//thead//mat-checkbox";
     private static final String ALL_ENTITY = "//mat-row[@class='mat-row cdk-row mat-row-select ng-star-inserted']";
-    private static final String EDIT_PENCIL_BTN = "//mat-icon[contains(text(),'edit')]/ancestor::button";
+    private static final String EDIT_PENCIL_BTN = "//mat-drawer-content//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
+    private static final String ENTITY_GROUP_EDIT_PENCIL_BTN = "//tb-entity-details-panel//mat-icon[contains(text(),'edit')]/ancestor::button";
     private static final String NAME_FIELD_EDIT_VIEW = "//input[@formcontrolname='name']";
     private static final String HEADER_NAME_VIEW = "//header//div[@class='tb-details-title']/span";
-    private static final String DONE_BTN_EDIT_VIEW = "//mat-icon[contains(text(),'done')]/ancestor::button";
-    private static final String DESCRIPTION_ENTITY_VIEW = "//textarea";
-    private static final String DESCRIPTION_ADD_ENTITY_VIEW = "//tb-add-entity-dialog//textarea";
+    private static final String DONE_BTN_EDIT_VIEW = "//mat-drawer-content//mat-icon[contains(text(),'done')]/ancestor::button";
+    private static final String ENTITY_GROUP_DONE_BTN_EDIT_VIEW = "//mat-icon[contains(text(),'done')]/ancestor::button";
+    private static final String DESCRIPTION_ENTITY_VIEW = "//mat-drawer-container[contains(@class,'has-open')]//textarea";
+    private static final String DESCRIPTION_ADD_ENTITY_VIEW = "//mat-dialog-container//textarea";
     private static final String DEBUG_CHECKBOX_EDIT = "//mat-checkbox[@formcontrolname='debugMode']";
     private static final String DEBUG_CHECKBOX_VIEW = "//mat-checkbox[@formcontrolname='debugMode']//input";
     private static final String CLOSE_ENTITY_VIEW_BTN = "//header//mat-icon[contains(text(),'close')]/../..";
@@ -59,11 +79,33 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String CREATE_VIEW_ADD_BTN = "//span[contains(text(),'Add')]/..";
     private static final String WARNING_MESSAGE = "//tb-snack-bar-component/div/div";
     private static final String ERROR_MESSAGE = "//mat-error";
-    private static final String ENTITY_VIEW_TITLE = "//div[@class='tb-details-title']//span";
+    private static final String ENTITY_VIEW_TITLE = "//mat-drawer-container[contains(@class,'has-open')]//div[@class='tb-details-title']//span";
     private static final String LIST_OF_ENTITY = "//div[@role='listbox']/mat-option";
-    protected static final String ADD_ENTITY_VIEW = "//tb-add-entity-dialog";
+    protected static final String ADD_ENTITY_VIEW = "//mat-dialog-container";
     protected static final String STATE_CONTROLLER = "//tb-entity-state-controller";
     private static final String SEARCH_FIELD = "//input[contains (@data-placeholder,'Search')]";
+    private static final String ADD_ENTITY_GROUP_VIEW = "//tb-entity-group-wizard";
+    private static final String ADD_TO_GROUP_VIEW = "//tb-select-entity-group-dialog";
+    private static final String NAME_FIELD_ADD_ENTITY_GROUP = ADD_ENTITY_GROUP_VIEW + "//input[@formcontrolname='name']";
+    private static final String OPEN_ENTITY_GROUP_BTN = ENTITY + "/../..//mat-icon[contains(text(),'view_list')]/../..";
+    private static final String ENTITY_GROUP = "//mat-cell[contains(@class,'cdk-column-name')]/span";
+    private static final String ENTITY_GROUP_TABLE_HEADER = "//tb-group-entity-table-header/span";
+    private static final String ENTITY_GROUP_HEADER = "//tb-breadcrumb//span[contains(text(),'%s')]";
+    private static final String OPEN_ENTITY_GROUP_VIEW_BTN = "//span[contains(text(),' Open entity group ')]";
+    private static final String ENTITY_GROUP_VIEW_DELETE_BTN = "//tb-entity-group//span[contains(text(),' Delete')]";
+    private static final String COPY_ID_BTN = "//span[contains(text(),'Id')]//ancestor::button";
+    private static final String COPY_POPUP_TEXT = "//tb-snack-bar-component//div[contains (@class,'toast-text')]";
+    private static final String CHANGE_OWNER_BTN = "//mat-icon[contains(text(),'assignment_ind')]//ancestor::button";
+    private static final String ADD_TO_GROUP_BTN = "//mat-icon[contains(text(),'add_circle')]//ancestor::button";
+    private static final String MOVE_TO_GROUP_BTN = "//mat-icon[contains(text(),'swap_vertical_circle')]//ancestor::button";
+    private static final String REMOVE_FROM_GROUP_BTN = "//mat-icon[contains(text(),'remove_circle')]//ancestor::button";
+    private static final String CHANGE_OWNER_VIEW_FIELD = "//input[@formcontrolname='owner']";
+    private static final String ADD_GROUP_VIEW_EXIST_FIELD = "//input[@formcontrolname='entityGroup']";
+    private static final String ADD_GROUP_VIEW_NEW_GROUP_FIELD = "//input[@formcontrolname='newEntityGroupName']";
+    private static final String ADD_GROUP_VIEW_NEW_GROUP_RADIO_BTN = ADD_GROUP_VIEW_NEW_GROUP_FIELD + "//ancestor::section/span";
+    private static final String CUSTOMER_FROM_DROPDOWN = "//div[@role='listbox']//span[contains(text(),'%s')]";
+    private static final String CHANGE_OWNER_VIEW_CHANGE_BTN = "//span[contains(text(),'Change owner')]//ancestor::button";
+    private static final String SELECT_GROUP_VIEW_SUBMIT_BTN = "//button[@type='submit']";
 
     public String getEntity(String entityName) {
         return String.format(ENTITY, entityName);
@@ -85,8 +127,16 @@ public class OtherPageElements extends AbstractBasePage {
         return String.format(CHECKBOXES);
     }
 
+    public String getConfirmDialog() {
+        return CONFIRM_DIALOG;
+    }
+
     public WebElement warningPopUpYesBtn() {
         return waitUntilElementToBeClickable(WARNING_DELETE_POPUP_YES);
+    }
+
+    public WebElement warningPopUpNoBtn() {
+        return waitUntilElementToBeClickable(WARNING_DELETE_POPUP_NO);
     }
 
     public WebElement warningPopUpTitle() {
@@ -103,6 +153,10 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement helpBtn() {
         return waitUntilElementToBeClickable(HELP_BTN);
+    }
+
+    public WebElement helpBtnEntityGroup() {
+        return waitUntilElementToBeClickable(HELP_BTN_ENTITY_GROUP);
     }
 
     public WebElement checkBox(String entityName) {
@@ -122,6 +176,11 @@ public class OtherPageElements extends AbstractBasePage {
         return waitUntilElementToBeClickable(EDIT_PENCIL_BTN);
     }
 
+    public WebElement entityGroupEditPencilBtn() {
+        waitUntilVisibilityOfElementsLocated(ENTITY_GROUP_EDIT_PENCIL_BTN);
+        return waitUntilElementToBeClickable(ENTITY_GROUP_EDIT_PENCIL_BTN);
+    }
+
     public WebElement nameFieldEditMenu() {
         return waitUntilElementToBeClickable(NAME_FIELD_EDIT_VIEW);
     }
@@ -132,6 +191,14 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement doneBtnEditView() {
         return waitUntilElementToBeClickable(DONE_BTN_EDIT_VIEW);
+    }
+
+    public WebElement entityGroupDoneBtnEditView() {
+        return waitUntilElementToBeClickable(ENTITY_GROUP_DONE_BTN_EDIT_VIEW);
+    }
+
+    public WebElement entityGroupDoneBtnVisibleEditView() {
+        return waitUntilVisibilityOfElementLocated(ENTITY_GROUP_DONE_BTN_EDIT_VIEW);
     }
 
     public WebElement descriptionEntityView() {
@@ -240,5 +307,105 @@ public class OtherPageElements extends AbstractBasePage {
 
     public WebElement searchField() {
         return waitUntilElementToBeClickable(SEARCH_FIELD);
+    }
+
+    public WebElement addEntityGroupView() {
+        return waitUntilVisibilityOfElementLocated(ADD_ENTITY_GROUP_VIEW);
+    }
+
+    public WebElement addToEntityGroupView() {
+        return waitUntilVisibilityOfElementLocated(ADD_TO_GROUP_VIEW);
+    }
+
+    public WebElement addEntityGroupViewNameField() {
+        return waitUntilElementToBeClickable(NAME_FIELD_ADD_ENTITY_GROUP);
+    }
+
+    public List<WebElement> entities(String name) {
+        return waitUntilVisibilityOfElementsLocated(String.format(ENTITY, name));
+    }
+
+    public WebElement openEntityGroupBtn(String groupName) {
+        return waitUntilElementToBeClickable(String.format(OPEN_ENTITY_GROUP_BTN, groupName));
+    }
+
+    public List<WebElement> entityGroups() {
+        return waitUntilVisibilityOfElementsLocated(ENTITY_GROUP);
+    }
+
+    public WebElement entityGroupTableHeader() {
+        return waitUntilVisibilityOfElementLocated(ENTITY_GROUP_TABLE_HEADER);
+    }
+
+    public WebElement entityGroupHeader(String name) {
+        return waitUntilVisibilityOfElementLocated(String.format(ENTITY_GROUP_HEADER, name));
+    }
+
+    public WebElement openEntityGroupViewBtn() {
+        return waitUntilElementToBeClickable(OPEN_ENTITY_GROUP_VIEW_BTN);
+    }
+
+    public WebElement entityGroupViewDeleteBtn() {
+        return waitUntilElementToBeClickable(ENTITY_GROUP_VIEW_DELETE_BTN);
+    }
+
+    public WebElement copyEntityIdBtn() {
+        return waitUntilElementToBeClickable(COPY_ID_BTN);
+    }
+
+    public WebElement copyPopup() {
+        return waitUntilVisibilityOfElementLocated(COPY_POPUP_TEXT);
+    }
+
+    public WebElement changeOwnerBtn() {
+        return waitUntilElementToBeClickable(CHANGE_OWNER_BTN);
+    }
+
+    public WebElement addToGroupBtn() {
+        return waitUntilElementToBeClickable(ADD_TO_GROUP_BTN);
+    }
+
+    public WebElement moveToGroupBtn() {
+        return waitUntilElementToBeClickable(MOVE_TO_GROUP_BTN);
+    }
+
+    public WebElement removeFromGroupBtn() {
+        return waitUntilElementToBeClickable(REMOVE_FROM_GROUP_BTN);
+    }
+
+    public WebElement changeOwnerViewField() {
+        return waitUntilElementToBeClickable(CHANGE_OWNER_VIEW_FIELD);
+    }
+
+    public WebElement selectGroupViewExistField() {
+        return waitUntilElementToBeClickable(ADD_GROUP_VIEW_EXIST_FIELD);
+    }
+
+    public WebElement selectGroupViewNewGroupField() {
+        return waitUntilElementToBeClickable(ADD_GROUP_VIEW_NEW_GROUP_FIELD);
+    }
+
+    public WebElement selectGroupViewNewGroupRadioBtn() {
+        return waitUntilElementToBeClickable(ADD_GROUP_VIEW_NEW_GROUP_RADIO_BTN);
+    }
+
+    public WebElement entityFromDropDown(String entityName) {
+        return waitUntilElementToBeClickable(String.format(CUSTOMER_FROM_DROPDOWN, entityName));
+    }
+
+    public WebElement changeOwnerViewChangeOwnerBtn() {
+        return waitUntilElementToBeClickable(CHANGE_OWNER_VIEW_CHANGE_BTN);
+    }
+
+    public WebElement selectGroupViewSubmitBtn() {
+        return waitUntilElementToBeClickable(SELECT_GROUP_VIEW_SUBMIT_BTN);
+    }
+
+    public WebElement changeOwnerViewChangeOwnerBtnVisible() {
+        return waitUntilVisibilityOfElementLocated(CHANGE_OWNER_VIEW_CHANGE_BTN);
+    }
+
+    public WebElement selectGroupViewSubmitBtnVisible() {
+        return waitUntilVisibilityOfElementLocated(SELECT_GROUP_VIEW_SUBMIT_BTN);
     }
 }

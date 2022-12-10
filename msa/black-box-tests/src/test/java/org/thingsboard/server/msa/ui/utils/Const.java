@@ -23,7 +23,7 @@ public class Const {
     public static final String URL = getBaseUrl();
     public static final String TENANT_EMAIL = "tenant@thingsboard.org";
     public static final String TENANT_PASSWORD = "tenant";
-    public static final String ENTITY_NAME = "Az!@#$%^&*()_-+=~`" + getRandomNumber();
+    public static final String ENTITY_NAME = "Aaz!@#$%^&*()_-+=~`" + getRandomNumber();
     public static final String ROOT_RULE_CHAIN_NAME = "Root Rule Chain";
     public static final String IMPORT_RULE_CHAIN_NAME = "Rule Chain from Import";
     public static final String IMPORT_RULE_CHAIN_FILE_NAME = "forImport.json";
@@ -34,4 +34,6 @@ public class Const {
     public static final String DELETE_RULE_CHAIN_WITH_PROFILE_MESSAGE = "The rule chain referenced by the device profiles cannot be deleted!";
     public static final String SAME_NAME_WARNING_CUSTOMER_MESSAGE = "Customer with such title already exists!";
     public static final String PHONE_NUMBER_ERROR_MESSAGE = "Phone number is invalid or not possible";
+    public static final String COPY_ENTITY_GROUP_ID_MESSAGE = "Entity group Id has been copied to clipboard";
+    public static final String OWNER_NOT_SELECTED_ERROR = "Target owner is required.";
 }

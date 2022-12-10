@@ -490,6 +490,16 @@ public class TestRestClient {
                 .as(Customer.class);
     }
 
+    public Customer postCustomer(Customer customer, EntityGroupId id) {
+        return given().spec(requestSpec)
+                .body(customer)
+                .post("/api/customer?entityGroupId={id}", id.getId())
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Customer.class);
+    }
+
     public void deleteCustomer(CustomerId customerId) {
         given().spec(requestSpec)
                 .delete("/api/customer/{customerId}", customerId.getId())
