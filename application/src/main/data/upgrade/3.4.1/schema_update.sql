@@ -103,6 +103,7 @@ $$
         -- in case of running the upgrade script a second time:
         IF NOT (SELECT exists(SELECT FROM pg_tables WHERE tablename = 'old_blob_entity')) THEN
             ALTER TABLE blob_entity RENAME TO old_blob_entity;
+            CREATE INDEX IF NOT EXISTS idx_old_blob_entity_no_tenant_created_time ON old_audit_log(created_time);
             ALTER INDEX IF EXISTS idx_blob_entity_created_time RENAME TO idx_old_blob_entity_created_time;
 
             FOR table_partition IN SELECT tablename AS name, split_part(tablename, '_', 3) AS partition_ts
