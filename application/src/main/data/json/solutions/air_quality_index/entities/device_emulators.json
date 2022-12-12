@@ -7,6 +7,66 @@
     "activityPeriodInMillis": 15768000000,
     "telemetryProfiles": [
       {
+        "key": "pm25",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 55.4,
+          "minLowValue": 5,
+          "maxLowValue": 25,
+          "minHighValue": 50,
+          "maxHighValue": 55.4,
+          "minIncrement": 0.2,
+          "maxIncrement": 0.5,
+          "minDecrement": 0.2,
+          "maxDecrement": 0.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "pm10",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 254,
+          "minLowValue": 25,
+          "maxLowValue": 45,
+          "minHighValue": 225,
+          "maxHighValue": 254,
+          "minIncrement": 0.5,
+          "maxIncrement": 1.5,
+          "minDecrement": 0.5,
+          "maxDecrement": 1.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "no2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 360,
+          "minLowValue": 40,
+          "maxLowValue": 70,
+          "minHighValue": 320,
+          "maxHighValue": 360,
+          "minIncrement": 1,
+          "maxIncrement": 2.5,
+          "minDecrement": 1,
+          "maxDecrement": 2.5,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
         "key": "co",
         "valueStrategy": {
           "type": "natural",
@@ -21,6 +81,26 @@
           "maxIncrement": 0.3,
           "minDecrement": 0.1,
           "maxDecrement": 0.3,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 2.0,
+          "nightHoursMultiplier": 0.5
+        }
+      },
+      {
+        "key": "so2",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 0.0,
+          "maxStartValue": 185,
+          "minLowValue": 20,
+          "maxLowValue": 35,
+          "minHighValue": 170,
+          "maxHighValue": 185,
+          "minIncrement": 0.5,
+          "maxIncrement": 1,
+          "minDecrement": 0.5,
+          "maxDecrement": 1,
           "holidayMultiplier": 1.0,
           "workHoursMultiplier": 2.0,
           "nightHoursMultiplier": 0.5
