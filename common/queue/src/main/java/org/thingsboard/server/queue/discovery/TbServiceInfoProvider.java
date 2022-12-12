@@ -30,21 +30,17 @@
  */
 package org.thingsboard.server.queue.discovery;
 
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.transport.TransportProtos.ServiceInfo;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface TbServiceInfoProvider {
 
     String getServiceId();
 
     String getServiceType();
-
-    List<ServiceType> getServiceTypes();
 
     ServiceInfo getServiceInfo();
 

@@ -141,7 +141,7 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
     public void onApplicationEvent(ApplicationReadyEvent event) {
         boolean supported = !supportedIntegrationTypes.isEmpty();
 
-        if (supported || serviceInfoProvider.getServiceTypes().contains(ServiceType.TB_CORE)) {
+        if (supported || serviceInfoProvider.isService(ServiceType.TB_CORE)) {
             log.info("Subscribing to notifications: {}", nfConsumer.getTopic());
             this.nfConsumer.subscribe();
             launchNotificationsConsumer();
