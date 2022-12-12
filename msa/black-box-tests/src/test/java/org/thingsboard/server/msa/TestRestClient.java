@@ -43,11 +43,13 @@ import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -95,7 +97,7 @@ public class TestRestClient {
         }
     }
 
-    public void login(String username, String password)  {
+    public void login(String username, String password) {
         Map<String, String> loginRequest = new HashMap<>();
         loginRequest.put("username", username);
         loginRequest.put("password", password);
@@ -112,6 +114,15 @@ public class TestRestClient {
         return  given().spec(requestSpec).body(device)
                 .pathParams("accessToken", accessToken)
                 .post("/api/device?accessToken={accessToken}")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Device.class);
+    }
+
+    public Device getDeviceByName(String deviceName) {
+        return given().spec(requestSpec).pathParam("deviceName", deviceName)
+                .get("/api/tenant/devices?deviceName={deviceName}")
                 .then()
                 .statusCode(HTTP_OK)
                 .extract()
@@ -182,6 +193,14 @@ public class TestRestClient {
                 .statusCode(HTTP_OK)
                 .extract()
                 .as(JsonNode.class);
+    }
+
+    public JsonPath postProvisionRequest(String provisionRequest) {
+        return  given().spec(requestSpec)
+                .body(provisionRequest)
+                .post("/api/v1/provision")
+                .getBody()
+                .jsonPath();
     }
 
     public PageData<RuleChain> getRuleChains(PageLink pageLink) {
@@ -436,6 +455,24 @@ public class TestRestClient {
                 .extract()
                 .as(new TypeRef<List<String>>() {});
     }
+    public DeviceProfile getDeviceProfileById(DeviceProfileId deviceProfileId) {
+        return  given().spec(requestSpec).get("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
+                .then()
+                .assertThat()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceProfile.class);
+    }
+
+    public DeviceProfile postDeviceProfile(DeviceProfile deviceProfile) {
+        return given().spec(requestSpec).body(deviceProfile)
+                .post("/api/deviceProfile")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceProfile.class);
+    }
+
     public String getToken() {
         return token;
     }
