@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
+import { Component, forwardRef, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -43,9 +43,10 @@ import {
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
 import { GenericRolePermissions } from '@shared/models/role.models';
 import { Operation, Resource } from '@shared/models/security.models';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-permission-list',
@@ -59,7 +60,7 @@ import { Operation, Resource } from '@shared/models/security.models';
     }
   ]
 })
-export class PermissionListComponent extends PageComponent implements ControlValueAccessor, OnInit {
+export class PermissionListComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy {
 
   @Input() disabled: boolean;
 
@@ -67,7 +68,7 @@ export class PermissionListComponent extends PageComponent implements ControlVal
 
   private propagateChange = null;
 
-  private valueChangeSubscription: Subscription = null;
+  private destroy$ = new Subject();
 
   ngControl: NgControl;
 
@@ -79,9 +80,17 @@ export class PermissionListComponent extends PageComponent implements ControlVal
 
   ngOnInit(): void {
     this.ngControl = this.injector.get(NgControl);
-    this.permissionListFormGroup = this.fb.group({});
-    this.permissionListFormGroup.addControl('permissions',
-      this.fb.array([]));
+    this.permissionListFormGroup = this.fb.group({
+      permissions: this.fb.array([])
+    });
+    this.permissionListFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.updateModel());
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   permissionsFormArray(): FormArray {
@@ -105,9 +114,6 @@ export class PermissionListComponent extends PageComponent implements ControlVal
   }
 
   writeValue(permissions: GenericRolePermissions): void {
-    if (this.valueChangeSubscription) {
-      this.valueChangeSubscription.unsubscribe();
-    }
     const permissionsControls: Array<AbstractControl> = [];
     if (permissions) {
       for (const resource of Object.keys(permissions)) {
@@ -121,10 +127,7 @@ export class PermissionListComponent extends PageComponent implements ControlVal
         permissionsControls.push(permissionControl);
       }
     }
-    this.permissionListFormGroup.setControl('permissions', this.fb.array(permissionsControls));
-    this.valueChangeSubscription = this.permissionListFormGroup.valueChanges.subscribe(() => {
-      this.updateModel();
-    });
+    this.permissionListFormGroup.setControl('permissions', this.fb.array(permissionsControls), {emitEvent: false});
   }
 
   public removePermission(index: number) {
