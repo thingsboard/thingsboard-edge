@@ -48,7 +48,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
@@ -71,9 +71,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Component
 @Slf4j
@@ -323,6 +321,9 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                 break;
             case CUSTOMER:
                 entityId = new CustomerId(cloudEvent.getEntityId());
+                break;
+            case USER:
+                entityId = new UserId(cloudEvent.getEntityId());
                 break;
             case EDGE:
                 entityId = new EdgeId(cloudEvent.getEntityId());
