@@ -487,7 +487,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
   }
 
   private onRowClick(config: GroupEntityTableConfig<T>, event: Event, entity: ShortEntityView): boolean {
-    if (config.settings.detailsMode === EntityGroupDetailsMode.onRowClick) {
+    if (config.settings.detailsMode === EntityGroupDetailsMode.onRowClick && config.onGroupEntityRowClick == null) {
       if (this.userPermissionsService.hasGroupEntityPermission(Operation.READ, config.entityGroup)) {
         return false;
       }
@@ -496,6 +496,8 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       if (descriptors && descriptors.length) {
         const descriptor = descriptors[0];
         this.handleDescriptorAction(event, entity, descriptor);
+      } else if (config.onGroupEntityRowClick != null) {
+        config.onGroupEntityRowClick(event, entity);
       }
       return true;
     }

@@ -296,7 +296,9 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
       this.pageLink.startTime = this.timewindow.history.fixedTimewindow.startTimeMs;
       this.pageLink.endTime = this.timewindow.history.fixedTimewindow.endTimeMs;
     }
-    this.dataSource.loadEntities(this.pageLink, this.defaultType);
+    if (this.showData) {
+      this.dataSource.loadEntities(this.pageLink, this.defaultType);
+    }
     if (this.widgetMode) {
       this.ctx.detectChanges();
     }
