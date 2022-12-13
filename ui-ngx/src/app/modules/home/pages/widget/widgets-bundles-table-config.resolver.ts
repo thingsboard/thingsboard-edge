@@ -81,6 +81,8 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.entityResources = entityTypeResources.get(EntityType.WIDGETS_BUNDLE);
     this.config.defaultSortOrder = {property: 'title', direction: Direction.ASC};
 
+    this.config.rowPointer = true;
+
     this.config.entityTitle = (widgetsBundle) => widgetsBundle ?
       this.utils.customTranslation(widgetsBundle.title, widgetsBundle.title) : '';
 
@@ -110,16 +112,16 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
 
     this.config.cellActionDescriptors.push(
       {
-        name: this.translate.instant('widgets-bundle.open-widgets-bundle'),
-        icon: 'now_widgets',
-        isEnabled: () => userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ),
-        onAction: ($event, entity) => this.openWidgetsBundle($event, entity)
-      },
-      {
         name: this.translate.instant('widgets-bundle.export'),
         icon: 'file_download',
         isEnabled: () => userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ),
         onAction: ($event, entity) => this.exportWidgetsBundle($event, entity)
+      },
+      {
+        name: this.translate.instant('widgets-bundle.widgets-bundle-details'),
+        icon: 'edit',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.config.toggleEntityDetails($event, entity)
       }
     );
 
@@ -133,6 +135,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.saveEntity = widgetsBundle => this.widgetsService.saveWidgetsBundle(widgetsBundle);
     this.config.deleteEntity = id => this.widgetsService.deleteWidgetsBundle(id.id);
     this.config.onEntityAction = action => this.onWidgetsBundleAction(action);
+
   }
 
   resolve(): EntityTableConfig<WidgetsBundle> {
@@ -147,6 +150,18 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     this.config.detailsReadonly = (widgetsBundle) => !this.isWidgetsBundleEditable(widgetsBundle, authUser.authority);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink);
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
+    if (this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
+      this.config.handleRowClick = ($event, widgetsBundle) => {
+        if (this.config.isDetailsOpen()) {
+          this.config.toggleEntityDetails($event, widgetsBundle);
+        } else {
+          this.openWidgetsBundle($event, widgetsBundle);
+        }
+        return true;
+      };
+    } else {
+      this.config.handleRowClick = () => false;
+    }
     return this.config;
   }
 

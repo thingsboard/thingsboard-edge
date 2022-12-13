@@ -100,6 +100,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
     this.entityTranslations = entityTypeTranslations.get(EntityType.ENTITY_GROUP);
     this.entityResources = entityTypeResources.get(EntityType.ENTITY_GROUP);
 
+    this.rowPointer = true;
+
     this.hideDetailsTabsOnEdit = false;
 
     this.entityTitle = (entityGroup) => entityGroup ?
@@ -176,6 +178,15 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
     this.onEntityAction = action => this.onEntityGroupAction(action);
 
+    this.handleRowClick = ($event, entityGroup) => {
+      if (this.isDetailsOpen()) {
+        this.toggleEntityDetails($event, entityGroup);
+      } else {
+        this.open($event, entityGroup);
+      }
+      return true;
+    };
+
     this.deleteEnabled = (entityGroup) => entityGroup && !entityGroup.groupAll &&
       this.userPermissionsService.hasEntityGroupPermission(Operation.DELETE, entityGroup);
     this.detailsReadonly = (entityGroup) =>
@@ -233,14 +244,6 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
 
   private updateActionCellDescriptors() {
     this.cellActionDescriptors.splice(0);
-    this.cellActionDescriptors.push(
-      {
-        name: this.translate.instant('action.open'),
-        icon: 'view_list',
-        isEnabled: () => true,
-        onAction: ($event, entity) => this.open($event, entity)
-      }
-    );
 
     /* merge comment
     if (sharableGroupTypes.has(this.groupType) &&
@@ -286,6 +289,14 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
         }
       );
     } */
+    this.cellActionDescriptors.push(
+      {
+        name: this.translate.instant('entity-group.entity-group-details'),
+        icon: 'edit',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.toggleEntityDetails($event, entity)
+      }
+    );
   }
 
   private entityGroupWizard(): Observable<EntityGroupInfo> {
