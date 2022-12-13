@@ -36,8 +36,17 @@ import { IAliasController, IStateController } from '@core/api/widget-api.models'
 import { ILayoutController } from './layout/layout.models';
 import { DashboardContextMenuItem, WidgetContextMenuItem } from '@home/models/dashboard-component.models';
 import { Observable } from 'rxjs';
+import { EntityGroupInfo } from '@shared/models/entity-group.models';
 
 export declare type DashboardPageScope = 'tenant' | 'customer';
+
+export interface DashboardPageInitData {
+  dashboard: Dashboard;
+  currentDashboardId?: string;
+  widgetEditMode?: boolean;
+  singlePageMode?: boolean;
+  entityGroup?: EntityGroupInfo;
+}
 
 export interface DashboardContext {
   instanceId: string;

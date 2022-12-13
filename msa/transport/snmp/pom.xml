@@ -36,7 +36,7 @@
     <parent>
         <groupId>org.thingsboard.msa</groupId>
         <artifactId>transport</artifactId>
-        <version>3.4.2EDGEPE-SNAPSHOT</version>
+        <version>3.4.3EDGEPE-SNAPSHOT</version>
     </parent>
 
     <groupId>org.thingsboard.msa.transport</groupId>

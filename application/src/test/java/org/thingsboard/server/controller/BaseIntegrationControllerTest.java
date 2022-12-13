@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -69,6 +70,7 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
     IntegrationManagerService integrationManagerService;
 
     private IdComparator<Integration> idComparator = new IdComparator<>();
+    private IdComparator<IntegrationInfo> infosIdComparator = new IdComparator<>();
 
     private Tenant savedTenant;
     private Converter savedConverter;
@@ -247,6 +249,56 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
 
         Collections.sort(integrationList, idComparator);
         Collections.sort(loadedIntegrations, idComparator);
+
+        Assert.assertEquals(integrationList, loadedIntegrations);
+    }
+
+    // @voba - merge comment
+    // integration are currently disabled on edge
+    // @Test
+    public void testFindIntegrationInfos() throws Exception {
+        List<IntegrationInfo> integrationList = new ArrayList<>();
+        for (int i = 0; i < 33; i++) {
+            Integration integration = new Integration();
+            integration.setName("Integration" + i);
+            integration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+            integration.setType(IntegrationType.OCEANCONNECT);
+            integration.setConfiguration(INTEGRATION_CONFIGURATION);
+            integration.setDefaultConverterId(savedConverter.getId());
+            integrationList.add(toInfo(doPost("/api/integration", integration, Integration.class)));
+        }
+
+        Converter edgeConverter = new Converter();
+        edgeConverter.setName("My edge converter");
+        edgeConverter.setType(ConverterType.UPLINK);
+        edgeConverter.setConfiguration(CUSTOM_CONVERTER_CONFIGURATION);
+        edgeConverter.setEdgeTemplate(true);
+        edgeConverter = doPost("/api/converter", edgeConverter, Converter.class);
+
+        Integration edgeIntegration = new Integration();
+        edgeIntegration.setName("edge integration");
+        edgeIntegration.setRoutingKey(StringUtils.randomAlphanumeric(15));
+        edgeIntegration.setType(IntegrationType.OCEANCONNECT);
+        edgeIntegration.setConfiguration(INTEGRATION_CONFIGURATION);
+        edgeIntegration.setDefaultConverterId(edgeConverter.getId());
+        edgeIntegration.setEdgeTemplate(true);
+        toInfo(doPost("/api/integration", edgeIntegration, Integration.class));
+
+        List<IntegrationInfo> loadedIntegrations = new ArrayList<>();
+        PageLink pageLink = new PageLink(23);
+        PageData<IntegrationInfo> pageData = null;
+        do {
+            pageData = doGetTypedWithPageLink("/api/integrationInfos?",
+                    new TypeReference<PageData<IntegrationInfo>>() {
+                    }, pageLink);
+            loadedIntegrations.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(integrationList, infosIdComparator);
+        Collections.sort(loadedIntegrations, infosIdComparator);
 
         Assert.assertEquals(integrationList, loadedIntegrations);
     }
@@ -579,6 +631,20 @@ public abstract class BaseIntegrationControllerTest extends AbstractControllerTe
         Assert.assertTrue(missingAttributesForEdge1.contains("Edge integration #2"));
         Assert.assertTrue(missingAttributesForEdge1.contains("HTTPS_URL"));
         Assert.assertFalse(missingAttributesForEdge1.contains("HTTP_URL"));
+    }
+
+    private IntegrationInfo toInfo(Integration integration) {
+        IntegrationInfo integrationInfo = new IntegrationInfo(integration.getId());
+        integrationInfo.setCreatedTime(integration.getCreatedTime());
+        integrationInfo.setTenantId(integration.getTenantId());
+        integrationInfo.setName(integration.getName());
+        integrationInfo.setType(integration.getType());
+        integrationInfo.setEnabled(integration.isEnabled());
+        integrationInfo.setEdgeTemplate(integration.isEdgeTemplate());
+        integrationInfo.setRemote(integration.isRemote());
+        integrationInfo.setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets());
+
+        return integrationInfo;
     }
 
 }

@@ -507,11 +507,15 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);
     }
 
-    private ScriptEngine createTbelScriptEngine(String script, String... argNames) {
+    private ScriptEngine createJsScriptEngine(String script, ScriptType scriptType, String... argNames) {
+        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), scriptType, script, argNames);
+    }
+
+    private ScriptEngine createTbelScriptEngine(String script, ScriptType scriptType, String... argNames) {
         if (mainCtx.getTbelInvokeService() == null) {
             throw new RuntimeException("TBEL execution is disabled!");
         }
-        return new RuleNodeTbelScriptEngine(getTenantId(), mainCtx.getTbelInvokeService(), script, argNames);
+        return new RuleNodeTbelScriptEngine(getTenantId(), mainCtx.getTbelInvokeService(), scriptType, script, argNames);
     }
 
     @Override
@@ -533,12 +537,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
         }
         switch (scriptLang) {
             case JS:
-                return createJsScriptEngine(script, argNames);
+                return createJsScriptEngine(script, scriptType, argNames);
             case TBEL:
                 if (Arrays.isNullOrEmpty(argNames)) {
-                    return createTbelScriptEngine(script, "msg", "metadata", "msgType");
+                    return createTbelScriptEngine(script, scriptType, "msg", "metadata", "msgType");
                 } else {
-                    return createTbelScriptEngine(script, argNames);
+                    return createTbelScriptEngine(script, scriptType, argNames);
                 }
             default:
                 throw new RuntimeException("Unsupported script language: " + scriptLang.name());
