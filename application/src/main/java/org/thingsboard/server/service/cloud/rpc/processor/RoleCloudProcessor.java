@@ -75,11 +75,11 @@ public class RoleCloudProcessor extends BaseCloudProcessor {
     private UserPermissionsService userPermissionsService;
 
     private final Set<Operation> allowedEntityGroupOperations = new HashSet<>(Arrays.asList(Operation.READ,
-            Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY));
+            Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
 
     private final Set<Operation> allowedGenericOperations = new HashSet<>(Arrays.asList(Operation.READ,
             Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
-            Operation.READ_CREDENTIALS));
+            Operation.READ_CREDENTIALS, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
 
     public ListenableFuture<Void> processRoleMsgFromCloud(TenantId tenantId, RoleProto roleProto) {
         try {
