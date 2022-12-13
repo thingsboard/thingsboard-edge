@@ -1,7 +1,13 @@
 [
   {
-    "name": "Air Quality Monitoring",
-    "file": "main.json",
+    "name": "AQI Sensor",
+    "file": "aqi_sensor.json",
+    "update": "aqi_sensor_update.json",
     "jsonId": "c657b470-6419-11ed-90f3-052710537c9f"
+  },
+  {
+    "name": "AQI City",
+    "file": "aqi_city.json",
+    "jsonId": "6108fe10-7ad7-11ed-8dfa-af035b781d56"
   }
 ]

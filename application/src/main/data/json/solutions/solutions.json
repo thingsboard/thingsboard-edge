@@ -26,8 +26,8 @@
   {
     "id": "air_quality_index",
     "title": "Air Quality Monitoring",
-    "level": "MAKER",
-    "installTimeoutMs": 2000,
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 5000,
     "previewImageUrl": "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-2.png",
     "imageUrls": ["https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-1.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-2.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-3.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-4.png", "https://thingsboard.io/images/solutions/air_quality_index/air-quality-index-5.png"],
     "tenantTelemetryKeys": [],

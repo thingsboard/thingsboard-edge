@@ -4,7 +4,7 @@
     "publishPeriodInDays": 7,
     "publishFrequencyInSeconds": 3600,
     "publishPauseInMillis": 1,
-    "activityPeriodInMillis": 15768000000,
+    "activityPeriodInMillis": 14400000,
     "telemetryProfiles": [
       {
         "key": "pm25",
@@ -151,11 +151,11 @@
         "valueStrategy": {
           "type": "natural",
           "precision": 2,
-          "minStartValue": 80,
-          "maxStartValue": 99,
+          "minStartValue": 20,
+          "maxStartValue": 50,
           "minLowValue": 20,
           "maxLowValue": 20,
-          "minHighValue": 100,
+          "minHighValue": 20,
           "maxHighValue": 100,
           "minIncrement": 100.0,
           "maxIncrement": 100.0,

@@ -497,6 +497,15 @@ public class DefaultSolutionService implements SolutionService {
             AttributeKvEntry instructionAttribute = new BaseAttributeKvEntry(new StringDataEntry(toInstructionsKey(solutionId), JacksonUtil.toString(instructions)), ts);
             attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(createdEntitiesAttribute, statusAttribute, instructionAttribute));
 
+            List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+            });
+            if (ruleChains.stream().anyMatch(r -> StringUtils.isNotEmpty(r.getUpdate()))) {
+                long timeout = solutions.stream().filter(s -> s.getId().equals(solutionId))
+                        .map(SolutionTemplate::getInstallTimeoutMs).findFirst().orElseThrow(RuntimeException::new);
+                Thread.sleep(timeout);
+                finalUpdateRuleChains(ctx);
+            }
+
             return new SolutionInstallResponse(ctx.getSolutionInstructions(), true);
         } catch (Throwable e) {
             log.error("[{}][{}] Failed to provision", tenantId, solutionId, e);
@@ -658,6 +667,33 @@ public class DefaultSolutionService implements SolutionService {
             }
             if (metadataStr.equals(oldMetadataStr)) {
                 continue;
+            }
+            RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
+
+            RuleChainId ruleChainId = (RuleChainId) EntityIdFactory.getByTypeAndUuid(EntityType.RULE_CHAIN, ctx.getRealIds().get(entityDefinition.getJsonId()));
+            RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
+            ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
+            ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData);
+            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
+        }
+    }
+
+    private void finalUpdateRuleChains(SolutionInstallContext ctx) {
+        List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
+        });
+        for (ReferenceableEntityDefinition entityDefinition : ruleChains) {
+            if (StringUtils.isEmpty(entityDefinition.getUpdate())) {
+                continue;
+            }
+            // Rule chains should be ordered correctly to exclude dependencies.
+            Path ruleChainPath = resolve(ctx.getSolutionId(), "rule_chains", entityDefinition.getUpdate());
+            JsonNode ruleChainJson = JacksonUtil.toJsonNode(ruleChainPath);
+            RuleChain ruleChain = JacksonUtil.treeToValue(ruleChainJson.get("ruleChain"), RuleChain.class);
+            ruleChain.setTenantId(ctx.getTenantId());
+            String metadataStr = JacksonUtil.toString(ruleChainJson.get("metadata"));
+            String oldMetadataStr = metadataStr;
+            for (var entry : ctx.getRealIds().entrySet()) {
+                metadataStr = metadataStr.replace(entry.getKey(), entry.getValue());
             }
             RuleChainMetaData ruleChainMetaData = JacksonUtil.treeToValue(JacksonUtil.toJsonNode(metadataStr), RuleChainMetaData.class);
 

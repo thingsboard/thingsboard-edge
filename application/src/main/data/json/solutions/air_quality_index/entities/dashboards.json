@@ -2,7 +2,7 @@
   {
     "name": "Air Quality Monitoring",
     "file": "air_quality_monitoring.json",
-    "group": "Air Quality Monitoring",
+    "group": "Air Quality Monitoring Public",
     "main": true,
     "makePublic": true
   },
