@@ -220,14 +220,14 @@
             <groupId>org.thingsboard.msa.transport</groupId>
             <artifactId>snmp</artifactId>
             <type>docker-info</type>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>org.thingsboard.common</groupId>
             <artifactId>message</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-iot-device-sdk-java</artifactId>
         </dependency>
