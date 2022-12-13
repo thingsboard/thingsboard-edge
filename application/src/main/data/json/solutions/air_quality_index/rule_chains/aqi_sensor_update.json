@@ -16,8 +16,8 @@
     "nodes": [
       {
         "additionalInfo": {
-          "layoutX": 1118,
-          "layoutY": 303
+          "layoutX": 1152,
+          "layoutY": 519
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -29,8 +29,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 221
+          "layoutX": 821,
+          "layoutY": 436
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
@@ -55,8 +55,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 383
+          "layoutX": 821,
+          "layoutY": 598
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
@@ -70,8 +70,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 823,
-          "layoutY": 444
+          "layoutX": 820,
+          "layoutY": 659
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
@@ -85,8 +85,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 822,
-          "layoutY": 507
+          "layoutX": 819,
+          "layoutY": 722
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
@@ -104,7 +104,7 @@
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
-        "debugMode": false,
+        "debugMode": true,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
@@ -114,8 +114,8 @@
       {
         "additionalInfo": {
           "description": null,
-          "layoutX": 1438,
-          "layoutY": 451
+          "layoutX": 1430,
+          "layoutY": 347
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -128,12 +128,12 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1438,
-          "layoutY": 378
+          "layoutX": 1429,
+          "layoutY": 449
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
         "name": "Agg Latest",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "direction": "FROM",
           "relationType": "Contains",
@@ -169,12 +169,12 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 1432,
-          "layoutY": 304
+          "layoutX": 1429,
+          "layoutY": 519
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Asset",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "originatorSource": "RELATED",
           "entityType": null,
@@ -198,12 +198,12 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 828,
-          "layoutY": 301
+          "layoutX": 825,
+          "layoutY": 516
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "AQI Calculation",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
@@ -214,12 +214,12 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 821,
-          "layoutY": 31
+          "layoutX": 822,
+          "layoutY": 311
         },
         "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
         "name": "Not Active",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    delete metadata.prevAlarmDetails;\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
@@ -240,17 +240,109 @@
       {
         "additionalInfo": {
           "description": "",
-          "layoutX": 826,
-          "layoutY": 109
+          "layoutX": 824,
+          "layoutY": 369
         },
         "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
         "name": "Active",
-        "debugMode": true,
+        "debugMode": false,
         "configuration": {
           "scriptLang": "TBEL",
           "alarmDetailsBuildJs": "var details = {};\nif (metadata.prevAlarmDetails) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    delete metadata.prevAlarmDetails;\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
           "alarmDetailsBuildTbel": "var details = {};\nif (metadata.prevAlarmDetails != null) {\n    details = JSON.parse(metadata.prevAlarmDetails);\n    //remove prevAlarmDetails from metadata\n    metadata.remove('prevAlarmDetails');\n    //now metadata is the same as it comes IN this rule node\n}\n\n\nreturn details;",
           "alarmType": "Inactive"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1144,
+          "layoutY": 313
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var msg = {};\nmsg.activityState = false;\nreturn {msg: msg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1145,
+          "layoutY": 367
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var msg = {};\nmsg.activityState = true;\nreturn {msg: msg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1136,
+          "layoutY": 159
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count alarms",
+        "debugMode": true,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "alarmsCount",
+              "typesList": [],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": false,
+          "propagationEntityTypes": null,
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1407,
+          "layoutY": 158
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": true,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "msg.state = msg.alarmsCount > 0 ? \"critical\" : \"normal\";\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1678,
+          "layoutY": 158
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save",
+        "debugMode": true,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false
         },
         "externalId": null
       }
@@ -297,9 +389,24 @@
         "type": "Activity Event"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 15,
+        "type": "Alarm Cleared"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 15,
+        "type": "Alarm Created"
       },
       {
         "fromIndex": 8,
@@ -314,6 +421,46 @@
       {
         "fromIndex": 10,
         "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 13,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 15,
+        "type": "Created"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 14,
+        "type": "Cleared"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 15,
+        "type": "Cleared"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 15,
+        "toIndex": 16,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 16,
+        "toIndex": 17,
         "type": "Success"
       }
     ],

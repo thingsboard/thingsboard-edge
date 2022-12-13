@@ -29,8 +29,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 824,
-          "layoutY": 221
+          "layoutX": 825,
+          "layoutY": 567
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
@@ -274,6 +274,66 @@
           "queueName": null
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1125,
+          "layoutY": 215
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count alarms",
+        "debugMode": true,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "alarmsCount",
+              "typesList": [],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": false,
+          "propagationEntityTypes": null,
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1396,
+          "layoutY": 212
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": true,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "msg.state = msg.alarmsCount > 0 ? \"critical\" : \"normal\";\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1667,
+          "layoutY": 212
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save",
+        "debugMode": true,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false
+        },
+        "externalId": null
       }
     ],
     "connections": [
@@ -308,9 +368,24 @@
         "type": "Post telemetry"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 13,
+        "type": "Alarm Cleared"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 13,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 13,
+        "type": "Alarm Created"
       },
       {
         "fromIndex": 8,
@@ -345,6 +420,16 @@
       {
         "fromIndex": 12,
         "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 14,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 15,
         "type": "Success"
       }
     ],

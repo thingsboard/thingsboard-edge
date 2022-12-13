@@ -73,7 +73,7 @@
     "label": "Santa Monica",
     "type": "AQI Sensor",
     "group": "Air Quality Monitoring",
-    "emulator": "AQI Emulator",
+    "emulator": "AQI Emulator Low Battery",
     "attributes": {
       "latitude": 34.021944,
       "longitude": -118.481389,
