@@ -198,7 +198,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         try {
             var savedEdge = edgeDao.save(edge.getTenantId(), edge);
             publishEvictEvent(evictEvent);
-            entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
+            // TODO: @voba - fixme - this is a hack because customer is not created on edge yet
+            // correct fix - is to add customer to edge on connect message
+            // entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
             return savedEdge;
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
