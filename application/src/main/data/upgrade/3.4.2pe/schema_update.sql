@@ -187,8 +187,6 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 
-CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);
-
 CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, external_id);
 
 CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
