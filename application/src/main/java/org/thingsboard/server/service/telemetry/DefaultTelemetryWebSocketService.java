@@ -47,6 +47,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -346,7 +347,7 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
     }
 
     private void processSessionClose(TelemetryWebSocketSessionRef sessionRef) {
-        var tenantProfileConfiguration = tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()).getDefaultProfileConfiguration();
+        var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
         if (tenantProfileConfiguration != null) {
             String sessionId = "[" + sessionRef.getSessionId() + "]";
 
@@ -380,7 +381,8 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
     }
 
     private boolean processSubscription(TelemetryWebSocketSessionRef sessionRef, SubscriptionCmd cmd) {
-        var tenantProfileConfiguration = (DefaultTenantProfileConfiguration) tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()).getDefaultProfileConfiguration();
+        var tenantProfileConfiguration = getTenantProfileConfiguration(sessionRef);
+        if (tenantProfileConfiguration == null) return true;
 
         String subId = "[" + sessionRef.getSessionId() + "]:[" + cmd.getCmdId() + "]";
         try {
@@ -992,4 +994,10 @@ public class DefaultTelemetryWebSocketService implements TelemetryWebSocketServi
     private int getLimit(int limit) {
         return limit == 0 ? DEFAULT_LIMIT : limit;
     }
+
+    private DefaultTenantProfileConfiguration getTenantProfileConfiguration(TelemetryWebSocketSessionRef sessionRef) {
+        return Optional.ofNullable(tenantProfileCache.get(sessionRef.getSecurityCtx().getTenantId()))
+                .map(TenantProfile::getDefaultProfileConfiguration).orElse(null);
+    }
+
 }
