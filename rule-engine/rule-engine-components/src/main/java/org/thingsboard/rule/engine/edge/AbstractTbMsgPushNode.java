@@ -199,6 +199,7 @@ public abstract class   AbstractTbMsgPushNode<T extends BaseTbMsgPushNodeConfigu
             case DASHBOARD:
             case TENANT:
             case CUSTOMER:
+            case USER:
             case EDGE:
             case ENTITY_GROUP:
                 return true;
