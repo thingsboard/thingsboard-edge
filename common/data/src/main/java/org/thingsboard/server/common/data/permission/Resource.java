@@ -82,7 +82,9 @@ public enum Resource {
     QUEUE(EntityType.QUEUE),
     VERSION_CONTROL,
     NOTIFICATION_TARGET(EntityType.NOTIFICATION_TARGET),
-    NOTIFICATION_REQUEST(EntityType.NOTIFICATION_REQUEST);
+    NOTIFICATION_TEMPLATE(EntityType.NOTIFICATION_TEMPLATE),
+    NOTIFICATION_REQUEST(EntityType.NOTIFICATION_REQUEST),
+    NOTIFICATION_RULE(EntityType.NOTIFICATION_RULE);
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
     private static final Map<EntityType, Resource> resourceByEntityType = new HashMap<>();

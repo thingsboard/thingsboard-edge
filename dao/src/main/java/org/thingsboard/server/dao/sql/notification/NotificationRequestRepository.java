@@ -36,6 +36,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.dao.model.sql.NotificationRequestEntity;
 
 import java.util.List;
@@ -45,11 +47,12 @@ import java.util.UUID;
 public interface NotificationRequestRepository extends JpaRepository<NotificationRequestEntity, UUID> {
 
     @Query("SELECT r FROM NotificationRequestEntity r WHERE r.tenantId = :tenantId AND " +
-            "(lower(r.notificationReason) LIKE lower(concat('%', :searchText, '%')) OR " +
-            "lower(r.textTemplate) LIKE lower(concat('%', :searchText, '%')))")
+            "(lower(r.type) LIKE lower(concat('%', :searchText, '%')))")
     Page<NotificationRequestEntity> findByTenantIdAndSearchText(@Param("tenantId") UUID tenantId,
                                                                 @Param("searchText") String searchText, Pageable pageable);
 
-    List<NotificationRequestEntity> findAllByRuleIdAndAlarmId(UUID ruleId, UUID alarmId);
+    List<NotificationRequestEntity> findAllByRuleIdAndOriginatorEntityTypeAndOriginatorEntityId(UUID ruleId, EntityType originatorEntityType, UUID originatorEntityId);
+
+    Page<NotificationRequestEntity> findAllByStatus(NotificationRequestStatus status, Pageable pageable);
 
 }

@@ -60,6 +60,8 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
     @NoXss
     @Length(fieldName = "last name")
     private String lastName;
+    @NoXss
+    private String phone;
 
     public User() {
         super();
@@ -77,6 +79,7 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
         this.authority = user.getAuthority();
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
+        this.phone = user.getPhone();
     }
 
 
@@ -169,6 +172,14 @@ public class User extends SearchTextBasedWithAdditionalInfo<UserId> implements G
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     @ApiModelProperty(position = 10, value = "Additional parameters of the user", dataType = "com.fasterxml.jackson.databind.JsonNode")

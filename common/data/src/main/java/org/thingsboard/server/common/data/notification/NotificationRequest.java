@@ -31,7 +31,6 @@
 package org.thingsboard.server.common.data.notification;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,16 +41,19 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.TenantEntity;
-import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -63,29 +65,48 @@ public class NotificationRequest extends BaseData<NotificationRequestId> impleme
     private TenantId tenantId;
     @NotNull(message = "Target is not specified")
     private NotificationTargetId targetId;
+
     @NoXss
-    private String notificationReason; // "Alarm", "Scheduled event". "General" by default
-    //    @NoXss
-    @NotBlank(message = "Notification text template is missing")
-    private String textTemplate;
+    private String type;
+    @NotNull
+    private NotificationTemplateId templateId;
     @Valid
-    private NotificationInfo notificationInfo;
-    private NotificationSeverity notificationSeverity;
+    private NotificationInfo info;
+    @NotEmpty
+    private List<NotificationDeliveryMethod> deliveryMethods;
+    @NotNull
+    @Valid
     private NotificationRequestConfig additionalConfig;
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+
+    private NotificationOriginatorType originatorType;
+    private EntityId originatorEntityId;
+    private NotificationRuleId ruleId;
+
     private NotificationRequestStatus status;
 
     @JsonIgnore
-    private NotificationRuleId ruleId; // maybe move to child class
+    private transient Map<String, String> templateContext;
+
+    public NotificationRequest(NotificationRequest other) {
+        super(other);
+        this.tenantId = other.tenantId;
+        this.targetId = other.targetId;
+        this.type = other.type;
+        this.templateId = other.templateId;
+        this.info = other.info;
+        this.deliveryMethods = other.deliveryMethods;
+        this.additionalConfig = other.additionalConfig;
+        this.originatorType = other.originatorType;
+        this.originatorEntityId = other.originatorEntityId;
+        this.ruleId = other.ruleId;
+        this.status = other.status;
+        this.templateContext = other.templateContext;
+    }
+
     @JsonIgnore
-    private AlarmId alarmId;
-
-    public static final String GENERAL_NOTIFICATION_REASON = "General";
-    public static final String ALARM_NOTIFICATION_REASON = "Alarm";
-
     @Override
     public String getName() {
-        return notificationReason;
+        return type;
     }
 
     @Override

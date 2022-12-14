@@ -28,13 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.common.data.util;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
+@FunctionalInterface
+public interface ThrowingBiFunction<T, U, R> {
 
-public interface RuleEngineNotificationService {
-
-    NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest);
+    R apply(T t, U u) throws Exception;
 
 }

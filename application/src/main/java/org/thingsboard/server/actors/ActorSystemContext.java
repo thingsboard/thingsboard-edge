@@ -49,7 +49,7 @@ import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
-import org.thingsboard.rule.engine.api.RuleEngineNotificationService;
+import org.thingsboard.rule.engine.api.NotificationManager;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -370,7 +370,7 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
-    private RuleEngineNotificationService notificationService;
+    private NotificationManager notificationManager;
 
     @Lazy
     @Autowired(required = false)

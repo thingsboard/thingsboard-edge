@@ -34,6 +34,7 @@ import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,6 +68,11 @@ public class JpaNotificationTargetDao extends JpaAbstractDao<NotificationTargetE
     @Override
     protected JpaRepository<NotificationTargetEntity, UUID> getRepository() {
         return notificationTargetRepository;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_TARGET;
     }
 
 }

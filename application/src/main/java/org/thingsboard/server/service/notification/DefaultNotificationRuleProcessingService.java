@@ -33,83 +33,102 @@ package org.thingsboard.server.service.notification;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.rule.engine.api.NotificationManager;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.AlarmOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationInfo;
+import org.thingsboard.server.common.data.notification.NotificationOriginatorType;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestConfig;
-import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationSeverity;
 import org.thingsboard.server.common.data.notification.rule.NonConfirmedNotificationEscalation;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
-import org.thingsboard.server.dao.notification.NotificationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultNotificationRuleProcessingService implements NotificationRuleProcessingService {
 
     private final NotificationRuleService notificationRuleService;
-    private final NotificationService notificationService;
-    private final NotificationSubscriptionService notificationSubscriptionService;
+    private final NotificationRequestService notificationRequestService;
+    @Autowired @Lazy
+    private NotificationManager notificationManager;
     private final DbCallbackExecutorService dbCallbackExecutorService;
 
     @Override
-    public ListenableFuture<?> onAlarmCreatedOrUpdated(TenantId tenantId, Alarm alarm) {
-        return processAlarmUpdate(tenantId, alarm);
+    public ListenableFuture<Void> onAlarmCreatedOrUpdated(TenantId tenantId, Alarm alarm) {
+        return processAlarmUpdate(tenantId, alarm, false);
     }
 
     @Override
-    public ListenableFuture<?> onAlarmAcknowledged(TenantId tenantId, Alarm alarm) {
-        return processAlarmUpdate(tenantId, alarm);
+    public ListenableFuture<Void> onAlarmDeleted(TenantId tenantId, Alarm alarm) {
+        return processAlarmUpdate(tenantId, alarm, true);
     }
 
-    private ListenableFuture<?> processAlarmUpdate(TenantId tenantId, Alarm alarm) {
+    private ListenableFuture<Void> processAlarmUpdate(TenantId tenantId, Alarm alarm, boolean deleted) {
         if (alarm.getNotificationRuleId() == null) return Futures.immediateFuture(null);
         return dbCallbackExecutorService.submit(() -> {
-            onAlarmUpdate(tenantId, alarm.getNotificationRuleId(), alarm);
+            onAlarmUpdate(tenantId, alarm.getNotificationRuleId(), alarm, deleted);
+            return null;
         });
     }
 
-    private void onAlarmUpdate(TenantId tenantId, NotificationRuleId notificationRuleId, Alarm alarm) {
-        List<NotificationRequest> notificationRequests = notificationService.findNotificationRequestsByRuleIdAndAlarmId(tenantId, notificationRuleId, alarm.getId());
+    @Override
+    public ListenableFuture<Void> onNotificationRuleDeleted(TenantId tenantId, NotificationRuleId ruleId) {
+        return dbCallbackExecutorService.submit(() -> {
+            // need to remove fk constraint in notificationRequest to rule
+            // todo: do we need to remove all notifications when notification request is deleted?
+            return null;
+        });
+    }
+
+    // todo: think about: what if notification rule was updated?
+    private void onAlarmUpdate(TenantId tenantId, NotificationRuleId notificationRuleId, Alarm alarm, boolean deleted) {
+        log.debug("Processing alarm update ({}) with notification rule {}", alarm.getId(), notificationRuleId);
+        List<NotificationRequest> notificationRequests = notificationRequestService.findNotificationRequestsByRuleIdAndOriginatorEntityId(tenantId, notificationRuleId, alarm.getId());
         NotificationRule notificationRule = notificationRuleService.findNotificationRuleById(tenantId, notificationRuleId);
+        if (notificationRule == null) return;
 
-        if (notificationRequests.isEmpty()) { // in case it is first notification for alarm, or it was previously acked and now we need to send notifications again
+        if (alarmAcknowledged(alarm) || deleted) {
+            for (NotificationRequest notificationRequest : notificationRequests) {
+                notificationManager.deleteNotificationRequest(tenantId, notificationRequest.getId());
+                // todo: or should we mark already sent notifications as read and delete only scheduled?
+            }
+            return;
+        }
+
+        if (notificationRequests.isEmpty()) {
             NotificationTargetId initialNotificationTargetId = notificationRule.getInitialNotificationTargetId();
-            submitNotificationRequest(tenantId, initialNotificationTargetId, notificationRule, alarm, 0);
-
-            for (NonConfirmedNotificationEscalation escalation : notificationRule.getEscalations()) {
-                submitNotificationRequest(tenantId, escalation.getNotificationTargetId(), notificationRule, alarm, escalation.getDelayInMinutes());
+            if (initialNotificationTargetId != null) {
+                submitNotificationRequest(tenantId, initialNotificationTargetId, notificationRule, alarm, 0);
+            }
+            if (notificationRule.getEscalationConfig() != null) {
+                for (NonConfirmedNotificationEscalation escalation : notificationRule.getEscalationConfig().getEscalations()) {
+                    submitNotificationRequest(tenantId, escalation.getNotificationTargetId(), notificationRule, alarm, escalation.getDelayInSec());
+                }
             }
         } else {
-            if (alarmAcknowledged(alarm)) {
-                for (NotificationRequest notificationRequest : notificationRequests) {
-                    if (notificationRequest.getStatus() == NotificationRequestStatus.SCHEDULED) {
-                        // using regular service due to no need to send an update to subscription manager
-                        notificationService.deleteNotificationRequestById(tenantId, notificationRequest.getId());
-                    } else {
-                        notificationSubscriptionService.deleteNotificationRequest(tenantId, notificationRequest.getId());
-                        // todo: or should we mark already sent notifications as read?
-                    }
-                }
-            } else {
-                NotificationInfo newNotificationInfo = constructNotificationInfo(alarm, notificationRule);
-                for (NotificationRequest notificationRequest : notificationRequests) {
-                    NotificationInfo previousNotificationInfo = notificationRequest.getNotificationInfo();
-                    if (!previousNotificationInfo.equals(newNotificationInfo)) {
-                        notificationRequest.setNotificationInfo(newNotificationInfo);
-                        notificationSubscriptionService.updateNotificationRequest(tenantId, notificationRequest);
-                    }
-                    // fixme: no need to send an update event for scheduled requests, only for sent
+            NotificationInfo newNotificationInfo = constructNotificationInfo(alarm);
+            for (NotificationRequest notificationRequest : notificationRequests) {
+                NotificationInfo previousNotificationInfo = notificationRequest.getInfo();
+                if (!previousNotificationInfo.equals(newNotificationInfo)) {
+                    notificationRequest.setInfo(newNotificationInfo);
+                    notificationManager.updateNotificationRequest(tenantId, notificationRequest);
                 }
             }
         }
@@ -119,29 +138,36 @@ public class DefaultNotificationRuleProcessingService implements NotificationRul
         return alarm.getStatus().isAck() && alarm.getStatus().isCleared();
     }
 
-    private void submitNotificationRequest(TenantId tenantId, NotificationTargetId targetId, NotificationRule notificationRule, Alarm alarm, int delayInMinutes) {
+    private void submitNotificationRequest(TenantId tenantId, NotificationTargetId targetId, NotificationRule notificationRule, Alarm alarm, int delayInSec) {
         NotificationRequestConfig config = new NotificationRequestConfig();
-        if (delayInMinutes > 0) {
-            config.setSendingDelayInMinutes(delayInMinutes);
+        if (delayInSec > 0) {
+            config.setSendingDelayInSec(delayInSec);
         }
-        NotificationInfo notificationInfo = constructNotificationInfo(alarm, notificationRule);
-
+        NotificationInfo notificationInfo = constructNotificationInfo(alarm);
+        Map<String, String> templateContext = Map.of(
+                "alarmType", alarm.getType(),
+                "alarmId", alarm.getId().toString(),
+                "alarmOriginatorEntityType", alarm.getOriginator().getEntityType().toString(),
+                "alarmOriginatorId", alarm.getOriginator().getId().toString()
+        );
         NotificationRequest notificationRequest = NotificationRequest.builder()
                 .tenantId(tenantId)
                 .targetId(targetId)
-                .notificationReason("Alarm")
-                .textTemplate(notificationRule.getNotificationTextTemplate()) // todo: format with alarm vars
-                .notificationInfo(notificationInfo)
-                .notificationSeverity(NotificationSeverity.NORMAL) // todo: from alarm severity
+                .type("Alarm")
+                .templateId(notificationRule.getTemplateId())
+                .deliveryMethods(notificationRule.getDeliveryMethods())
                 .additionalConfig(config)
+                .info(notificationInfo)
+                .originatorType(NotificationOriginatorType.ALARM)
+                .originatorEntityId(alarm.getId())
                 .ruleId(notificationRule.getId())
-                .alarmId(alarm.getId())
+                .templateContext(templateContext)
                 .build();
-        notificationSubscriptionService.processNotificationRequest(tenantId, notificationRequest);
+        notificationManager.processNotificationRequest(tenantId, notificationRequest);
     }
 
-    private NotificationInfo constructNotificationInfo(Alarm alarm, NotificationRule notificationRule) {
-        return NotificationInfo.builder()
+    private NotificationInfo constructNotificationInfo(Alarm alarm) {
+        return AlarmOriginatedNotificationInfo.builder()
                 .alarmId(alarm.getId())
                 .alarmType(alarm.getType())
                 .alarmOriginator(alarm.getOriginator())

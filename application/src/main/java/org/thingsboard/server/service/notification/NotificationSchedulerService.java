@@ -28,8 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.notification;
+package org.thingsboard.server.service.notification;
 
-public class NotificationSettings {
-    // location on the screen, shown notifications count, timings of displaying
+import org.thingsboard.server.common.data.id.NotificationRequestId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+public interface NotificationSchedulerService {
+
+    void scheduleNotificationRequest(TenantId tenantId, NotificationRequestId notificationRequestId, long requestTs);
+
+    void onNotificationRequestDeleted(TenantId tenantId, NotificationRequestId notificationRequestId);
+
 }

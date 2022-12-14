@@ -28,26 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.telemetry;
+package org.thingsboard.server.common.data.notification.rule;
 
-import org.springframework.web.socket.CloseStatus;
-import org.thingsboard.server.service.ws.telemetry.cmd.v2.CmdUpdate;
-import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
-import org.thingsboard.server.service.ws.SessionEvent;
-import org.thingsboard.server.service.ws.WebSocketSessionRef;
+import lombok.Data;
 
-/**
- * Created by ashvayka on 27.03.18.
- */
-public interface WebSocketService {
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
-    void handleWebSocketSessionEvent(WebSocketSessionRef sessionRef, SessionEvent sessionEvent);
+@Data
+public class NotificationEscalationConfig {
 
-    void handleWebSocketMsg(WebSocketSessionRef sessionRef, String msg);
+    @NotNull
+    @Valid
+    private List<NonConfirmedNotificationEscalation> escalations;
 
-    void sendWsMsg(String sessionId, TelemetrySubscriptionUpdate update);
-
-    void sendWsMsg(String sessionId, CmdUpdate update);
-
-    void close(String sessionId, CloseStatus status);
 }

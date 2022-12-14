@@ -42,11 +42,11 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
+import org.thingsboard.rule.engine.api.NotificationManager;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
 import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
-import org.thingsboard.rule.engine.api.RuleEngineNotificationService;
 import org.thingsboard.rule.engine.api.RuleEngineRpcService;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.ScriptEngine;
@@ -715,8 +715,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public RuleEngineNotificationService getNotificationService() {
-        return mainCtx.getNotificationService();
+    public NotificationManager getNotificationManager() {
+        return mainCtx.getNotificationManager();
     }
 
     @Override

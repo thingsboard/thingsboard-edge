@@ -31,7 +31,7 @@
 package org.thingsboard.server.service.ws.notification;
 
 import org.thingsboard.server.service.ws.WebSocketSessionRef;
-import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationAsReadCmd;
+import org.thingsboard.server.service.ws.notification.cmd.MarkNotificationsAsReadCmd;
 import org.thingsboard.server.service.ws.notification.cmd.NotificationsSubCmd;
 import org.thingsboard.server.service.ws.notification.cmd.NotificationsCountSubCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
@@ -42,7 +42,7 @@ public interface NotificationCommandsHandler {
 
     void handleUnreadNotificationsCountSubCmd(WebSocketSessionRef sessionRef, NotificationsCountSubCmd cmd);
 
-    void handleMarkAsReadCmd(WebSocketSessionRef sessionRef, MarkNotificationAsReadCmd cmd);
+    void handleMarkAsReadCmd(WebSocketSessionRef sessionRef, MarkNotificationsAsReadCmd cmd);
 
     void handleUnsubCmd(WebSocketSessionRef sessionRef, UnsubscribeCmd cmd);
 

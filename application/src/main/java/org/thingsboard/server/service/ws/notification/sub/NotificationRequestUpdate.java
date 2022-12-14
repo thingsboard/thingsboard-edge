@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.notification.NotificationInfo;
 @Builder
 public class NotificationRequestUpdate {
     private NotificationRequestId notificationRequestId;
+    private String notificationReason;
     private NotificationInfo notificationInfo;
     private boolean deleted;
 }

@@ -28,19 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync;
+package org.thingsboard.server.service.ws.notification.cmd;
 
-import org.thingsboard.server.common.data.exception.ThingsboardException;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public interface ThrowingRunnable {
+import java.util.List;
+import java.util.UUID;
 
-    void run() throws ThingsboardException;
-
-    default ThrowingRunnable andThen(ThrowingRunnable after) {
-        return () -> {
-            this.run();
-            after.run();
-        };
-    }
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class MarkNotificationsAsReadCmd implements WsCmd {
+    private int cmdId;
+    private List<UUID> notifications;
 }

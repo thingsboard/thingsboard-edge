@@ -1043,6 +1043,7 @@ message ToCoreMsg {
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
   EdgeNotificationMsgProto edgeNotificationMsg = 7;
   DeviceActivityProto deviceActivityMsg = 8;
+  NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 9;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */
@@ -1059,6 +1060,7 @@ message ToCoreNotificationMsg {
   IntegrationValidationResponseProto integrationValidationResponseMsg = 10;
   bytes toEdgeSyncRequestMsg = 11;
   bytes fromEdgeSyncResponseMsg = 12;
+  SubscriptionMgrMsgProto toSubscriptionMgrMsg = 13;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
@@ -1123,4 +1125,11 @@ message ToOtaPackageStateServiceMsg {
   string type = 8;
 }
 
-
+message NotificationSchedulerServiceMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 requestIdMSB = 3;
+  int64 requestIdLSB = 4;
+  int64 ts = 5;
+  bool deleted = 6;
+}

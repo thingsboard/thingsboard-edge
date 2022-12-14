@@ -30,10 +30,16 @@
  */
 package org.thingsboard.server.dao.sql.notification;
 
+import com.google.common.base.Strings;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.NotificationRuleEntity;
 import org.thingsboard.server.dao.notification.NotificationRuleDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
@@ -49,6 +55,12 @@ public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntit
     private final NotificationRuleRepository notificationRuleRepository;
 
     @Override
+    public PageData<NotificationRule> findByTenantIdAndPageLink(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(notificationRuleRepository.findByTenantIdAndNameContainingIgnoreCase(tenantId.getId(),
+                Strings.nullToEmpty(pageLink.getTextSearch()), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     protected Class<NotificationRuleEntity> getEntityClass() {
         return NotificationRuleEntity.class;
     }
@@ -56,6 +68,11 @@ public class JpaNotificationRuleDao extends JpaAbstractDao<NotificationRuleEntit
     @Override
     protected JpaRepository<NotificationRuleEntity, UUID> getRepository() {
         return notificationRuleRepository;
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_RULE;
     }
 
 }

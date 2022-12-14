@@ -98,11 +98,8 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     public DefaultTelemetrySubscriptionService(AttributesService attrService,
                                                TimeseriesService tsService,
                                                @Lazy TbEntityViewService tbEntityViewService,
-                                               TbClusterService clusterService,
-                                               PartitionService partitionService,
                                                TbApiUsageReportClient apiUsageClient,
                                                TbApiUsageStateService apiUsageStateService) {
-        super(clusterService, partitionService);
         this.attrService = attrService;
         this.tsService = tsService;
         this.tbEntityViewService = tbEntityViewService;

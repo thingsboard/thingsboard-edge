@@ -32,7 +32,11 @@ package org.thingsboard.server.common.data.notification;
 
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class NotificationRequestConfig {
-    private int sendingDelayInMinutes;
+
+    private int sendingDelayInSec;
+
 }

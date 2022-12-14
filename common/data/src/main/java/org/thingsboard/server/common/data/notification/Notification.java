@@ -49,11 +49,12 @@ public class Notification extends BaseData<NotificationId> {
 
     private NotificationRequestId requestId;
     private UserId recipientId;
-    private String reason;
+
+    private String type; // todo: maybe to enum
     private String text;
     private NotificationInfo info;
-    private NotificationSeverity severity;
+
+    private NotificationOriginatorType originatorType;
     private NotificationStatus status;
-//    private UserId senderId;
 
 }

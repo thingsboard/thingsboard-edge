@@ -201,6 +201,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 existingAlarm.setDetails(details);
             }
             existingAlarm.setEndTs(System.currentTimeMillis());
+            existingAlarm.setNotificationRuleId(config.getNotificationRuleId());
             return ctx.getAlarmService().createOrUpdateAlarm(existingAlarm);
         }, ctx.getDbCallbackExecutor());
 
@@ -223,6 +224,7 @@ public class TbCreateAlarmNode extends TbAbstractAlarmNode<TbCreateAlarmNodeConf
                 .startTs(ts)
                 .endTs(ts)
                 .details(details)
+                .notificationRuleId(config.getNotificationRuleId())
                 .build();
     }
 

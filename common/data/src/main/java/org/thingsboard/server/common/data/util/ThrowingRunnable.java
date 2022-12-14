@@ -28,22 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.server.common.data.util;
 
-import org.thingsboard.server.common.data.id.NotificationId;
-import org.thingsboard.server.common.data.id.NotificationRequestId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 
-public interface NotificationSubscriptionService {
+public interface ThrowingRunnable {
 
-    NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest);
+    void run() throws ThingsboardException;
 
-    void markNotificationAsRead(TenantId tenantId, UserId recipientId, NotificationId notificationId);
-
-    void deleteNotificationRequest(TenantId tenantId, NotificationRequestId notificationRequestId);
-
-    void updateNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest);
+    default ThrowingRunnable andThen(ThrowingRunnable after) {
+        return () -> {
+            this.run();
+            after.run();
+        };
+    }
 
 }

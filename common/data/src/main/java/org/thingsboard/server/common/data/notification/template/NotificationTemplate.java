@@ -28,8 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws;
+package org.thingsboard.server.common.data.notification.template;
 
-public interface WsCmd {
-    int getCmdId();
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.id.NotificationTemplateId;
+import org.thingsboard.server.common.data.id.TenantId;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class NotificationTemplate extends BaseData<NotificationTemplateId> implements HasTenantId, HasName {
+
+    private TenantId tenantId;
+    private String name;
+    private NotificationTemplateConfig configuration;
+    // add notification type (notification reason)
+
 }

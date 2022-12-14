@@ -35,14 +35,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.notification.targets.NotificationTargetConfig;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.SearchTextEntity;
 import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
@@ -74,7 +72,7 @@ public class NotificationTargetEntity extends BaseSqlEntity<NotificationTarget> 
         setCreatedTime(notificationTarget.getCreatedTime());
         setTenantId(getUuid(notificationTarget.getTenantId()));
         setName(notificationTarget.getName());
-        setConfiguration(JacksonUtil.valueToTree(notificationTarget.getConfiguration()));
+        setConfiguration(toJson(notificationTarget.getConfiguration()));
     }
 
     @Override
@@ -84,9 +82,7 @@ public class NotificationTargetEntity extends BaseSqlEntity<NotificationTarget> 
         notificationTarget.setCreatedTime(createdTime);
         notificationTarget.setTenantId(createId(tenantId, TenantId::fromUUID));
         notificationTarget.setName(name);
-        if (configuration != null) {
-            notificationTarget.setConfiguration(JacksonUtil.treeToValue(configuration, NotificationTargetConfig.class));
-        }
+        notificationTarget.setConfiguration(fromJson(configuration, NotificationTargetConfig.class));
         return notificationTarget;
     }
 

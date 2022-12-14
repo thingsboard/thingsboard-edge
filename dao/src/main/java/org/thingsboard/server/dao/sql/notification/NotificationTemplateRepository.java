@@ -28,19 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.notification.cmd;
+package org.thingsboard.server.dao.sql.notification;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.service.ws.WsCmd;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import org.thingsboard.server.dao.model.sql.NotificationTemplateEntity;
 
 import java.util.UUID;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MarkNotificationAsReadCmd implements WsCmd {
-    private int cmdId;
-    private UUID notificationId;
+@Repository
+public interface NotificationTemplateRepository extends JpaRepository<NotificationTemplateEntity, UUID> {
 }

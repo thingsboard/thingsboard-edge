@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.model.sql;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.thingsboard.common.util.JacksonUtil;
@@ -41,7 +42,7 @@ import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.notification.NotificationInfo;
-import org.thingsboard.server.common.data.notification.NotificationSeverity;
+import org.thingsboard.server.common.data.notification.NotificationOriginatorType;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -67,19 +68,19 @@ public class NotificationEntity extends BaseSqlEntity<Notification> {
     @Column(name = ModelConstants.NOTIFICATION_RECIPIENT_ID_PROPERTY, nullable = false)
     private UUID recipientId;
 
-    @Column(name = ModelConstants.NOTIFICATION_REASON_PROPERTY, nullable = false)
-    private String reason;
+    @Column(name = ModelConstants.NOTIFICATION_TYPE_PROPERTY, nullable = false)
+    private String type;
 
     @Column(name = ModelConstants.NOTIFICATION_TEXT_PROPERTY, nullable = false)
     private String text;
 
     @Type(type = "json")
-    @Column(name = ModelConstants.NOTIFICATION_INFO_PROPERTY)
+    @Formula("(SELECT r.info FROM notification_request r WHERE r.id = request_id)")
     private JsonNode info;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = ModelConstants.NOTIFICATION_SEVERITY_PROPERTY)
-    private NotificationSeverity severity;
+    @Column(name = ModelConstants.NOTIFICATION_ORIGINATOR_TYPE_PROPERTY)
+    private NotificationOriginatorType originatorType;
 
     @Enumerated(EnumType.STRING)
     @Column(name = ModelConstants.NOTIFICATION_STATUS_PROPERTY)
@@ -92,12 +93,10 @@ public class NotificationEntity extends BaseSqlEntity<Notification> {
         setCreatedTime(notification.getCreatedTime());
         setRequestId(getUuid(notification.getRequestId()));
         setRecipientId(getUuid(notification.getRecipientId()));
-        setReason(notification.getReason());
+        setType(notification.getType());
         setText(notification.getText());
-        if (notification.getInfo() != null) {
-            setInfo(JacksonUtil.valueToTree(notification.getInfo()));
-        }
-        setSeverity(notification.getSeverity());
+        setInfo(toJson(notification.getInfo()));
+        setOriginatorType(notification.getOriginatorType());
         setStatus(notification.getStatus());
     }
 
@@ -108,12 +107,10 @@ public class NotificationEntity extends BaseSqlEntity<Notification> {
         notification.setCreatedTime(createdTime);
         notification.setRequestId(createId(requestId, NotificationRequestId::new));
         notification.setRecipientId(createId(recipientId, UserId::new));
-        notification.setReason(reason);
+        notification.setText(type);
         notification.setText(text);
-        if (info != null) {
-            notification.setInfo(JacksonUtil.treeToValue(info, NotificationInfo.class));
-        }
-        notification.setSeverity(severity);
+        notification.setInfo(fromJson(info, NotificationInfo.class));
+        notification.setOriginatorType(originatorType);
         notification.setStatus(status);
         return notification;
     }

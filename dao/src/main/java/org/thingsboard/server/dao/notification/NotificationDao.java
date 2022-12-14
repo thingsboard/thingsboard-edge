@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.Notification;
-import org.thingsboard.server.common.data.notification.NotificationInfo;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -52,7 +51,5 @@ public interface NotificationDao extends Dao<Notification> {
     int countUnreadByUserId(TenantId tenantId, UserId userId);
 
     PageData<Notification> findByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, PageLink pageLink);
-
-    int updateInfosByRequestId(TenantId tenantId, NotificationRequestId notificationRequestId, NotificationInfo notificationInfo);
 
 }
