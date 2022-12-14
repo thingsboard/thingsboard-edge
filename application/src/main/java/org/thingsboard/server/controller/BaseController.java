@@ -723,6 +723,10 @@ public abstract class BaseController {
         }
     }
 
+    protected <I extends EntityId, T extends TenantEntity> void checkEntity(I entityId, T entity, Resource resource) throws ThingsboardException {
+        checkEntity(entityId, entity, resource, null);
+    }
+
     protected void checkEntityId(EntityId entityId, Operation operation) throws ThingsboardException {
         try {
             if (entityId == null) {

@@ -143,6 +143,7 @@ public class NotificationController extends BaseController {
                                                                  @RequestParam(required = false) String sortProperty,
                                                                  @RequestParam(required = false) String sortOrder,
                                                                  @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
+        accessControlService.checkPermission(user, Resource.NOTIFICATION_REQUEST, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return notificationRequestService.findNotificationRequestsByTenantId(user.getTenantId(), pageLink);
     }

@@ -33,18 +33,24 @@ package org.thingsboard.server.common.data.notification.template;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class NotificationTemplate extends BaseData<NotificationTemplateId> implements HasTenantId, HasName {
+public class NotificationTemplate extends BaseData<NotificationTemplateId> implements TenantEntity, HasName {
 
     private TenantId tenantId;
     private String name;
     private NotificationTemplateConfig configuration;
     // add notification type (notification reason)
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_TEMPLATE;
+    }
 
 }

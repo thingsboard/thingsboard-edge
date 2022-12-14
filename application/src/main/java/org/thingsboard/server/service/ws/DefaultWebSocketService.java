@@ -81,11 +81,6 @@ import org.thingsboard.server.service.subscription.TbEntityDataSubscriptionServi
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbTimeseriesSubscription;
 import org.thingsboard.server.service.telemetry.exception.ValidationException;
-import org.thingsboard.server.service.ws.SessionEvent;
-import org.thingsboard.server.service.ws.WebSocketMsgEndpoint;
-import org.thingsboard.server.service.ws.WebSocketSessionRef;
-import org.thingsboard.server.service.ws.WsCmd;
-import org.thingsboard.server.service.ws.WsSessionMetaData;
 import org.thingsboard.server.service.ws.notification.NotificationCommandsHandler;
 import org.thingsboard.server.service.ws.notification.cmd.NotificationCmdsWrapper;
 import org.thingsboard.server.service.ws.notification.cmd.WsCmd;

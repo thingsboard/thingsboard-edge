@@ -33,8 +33,9 @@ package org.thingsboard.server.common.data.notification.rule;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.NotificationRuleId;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.NotificationTemplateId;
@@ -49,7 +50,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class NotificationRule extends BaseData<NotificationRuleId> implements HasTenantId, HasName {
+public class NotificationRule extends BaseData<NotificationRuleId> implements TenantEntity, HasName {
 
     @NotNull
     private TenantId tenantId;
@@ -63,5 +64,10 @@ public class NotificationRule extends BaseData<NotificationRuleId> implements Ha
     private NotificationTargetId initialNotificationTargetId;
     @Valid
     private NotificationEscalationConfig escalationConfig;
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.NOTIFICATION_RULE;
+    }
 
 }
