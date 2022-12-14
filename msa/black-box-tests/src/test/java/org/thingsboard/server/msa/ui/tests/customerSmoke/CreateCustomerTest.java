@@ -95,6 +95,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.allCustomerGroupBtn().click();
         customerPage.plusBtn().click();
+        customerPage.titleFieldAddEntityView().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.selectCountryAddEntityView();
         customerPage.descriptionAddEntityView().sendKeys(text);

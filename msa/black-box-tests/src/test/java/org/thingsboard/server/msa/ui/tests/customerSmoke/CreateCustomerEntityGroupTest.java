@@ -78,6 +78,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.plusBtn().click();
+        customerPage.addEntityGroupViewNameField().click();
         customerPage.addEntityGroupViewNameField().sendKeys(customerGroupName);
         customerPage.addBtnC().click();
         customerPage.refreshBtn().click();
@@ -103,6 +104,7 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
     public void createCustomerWithOnlySpace() {
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.plusBtn().click();
+        customerPage.addEntityGroupViewNameField().click();
         customerPage.addEntityGroupViewNameField().sendKeys(" ");
         customerPage.addBtnC().click();
 
