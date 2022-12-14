@@ -205,7 +205,7 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
           }
           delete schedulerEventConfig.configuration;
           if (configuration) {
-            schedulerEventConfig = {...schedulerEventConfig, ...configuration};
+            schedulerEventConfig = {...configuration, ...schedulerEventConfig};
           }
         }
       }
