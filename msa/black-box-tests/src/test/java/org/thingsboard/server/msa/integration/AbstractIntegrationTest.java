@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.AbstractContainerTest;
+import org.thingsboard.server.msa.DisableUIListeners;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
 
+@DisableUIListeners
 public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     protected static final String LOGIN = "tenant@thingsboard.org";
     protected static final String PASSWORD = "tenant";
