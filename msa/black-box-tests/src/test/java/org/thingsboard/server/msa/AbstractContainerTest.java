@@ -44,9 +44,16 @@ import org.apache.http.ssl.SSLContexts;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Listeners;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.device.profile.AllowCreateNewDevicesDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.CheckPreProvisionedDevicesDeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.device.profile.DeviceProfileProvisionConfiguration;
+import org.thingsboard.server.common.data.device.profile.DisabledDeviceProfileProvisionConfiguration;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -58,10 +65,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+
 @Slf4j
 @Listeners(TestListener.class)
 public abstract class AbstractContainerTest {
     protected static final String HTTPS_URL = "https://localhost";
+
+    protected final static String TEST_PROVISION_DEVICE_KEY = "test_provision_key";
+    protected final static String TEST_PROVISION_DEVICE_SECRET = "test_provision_secret";
     protected static long timeoutMultiplier = 1;
     protected ObjectMapper mapper = new ObjectMapper();
     protected static final String TELEMETRY_KEY = "temperature";
@@ -235,4 +246,5 @@ public abstract class AbstractContainerTest {
         deviceProfile.setProvisionDeviceKey(testProvisionDeviceKey);
         return testRestClient.postDeviceProfile(deviceProfile);
     }
+
 }
