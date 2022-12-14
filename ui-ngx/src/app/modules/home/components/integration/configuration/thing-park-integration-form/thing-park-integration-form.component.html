@@ -1,0 +1,145 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="thingParkConfigForm">
+  <mat-form-field class="mat-block">
+    <mat-label translate>integration.base-url</mat-label>
+    <input matInput formControlName="baseUrl" required>
+    <mat-error translate *ngIf="thingParkConfigForm.get('baseUrl').hasError('required')">
+      integration.base-url-required
+    </mat-error>
+    <mat-error translate *ngIf="thingParkConfigForm.get('baseUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
+  </mat-form-field>
+  <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <mat-form-field class="mat-block" fxFlex>
+      <mat-label translate>integration.http-endpoint</mat-label>
+      <input matInput formControlName="httpEndpoint">
+    </mat-form-field>
+    <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+            (cbOnSuccess)="onHttpEndpointCopied()"
+            [cbContent]="thingParkConfigForm.get('httpEndpoint').value"
+            matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
+      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+    </button>
+  </div>
+
+  <mat-expansion-panel class="security-setting"
+                       [expanded]="thingParkConfigForm.get('enableSecurity').value">
+    <mat-expansion-panel-header fxLayout="row">
+      <mat-panel-title>
+        <mat-slide-toggle [aria-label]="'integration.enable-security' | translate"
+                          formControlName="enableSecurity"
+                          (click)="$event.stopPropagation()">
+          {{ 'integration.enable-security' | translate }}
+        </mat-slide-toggle>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <section class="security-setting-content">
+        <mat-slide-toggle fxFlex [aria-label]="'integration.enable-security-new' | translate" formControlName="enableSecurityNew">
+          {{ 'integration.enable-security-new' | translate}}
+        </mat-slide-toggle>
+        <section fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+          <mat-form-field fxFlex *ngIf="!thingParkConfigForm.get('enableSecurityNew').value" class="mat-block">
+            <mat-label translate>integration.as-id</mat-label>
+            <input matInput required formControlName="asId">
+            <mat-error translate *ngIf="thingParkConfigForm.get('asId').hasError('required')">
+              integration.as-id-required
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex *ngIf="thingParkConfigForm.get('enableSecurityNew').value" class="mat-block">
+            <mat-label translate>integration.as-id</mat-label>
+            <input matInput required formControlName="asIdNew">
+            <mat-error translate *ngIf="thingParkConfigForm.get('asIdNew').hasError('required')">
+              integration.as-id-required
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.as-key</mat-label>
+            <input matInput required formControlName="asKey">
+            <mat-error translate *ngIf="thingParkConfigForm.get('asKey').hasError('required')">
+              integration.as-key-required
+            </mat-error>
+          </mat-form-field>
+        </section>
+        <section *ngIf="thingParkConfigForm.get('enableSecurityNew').value" fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.client-id-new</mat-label>
+            <input matInput required formControlName="clientIdNew">
+            <mat-error translate *ngIf="thingParkConfigForm.get('clientIdNew').hasError('required')">
+              integration.client-id-new-required</mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.client-secret</mat-label>
+            <input matInput required formControlName="clientSecret">
+            <mat-error translate *ngIf="thingParkConfigForm.get('clientSecret').hasError('required')">
+              integration.client-secret-required</mat-error>
+          </mat-form-field>
+        </section>
+        <mat-form-field fxFlex class="mat-block">
+          <mat-label translate>integration.max-time-diff-in-seconds</mat-label>
+          <input matInput type="number" min="0" step="1" required formControlName="maxTimeDiffInSeconds">
+          <mat-error translate *ngIf="thingParkConfigForm.get('maxTimeDiffInSeconds').hasError('required')">
+            integration.max-time-diff-in-seconds-required</mat-error>
+        </mat-form-field>
+      </section>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
+  </ng-container>
+
+  <mat-expansion-panel class="configuration-panel">
+    <mat-expansion-panel-header>
+      <mat-panel-description fxLayoutAlign="end" translate>
+        integration.advanced-settings
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <mat-slide-toggle class="toggle" [aria-label]="'integration.replace-no-content-to-ok' | translate"
+                        formControlName="replaceNoContentToOk">
+        {{ 'integration.replace-no-content-to-ok' | translate }}
+      </mat-slide-toggle>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.downlink-url</mat-label>
+        <input matInput formControlName="downlinkUrl">
+        <mat-error translate *ngIf="thingParkConfigForm.get('downlinkUrl').hasError('privateNetwork')">
+          integration.url-private
+        </mat-error>
+      </mat-form-field>
+      <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
+      </ng-container>
+    </ng-template>
+  </mat-expansion-panel>
+</section>

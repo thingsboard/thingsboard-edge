@@ -1,0 +1,71 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<fieldset class="fields-group">
+  <legend class="group-title" translate>integration.topic-filters</legend>
+  <div class="container">
+    <div fxFlex fxLayout="row" fxLayoutGap="8px"
+         *ngFor="let topicFilter of mqttFiltersFromArray.controls; let i = index"
+         [formGroup]="topicFilter" fxLayoutAlign="start center" class="no-padding">
+      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
+        <mat-label>{{ i !== 0 ? "" : "integration.topic" | translate }}</mat-label>
+        <input matInput required name="topicFilterTopic" formControlName="filter">
+      </mat-form-field>
+      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
+        <mat-label>{{ i !== 0 ? "" : "integration.mqtt-qos" | translate }}</mat-label>
+        <mat-select required formControlName="qos">
+          <mat-option *ngFor="let mqttQoS of mqttQosTypes" [value]="mqttQoS">
+            {{ mqttQoS }} - {{ MqttQosTranslation.get(mqttQoS) | translate}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-icon-button color="primary" [fxShow]="!mqttFiltersFromArray.disabled"
+              [ngClass]="{'invisibility': mqttFiltersFromArray.length === 1}"
+              (click)="mqttFiltersFromArray.removeAt(i)"
+              [matTooltip]="'integration.remove-topic-filter' | translate" matTooltipPosition="above">
+        <mat-icon class="material-icons">close</mat-icon>
+      </button>
+    </div>
+  </div>
+  <section *ngIf="!mqttFiltersFromArray.disabled" style="margin-top: 8px">
+    <div class="tb-hint" innerHTML="{{ 'device-profile.support-level-wildcards' | translate }}"></div>
+    <div class="tb-hint" innerHTML="{{ 'device-profile.single-level-wildcards-hint' | translate }}"></div>
+    <div class="tb-hint" innerHTML="{{ 'device-profile.multi-level-wildcards-hint' | translate }}"></div>
+  </section>
+  <span *ngIf="!mqttFiltersFromArray.length" fxLayoutAlign="center center" class="no-data-found" translate>integration.add-topic-filter-prompt</span>
+  <button mat-stroked-button color="primary" *ngIf="!mqttFiltersFromArray.disabled"
+          class="add-button"
+          (click)="addTopicFilter()"
+          [matTooltip]="'integration.add-topic-filter' | translate" matTooltipPosition="above">
+    <span translate>integration.add-topic-filter</span>
+  </button>
+</fieldset>

@@ -209,7 +209,7 @@ export const HelpLinks = {
     integrationRabbitmq:  helpBaseUrl +  '/docs/user-guide/integrations/rabbitmq',
     integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
     integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
-    integrationCoAP:  helpBaseUrl +  '/docs/user-guide/integrations/coap-integration',
+    integrationCoAP:  helpBaseUrl +  '/docs/user-guide/integrations/coap',
     integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/pe/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/pe/user-guide/groups',

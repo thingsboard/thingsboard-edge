@@ -119,6 +119,13 @@ export interface SecuritySettings {
   passwordPolicy: UserPasswordPolicy;
 }
 
+export interface JwtSettings {
+  tokenIssuer: string;
+  tokenSigningKey: string;
+  tokenExpirationTime: number;
+  refreshTokenExpTime: number;
+}
+
 export interface UpdateMessage {
   message: string;
   updateAvailable: boolean;
@@ -468,6 +475,7 @@ export const repositoryAuthMethodTranslationMap = new Map<RepositoryAuthMethod, 
 export interface RepositorySettings {
   repositoryUri: string;
   defaultBranch: string;
+  showMergeCommits: boolean;
   authMethod: RepositoryAuthMethod;
   username: string;
   password: string;

@@ -37,7 +37,7 @@ import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
-import { Integration, IntegrationType } from '@shared/models/integration.models';
+import { Integration, IntegrationInfo, IntegrationType } from '@shared/models/integration.models';
 
 @Injectable({
   providedIn: 'root'
@@ -50,6 +50,12 @@ export class IntegrationService {
 
   public getIntegrations(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Integration>> {
     return this.getIntegrationsByEdgeTemplate(pageLink, false, config);
+  }
+
+  public getIntegrationsInfo(pageLink: PageLink, isEdgeTemplate: boolean,
+                             config?: RequestConfig): Observable<PageData<IntegrationInfo>> {
+    return this.http.get<PageData<IntegrationInfo>>(`/api/integrationInfos${pageLink.toQuery()}&isEdgeTemplate=${isEdgeTemplate}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
   public getIntegrationsByEdgeTemplate(pageLink: PageLink, isEdgeTemplate: boolean,
@@ -99,8 +105,8 @@ export class IntegrationService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public getEdgeIntegrations(edgeId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<Integration>> {
-    return this.http.get<PageData<Integration>>(`/api/edge/${edgeId}/integrations${pageLink.toQuery()}`,
+  public getEdgeIntegrations(edgeId: string, pageLink: PageLink, config?: RequestConfig): Observable<PageData<IntegrationInfo>> {
+    return this.http.get<PageData<IntegrationInfo>>(`/api/edge/${edgeId}/integrations${pageLink.toQuery()}`,
       defaultHttpOptionsFromConfig(config));
   }
 }

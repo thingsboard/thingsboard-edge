@@ -30,17 +30,15 @@
  */
 package org.thingsboard.server.dao.integration;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.TenantEntityDao;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -50,5 +48,11 @@ import java.util.UUID;
 public interface IntegrationInfoDao extends Dao<IntegrationInfo> {
 
     List<IntegrationInfo> findAllCoreIntegrationInfos(IntegrationType integrationType, boolean remote, boolean enabled);
+
+    PageData<IntegrationInfo> findByTenantIdAndIsEdgeTemplate(UUID tenantId, PageLink pageLink, boolean isEdgeTemplate);
+
+    PageData<IntegrationInfo> findIntegrationsByTenantIdAndEdgeId(UUID tenantId, UUID edgeId, PageLink pageLink);
+
+    PageData<IntegrationInfo> findAllIntegrationInfosWithStats(UUID tenantId, boolean isEdgeTemplate, PageLink pageLink);
 
 }

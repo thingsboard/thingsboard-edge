@@ -43,21 +43,25 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserCredentialsId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
+import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -134,6 +138,18 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateIds(userIds, "Incorrect userIds " + userIds);
         return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
+    }
+
+    @Override
+    public User changeOwner(User user, EntityId targetOwnerId) {
+        if (EntityType.CUSTOMER.equals(targetOwnerId.getEntityType())) {
+            user.setAuthority(Authority.CUSTOMER_USER);
+        } else if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
+            user.setAuthority(Authority.TENANT_ADMIN);
+        } else {
+            throw new DataValidationException("Invalid target owner id. Must be either CUSTOMER or TENANT!");
+        }
+        return userDao.save(user.getTenantId(), user);
     }
 
     @Override
@@ -249,7 +265,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         userAuthSettingsDao.removeByUserId(userId);
         deleteEntityRelations(tenantId, userId);
         userDao.removeById(tenantId, userId.getId());
-        eventPublisher.publishEvent(new UserAuthDataChangedEvent(userId));
+        eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
     }
 
     @Override

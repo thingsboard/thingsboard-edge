@@ -1654,7 +1654,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 " FROM entity_group WHERE type = :entity_group_type";
         ctx.addStringParameter("entity_group_type", entityType.name());
         if (StringUtils.isNotEmpty(entityFilter.getEntityGroupNameFilter())) {
-            select = select + " and LOWER(name) LIKE concat(:entity_group_name_prefix, '%%')";
+            select = select + " and LOWER(name) LIKE LOWER(concat(:entity_group_name_prefix, '%%'))";
             ctx.addStringParameter("entity_group_name_prefix", entityFilter.getEntityGroupNameFilter());
         }
         return "(" + select + ")";

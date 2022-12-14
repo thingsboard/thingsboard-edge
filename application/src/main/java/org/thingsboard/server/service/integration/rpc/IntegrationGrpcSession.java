@@ -32,6 +32,7 @@ package org.thingsboard.server.service.integration.rpc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,19 +43,26 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.FSTUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.Event;
+import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.kv.DoubleDataEntry;
+import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
@@ -87,6 +95,7 @@ import org.thingsboard.server.service.integration.IntegrationContextComponent;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -114,6 +123,7 @@ public final class IntegrationGrpcSession implements Closeable {
     private StreamObserver<RequestMsg> inputStream;
     private StreamObserver<ResponseMsg> outputStream;
     private boolean connected;
+    private String serviceId;
 
     IntegrationGrpcSession(IntegrationContextComponent ctx, StreamObserver<ResponseMsg> outputStream
             , BiConsumer<IntegrationId, IntegrationGrpcSession> sessionOpenListener
@@ -139,6 +149,7 @@ public final class IntegrationGrpcSession implements Closeable {
                         outputStream.onError(new RuntimeException(responseMsg.getErrorMsg()));
                     } else {
                         connected = true;
+                        serviceId = requestMsg.getConnectRequestMsg().getServiceId();
                     }
                 }
                 if (connected) {
@@ -353,6 +364,35 @@ public final class IntegrationGrpcSession implements Closeable {
                 return;
             }
             ListenableFuture<Void> future = ctx.getEventService().saveAsync(event);
+
+            if (entityId.getEntityType().equals(EntityType.INTEGRATION) && event.getType().equals(EventType.LC_EVENT)) {
+                LifecycleEvent lcEvent = (LifecycleEvent) event;
+                String key = "integration_status_" + event.getServiceId().toLowerCase();
+                if (lcEvent.getLcEventType().equals("STARTED") || lcEvent.getLcEventType().equals("UPDATED")) {
+                    ObjectNode value = JacksonUtil.newObjectNode();
+
+                    if (lcEvent.isSuccess()) {
+                        value.put("success", true);
+                    } else {
+                        value.put("success", false);
+                        value.put("serviceId", lcEvent.getServiceId());
+                        value.put("error", lcEvent.getError());
+                    }
+
+                    AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
+
+                    future = Futures.transform(future, v -> {
+                        ctx.getAttributesService().save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        return null;
+                    }, MoreExecutors.directExecutor());
+                } else if (lcEvent.getLcEventType().equals("STOPPED")) {
+                    future = Futures.transform(future, v -> {
+                        ctx.getAttributesService().removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        return null;
+                    }, MoreExecutors.directExecutor());
+                }
+            }
+
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Void event) {

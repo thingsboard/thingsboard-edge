@@ -280,7 +280,20 @@ public class BaseWhiteLabelingService implements WhiteLabelingService {
     }
 
     private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
-        return StringUtils.isNotBlank(baseUrl) && URI.create(baseUrl).getHost().equalsIgnoreCase(domainName);
+        String baseUrlDomainName = this.domainNameFromBaseUrl(baseUrl);
+        return baseUrlDomainName != null && baseUrlDomainName.equalsIgnoreCase(domainName);
+    }
+
+    private String domainNameFromBaseUrl(String baseUrl) {
+        if (StringUtils.isNotBlank(baseUrl)) {
+            try {
+                return URI.create(baseUrl).getHost();
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, EntityId entityId, LoginWhiteLabelingParams loginWhiteLabelParams) {

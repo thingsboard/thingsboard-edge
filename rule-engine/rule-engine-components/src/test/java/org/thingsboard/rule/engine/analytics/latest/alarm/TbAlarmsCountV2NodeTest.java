@@ -135,8 +135,17 @@ public class TbAlarmsCountV2NodeTest {
 
     @Test
     public void alarmsCountV2Test() throws Exception {
+        processTest("ALARM");
+    }
+
+    @Test
+    public void alarmsCountV2Test2() throws Exception {
+        processTest("ENTITY_CREATED");
+    }
+
+    private void processTest(String type) throws Exception {
         init(createConfig());
-        performAlarmsCountTest();
+        performAlarmsCountTest(type);
     }
 
     @Test
@@ -194,7 +203,7 @@ public class TbAlarmsCountV2NodeTest {
         return alarmsCountMappings;
     }
 
-    private void performAlarmsCountTest() throws Exception {
+    private void performAlarmsCountTest(String type) throws Exception {
         int totalEntitiesCount = 10 + (int) (Math.random() * 20);
         List<AlarmInfo> alarms;
 
@@ -213,7 +222,7 @@ public class TbAlarmsCountV2NodeTest {
             alarm.setOriginator(entityId);
             alarm.setPropagate(true);
             try {
-                TbMsg alarmMsg = TbMsg.newMsg("ALARM", entityId, new TbMsgMetaData(),
+                TbMsg alarmMsg = TbMsg.newMsg(type, entityId, new TbMsgMetaData(),
                         TbMsgDataType.JSON, mapper.writeValueAsString(alarm), null, null);
                 node.onMsg(ctx, alarmMsg);
             } catch (Exception e) {

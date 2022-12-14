@@ -49,7 +49,7 @@ import java.util.Map;
 @Data
 public class LoriotBasicCredentials implements LoriotCredentials, ClientHttpRequestInterceptor {
 
-    private String email;
+    private String username;
     private String password;
 
     @JsonIgnore
@@ -70,7 +70,7 @@ public class LoriotBasicCredentials implements LoriotCredentials, ClientHttpRequ
 
     private void refreshSession(RestTemplate restTemplate, String baseUrl) {
         Map<String, String> loginRequest = new HashMap<>();
-        loginRequest.put("user", email);
+        loginRequest.put("user", username);
         loginRequest.put("pwd", password);
         ResponseEntity<JsonNode> sessionInfo = restTemplate.postForEntity(baseUrl + "1/pub/login", loginRequest, JsonNode.class);
         if (sessionInfo.getStatusCode().equals(HttpStatus.OK)) {

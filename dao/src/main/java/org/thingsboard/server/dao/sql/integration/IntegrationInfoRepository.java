@@ -36,18 +36,39 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.thingsboard.server.common.data.integration.IntegrationType;
-import org.thingsboard.server.dao.model.sql.DashboardInfoEntity;
 import org.thingsboard.server.dao.model.sql.IntegrationInfoEntity;
 
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Created by Valerii Sosliuk on 5/6/2017.
- */
 public interface IntegrationInfoRepository extends JpaRepository<IntegrationInfoEntity, UUID> {
 
     @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.type = :type AND ii.isRemote = :isRemote AND ii.enabled = :enabled AND ii.edgeTemplate = false")
     List<IntegrationInfoEntity> findAllCoreIntegrationInfos(@Param("type") IntegrationType type, @Param("isRemote") boolean remote, @Param("enabled") boolean enabled);
+
+    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId " +
+            "AND ii.edgeTemplate = :isEdgeTemplate " +
+            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationInfoEntity> findByTenantIdAndIsEdgeTemplate(@Param("tenantId") UUID tenantId,
+                                                                @Param("searchText") String searchText,
+                                                                @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                                Pageable pageable);
+
+    @Query("SELECT ii FROM IntegrationInfoEntity ii, RelationEntity re WHERE ii.tenantId = :tenantId " +
+            "AND ii.id = re.toId AND re.toType = 'INTEGRATION' AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = 'Contains' AND re.fromId = :edgeId AND re.fromType = 'EDGE' " +
+            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationInfoEntity> findByTenantIdAndEdgeId(@Param("tenantId") UUID tenantId,
+                                                        @Param("edgeId") UUID edgeId,
+                                                        @Param("searchText") String searchText,
+                                                        Pageable pageable);
+
+    @Query("SELECT ii FROM IntegrationInfoEntity ii WHERE ii.tenantId = :tenantId " +
+            "AND ii.edgeTemplate = :isEdgeTemplate " +
+            "AND LOWER(ii.searchText) LIKE LOWER(CONCAT('%', :searchText, '%'))")
+    Page<IntegrationInfoEntity> findAllIntegrationInfosWithStats(@Param("tenantId") UUID tenantId,
+                                                                 @Param("searchText") String searchText,
+                                                                 @Param("isEdgeTemplate") boolean isEdgeTemplate,
+                                                                 Pageable pageable);
 
 }

@@ -322,6 +322,11 @@ public class ModelConstants {
     public static final String INTEGRATION_BY_ROUTING_KEY_VIEW_NAME = "integration_by_routing_key";
     public static final String INTEGRATION_BY_CONVERTER_ID_VIEW_NAME = "integration_by_converter_id";
 
+    public static final String INTEGRATION_VIEW_NAME = "integration_info";
+    public static final String INTEGRATION_VIEW_STATS_PROPERTY = "stats";
+    public static final String INTEGRATION_VIEW_STATUS_PROPERTY = "status";
+
+
     /**
      * Cassandra entity_subtype constants.
      */

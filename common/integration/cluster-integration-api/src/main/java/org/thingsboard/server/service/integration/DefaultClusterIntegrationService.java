@@ -36,8 +36,6 @@ import com.google.protobuf.ByteString;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.integration.IntegrationType;
@@ -141,10 +139,16 @@ public class DefaultClusterIntegrationService extends TbApplicationEventListener
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        if (!supportedIntegrationTypes.isEmpty()) {
+        boolean supported = !supportedIntegrationTypes.isEmpty();
+
+        if (supported || serviceInfoProvider.isService(ServiceType.TB_CORE)) {
             log.info("Subscribing to notifications: {}", nfConsumer.getTopic());
             this.nfConsumer.subscribe();
             launchNotificationsConsumer();
+        }
+
+        if (supported) {
+            log.info("Launch main consumers");
             launchMainConsumers();
         }
     }

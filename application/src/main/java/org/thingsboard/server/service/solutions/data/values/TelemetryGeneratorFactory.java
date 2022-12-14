@@ -49,6 +49,12 @@ public class TelemetryGeneratorFactory {
                 return new SequenceValueStrategyGenerator(tp);
             case COMPOSITE:
                 return new CompositeValueStrategyGenerator(tp);
+            case SCHEDULE:
+                return new ScheduleValueStrategyGenerator(tp);
+            case INCREMENT:
+                return new IncrementTelemetryGenerator(tp);
+            case DECREMENT:
+                return new DecrementTelemetryGenerator(tp);
             default:
                 throw new RuntimeException("Not supported!");
         }

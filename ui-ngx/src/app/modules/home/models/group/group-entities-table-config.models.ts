@@ -93,6 +93,7 @@ export class GroupEntityTableConfig<T extends BaseData<HasId>> extends EntityTab
   settings = groupSettingsDefaults(this.entityGroup.type, this.entityGroup.configuration.settings);
   actionDescriptorsBySourceId: {[actionSourceId: string]: Array<WidgetActionDescriptor>} = {};
 
+  onGroupEntityRowClick: ($event: Event, entity: ShortEntityView) => void = null;
   onToggleEntityGroupDetails = () => {};
   onToggleEntityDetails = ($event: Event, entity: ShortEntityView) => {};
 

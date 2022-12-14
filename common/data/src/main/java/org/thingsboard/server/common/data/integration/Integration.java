@@ -34,24 +34,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.HasName;
-import org.thingsboard.server.common.data.SearchTextBased;
-import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ToString(callSuper = true)
 @ApiModel
 @EqualsAndHashCode(callSuper = true)
-public class Integration extends IntegrationInfo implements ExportableEntity<IntegrationId> {
+public class Integration extends AbstractIntegration implements ExportableEntity<IntegrationId> {
 
     private static final long serialVersionUID = 4934987577236873728L;
 
@@ -61,7 +60,6 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
     @Length(fieldName = "routingKey")
     private String routingKey;
     private IntegrationType type;
-    private boolean debugMode;
 
     @NoXss
     @Length(fieldName = "secret")
@@ -69,7 +67,8 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
     private JsonNode configuration;
     private JsonNode additionalInfo;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private IntegrationId externalId;
 
     public Integration() {
@@ -86,7 +85,6 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
         this.downlinkConverterId = integration.getDownlinkConverterId();
         this.routingKey = integration.getRoutingKey();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
@@ -137,24 +135,6 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
         this.routingKey = routingKey;
     }
 
-    @ApiModelProperty(position = 7, required = true, value = "The type of the integration")
-    public IntegrationType getType() {
-        return type;
-    }
-
-    public void setType(IntegrationType type) {
-        this.type = type;
-    }
-
-    @ApiModelProperty(position = 8, value = "Boolean flag to enable/disable saving received messages as debug events")
-    public boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public void setDebugMode(boolean debugMode) {
-        this.debugMode = debugMode;
-    }
-
     @ApiModelProperty(position = 12, value = "String value used by the remote integrations. " +
             "Remote integration uses this value along with the 'routingKey' for kind of security and validation to be able to connect to the platform using Grpc", example = "nl83m1ktpwpwwmww29sm")
     public String getSecret() {
@@ -195,6 +175,23 @@ public class Integration extends IntegrationInfo implements ExportableEntity<Int
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;
+    }
+
+    @Builder
+    public Integration(TenantId tenantId, String name, IntegrationType type,
+                       Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
+                       boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
+                       String routingKey, IntegrationType type1, boolean debugMode, String secret,
+                       JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId) {
+        super(tenantId, name, type, debugMode, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate);
+        this.defaultConverterId = defaultConverterId;
+        this.downlinkConverterId = downlinkConverterId;
+        this.routingKey = routingKey;
+        this.type = type1;
+        this.secret = secret;
+        this.configuration = configuration;
+        this.additionalInfo = additionalInfo;
+        this.externalId = externalId;
     }
 
 }

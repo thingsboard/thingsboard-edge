@@ -34,7 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
@@ -55,6 +58,7 @@ import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -92,7 +96,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             mdMap.put(md.getKey(), md.getValue().asText());
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
-        this.integrationStatistics = new IntegrationStatistics();
+
+        if (integrationStatistics == null) {
+            this.integrationStatistics = new IntegrationStatistics(context);
+        }
     }
 
     public void setConfiguration(Integration configuration) {
@@ -105,6 +112,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     @Override
     public void update(TbIntegrationInitParams params) throws Exception {
+        destroy();
         init(params);
     }
 
@@ -134,11 +142,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     @Override
-    public void destroy() {
-
-    }
-
-    @Override
     public void onDownlinkMsg(IntegrationDownlinkMsg msg) {
 
     }
@@ -146,7 +149,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     @Override
     public IntegrationStatistics popStatistics() {
         IntegrationStatistics statistics = this.integrationStatistics;
-        this.integrationStatistics = new IntegrationStatistics();
+        this.integrationStatistics = new IntegrationStatistics(context);
         return statistics;
     }
 
@@ -281,6 +284,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
+        context.onDownlinkMessageProcessed(true);
         integrationStatistics.incMessagesProcessed();
         if (configuration.isDebugMode()) {
             try {
@@ -298,6 +302,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected void reportDownlinkError(IntegrationContext context, TbMsg msg, String status, Exception exception) {
         if (!status.equals("OK")) {
+            context.onDownlinkMessageProcessed(false);
             integrationStatistics.incErrorsOccurred();
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());

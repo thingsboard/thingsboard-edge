@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.UUIDBased;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,6 +52,7 @@ import java.util.function.Supplier;
 public abstract class SearchTextBasedWithAdditionalInfo<I extends UUIDBased> extends SearchTextBased<I> implements HasAdditionalInfo {
 
     public static final ObjectMapper mapper = new ObjectMapper();
+    @NoXss
     private transient JsonNode additionalInfo;
     @JsonIgnore
     private byte[] additionalInfoBytes;

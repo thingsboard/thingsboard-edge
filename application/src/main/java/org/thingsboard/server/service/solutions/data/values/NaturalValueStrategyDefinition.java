@@ -50,6 +50,7 @@ public class NaturalValueStrategyDefinition implements ValueStrategyDefinition {
     private double holidayMultiplier;
     private double workHoursMultiplier;
     private double nightHoursMultiplier;
+    private boolean decrementOnStart;
 
     @Override
     public ValueStrategyDefinitionType getStrategyType() {

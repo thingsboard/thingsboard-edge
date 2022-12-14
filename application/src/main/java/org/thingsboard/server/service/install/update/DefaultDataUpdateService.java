@@ -81,8 +81,8 @@ import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
@@ -116,12 +116,13 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.audit.AuditLogDao;
 import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -256,6 +257,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private BlobEntityDao blobEntityDao;
+    @Autowired
+    private EdgeEventDao edgeEventDao;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
@@ -298,12 +301,20 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 break;
             case "3.4.1":
                 log.info("Updating data from version 3.4.1 to 3.4.2 ...");
+                systemDataLoaderService.saveLegacyYmlSettings();
                 boolean skipAuditLogsMigration = getEnv("TB_SKIP_AUDIT_LOGS_MIGRATION", false);
                 if (!skipAuditLogsMigration) {
                     log.info("Starting audit logs migration. Can be skipped with TB_SKIP_AUDIT_LOGS_MIGRATION env variable set to true");
                     auditLogDao.migrateAuditLogs();
                 } else {
                     log.info("Skipping audit logs migration");
+                }
+                boolean skipEdgeEventsMigration = getEnv("TB_SKIP_EDGE_EVENTS_MIGRATION", false);
+                if (!skipEdgeEventsMigration) {
+                    log.info("Starting edge events migration. Can be skipped with TB_SKIP_EDGE_EVENTS_MIGRATION env variable set to true");
+                    edgeEventDao.migrateEdgeEvents();
+                } else {
+                    log.info("Skipping edge events migration");
                 }
                 boolean skipBlobEntitiesMigration = getEnv("TB_SKIP_BLOB_ENTITIES_MIGRATION", false);
                 if (!skipBlobEntitiesMigration) {
@@ -497,14 +508,17 @@ public class DefaultDataUpdateService implements DataUpdateService {
         ruleNodeNames.forEach(ruleNodeName -> {
             PageDataIterable<RuleNode> ruleNodesIterator = new PageDataIterable<>(link -> ruleChainService.findAllRuleNodesByType(ruleNodeName, link), 1024);
             ruleNodesIterator.forEach(ruleNode -> {
-                ObjectNode configNode = (ObjectNode) ruleNode.getConfiguration();
-                if (!configNode.has("outMsgType")) {
-                    RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
-                    if (targetRuleChain != null) {
-                        TenantId tenantId = targetRuleChain.getTenantId();
-                        configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
-                        ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
-                        ruleChainService.saveRuleNode(tenantId, ruleNode);
+                JsonNode json = ruleNode.getConfiguration();
+                if (json != null && json.isObject()) {
+                    ObjectNode configNode = (ObjectNode) json;
+                    if (!configNode.has("outMsgType")) {
+                        RuleChain targetRuleChain = ruleChainService.findRuleChainById(TenantId.SYS_TENANT_ID, ruleNode.getRuleChainId());
+                        if (targetRuleChain != null) {
+                            TenantId tenantId = targetRuleChain.getTenantId();
+                            configNode.put("outMsgType", SessionMsgType.POST_TELEMETRY_REQUEST.name());
+                            ruleNode.setConfiguration(JacksonUtil.valueToTree(configNode));
+                            ruleChainService.saveRuleNode(tenantId, ruleNode);
+                        }
                     }
                 }
             });
@@ -1155,7 +1169,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         while (hasNext) {
             for (Integration integration : pageData.getData()) {
                 try {
-                    Field enabledField = IntegrationInfo.class.getDeclaredField("enabled");
+                    Field enabledField = AbstractIntegration.class.getDeclaredField("enabled");
                     enabledField.setAccessible(true);
                     Boolean booleanVal = (Boolean) enabledField.get(integration);
                     if (booleanVal == null) {

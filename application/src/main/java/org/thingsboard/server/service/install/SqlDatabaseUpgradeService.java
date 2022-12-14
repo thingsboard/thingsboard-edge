@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.install;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +51,15 @@ import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.queue.SubmitStrategy;
 import org.thingsboard.server.common.data.queue.SubmitStrategyType;
+import org.thingsboard.server.dao.asset.AssetDao;
 import org.thingsboard.server.dao.asset.AssetProfileService;
-import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.queue.QueueService;
-import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
-import org.thingsboard.server.dao.tenant.TenantProfileService;
+import org.thingsboard.server.dao.sql.tenant.TenantRepository;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.queue.settings.TbRuleEngineQueueConfiguration;
@@ -74,7 +76,9 @@ import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.service.install.DatabaseHelper.ADDITIONAL_INFO;
@@ -125,10 +129,13 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     private TenantService tenantService;
 
     @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
     private DeviceService deviceService;
 
     @Autowired
-    private AssetService assetService;
+    private AssetDao assetDao;
 
     @Autowired
     private DeviceProfileService deviceProfileService;
@@ -151,10 +158,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     private TbRuleEngineQueueConfigService queueConfig;
 
     @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
-    private TenantProfileService tenantProfileService;
+    private DbUpgradeExecutorService dbUpgradeExecutor;
 
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
@@ -638,26 +642,45 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "3.4.1", "schema_update_before.sql");
                         loadSql(schemaUpdateFile, conn);
 
+                        conn.createStatement().execute("DELETE FROM asset a WHERE NOT exists(SELECT id FROM tenant WHERE id = a.tenant_id);");
+
                         log.info("Creating default asset profiles...");
-                        PageLink pageLink = new PageLink(100);
-                        PageData<Tenant> pageData;
+
+                        PageLink pageLink = new PageLink(1000);
+                        PageData<TenantId> tenantIds;
                         do {
-                            pageData = tenantService.findTenants(pageLink);
-                            for (Tenant tenant : pageData.getData()) {
-                                List<EntitySubtype> assetTypes = assetService.findAssetTypesByTenantId(tenant.getId()).get();
-                                try {
-                                    assetProfileService.createDefaultAssetProfile(tenant.getId());
-                                } catch (Exception e) {
-                                }
-                                for (EntitySubtype assetType : assetTypes) {
+                            List<ListenableFuture<?>> futures = new ArrayList<>();
+                            tenantIds = tenantService.findTenantsIds(pageLink);
+                            for (TenantId tenantId : tenantIds.getData()) {
+                                futures.add(dbUpgradeExecutor.submit(() -> {
                                     try {
-                                        assetProfileService.findOrCreateAssetProfile(tenant.getId(), assetType.getType());
-                                    } catch (Exception e) {
-                                    }
+                                        assetProfileService.createDefaultAssetProfile(tenantId);
+                                    } catch (Exception e) {}
+                                }));
+                            }
+                            Futures.allAsList(futures).get();
+                            pageLink = pageLink.nextPageLink();
+                        } while (tenantIds.hasNext());
+
+                        pageLink = new PageLink(1000);
+                        PageData<TbPair<UUID, String>> pairs;
+                        do {
+                            List<ListenableFuture<?>> futures = new ArrayList<>();
+                            pairs = assetDao.getAllAssetTypes(pageLink);
+                            for (TbPair<UUID, String> pair : pairs.getData()) {
+                                TenantId tenantId = new TenantId(pair.getFirst());
+                                String assetType = pair.getSecond();
+                                if (!"default".equals(assetType)) {
+                                    futures.add(dbUpgradeExecutor.submit(() -> {
+                                        try {
+                                            assetProfileService.findOrCreateAssetProfile(tenantId, assetType);
+                                        } catch (Exception e) {}
+                                    }));
                                 }
                             }
+                            Futures.allAsList(futures).get();
                             pageLink = pageLink.nextPageLink();
-                        } while (pageData.hasNext());
+                        } while (pairs.hasNext());
 
                         log.info("Updating asset profiles...");
                         conn.createStatement().execute("call update_asset_profiles()");
@@ -752,7 +775,15 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
                     integrationRepository.findAll().forEach(integration -> {
-                        if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
+                        if (integration.getType().equals(IntegrationType.LORIOT)) {
+                            ObjectNode credentials = (ObjectNode) integration.getConfiguration().get("credentials");
+                            if (credentials.get("type").asText().equals("basic") && !credentials.has("username")) {
+                                credentials.set("username", credentials.get("email"));
+                                credentials.remove("email");
+                                integrationRepository.save(integration);
+                            }
+
+                        } else if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
                             ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
                             if (!clientConfiguration.has("connectionString")) {
                                 String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
@@ -777,6 +808,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     } catch (Exception ignored) {}
                     try {
                         conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);");
                     } catch (Exception ignored) {}
                     try {
                         conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
@@ -859,6 +893,5 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         queue.setConsumerPerPartition(queueSettings.isConsumerPerPartition());
         return queue;
     }
-
 
 }

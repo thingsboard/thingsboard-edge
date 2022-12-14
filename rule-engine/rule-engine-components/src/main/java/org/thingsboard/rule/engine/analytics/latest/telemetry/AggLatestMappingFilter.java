@@ -38,6 +38,7 @@ import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 
@@ -60,7 +61,7 @@ public class AggLatestMappingFilter {
 
     private ScriptLanguage scriptLang;
     private String filterFunction;
-    private String mvelFilterFunction;
+    private String tbelFilterFunction;
 
     public ListenableFuture<List<EntityId>> filterEntityIds(TbContext ctx, Map<String, ScriptEngine> attributesScriptEngineMap, List<EntityId> entityIds) {
         List<ListenableFuture<Optional<EntityId>>> resultFutures = new ArrayList<>();
@@ -73,12 +74,12 @@ public class AggLatestMappingFilter {
 
     private ListenableFuture<Optional<EntityId>> filter(TbContext ctx, Map<String, ScriptEngine> attributesScriptEngineMap, EntityId entityId) {
         try {
-            Map<String, String> attributes = new HashMap<>();
+            Map<String, KvEntry> attributes = new HashMap<>();
             prepareAttributes(ctx, attributes, entityId, CLIENT_SCOPE, clientAttributeNames, "cs_");
             prepareAttributes(ctx, attributes, entityId, SHARED_SCOPE, sharedAttributeNames, "shared_");
             prepareAttributes(ctx, attributes, entityId, SERVER_SCOPE, serverAttributeNames, "ss_");
             prepareTimeseries(ctx, attributes, entityId, latestTsKeyNames);
-            String script = (scriptLang == null || ScriptLanguage.JS.equals(scriptLang)) ? filterFunction : mvelFilterFunction;
+            String script = (scriptLang == null || ScriptLanguage.JS.equals(scriptLang)) ? filterFunction : tbelFilterFunction;
             ScriptEngine attributesScriptEngine = attributesScriptEngineMap.computeIfAbsent(script,
                     function -> ctx.getPeContext().createAttributesScriptEngine(scriptLang, function));
             return Futures.transform(attributesScriptEngine.executeAttributesFilterAsync(attributes), res ->
@@ -88,23 +89,23 @@ public class AggLatestMappingFilter {
         }
     }
 
-    private void prepareAttributes(TbContext ctx, Map<String, String> attributes, EntityId entityId, String scope, List<String> keys, String prefix) throws Exception {
+    private void prepareAttributes(TbContext ctx, Map<String, KvEntry> attributes, EntityId entityId, String scope, List<String> keys, String prefix) throws Exception {
         if (keys != null && !keys.isEmpty()) {
             ListenableFuture<List<AttributeKvEntry>> latest = ctx.getAttributesService().find(ctx.getTenantId(), entityId, scope, keys);
             latest.get().forEach(r -> {
                 if (r.getValue() != null) {
-                    attributes.put(prefix + r.getKey(), r.getValueAsString());
+                    attributes.put(prefix + r.getKey(), r);
                 }
             });
         }
     }
 
-    private void prepareTimeseries(TbContext ctx, Map<String, String> attributes, EntityId entityId, List<String> keys) throws Exception {
+    private void prepareTimeseries(TbContext ctx, Map<String, KvEntry> attributes, EntityId entityId, List<String> keys) throws Exception {
         if (keys != null && !keys.isEmpty()) {
             ListenableFuture<List<TsKvEntry>> latest = ctx.getTimeseriesService().findLatest(ctx.getTenantId(), entityId, keys);
             latest.get().forEach(r -> {
                 if (r.getValue() != null) {
-                    attributes.put(r.getKey(), r.getValueAsString());
+                    attributes.put(r.getKey(), r);
                 }
             });
         }

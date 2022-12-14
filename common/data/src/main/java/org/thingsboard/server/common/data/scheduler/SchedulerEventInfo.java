@@ -89,6 +89,7 @@ public class SchedulerEventInfo extends SearchTextBasedWithAdditionalInfo<Schedu
         super(schedulerEventInfo);
         this.tenantId = schedulerEventInfo.getTenantId();
         this.customerId = schedulerEventInfo.getCustomerId();
+        this.originatorId = schedulerEventInfo.getOriginatorId();
         this.name = schedulerEventInfo.getName();
         this.type = schedulerEventInfo.getType();
         this.setSchedule(schedulerEventInfo.getSchedule());

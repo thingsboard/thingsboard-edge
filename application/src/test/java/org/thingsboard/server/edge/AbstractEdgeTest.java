@@ -93,6 +93,9 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
@@ -150,6 +153,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     @Before
     public void beforeTest() throws Exception {
         loginSysAdmin();
+
+        doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
+        doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
+        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");

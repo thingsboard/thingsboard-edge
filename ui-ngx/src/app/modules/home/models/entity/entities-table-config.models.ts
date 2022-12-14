@@ -64,6 +64,7 @@ export type CreateEntityOperation<T extends BaseData<HasId>> = () => Observable<
 export type EntityRowClickFunction<T extends BaseData<HasId>> = (event: Event, entity: T) => boolean;
 
 export type CellContentFunction<T extends BaseData<HasId>> = (entity: T, key: string) => string;
+export type CellChartContentFunction<T extends BaseData<HasId>> = (entity: T, key: string) => number[];
 export type CellTooltipFunction<T extends BaseData<HasId>> = (entity: T, key: string) => string | undefined;
 export type HeaderCellStyleFunction<T extends BaseData<HasId>> = (key: string) => object;
 export type CellStyleFunction<T extends BaseData<HasId>> = (entity: T, key: string) => object;
@@ -76,6 +77,7 @@ export interface CellActionDescriptor<T extends BaseData<HasId>> {
   nameFunction?: (entity: T) => string;
   icon?: string;
   mdiIcon?: string;
+  mdiIconFunction?: (entity: T) => string;
   style?: any;
   isEnabled: (entity: T) => boolean;
   onAction: ($event: MouseEvent, entity: T) => any;
@@ -97,7 +99,7 @@ export interface HeaderActionDescriptor {
   onAction: ($event: MouseEvent) => void;
 }
 
-export type EntityTableColumnType = 'content' | 'action';
+export type EntityTableColumnType = 'content' | 'action' | 'chart';
 
 export class BaseEntityTableColumn<T extends BaseData<HasId>> {
   constructor(public type: EntityTableColumnType,
@@ -149,7 +151,18 @@ export class DateEntityTableColumn<T extends BaseData<HasId>> extends EntityTabl
   }
 }
 
-export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | EntityActionTableColumn<T>;
+export class ChartEntityTableColumn<T extends BaseData<HasId>> extends BaseEntityTableColumn<T> {
+  constructor(public key: string,
+              public title: string,
+              public width: string = '0px',
+              public cellContentFunction: CellChartContentFunction<T> = (entity, property) => entity[property] ? entity[property] : [],
+              public chartStyleFunction: CellStyleFunction<T> = () => ({}),
+              public cellStyleFunction: CellStyleFunction<T> = () => ({})) {
+    super('chart', key, title, width, false);
+  }
+}
+
+export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | EntityActionTableColumn<T> | ChartEntityTableColumn<T>;
 
 export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = PageLink, L extends BaseData<HasId> = T> {
 
@@ -172,6 +185,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   entitiesDeleteEnabled = true;
   detailsPanelEnabled = true;
   hideDetailsTabsOnEdit = true;
+  rowPointer = false;
   actionsColumnTitle = null;
   entityTranslations: EntityTypeTranslation;
   entityResources: EntityTypeResource<T>;
@@ -206,7 +220,7 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
   entitiesFetchFunction: EntitiesFetchFunction<L, P> = () => of(emptyPageData<L>());
   onEntityAction: EntityActionFunction<T> = () => false;
   handleRowClick: EntityRowClickFunction<L> = () => false;
-  entityTitle: EntityStringFunction<T> = (entity) => entity?.name;
+  entityTitle: EntityStringFunction<T | L> = (entity) => entity?.name;
   entityAdded: EntityVoidFunction<T> = () => {};
   entityUpdated: EntityVoidFunction<T> = () => {};
   entitiesDeleted: EntityIdsVoidFunction<T> = () => {};
@@ -234,6 +248,20 @@ export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = P
       this.table.updateData(closeDetails);
     } else if (this.entityDetailsPage) {
       this.entityDetailsPage.reload();
+    }
+  }
+
+  toggleEntityDetails($event: Event, entity: T) {
+    if (this.table) {
+      this.table.toggleEntityDetails($event, entity);
+    }
+  }
+
+  isDetailsOpen(): boolean {
+    if (this.table) {
+      return this.table.isDetailsOpen;
+    } else {
+      return false;
     }
   }
 

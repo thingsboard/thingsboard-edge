@@ -66,6 +66,10 @@ public interface IntegrationService {
 
     PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink);
 
+    PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
+
+    PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, boolean isEdgeTemplate, PageLink pageLink);
+
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 
     void deleteIntegrationsByTenantId(TenantId tenantId);
@@ -77,4 +81,6 @@ public interface IntegrationService {
     Integration unassignIntegrationFromEdge(TenantId tenantId, IntegrationId integrationId, EdgeId edgeId, boolean remove);
 
     PageData<Integration> findIntegrationsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
+
+    PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 }

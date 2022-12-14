@@ -187,8 +187,6 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 
-CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);
-
 CREATE INDEX IF NOT EXISTS idx_converter_external_id ON converter(tenant_id, external_id);
 
 CREATE INDEX IF NOT EXISTS idx_integration_external_id ON integration(tenant_id, external_id);
@@ -206,7 +204,25 @@ CREATE INDEX IF NOT EXISTS idx_integration_debug_event_main
 CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
-CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);
+CREATE OR REPLACE VIEW integration_info as
+SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
+       allow_create_devices_or_assets, is_edge_template, search_text,
+       (SELECT cast(json_agg(element) as varchar)
+        FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
+              FROM stats_event se
+              WHERE se.tenant_id = i.tenant_id
+                AND se.entity_id = i.id
+                AND ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint
 
-
-
+              GROUP BY ts / 3600000
+              ORDER BY ts / 3600000) stats) as stats,
+       (CASE WHEN i.enabled THEN
+                 (SELECT cast(json_v as varchar)
+                  FROM attribute_kv
+                  WHERE entity_type = 'INTEGRATION'
+                    AND entity_id = i.id
+                    AND attribute_type = 'SERVER_SCOPE'
+                    AND attribute_key LIKE 'integration_status_%'
+                  ORDER BY last_update_ts
+                 LIMIT 1) END) as status
+FROM integration i;

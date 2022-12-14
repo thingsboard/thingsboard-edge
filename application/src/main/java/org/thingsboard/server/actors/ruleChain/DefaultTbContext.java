@@ -43,6 +43,7 @@ import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
+import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
 import org.thingsboard.rule.engine.api.RuleEngineAssetProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
 import org.thingsboard.rule.engine.api.RuleEngineNotificationService;
@@ -54,6 +55,7 @@ import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.rule.engine.api.TbRelationTypes;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
+import org.thingsboard.rule.engine.util.TenantIdLoader;
 import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -100,6 +102,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -119,15 +122,18 @@ import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.widget.WidgetTypeService;
+import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
 import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
-import org.thingsboard.server.service.script.RuleNodeMvelScriptEngine;
+import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 
 import java.util.Collections;
 import java.util.List;
@@ -501,11 +507,15 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), script, argNames);
     }
 
-    private ScriptEngine createMvelScriptEngine(String script, String... argNames) {
-        if (mainCtx.getMvelInvokeService() == null) {
-            throw new RuntimeException("MVEL execution is disabled!");
+    private ScriptEngine createJsScriptEngine(String script, ScriptType scriptType, String... argNames) {
+        return new RuleNodeJsScriptEngine(getTenantId(), mainCtx.getJsInvokeService(), scriptType, script, argNames);
+    }
+
+    private ScriptEngine createTbelScriptEngine(String script, ScriptType scriptType, String... argNames) {
+        if (mainCtx.getTbelInvokeService() == null) {
+            throw new RuntimeException("TBEL execution is disabled!");
         }
-        return new RuleNodeMvelScriptEngine(getTenantId(), mainCtx.getMvelInvokeService(), script, argNames);
+        return new RuleNodeTbelScriptEngine(getTenantId(), mainCtx.getTbelInvokeService(), scriptType, script, argNames);
     }
 
     @Override
@@ -527,12 +537,12 @@ class DefaultTbContext implements TbContext, TbPeContext {
         }
         switch (scriptLang) {
             case JS:
-                return createJsScriptEngine(script, argNames);
-            case MVEL:
+                return createJsScriptEngine(script, scriptType, argNames);
+            case TBEL:
                 if (Arrays.isNullOrEmpty(argNames)) {
-                    return createMvelScriptEngine(script, "msg", "metadata", "msgType");
+                    return createTbelScriptEngine(script, scriptType, "msg", "metadata", "msgType");
                 } else {
-                    return createMvelScriptEngine(script, argNames);
+                    return createTbelScriptEngine(script, scriptType, argNames);
                 }
             default:
                 throw new RuntimeException("Unsupported script language: " + scriptLang.name());
@@ -934,10 +944,42 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return mainCtx.getTenantProfileCache().get(getTenantId());
     }
 
+    @Override
+    public WidgetsBundleService getWidgetBundleService() {
+        return mainCtx.getWidgetsBundleService();
+    }
+
+    @Override
+    public WidgetTypeService getWidgetTypeService() {
+        return mainCtx.getWidgetTypeService();
+    }
+
+    @Override
+    public RuleEngineApiUsageStateService getRuleEngineApiUsageStateService() {
+        return mainCtx.getApiUsageStateService();
+    }
+
+    @Override
+    public ConverterService getConverterService() {
+        return mainCtx.getConverterService();
+    }
+
+    @Override
+    public SchedulerEventService getSchedulerEventService() {
+        return mainCtx.getSchedulerEventService();
+    }
+
     private TbMsgMetaData getActionMetaData(RuleNodeId ruleNodeId) {
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ruleNodeId", ruleNodeId.toString());
         return metaData;
+    }
+
+    @Override
+    public void checkTenantEntity(EntityId entityId) {
+        if (!this.getTenantId().equals(TenantIdLoader.findTenantId(this, entityId))) {
+            throw new RuntimeException("Entity with id: '" + entityId + "' specified in the configuration doesn't belong to the current tenant.");
+        }
     }
 
     private class SimpleTbQueueCallback implements TbQueueCallback {

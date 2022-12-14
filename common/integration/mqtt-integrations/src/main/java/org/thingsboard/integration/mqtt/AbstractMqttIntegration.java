@@ -77,6 +77,9 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         this.ctx = params.getContext();
         mqttClientConfiguration = getClientConfiguration(configuration, MqttClientConfiguration.class);
         setupConfiguration(mqttClientConfiguration);
+        if (mqttClientConfiguration.getConnectTimeoutSec() < 1) {
+            mqttClientConfiguration.setConnectTimeoutSec(10);
+        }
     }
 
     @Override

@@ -1,0 +1,164 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="loriotIntegrationConfigForm">
+  <mat-form-field class="mat-block">
+    <mat-label translate>integration.base-url</mat-label>
+    <input matInput formControlName="baseUrl" required>
+    <mat-error translate *ngIf="loriotIntegrationConfigForm.get('baseUrl').hasError('required')">
+      integration.base-url-required
+    </mat-error>
+    <mat-error translate *ngIf="loriotIntegrationConfigForm.get('baseUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
+  </mat-form-field>
+  <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
+    <mat-form-field class="mat-block" fxFlex>
+      <mat-label translate>integration.http-endpoint</mat-label>
+      <input matInput formControlName="httpEndpoint">
+    </mat-form-field>
+    <button mat-button mat-icon-button ngxClipboard type="button" color="primary"
+            (cbOnSuccess)="onHttpEndpointCopied()"
+            [cbContent]="loriotIntegrationConfigForm.get('httpEndpoint').value"
+            matTooltip="{{'integration.copy-http-endpoint-url' | translate }}">
+      <mat-icon class="tb-mat-20">content_copy</mat-icon>
+    </button>
+  </div>
+
+
+  <mat-expansion-panel class="expansion-panel-setting"
+
+                       [expanded]="loriotIntegrationConfigForm.get('createLoriotOutput').value || loriotIntegrationConfigForm.get('sendDownlink').value">
+    <mat-expansion-panel-header collapsedHeight="72px" expandedHeight="72px">
+      <mat-panel-title fxLayout="column" fxLayoutGap="8px">
+        <mat-slide-toggle formControlName="createLoriotOutput" (click)="$event.stopPropagation()">
+          {{ 'integration.create-loriot-output' | translate }}
+        </mat-slide-toggle>
+        <mat-slide-toggle formControlName="sendDownlink" (click)="$event.stopPropagation()">
+          {{ 'integration.send-downlink' | translate }}
+        </mat-slide-toggle>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <section class="expansion-panel-setting-content">
+        <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.server</mat-label>
+            <input required matInput formControlName="server">
+            <mat-error translate *ngIf="loriotIntegrationConfigForm.get('server').hasError('required')">
+              integration.server-required
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.domain</mat-label>
+            <input matInput formControlName="domain">
+          </mat-form-field>
+        </div>
+        <mat-form-field class="mat-block">
+          <mat-label translate>integration.app-id</mat-label>
+          <input required matInput formControlName="appId">
+          <mat-error translate *ngIf="loriotIntegrationConfigForm.get('appId').hasError('required')">
+            integration.app-id-required
+          </mat-error>
+        </mat-form-field>
+        <div *ngIf="loriotIntegrationConfigForm.get('sendDownlink').value" fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.downlink-url</mat-label>
+            <input required matInput formControlName="loriotDownlinkUrl">
+            <mat-error translate *ngIf="loriotIntegrationConfigForm.get('loriotDownlinkUrl').hasError('required')">
+              integration.downlink-url-required
+            </mat-error>
+            <mat-error translate *ngIf="loriotIntegrationConfigForm.get('loriotDownlinkUrl').hasError('privateNetwork')">
+              integration.url-private
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex class="mat-block">
+            <mat-label translate>integration.app-token</mat-label>
+            <input required matInput formControlName="token" type="password" autocomplete="new-password" >
+            <tb-toggle-password matSuffix></tb-toggle-password>
+            <mat-error translate *ngIf="loriotIntegrationConfigForm.get('token').hasError('required')">
+              integration.token-required
+            </mat-error>
+          </mat-form-field>
+        </div>
+        <tb-integration-credentials formControlName="credentials"
+                                    style="margin-top: 4px"
+                                    *ngIf="loriotIntegrationConfigForm.get('createLoriotOutput').value"
+                                    userNameLabel="integration.email"
+                                    userNameRequired="integration.email-required"
+                                    [allowCredentialTypes]="[IntegrationCredentialType.Basic, IntegrationCredentialType.Token]">
+        </tb-integration-credentials>
+      </section>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <mat-expansion-panel class="expansion-panel-setting"
+                       [expanded]="loriotIntegrationConfigForm.get('enableSecurity').value">
+    <mat-expansion-panel-header fxLayout="row">
+      <mat-panel-title>
+        <mat-slide-toggle [aria-label]="'integration.enable-security' | translate"
+                          formControlName="enableSecurity"
+                          (click)="$event.stopPropagation()">
+          {{ 'integration.enable-security' | translate }} ({{ 'integration.headers-filter' | translate }})
+        </mat-slide-toggle>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <tb-key-val-map
+        class="expansion-panel-setting-content"
+        noDataText="integration.no-headers-filter"
+        keyPlaceholderText="integration.header"
+        isStrokedButton="true"
+        formControlName="headersFilter">
+      </tb-key-val-map>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
+  </ng-container>
+
+  <mat-expansion-panel class="configuration-panel">
+    <mat-expansion-panel-header>
+      <mat-panel-description fxLayoutAlign="end" translate>
+        integration.advanced-settings
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <mat-slide-toggle class="toggle" [aria-label]="'integration.replace-no-content-to-ok' | translate"
+                        formControlName="replaceNoContentToOk">
+        {{ 'integration.replace-no-content-to-ok' | translate }}
+      </mat-slide-toggle>
+      <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
+      </ng-container>
+    </ng-template>
+  </mat-expansion-panel>
+</section>

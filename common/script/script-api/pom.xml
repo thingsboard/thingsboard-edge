@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.4.2PE-SNAPSHOT</version>
+        <version>3.4.3PE-SNAPSHOT</version>
         <artifactId>script</artifactId>
     </parent>
     <groupId>org.thingsboard.common.script</groupId>
@@ -72,6 +72,10 @@
             <artifactId>gson</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
@@ -101,7 +105,7 @@
         </dependency>
         <dependency>
             <groupId>org.thingsboard</groupId>
-            <artifactId>mvel2</artifactId>
+            <artifactId>tbel</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

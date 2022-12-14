@@ -71,6 +71,8 @@ public interface RuleEngineAlarmService {
 
     ListenableFuture<Alarm> findAlarmByIdAsync(TenantId tenantId, AlarmId alarmId);
 
+    Alarm findAlarmById(TenantId tenantId, AlarmId alarmId);
+
     ListenableFuture<Alarm> findLatestByOriginatorAndType(TenantId tenantId, EntityId originator, String type);
 
     ListenableFuture<AlarmInfo> findAlarmInfoByIdAsync(TenantId tenantId, AlarmId alarmId);

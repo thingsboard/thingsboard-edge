@@ -44,6 +44,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
+import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -130,7 +131,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 ActionType.ADDED, ActionType.ADDED, 1, 0, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
-        logout();
+        resetTokens();
         doGet("/api/noauth/activate?activateToken={activateToken}", TestMailService.currentActivateToken)
                 .andExpect(status().isSeeOther())
                 .andExpect(header().string(HttpHeaders.LOCATION, "/login/createPassword?activateToken=" + TestMailService.currentActivateToken));
@@ -147,7 +148,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.authority", is(Authority.TENANT_ADMIN.name())))
                 .andExpect(jsonPath("$.email", is(email)));
 
-        logout();
+        resetTokens();
 
         login(email, "testPassword");
 
@@ -224,7 +225,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         User foundUser = doGet("/api/user/" + savedUser.getId().getId().toString(), User.class);
         Assert.assertEquals(foundUser, savedUser);
 
-        logout();
+        resetTokens();
 
         loginSysAdmin();
         doDelete("/api/user/" + savedUser.getId().getId().toString())
@@ -283,7 +284,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         user.setLastName("Downs");
 
         User savedUser = createUserAndLogin(user, "testPassword1");
-        logout();
+        resetTokens();
 
         JsonNode resetPasswordByEmailRequest = new ObjectMapper().createObjectNode()
                 .put("email", email);
@@ -309,7 +310,7 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.authority", is(Authority.TENANT_ADMIN.name())))
                 .andExpect(jsonPath("$.email", is(email)));
 
-        logout();
+        resetTokens();
 
         login(email, "testPassword2");
         doGet("/api/auth/user")
@@ -856,6 +857,17 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         login(customerUser.getEmail(), "testPassword1");
         doPost("/api/user/" + customerAdmin.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void givenInvalidPageLink_thenReturnError() throws Exception {
+        loginTenantAdmin();
+
+        String invalidSortProperty = "abc(abc)";
+
+        ResultActions result = doGet("/api/user/users?page={page}&pageSize={pageSize}&sortProperty={sortProperty}", 0, 100, invalidSortProperty)
+                .andExpect(status().isBadRequest());
+        assertThat(getErrorMessage(result)).containsIgnoringCase("invalid sort property");
     }
 
     private User createUser() throws Exception {

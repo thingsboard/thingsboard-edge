@@ -63,7 +63,16 @@
         fxLayoutAlign="center center" [ngClass]="{'disabled': disabled}"
         class="no-data-found" translate>{{noDataText ? noDataText : 'key-val.no-data'}}</span>
   <div style="margin-top: 8px;">
-    <button mat-button mat-raised-button color="primary"
+    <button mat-button mat-raised-button color="primary" *ngIf="!isStrokedButton"
+            [fxShow]="!disabled && (!isSingleMode || !keyValsFormArray().length)"
+            [disabled]="isLoading$ | async"
+            (click)="addKeyVal()"
+            type="button"
+            matTooltip="{{ 'key-val.add-entry' | translate }}"
+            matTooltipPosition="above">
+      {{ 'action.add' | translate }}
+    </button>
+    <button mat-button mat-stroked-button color="primary" *ngIf="isStrokedButton"
             [fxShow]="!disabled && (!isSingleMode || !keyValsFormArray().length)"
             [disabled]="isLoading$ | async"
             (click)="addKeyVal()"

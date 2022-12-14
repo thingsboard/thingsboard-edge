@@ -1,0 +1,203 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../scss/constants";
+
+:host-context(.tb-fullscreen-dialog .mat-dialog-container) {
+  @media #{$mat-gt-xs} {
+    .mat-dialog-content {
+      max-height: 75vh;
+    }
+  }
+
+  .tb-radio-button-group {
+    border: 2px solid rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    margin: 12px 0 16px;
+    position: relative;
+
+    .tb-radio-button {
+      margin-bottom: 12px;
+    }
+
+    .tb-radio-button-content {
+      position: relative;
+      padding: 16px 16px 4px;
+    }
+
+    .tb-select-button::before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      background-color: var(--tb-primary-500);
+      opacity: 0.02;
+    }
+
+    .tb-button-divider {
+      border-top-width: 2px;
+      border-top-color: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  .remote-integration-setting {
+    box-shadow: none;
+    border: 1px groove rgba(0, 0, 0, .25);
+    border-radius: 4px;
+
+    .mat-expansion-panel-header {
+      padding: 0 24px 0 16px;
+
+      &.mat-expanded {
+        height: 48px;
+      }
+    }
+  }
+
+  .connection-status {
+    font-weight: 500;
+    letter-spacing: 0.25px;
+    text-align: center;
+  }
+
+  .connection-icon {
+    height: 32px;
+    font-size: 32px;
+    width: 32px;
+    margin-bottom: 4px;
+  }
+
+  .error_msg {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 130%;
+    letter-spacing: 0.25px;
+    opacity: 0.9;
+  }
+
+  .success {
+    color: #198038;
+  }
+
+  .error {
+    color: #D12730;
+  }
+
+  .tb-hint-edge {
+    border-radius: 6px;
+    background-color: rgba(48, 86, 128, 0.04);
+    line-height: 16px;
+    letter-spacing: 0.25px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    color: rgba(0, 0, 0, 0.54);
+  }
+}
+
+:host ::ng-deep {
+  width: 720px;
+  .mat-dialog-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0 !important;
+
+    tb-converter {
+      .mat-padding {
+        padding: 0;
+      }
+    }
+
+    .mat-stepper-horizontal {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      @media #{$mat-lt-sm} {
+        .mat-step-label {
+          white-space: normal;
+          overflow: visible;
+          .mat-step-text-label {
+            overflow: visible;
+          }
+        }
+      }
+      .mat-horizontal-content-container {
+        height: 580px;
+        max-height: 100%;
+        width: 100%;;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
+        @media #{$mat-gt-sm} {
+          min-width: 500px;
+        }
+      }
+      .mat-horizontal-stepper-content[aria-expanded=true] {
+        height: 100%;
+        position: relative;
+      }
+    }
+  }
+
+  .remote-integration-setting {
+    .mat-content {
+      overflow: visible;
+    }
+    .mat-expansion-panel-body {
+      padding: 0;
+      .remote-integration-setting-content {
+        margin: 0 16px;
+      }
+    }
+  }
+  .remote-config-panel {
+    padding: 16px;
+    margin: 8px 8px 16px;
+  }
+
+  .mat-horizontal-stepper-header-container {
+    padding: 0 12px;
+  }
+
+  .mat-stepper-label-position-bottom .mat-horizontal-stepper-header {
+    padding: 20px 12px 12px;
+  }
+
+  .tb-js-func {
+    background-color: transparent !important;
+  }
+
+  tb-key-val-map {
+    margin-bottom: 6px;
+  }
+}

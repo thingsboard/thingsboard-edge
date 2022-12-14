@@ -44,5 +44,13 @@ public abstract class TelemetryGenerator {
         this.key = telemetryProfile.getKey();
     }
 
+    public double getValue() {
+        throw new RuntimeException("Not supported");
+    }
+
+    public void setValue(double value) {
+        throw new RuntimeException("Not supported");
+    }
+
     public abstract void addValue(long ts, ObjectNode values);
 }

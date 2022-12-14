@@ -51,7 +51,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
 import { UtilsService } from '@core/services/utils.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { EntityType, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { ConverterComponent } from '@home/pages/converter/converter.component';
+import { ConverterComponent } from '@home/components/converter/converter.component';
 import { ConverterTabsComponent } from '@home/pages/converter/converter-tabs.component';
 import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';

@@ -32,6 +32,7 @@ package org.thingsboard.server.service.script;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ import org.thingsboard.script.api.ScriptType;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -65,8 +67,8 @@ public class RuleNodeJsScriptEngine extends RuleNodeScriptEngine<JsInvokeService
     }
 
     @Override
-    protected Object prepareAttributes(Map<String, String> attributes) {
-        return JacksonUtil.toString(attributes);
+    protected Object prepareAttributes(Map<String, KvEntry> attributes) {
+        return JacksonUtil.toString(Maps.transformValues(attributes, KvEntry::getValueAsString));
     }
 
     @Override

@@ -152,12 +152,14 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     this.scheduleConfigFormGroup.get('repeat').valueChanges.subscribe((repeat: boolean) => {
       if (repeat) {
         this.scheduleConfigFormGroup.get('repeatType').patchValue(SchedulerRepeatType.DAILY, {emitEvent: false});
-        const startDate: Date = this.scheduleConfigFormGroup.get('startDate').value;
-        const endsOnDate = new Date(
-          startDate.getFullYear(),
-          startDate.getMonth(),
-          startDate.getDate() + 5);
-        this.scheduleConfigFormGroup.get('endsOnDate').patchValue(endsOnDate, {emitEvent: false});
+        const startDate: Date | null = this.scheduleConfigFormGroup.get('startDate').value;
+        if (startDate) {
+          const endsOnDate = new Date(
+            startDate.getFullYear(),
+            startDate.getMonth(),
+            startDate.getDate() + 5);
+          this.scheduleConfigFormGroup.get('endsOnDate').patchValue(endsOnDate, {emitEvent: false});
+        }
       }
       this.updateEnabledState();
     });
@@ -181,12 +183,11 @@ export class SchedulerEventScheduleComponent extends PageComponent implements Co
     });
   }
 
-  private endsOnDateValidator(startDate: string, endsOnDate: string) {
+  private endsOnDateValidator(startDate: string | null, endsOnDate: string | null) {
     return (group: FormGroup): {[key: string]: any} => {
-      if (group.controls[endsOnDate].status === 'VALID') {
-        if (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime()) {
-          return { endsOnDateValidator: true };
-        }
+      if (group.controls[startDate].valid && group.controls[endsOnDate].valid &&
+        (group.controls[startDate].value.getTime() > group.controls[endsOnDate].value.getTime())) {
+        return { endsOnDateValidator: true };
       }
       return null;
     };

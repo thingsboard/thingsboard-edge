@@ -893,7 +893,7 @@ CREATE TABLE IF NOT EXISTS edge (
 );
 
 CREATE TABLE IF NOT EXISTS edge_event (
-    id uuid NOT NULL CONSTRAINT edge_event_pkey PRIMARY KEY,
+    id uuid NOT NULL,
     created_time bigint NOT NULL,
     edge_id uuid,
     edge_event_type varchar(255),
@@ -904,7 +904,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     tenant_id uuid,
     entity_group_id uuid,
     ts bigint NOT NULL
-);
+) PARTITION BY RANGE(created_time);
 
 CREATE TABLE IF NOT EXISTS device_group_ota_package (
     id uuid NOT NULL CONSTRAINT entity_group_firmware_pkey PRIMARY KEY,
@@ -962,6 +962,28 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     two_fa_settings varchar
 );
 
+CREATE OR REPLACE VIEW integration_info as
+SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
+       allow_create_devices_or_assets, is_edge_template, search_text,
+       (SELECT cast(json_agg(element) as varchar)
+        FROM (SELECT sum(se.e_messages_processed + se.e_errors_occurred) element
+              FROM stats_event se
+              WHERE se.tenant_id = i.tenant_id
+                AND se.entity_id = i.id
+                AND ts >= (EXTRACT(EPOCH FROM current_timestamp) * 1000 - 24 * 60 * 60 * 1000)::bigint
+
+              GROUP BY ts / 3600000
+              ORDER BY ts / 3600000) stats) as stats,
+       (CASE WHEN i.enabled THEN
+                 (SELECT cast(json_v as varchar)
+                  FROM attribute_kv
+                  WHERE entity_type = 'INTEGRATION'
+                    AND entity_id = i.id
+                    AND attribute_type = 'SERVER_SCOPE'
+                    AND attribute_key LIKE 'integration_status_%'
+                  ORDER BY last_update_ts
+                  LIMIT 1) END) as status
+FROM integration i;
 
 CREATE TABLE IF NOT EXISTS notification_target (
     id UUID NOT NULL CONSTRAINT notification_target_pkey PRIMARY KEY,

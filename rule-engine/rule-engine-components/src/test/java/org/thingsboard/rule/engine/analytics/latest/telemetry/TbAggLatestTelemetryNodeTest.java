@@ -63,6 +63,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
+import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -194,11 +195,11 @@ public class TbAggLatestTelemetryNodeTest {
 
         when(scriptEngine.executeAttributesFilterAsync(ArgumentMatchers.anyMap())).then(
                 (Answer<ListenableFuture<Boolean>>) invocation -> {
-                    Map<String, String> attributes = (Map<String, String>) (invocation.getArguments())[0];
+                    Map<String, KvEntry> attributes = (Map<String, KvEntry>) (invocation.getArguments())[0];
                     if (attributes.containsKey("temperature")) {
+                        String temperature = attributes.get("temperature").getValueAsString();
                         try {
-                            double temperature = Double.parseDouble(attributes.get("temperature"));
-                            return Futures.immediateFuture(temperature > 21);
+                            return Futures.immediateFuture(Double.parseDouble(temperature) > 21);
                         } catch (NumberFormatException e) {
                             return Futures.immediateFuture(false);
                         }

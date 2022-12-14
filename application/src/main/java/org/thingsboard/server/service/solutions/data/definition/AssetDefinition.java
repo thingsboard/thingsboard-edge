@@ -42,6 +42,7 @@ public class AssetDefinition extends CustomerEntityDefinition {
 
     private String type;
     private String label;
+    private String emulator;
 
     @Override
     public EntityType getEntityType() {

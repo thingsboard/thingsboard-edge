@@ -68,12 +68,10 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
-import org.thingsboard.server.common.data.security.event.UserAuthDataChangedEvent;
-import org.thingsboard.server.common.data.security.model.JwtToken;
+import org.thingsboard.server.common.data.security.event.UserCredentialsInvalidationEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.user.TbUserService;
-import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRepository;
-import org.thingsboard.server.service.security.model.JwtTokenPair;
+import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
@@ -130,7 +128,6 @@ public class UserController extends BaseController {
     private final MailService mailService;
     private final UserPermissionsService userPermissionsService;
     private final JwtTokenFactory tokenFactory;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final SystemSecurityService systemSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final TbUserService tbUserService;
@@ -183,7 +180,7 @@ public class UserController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}/token", method = RequestMethod.GET)
     @ResponseBody
-    public JwtTokenPair getUserToken(
+    public JwtPair getUserToken(
             @ApiParam(value = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
@@ -199,9 +196,7 @@ public class UserController extends BaseController {
             UserCredentials credentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), userId);
             MergedUserPermissions userPermissions = userPermissionsService.getMergedPermissions(authUser, false);
             SecurityUser securityUser = new SecurityUser(user, credentials.isEnabled(), principal, userPermissions);
-            JwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
-            JwtToken refreshToken = refreshTokenRepository.requestRefreshToken(securityUser);
-            return new JwtTokenPair(accessToken.getToken(), refreshToken.getToken());
+            return tokenFactory.createTokenPair(securityUser);
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -225,6 +220,7 @@ public class UserController extends BaseController {
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
             HttpServletRequest request) throws ThingsboardException {
+
         if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
             user.setTenantId(getCurrentUser().getTenantId());
         }
@@ -514,7 +510,7 @@ public class UserController extends BaseController {
             userService.setUserCredentialsEnabled(tenantId, userId, userCredentialsEnabled);
 
             if (!userCredentialsEnabled) {
-                eventPublisher.publishEvent(new UserAuthDataChangedEvent(userId));
+                eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(userId));
             }
         } catch (Exception e) {
             throw handleException(e);

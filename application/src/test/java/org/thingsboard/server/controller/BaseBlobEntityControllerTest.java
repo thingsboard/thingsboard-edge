@@ -479,7 +479,7 @@ public abstract class BaseBlobEntityControllerTest extends AbstractControllerTes
 
         user = createUser(user, pass, entityGroup.getId());
         customerAdminUserId = user.getId();
-        logout();
+        resetTokens();
 
         return user;
     }

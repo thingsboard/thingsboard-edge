@@ -122,7 +122,7 @@ abstract public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
     }
 
     private void validateAddingAndUpdateOfEdgeAttribute() throws Exception {
-        edgeImitator.expectMessageAmount(2);
+        edgeImitator.expectMessageAmount(3);
         JsonNode httpsBaseUrlAttribute = JacksonUtil.toJsonNode("{\"baseUrl\": \"https://localhost\"}");
         doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", httpsBaseUrlAttribute)
                 .andExpect(status().isOk());
@@ -135,7 +135,9 @@ abstract public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("https://localhost/api/v1"));
 
-        edgeImitator.expectMessageAmount(2);
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
+
+        edgeImitator.expectMessageAmount(3);
         JsonNode deviceHWUrlAttribute = JacksonUtil.toJsonNode("{\"deviceHW\": \"PCM-2230\"}");
         doPost("/api/plugins/telemetry/" + EntityType.EDGE.name() + "/" + edge.getId() + "/SERVER_SCOPE", deviceHWUrlAttribute)
                 .andExpect(status().isOk());
@@ -148,6 +150,8 @@ abstract public class BaseIntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("https://localhost/api/v1"));
         Assert.assertTrue(integrationUpdateMsg.getConfiguration().contains("PCM-2230"));
+
+        Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
     }
 
     private void validateIntegrationAssignToEdge(Integration savedIntegration, Converter savedConverter) throws Exception {

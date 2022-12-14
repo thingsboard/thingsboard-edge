@@ -78,15 +78,15 @@ public abstract class BaseRestApiLimitsTest extends AbstractControllerTest {
     public void before() throws Exception {
         loginSysAdmin();
         tenantProfile = getDefaultTenantProfile();
-        logout();
+        resetTokens();
     }
 
     @After
     public void after() throws Exception {
-        logout();
+        resetTokens();
         loginSysAdmin();
         saveTenantProfileWitConfiguration(tenantProfile, new DefaultTenantProfileConfiguration());
-        logout();
+        resetTokens();
         service.shutdown();
     }
 
@@ -100,7 +100,7 @@ public abstract class BaseRestApiLimitsTest extends AbstractControllerTest {
 
         saveTenantProfileWitConfiguration(tenantProfile, configurationWithCustomerRestLimits);
 
-        logout();
+        resetTokens();
 
         loginCustomerUser();
 
@@ -120,7 +120,7 @@ public abstract class BaseRestApiLimitsTest extends AbstractControllerTest {
 
         saveTenantProfileWitConfiguration(tenantProfile, configurationWithTenantRestLimits);
 
-        logout();
+        resetTokens();
 
         loginCustomerUser();
 
@@ -140,7 +140,7 @@ public abstract class BaseRestApiLimitsTest extends AbstractControllerTest {
 
         saveTenantProfileWitConfiguration(tenantProfile, configurationWithTenantRestLimits);
 
-        logout();
+        resetTokens();
 
         loginTenantAdmin();
 

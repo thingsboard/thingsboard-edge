@@ -1,0 +1,92 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2022 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="opcMappingForm">
+  <mat-expansion-panel class="mapping-setting" [expanded]=true>
+    <mat-expansion-panel-header collapsedHeight="48px" expandedHeight="48px">
+      <mat-panel-title translate>integration.opc-ua-mapping</mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <section class="mapping-setting-content">
+        <div *ngFor="let mapControl of mapFormArrayControls; let $index = index; last as isLast;"
+             [ngStyle]="!isLast ? {paddingBottom: '10px'} : {}" fxLayout="row">
+          <div class="index">{{ $index + 1}}</div>
+          <section class="fields-group" fxFlex [formGroup]="mapControl">
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>integration.opc-ua-mapping-type</mat-label>
+              <mat-select formControlName="mappingType" required>
+                <mat-option *ngFor="let type of OpcMappingTypes" [value]="type">
+                  {{ OpcMappingTypeTranslation.get(type) }}
+                </mat-option>
+              </mat-select>
+              <mat-error translate *ngIf="mapControl.get('mappingType').hasError('required')">
+                integration.opc-ua-mapping-type-required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block">
+              <mat-label translate>integration.opc-ua-device-node-pattern</mat-label>
+              <input matInput required formControlName="deviceNodePattern">
+              <mat-error translate *ngIf="mapControl.get('deviceNodePattern').hasError('required')">
+                integration.opc-ua-device-node-pattern-required
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field fxFlex class="mat-block"
+                            *ngIf="mapControl.get('mappingType').value === OpcMappingType.ID">
+              <mat-label translate>integration.opc-ua-namespace</mat-label>
+              <input matInput
+                     placeholder="{{ 'integration.opc-ua-namespace' | translate }}"
+                     type="number" min="0" formControlName="namespace">
+            </mat-form-field>
+            <tb-opc-ua-subscription formControlName="subscriptionTags">
+            </tb-opc-ua-subscription>
+          </section>
+          <button mat-icon-button class="mat-icon-button" *ngIf="!disabled"
+                  color="primary"
+                  (click)="removeMap($index)"
+                  [ngClass]="{'invisibility': mapFormArrayControls.length === 1}"
+                  [matTooltip]="'action.remove' | translate" matTooltipPosition="above">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <span *ngIf="!mapFormArray.length" fxLayoutAlign="center center" class="no-data-found" translate>
+          integration.add-opc-ua-mapping-prompt
+        </span>
+        <div style="padding-top: 16px; padding-left: 36px" *ngIf="!disabled">
+          <button mat-stroked-button color="primary" (click)="addMap()"
+                  [matTooltip]="'integration.opc-ua-add-map' | translate" matTooltipPosition="above">
+            <span translate>integration.opc-ua-add-map</span>
+          </button>
+        </div>
+      </section>
+    </ng-template>
+  </mat-expansion-panel>
+</section>

@@ -42,5 +42,15 @@
     "imageUrls": ["https://thingsboard.io/images/solutions/smart_retail/smart-retail-1.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-2.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-3.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-4.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-5.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-6.png", "https://thingsboard.io/images/solutions/smart_retail/smart-retail-7.png"],
     "tenantTelemetryKeys": ["dailyConsumption", "weeklyConsumption"],
     "tenantAttributeKeys": []
+  },
+  {
+    "id": "smart_irrigation",
+    "title": "Smart Irrigation",
+    "level": "PROTOTYPE",
+    "installTimeoutMs": 10000,
+    "previewImageUrl": "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-preview.png",
+    "imageUrls": ["https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-1.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-2.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-3.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-4.png", "https://thingsboard.io/images/solutions/smart_irrigation/smart-irrigation-5.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
   }
 ]

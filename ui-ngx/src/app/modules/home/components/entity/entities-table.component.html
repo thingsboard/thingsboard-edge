@@ -181,7 +181,12 @@
                         [matTooltip]="cellTooltip(entity, column, row)"
                         matTooltipPosition="above"
                         [ngStyle]="cellStyle(entity, column, row)">
-                <span [innerHTML]="cellContent(entity, column, row)"></span>
+                <ng-container *ngIf="column.type == 'chart'; else defaultContent">
+                  <tb-spark-line [chartData]="cellContent(entity, column, row)" [chartProperty]="cellChartStyle(entity, column, row)"></tb-spark-line>
+                </ng-container>
+                <ng-template #defaultContent>
+                  <span [innerHTML]="cellContent(entity, column, row)"></span>
+                </ng-template>
                 <ng-template [ngIf]="column.actionCell">
                   <ng-container [ngSwitch]="column.actionCell.type">
                     <ng-template [ngSwitchCase]="cellActionType.COPY_BUTTON">
@@ -239,7 +244,8 @@
                           matTooltip="{{ actionDescriptor.nameFunction ? actionDescriptor.nameFunction(entity) : actionDescriptor.name }}"
                           matTooltipPosition="above"
                           (click)="actionDescriptor.onAction($event, entity)">
-                    <mat-icon [svgIcon]="actionDescriptor.mdiIcon" [ngStyle]="actionDescriptor.style">
+                    <mat-icon svgIcon="{{ actionDescriptor.mdiIconFunction ? actionDescriptor.mdiIconFunction(entity) : actionDescriptor.mdiIcon }}"
+                              [ngStyle]="actionDescriptor.style">
                       {{actionDescriptor.icon}}</mat-icon>
                   </button>
                 </div>
@@ -254,7 +260,8 @@
                             [disabled]="isLoading$ | async"
                             [fxShow]="actionDescriptor.isEnabled(entity)"
                             (click)="actionDescriptor.onAction($event, entity)">
-                      <mat-icon [svgIcon]="actionDescriptor.mdiIcon" [ngStyle]="actionDescriptor.style">
+                      <mat-icon svgIcon="{{ actionDescriptor.mdiIconFunction ? actionDescriptor.mdiIconFunction(entity) : actionDescriptor.mdiIcon }}"
+                                [ngStyle]="actionDescriptor.style">
                         {{actionDescriptor.icon}}</mat-icon>
                       <span>{{ actionDescriptor.nameFunction ? actionDescriptor.nameFunction(entity) : actionDescriptor.name }}</span>
                     </button>
@@ -266,7 +273,8 @@
             <mat-row [fxShow]="!dataSource.dataLoading"
                      [ngClass]="{'mat-row-select': selectionEnabled,
                                  'mat-selected': dataSource.selection.isSelected(entity),
-                                 'tb-current-entity': dataSource.isCurrentEntity(entity)}"
+                                 'tb-current-entity': dataSource.isCurrentEntity(entity),
+                                 'tb-pointer': entitiesTableConfig.rowPointer}"
                      *matRowDef="let entity; columns: displayedColumns;" (click)="onRowClick($event, entity)"></mat-row>
           </table>
           <span [fxShow]="!(isLoading$ | async) && (dataSource.isEmpty() | async) && !dataSource.dataLoading"

@@ -32,6 +32,6 @@ package org.thingsboard.server.service.solutions.data.values;
 
 public enum ValueStrategyDefinitionType {
 
-    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE;
+    COUNTER, NATURAL, EVENT, SEQUENCE, CONSTANT, COMPOSITE, SCHEDULE, INCREMENT, DECREMENT;
 
 }

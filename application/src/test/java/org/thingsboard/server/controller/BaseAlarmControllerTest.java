@@ -40,7 +40,6 @@ import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -724,7 +723,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
         alarm = doPost("/api/alarm", alarm, Alarm.class);
         Assert.assertNotNull("Saved alarm is null!", alarm);
 
-        logout();
+        resetTokens();
 
         JsonNode publicLoginRequest = JacksonUtil.toJsonNode("{\"publicId\": \"" + publicId + "\"}");
         JsonNode tokens = doPost("/api/auth/login/public", publicLoginRequest, JsonNode.class);
@@ -879,7 +878,7 @@ public abstract class BaseAlarmControllerTest extends AbstractControllerTest {
 
         user = createUser(user, pass, entityGroup.getId());
         customerAdminUserId = user.getId();
-        logout();
+        resetTokens();
 
         return user;
     }

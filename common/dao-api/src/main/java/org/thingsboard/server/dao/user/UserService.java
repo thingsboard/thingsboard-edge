@@ -58,6 +58,8 @@ public interface UserService {
 
     User findUserByTenantIdAndEmail(TenantId tenantId, String email);
 
+    User changeOwner(User user, EntityId targetOwnerId);
+
 	User saveUser(User user);
 
 	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);

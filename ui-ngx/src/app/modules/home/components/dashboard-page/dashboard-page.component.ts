@@ -71,7 +71,7 @@ import { WINDOW } from '@core/services/window.service';
 import { WindowMessage } from '@shared/models/window-message.model';
 import { deepClone, guid, isDefined, isDefinedAndNotNull, isNotEmptyStr } from '@app/core/utils';
 import {
-  DashboardContext,
+  DashboardContext, DashboardPageInitData,
   DashboardPageLayout,
   DashboardPageLayoutContext,
   DashboardPageLayouts,
@@ -388,7 +388,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private overlay: Overlay,
               private viewContainerRef: ViewContainerRef,
               private cd: ChangeDetectorRef,
-              private sanitizer: DomSanitizer) {
+              private sanitizer: DomSanitizer,
+              public elRef: ElementRef) {
     super(store);
     if (isDefinedAndNotNull(embeddedValue)) {
       this.embedded = embeddedValue;
@@ -398,16 +399,25 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   ngOnInit() {
     this.rxSubscriptions.push(this.route.data.subscribe(
       (data) => {
+        let dashboardPageInitData: DashboardPageInitData;
         if (this.embedded) {
-          data.dashboard = this.dashboardUtils.validateAndUpdateDashboard(this.dashboard);
-          data.currentDashboardId = this.dashboard.id ? this.dashboard.id.id : null;
-          data.widgetEditMode = false;
-          data.singlePageMode = false;
-          data.entityGroup = null;
+          dashboardPageInitData = {
+            dashboard: this.dashboardUtils.validateAndUpdateDashboard(this.dashboard),
+            currentDashboardId: this.dashboard.id ? this.dashboard.id.id : null,
+            widgetEditMode: false,
+            singlePageMode: false,
+            entityGroup: null
+          };
         } else {
-          data.currentDashboardId = this.route.snapshot.params.dashboardId;
+          dashboardPageInitData = {
+            dashboard: data.dashboard,
+            currentDashboardId: this.route.snapshot.params.dashboardId,
+            widgetEditMode: data.widgetEditMode,
+            singlePageMode: data.singlePageMode,
+            entityGroup: data.entityGroup
+          };
         }
-        this.init(data);
+        this.init(dashboardPageInitData);
         this.runChangeDetection();
       }
     ));
@@ -440,7 +450,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }
   }
 
-  private init(data: any) {
+  private init(data: DashboardPageInitData) {
 
     this.reset();
 
@@ -474,11 +484,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     if (this.entityGroup) {
       this.readonly = !this.userPermissionsService.hasGroupEntityPermission(Operation.WRITE, this.entityGroup);
       this.entityGroupId = this.entityGroup.id.id;
-    } else {
-      if (this.embedded || (this.singlePageMode && !this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))
+    } else if (this.embedded || (this.singlePageMode && !this.widgetEditMode && !this.route.snapshot.queryParamMap.get('edit'))
                || this.forceFullscreen || this.isMobileApp || this.reportView || this.stateSelectView) {
-        this.readonly = true;
-      }
+      this.readonly = true;
     }
 
     this.dashboardCtx.aliasController = this.parentAliasController ? this.parentAliasController : new AliasController(this.utils,
@@ -612,7 +620,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public hideFullscreenButton(): boolean {
-    if (this.route.snapshot.routeConfig.path.startsWith('dashboards')) {
+    if (this.route.snapshot.routeConfig?.path.startsWith('dashboards')) {
       return this.widgetEditMode || this.iframeMode || this.forceFullscreen;
     }
     return this.widgetEditMode || this.iframeMode || this.forceFullscreen || this.singlePageMode;
@@ -1568,15 +1576,15 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
         }, {}, {}, {}, true);
       versionControlPopover.tbComponentRef.instance.popoverComponent = versionControlPopover;
       versionControlPopover.tbComponentRef.instance.versionRestored.subscribe(() => {
-        const entityGroup = this.entityGroup;
         this.dashboardService.getDashboard(this.currentDashboardId).subscribe((dashboard) => {
           dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
-          const data = {
+          const data: DashboardPageInitData = {
             dashboard,
-            entityGroup,
-            widgetEditMode: false,
-            currentDashboardId: this.currentDashboardId
-          } as any;
+            entityGroup: this.entityGroup,
+            currentDashboardId: this.currentDashboardId,
+            widgetEditMode: this.widgetEditMode,
+            singlePageMode: this.singlePageMode
+          };
           this.init(data);
           this.dashboardCtx.stateController.cleanupPreservedStates();
           this.dashboardCtx.stateController.resetState();
