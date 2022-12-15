@@ -35,6 +35,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -43,10 +45,12 @@ import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 
+import java.util.Optional;
+
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("RpcDaoService")
 @Slf4j
 @RequiredArgsConstructor
 public class BaseRpcService implements RpcService {
@@ -106,6 +110,11 @@ public class BaseRpcService implements RpcService {
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
         return rpcDao.findAllByDeviceId(tenantId, deviceId, pageLink);
+    }
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findById(tenantId, new RpcId(entityId.getId())));
     }
 
     private PaginatedRemover<TenantId, Rpc> tenantRpcRemover =

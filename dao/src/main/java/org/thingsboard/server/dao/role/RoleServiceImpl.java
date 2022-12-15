@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -61,7 +62,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("RoleDaoService")
 @Slf4j
 public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, RoleEvictEvent> implements RoleService {
 
@@ -309,4 +310,10 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
                     deleteRole(tenantId, new RoleId(entity.getUuidId()));
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findRoleById(tenantId, new RoleId(entityId.getId())));
+    }
+
 }

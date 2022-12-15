@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -103,7 +104,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("EntityGroupDaoService")
 @Slf4j
 public class BaseEntityGroupService extends AbstractEntityService implements EntityGroupService {
 
@@ -914,6 +915,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             columns = Collections.emptyList();
         }
         return columns;
+    }
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
     }
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {

@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.widget;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.WidgetType;
@@ -42,8 +44,9 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.Validator;
 
 import java.util.List;
+import java.util.Optional;
 
-@Service
+@Service("WidgetTypeDaoService")
 @Slf4j
 public class WidgetTypeServiceImpl implements WidgetTypeService {
 
@@ -125,6 +128,11 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         for (WidgetType widgetType : widgetTypes) {
             deleteWidgetType(tenantId, new WidgetTypeId(widgetType.getUuidId()));
         }
+    }
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findWidgetTypeById(tenantId, new WidgetTypeId(entityId.getId())));
     }
 
 }
