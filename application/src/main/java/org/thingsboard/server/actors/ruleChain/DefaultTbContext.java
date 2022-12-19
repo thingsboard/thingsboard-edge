@@ -97,6 +97,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
@@ -106,6 +107,7 @@ import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -608,6 +610,16 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public DeviceService getDeviceService() {
         return mainCtx.getDeviceService();
+    }
+
+    @Override
+    public DeviceProfileService getDeviceProfileService() {
+        return mainCtx.getDeviceProfileService();
+    }
+
+    @Override
+    public AssetProfileService getAssetProfileService() {
+        return mainCtx.getAssetProfileService();
     }
 
     @Override
