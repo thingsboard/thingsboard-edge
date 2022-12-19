@@ -94,6 +94,7 @@ public class ContainerTestSuite {
                         new File("./../../docker-edge/docker-compose.postgres.yml"),
                         new File("./../../docker-edge/docker-compose.postgres.volumes.yml"))
                         .withPull(false)
+                        .withOptions("--compatibility")
                         .withLocalCompose(true)
                         .withTailChildContainers(!skipTailChildContainers)
                         .withEnv(installTb.getEnv())
