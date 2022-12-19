@@ -4849,7 +4849,7 @@
             "ko_KR": "한국어",
             "ru_RU": "Русский",
             "es_ES": "Español",
-            "es_CA": "Catalan",
+            "ca_ES": "Catalan",
             "ja_JP": "日本語",
             "tr_TR": "Türkçe",
             "fa_IR": "فارسي",
@@ -4860,7 +4860,8 @@
             "lv_LV": "Latviešu",
             "ka_GE": "ქართული",
             "pt_BR": "Português do Brasil",
-            "sl_SI": "Slovenščina"
+            "sl_SI": "Slovenščina",
+            "da_DK": "Dansk"
         }
     }
 }
