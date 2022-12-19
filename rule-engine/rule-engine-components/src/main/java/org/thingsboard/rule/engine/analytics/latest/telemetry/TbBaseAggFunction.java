@@ -62,7 +62,7 @@ public abstract class TbBaseAggFunction implements TbAggFunction {
 
     private double extractDoubleValue(Optional<KvEntry> entry, double defaultValue) {
         double result = defaultValue;
-        if (entry.isPresent()) {
+        if (entry.isPresent() && entry.get().getValue() != null) {
             KvEntry kvEntry = entry.get();
             switch (kvEntry.getDataType()) {
                 case LONG:
