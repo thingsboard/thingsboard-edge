@@ -59,7 +59,7 @@ import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 export function flotDefaultSettings(chartType: ChartType): Partial<TbFlotSettings> {
   const settings: Partial<TbFlotSettings> = {
     stack: false,
-    enableSelection: true,
+    enableSelection: 'enable',
     fontColor: '#545454',
     fontSize: 10,
     showTooltip: true,
@@ -161,7 +161,7 @@ export class FlotWidgetSettingsComponent extends PageComponent implements OnInit
       // Common settings
 
       stack: [false, []],
-      enableSelection: [true, []],
+      enableSelection: ['enable', []],
       fontSize: [10, [Validators.min(0)]],
       fontColor: ['#545454', []],
 
