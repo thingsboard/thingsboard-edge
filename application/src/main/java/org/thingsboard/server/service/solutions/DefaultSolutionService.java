@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -603,7 +602,6 @@ public class DefaultSolutionService implements SolutionService {
         return template;
     }
 
-    @NotNull
     private String getDashboardLink(TenantSolutionTemplateInstructions solutionInstructions, EntityGroupId dashboardGroupId, DashboardId dashboardId, boolean isPublic) {
         String dashboardLink;
         if (isPublic) {
