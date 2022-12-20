@@ -44,6 +44,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.thingsboard.common.util.JacksonUtil;
+import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -856,6 +857,17 @@ public abstract class BaseUserControllerTest extends AbstractControllerTest {
         login(customerUser.getEmail(), "testPassword1");
         doPost("/api/user/" + customerAdmin.getUuidId() + "/userCredentialsEnabled?userCredentialsEnabled=true")
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void givenInvalidPageLink_thenReturnError() throws Exception {
+        loginTenantAdmin();
+
+        String invalidSortProperty = "abc(abc)";
+
+        ResultActions result = doGet("/api/user/users?page={page}&pageSize={pageSize}&sortProperty={sortProperty}", 0, 100, invalidSortProperty)
+                .andExpect(status().isBadRequest());
+        assertThat(getErrorMessage(result)).containsIgnoringCase("invalid sort property");
     }
 
     private User createUser() throws Exception {

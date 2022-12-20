@@ -202,7 +202,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                 if (entityData.getClientAttributesFuture() != null) {
                     futures.add(entityData.getClientAttributesFuture());
                 }
-                if (entityData.getServerAttributesFuture() != null) {
+                if (entityData.getSharedAttributesFuture() != null) {
                     futures.add(entityData.getSharedAttributesFuture());
                 }
                 if (entityData.getServerAttributesFuture() != null) {
@@ -222,6 +222,8 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
                     doCalculate(ctx, msg, ts, entityDataList.get());
                 } catch (InterruptedException | ExecutionException e) {
                     log.warn("[{}] Unexpected error: {}", ctx.getSelfId(), msg.getOriginator(), e);
+                } catch (Exception e) {
+                    onFailure(e);
                 }
             }
 
