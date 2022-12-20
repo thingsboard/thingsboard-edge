@@ -683,7 +683,7 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmwareInfo.setTenantId(tenantId);
 
         thrown.expect(DataValidationException.class);
-        thrown.expectMessage("length of title must be equal or less than 255");
+        thrown.expectMessage("title length must be equal or less than 255");
 
         otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
     }
@@ -698,7 +698,7 @@ public abstract class BaseOtaPackageServiceTest extends AbstractServiceTest {
         firmwareInfo.setTitle(TITLE);
 
         firmwareInfo.setVersion(StringUtils.random(257));
-        thrown.expectMessage("length of version must be equal or less than 255");
+        thrown.expectMessage("version length must be equal or less than 255");
 
         otaPackageService.saveOtaPackageInfo(firmwareInfo, true);
     }

@@ -28,44 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.action;
+package org.thingsboard.server.common.data.util;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.script.ScriptLanguage;
-import org.thingsboard.server.common.data.validation.NoXss;
+import java.lang.annotation.Annotation;
 
-@Data
-public abstract class TbAbstractAlarmNodeConfiguration {
+@SuppressWarnings("unchecked")
+public class ReflectionUtils {
 
-    static final String ALARM_DETAILS_BUILD_JS_TEMPLATE = "" +
-            "var details = {};\n" +
-            "if (metadata.prevAlarmDetails) {\n" +
-            "    details = JSON.parse(metadata.prevAlarmDetails);\n" +
-            "    //remove prevAlarmDetails from metadata\n" +
-            "    delete metadata.prevAlarmDetails;\n" +
-            "    //now metadata is the same as it comes IN this rule node\n" +
-            "}\n" +
-            "\n" +
-            "\n" +
-            "return details;";
+    private ReflectionUtils() {}
 
-    static final String ALARM_DETAILS_BUILD_TBEL_TEMPLATE = "" +
-            "var details = {};\n" +
-            "if (metadata.prevAlarmDetails != null) {\n" +
-            "    details = JSON.parse(metadata.prevAlarmDetails);\n" +
-            "    //remove prevAlarmDetails from metadata\n" +
-            "    metadata.remove('prevAlarmDetails');\n" +
-            "    //now metadata is the same as it comes IN this rule node\n" +
-            "}\n" +
-            "\n" +
-            "\n" +
-            "return details;";
-
-
-    @NoXss
-    private String alarmType;
-    private ScriptLanguage scriptLang;
-    private String alarmDetailsBuildJs;
-    private String alarmDetailsBuildTbel;
+    public static <T> T getAnnotationProperty(String targetType, String annotationType, String property) throws Exception {
+        Class<Annotation> annotationClass = (Class<Annotation>) Class.forName(annotationType);
+        Annotation annotation = Class.forName(targetType).getAnnotation(annotationClass);
+        return (T) annotationClass.getDeclaredMethod(property).invoke(annotation);
+    }
 
 }
