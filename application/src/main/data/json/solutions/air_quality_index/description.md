@@ -2,9 +2,6 @@
 
 The Air Quality Monitoring template is a pollution monitoring service in cities that can be part of a Smart City. AQI Monitoring allows you to monitor the level of air pollution online.
 
-The average value of all air pollution control devices will be determined for the city.
-
-
 The AQI is defined as the highest value calculated for each pollutant as follows:
 - Identify the highest concentration among all of the monitors within each reporting area:
     - Ozone (ppm)
@@ -20,12 +17,12 @@ Once the index is defined, the system will display the corresponding legend, col
 
 #### Benefits
 
-A ready-made solution for your needs with all the configured conditions for your devices, which can also be part of a Smart City solution.
+A ready-made solution for your needs with all the configured conditions for your sensors, which can also be part of a Smart City solution.
 
 #### What’s available?
 
-An accessible dashboard for the end user: all devices are displayed on an interactive map in a user-friendly interface. AQI is displayed with recommendations for sensitive groups of people.
-A dashboard of management devices is available, as well as a widget with basic alerts that respond to a certain change in environmental conditions.
+An accessible dashboard for the end user: all sensors are displayed on an interactive map in a user-friendly interface. AQI is displayed with recommendations for sensitive groups of people.
+A dashboard of management sensors is available, as well as a widget with basic alerts that respond to a certain change in environmental conditions.
 
 #### How to use?
 

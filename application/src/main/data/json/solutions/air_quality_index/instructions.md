@@ -1,81 +1,133 @@
 ## Solution instructions
 
 As part of this solution, we have created 2 dashboards that display data from multiple sensors.
+The standards for AQI calculations are specific to the region. We use US AQI for simplicity.  You may reconfigure the calculations in the Rule Engine.
 
 We will review and describe each solution part below:
 
-### Dashboards
 #### Public Air Quality Monitoring Dashboard
 
-Use the link to insert this dashboard to your site: 
-``` 
-(your_domain_name)${MAIN_DASHBOARD_PUBLIC_URL}
-``` 
+You can embed Public Dashboard by using the code below:
 
-This dashboard is designed for general monitoring of air pollution and provides general recommendations in a convenient to people form. It has multiple states:
+```
 
-- **City state** represents the air pollution monitoring of a specific city (in our case Los Angeles) and calculates the average value based on the AQI received from city devices. Also, this state contains the following elements:
-  - The name of the current city
-  - Temperature and humidity
-  - Pollution status according to EPA
-  - Average AQI value based on all devices in the city and a scale for convenient viewing of pollution
-  - Click on "i" info-icon and a pop-up with the legend of pollutants will appear
-  - A section with general recommendations for sensitive groups of people regarding the current level of pollution
-  - History section of AQI level in the current, weekly and monthly range
-  - Interactive map showing air pollution monitoring devices, the markers of which are highlighted depending on the AQI level
-  - Click on the device marker on the map and go to the Device state. (you can switch to other devices by clicking on other device markers)
+<iframe src="${FULL_MAIN_DASHBOARD_PUBLIC_URL}" title="AQI Public Dashboard"></iframe>
 
 
-- **Device state** represents the current state of the specific device. This state contains the following elements:
-  - Contains the same elements as the **City state**, but the data is based on the device
+```
+
+
+This dashboard is designed for general monitoring of air pollution and provides general recommendations. It has multiple states:
+<div class="img-float" style="max-width:50%;margin: 20px auto;float:right">
+<img src="/images/solutions/air_quality_index/instruction-city-state.png" alt="AQI Public Dashboard - City State">
+</div>
+
+- **City state** represents the air pollution monitoring of a specific city (in our case Los Angeles) and calculates  value based on the AQI received from city sensors. Also, this state contains the following elements:
+  - The name of the current city or district;
+  - Temperature and humidity;
+  - Pollution status according to EPA;
+  - Average AQI value based on all sensors in the city and a scale for convenient viewing of pollution;
+  - Click on "i" info-icon and a pop-up with the legend of pollutants will appear;
+  - A section with general recommendations for sensitive groups of people regarding the current level of pollution;
+  - History section of AQI level in the current, weekly and monthly range;
+  - Interactive map showing air pollution monitoring stations, the markers of which are color-coded depending on the AQI level;
+  - Click on the sensor marker on the map and go to the Sensor state (you can switch to other sensors by clicking on other device markers).
+
+- **Sensor state** represents the current state of the specific sensor. This state contains the following elements:
+  - Contains the same elements as the **City state**, but the data is based on the sensor;
   - Section of specific pollutants which include: PM2.5, PM10, NO2, CO, SO2, O3. 
     Click on one of these tiles and a pop-up will appear, which will display a description, general recommendations, as well as its statistics for this pollutant.
 
+<div class="img-float" style="max-width:50%;margin: 10px auto">
+<img src="/images/solutions/air_quality_index/instruction-sensor-state.png" alt="AQI Public Dashboard - Sensor State">
+</div>
+
+
 #### Administration Air Quality Monitoring Dashboard
 
-This dashboard is designed to control the public dashboard and has multiple states:
+This dashboard is designed for device management and has multiple states:
 
--  **Main state** which is intended for monitoring devices, alarms, etc. The Main state contains:
+-  **Main state** which is intended for monitoring sensors, alarms, etc. The Main state contains:
    - The **Sensors** section. 
     All sensor data is displayed in a table where you can see the following information: “Sensor Label”, “Sensor id”, “Connection”, “Battery level” and “Last AQI”.
     You can also add a new sensor, edit and delete a sensor.
-    Click on a specific device from the table and go to the **Device state**
+    Click on a specific sensor from the table and go to the **Sensor state**;
 
    - **Alarms** section.
-    All alarm data is displayed in a table where you can see the following information: “Created time”, “Type”, “Sensor id” and “Status”.
-    Click on the “Settings” icon where you can define the alarm rules manually.
-    
+    All alarm data is displayed in a table where you can see the following information: “Created time”, “Type”, “Sensor id” and “Status”. 
+    Click on the “Settings” icon where you can set the alarm rules manually.    
+    By default you can configure the values at which alarms will be triggered for such values as Battery Level(in percent) and duration of no connection (in hours);
+   - **Interactive map**. After selecting the marker of the sensor on the map, a pop-up will appear with information about it.
+    Click on **“Details”** and go to the selected **Sensor state**.
 
-   - **Interactive map**. After selecting the marker of the device on the map, a pop-up will appear with information about it.
-    Click on **“Details”** and go to the selected **Device state**.
+<div class="img-float" style="max-width: 50%;margin: 10px auto">
+<img src="/images/solutions/air_quality_index/instruction-admin-state-1.png" alt="AQI Administration Dashboard - Sensor State">
+</div>
 
-- **Device state** allows you to view detailed information about the device. It contains the following sections:
-   - Sensor details that show information about the device.
-    Click the **“Edit”** button and you will be able to edit information.
+- **Sensor state** allows you to view detailed information about the sensor. It contains the following sections:
+   - Sensor details that show information about the sensor.
+    Click the **“Edit”** button and you will be able to edit information;
 
-   - Sensor measures that show next data: “connection” status, “Battery level”, “Last AQI”, “PM2.5”, “PM10”, “NO2”, “CO”, “SO2”, “O3”
-   - Battery level chart
-   - A Map which shows the location of sensor, allows you to move, delete and restore the device marker
-   - Sensor alarms table 
-   - Connection status chart
+   - Sensor measures that show next data: “connection” status, “Battery level”, “Last AQI”, “PM2.5”, “PM10”, “NO2”, “CO”, “SO2”, “O3”;
+   - Battery level chart;
+   - A Map which shows the location of sensor, allows you to move, delete and restore the sensor marker;
+   - Sensor alarms table;
+   - Connection status chart.
+
+<div class="img-float" style="max-width: 50%;margin: 10px auto">
+<img src="/images/solutions/air_quality_index/instruction-admin-state-2.png" alt="AQI Administration Dashboard - Sensor State">
+</div>
 
 #### Entity Groups
 
-Tenant has:
-- Asset Group “AQI city” to store all cities that belong to this tenant
-- Device Group “AQI Sensor” to store all devices that belong to city
+Solution has:
+- Asset Group “AQI city” to store all cities that belong to this tenant;
+- Device Group “AQI Sensor” to store all devices that belong to city.
 
 #### Rule Chains
 
-**AQI City** and **AQI Sensor** Rule Chains are responsible for processing all telemetry about pollutants from devices and calculating it to the AQI. Also, the "alarms count" node is used to propagate alarms if it is defined under the conditions.
+**AQI Sensor** rule chain responsible for processing the received components (pollutants) produced by all sensors, and calculation of AQI based on them. The next step is to find and save the maximum AQI value for AQI City and the average values for temperature and humidity.
+
+<div class="img-float" style="max-width: 50%;margin: 10px auto;">
+<img src="/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-1.png" alt="Rule Chain - AQI Sensor">
+</div>
+
+1. Also, we described the conditions for creating Inactivity alarms.
+At the first stage, we check the activity of the sensors:
+- If sensor receives **Inactivity Event** - **Create Alarm** is applied;
+- If **Activity Event** then we apply **Clear Alarm**.
+
+2. <!--In order to ensure the display of the dynamic status of device activity on the Administration Dashboard, a separate type of telemetry - **"activityState"** has been created and recorded. The conditions have been prescribed that allow us to check the device's activity and store data about its status.-->
+
+<div class="img-float" style="max-width: 60%;margin:auto">
+<img src="/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-2.png" alt="Rule Chain - AQI Sensor">
+</div>
+
+
+3. We also use “alarms count” node to count **batteryLevel** and **Inactivity alarms**, if they are defined by conditions.
+
+<div class="img-float" style="max-width: 50%;margin:auto">
+<img src="/images/solutions/air_quality_index/instruction-rule-chain-aqi-sensor-3.png" alt="Rule Chain - AQI Sensor">
+</div>
+
+<br>
+
+**AQI City** rule chain responsible for the simultaneous processing, change or duplicate of such attributes as *batteryLevelThreshold*, *inactivityTimeout* of all sensors participating in the creation of Alarm Rules.
+
+<div class="img-float" style="max-width: 240px;margin: auto;">
+<img src="/images/solutions/air_quality_index/instruction-rule-chain-aqi-city-1.png" alt="Rule Chain - AQI City">
+</div>
+
+<!--**AQI City** and **AQI Sensor** Rule Chains are responsible for processing all telemetry about pollutants from devices and calculating it to the AQI. Also, the "alarms count" node is used to propagate alarms if it is defined under the conditions.
+-->
 
 #### Device Profiles
 
-The device profile listed below uses pre-defined values for alarm thresholds. Admin may configure alarm thresholds for all devices by navigating to alarm rules. Also, if the connection of the device was lost for [configured_time_in_hours] we call an alert. The major alarm is raised when the device does not appear in the network during the time that was configured by the administrator.
+The device profile listed below uses pre-defined values for alarm thresholds. Administrator may configure alarm thresholds for all devices by navigating to alarm rules. Also, if the connection of the device was lost for [configured_time_in_hours] (4 hours by default) we call an alert. The major alarm is raised when the device does not appear in the network during the time that was configured by the administrator.
 
 ###### AQI Sensor
 
-The profile is configured to raise alarms if the value of "batteryLevel" is lower than a threshold. The major alarm is raised when the value is lower than what was configured by the administrator.
+The profile is configured to raise alarms if the value of "Low Battery Level" is lower than a threshold. The major alarm is raised when the value is lower than what was configured by the administrator.
 
 #### Alarms
 Alarms are generated using two <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
@@ -86,16 +138,18 @@ User may turn alarms on and off as well as configure the alarm thresholds via th
 #### Devices
 
 We have already created five sensors and loaded some demo data for them. See device info and credentials below:
-${device_list_and_credentials}
 **The solution expects that the sensor device will upload all pollution values, temperature, humidity, and battery level. The most simple example of the expected payload is in JSON format:**
+
 ```json
-{"temperature": 42, "humidity": 73, “pm25”: 24.4, “pm10”: 30, “no2”: 13, “co”: 2.8, “so2”: 7, “o3”: 12, "batteryLevel": 77 }
+{"temperature": 42, "humidity": 73, “pm25”: 24.4, “pm10”: 30, “no2”: 13, “co”: 2.8, “so2”: 7, “o3”: 0.164, "batteryLevel": 77 }
 ```
 
+<br>
 
 **To emulate the data upload on behalf of device "Air Quality Sensor 1", one should execute the following command:**
+
 ```bash
-curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"pm25\":  24.4, \"pm10\":  30, \"no2\":  13, \"co\":  2.8, \"so2\":  7, \"o3\":  12, \"batteryLevel\":  77 }" https://thingsboard.cloud/api/v1/eTCUxcClWs5hgzpnNagC/telemetry --header "Content-Type:application/json"
+curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"pm25\":  24.4, \"pm10\":  30, \"no2\":  13, \"co\":  2.8, \"so2\":  7, \"o3\":  0.164, \"batteryLevel\":  77 }" ${BASE_URL}/api/v1/${Air Quality Sensor 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"
 ```
 
 The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
@@ -107,75 +161,87 @@ As part of this solution, the following entities were created:
 ${all_entities}
 
 
+#### Examples
 
+##### How to trigger low battery alarm on Air Quality Sensor 1 (Hollywood)
 
+Let's reproduce the event in which we will configure an alarm that will respond to the specified limit value of the battery level.
 
+Let's take for example the sensor Air Quality Sensor 1 (Hollywood), which currently has a battery level of 43.73%.
 
+<br>
+<div class="img-float" style="max-width: 60%;margin:auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-1-1.png" alt="">
+</div>
 
+<br>
 
+In order to adjust the **Battery Level** alarm parameters, click on the “settings” button in the “Alarms” section, after which a pop-up will appear for setting the limit values for alarms.
 
+<div class="img-float" style="max-width: 60%;margin:auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-1-2.png" alt="">
+</div>
 
-<!--
-The dashboard has two states. The first public dashboard provides a basic set of widgets for monitoring the city's polluters.
-The main widgets are monitoring current AQI and recommendations for sensitive groups of people, displaying a set of specific pollutants, data analytics in the charts, and an interactive map of devices.
+<br>
 
-You may use the **public dashboard** for:
-* Monitoring AQI level by using a dashboard with all the necessary widgets as a level of the city’s AQI, air pollutants, and statistics
-* View specific pollutants and their legend
-* Get general recommendations to sensitive groups of people on major pollutants
-* Get temperature and humidity data
-* Observe devices on the interactive map;
+Set Alarm rules to 10% and save by pressing the "Save" button.
 
-Everyone will be able to easily use the public dashboard to place on their own resource and use all the possibilities of this solution for their own needs.
+<br>
 
-The admin dashboard contains the ability to create, edit, delete and maintain devices and control the alert system. The admin dashboard isn’t available in the main public state.
+<div class="img-float" style="max-width: fit-content;margin:auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-1-3.png" alt="">
+</div>
 
-You may use the **admin dashboard** for:
-* Manage air monitoring sensors;
-* Supervise and maintain the alert system;
-* Observe battery level, connection statuses of the devices.
+<br>
 
-You may always customize the <a href="#">"Air Quality Monitoring"</a> dashboard using the dashboard development <a href="https://thingsboard.io/docs/user-guide/dashboards/" target="_blank">guide</a>.
+Then to emulate the “batteryLevel” data of device "Air Quality Sensor 1" let’s take value - ”9” for example, and then we should execute the following command:
 
-
-### Devices
-
-We have already created five sensors and loaded some demo data for them. See device info and credentials below:
-${device_list_and_credentials}
-
-Solution expects that the sensor device will upload "aqi" and all pollution values. 
-The most simple example of the expected payload is in JSON format:
-```json
-{"temperature": 42, "humidity": 73, "aqi": 77, “PM 2.5”: 24.4, “PM 10”: 30, “NO2”: 13, “CO”: 2.8, “SO2”: 7, “O3”: 12}{:copy-code}
-```
-
-To emulate the data upload on behalf of device "Air Quality Sensor 1", one should execute the following command:
 
 ```bash
-curl -v -X POST -d "{\"temperature\":  42, \"humidity\":  73, \"PM 2.5\":  24.4, \"PM 10\":  30, \"NO2\":  13, \"CO\":  2.8, \"SO2\":  7, \"O3\":  12}" ${BASE_URL}/api/v1/${Sensor T1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+curl -v -X POST -d "{\"batteryLevel\": 9 }" ${BASE_URL}/api/v1/${Air Quality Sensor 1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"
 ```
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+<br>
 
-### Alarms
+Now we can see that the Battery Level of the Hollywood sensor is 9%, this level is below the limit of 10% that we indicated earlier - the alarm has been triggered.
 
-Alarms are generated using two <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
-"AIR Sensor" <a href="/deviceProfiles" target="_blank">device profile</a>.
-User may turn alarms on and off as well as configure the alarm thresholds via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Air Quality Monitoring"</a> dashboard using "Edit Sensor" form.
 
-### Customers
+<div class="img-float" style="max-width: 60%;margin:auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-1-4.png" alt="">
+</div>
 
-"Sensor 1" is assigned to a newly created customer "Customer D".
-You may notice that "Customer D" has two users, and the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Air Quality Monitoring"</a> dashboard is accessible for those users.
-You may create more Customers and more Users via administration UI.
 
-${user_list}
+In this way, we can manually set the threshold for triggering alarms to control the battery level of the sensor, and control through the Administration Dashboard.
 
-### Solution entities
+##### Report high AQI on Air Quality Sensor 2 (Downtown) using PM2.5
 
-As part of this solution, the following entities were created:
 
-${all_entities}
+In this example, we will  simulate the sending of a high-level pollutant PM 2.5 by a sensor.
 
--->
+
+The starting value of PM 2.5 in AQI equivalent is 52, you can see it in the picture below.
+
+
+<div class="img-float" style="max-width: 60%;margin:10px auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-2-1.png" alt="">
+</div>
+
+
+As an example, let's take the **hazardous** level of PM 2.5 that the sensor can potentially send and it will be equal to **400 μg/m3**.
+Then to emulate the “pm25” data of device "Air Quality Sensor 2" we should execute the following command:
+
+
+```bash
+curl -v -X POST -d "{\"pm25\": 400 }" ${BASE_URL}/api/v1/${Air Quality Sensor 2ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"
+```
+
+
+<div class="img-float" style="max-width: 50%;margin:auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-2-2.png" alt="">
+</div>
+<div class="img-float" style="max-width: 50%;margin:auto">
+<img src="/images/solutions/air_quality_index/use-case-sensor-2-3.png" alt="">
+</div>
+
+
+After the data has been sent, you can see that the dashboard received the value of **PM 2.5 - 400 μg/m3** and calculated it as **AQI - 433**, which is a **hazardous** level of pollution.

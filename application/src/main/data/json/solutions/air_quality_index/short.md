@@ -1,7 +1,7 @@
 A template for air pollution measurement sensors demonstrating the general capabilities of the platform.
 
 * A convenient dashboard to display the AQI value and general recommendations for vulnerable groups of people
-* Interactive map with location labels of devices
+* Interactive map with location labels of sensors
 * Display of indicators of specific pollutants
 * Easily accessible AQI value change history
 * Device management
