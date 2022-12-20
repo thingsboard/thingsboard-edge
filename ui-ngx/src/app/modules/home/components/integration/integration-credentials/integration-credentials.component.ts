@@ -80,7 +80,7 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
   @Input()
   set ignoreCaCert(value: boolean) {
     const newVal = coerceBooleanProperty(value);
-    if (this.ignoreCaCertValue !== newVal) {
+    if (this.ignoreCaCertValue !== newVal && this.integrationCredentialForm) {
       this.ignoreCaCertValue = newVal;
       if (newVal) {
         this.integrationCredentialForm.get('caCertFileName').clearValidators();
@@ -128,8 +128,8 @@ export class IntegrationCredentialsComponent implements ControlValueAccessor, Va
       type: ['', Validators.required],
       username: [{value: '', disabled: true}, Validators.required],
       password: [{value: '', disabled: true}, this.passwordOptional ? null : Validators.required],
-      caCertFileName: [{value: '', disabled: true}, Validators.required],
-      caCert: [{value: '', disabled: true}, Validators.required],
+      caCertFileName: [{value: '', disabled: true}, this.ignoreCaCert ? null : Validators.required],
+      caCert: [{value: '', disabled: true},  this.ignoreCaCert ? null : Validators.required],
       certFileName: [{value: '', disabled: true}, Validators.required],
       cert: [{value: '', disabled: true}, Validators.required],
       privateKeyFileName: [{value: '', disabled: true}, Validators.required],
