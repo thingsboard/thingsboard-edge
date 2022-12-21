@@ -76,6 +76,8 @@ public class EntityIdFactory {
                 return new IntegrationId(uuid);
             case ALARM:
                 return new AlarmId(uuid);
+            case ALARM_COMMENT:
+                return new AlarmCommentId(uuid);
             case ENTITY_GROUP:
                 return new EntityGroupId(uuid);
             case RULE_CHAIN:

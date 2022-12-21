@@ -28,14 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.sql.alarm;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ALARM_COMMENT, ENTITY_GROUP,
-    CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY,
-    ENTITY_VIEW, WIDGETS_BUNDLE, WIDGET_TYPE, ROLE, GROUP_PERMISSION, TENANT_PROFILE,
-    DEVICE_PROFILE, ASSET_PROFILE, API_USAGE_STATE, TB_RESOURCE, OTA_PACKAGE, EDGE, RPC, QUEUE;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.AlarmCommentEntity;
+import org.thingsboard.server.dao.model.sql.AlarmCommentInfoEntity;
+
+import java.util.UUID;
+
+public interface AlarmCommentRepository extends JpaRepository<AlarmCommentEntity, UUID> {
+
+    @Query(value = "SELECT new org.thingsboard.server.dao.model.sql.AlarmCommentInfoEntity(a, u.firstName, u.lastName) FROM AlarmCommentEntity a " +
+            "LEFT JOIN UserEntity u on u.id = a.userId " +
+            "WHERE a.alarmId = :alarmId ",
+            countQuery = "" +
+                    "SELECT count(a) " +
+                    "FROM AlarmCommentEntity a " +
+                    "WHERE a.alarmId = :alarmId ")
+    Page<AlarmCommentInfoEntity> findAllByAlarmId(@Param("alarmId") UUID alarmId,
+                                             Pageable pageable);
 }

@@ -292,6 +292,8 @@ sql:
     partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
   audit_logs:
     partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
+  alarm_comments:
+    partition_size: "${SQL_ALARM_COMMENTS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   blob_entities:
     partition_size: "${SQL_BLOB_ENTITIES_PARTITION_SIZE_HOURS:168}"
   # Specify whether to sort entities before batch update. Should be enabled for cluster mode to avoid deadlocks
@@ -660,6 +662,7 @@ audit-log:
       "user": "${AUDIT_LOG_MASK_USER:W}"
       "rule_chain": "${AUDIT_LOG_MASK_RULE_CHAIN:W}"
       "alarm": "${AUDIT_LOG_MASK_ALARM:W}"
+      "alarm_comment": "${AUDIT_LOG_MASK_ALARM_COMMENT:W}"
       "integration": "${AUDIT_LOG_MASK_INTEGRATION:W}"
       "converter": "${AUDIT_LOG_MASK_CONVERTER:W}"
       "entity_group": "${AUDIT_LOG_MASK_ENTITY_GROUP:W}"

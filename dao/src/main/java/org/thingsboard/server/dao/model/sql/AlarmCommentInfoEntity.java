@@ -28,14 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.model.sql;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ALARM_COMMENT, ENTITY_GROUP,
-    CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY,
-    ENTITY_VIEW, WIDGETS_BUNDLE, WIDGET_TYPE, ROLE, GROUP_PERMISSION, TENANT_PROFILE,
-    DEVICE_PROFILE, ASSET_PROFILE, API_USAGE_STATE, TB_RESOURCE, OTA_PACKAGE, EDGE, RPC, QUEUE;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class AlarmCommentInfoEntity extends AbstractAlarmCommentEntity<AlarmCommentInfo> {
+
+    private String firstName;
+    private String lastName;
+
+    public AlarmCommentInfoEntity() {
+        super();
+    }
+
+    public AlarmCommentInfoEntity(AlarmCommentEntity alarmCommentEntity) {
+        super(alarmCommentEntity);
+    }
+
+    public AlarmCommentInfoEntity(AlarmCommentEntity alarmCommentEntity, String firstName, String lastName) {
+        super(alarmCommentEntity);
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    @Override
+    public AlarmCommentInfo toData() {
+        return new AlarmCommentInfo(super.toAlarmComment(), this.firstName, this.lastName);
+    }
 }

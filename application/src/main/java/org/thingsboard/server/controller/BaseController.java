@@ -140,6 +140,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerIn
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -268,6 +269,9 @@ public abstract class BaseController {
 
     @Autowired
     protected AlarmSubscriptionService alarmService;
+
+    @Autowired
+    protected AlarmCommentService alarmCommentService;
 
     @Autowired
     protected DeviceCredentialsService deviceCredentialsService;

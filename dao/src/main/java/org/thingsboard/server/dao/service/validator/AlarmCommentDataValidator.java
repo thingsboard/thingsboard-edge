@@ -28,14 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.service.validator;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ALARM_COMMENT, ENTITY_GROUP,
-    CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY,
-    ENTITY_VIEW, WIDGETS_BUNDLE, WIDGET_TYPE, ROLE, GROUP_PERMISSION, TENANT_PROFILE,
-    DEVICE_PROFILE, ASSET_PROFILE, API_USAGE_STATE, TB_RESOURCE, OTA_PACKAGE, EDGE, RPC, QUEUE;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.exception.DataValidationException;
+
+@Component
+@AllArgsConstructor
+public class AlarmCommentDataValidator extends DataValidator<AlarmComment> {
+
+    @Override
+    protected void validateDataImpl(TenantId tenantId, AlarmComment alarmComment) {
+        if (alarmComment.getComment() == null) {
+            throw new DataValidationException("Alarm comment should be specified!");
+        }
+        if (alarmComment.getAlarmId() == null) {
+            throw new DataValidationException("Alarm id should be specified!");
+        }
+    }
 }

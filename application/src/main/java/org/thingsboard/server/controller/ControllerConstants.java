@@ -68,6 +68,8 @@ public class ControllerConstants {
     protected static final String CONVERTER_ID_PARAM_DESCRIPTION = "A string value representing the converter id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String INTEGRATION_ID_PARAM_DESCRIPTION = "A string value representing the integration id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ALARM_ID_PARAM_DESCRIPTION = "A string value representing the alarm id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+
+    protected static final String ALARM_COMMENT_ID_PARAM_DESCRIPTION = "A string value representing the alarm comment id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ENTITY_ID_PARAM_DESCRIPTION = "A string value representing the entity id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String ROLE_ID_PARAM_DESCRIPTION = "A string value representing the role id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String GROUP_PERMISSION_ID_PARAM_DESCRIPTION = "A string value representing the group permission id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";

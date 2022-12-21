@@ -28,14 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.dao.alarm;
 
-/**
- * @author Andrew Shvayka
- */
-public enum EntityType {
-    TENANT, CUSTOMER, USER, DASHBOARD, ASSET, DEVICE, ALARM, ALARM_COMMENT, ENTITY_GROUP,
-    CONVERTER, INTEGRATION, RULE_CHAIN, RULE_NODE, SCHEDULER_EVENT, BLOB_ENTITY,
-    ENTITY_VIEW, WIDGETS_BUNDLE, WIDGET_TYPE, ROLE, GROUP_PERMISSION, TENANT_PROFILE,
-    DEVICE_PROFILE, ASSET_PROFILE, API_USAGE_STATE, TB_RESOURCE, OTA_PACKAGE, EDGE, RPC, QUEUE;
+import lombok.Data;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+
+@Data
+public class AlarmCommentOperationResult {
+    private final AlarmComment alarmComment;
+    private final boolean successful;
+    private final boolean created;
+
+    public AlarmCommentOperationResult(AlarmComment alarmComment, boolean successful) {
+        this(alarmComment, successful, false);
+    }
+
+    public AlarmCommentOperationResult(AlarmComment alarmComment, boolean successful, boolean created) {
+        this.alarmComment = alarmComment;
+        this.successful = successful;
+        this.created = created;
+    }
 }
