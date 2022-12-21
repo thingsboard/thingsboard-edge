@@ -21,7 +21,7 @@
 
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.3EDGE-SNAPSHOT</version>
+        <version>3.4.3EDGE</version>
         <artifactId>transport</artifactId>
     </parent>
 
