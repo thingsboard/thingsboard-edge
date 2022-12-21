@@ -65,6 +65,7 @@ public class SolutionInstallContext {
 
     private final TenantId tenantId;
     private final String solutionId;
+    private final User user;
     private final TenantSolutionTemplateInstructions solutionInstructions;
     private final List<EntityId> createdEntitiesList = new ArrayList<>();
     private final Map<String, String> realIds = new HashMap<>();
@@ -77,9 +78,10 @@ public class SolutionInstallContext {
     private final Map<String, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
     private final List<DashboardLinkInfo> dashboardLinks = new ArrayList<>();
 
-    public SolutionInstallContext(TenantId tenantId, String solutionId, TenantSolutionTemplateInstructions solutionInstructions) {
+    public SolutionInstallContext(TenantId tenantId, String solutionId, User user, TenantSolutionTemplateInstructions solutionInstructions) {
         this.tenantId = tenantId;
         this.solutionId = solutionId;
+        this.user = user;
         this.solutionInstructions = solutionInstructions;
         put(new EntitySearchKey(tenantId, EntityType.TENANT, null, false), tenantId);
     }
