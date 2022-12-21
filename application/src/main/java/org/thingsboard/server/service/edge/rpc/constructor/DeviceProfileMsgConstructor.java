@@ -65,7 +65,8 @@ public class DeviceProfileMsgConstructor {
             builder.setFirmwareIdMSB(deviceProfile.getFirmwareId().getId().getMostSignificantBits())
                     .setFirmwareIdLSB(deviceProfile.getFirmwareId().getId().getLeastSignificantBits());
         }
-        return builder.build();
+        throw new RuntimeException("Not implemented");
+//        return builder.build();
     }
 
     public DeviceProfileUpdateMsg constructDeviceProfileDeleteMsg(DeviceProfileId deviceProfileId) {
