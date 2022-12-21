@@ -33,6 +33,7 @@ package org.thingsboard.rule.engine.transform;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -91,7 +92,7 @@ public class TbChangeOriginatorNode extends TbAbstractTransformNode {
                 return null;
             }
             return Collections.singletonList((ctx.transformMsg(msg, msg.getType(), n, msg.getMetaData(), msg.getData())));
-        }, ctx.getDbCallbackExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     private ListenableFuture<? extends EntityId> getNewOriginator(TbContext ctx, TbMsg msg) {
