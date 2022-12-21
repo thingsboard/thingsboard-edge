@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -74,6 +75,7 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                         ruleChain.setId(ruleChainId);
                         ruleChain.setCreatedTime(Uuids.unixTimestamp(ruleChainId.getId()));
                         ruleChain.setTenantId(tenantId);
+                        ruleChain.setRoot(false);
                     }
                     ruleChain.setName(ruleChainUpdateMsg.getName());
                     if (ruleChainUpdateMsg.hasFirstRuleNodeIdMSB() && ruleChainUpdateMsg.hasFirstRuleNodeIdLSB()) {
@@ -85,13 +87,14 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
                         ruleChain.setFirstRuleNodeId(null);
                     }
                     ruleChain.setConfiguration(JacksonUtil.toJsonNode(ruleChainUpdateMsg.getConfiguration()));
-                    ruleChain.setRoot(false);
                     ruleChain.setType(RuleChainType.CORE);
                     ruleChain.setDebugMode(ruleChainUpdateMsg.getDebugMode());
                     ruleChainService.saveRuleChain(ruleChain);
 
                     if (ruleChainUpdateMsg.getRoot()) {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
+                    } else {
+                        setRootIfFirstRuleChain(tenantId, ruleChainId, created);
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -122,6 +125,14 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void setRootIfFirstRuleChain(TenantId tenantId, RuleChainId ruleChainId, boolean created) {
+        // @voba - this is hack because of incorrect isRoot flag in the first rule chain
+        long ruleChainsCnt = ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.CORE, new PageLink(100)).getTotalElements();
+        if (created && ruleChainsCnt == 1) {
+            ruleChainService.setRootRuleChain(tenantId, ruleChainId);
+        }
     }
 
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
