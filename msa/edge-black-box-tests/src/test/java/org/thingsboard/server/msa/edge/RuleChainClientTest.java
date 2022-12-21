@@ -44,10 +44,6 @@ public class RuleChainClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getRuleChains(new PageLink(100)).getTotalElements() == 1);
 
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getRuleChains(new PageLink(100)).getData().get(0).isRoot());
-
         PageData<RuleChain> pageData = edgeRestClient.getRuleChains(new PageLink(100));
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
 
