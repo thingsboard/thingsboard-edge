@@ -94,7 +94,7 @@
         <zookeeper.version>3.5.5</zookeeper.version>
         <protobuf.version>3.21.9</protobuf.version>
         <grpc.version>1.42.1</grpc.version>
-        <tbel.version>1.0.4</tbel.version>
+        <tbel.version>1.0.5</tbel.version>
         <lombok.version>1.18.18</lombok.version>
         <paho.client.version>1.2.4</paho.client.version>
         <netty.version>4.1.75.Final</netty.version>
@@ -110,7 +110,7 @@
         <bouncycastle.version>1.69</bouncycastle.version>
         <winsw.version>2.0.1</winsw.version>
         <postgresql.driver.version>42.5.0</postgresql.driver.version>
-        <azure-messaging-eventhubs.version>5.5.0</azure-messaging-eventhubs.version>
+        <azure-messaging-eventhubs.version>5.15.0</azure-messaging-eventhubs.version>
         <azure-iot-service-client.version>1.13.0</azure-iot-service-client.version>
         <proton-j.version>0.33.2</proton-j.version>
         <sonar.exclusions>org/thingsboard/server/gen/**/*,
