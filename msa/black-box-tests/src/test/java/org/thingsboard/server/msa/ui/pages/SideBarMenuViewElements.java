@@ -40,11 +40,7 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     }
 
     private static final String RULE_CHAINS_BTN = "//mat-toolbar//a[@href='/ruleChains']";
-    private static final String ALL_GROUPS = "/..//span[contains(text(),'All')]";
     private static final String CUSTOMER_GROUPS_BTN = "//mat-toolbar//a[@href='/customerGroups']";
-    private static final String ALL_CUSTOMER_GROUPS_BTN = CUSTOMER_GROUPS_BTN + ALL_GROUPS;
-    private static final String DASHBOARD_GROUPS_BTN = "//mat-toolbar//a[@href='/dashboardGroups']";
-    private static final String ALL_DASHBOARD_GROUPS_BTN = DASHBOARD_GROUPS_BTN + ALL_GROUPS;
 
     public WebElement ruleChainsBtn() {
         return waitUntilElementToBeClickable(RULE_CHAINS_BTN);
@@ -57,10 +53,5 @@ public class SideBarMenuViewElements extends AbstractBasePage {
     public void goToAllCustomerGroupBtn() {
         customerGroupsBtn().click();
         new OtherPageElements(driver).entity("All").click();
-    }
-
-    public WebElement dashboardBtn() {
-        waitUntilElementToBeClickable(DASHBOARD_GROUPS_BTN).click();
-        return waitUntilElementToBeClickable(ALL_DASHBOARD_GROUPS_BTN);
     }
 }

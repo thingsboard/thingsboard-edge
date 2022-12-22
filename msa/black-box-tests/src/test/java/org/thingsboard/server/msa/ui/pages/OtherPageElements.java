@@ -83,12 +83,10 @@ public class OtherPageElements extends AbstractBasePage {
     private static final String ENTITY_VIEW_TITLE = "//mat-drawer-container[contains(@class,'has-open')]//div[@class='tb-details-title']//span";
     private static final String LIST_OF_ENTITY = "//div[@role='listbox']/mat-option";
     protected static final String ADD_ENTITY_VIEW = "//mat-dialog-container";
-    protected static final String STATE_CONTROLLER = "//tb-entity-state-controller";
     private static final String SEARCH_FIELD = "//input[contains (@data-placeholder,'Search')]";
     private static final String ADD_ENTITY_GROUP_VIEW = "//tb-entity-group-wizard";
     private static final String ADD_TO_GROUP_VIEW = "//tb-select-entity-group-dialog";
     private static final String NAME_FIELD_ADD_ENTITY_GROUP = ADD_ENTITY_GROUP_VIEW + "//input[@formcontrolname='name']";
-    private static final String OPEN_ENTITY_GROUP_BTN = ENTITY + "/../..//mat-icon[contains(text(),'view_list')]/../..";
     private static final String ENTITY_GROUP = "//mat-cell[contains(@class,'cdk-column-name')]/span";
     private static final String ENTITY_GROUP_TABLE_HEADER = "//tb-group-entity-table-header/span";
     private static final String ENTITY_GROUP_HEADER = "//tb-breadcrumb//span[contains(text(),'%s')]";
@@ -306,10 +304,6 @@ public class OtherPageElements extends AbstractBasePage {
         return waitUntilVisibilityOfElementLocated(ADD_ENTITY_VIEW);
     }
 
-    public WebElement stateController() {
-        return waitUntilVisibilityOfElementLocated(STATE_CONTROLLER);
-    }
-
     public WebElement searchField() {
         return waitUntilElementToBeClickable(SEARCH_FIELD);
     }
@@ -328,10 +322,6 @@ public class OtherPageElements extends AbstractBasePage {
 
     public List<WebElement> entities(String name) {
         return waitUntilVisibilityOfElementsLocated(String.format(ENTITY, name));
-    }
-
-    public WebElement openEntityGroupBtn(String groupName) {
-        return waitUntilElementToBeClickable(String.format(OPEN_ENTITY_GROUP_BTN, groupName));
     }
 
     public List<WebElement> entityGroups() {

@@ -40,7 +40,6 @@ import org.thingsboard.server.msa.ui.pages.CustomerPageHelper;
 import org.thingsboard.server.msa.ui.pages.LoginPageHelper;
 import org.thingsboard.server.msa.ui.pages.SideBarMenuViewElements;
 
-import static org.thingsboard.server.msa.TestProperties.getBaseUiUrl;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
