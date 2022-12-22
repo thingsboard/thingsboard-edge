@@ -78,7 +78,7 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.searchEntity(namePath);
 
-        customerPage.allEntity().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
+        customerPage.entityGroups().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "nameForSearchBySymbolAndNumber")
@@ -91,6 +91,6 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         customerPage.searchEntity(namePath);
         customerPage.setEntityGroupName();
 
-        customerPage.allEntity().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
+        customerPage.entityGroups().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
     }
 }

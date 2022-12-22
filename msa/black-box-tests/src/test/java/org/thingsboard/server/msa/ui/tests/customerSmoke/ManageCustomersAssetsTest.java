@@ -56,7 +56,7 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.manageCustomersAssetGroupsBtn(customerPage.getCustomerName()).click();
 
@@ -70,7 +70,7 @@ public class ManageCustomersAssetsTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description
     public void openWindowByView() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
         customerPage.manageCustomersAssetGroupsBtnView().click();

@@ -73,7 +73,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         this.customerName = title;
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.sortByTitleBtn().click();
         customerPage.setCustomerName();
 
@@ -87,7 +87,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
         testRestClient.postCustomer(defaultCustomerPrototype(customerNumber));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.sortByTitleBtn().click();
         customerPage.setCustomerName(0);
         String firstCustomer = customerPage.getCustomerName();
@@ -111,7 +111,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         customerName = title;
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.sortByTitleDown();
         customerPage.setCustomerName(customerPage.allEntity().size() - 1);
 
@@ -125,7 +125,7 @@ public class SortCustomersByNameTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
         testRestClient.postCustomer(defaultCustomerPrototype(customerNumber));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         int lastIndex = customerPage.allEntity().size() - 1;
         customerPage.sortByTitleDown();
         customerPage.setCustomerName(lastIndex);

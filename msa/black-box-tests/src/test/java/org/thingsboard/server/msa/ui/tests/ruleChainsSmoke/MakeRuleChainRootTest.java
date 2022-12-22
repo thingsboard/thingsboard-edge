@@ -80,7 +80,7 @@ public class MakeRuleChainRootTest extends AbstractDriverBaseTest {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.setRuleChainNameWithoutRoot(0);
         String ruleChain = ruleChainsPage.getRuleChainName();
-        ruleChainsPage.entity(ruleChain).click();
+        ruleChainsPage.detailsBtn(ruleChain).click();
         ruleChainsPage.makeRootFromViewBtn().click();
         ruleChainsPage.warningPopUpYesBtn().click();
         ruleChainsPage.closeEntityViewBtn().click();
@@ -94,7 +94,7 @@ public class MakeRuleChainRootTest extends AbstractDriverBaseTest {
         sideBarMenuView.ruleChainsBtn().click();
         ruleChainsPage.setRuleChainNameWithoutRoot(0);
         String ruleChain = ruleChainsPage.getRuleChainName();
-        ruleChainsPage.entity(ruleChain).click();
+        ruleChainsPage.detailsBtn(ruleChain).click();
         ruleChainsPage.makeRootFromViewBtn().click();
         ruleChainsPage.warningPopUpYesBtn().click();
         ruleChainsPage.closeEntityViewBtn().click();

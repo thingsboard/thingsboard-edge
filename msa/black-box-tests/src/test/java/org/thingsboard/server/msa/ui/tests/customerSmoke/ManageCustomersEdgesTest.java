@@ -56,7 +56,7 @@ public class ManageCustomersEdgesTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.manageCustomersEdgeGroupsBtn(customerPage.getCustomerName()).click();
 
@@ -70,7 +70,7 @@ public class ManageCustomersEdgesTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description
     public void openWindowByView() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
         customerPage.manageCustomersEdgeGroupsBtnView().click();

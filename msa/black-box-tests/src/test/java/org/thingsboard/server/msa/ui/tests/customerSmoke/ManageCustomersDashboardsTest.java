@@ -55,7 +55,7 @@ public class ManageCustomersDashboardsTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description
     public void openWindowByRightCornerBtn() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.manageCustomersDashboardsBtn(customerPage.getCustomerName()).click();
 
@@ -69,7 +69,7 @@ public class ManageCustomersDashboardsTest extends AbstractDriverBaseTest {
     @Test(groups = "smoke")
     @Description
     public void openWindowByView() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.entity(customerPage.getCustomerName()).click();
         customerPage.manageCustomersDashboardsBtnView().click();

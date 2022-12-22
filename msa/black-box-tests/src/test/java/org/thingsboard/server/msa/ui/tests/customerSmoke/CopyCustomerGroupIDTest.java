@@ -76,7 +76,7 @@ public class CopyCustomerGroupIDTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.entity(customerGroupName).click();
+        customerPage.detailsBtn(customerGroupName).click();
         customerPage.copyEntityIdBtn().click();
 
         Assert.assertNotNull(customerPage.copyPopup());

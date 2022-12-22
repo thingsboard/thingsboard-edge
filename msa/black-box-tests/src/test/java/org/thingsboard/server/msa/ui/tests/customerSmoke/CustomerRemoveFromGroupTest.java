@@ -80,7 +80,7 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
         this.groupName = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(this.groupName).click();
+        customerPage.entity(this.groupName).click();
         customerPage.checkBox(title).click();
         customerPage.removeFromGroupBtn().click();
         customerPage.warningPopUpYesBtn().click();
@@ -97,7 +97,7 @@ public class CustomerRemoveFromGroupTest extends AbstractDriverBaseTest {
         this.groupName = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName).click();
+        customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.removeFromGroupBtn().click();
         customerPage.warningPopUpNoBtn().click();

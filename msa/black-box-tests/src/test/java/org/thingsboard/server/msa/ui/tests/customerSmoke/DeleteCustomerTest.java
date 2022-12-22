@@ -67,7 +67,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customer = ENTITY_NAME;
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         String deletedCustomer = customerPage.deleteTrash(customer);
         customerPage.refreshBtn().click();
 
@@ -80,7 +80,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customerName = ENTITY_NAME;
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         String deletedCustomer = customerPage.deleteSelected(customerName);
         ruleChainsPage.refreshBtn().click();
 
@@ -93,7 +93,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customerName = ENTITY_NAME;
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.entity(customerName).click();
         customerPage.customerViewDeleteBtn().click();
         customerPage.warningPopUpYesBtn().click();
@@ -108,7 +108,7 @@ public class DeleteCustomerTest extends AbstractDriverBaseTest {
         String customer = ENTITY_NAME;
         testRestClient.postCustomer(defaultCustomerPrototype(customer));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         String deletedCustomer = customerPage.deleteTrash(customer);
         customerPage.refreshBtn().click();
 

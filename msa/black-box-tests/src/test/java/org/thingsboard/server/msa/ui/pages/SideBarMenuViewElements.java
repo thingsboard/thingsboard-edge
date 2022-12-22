@@ -54,9 +54,9 @@ public class SideBarMenuViewElements extends AbstractBasePage {
         return waitUntilElementToBeClickable(CUSTOMER_GROUPS_BTN);
     }
 
-    public WebElement allCustomerGroupBtn() {
+    public void goToAllCustomerGroupBtn() {
         customerGroupsBtn().click();
-        return waitUntilElementToBeClickable(ALL_CUSTOMER_GROUPS_BTN);
+        new OtherPageElements(driver).entity("All").click();
     }
 
     public WebElement dashboardBtn() {

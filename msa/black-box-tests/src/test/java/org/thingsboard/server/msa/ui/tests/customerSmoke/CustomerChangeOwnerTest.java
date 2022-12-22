@@ -73,13 +73,13 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title1).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwner(title);
         customerPage.waitUntilCustomerNotVisible(title1);
         customerPage.manageCustomerGroupsBtn(title).click();
-        customerPage.openEntityGroupBtn("All").click();
+        customerPage.entity("All").click();
 
         Assert.assertNotNull(customerPage.entity(title1));
         Assert.assertTrue(customerPage.entity(title1).isDisplayed());
@@ -90,7 +90,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
     public void changeOwnerWithoutName() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().click();
@@ -107,7 +107,7 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
     public void changeOwnerWithOnlySpace() {
         testRestClient.postCustomer(defaultCustomerPrototype(title));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwnerViewField().sendKeys(" ");
@@ -123,14 +123,14 @@ public class CustomerChangeOwnerTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
         testRestClient.postCustomer(defaultCustomerPrototype(title3));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.checkBox(title1).click();
         customerPage.checkBox(title3).click();
         customerPage.changeOwnerBtn().click();
         customerPage.changeOwner(title);
         customerPage.waitUntilCustomerNotVisible(title1);
         customerPage.manageCustomerGroupsBtn(title).click();
-        customerPage.openEntityGroupBtn("All").click();
+        customerPage.entity("All").click();
 
         Assert.assertNotNull(customerPage.entity(title1));
         Assert.assertNotNull(customerPage.entity(title3));

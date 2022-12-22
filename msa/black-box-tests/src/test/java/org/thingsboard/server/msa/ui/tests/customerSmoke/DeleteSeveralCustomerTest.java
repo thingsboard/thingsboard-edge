@@ -66,7 +66,7 @@ public class DeleteSeveralCustomerTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
         testRestClient.postCustomer(defaultCustomerPrototype(title2));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.clickOnCheckBoxes(2);
         customerPage.deleteSelectedBtn().click();
         customerPage.warningPopUpYesBtn().click();
@@ -79,7 +79,7 @@ public class DeleteSeveralCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void selectAllCustomers() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.selectAllCheckBox().click();
         customerPage.deleteSelectedBtn().click();
 
@@ -96,7 +96,7 @@ public class DeleteSeveralCustomerTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(title1));
         testRestClient.postCustomer(defaultCustomerPrototype(title2));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.clickOnCheckBoxes(2);
         customerPage.deleteSelectedBtn().click();
         customerPage.warningPopUpYesBtn().click();

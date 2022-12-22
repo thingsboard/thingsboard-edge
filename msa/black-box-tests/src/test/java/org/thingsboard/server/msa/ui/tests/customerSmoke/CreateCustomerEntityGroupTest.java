@@ -139,7 +139,8 @@ public class CreateCustomerEntityGroupTest extends AbstractDriverBaseTest {
         String urlPath = "/docs/pe/user-guide/groups/";
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.allEntity().get(0).click();
+        customerPage.setEntityGroupName();
+        customerPage.detailsBtn(customerPage.getEntityGroupName()).click();
         customerPage.goToHelpEntityGroupPage();
 
         Assert.assertTrue(urlContains(urlPath));

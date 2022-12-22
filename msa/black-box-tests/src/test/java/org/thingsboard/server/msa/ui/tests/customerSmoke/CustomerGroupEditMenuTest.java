@@ -73,33 +73,35 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void changeTitle() {
-        customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
+        this.customerGroupName = customerGroupName;
         String changedName = "Changed" + getRandomNumber();
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.entity(customerGroupName).click();
+        customerPage.detailsBtn(customerGroupName).click();
         customerPage.setHeaderName();
         String nameBefore = customerPage.getHeaderName();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.changeNameEditMenu(changedName);
         customerPage.entityGroupDoneBtnEditView().click();
-        customerGroupName = changedName;
+        this.customerGroupName = changedName;
         customerPage.setHeaderName();
         String nameAfter = customerPage.getHeaderName();
 
         Assert.assertNotEquals(nameBefore, nameAfter);
-        Assert.assertEquals(nameAfter, customerGroupName);
+        Assert.assertEquals(changedName, nameAfter);
     }
 
     @Test(priority = 20, groups = "smoke")
     @Description
     public void deleteName() {
-        customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
+        this.customerGroupName = customerGroupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.entity(customerGroupName).click();
+        customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.nameFieldEditMenu().clear();
 
@@ -109,11 +111,12 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void saveOnlyWithSpace() {
-        customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
+        this.customerGroupName = customerGroupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.entity(customerGroupName).click();
+        customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.changeNameEditMenu(" ");
         customerPage.entityGroupDoneBtnEditView().click();
@@ -128,12 +131,13 @@ public class CustomerGroupEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void editDescription() {
-        customerGroupName = ENTITY_NAME;
+        String customerGroupName = ENTITY_NAME;
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
+        this.customerGroupName = customerGroupName;
         String description = "Description";
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.entity(customerGroupName).click();
+        customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupEditPencilBtn().click();
         customerPage.descriptionEntityView().sendKeys(description);
         customerPage.entityGroupDoneBtnEditView().click();

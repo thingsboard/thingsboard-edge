@@ -74,7 +74,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomer() {
         String customerName = ENTITY_NAME;
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.addBtnC().click();
@@ -93,7 +93,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
         String email = "email@mail.com";
         String number = "12015550123";
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
@@ -133,7 +133,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerWithoutName() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
 
         Assert.assertFalse(customerPage.addBtnV().isEnabled());
@@ -142,7 +142,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerWithOnlySpace() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(" ");
         customerPage.addBtnC().click();
@@ -157,7 +157,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void createCustomerSameName() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         String customerName = customerPage.getCustomerName();
         customerPage.plusBtn().click();
@@ -176,7 +176,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void createCustomerWithoutRefresh() {
         String customerName = ENTITY_NAME;
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.plusBtn().click();
         customerPage.titleFieldAddEntityView().sendKeys(customerName);
         customerPage.addBtnC().click();
@@ -191,7 +191,7 @@ public class CreateCustomerTest extends AbstractDriverBaseTest {
     public void documentation() {
         String urlPath = "/docs/pe/user-guide/ui/customers/";
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
         customerPage.customer(customerPage.getCustomerName()).click();
         customerPage.goToHelpPage();

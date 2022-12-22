@@ -75,29 +75,35 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke")
     @Description
     public void changeTitle() {
-        String customerName = "Changed" + getRandomNumber();
-        testRestClient.postCustomer(defaultCustomerPrototype(ENTITY_NAME));
+        String newCustomerName = "Changed" + getRandomNumber();
+        String customerName = ENTITY_NAME;
+        testRestClient.postCustomer(defaultCustomerPrototype(customerName));
         this.customerName = customerName;
 
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.setCustomerHeaderName();
         String titleBefore = customerPage.getCustomerHeaderName();
         customerPage.editPencilBtn().click();
-        customerPage.changeTitleEditMenu(customerName);
+        customerPage.changeTitleEditMenu(newCustomerName);
         customerPage.doneBtnEditView().click();
+        this.customerName = newCustomerName;
         customerPage.setCustomerHeaderName();
         String titleAfter = customerPage.getCustomerHeaderName();
 
         Assert.assertNotEquals(titleBefore, titleAfter);
-        Assert.assertEquals(titleAfter, customerName);
+        Assert.assertEquals(titleAfter, newCustomerName);
     }
 
     @Test(priority = 20, groups = "smoke")
     @Description
     public void deleteTitle() {
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        String customerName = ENTITY_NAME;
+        testRestClient.postCustomer(defaultCustomerPrototype(customerName));
+        this.customerName = customerName;
+
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.titleFieldEntityView().clear();
 
@@ -107,9 +113,13 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void saveOnlyWithSpace() {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        String customerName = ENTITY_NAME;
+        testRestClient.postCustomer(defaultCustomerPrototype(customerName));
+        this.customerName = customerName;
+
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.setCustomerName();
-        customerPage.entityTitles().get(0).click();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.changeTitleEditMenu(" ");
         customerPage.doneBtnEditView().click();
@@ -129,8 +139,8 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         this.customerName = customerName;
         String description = "Description";
 
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.descriptionEntityView().sendKeys(description);
         customerPage.doneBtnEditView().click();
@@ -151,11 +161,12 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke")
     @Description
     public void addCountry(){
-        customerName = ENTITY_NAME;
+        String customerName = ENTITY_NAME;
         testRestClient.postCustomer(defaultCustomerPrototype(customerName));
+        this.customerName = customerName;
 
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.selectCountryEntityView();
         customerPage.doneBtnEditView().click();
@@ -171,8 +182,8 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         this.customerName = customerName;
         String number = "2015550123";
 
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
         customerPage.doneBtnEditView().click();
@@ -183,8 +194,12 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
     @Test(priority = 20, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "incorrectPhoneNumber")
     @Description
     public void addIncorrectPhoneNumber(String number) {
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        String customerName = ENTITY_NAME;
+        testRestClient.postCustomer(defaultCustomerPrototype(customerName));
+        this.customerName = customerName;
+
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.enterPhoneNumber(number);
         customerPage.doneBtnEditViewVisible().click();
@@ -205,8 +220,8 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         String email = "email@mail.com";
         String number = "2015550123";
 
-        sideBarMenuView.allCustomerGroupBtn().click();
-        customerPage.entityTitles().get(0).click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
+        customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.selectCountryEntityView();
         customerPage.descriptionEntityView().sendKeys(text);

@@ -92,7 +92,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         testRestClient.postRuleChain(defaultRuleChainPrototype(ruleChainName));
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.entity(ENTITY_NAME).click();
+        ruleChainsPage.detailsBtn(ENTITY_NAME).click();
         String deletedRuleChain = ruleChainsPage.deleteRuleChainFromView(ruleChainName);
         ruleChainsPage.refreshBtn().click();
 
@@ -119,7 +119,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
     @Description
     public void removeFromRootRuleChainView() {
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.entity(ROOT_RULE_CHAIN_NAME).click();
+        ruleChainsPage.detailsBtn(ROOT_RULE_CHAIN_NAME).click();
         ruleChainsPage.deleteBtnFromView();
 
         Assert.assertTrue(ruleChainsPage.deleteBtnInRootRuleChainIsNotDisplayed());
@@ -162,7 +162,7 @@ public class DeleteRuleChainTest extends AbstractDriverBaseTest {
         String deletedRuleChain = "Thermostat";
 
         sideBarMenuView.ruleChainsBtn().click();
-        ruleChainsPage.entity(deletedRuleChain).click();
+        ruleChainsPage.detailsBtn(deletedRuleChain).click();
         ruleChainsPage.deleteBtnFromView().click();
         ruleChainsPage.warningPopUpYesBtn().click();
 

@@ -90,7 +90,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
 
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.sortByNameDown();
-        customerPage.setEntityGroupName(customerPage.allEntity().size() - 1);
+        customerPage.setEntityGroupName(customerPage.entityGroups().size() - 1);
 
         Assert.assertEquals(customerPage.getEntityGroupName(), customerGroupName);
     }
@@ -128,7 +128,7 @@ public class SortCustomerGroupsByNameTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerNumber, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        int lastIndex = customerPage.allEntity().size() - 1;
+        int lastIndex = customerPage.entityGroups().size() - 1;
         customerPage.sortByNameDown();
         customerPage.setEntityGroupName(lastIndex);
         String firstGroup = customerPage.getEntityGroupName();

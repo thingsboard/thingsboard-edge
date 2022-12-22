@@ -61,7 +61,7 @@ public class SearchCustomerTest extends AbstractDriverBaseTest {
     @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "customerNameForSearchByFirstAndSecondWord")
     @Description
     public void searchFirstWord(String namePath) {
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.searchEntity(namePath);
 
         customerPage.allEntity().forEach(x -> Assert.assertTrue(x.getText().contains(namePath)));
@@ -72,7 +72,7 @@ public class SearchCustomerTest extends AbstractDriverBaseTest {
     public void searchNumber(String name, String namePath) {
         testRestClient.postCustomer(defaultCustomerPrototype(name));
 
-        sideBarMenuView.allCustomerGroupBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.searchEntity(namePath);
         customerPage.setCustomerName();
         boolean customerNameContainsPath = customerPage.getCustomerName().contains(namePath);

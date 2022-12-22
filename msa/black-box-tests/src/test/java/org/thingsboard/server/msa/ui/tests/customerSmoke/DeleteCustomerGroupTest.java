@@ -95,7 +95,7 @@ public class DeleteCustomerGroupTest extends AbstractDriverBaseTest {
         testRestClient.postEntityGroup(EntityPrototypes.defaultEntityGroupPrototype(customerGroupName, EntityType.CUSTOMER));
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.entity(customerGroupName).click();
+        customerPage.detailsBtn(customerGroupName).click();
         customerPage.entityGroupViewDeleteBtn().click();
         customerPage.warningPopUpYesBtn().click();
         customerPage.refreshBtn().click();

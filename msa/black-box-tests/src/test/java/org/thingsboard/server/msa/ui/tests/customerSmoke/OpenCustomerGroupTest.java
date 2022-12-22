@@ -64,7 +64,7 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.setEntityGroupName();
         String entityGroupName = customerPage.getEntityGroupName();
-        customerPage.openEntityGroupBtn(entityGroupName).click();
+        customerPage.entity(entityGroupName).click();
 
         Assert.assertTrue(urlContains(getEntityGroupByName(EntityType.CUSTOMER, entityGroupName).getId().toString()));
         Assert.assertNotNull(customerPage.entityGroupTableHeader());
@@ -80,7 +80,7 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         sideBarMenuView.customerGroupsBtn().click();
         customerPage.setEntityGroupName();
         String entityGroupName = customerPage.getEntityGroupName();
-        customerPage.entity(entityGroupName).click();
+        customerPage.detailsBtn(entityGroupName).click();
         customerPage.openEntityGroupViewBtn().click();
 
         Assert.assertTrue(urlContains(getEntityGroupByName(EntityType.CUSTOMER, entityGroupName).getId().toString()));
@@ -89,16 +89,5 @@ public class OpenCustomerGroupTest extends AbstractDriverBaseTest {
         Assert.assertTrue(customerPage.entityGroupTableHeader().getText().contains(entityGroupName));
         Assert.assertNotNull(customerPage.entityGroupHeader(entityGroupName));
         Assert.assertTrue(customerPage.entityGroupHeader(entityGroupName).isDisplayed());
-    }
-
-    @Test(groups = "smoke")
-    @Description
-    public void tripleClick() {
-        sideBarMenuView.customerGroupsBtn().click();
-        customerPage.setEntityGroupName();
-        String entityGroupName = customerPage.getEntityGroupName();
-        customerPage.doubleClickOnEntityGroup(entityGroupName);
-
-        Assert.assertEquals(getUrl(), getBaseUiUrl() + "/customerGroups");
     }
 }

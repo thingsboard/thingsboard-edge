@@ -91,14 +91,14 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         this.groupName2 = groupName2;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName1).click();
+        customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         customerPage.selectGroupViewExistField().click();
         customerPage.entityFromDropDown(groupName2).click();
         customerPage.selectGroupViewSubmitBtn().click();
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName2).click();
+        customerPage.entity(groupName2).click();
 
         Assert.assertNotNull(customerPage.entity(title));
         Assert.assertTrue(customerPage.entity(title).isDisplayed());
@@ -113,7 +113,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         groupName1 = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName1).click();
+        customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
 
@@ -130,7 +130,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         groupName1 = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName1).click();
+        customerPage.entity(groupName1).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
@@ -152,7 +152,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         groupName1 = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName).click();
+        customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
@@ -169,7 +169,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         groupName1 = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName).click();
+        customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
@@ -192,7 +192,7 @@ public class CustomerMoveToGroupTest extends AbstractDriverBaseTest {
         groupName1 = groupName;
 
         sideBarMenuView.customerGroupsBtn().click();
-        customerPage.openEntityGroupBtn(groupName).click();
+        customerPage.entity(groupName).click();
         customerPage.checkBox(title).click();
         customerPage.moveToGroupBtn().click();
         customerPage.selectGroupViewNewGroupRadioBtn().click();
