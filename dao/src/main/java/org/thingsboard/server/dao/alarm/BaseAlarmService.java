@@ -466,4 +466,9 @@ public class BaseAlarmService extends AbstractEntityService implements AlarmServ
         return Optional.ofNullable(findAlarmById(tenantId, new AlarmId(entityId.getId())));
     }
 
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ALARM;
+    }
+
 }

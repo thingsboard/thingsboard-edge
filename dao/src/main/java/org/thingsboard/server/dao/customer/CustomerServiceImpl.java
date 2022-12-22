@@ -352,4 +352,9 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));
     }
 
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CUSTOMER;
+    }
+
 }

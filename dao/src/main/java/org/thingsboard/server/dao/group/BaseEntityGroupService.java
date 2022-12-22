@@ -922,6 +922,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         return Optional.ofNullable(findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
     }
 
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.ENTITY_GROUP;
+    }
+
     private class EntityGroupValidator extends DataValidator<EntityGroup> {
 
         @Override

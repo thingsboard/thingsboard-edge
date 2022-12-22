@@ -341,4 +341,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findTenantById(new TenantId(entityId.getId())));
     }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.TENANT;
+    }
+
 }

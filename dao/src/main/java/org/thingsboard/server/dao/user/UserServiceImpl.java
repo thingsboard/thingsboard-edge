@@ -474,4 +474,9 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
         return Optional.ofNullable(findUserById(tenantId, new UserId(entityId.getId())));
     }
 
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.USER;
+    }
+
 }
