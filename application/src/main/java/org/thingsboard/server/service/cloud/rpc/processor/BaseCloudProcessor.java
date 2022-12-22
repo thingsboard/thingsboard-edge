@@ -224,12 +224,6 @@ public abstract class BaseCloudProcessor {
     protected TbQueueProducerProvider producerProvider;
 
     @Autowired
-    protected DataValidator<Device> deviceValidator;
-
-    @Autowired
-    protected DataValidator<Asset> assetValidator;
-
-    @Autowired
     protected DbCallbackExecutorService dbCallbackExecutor;
 
     @Autowired
@@ -252,6 +246,12 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected DeviceMsgConstructor deviceMsgConstructor;
+
+    @Autowired
+    protected DataValidator<Device> deviceValidator;
+
+    @Autowired
+    protected DataValidator<Asset> assetValidator;
 
     @Autowired
     protected DataValidator<Role> roleValidator;
