@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmCommentDao;
+import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AlarmCommentEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
@@ -67,6 +68,8 @@ public class JpaAlarmCommentDao extends JpaAbstractDao<AlarmCommentEntity, Alarm
 
     @Autowired
     private AlarmCommentRepository alarmCommentRepository;
+
+    private static final String TABLE_NAME = ALARM_COMMENT_COLUMN_FAMILY_NAME;
 
     @Override
     public AlarmComment createAlarmComment(TenantId tenantId, AlarmComment alarmComment){
@@ -99,6 +102,11 @@ public class JpaAlarmCommentDao extends JpaAbstractDao<AlarmCommentEntity, Alarm
     public ListenableFuture<AlarmComment> findAlarmCommentByIdAsync(TenantId tenantId, UUID key) {
         log.trace("Try to find alarm comment by id using [{}]", key);
         return findByIdAsync(tenantId, key);
+    }
+
+    @Override
+    public void cleanUpAlarmComments(long expTime) {
+        partitioningRepository.dropPartitionsBefore(TABLE_NAME, expTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
     }
 
     @Override
