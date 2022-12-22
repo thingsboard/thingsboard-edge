@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -103,7 +102,6 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
             case ENTITY_DELETED_RPC_MESSAGE:
                 Customer customerById = customerService.findCustomerById(tenantId, customerId);
                 if (customerById != null) {
-                    deleteCustomerEntityGroupsOnTenantLevel(tenantId, customerById.getId());
                     customerService.deleteCustomer(tenantId, customerId);
                 }
                 break;
@@ -111,19 +109,5 @@ public class CustomerCloudProcessor extends BaseCloudProcessor {
                 return handleUnsupportedMsgType(customerUpdateMsg.getMsgType());
         }
         return Futures.immediateFuture(null);
-    }
-
-    private void deleteCustomerEntityGroupsOnTenantLevel(TenantId tenantId, CustomerId customerId) {
-        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DEVICE);
-        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ASSET);
-        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.ENTITY_VIEW);
-        deleteCustomerEntityGroupOnTenantLevel(tenantId, customerId, EntityType.DASHBOARD);
-    }
-
-    private void deleteCustomerEntityGroupOnTenantLevel(TenantId tenantId, CustomerId customerId, EntityType entityType) {
-        EntityGroup entityGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, entityType);
-        if (entityGroup != null && entityGroup.getId() != null) {
-            entityGroupService.deleteEntityGroup(tenantId, entityGroup.getId());
-        }
     }
 }
