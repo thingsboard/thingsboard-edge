@@ -28,34 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.dao.entity;
 
-import org.thingsboard.server.common.data.id.QueueId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
 
-import java.util.List;
+import javax.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface QueueService extends EntityDaoService {
+@Service
+public class DefaultEntityServiceRegistry implements EntityServiceRegistry {
 
-    Queue saveQueue(Queue queue);
+    private final ApplicationContext applicationContext;
+    private final Map<EntityType, EntityDaoService> entityDaoServicesMap;
 
-    void deleteQueue(TenantId tenantId, QueueId queueId);
+    public DefaultEntityServiceRegistry(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+        this.entityDaoServicesMap = new HashMap<>();
+    }
 
-    List<Queue> findQueuesByTenantId(TenantId tenantId);
+    @PostConstruct
+    public void init() {
+        applicationContext.getBeansOfType(EntityDaoService.class).values().forEach(entityDaoService -> {
+            EntityType entityType = entityDaoService.getEntityType();
+            entityDaoServicesMap.put(entityType, entityDaoService);
+            if (EntityType.RULE_CHAIN.equals(entityType)) {
+                entityDaoServicesMap.put(EntityType.RULE_NODE, entityDaoService);
+            }
+        });
+    }
 
-    PageData<Queue> findQueuesByTenantId(TenantId tenantId, PageLink pageLink);
+    @Override
+    public EntityDaoService getServiceByEntityType(EntityType entityType) {
+        return entityDaoServicesMap.get(entityType);
+    }
 
-    List<Queue> findAllQueues();
-
-    Queue findQueueById(TenantId tenantId, QueueId queueId);
-
-    Queue findQueueByTenantIdAndName(TenantId tenantId, String name);
-
-    Queue findQueueByTenantIdAndNameInternal(TenantId tenantId, String queueName);
-
-    void deleteQueuesByTenantId(TenantId tenantId);
 }

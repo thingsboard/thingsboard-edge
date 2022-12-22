@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -40,13 +39,13 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface CustomerService {
+public interface CustomerService extends EntityDaoService {
 
     Customer findCustomerById(TenantId tenantId, CustomerId customerId);
 

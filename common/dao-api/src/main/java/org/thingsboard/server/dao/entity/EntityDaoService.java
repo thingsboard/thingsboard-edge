@@ -28,43 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.resource;
+package org.thingsboard.server.dao.entity;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.TbResourceInfo;
-import org.thingsboard.server.common.data.id.TbResourceId;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.entity.EntityDaoService;
 
-import java.util.List;
+import java.util.Optional;
 
-public interface ResourceService extends EntityDaoService {
+public interface EntityDaoService {
 
-    TbResource saveResource(TbResource resource);
+    Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId);
 
-    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    EntityType getEntityType();
 
-    TbResource findResourceById(TenantId tenantId, TbResourceId resourceId);
-
-    TbResourceInfo findResourceInfoById(TenantId tenantId, TbResourceId resourceId);
-
-    ListenableFuture<TbResourceInfo> findResourceInfoByIdAsync(TenantId tenantId, TbResourceId resourceId);
-
-    PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TenantId tenantId, PageLink pageLink);
-
-    PageData<TbResourceInfo> findTenantResourcesByTenantId(TenantId tenantId, PageLink pageLink);
-
-    List<TbResource> findTenantResourcesByResourceTypeAndObjectIds(TenantId tenantId, ResourceType lwm2mModel, String[] objectIds);
-
-    PageData<TbResource> findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType lwm2mModel, PageLink pageLink);
-
-    void deleteResource(TenantId tenantId, TbResourceId resourceId);
-
-    void deleteResourcesByTenantId(TenantId tenantId);
-
-    long sumDataSizeByTenantId(TenantId tenantId);
 }

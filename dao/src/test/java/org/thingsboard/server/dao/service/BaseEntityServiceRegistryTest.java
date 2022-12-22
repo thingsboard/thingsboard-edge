@@ -28,43 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.resource;
+package org.thingsboard.server.dao.service;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.TbResourceInfo;
-import org.thingsboard.server.common.data.id.TbResourceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.entity.EntityServiceRegistry;
+import org.thingsboard.server.dao.rule.RuleChainService;
 
-import java.util.List;
+@Slf4j
+public abstract class BaseEntityServiceRegistryTest extends AbstractServiceTest {
 
-public interface ResourceService extends EntityDaoService {
+    @Autowired
+    private EntityServiceRegistry entityServiceRegistry;
 
-    TbResource saveResource(TbResource resource);
+    @Test
+    public void givenAllEntityTypes_whenGetServiceByEntityTypeCalled_thenAllBeansExists() {
+        for (EntityType entityType : EntityType.values()) {
+            EntityDaoService entityDaoService = entityServiceRegistry.getServiceByEntityType(entityType);
+            Assert.assertNotNull("entityDaoService bean is missed for type: " + entityType.name(), entityDaoService);
+        }
+    }
 
-    TbResource getResource(TenantId tenantId, ResourceType resourceType, String resourceId);
+    @Test
+    public void givenRuleNodeEntityType_whenGetServiceByEntityTypeCalled_thenReturnedRuleChainService() {
+        Assert.assertTrue(entityServiceRegistry.getServiceByEntityType(EntityType.RULE_NODE) instanceof RuleChainService);
+    }
 
-    TbResource findResourceById(TenantId tenantId, TbResourceId resourceId);
-
-    TbResourceInfo findResourceInfoById(TenantId tenantId, TbResourceId resourceId);
-
-    ListenableFuture<TbResourceInfo> findResourceInfoByIdAsync(TenantId tenantId, TbResourceId resourceId);
-
-    PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TenantId tenantId, PageLink pageLink);
-
-    PageData<TbResourceInfo> findTenantResourcesByTenantId(TenantId tenantId, PageLink pageLink);
-
-    List<TbResource> findTenantResourcesByResourceTypeAndObjectIds(TenantId tenantId, ResourceType lwm2mModel, String[] objectIds);
-
-    PageData<TbResource> findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType lwm2mModel, PageLink pageLink);
-
-    void deleteResource(TenantId tenantId, TbResourceId resourceId);
-
-    void deleteResourcesByTenantId(TenantId tenantId);
-
-    long sumDataSizeByTenantId(TenantId tenantId);
 }

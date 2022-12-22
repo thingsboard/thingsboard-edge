@@ -37,10 +37,11 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 
-public interface DeviceProfileService {
+public interface DeviceProfileService extends EntityDaoService {
 
     DeviceProfile findDeviceProfileById(TenantId tenantId, DeviceProfileId deviceProfileId);
 
