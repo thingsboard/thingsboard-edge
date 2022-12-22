@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -85,7 +84,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                createDevice(tenantId, deviceUpdateMsg);
+                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
@@ -173,11 +172,10 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private Device createDevice(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
         Device device;
         deviceCreationLock.lock();
         try {
-            DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
             device = deviceService.findDeviceById(tenantId, deviceId);
             boolean created = false;
             String deviceName = deviceUpdateMsg.getName();
@@ -220,9 +218,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             } else {
                 deviceValidator.validate(device, Device::getTenantId);
             }
-            CustomerId customerId = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(),
-                    deviceUpdateMsg.getCustomerIdLSB());
-            device.setCustomerId(customerId);
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {
                 DeviceCredentials deviceCredentials = new DeviceCredentials();
@@ -237,7 +232,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         } finally {
             deviceCreationLock.unlock();
         }
-        return device;
     }
 
     private void addToEntityGroup(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg, DeviceId deviceId) {

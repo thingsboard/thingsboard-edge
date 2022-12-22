@@ -56,37 +56,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                assetCreationLock.lock();
-                try {
-                    Asset asset = assetService.findAssetById(tenantId, assetId);
-                    boolean created = false;
-                    if (asset == null) {
-                        asset = new Asset();
-                        asset.setTenantId(tenantId);
-                        asset.setId(assetId);
-                        asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-                        created = true;
-                    }
-                    asset.setName(assetUpdateMsg.getName());
-                    asset.setType(assetUpdateMsg.getType());
-                    asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
-                    asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-                    asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB()));
-                    if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
-                        AssetProfileId assetProfileId = new AssetProfileId(
-                                new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
-                                        assetUpdateMsg.getAssetProfileIdLSB()));
-                        asset.setAssetProfileId(assetProfileId);
-                    }
-                    Asset savedAsset = assetService.saveAsset(asset, false);
-                    if (created) {
-                        entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
-                    }
-                    addToEntityGroup(tenantId, assetUpdateMsg, assetId);
-                    assetService.saveAsset(asset, false);
-                } finally {
-                    assetCreationLock.unlock();
-                }
+                saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (assetUpdateMsg.hasEntityGroupIdMSB() && assetUpdateMsg.hasEntityGroupIdLSB()) {
@@ -106,6 +76,44 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         }
 
         return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);
+    }
+
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
+        assetCreationLock.lock();
+        try {
+            Asset asset = assetService.findAssetById(tenantId, assetId);
+            boolean created = false;
+            if (asset == null) {
+                asset = new Asset();
+                asset.setTenantId(tenantId);
+                asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
+                created = true;
+            }
+            asset.setName(assetUpdateMsg.getName());
+            asset.setType(assetUpdateMsg.getType());
+            asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
+            asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
+            asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB()));
+            if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
+                AssetProfileId assetProfileId = new AssetProfileId(
+                        new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
+                                assetUpdateMsg.getAssetProfileIdLSB()));
+                asset.setAssetProfileId(assetProfileId);
+            }
+            if (created) {
+                assetValidator.validate(asset, Asset::getTenantId);
+                asset.setId(assetId);
+            } else {
+                assetValidator.validate(asset, Asset::getTenantId);
+            }
+            Asset savedAsset = assetService.saveAsset(asset, false);
+            if (created) {
+                entityGroupService.addEntityToEntityGroupAll(savedAsset.getTenantId(), savedAsset.getOwnerId(), savedAsset.getId());
+            }
+            addToEntityGroup(tenantId, assetUpdateMsg, assetId);
+        } finally {
+            assetCreationLock.unlock();
+        }
     }
 
     private void addToEntityGroup(TenantId tenantId, AssetUpdateMsg assetUpdateMsg, AssetId assetId) {
