@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -314,4 +315,44 @@ public class JacksonUtil {
         }
     }
 
+    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+
+        while (fieldNames.hasNext()) {
+
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    merge(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+
+                    if (value.isNull()) {
+                        continue;
+                    }
+
+                    if (value.isIntegralNumber() && value.toString().equals("0")) {
+                        continue;
+                    }
+
+                    if (value.isFloatingPointNumber() && value.toString().equals("0.0")) {
+                        continue;
+                    }
+
+                    ((ObjectNode) mainNode).set(fieldName, value);
+                }
+            }
+        }
+
+        return mainNode;
+    }
 }

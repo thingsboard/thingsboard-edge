@@ -32,14 +32,13 @@ package org.thingsboard.server.common.data.translation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.JacksonUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,19 +55,16 @@ public class CustomTranslation {
     @ApiModelProperty(value = "Map of locale IDs to stringified json object with custom translations", required = true)
     private Map<String, String> translationMap = new HashMap<>();
 
-    private static ObjectMapper mapper = new ObjectMapper();
-
     public CustomTranslation merge(CustomTranslation otherCL) {
-        List<String> languages = new ArrayList<>();
-        languages.addAll(translationMap.keySet());
+        List<String> languages = new ArrayList<>(translationMap.keySet());
         if (otherCL != null && otherCL.getTranslationMap() != null) {
             languages.addAll(otherCL.getTranslationMap().keySet());
             for (String lang : languages) {
                 JsonNode node = safeParse(translationMap.get(lang));
                 JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
-                node = JacksonUtils.merge(node, otherNode);
+                JacksonUtil.merge(node, otherNode);
                 try {
-                    translationMap.put(lang, mapper.writeValueAsString(node));
+                    translationMap.put(lang, JacksonUtil.OBJECT_MAPPER.writeValueAsString(node));
                 } catch (JsonProcessingException e) {
                     log.warn("Can't write object as json string", e);
                 }
@@ -78,10 +74,10 @@ public class CustomTranslation {
     }
 
     private JsonNode safeParse(String jsonStr) {
-        JsonNode node = mapper.createObjectNode();
+        JsonNode node = JacksonUtil.OBJECT_MAPPER.createObjectNode();
         try {
             if (StringUtils.isNoneBlank(jsonStr)) {
-                node = mapper.readTree(jsonStr);
+                node = JacksonUtil.OBJECT_MAPPER.readTree(jsonStr);
             }
         } catch (IOException e) {
             log.warn("Can't read json string", e);
