@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 public abstract class AbstractScriptEvaluator {
@@ -79,7 +80,9 @@ public abstract class AbstractScriptEvaluator {
                 try {
                     this.scriptId = this.scriptInvokeService.eval(tenantId, scriptType, script, this.getArgNames()).get();
                 } catch (Exception e) {
-                    isErrorScript = true;
+                    if (!(e.getCause() instanceof TimeoutException)) {
+                        isErrorScript = true;
+                    }
                     throw new IllegalArgumentException("Can't compile script: " + e.getMessage(), e);
                 }
             }
