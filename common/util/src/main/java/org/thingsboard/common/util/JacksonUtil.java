@@ -52,7 +52,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -314,4 +313,5 @@ public class JacksonUtil {
             entityNode.put(key, kvEntry.getValueAsString());
         }
     }
+
 }
