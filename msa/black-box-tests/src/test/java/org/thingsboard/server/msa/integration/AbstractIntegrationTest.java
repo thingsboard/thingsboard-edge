@@ -84,11 +84,13 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
 
     @AfterMethod
     public void afterIntegrationTest() {
-        testRestClient.deleteDevice(device.getId());
-        testRestClient.deleteIntegration(integration.getId());
-        testRestClient.deleteConverter(integration.getDefaultConverterId());
-        if (integration.getDownlinkConverterId() != null) {
-            testRestClient.deleteConverter(integration.getDownlinkConverterId());
+        if (device != null){
+            testRestClient.deleteDevice(device.getId());
+            testRestClient.deleteIntegration(integration.getId());
+            testRestClient.deleteConverter(integration.getDefaultConverterId());
+            if (integration.getDownlinkConverterId() != null) {
+                testRestClient.deleteConverter(integration.getDownlinkConverterId());
+            }
         }
     }
 
@@ -119,7 +121,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         Awaitility
                 .await()
                 .alias("Get integration events")
-                .atMost(10, TimeUnit.SECONDS)
+                .atMost(20, TimeUnit.SECONDS)
                 .until(() -> {
                     PageData<EventInfo> events = testRestClient.getEvents(integrationId, EventType.LC_EVENT, tenantId, new TimePageLink(1024));
                     if (events.getData().isEmpty()) {
@@ -192,7 +194,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
     protected void waitTillRuleNodeReceiveMsg(EntityId entityId, EventType eventType, TenantId tenantId, String msgType) {
         Awaitility
                 .await()
-                .alias("Get integration events")
+                .alias("Get events from rule node")
                 .atMost(10, TimeUnit.SECONDS)
                 .until(() -> {
                     PageData<EventInfo> events = testRestClient.getEvents(entityId, eventType, tenantId, new TimePageLink(1024));

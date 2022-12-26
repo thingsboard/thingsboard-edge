@@ -78,6 +78,20 @@ public class TestProperties {
         return getProperties().getProperty("mqtt.broker");
     }
 
+    public static String getRemoteCoapHost(){
+        if (instance.isActive()) {
+            return "localhost";
+        }
+        return getProperties().getProperty("remote.coap.host");
+    }
+
+    public static int getRemoteCoapPort(){
+        if (instance.isActive()) {
+            return 15683;
+        }
+        return Integer.parseInt(getProperties().getProperty("remote.coap.port"));
+    }
+
     private static Properties getProperties() {
         if (properties == null) {
             try (InputStream input = TestProperties.class.getClassLoader().getResourceAsStream("config.properties")) {
