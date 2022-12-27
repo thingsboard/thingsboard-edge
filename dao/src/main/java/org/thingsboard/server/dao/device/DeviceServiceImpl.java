@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -76,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -85,7 +87,7 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 import static org.thingsboard.server.dao.service.Validator.validateString;
 
-@Service
+@Service("DeviceDaoService")
 @Slf4j
 public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKey, Device, DeviceCacheEvictEvent> implements DeviceService {
 
@@ -709,6 +711,16 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     };
 
     @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findDeviceById(tenantId, new DeviceId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.DEVICE;
+    }
+
+    @Override
     public DeviceProfile findDeviceProfileByNameOrDefault(TenantId tenantId, String deviceType) {
         DeviceProfile deviceProfile = this.deviceProfileService.findDeviceProfileByName(tenantId, deviceType);
         if (deviceProfile == null) {
@@ -716,5 +728,4 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         }
         return deviceProfile;
     }
-
 }
