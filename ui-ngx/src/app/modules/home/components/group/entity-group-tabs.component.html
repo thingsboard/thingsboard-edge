@@ -53,7 +53,7 @@
   <tb-manage-widget-actions
     [disabled]="!isEdit"
     [actionTypes]="entityGroupActionTypesList"
-    [isEntitiesGroup]="true"
+    [isEntityGroup]="true"
     [customFunctionArgs]="['$event', '$injector', 'entityId', 'entityName', 'servicesMap', 'tableConfig', 'store']"
     [(ngModel)]="actionsData"
     (ngModelChange)="detailsForm.markAsDirty()">

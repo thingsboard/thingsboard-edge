@@ -95,7 +95,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
 
   @Input() customFunctionArgs: string[];
 
-  @Input() isEntitiesGroup: boolean = false;
+  @Input() isEntityGroup: boolean = false;
 
   innerValue: WidgetActionsData;
 
@@ -254,7 +254,7 @@ export class ManageWidgetActionsComponent extends PageComponent implements OnIni
         actionTypes: this.actionTypes,
         customFunctionArgs: this.customFunctionArgs,
         widgetType: this.widgetType,
-        isEntitiesGroup: this.isEntitiesGroup
+        isEntityGroup: this.isEntityGroup
       }
     }).afterClosed().subscribe(
       (res) => {
