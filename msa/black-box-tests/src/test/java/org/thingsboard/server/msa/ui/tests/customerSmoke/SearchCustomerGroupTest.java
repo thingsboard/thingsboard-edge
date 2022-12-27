@@ -69,7 +69,7 @@ public class SearchCustomerGroupTest extends AbstractDriverBaseTest {
         }
     }
 
-    @Test(priority = 10, groups = {"smoke", "broken"}, dataProviderClass = DataProviderCredential.class, dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
+    @Test(priority = 10, groups = "smoke", dataProviderClass = DataProviderCredential.class, dataProvider = "customerGroupNameForSearchByFirstAndSecondWord")
     @Description
     public void searchFirstSecondWord(String namePath) {
         customerGroupName = "Entity Group";

@@ -200,7 +200,7 @@ public class CustomerEditMenuTest extends AbstractDriverBaseTest {
         testRestClient.postCustomer(defaultCustomerPrototype(customerName, number));
         this.customerName = customerName;
 
-        sideBarMenuView.customerBtn().click();
+        sideBarMenuView.goToAllCustomerGroupBtn();
         customerPage.entity(customerName).click();
         customerPage.editPencilBtn().click();
         customerPage.phoneNumberEntityView().click();
