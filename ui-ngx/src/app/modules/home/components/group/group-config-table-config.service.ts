@@ -70,11 +70,14 @@ import { StateObject, StateParams } from '@core/api/widget-api.models';
 import { ServicesMap } from '@home/models/services.map';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 @Injectable()
 export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
 
-  constructor(protected entityGroupService: EntityGroupService,
+  constructor(private store: Store<AppState>,
+              protected entityGroupService: EntityGroupService,
               protected userPermissionsService: UserPermissionsService,
               protected telemetryWsService: TelemetryWebsocketService,
               protected zone: NgZone,
@@ -171,7 +174,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
             icon: descriptor.icon,
             isEnabled: entity => true,
             onAction: ($event, entity) => {
-              this.handleDescriptorAction($event, entity, descriptor);
+              this.handleDescriptorAction($event, entity, descriptor, config);
             }
           }
         );
@@ -495,7 +498,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
       const descriptors = config.actionDescriptorsBySourceId.rowClick;
       if (descriptors && descriptors.length) {
         const descriptor = descriptors[0];
-        this.handleDescriptorAction(event, entity, descriptor);
+        this.handleDescriptorAction(event, entity, descriptor, config);
       } else if (config.onGroupEntityRowClick != null) {
         config.onGroupEntityRowClick(event, entity);
       }
@@ -503,7 +506,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
     }
   }
 
-  private handleDescriptorAction(event: Event, entity: ShortEntityView, descriptor: WidgetActionDescriptor) {
+  private handleDescriptorAction(event: Event, entity: ShortEntityView, descriptor: WidgetActionDescriptor, config: GroupEntityTableConfig<T>) {
     if (event) {
       event.stopPropagation();
     }
@@ -535,8 +538,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         if (customFunction && customFunction.length > 0) {
           try {
             const customActionFunction = new Function('$event', '$injector', 'entityId',
-              'entityName', 'servicesMap', customFunction);
-            customActionFunction(event, this.injector, entityId, entityName, ServicesMap);
+              'entityName', 'servicesMap', 'tableConfig', 'store', customFunction);
+            const tableConfig = config.getTable();
+            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig, this.store);
           } catch (e) {
             console.error(e);
           }
