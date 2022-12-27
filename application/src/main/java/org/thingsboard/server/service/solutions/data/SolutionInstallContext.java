@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
@@ -48,6 +49,7 @@ import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
 import org.thingsboard.server.service.solutions.data.definition.CustomerDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EntitySearchKey;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
@@ -143,6 +145,11 @@ public class SolutionInstallContext {
     public void register(AssetProfile assetProfile) {
         register(assetProfile.getId());
         createdEntities.put(assetProfile.getName(), new CreatedEntityInfo(assetProfile.getName(), "Asset profile", "Tenant"));
+    }
+
+    public void register(EdgeDefinition definition, Edge edge) {
+        register(definition.getJsonId(), edge.getId());
+        createdEntities.put(edge.getName(), new CreatedEntityInfo(edge.getName(), "Edge", StringUtils.isEmpty(definition.getCustomer()) ? "Tenant" : definition.getCustomer()));
     }
 
     public void put(EntitySearchKey entitySearchKey, EntityId entityId) {

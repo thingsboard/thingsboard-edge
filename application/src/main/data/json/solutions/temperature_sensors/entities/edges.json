@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Edge Customer D site",
+    "type": "site",
+    "customer": "Customer D",
+    "attributes": {},
+    "relations": [],
+    "userGroups": [
+      {
+        "name": "Customer Administrators",
+        "customer": "Customer D"
+      }
+    ],
+    "assetGroups": [],
+    "deviceGroups": [
+      {
+        "name": "Temperature & Humidity sensors",
+        "customer": "Customer D"
+      }
+    ],
+    "dashboardGroups": [
+      {
+        "name": "Customer dashboards",
+        "customer": null
+      }
+    ]
+  }
+]

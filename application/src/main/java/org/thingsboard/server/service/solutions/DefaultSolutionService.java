@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -67,6 +68,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
@@ -104,6 +106,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -132,6 +135,7 @@ import org.thingsboard.server.service.solutions.data.definition.CustomerEntityDe
 import org.thingsboard.server.service.solutions.data.definition.DashboardDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DashboardUserDetailsDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
@@ -211,6 +215,8 @@ public class DefaultSolutionService implements SolutionService {
     private final AssetService assetService;
     private final CustomerService customerService;
     private final UserService userService;
+
+    private final EdgeService edgeService;
     private final EntityGroupService entityGroupService;
     private final GroupPermissionService groupPermissionService;
     private final RoleService roleService;
@@ -481,6 +487,8 @@ public class DefaultSolutionService implements SolutionService {
             provisionSchedulerEvents(ctx);
 
             updateRuleChains(ctx);
+
+            provisionEdges(ctx);
 
             launchEmulators(ctx, devices, assets);
 
@@ -1047,6 +1055,26 @@ public class DefaultSolutionService implements SolutionService {
             }
         }
         throw new RuntimeException(finalE);
+    }
+
+    private void provisionEdges(SolutionInstallContext ctx) {
+        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
+        for (EdgeDefinition entityDef : edges) {
+            Edge entity = new Edge();
+            entity.setTenantId(ctx.getTenantId());
+            entity.setName(entityDef.getName());
+            entity.setLabel(entityDef.getLabel());
+            entity.setType(entityDef.getType());
+            entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            entity = edgeService.saveEdge(entity);
+            ctx.register(entityDef, entity);
+            log.info("[{}] Saved edge: {}", entity.getId(), entity);
+            EdgeId entityId = entity.getId();
+            ctx.putIdToMap(entityDef, entityId);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+            ctx.put(entityId, entityDef.getRelations());
+            addEntityToGroup(ctx, entityDef, entityId);
+        }
     }
 
     private RandomNameData generateRandomName(SolutionInstallContext ctx) {
