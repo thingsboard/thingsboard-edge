@@ -88,16 +88,17 @@ export class ThingParkIntegrationFormComponent extends IntegrationForm implement
 
   ngOnInit() {
     const baseURLValidators = [Validators.required];
+    const downlinkUrlValidators = [];
     if (!this.allowLocalNetwork) {
       baseURLValidators.push(privateNetworkAddressValidator);
+      downlinkUrlValidators.push(privateNetworkAddressValidator);
     }
     this.thingParkConfigForm = this.fb.group({
       baseUrl: [baseUrl(), baseURLValidators],
       httpEndpoint: [{value: integrationEndPointUrl(this.integrationType, baseUrl(), this.routingKey), disabled: true}],
       enableSecurity: [false],
       replaceNoContentToOk: [false],
-      downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink',
-        [!this.allowLocalNetwork ? privateNetworkAddressValidator : null]],
+      downlinkUrl: ['https://api.thingpark.com/thingpark/lrc/rest/downlink', downlinkUrlValidators],
       enableSecurityNew: [{value: false, disabled: true}],
       asId: [{value: '', disabled: true}, Validators.required],
       asIdNew: [{value: '', disabled: true}, Validators.required],

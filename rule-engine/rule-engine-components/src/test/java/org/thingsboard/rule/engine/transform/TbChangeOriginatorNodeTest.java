@@ -75,27 +75,6 @@ public class TbChangeOriginatorNodeTest {
     @Mock
     private AssetService assetService;
 
-    private ListeningExecutor dbExecutor;
-
-    @Before
-    public void before() {
-        dbExecutor = new ListeningExecutor() {
-            @Override
-            public <T> ListenableFuture<T> executeAsync(Callable<T> task) {
-                try {
-                    return Futures.immediateFuture(task.call());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            @Override
-            public void execute(Runnable command) {
-                command.run();
-            }
-        };
-    }
-
     @Test
     public void originatorCanBeChangedToCustomerId() throws TbNodeException {
         init();
@@ -176,8 +155,6 @@ public class TbChangeOriginatorNodeTest {
         config.setOriginatorSource(TbChangeOriginatorNode.CUSTOMER_SOURCE);
         ObjectMapper mapper = new ObjectMapper();
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(mapper.valueToTree(config));
-
-        when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
 
         node = new TbChangeOriginatorNode();
         node.init(null, nodeConfiguration);
