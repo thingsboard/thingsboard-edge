@@ -1068,8 +1068,8 @@ public class DefaultSolutionService implements SolutionService {
             entity.setLabel(entityDef.getLabel());
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            entity.setRoutingKey(UUID.randomUUID().toString());
             entity.setSecret(StringUtils.randomAlphanumeric(20));
-            entity.setRoutingKey(StringUtils.randomAlphanumeric(20));
             entity.setEdgeLicenseKey("1234567890");
             entity.setCloudEndpoint(systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
             entity.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
