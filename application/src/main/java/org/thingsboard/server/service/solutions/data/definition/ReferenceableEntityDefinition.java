@@ -43,6 +43,7 @@ public class ReferenceableEntityDefinition {
 
     private String name;
     private String file;
+    private String update;
     private String jsonId;
     private List<String> groups;
 

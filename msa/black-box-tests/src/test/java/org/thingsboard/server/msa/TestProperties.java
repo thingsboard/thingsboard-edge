@@ -53,6 +53,13 @@ public class TestProperties {
         return getProperties().getProperty("tb.baseUrl");
     }
 
+    public static String getBaseUiUrl() {
+        if (instance.isActive()) {
+            return "https://host.docker.internal";
+        }
+        return getProperties().getProperty("tb.baseUrl");
+    }
+
     public static String getWebSocketUrl() {
         if (instance.isActive()) {
             return WSS_URL;
@@ -76,6 +83,20 @@ public class TestProperties {
             return "tcp://" + host + ":" + port;
         }
         return getProperties().getProperty("mqtt.broker");
+    }
+
+    public static String getRemoteCoapHost(){
+        if (instance.isActive()) {
+            return "localhost";
+        }
+        return getProperties().getProperty("remote.coap.host");
+    }
+
+    public static int getRemoteCoapPort(){
+        if (instance.isActive()) {
+            return 15683;
+        }
+        return Integer.parseInt(getProperties().getProperty("remote.coap.port"));
     }
 
     private static Properties getProperties() {

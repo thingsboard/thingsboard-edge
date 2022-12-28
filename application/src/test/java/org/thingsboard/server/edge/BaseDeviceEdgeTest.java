@@ -69,8 +69,8 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.transport.mqtt.MqttTestCallback;
-import org.thingsboard.server.transport.mqtt.MqttTestClient;
+import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestCallback;
+import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
 
 import java.util.Collections;
 import java.util.List;
@@ -362,6 +362,8 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
         sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"key1\":\"value1\"}",
                 "key1", "value1");
+        sendAttributesRequestAndVerify(device, DataConstants.SERVER_SCOPE, "{\"inactivityTimeout\":3600000}",
+                "inactivityTimeout", "3600000");
         sendAttributesRequestAndVerify(device, DataConstants.SHARED_SCOPE, "{\"key2\":\"value2\"}",
                 "key2", "value2");
     }
@@ -615,7 +617,16 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         for (TransportProtos.KeyValueProto keyValueProto : attributesUpdatedMsg.getKvList()) {
             if (keyValueProto.getKey().equals(expectedKey)) {
                 Assert.assertEquals(expectedKey, keyValueProto.getKey());
-                Assert.assertEquals(expectedValue, keyValueProto.getStringV());
+                switch (keyValueProto.getType()) {
+                    case STRING_V:
+                        Assert.assertEquals(expectedValue, keyValueProto.getStringV());
+                        break;
+                    case LONG_V:
+                        Assert.assertEquals(Long.parseLong(expectedValue), keyValueProto.getLongV());
+                        break;
+                    default:
+                        Assert.fail("Unexpected data type: " + keyValueProto.getType());
+                }
                 found = true;
             }
         }

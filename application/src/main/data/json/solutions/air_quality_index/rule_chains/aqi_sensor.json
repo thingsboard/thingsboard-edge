@@ -1,0 +1,438 @@
+{
+  "ruleChain": {
+    "additionalInfo": {
+      "description": ""
+    },
+    "name": "AQI Sensor",
+    "type": "CORE",
+    "firstRuleNodeId": null,
+    "root": false,
+    "debugMode": false,
+    "configuration": null,
+    "externalId": null
+  },
+  "metadata": {
+    "firstNodeIndex": 6,
+    "nodes": [
+      {
+        "additionalInfo": {
+          "layoutX": 1118,
+          "layoutY": 303
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 825,
+          "layoutY": 567
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save Client Attributes",
+        "debugMode": false,
+        "configuration": {
+          "scope": "CLIENT_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 494,
+          "layoutY": 309
+        },
+        "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+        "name": "Message Type Switch",
+        "debugMode": false,
+        "configuration": {
+          "version": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 824,
+          "layoutY": 383
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log RPC from Device",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "MVEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 823,
+          "layoutY": 444
+        },
+        "type": "org.thingsboard.rule.engine.action.TbLogNode",
+        "name": "Log Other",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "MVEL",
+          "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
+          "mvelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "layoutX": 822,
+          "layoutY": 507
+        },
+        "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+        "name": "RPC Call Request",
+        "debugMode": false,
+        "configuration": {
+          "timeoutInSeconds": 60
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 209,
+          "layoutY": 307
+        },
+        "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
+        "name": "Device Profile Node",
+        "debugMode": false,
+        "configuration": {
+          "persistAlarmRulesState": false,
+          "fetchAlarmRulesStateOnStart": false
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": null,
+          "layoutX": 1741,
+          "layoutY": 515
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+        "name": "Save Timeseries",
+        "debugMode": false,
+        "configuration": {
+          "defaultTTL": 0
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1115,
+          "layoutY": 511
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+        "name": "To Asset",
+        "debugMode": false,
+        "configuration": {
+          "originatorSource": "RELATED",
+          "entityType": null,
+          "entityNamePattern": null,
+          "relationsQuery": {
+            "fetchLastLevelOnly": true,
+            "direction": "TO",
+            "maxLevel": 1,
+            "filters": [
+              {
+                "relationType": "Contains",
+                "entityTypes": [
+                  "ASSET"
+                ]
+              }
+            ]
+          }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 828,
+          "layoutY": 301
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "AQI Calculation",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var aqiMapping = [\n    {\"low\": 0, \"high\": 50},\n    {\"low\": 51, \"high\": 100},\n    {\"low\": 101, \"high\": 150},\n    {\"low\": 151, \"high\": 200},\n    {\"low\": 201, \"high\": 300},\n    {\"low\": 301, \"high\": 400},\n    {\"low\": 401, \"high\": 500}\n];\n\nvar pm25AqiMapping = [\n    {\"low\": 0.0, \"high\": 12.0},\n    {\"low\": 12.1, \"high\": 35.4},\n    {\"low\": 35.5, \"high\": 55.4},\n    {\"low\": 55.5, \"high\": 150.4},\n    {\"low\": 150.5, \"high\": 250.4},\n    {\"low\": 250.5, \"high\": 350.4},\n    {\"low\": 350.5, \"high\": 500.4}\n];\n\nvar pm10AqiMapping = [\n    {\"low\": 0, \"high\": 54},\n    {\"low\": 55, \"high\": 154},\n    {\"low\": 155, \"high\": 254},\n    {\"low\": 255, \"high\": 354},\n    {\"low\": 355, \"high\": 424},\n    {\"low\": 425, \"high\": 504},\n    {\"low\": 505, \"high\": 604}\n];\n\nvar no2AqiMapping = [\n    {\"low\": 0, \"high\": 53},\n    {\"low\": 54, \"high\": 100},\n    {\"low\": 101, \"high\": 360},\n    {\"low\": 361, \"high\": 649},\n    {\"low\": 650, \"high\": 1249},\n    {\"low\": 1250, \"high\": 1649},\n    {\"low\": 1650, \"high\": 2049}\n];\n\nvar coAqiMapping = [\n    {\"low\": 0.0, \"high\": 4.4},\n    {\"low\": 4.5, \"high\": 9.4},\n    {\"low\": 9.5, \"high\": 12.4},\n    {\"low\": 12.5, \"high\": 15.4},\n    {\"low\": 15.5, \"high\": 30.4},\n    {\"low\": 30.5, \"high\": 40.4},\n    {\"low\": 40.5, \"high\": 50.4}\n];\n\nvar so2AqiMapping = [\n    {\"low\": 0, \"high\": 35},\n    {\"low\": 36, \"high\": 75},\n    {\"low\": 76, \"high\": 185},\n    {\"low\": 186, \"high\": 304},\n    {\"low\": 305, \"high\": 604},\n    {\"low\": 605, \"high\": 804},\n    {\"low\": 805, \"high\": 1004}\n];\n\nvar o3AqiMapping = [\n    {\"low\": 0, \"high\": 0},\n    {\"low\": 0, \"high\": 0},\n    {\"low\": 0.125, \"high\": 0.164},\n    {\"low\": 0.165, \"high\": 0.204},\n    {\"low\": 0.205, \"high\": 0.404},\n    {\"low\": 0.405, \"high\": 0.504},\n    {\"low\": 0.505, \"high\": 0.604}\n];\n\n\nfunction calculateAqi(value, vMapping, aMapping){\n    var bpLow = null;\n    var bpHigh = null;\n    var aqiLow = null;\n    var aqiHigh = null;\n    for(var i = 0; i < vMapping.length; i++) {\n        bpLow = vMapping[i].low;\n        bpHigh = vMapping[i].high;\n        if(value >= bpLow && value <= bpHigh) {\n            aqiLow = aMapping[i].low;\n            aqiHigh = aMapping[i].high;\n            return (int)(((aqiHigh - aqiLow) / (bpHigh - bpLow)) * (value - bpLow) + aqiLow);\n        }\n        if (i == vMapping.length - 1 && value > bpHigh) {\n            return aMapping[i].high;\n        }\n    }\n    return null;\n}\n\nvar aqi = -1;\n\nif (msg.pm25 != null) {\n    msg.pm25Aqi = calculateAqi(msg.pm25, pm25AqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.pm25Aqi);\n}\n\nif (msg.pm10 != null) {\n    msg.pm10Aqi = calculateAqi(msg.pm10, pm10AqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.pm10Aqi);\n}\n\nif (msg.no2 != null) {\n    msg.no2Aqi = calculateAqi(msg.no2, no2AqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.no2Aqi);\n}\n\nif (msg.co != null) {\n    msg.coAqi = calculateAqi(msg.co, coAqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.coAqi);\n}\n\nif (msg.so2 != null) {\n    msg.so2Aqi = calculateAqi(msg.so2, so2AqiMapping, aqiMapping);\n    aqi = Math.max(aqi, msg.so2Aqi);\n}\n\nif (msg.o3 != null) {\n    var o3Aqi = calculateAqi(msg.o3, o3AqiMapping, aqiMapping);\n    if (o3Aqi != null) {\n        msg.o3Aqi = o3Aqi;\n        aqi = Math.max(aqi, msg.o3Aqi);\n    }\n}\n\nif (aqi >= 0) {\n msg.aqi = aqi;\n}\n\nreturn {msg: msg, metadata: metadata, msgType: msgType};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1426,
+          "layoutY": 583
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Agg AQI",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "aqi",
+          "outputValueKey": "aqi",
+          "mathFunction": "MAX",
+          "aggIntervalType": "HOUR",
+          "timeZoneId": "Europe/Kiev",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "HOURS",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          },
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1426,
+          "layoutY": 513
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Agg Temperature",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "temperature",
+          "outputValueKey": "temperature",
+          "mathFunction": "AVG",
+          "aggIntervalType": "HOUR",
+          "timeZoneId": "Europe/Kiev",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "HOURS",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          },
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1424,
+          "layoutY": 444
+        },
+        "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
+        "name": "Agg Humidity",
+        "debugMode": false,
+        "configuration": {
+          "inputValueKey": "humidity",
+          "outputValueKey": "humidity",
+          "mathFunction": "AVG",
+          "aggIntervalType": "HOUR",
+          "timeZoneId": "Europe/Kiev",
+          "aggIntervalValue": 1,
+          "aggIntervalTimeUnit": "HOURS",
+          "intervalPersistencePolicy": "ON_EACH_MESSAGE",
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "intervalCheckValue": 1,
+          "intervalCheckTimeUnit": "HOURS",
+          "statePersistencePolicy": "ON_EACH_CHANGE",
+          "statePersistenceValue": 1,
+          "statePersistenceTimeUnit": "MINUTES",
+          "autoCreateIntervals": false,
+          "periodValue": 5,
+          "periodTimeUnit": "MINUTES",
+          "parentEntitiesQuery": {
+            "type": "group",
+            "entityGroupId": null
+          },
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1125,
+          "layoutY": 215
+        },
+        "type": "org.thingsboard.rule.engine.analytics.latest.alarm.TbAlarmsCountNodeV2",
+        "name": "Count alarms",
+        "debugMode": false,
+        "configuration": {
+          "alarmsCountMappings": [
+            {
+              "target": "alarmsCount",
+              "typesList": [],
+              "severityList": [],
+              "statusList": [
+                "ACTIVE_UNACK",
+                "ACTIVE_ACK"
+              ]
+            }
+          ],
+          "countAlarmsForPropagationEntities": false,
+          "propagationEntityTypes": null,
+          "outMsgType": "POST_TELEMETRY_REQUEST",
+          "queueName": null
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1396,
+          "layoutY": 212
+        },
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "To Active Telemetry",
+        "debugMode": false,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "msg.state = msg.alarmsCount > 0 ? \"critical\" : \"normal\";\nreturn {msg: msg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1667,
+          "layoutY": 212
+        },
+        "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+        "name": "Save",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE",
+          "notifyDevice": false,
+          "sendAttributesUpdatedNotification": false
+        },
+        "externalId": null
+      }
+    ],
+    "connections": [
+      {
+        "fromIndex": 0,
+        "toIndex": 8,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 3,
+        "type": "RPC Request from Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 5,
+        "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 9,
+        "type": "Post telemetry"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 13,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 2,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 13,
+        "type": "Alarm Cleared"
+      },
+      {
+        "fromIndex": 6,
+        "toIndex": 13,
+        "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 10,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 11,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 8,
+        "toIndex": 12,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 9,
+        "toIndex": 0,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 10,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 7,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 13,
+        "toIndex": 14,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 14,
+        "toIndex": 15,
+        "type": "Success"
+      }
+    ],
+    "ruleChainConnections": null
+  }
+}

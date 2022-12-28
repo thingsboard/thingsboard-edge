@@ -187,7 +187,6 @@ public class TbMathNode implements TbNode {
     }
 
     private ListenableFuture<Void> saveTimeSeries(TbContext ctx, TbMsg msg, double result, TbMathResult mathResultDef) {
-
         return ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getOriginator(),
                 new BasicTsKvEntry(System.currentTimeMillis(), new DoubleDataEntry(mathResultDef.getKey(), result)));
     }
