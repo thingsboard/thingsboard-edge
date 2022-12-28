@@ -731,7 +731,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testVerifyDeliveryOfLatestTimeseriesOnAttributesRequest() throws Exception {
-        Device device = findDeviceByName("Edge Device 1");
+        Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
         JsonNode timeseriesData = mapper.readTree("{\"temperature\":25}");
 
