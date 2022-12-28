@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { Observable, of, ReplaySubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
@@ -61,9 +61,6 @@ import { sortEntitiesByIds } from '@shared/models/base-data';
 })
 export class WidgetService {
 
-  private widgetTypeUpdatedSubject = new Subject<WidgetType>();
-  private widgetsBundleDeletedSubject = new Subject<WidgetsBundle>();
-
   private allWidgetsBundles: Array<WidgetsBundle>;
   private systemWidgetsBundles: Array<WidgetsBundle>;
   private tenantWidgetsBundles: Array<WidgetsBundle>;
@@ -71,6 +68,8 @@ export class WidgetService {
   private widgetsBundleCacheSubject: ReplaySubject<any> = null;
 
   private widgetTypeInfosCache = new Map<string, Array<WidgetTypeInfo>>();
+
+  private widgetsInfoInMemoryCache = new Map<string, WidgetInfo>();
 
   constructor(
     private http: HttpClient,
@@ -143,7 +142,7 @@ export class WidgetService {
           defaultHttpOptionsFromConfig(config)).pipe(
           tap(() => {
             this.invalidateWidgetsBundleCache();
-            this.widgetsBundleDeletedSubject.next(widgetsBundle);
+            this.widgetsBundleDeleted(widgetsBundle);
           })
         );
       }
@@ -243,7 +242,7 @@ export class WidgetService {
     return this.http.post<WidgetTypeDetails>('/api/widgetType', widgetTypeDetails,
       defaultHttpOptionsFromConfig(config)).pipe(
       tap((savedWidgetType) => {
-        this.widgetTypeUpdatedSubject.next(savedWidgetType);
+        this.widgetTypeUpdated(savedWidgetType);
       }));
   }
 
@@ -252,7 +251,7 @@ export class WidgetService {
     return this.http.post<WidgetTypeDetails>('/api/widgetType', widgetTypeDetails,
       defaultHttpOptionsFromConfig(config)).pipe(
       tap((savedWidgetType) => {
-        this.widgetTypeUpdatedSubject.next(savedWidgetType);
+        this.widgetTypeUpdated(savedWidgetType);
       }));
   }
 
@@ -263,7 +262,7 @@ export class WidgetService {
           return this.http.delete(`/api/widgetType/${widgetTypeInstance.id.id}`,
             defaultHttpOptionsFromConfig(config)).pipe(
             tap(() => {
-              this.widgetTypeUpdatedSubject.next(widgetTypeInstance);
+              this.widgetTypeUpdated(widgetTypeInstance);
             })
           );
         }
@@ -289,12 +288,44 @@ export class WidgetService {
       );
   }
 
-  public onWidgetTypeUpdated(): Observable<WidgetType> {
-    return this.widgetTypeUpdatedSubject.asObservable();
+  public createWidgetInfoCacheKey(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): string {
+    return `${isSystem ? 'sys_' : ''}${bundleAlias}_${widgetTypeAlias}`;
   }
 
-  public onWidgetBundleDeleted(): Observable<WidgetsBundle> {
-    return this.widgetsBundleDeletedSubject.asObservable();
+  public clearWidgetInfoInMemoryCache() {
+    this.widgetsInfoInMemoryCache.clear();
+  }
+
+  public getWidgetInfoFromCache(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean): WidgetInfo | undefined {
+    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
+    return this.widgetsInfoInMemoryCache.get(key);
+  }
+
+  public putWidgetInfoToCache(widgetInfo: WidgetInfo, bundleAlias: string, widgetTypeAlias: string, isSystem: boolean) {
+    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
+    this.widgetsInfoInMemoryCache.set(key, widgetInfo);
+  }
+
+  private widgetTypeUpdated(updatedWidgetType: WidgetType): void {
+    this.deleteWidgetInfoFromCache(updatedWidgetType.bundleAlias, updatedWidgetType.alias, updatedWidgetType.tenantId.id === NULL_UUID);
+  }
+
+  private widgetsBundleDeleted(widgetsBundle: WidgetsBundle): void {
+    this.deleteWidgetsBundleFromCache(widgetsBundle.alias, widgetsBundle.tenantId.id === NULL_UUID);
+  }
+
+  private deleteWidgetInfoFromCache(bundleAlias: string, widgetTypeAlias: string, isSystem: boolean) {
+    const key = this.createWidgetInfoCacheKey(bundleAlias, widgetTypeAlias, isSystem);
+    this.widgetsInfoInMemoryCache.delete(key);
+  }
+
+  private deleteWidgetsBundleFromCache(bundleAlias: string, isSystem: boolean) {
+    const key = (isSystem ? 'sys_' : '') + bundleAlias;
+    this.widgetsInfoInMemoryCache.forEach((widgetInfo, cacheKey) => {
+      if (cacheKey.startsWith(key)) {
+        this.widgetsInfoInMemoryCache.delete(cacheKey);
+      }
+    });
   }
 
   private loadWidgetsBundleCache(config?: RequestConfig): Observable<any> {
