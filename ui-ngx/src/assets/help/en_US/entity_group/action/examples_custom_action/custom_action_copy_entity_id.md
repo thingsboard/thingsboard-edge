@@ -3,6 +3,7 @@
 ```javascript
 {:code-style="max-height: 400px;"}
 var ActionNotificationShow = servicesMap.get('actionNotificationShow');
+var store = $injector.get(servicesMap.get('store'));
 
 if (copyToClipboard(entityId.id)) {
   store.dispatch(new ActionNotificationShow({

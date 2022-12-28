@@ -10,5 +10,3 @@
   </li>
   <li><b>tableConfig:</b> <code><a href="https://github.com/thingsboard/thingsboard-pe-ui-types/blob/6bc9455bb33737078217262c645211ad75d720a3/src/app/modules/home/models/entity/entity-table-component.models.d.ts#L15" target="_blank">IEntitiesTableComponent</a></code> - An <a href="https://github.com/thingsboard/thingsboard-pe-ui-types/blob/6bc9455bb33737078217262c645211ad75d720a3/src/app/modules/home/models/entity/entity-table-component.models.d.ts#L15" target="_blank">IEntitiesTableComponent</a> object presenting basic entity table properties and provides access to entity table functions declared in configuration.
   </li>
-  <li><b>store:</b> <code>Store&lt;AppState&gt;</code> - Stores the global state of the Angular application in the form of one large object.
-  </li>

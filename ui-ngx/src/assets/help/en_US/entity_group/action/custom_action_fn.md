@@ -3,7 +3,7 @@
 <div class="divider"></div>
 <br/>
 
-*function ($event, $injector, entityId, entityName, serviceMap, tableConfig, store): void*
+*function ($event, $injector, entityId, entityName, serviceMap, tableConfig): void*
 
 A JavaScript function performing custom action.
 

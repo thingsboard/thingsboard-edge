@@ -5,6 +5,7 @@
 var deviceService = $injector.get(servicesMap.get('deviceService'));
 var $translate = $injector.get(servicesMap.get('translate'));
 var ActionNotificationShow = servicesMap.get('actionNotificationShow');
+var store = $injector.get(servicesMap.get('store'));
 
 if (entityId.id && entityId.entityType === 'DEVICE') {
   deviceService.getDeviceCredentials(entityId.id, true).subscribe(

@@ -62,6 +62,8 @@ import { ResourceService } from '@core/http/resource.service';
 import { TwoFactorAuthenticationService } from '@core/http/two-factor-authentication.service';
 import { TelemetryWebsocketService } from '@core/ws/telemetry-websocket.service';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
 
 export const ServicesMap = new Map<string, Type<any>>(
   [
@@ -97,6 +99,7 @@ export const ServicesMap = new Map<string, Type<any>>(
    ['twoFactorAuthenticationService', TwoFactorAuthenticationService],
    ['telemetryWsService', TelemetryWebsocketService],
    ['actionNotificationShow', ActionNotificationShow],
-   ['actionNotificationHide', ActionNotificationHide]
+   ['actionNotificationHide', ActionNotificationHide],
+   ['store', Store]
   ]
 );

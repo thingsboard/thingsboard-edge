@@ -192,10 +192,7 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
     return !!this.data.actionsData.actionSources[this.widgetActionFormGroup.get('actionSourceId').value]?.hasShowCondition;
   }
   customFunctionHelpId(): string {
-    if (isDefinedAndNotNull(this.isEntityGroup) && this.isEntityGroup){
-      return 'entity_group/action/custom_action_fn';
-    }
-    return 'widget/action/custom_action_fn';
+      return this.isEntityGroup ? 'entity_group/action/custom_action_fn' : 'widget/action/custom_action_fn';
   }
 
   getWidgetActionFunctionHelpId(): string | undefined {

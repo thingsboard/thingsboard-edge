@@ -70,14 +70,11 @@ import { StateObject, StateParams } from '@core/api/widget-api.models';
 import { ServicesMap } from '@home/models/services.map';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 
 @Injectable()
 export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
 
-  constructor(private store: Store<AppState>,
-              protected entityGroupService: EntityGroupService,
+  constructor(protected entityGroupService: EntityGroupService,
               protected userPermissionsService: UserPermissionsService,
               protected telemetryWsService: TelemetryWebsocketService,
               protected zone: NgZone,
@@ -538,9 +535,9 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         if (customFunction && customFunction.length > 0) {
           try {
             const customActionFunction = new Function('$event', '$injector', 'entityId',
-              'entityName', 'servicesMap', 'tableConfig', 'store', customFunction);
+              'entityName', 'servicesMap', 'tableConfig', customFunction);
             const tableConfig = config.getTable();
-            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig, this.store);
+            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
           } catch (e) {
             console.error(e);
           }
