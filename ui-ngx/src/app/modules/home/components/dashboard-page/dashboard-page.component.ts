@@ -144,7 +144,6 @@ import { Operation } from '@shared/models/security.models';
 import { ReportType } from '@shared/models/report.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
-import { AliasEntityType, EntityType } from '@shared/models/entity-type.models';
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {
