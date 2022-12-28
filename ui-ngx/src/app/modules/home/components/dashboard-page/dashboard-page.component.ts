@@ -46,6 +46,7 @@ import {
   Optional,
   Renderer2,
   StaticProvider,
+  Type,
   ViewChild,
   ViewContainerRef,
   ViewEncapsulation
@@ -177,6 +178,7 @@ import { tap } from 'rxjs/operators';
 import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-page/layout/layout.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResizeObserver } from '@juggle/resize-observer';
+import { HOME_COMPONENTS_MODULE_TOKEN } from '@home/components/tokens';
 
 // @dynamic
 @Component({
@@ -368,6 +370,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
               @Inject(DOCUMENT) private document: Document,
+              @Inject(HOME_COMPONENTS_MODULE_TOKEN) private homeComponentsModule: Type<any>,
               private breakpointObserver: BreakpointObserver,
               private route: ActivatedRoute,
               private router: Router,
@@ -753,23 +756,28 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   public toggleLayouts() {
     this.isRightLayoutOpened = !this.isRightLayoutOpened;
     this.mobileService.onDashboardRightLayoutChanged(this.isRightLayoutOpened);
-    this.updateLayoutSizes();
   }
 
   public openRightLayout() {
     this.isRightLayoutOpened = true;
     this.mobileService.onDashboardRightLayoutChanged(this.isRightLayoutOpened);
-    this.updateLayoutSizes();
   }
 
   private updateLayoutSizes() {
+    let changeMainLayoutSize = false;
+    let changeRightLayoutSize = false;
     if (this.dashboardCtx.state) {
-      this.updateMainLayoutSize();
-      this.updateRightLayoutSize();
+      changeMainLayoutSize = this.updateMainLayoutSize();
+      changeRightLayoutSize = this.updateRightLayoutSize();
+    }
+    if (changeMainLayoutSize || changeRightLayoutSize) {
+      this.cd.markForCheck();
     }
   }
 
-  private updateMainLayoutSize() {
+  private updateMainLayoutSize(): boolean {
+    const prevMainLayoutWidth = this.mainLayoutSize.width;
+    const prevMainLayoutHeight = this.mainLayoutSize.height;
     if (this.isEditingWidget && this.editingLayoutCtx.id === 'main') {
       this.mainLayoutSize.width = '100%';
     } else {
@@ -780,9 +788,12 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     } else {
       this.mainLayoutSize.height = '0px';
     }
+    return prevMainLayoutWidth !== this.mainLayoutSize.width || prevMainLayoutHeight !== this.mainLayoutSize.height;
   }
 
-  private updateRightLayoutSize() {
+  private updateRightLayoutSize(): boolean {
+    const prevRightLayoutWidth = this.rightLayoutSize.width;
+    const prevRightLayoutHeight = this.rightLayoutSize.height;
     if (this.isEditingWidget && this.editingLayoutCtx.id === 'right') {
       this.rightLayoutSize.width = '100%';
     } else {
@@ -793,6 +804,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     } else {
       this.rightLayoutSize.height = '0px';
     }
+    return prevRightLayoutWidth !== this.rightLayoutSize.width || prevRightLayoutHeight !== this.rightLayoutSize.height;
   }
 
   private calculateWidth(layout: DashboardLayoutId): string {
@@ -1212,7 +1224,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   addWidgetFromType(widget: WidgetInfo) {
     this.onAddWidgetClosed();
     this.searchBundle = '';
-    this.widgetComponentService.getWidgetInfo(widget.bundleAlias, widget.typeAlias, widget.isSystemType).subscribe(
+    this.widgetComponentService.getWidgetInfo(widget.bundleAlias, widget.typeAlias, widget.isSystemType,
+      [this.homeComponentsModule]).subscribe(
       (widgetTypeInfo) => {
         const config: WidgetConfig = JSON.parse(widgetTypeInfo.defaultConfig);
         config.title = 'New ' + widgetTypeInfo.widgetName;
