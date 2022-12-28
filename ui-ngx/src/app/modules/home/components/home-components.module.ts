@@ -50,7 +50,6 @@ import { AddAttributeDialogComponent } from '@home/components/attribute/add-attr
 import { EditAttributeValuePanelComponent } from '@home/components/attribute/edit-attribute-value-panel.component';
 import { DashboardComponent } from '@home/components/dashboard/dashboard.component';
 import { WidgetComponent } from '@home/components/widget/widget.component';
-import { WidgetComponentService } from '@home/components/widget/widget-component.service';
 import { LegendComponent } from '@home/components/widget/legend.component';
 import { AliasesEntitySelectPanelComponent } from '@home/components/alias/aliases-entity-select-panel.component';
 import { AliasesEntitySelectComponent } from '@home/components/alias/aliases-entity-select.component';
@@ -551,7 +550,6 @@ import { IntegrationComponentModule } from '@home/components/integration/integra
     IntegrationWizardDialogComponent
   ],
   providers: [
-    WidgetComponentService,
     CustomDialogService,
     ImportExportService,
     GroupConfigTableConfigService,
