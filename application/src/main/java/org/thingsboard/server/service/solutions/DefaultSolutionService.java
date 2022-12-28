@@ -136,6 +136,7 @@ import org.thingsboard.server.service.solutions.data.definition.DashboardDefinit
 import org.thingsboard.server.service.solutions.data.definition.DashboardUserDetailsDefinition;
 import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EdgeEntityGroupDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
@@ -488,7 +489,7 @@ public class DefaultSolutionService implements SolutionService {
 
             updateRuleChains(ctx);
 
-            provisionEdges(ctx);
+            provisionEdges(ctx, request);
 
             launchEmulators(ctx, devices, assets);
 
@@ -1057,8 +1058,9 @@ public class DefaultSolutionService implements SolutionService {
         throw new RuntimeException(finalE);
     }
 
-    private void provisionEdges(SolutionInstallContext ctx) {
+    private void provisionEdges(SolutionInstallContext ctx, HttpServletRequest request) {
         List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
+        RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
         for (EdgeDefinition entityDef : edges) {
             Edge entity = new Edge();
             entity.setTenantId(ctx.getTenantId());
@@ -1066,7 +1068,18 @@ public class DefaultSolutionService implements SolutionService {
             entity.setLabel(entityDef.getLabel());
             entity.setType(entityDef.getType());
             entity.setCustomerId(ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer()));
+            entity.setSecret(StringUtils.randomAlphanumeric(20));
+            entity.setRoutingKey(StringUtils.randomAlphanumeric(20));
+            entity.setEdgeLicenseKey("1234567890");
+            entity.setCloudEndpoint(systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+            entity.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
             entity = edgeService.saveEdge(entity);
+            ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), edgeTemplateRootRuleChain.getId(), entity.getId());
+            edgeService.assignTenantAdministratorsAndUsersGroupToEdge(ctx.getTenantId(), entity.getId());
+            assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.USER, entityDef.getUserGroups(), entity);
+            assignEntityGroupsToEdge(ctx, EntityType.DASHBOARD, entityDef.getDashboardGroups(), entity);
             ctx.register(entityDef, entity);
             log.info("[{}] Saved edge: {}", entity.getId(), entity);
             EdgeId entityId = entity.getId();
@@ -1074,6 +1087,17 @@ public class DefaultSolutionService implements SolutionService {
             saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
+        }
+    }
+
+    private void assignEntityGroupsToEdge(SolutionInstallContext ctx, EntityType entityType, List<EdgeEntityGroupDefinition> entityGroupDefinitions, Edge edge) {
+        for (EdgeEntityGroupDefinition entityGroupDefinition : entityGroupDefinitions) {
+            EntityId parentEntityId = ctx.getTenantId();
+            if (entityGroupDefinition.getCustomer() != null) {
+                parentEntityId = ctx.getIdFromMap(EntityType.CUSTOMER, entityGroupDefinition.getCustomer());
+            }
+            Optional<EntityGroup> entityGroupOptional = entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), parentEntityId, entityType, entityGroupDefinition.getName());
+            entityGroupOptional.ifPresent(entityGroup -> entityGroupService.assignEntityGroupToEdge(ctx.getTenantId(), entityGroup.getId(), edge.getId(), entityType));
         }
     }
 
