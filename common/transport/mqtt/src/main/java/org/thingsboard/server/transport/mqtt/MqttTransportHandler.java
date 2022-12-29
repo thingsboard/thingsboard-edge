@@ -127,11 +127,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.amazonaws.util.StringUtils.UTF8;
-import static io.netty.handler.codec.mqtt.MqttMessageType.CONNACK;
 import static io.netty.handler.codec.mqtt.MqttMessageType.CONNECT;
 import static io.netty.handler.codec.mqtt.MqttMessageType.PINGRESP;
 import static io.netty.handler.codec.mqtt.MqttMessageType.SUBACK;
-import static io.netty.handler.codec.mqtt.MqttMessageType.UNSUBACK;
 import static io.netty.handler.codec.mqtt.MqttQoS.AT_LEAST_ONCE;
 import static io.netty.handler.codec.mqtt.MqttQoS.AT_MOST_ONCE;
 import static org.thingsboard.server.common.transport.service.DefaultTransportService.SESSION_EVENT_MSG_CLOSED;
