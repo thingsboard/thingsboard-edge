@@ -34,7 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
@@ -109,7 +112,11 @@ public abstract class AbstractMqttV5ClaimTest extends AbstractMqttV5Test {
         user.setCustomerId(savedCustomer.getId());
         user.setEmail("customer@thingsboard.org");
 
-        customerAdmin = createUser(user, CUSTOMER_USER_PASSWORD);
+        EntityGroupInfo customerAdmins = doGet("/api/entityGroup/" + EntityType.CUSTOMER + "/" + savedCustomer.getId().toString() + "/" + EntityType.USER + "/" + EntityGroup.GROUP_CUSTOMER_ADMINS_NAME,
+                EntityGroupInfo.class);
+
+        customerAdmin = createUser(user, CUSTOMER_USER_PASSWORD, customerAdmins.getId());
+
         assertNotNull(customerAdmin);
         assertEquals(customerAdmin.getCustomerId(), savedCustomer.getId());
     }
