@@ -488,7 +488,7 @@ abstract public class BaseDeviceEdgeTest extends AbstractEdgeTest {
         String attributeValuesUrl = "/api/plugins/telemetry/DEVICE/" + device.getId() + "/values/attributes/" + DataConstants.SERVER_SCOPE;
         List<Map<String, String>> attributes = doGetAsyncTyped(attributeValuesUrl, new TypeReference<>() {});
 
-        Assert.assertEquals(4, attributes.size());
+        Assert.assertEquals(3, attributes.size());
 
         Optional<Map<String, String>> activeAttributeOpt = getAttributeByKey("active", attributes);
         Assert.assertTrue(activeAttributeOpt.isPresent());
