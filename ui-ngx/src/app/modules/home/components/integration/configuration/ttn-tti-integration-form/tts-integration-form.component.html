@@ -50,6 +50,9 @@
             <mat-error translate *ngIf="hostEdit.hasError('required')">
               integration.region-required
             </mat-error>
+            <mat-error translate *ngIf="hostEdit.hasError('privateNetwork')">
+              integration.host-private
+            </mat-error>
           </mat-form-field>
           <mat-label>{{hostRegionSuffix}}</mat-label>
         </div>
@@ -59,6 +62,9 @@
           <input matInput required [formControl]="hostEdit">
           <mat-error translate *ngIf="hostEdit.hasError('required')">
             integration.custom-host-required
+          </mat-error>
+          <mat-error translate *ngIf="hostEdit.hasError('privateNetwork')">
+            integration.host-private
           </mat-error>
         </mat-form-field>
       </div>

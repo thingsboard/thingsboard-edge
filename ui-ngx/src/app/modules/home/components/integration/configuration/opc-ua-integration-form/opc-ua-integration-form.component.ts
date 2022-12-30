@@ -50,6 +50,7 @@ import {
 import { IntegrationForm } from '@home/components/integration/configuration/integration-form';
 import { isDefinedAndNotNull } from '@core/utils';
 import { takeUntil } from 'rxjs/operators';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-opc-ua-integration-form',
@@ -177,5 +178,14 @@ export class OpcUaIntegrationFormComponent extends IntegrationForm implements Co
     return this.opcIntegrationConfigForm.valid ? null : {
       opcUaIntegrationConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.opcIntegrationConfigForm.get('host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.opcIntegrationConfigForm.get('host').addValidators(privateNetworkAddressValidator);
+    }
+    this.opcIntegrationConfigForm.get('host').updateValueAndValidity({emitEvent: false});
   }
 }

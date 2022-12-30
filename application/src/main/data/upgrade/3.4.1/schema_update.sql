@@ -37,6 +37,8 @@ $$
         -- in case of running the upgrade script a second time:
         IF NOT (SELECT exists(SELECT FROM pg_tables WHERE tablename = 'old_audit_log')) THEN
             ALTER TABLE audit_log RENAME TO old_audit_log;
+            CREATE INDEX IF NOT EXISTS idx_old_audit_log_created_time ON old_audit_log(created_time);
+
             ALTER INDEX IF EXISTS idx_audit_log_tenant_id_and_created_time RENAME TO idx_old_audit_log_tenant_id_and_created_time;
 
             FOR table_partition IN SELECT tablename AS name, split_part(tablename, '_', 3) AS partition_ts
@@ -66,6 +68,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     action_failure_details varchar(1000000)
 ) PARTITION BY RANGE (created_time);
 CREATE INDEX IF NOT EXISTS idx_audit_log_tenant_id_and_created_time ON audit_log(tenant_id, created_time DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_id ON audit_log(id);
 
 CREATE OR REPLACE PROCEDURE migrate_audit_logs(IN start_time_ms BIGINT, IN end_time_ms BIGINT, IN partition_size_ms BIGINT)
     LANGUAGE plpgsql AS
@@ -100,6 +103,7 @@ $$
         -- in case of running the upgrade script a second time:
         IF NOT (SELECT exists(SELECT FROM pg_tables WHERE tablename = 'old_blob_entity')) THEN
             ALTER TABLE blob_entity RENAME TO old_blob_entity;
+            CREATE INDEX IF NOT EXISTS idx_old_blob_entity_no_tenant_created_time ON old_audit_log(created_time);
             ALTER INDEX IF EXISTS idx_blob_entity_created_time RENAME TO idx_old_blob_entity_created_time;
 
             FOR table_partition IN SELECT tablename AS name, split_part(tablename, '_', 3) AS partition_ts
@@ -161,6 +165,7 @@ $$
     -- in case of running the upgrade script a second time:
         IF NOT (SELECT exists(SELECT FROM pg_tables WHERE tablename = 'old_edge_event')) THEN
             ALTER TABLE edge_event RENAME TO old_edge_event;
+            CREATE INDEX IF NOT EXISTS idx_old_edge_event_created_time_tmp ON old_edge_event(created_time);
             ALTER INDEX IF EXISTS idx_edge_event_tenant_id_and_created_time RENAME TO idx_old_edge_event_tenant_id_and_created_time;
 
             FOR table_partition IN SELECT tablename AS name, split_part(tablename, '_', 3) AS partition_ts
@@ -188,6 +193,7 @@ CREATE TABLE IF NOT EXISTS edge_event (
     ts bigint NOT NULL
     ) PARTITION BY RANGE (created_time);
 CREATE INDEX IF NOT EXISTS idx_edge_event_tenant_id_and_created_time ON edge_event(tenant_id, created_time DESC);
+CREATE INDEX IF NOT EXISTS idx_edge_event_id ON edge_event(id);
 
 CREATE OR REPLACE PROCEDURE migrate_edge_event(IN start_time_ms BIGINT, IN end_time_ms BIGINT, IN partition_size_ms BIGINT)
     LANGUAGE plpgsql AS

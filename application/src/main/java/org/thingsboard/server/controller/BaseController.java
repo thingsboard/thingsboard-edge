@@ -169,6 +169,7 @@ import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.scheduler.SchedulerEventService;
+import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -575,17 +576,6 @@ public abstract class BaseController {
         return groupType;
     }
 
-    EntityType checkPublicEntityGroupType(EntityType groupType) throws ThingsboardException {
-        if (groupType == null) {
-            throw new ThingsboardException("EntityGroup type is required!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
-        if (groupType != EntityType.ASSET && groupType != EntityType.DEVICE
-                && groupType != EntityType.ENTITY_VIEW && groupType != EntityType.EDGE && groupType != EntityType.DASHBOARD) {
-            throw new ThingsboardException("Invalid entityGroup type '" + groupType + "'! Only entity groups of types 'ASSET', 'DEVICE', 'ENTITY_VIEW' or 'DASHBOARD' can be public.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
-        return groupType;
-    }
-
     UUID toUUID(String id) throws ThingsboardException {
         try {
             return UUID.fromString(id);
@@ -595,9 +585,12 @@ public abstract class BaseController {
     }
 
     PageLink createPageLink(int pageSize, int page, String textSearch, String sortProperty, String sortOrder) throws ThingsboardException {
-        if (!StringUtils.isEmpty(sortProperty)) {
+        if (StringUtils.isNotEmpty(sortProperty)) {
+            if (!Validator.isValidProperty(sortProperty)) {
+                throw new IllegalArgumentException("Invalid sort property");
+            }
             SortOrder.Direction direction = SortOrder.Direction.ASC;
-            if (!StringUtils.isEmpty(sortOrder)) {
+            if (StringUtils.isNotEmpty(sortOrder)) {
                 try {
                     direction = SortOrder.Direction.valueOf(sortOrder.toUpperCase());
                 } catch (IllegalArgumentException e) {

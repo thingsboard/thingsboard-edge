@@ -34,6 +34,7 @@ import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.List;
 @Data
 public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfiguration implements NodeConfiguration<TbCreateAlarmNodeConfiguration> {
 
+    @NoXss
     private String severity;
     private boolean propagate;
     private boolean propagateToOwner;
@@ -55,9 +57,9 @@ public class TbCreateAlarmNodeConfiguration extends TbAbstractAlarmNodeConfigura
     @Override
     public TbCreateAlarmNodeConfiguration defaultConfiguration() {
         TbCreateAlarmNodeConfiguration configuration = new TbCreateAlarmNodeConfiguration();
-        configuration.setScriptLang(ScriptLanguage.MVEL);
+        configuration.setScriptLang(ScriptLanguage.TBEL);
         configuration.setAlarmDetailsBuildJs(ALARM_DETAILS_BUILD_JS_TEMPLATE);
-        configuration.setAlarmDetailsBuildMvel(ALARM_DETAILS_BUILD_MVEL_TEMPLATE);
+        configuration.setAlarmDetailsBuildTbel(ALARM_DETAILS_BUILD_TBEL_TEMPLATE);
         configuration.setAlarmType("General Alarm");
         configuration.setSeverity(AlarmSeverity.CRITICAL.name());
         configuration.setPropagate(false);

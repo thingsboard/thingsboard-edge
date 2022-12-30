@@ -37,6 +37,8 @@
       <input matInput required formControlName="host">
       <mat-error translate *ngIf="rabbitMqIntegrationConfigForm.get('host').hasError('required')">integration.host-required
       </mat-error>
+      <mat-error translate *ngIf="rabbitMqIntegrationConfigForm.get('host').hasError('privateNetwork')">integration.host-private
+      </mat-error>
     </mat-form-field>
     <mat-form-field fxFlex class="mat-block">
       <mat-label translate>integration.port</mat-label>

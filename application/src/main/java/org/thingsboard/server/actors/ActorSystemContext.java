@@ -52,7 +52,7 @@ import org.thingsboard.rule.engine.api.ReportService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
 import org.thingsboard.script.api.js.JsInvokeService;
-import org.thingsboard.script.api.mvel.MvelInvokeService;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -73,6 +73,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
@@ -83,6 +84,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -212,6 +214,14 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    @Getter
+    private AssetProfileService assetProfileService;
+
+    @Autowired
+    @Getter
     private DeviceCredentialsService deviceCredentialsService;
 
     @Autowired
@@ -312,7 +322,7 @@ public class ActorSystemContext {
 
     @Autowired(required = false)
     @Getter
-    private MvelInvokeService mvelInvokeService;
+    private TbelInvokeService tbelInvokeService;
 
     @Autowired
     @Getter

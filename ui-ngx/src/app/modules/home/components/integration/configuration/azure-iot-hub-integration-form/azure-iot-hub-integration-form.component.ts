@@ -44,6 +44,7 @@ import { IntegrationForm } from '@home/components/integration/configuration/inte
 import { takeUntil } from 'rxjs/operators';
 import { isDefinedAndNotNull } from '@core/utils';
 import { AzureIotHubIntegration, IntegrationCredentialType } from '@shared/models/integration.models';
+import { privateNetworkAddressValidator } from '@home/components/integration/integration.models';
 
 @Component({
   selector: 'tb-azure-iot-hub-integration-form',
@@ -118,5 +119,14 @@ export class AzureIotHubIntegrationFormComponent extends IntegrationForm impleme
     return this.azureIotConfigForm.valid ? null : {
       azureIotConfigForm: {valid: false}
     };
+  }
+
+  updatedValidationPrivateNetwork() {
+    if (this.allowLocalNetwork) {
+      this.azureIotConfigForm.get('clientConfiguration.host').removeValidators(privateNetworkAddressValidator);
+    } else {
+      this.azureIotConfigForm.get('clientConfiguration.host').addValidators(privateNetworkAddressValidator);
+    }
+    this.azureIotConfigForm.get('clientConfiguration.host').updateValueAndValidity({emitEvent: false});
   }
 }

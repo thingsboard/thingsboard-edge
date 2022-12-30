@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>3.4.2PE-SNAPSHOT</version>
+        <version>3.4.3PE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -49,6 +49,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${basedir}/../..</main.dir>
+        <suite>black-box</suite>
     </properties>
 
     <dependencies>
@@ -144,6 +145,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.californium</groupId>
+            <artifactId>californium-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
@@ -216,8 +221,36 @@
             <artifactId>snmp</artifactId>
             <type>docker-info</type>
         </dependency>
+        <dependency>
+            <groupId>org.thingsboard.common</groupId>
+            <artifactId>message</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-iot-device-sdk-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-iot-device-sdk-java-samples</artifactId>
+        </dependency>
     </dependencies>
-
     <profiles>
         <profile>
             <id>do-nothing</id>
@@ -251,7 +284,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <suiteXmlFiles>
-                                <suiteXmlFile>src/test/resources/testNG.xml</suiteXmlFile>
+                                <suiteXmlFile>src/test/resources/${suite}.xml</suiteXmlFile>
                             </suiteXmlFiles>
                             <skipTests>${blackBoxTests.skip}</skipTests>
                         </configuration>
@@ -262,6 +295,16 @@
                                 <version>${surefire.version}</version>
                             </dependency>
                         </dependencies>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.qameta.allure</groupId>
+                        <artifactId>allure-maven</artifactId>
+                        <version>${allure-maven.version}</version>
+                        <configuration>
+                            <reportVersion>${allure-testng.version}</reportVersion>
+                            <allureDownloadUrl>https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/
+                                ${allure-testng.version}/allure-commandline-${allure-testng.version}.zip</allureDownloadUrl>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

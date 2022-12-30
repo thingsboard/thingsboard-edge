@@ -36,7 +36,11 @@
       <mat-form-field fxFlex class="mat-block">
         <mat-label translate>integration.host</mat-label>
         <input matInput required formControlName="host">
-        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">integration.host-required
+        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">
+          integration.host-required
+        </mat-error>
+        <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('privateNetwork')">
+          integration.host-private
         </mat-error>
       </mat-form-field>
       <mat-form-field fxFlex class="mat-block">
@@ -48,7 +52,7 @@
         <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.port').hasError('max')">integration.port-range</mat-error>
       </mat-form-field>
     </div>
-    <tb-integration-credentials formControlName="credentials"
+    <tb-integration-credentials formControlName="credentials" passwordOptional
       [allowCredentialTypes]="[IntegrationCredentialType.Anonymous, IntegrationCredentialType.Basic, IntegrationCredentialType.CertPEM]">
       <mat-slide-toggle class="checkbox" [aria-label]="'integration.enable-ssl' | translate" formControlName="ssl">
         {{ 'integration.enable-ssl' | translate }}

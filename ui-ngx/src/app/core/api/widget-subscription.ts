@@ -222,6 +222,7 @@ export class WidgetSubscription implements IWidgetSubscription {
       this.timeWindow = {};
       this.useDashboardTimewindow = options.useDashboardTimewindow;
       this.useTimewindow = true;
+      this.onTimewindowChangeFunction = options.onTimewindowChangeFunction || ((timewindow) => timewindow);
       if (this.useDashboardTimewindow) {
         this.timeWindowConfig = deepClone(options.dashboardTimewindow);
       } else {
@@ -1187,9 +1188,9 @@ export class WidgetSubscription implements IWidgetSubscription {
             if (!latest[latestRow.datasource.name]) {
               latest[latestRow.datasource.name] = {};
             }
-            latest[latestRow.datasource.name][latestRow.dataKey.name] = latestRow.data[0][1];
-            if (!allKeys[latestRow.dataKey.name]) {
-              allKeys[latestRow.dataKey.name] = true;
+            latest[latestRow.datasource.name][latestRow.dataKey.label] = latestRow.data[0][1];
+            if (!allKeys[latestRow.dataKey.label]) {
+              allKeys[latestRow.dataKey.label] = true;
             }
           });
         }

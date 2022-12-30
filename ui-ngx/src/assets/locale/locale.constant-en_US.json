@@ -358,6 +358,7 @@
         "repository-url-required": "Repository URL is required.",
         "default-branch": "Default branch name",
         "repository-read-only": "Read-only",
+        "show-merge-commits": "Show merge commits",
         "authentication-settings": "Authentication settings",
         "auth-method": "Authentication method",
         "auth-method-username-password": "Password / access token",
@@ -3065,6 +3066,8 @@
         "http-endpoint-url-copied-message": "HTTP endpoint URL has been copied to clipboard",
         "host": "Host",
         "host-required": "Host is required.",
+        "host-private": "Host must be in the public network.",
+        "url-private": "URL must be in the public network.",
         "host-type": "Host type",
         "host-type-required": "Host type is required.",
         "api-version": "Use API v3",
@@ -3909,7 +3912,7 @@
         "invalid-target-rulechain": "Unable to resolve target rule chain!",
         "test-script-function": "Test script function",
         "script-lang-java-script": "Java Script",
-        "script-lang-mvel": "MVEL",
+        "script-lang-tbel": "TBEL",
         "message": "Message",
         "message-type": "Message type",
         "select-message-type": "Select message type",
@@ -4042,7 +4045,8 @@
                 "EDGE_GROUP": "Edge Group",
                 "OTA_PACKAGE": "Ota package",
                 "QUEUE": "Queue",
-                "VERSION_CONTROL": "Version control"
+                "VERSION_CONTROL": "Version control",
+                "ASSET_PROFILE": "Asset Profile"
             }
         },
         "operation": {
@@ -4961,6 +4965,7 @@
         "order": "Order",
         "height": "Height",
         "mobile-hide": "Hide widget in mobile mode",
+        "desktop-hide": "Hide widget in desktop mode",
         "units": "Special symbol to show next to value",
         "decimals": "Number of digits after floating point",
         "timewindow": "Timewindow",
@@ -6181,7 +6186,7 @@
             "ko_KR": "한국어",
             "ru_RU": "Русский",
             "es_ES": "Español",
-            "es_CA": "Catalan",
+            "ca_ES": "Catalan",
             "ja_JP": "日本語",
             "tr_TR": "Türkçe",
             "fa_IR": "فارسي",
@@ -6192,7 +6197,8 @@
             "lv_LV": "Latviešu",
             "ka_GE": "ქართული",
             "pt_BR": "Português do Brasil",
-            "sl_SI": "Slovenščina"
+            "sl_SI": "Slovenščina",
+            "da_DK": "Dansk"
         }
     }
 }

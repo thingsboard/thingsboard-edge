@@ -37,6 +37,9 @@
     <mat-error translate *ngIf="apachePulsarIntegrationConfigForm.get('serviceUrl').hasError('required')">
       integration.service-url-required
     </mat-error>
+    <mat-error translate *ngIf="apachePulsarIntegrationConfigForm.get('serviceUrl').hasError('privateNetwork')">
+      integration.url-private
+    </mat-error>
   </mat-form-field>
 
   <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">

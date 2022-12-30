@@ -31,7 +31,7 @@
 
 -->
 <div class="tb-dashboard-page mat-content" [ngClass]="{'mobile-app': isMobileApp && !isEdit}"
-     fxFlex tb-fullscreen [fullscreen]="widgetEditMode || iframeMode || forceFullscreen || isFullscreen || reportView">
+     fxFlex tb-fullscreen [fullscreenElement]="elRef.nativeElement"  [fullscreen]="widgetEditMode || iframeMode || forceFullscreen || isFullscreen || reportView">
   <tb-hotkeys-cheatsheet #cheatSheetComponent></tb-hotkeys-cheatsheet>
   <section class="tb-dashboard-toolbar" [fxShow]="!reportView"
            [ngClass]="{ 'tb-dashboard-toolbar-opened': toolbarOpened,

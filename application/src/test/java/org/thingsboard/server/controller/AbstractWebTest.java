@@ -800,4 +800,10 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         throw new AssertionError("Unexpected status " + mvcResult.getResponse().getStatus());
     }
 
+    protected <T> T getFieldValue(Object target, String fieldName) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (T) field.get(target);
+    }
+
 }

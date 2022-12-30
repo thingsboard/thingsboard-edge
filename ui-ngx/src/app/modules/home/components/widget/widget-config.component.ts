@@ -274,7 +274,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
     this.layoutSettings = this.fb.group({
       mobileOrder: [null, [Validators.pattern(/^-?[0-9]+$/)]],
       mobileHeight: [null, [Validators.min(1), Validators.max(10), Validators.pattern(/^\d*$/)]],
-      mobileHide: [false]
+      mobileHide: [false],
+      desktopHide: [false]
     });
     this.actionsSettings = this.fb.group({
       actionsData: [null, []]
@@ -574,7 +575,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
             {
               mobileOrder: layout.mobileOrder,
               mobileHeight: layout.mobileHeight,
-              mobileHide: layout.mobileHide
+              mobileHide: layout.mobileHide,
+              desktopHide: layout.desktopHide
             },
             {emitEvent: false}
           );
@@ -583,7 +585,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, Cont
             {
               mobileOrder: null,
               mobileHeight: null,
-              mobileHide: false
+              mobileHide: false,
+              desktopHide: false
             },
             {emitEvent: false}
           );

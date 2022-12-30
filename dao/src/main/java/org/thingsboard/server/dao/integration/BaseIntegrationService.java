@@ -36,9 +36,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -62,7 +65,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
-@Service
+@Service("IntegrationDaoService")
 @Slf4j
 public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
@@ -159,11 +162,11 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     }
 
     @Override
-    public PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findTenantIntegrationInfosWithStats, tenantId [{}], pageLink [{}]", tenantId, pageLink);
+    public PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, boolean isEdgeTemplate, PageLink pageLink) {
+        log.trace("Executing findTenantIntegrationInfosWithStats, tenantId [{}], isEdgeTemplate [{}], pageLink [{}]", tenantId, isEdgeTemplate, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validatePageLink(pageLink);
-        return integrationInfoDao.findAllIntegrationInfosWithStats(tenantId.getId(), pageLink);
+        return integrationInfoDao.findAllIntegrationInfosWithStats(tenantId.getId(), isEdgeTemplate, pageLink);
     }
 
     @Override
@@ -271,5 +274,15 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
                     deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
                 }
             };
+
+    @Override
+    public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
+        return Optional.ofNullable(findIntegrationById(tenantId, new IntegrationId(entityId.getId())));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.INTEGRATION;
+    }
 
 }

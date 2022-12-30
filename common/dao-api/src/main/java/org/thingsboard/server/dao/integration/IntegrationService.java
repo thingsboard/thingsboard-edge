@@ -40,11 +40,12 @@ import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface IntegrationService {
+public interface IntegrationService extends EntityDaoService {
 
     Integration saveIntegration(Integration integration);
 
@@ -68,7 +69,7 @@ public interface IntegrationService {
 
     PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate);
 
-    PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, PageLink pageLink);
+    PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, boolean isEdgeTemplate, PageLink pageLink);
 
     void deleteIntegration(TenantId tenantId, IntegrationId integrationId);
 

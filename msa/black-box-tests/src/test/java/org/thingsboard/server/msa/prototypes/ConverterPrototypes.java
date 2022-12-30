@@ -42,6 +42,7 @@ public class ConverterPrototypes {
         converter.setName("Uplink converter " + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.UPLINK);
         converter.setConfiguration(config);
+        converter.setDebugMode(true);
         return converter;
     }
 
@@ -50,6 +51,7 @@ public class ConverterPrototypes {
         converter.setName("Downlink converter " + StringUtils.randomAlphanumeric(7));
         converter.setType(ConverterType.DOWNLINK);
         converter.setConfiguration(config);
+        converter.setDebugMode(true);
         return converter;
     }
 }

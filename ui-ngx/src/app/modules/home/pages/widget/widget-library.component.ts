@@ -98,6 +98,7 @@ export class WidgetLibraryComponent extends PageComponent implements OnInit {
 
   dashboardCallbacks: DashboardCallbacks = {
     onEditWidget: this.openWidgetType.bind(this),
+    onWidgetClicked: this.openWidgetType.bind(this),
     onExportWidget: this.exportWidgetType.bind(this),
     onRemoveWidget: this.removeWidgetType.bind(this)
   };

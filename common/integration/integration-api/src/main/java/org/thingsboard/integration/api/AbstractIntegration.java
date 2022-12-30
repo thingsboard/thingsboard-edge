@@ -96,7 +96,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             mdMap.put(md.getKey(), md.getValue().asText());
         }
         this.metadataTemplate = new UplinkMetaData(getDefaultUplinkContentType(), mdMap);
-        this.integrationStatistics = new IntegrationStatistics(context);
+
+        if (integrationStatistics == null) {
+            this.integrationStatistics = new IntegrationStatistics(context);
+        }
     }
 
     public void setConfiguration(Integration configuration) {
@@ -109,6 +112,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     @Override
     public void update(TbIntegrationInitParams params) throws Exception {
+        destroy();
         init(params);
     }
 
