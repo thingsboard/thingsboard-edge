@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge;
+package org.thingsboard.server.service.edge.instructions;
 
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -37,6 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface EdgeInstallService {
 
-    String getDockerInstallInstructions(TenantId tenantId, Edge edge, HttpServletRequest request);
+    EdgeInstallInstructions getDockerInstallInstructions(TenantId tenantId, Edge edge, HttpServletRequest request);
 
 }

@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge;
+package org.thingsboard.server.service.edge.instructions;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,18 +55,28 @@ public class DefaultEdgeInstallService implements EdgeInstallService {
 
     private static final String EDGE_DIR = "edge";
 
+    private static final String EDGE_VERSION = "3.4.2EDGE";
+
     private static final String EDGE_INSTALL_INSTRUCTIONS_DIR = "install_instructions";
 
     private final InstallScripts installScripts;
 
     @Override
-    public String getDockerInstallInstructions(TenantId tenantId, Edge edge, HttpServletRequest request) {
+    public EdgeInstallInstructions getDockerInstallInstructions(TenantId tenantId, Edge edge, HttpServletRequest request) {
+        String dockerInstallInstructions = readFile(resolveFile("docker", "instructions.md"));
         String baseUrl = request.getServerName();
-        String template = readFile(resolveFile("docker", "instructions.md"));
-        template = template.replace("${BASE_URL}", baseUrl);
-        template = template.replace("${CLOUD_ROUTING_KEY}", edge.getRoutingKey());
-        template = template.replace("${CLOUD_ROUTING_SECRET}", edge.getSecret());
-        return template;
+        if (baseUrl.contains("localhost") || baseUrl.contains("127.0.0.1")) {
+            String localhostWarning = readFile(resolveFile("docker", "localhost_warning.md"));
+            dockerInstallInstructions = dockerInstallInstructions.replace("${LOCALHOST_WARNING}", localhostWarning);
+            dockerInstallInstructions = dockerInstallInstructions.replace("${BASE_URL}", "!!!PLEASE_REPLACE_ME!!!");
+        } else {
+            dockerInstallInstructions = dockerInstallInstructions.replace("${LOCALHOST_WARNING}", "");
+            dockerInstallInstructions = dockerInstallInstructions.replace("${BASE_URL}", baseUrl);
+        }
+        dockerInstallInstructions = dockerInstallInstructions.replace("${EDGE_VERSION}", EDGE_VERSION);
+        dockerInstallInstructions = dockerInstallInstructions.replace("${CLOUD_ROUTING_KEY}", edge.getRoutingKey());
+        dockerInstallInstructions = dockerInstallInstructions.replace("${CLOUD_ROUTING_SECRET}", edge.getSecret());
+        return new EdgeInstallInstructions(dockerInstallInstructions);
     }
 
     private String readFile(Path file) {

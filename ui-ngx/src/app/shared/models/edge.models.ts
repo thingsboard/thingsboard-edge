@@ -209,6 +209,10 @@ export interface EdgeEvent extends BaseData<EventId> {
   body: string;
 }
 
+export interface EdgeInstallInstructions {
+  dockerInstallInstructions: string;
+}
+
 export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.USER,
   EntityType.ASSET,
@@ -216,3 +220,4 @@ export const edgeEntityGroupTypes: EntityType[] = [
   EntityType.ENTITY_VIEW,
   EntityType.DASHBOARD
 ];
+
