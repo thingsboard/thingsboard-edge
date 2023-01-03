@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeInstallInstructions;
 import org.thingsboard.server.common.data.edge.EdgeSearchQuery;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -77,7 +78,6 @@ import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.EdgeBulkImportService;
-import org.thingsboard.server.service.edge.instructions.EdgeInstallInstructions;
 import org.thingsboard.server.service.entitiy.edge.TbEdgeService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
