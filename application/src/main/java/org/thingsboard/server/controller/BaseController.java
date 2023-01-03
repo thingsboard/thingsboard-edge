@@ -73,11 +73,11 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.blob.BlobEntityWithCustomerInfo;
 import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -86,9 +86,9 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
-import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -126,7 +126,6 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.plugin.ComponentDescriptor;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.role.Role;
@@ -185,7 +184,7 @@ import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeLicenseService;
-import org.thingsboard.server.service.edge.EdgeNotificationService;
+import org.thingsboard.server.service.edge.instructions.EdgeInstallService;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
@@ -385,6 +384,9 @@ public abstract class BaseController {
 
     @Autowired(required = false)
     protected EdgeRpcService edgeRpcService;
+
+    @Autowired(required = false)
+    protected EdgeInstallService edgeInstallService;
 
     @Autowired(required = false)
     protected EdgeLicenseService edgeLicenseService;

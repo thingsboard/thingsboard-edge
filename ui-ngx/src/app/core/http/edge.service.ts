@@ -36,7 +36,7 @@ import { HttpClient } from '@angular/common/http';
 import { PageLink, TimePageLink } from '@shared/models/page/page-link';
 import { PageData } from '@shared/models/page/page-data';
 import { EntitySubtype } from '@app/shared/models/entity-type.models';
-import { Edge, EdgeEvent, EdgeSearchQuery } from '@shared/models/edge.models';
+import { Edge, EdgeEvent, EdgeInstallInstructions, EdgeSearchQuery } from '@shared/models/edge.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { BulkImportRequest, BulkImportResult } from '@home/components/import-export/import-export.models';
 
@@ -139,13 +139,17 @@ export class EdgeService {
     return this.http.post<BulkImportResult>('/api/edge/bulk_import', entitiesData, defaultHttpOptionsFromConfig(config));
   }
 
+  public getEdgeDockerInstallInstructions(edgeId: string, config?: RequestConfig): Observable<EdgeInstallInstructions> {
+    return this.http.get<EdgeInstallInstructions>(`/api/edge/instructions/${edgeId}`, defaultHttpOptionsFromConfig(config));
+  }
+
   public findAllRelatedEdgesMissingAttributes(integrationId: string, config?: RequestConfig): Observable<string> {
-    let url = `/api/edge/integration/${integrationId}/allMissingAttributes`;
+    const url = `/api/edge/integration/${integrationId}/allMissingAttributes`;
     return this.http.get<string>(url, defaultHttpOptionsFromConfig(config));
   }
 
   public findEdgeMissingAttributes(integrationIds: Array<string>, edgeId: string, config?: RequestConfig): Observable<string> {
-    let url = `/api/edge/integration/${edgeId}/missingAttributes?integrationIds=${integrationIds.join(',')}`;
+    const url = `/api/edge/integration/${edgeId}/missingAttributes?integrationIds=${integrationIds.join(',')}`;
     return this.http.get<string>(url, defaultHttpOptionsFromConfig(config));
   }
 }
