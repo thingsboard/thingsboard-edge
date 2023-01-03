@@ -37,5 +37,6 @@ public abstract class CustomerEntityDefinition extends BaseEntityDefinition {
 
     private String customer;
     private String group;
+    private boolean makePublic;
 
 }

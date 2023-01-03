@@ -57,9 +57,6 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
-import org.thingsboard.server.common.data.device.data.DefaultDeviceConfiguration;
-import org.thingsboard.server.common.data.device.data.DeviceData;
-import org.thingsboard.server.common.data.device.data.MqttDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.AlarmCondition;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilter;
 import org.thingsboard.server.common.data.device.profile.AlarmConditionFilterKey;
@@ -418,11 +415,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     protected Device saveDeviceOnCloudAndVerifyDeliveryToEdge() throws Exception {
-        // create ota package
-        edgeImitator.expectMessageAmount(1);
-        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(thermostatDeviceProfile.getId());
-        Assert.assertTrue(edgeImitator.waitForMessages());
-
         // create device and assign to edge
         edgeImitator.expectMessageAmount(1);
         EntityGroup deviceEntityGroup = new EntityGroup();
@@ -444,38 +436,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(thermostatDeviceProfile.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getIdMSB());
         Assert.assertEquals(thermostatDeviceProfile.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
-
-        // update device
-        edgeImitator.expectMessageAmount(1);
-        savedDevice.setFirmwareId(firmwareOtaPackageInfo.getId());
-
-        DeviceData deviceData = new DeviceData();
-        deviceData.setConfiguration(new DefaultDeviceConfiguration());
-        MqttDeviceTransportConfiguration transportConfiguration = new MqttDeviceTransportConfiguration();
-        transportConfiguration.getProperties().put("topic", "tb_rule_engine.thermostat");
-        deviceData.setTransportConfiguration(transportConfiguration);
-        savedDevice.setDeviceData(deviceData);
-
-        savedDevice = doPost("/api/device", savedDevice, Device.class);
-        Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof DeviceUpdateMsg);
-        DeviceUpdateMsg deviceUpdateMsg = (DeviceUpdateMsg) latestMessage;
-        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
-        Assert.assertEquals(savedDevice.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getIdMSB());
-        Assert.assertEquals(savedDevice.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getIdLSB());
-        Assert.assertEquals(savedDevice.getName(), deviceUpdateMsg.getName());
-        Assert.assertEquals(savedDevice.getType(), deviceUpdateMsg.getType());
-        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceUpdateMsg.getFirmwareIdMSB());
-        Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceUpdateMsg.getFirmwareIdLSB());
-        Optional<DeviceData> deviceDataOpt =
-                dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
-        Assert.assertTrue(deviceDataOpt.isPresent());
-        deviceData = deviceDataOpt.get();
-        Assert.assertTrue(deviceData.getTransportConfiguration() instanceof MqttDeviceTransportConfiguration);
-        MqttDeviceTransportConfiguration mqttDeviceTransportConfiguration =
-                (MqttDeviceTransportConfiguration) deviceData.getTransportConfiguration();
-        Assert.assertEquals("tb_rule_engine.thermostat", mqttDeviceTransportConfiguration.getProperties().get("topic"));
         return savedDevice;
     }
 

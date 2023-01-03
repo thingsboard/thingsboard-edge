@@ -179,6 +179,9 @@ public final class EdgeUtils {
     }
 
     public static boolean isEdgeGroupAll(String groupName) {
+        if (groupName == null) {
+            return false;
+        }
         return groupName.startsWith(EntityGroup.GROUP_EDGE_ALL_STARTS_WITH) && groupName.endsWith(EntityGroup.GROUP_EDGE_ALL_ENDS_WITH);
     }
 }
