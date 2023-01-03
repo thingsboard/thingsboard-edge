@@ -128,6 +128,7 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.service.solutions.data.CreatedEntityInfo;
 import org.thingsboard.server.service.solutions.data.DashboardLinkInfo;
 import org.thingsboard.server.service.solutions.data.DeviceCredentialsInfo;
+import org.thingsboard.server.service.solutions.data.EdgeLinkInfo;
 import org.thingsboard.server.service.solutions.data.SolutionInstallContext;
 import org.thingsboard.server.service.solutions.data.UserCredentialsInfo;
 import org.thingsboard.server.service.solutions.data.definition.AssetDefinition;
@@ -607,6 +608,17 @@ public class DefaultSolutionService implements SolutionService {
         }
 
         template = template.replace("${all_entities}", entityList.toString());
+
+        for (Map.Entry<String, EdgeLinkInfo> edgeLinkInfoEntry : ctx.getCreatedEdges().entrySet()) {
+            EdgeLinkInfo edgeLinkInfo = edgeLinkInfoEntry.getValue();
+            StringBuilder edgeDetailsUrl = new StringBuilder();
+            if (EntityType.CUSTOMER.equals(edgeLinkInfo.getOwnerId().getEntityType())) {
+                edgeDetailsUrl.append("/customerGroups/").append(edgeLinkInfo.getAllCustomerGroupId()).append("/").append(edgeLinkInfo.getOwnerId().getId());
+            }
+            edgeDetailsUrl.append("/edgeGroups/").append(edgeLinkInfo.getAllEdgeGroupId().getId()).append("/").append(edgeLinkInfo.getEdgeId().getId());
+            String edgeName = edgeLinkInfoEntry.getKey();
+            template = template.replace("${" + edgeName + "EDGE_DETAILS_URL}", edgeDetailsUrl.toString());
+        }
 
         return template;
     }
@@ -1114,7 +1126,7 @@ public class DefaultSolutionService implements SolutionService {
         throw new RuntimeException(finalE);
     }
 
-    private void provisionEdges(SolutionInstallContext ctx, HttpServletRequest request) {
+    private void provisionEdges(SolutionInstallContext ctx, HttpServletRequest request) throws ThingsboardException {
         List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
         RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
         for (EdgeDefinition entityDef : edges) {
@@ -1143,6 +1155,17 @@ public class DefaultSolutionService implements SolutionService {
             saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
+
+            Optional<EntityGroup> allEdgeGroup =
+                    entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entity.getOwnerId(), EntityType.EDGE, EntityGroup.GROUP_ALL_NAME);
+            EntityGroupId allCustomerGroupId = null;
+            if (EntityType.CUSTOMER.equals(entity.getOwnerId().getEntityType())) {
+                Optional<EntityGroup> allCustomerGroup =
+                        entityGroupService.findEntityGroupByTypeAndName(ctx.getTenantId(), entity.getTenantId(), EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
+                allCustomerGroupId = allCustomerGroup.get().getId();
+            }
+            EdgeLinkInfo edgeLinkInfo = new EdgeLinkInfo(entity.getId(), entity.getOwnerId(), allEdgeGroup.get().getId(), allCustomerGroupId);
+            ctx.addEdgeLinkInfo(entity.getName(), edgeLinkInfo);
         }
     }
 

@@ -79,6 +79,7 @@ public class SolutionInstallContext {
     private final Map<String, UserCredentialsInfo> createdUsers = new LinkedHashMap<>();
     private final Map<String, CreatedEntityInfo> createdEntities = new LinkedHashMap<>();
     private final List<DashboardLinkInfo> dashboardLinks = new ArrayList<>();
+    private final Map<String, EdgeLinkInfo> createdEdges = new LinkedHashMap<>();
 
     public SolutionInstallContext(TenantId tenantId, String solutionId, User user, TenantSolutionTemplateInstructions solutionInstructions) {
         this.tenantId = tenantId;
@@ -197,4 +198,7 @@ public class SolutionInstallContext {
         createdUsers.put(userCredentialsInfo.getName(), userCredentialsInfo);
     }
 
+    public void addEdgeLinkInfo(String edgeName, EdgeLinkInfo edgeLinkInfo) {
+        createdEdges.put(edgeName, edgeLinkInfo);
+    }
 }

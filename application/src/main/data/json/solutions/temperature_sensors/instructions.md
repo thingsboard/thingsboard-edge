@@ -54,3 +54,19 @@ ${user_list}
 As part of this solution, the following entities were created:
 
 ${all_entities}
+
+### [Optional] Edge computing
+
+ThingsBoard Edge allows bringing data analysis and management to the edge, where the data created.
+At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
+
+This solution can be deployed to the edge. 
+New edge entity was already added to a customer "Customer D".
+Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment.
+
+ThingsBoard Edge is a separate service that must be installed, configured and connected to the cloud. 
+The easiest way to install ThingsBoard Edge is to use Docker Compose.
+Docker compose installation instructions are available on the <a href="${Edge - Remote SensorsEDGE_DETAILS_URL}" target="_blank">Edge details page</a>.
+Please click on the "Install & Connect instructions" button on the Edge details page to see the instructions.
+
+Once, the Edge is installed and connected to the cloud, you will be able to log in into Edge using your tenant credentials or "Customer D" users from "Customer Administrators" group.
