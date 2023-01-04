@@ -67,6 +67,9 @@ public class DefaultEdgeInstallService implements EdgeInstallService {
     @Value("${edges.rpc.ssl.enabled}")
     private boolean sslEnabled;
 
+    @Value("${app.version:unknown}")
+    private String appVersion;
+
     @Override
     public EdgeInstallInstructions getDockerInstallInstructions(TenantId tenantId, Edge edge, HttpServletRequest request) {
         String dockerInstallInstructions = readFile(resolveFile("docker", "instructions.md"));
@@ -79,6 +82,7 @@ public class DefaultEdgeInstallService implements EdgeInstallService {
             dockerInstallInstructions = dockerInstallInstructions.replace("${LOCALHOST_WARNING}", "");
             dockerInstallInstructions = dockerInstallInstructions.replace("${BASE_URL}", baseUrl);
         }
+        dockerInstallInstructions = dockerInstallInstructions.replace("${TB_EDGE_VERSION}", appVersion.replace("PE", "EDGEPE"));
         dockerInstallInstructions = dockerInstallInstructions.replace("${CLOUD_ROUTING_KEY}", edge.getRoutingKey());
         dockerInstallInstructions = dockerInstallInstructions.replace("${CLOUD_ROUTING_SECRET}", edge.getSecret());
         dockerInstallInstructions = dockerInstallInstructions.replace("${CLOUD_RPC_PORT}", Integer.toString(rpcPort));
