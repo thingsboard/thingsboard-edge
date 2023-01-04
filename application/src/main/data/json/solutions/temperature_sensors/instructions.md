@@ -38,7 +38,7 @@ See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" t
 ### Alarms
 
 Alarms are generated using two <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
-"Temperature Sensor" <a href="/deviceProfiles" target="_blank">device profile</a>.
+"Temperature Sensor" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>.
 User may turn alarms on and off as well as configure the alarm thresholds via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Temperature & Humidity"</a> dashboard using "Edit Sensor" form. 
 
 ### Customers

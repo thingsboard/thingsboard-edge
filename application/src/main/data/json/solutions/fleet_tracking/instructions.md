@@ -38,7 +38,7 @@ See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" t
 ### Alarms
 
 Alarms are generated using three <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
-"bus" <a href="/deviceProfiles" target="_blank">device profile</a>: "Speed limit", "Stopped" and "Low fuel" alarm types.
+"bus" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>: "Speed limit", "Stopped" and "Low fuel" alarm types.
 
 ### Solution entities
 
