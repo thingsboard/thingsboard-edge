@@ -88,15 +88,13 @@ You can see devices from this group once you log in into edge and navigate to th
 To emulate the data upload on behalf of device "Sensor C1" to the edge, one should execute the following command:
 
 ```bash
-curl -v -X POST -d "{\"temperature\":  43, \"humidity\":  74}" http://localhost:8080/api/v1/${Sensor C1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"
-{:copy-code}
+curl -v -X POST -d "{\"temperature\":  43, \"humidity\":  74}" http://localhost:8080/api/v1/${Sensor C1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
 Or please use next command if you updated edge HTTP 8080 bind port to **18080** during edge installation:
 
 ```bash
-curl -v -X POST -d "{\"temperature\":  43, \"humidity\":  74}" http://localhost:18080/api/v1/${Sensor C1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"
-{:copy-code}
+curl -v -X POST -d "{\"temperature\":  43, \"humidity\":  74}" http://localhost:18080/api/v1/${Sensor C1ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-Once you'll push data to the device "Sensor C1" on edge, you'll be able to see telemetry update on the cloud for device "Sensor C1" as well.
+Once you'll push data to the device "Sensor C1" on edge, you'll be able to see telemetry update on the cloud for this device as well.
