@@ -122,3 +122,24 @@ Docker compose installation instructions are available on the edge details page.
 Please navigate to <a href="${Remote Office R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
 
 Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials.
+
+#### Push data to device on edge
+
+**"Office sensors"** *DEVICE* group was assigned to the edge entity "Remote Office R1".
+This means that all devices from this group will be automatically provisioned to the edge.
+
+You can see devices from this group once you log in into edge and navigate to the **Device groups** page.
+
+To emulate the data upload on behalf of device "Smart sensor" to the edge, one should execute the following command:
+
+```bash
+curl -v -X POST -d "{\"co2\": 500, \"tvoc\": 0.3, \"temperature\": 22.5, \"humidity\": 50, \"occupancy\": true}" http://localhost:8080/api/v1/${Smart sensorACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Or please use next command if you updated edge HTTP 8080 bind port to **18080** during edge installation:
+
+```bash
+curl -v -X POST -d "{\"co2\": 500, \"tvoc\": 0.3, \"temperature\": 22.5, \"humidity\": 50, \"occupancy\": true}" http://localhost:18080/api/v1/${Smart sensorACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Once you'll push data to the device "Smart sensor" on edge, you'll be able to see telemetry update on the cloud for this device as well.
