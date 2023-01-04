@@ -61,7 +61,7 @@ Most of the water meters are using LoRaWAN, Sigfox or NB IoT technology. Please 
 ### Alarms
 
 Alarms are generated using three <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
-"Water Meter" <a href="/deviceProfiles" target="_blank">device profile</a>. 
+"Water Meter" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>. 
 Alarms notifications are sent via SMS or email to Tenant Administrators and Customer Users depending on the thresholds and settings defined in the dashboard.
 
 ### Rule Chains

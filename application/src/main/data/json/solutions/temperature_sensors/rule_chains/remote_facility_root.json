@@ -8,7 +8,8 @@
     "firstRuleNodeId": null,
     "root": false,
     "debugMode": false,
-    "configuration": null
+    "configuration": null,
+    "externalId": null
   },
   "metadata": {
     "firstNodeIndex": 6,
@@ -23,19 +24,21 @@
         "debugMode": false,
         "configuration": {
           "defaultTTL": 0
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
           "layoutX": 824,
-          "layoutY": 221
+          "layoutY": 185
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
         "debugMode": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -47,7 +50,8 @@
         "debugMode": false,
         "configuration": {
           "version": 0
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -61,7 +65,8 @@
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -75,7 +80,8 @@
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
           "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -87,7 +93,8 @@
         "debugMode": false,
         "configuration": {
           "timeoutInSeconds": 60
-        }
+        },
+        "externalId": null
       },
       {
         "additionalInfo": {
@@ -101,19 +108,34 @@
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
-        }
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1122,
+          "layoutY": 187
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "Push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
       }
     ],
     "connections": [
       {
-        "fromIndex": 2,
-        "toIndex": 4,
-        "type": "Other"
+        "fromIndex": 0,
+        "toIndex": 7,
+        "type": "Success"
       },
       {
-        "fromIndex": 2,
-        "toIndex": 1,
-        "type": "Post attributes"
+        "fromIndex": 1,
+        "toIndex": 7,
+        "type": "Success"
       },
       {
         "fromIndex": 2,
@@ -122,13 +144,28 @@
       },
       {
         "fromIndex": 2,
+        "toIndex": 1,
+        "type": "Post attributes"
+      },
+      {
+        "fromIndex": 2,
         "toIndex": 3,
         "type": "RPC Request from Device"
       },
       {
         "fromIndex": 2,
+        "toIndex": 4,
+        "type": "Other"
+      },
+      {
+        "fromIndex": 2,
         "toIndex": 5,
         "type": "RPC Request to Device"
+      },
+      {
+        "fromIndex": 2,
+        "toIndex": 7,
+        "type": "Attributes Updated"
       },
       {
         "fromIndex": 6,
