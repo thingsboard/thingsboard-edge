@@ -62,7 +62,7 @@ Optionally, this solution can be deployed to the edge.
 <a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
 At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
  
-New <a href="${Edge - Remote SensorsEDGE_DETAILS_URL}" target="_blank">edge</a> entity was already added to a customer "Customer D".
+In the scope of this solution, new <a href="${Edge - Remote SensorsEDGE_DETAILS_URL}" target="_blank">edge</a> entity was added to a customer "Customer D".
 
 Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
 
@@ -71,9 +71,9 @@ Additionally, particular entity groups were already assigned to the edge entity 
 * **"Customer dashboards"** *DASHBOARD* group of your tenant.
 
 ThingsBoard Edge is a separate service that must be installed, configured and connected to the cloud. 
-The easiest way to install ThingsBoard Edge is to use <a href="https://docs.docker.com/compose/install/" target="_blank"> Docker Compose</a>.
+The easiest way to install ThingsBoard Edge is to use <a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a>.
 
-Docker compose installation instructions are available on the Edge details page.
-Please navigate to <a href="${Edge - Remote SensorsEDGE_DETAILS_URL}" target="_blank">Edge details page</a> and click "Install & Connect instructions" button to see the instructions.
+Docker compose installation instructions are available on the edge details page.
+Please navigate to <a href="${Edge - Remote SensorsEDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
 
-Once, the Edge is installed and connected to the cloud, you will be able to log in into Edge using your tenant credentials or customer administrators of customer "Customer D".
+Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials or customer administrators of customer "Customer D".

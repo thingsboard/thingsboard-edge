@@ -140,6 +140,7 @@ import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition
 import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EdgeEntityGroupDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
+import org.thingsboard.server.service.solutions.data.definition.EntitySearchKey;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
@@ -667,6 +668,9 @@ public class DefaultSolutionService implements SolutionService {
             }
             ctx.register(entityDefinition.getJsonId(), savedRuleChain);
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
+            if (RuleChainType.EDGE.equals(ruleChain.getType())) {
+                ctx.put(new EntitySearchKey(ctx.getTenantId(), EntityType.RULE_CHAIN, savedRuleChain.getName(), false), savedRuleChain.getId());
+            }
         }
     }
 
@@ -1140,9 +1144,13 @@ public class DefaultSolutionService implements SolutionService {
             entity.setSecret(StringUtils.randomAlphanumeric(20));
             entity.setEdgeLicenseKey("1234567890");
             entity.setCloudEndpoint(systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
-            entity.setRootRuleChainId(edgeTemplateRootRuleChain.getId());
+            RuleChainId rootRuleChainId = edgeTemplateRootRuleChain.getId();
+            if (StringUtils.isNotBlank(entityDef.getRootRuleChain())) {
+                rootRuleChainId = ctx.getIdFromMap(EntityType.RULE_CHAIN, entityDef.getRootRuleChain());
+            }
+            entity.setRootRuleChainId(rootRuleChainId);
             entity = edgeService.saveEdge(entity);
-            ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), edgeTemplateRootRuleChain.getId(), entity.getId());
+            ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), rootRuleChainId, entity.getId());
             edgeService.assignTenantAdministratorsAndUsersGroupToEdge(ctx.getTenantId(), entity.getId());
             assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);

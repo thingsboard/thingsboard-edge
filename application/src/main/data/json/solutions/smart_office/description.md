@@ -4,10 +4,13 @@ With a Smart Office template you get the tool for effective facility management.
 We share this and other templates with you to make the onboarding faster and simpler; to present the value that you can bring to the end users.
 
 #### Benefits
-No need to develop specific rule chains, set up alarm rules, configure transport, and spend time with multi-layer interactive dashboard development
+
+No need to develop specific rule chains, set up alarm rules, configure transport, and spend time with multi-layer interactive dashboard development.
+
 One-click install and uninstall of the template.
 
 #### What’s available?
+
 The Administrator benefits from real-time and historical data reports over resource consumptions while the End User enjoys the device control capabilities. All the devices are placed on the floor plan (image map) as well as within the table for your convenience. Administrator user can onboard new devices from the dashboard. Basic alarm management is done via a particular widget which renders alerts from all things in the system on the root state.
 
 #### How to use?
