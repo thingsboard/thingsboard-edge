@@ -1404,6 +1404,9 @@ public class DefaultSolutionService implements SolutionService {
             case SCHEDULER_EVENT:
                 schedulerEventService.deleteSchedulerEvent(tenantId, new SchedulerEventId(entityId.getId()));
                 break;
+            case EDGE:
+                edgeService.deleteEdge(tenantId, new EdgeId(entityId.getId()));
+                break;
         }
     }
 
