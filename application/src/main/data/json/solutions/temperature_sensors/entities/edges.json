@@ -3,7 +3,7 @@
     "name": "Edge - Remote Sensors",
     "type": "site",
     "customer": "Customer D",
-    "rootRuleChain": "Edge Root - Temperature & Humidity Sensors",
+    "rootRuleChainId": "93df11df-2fef-4177-8cda-1571e94f5d18",
     "attributes": {},
     "relations": [],
     "userGroups": [

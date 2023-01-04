@@ -47,7 +47,7 @@ public class EdgeDefinition extends CustomerEntityDefinition {
 
     private String type;
     private String label;
-    private String rootRuleChain;
+    private String rootRuleChainId;
 
     private List<EdgeEntityGroupDefinition> userGroups = Collections.emptyList();
     private List<EdgeEntityGroupDefinition> assetGroups = Collections.emptyList();

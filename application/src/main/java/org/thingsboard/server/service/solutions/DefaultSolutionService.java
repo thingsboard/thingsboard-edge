@@ -140,7 +140,6 @@ import org.thingsboard.server.service.solutions.data.definition.DeviceDefinition
 import org.thingsboard.server.service.solutions.data.definition.EdgeDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EdgeEntityGroupDefinition;
 import org.thingsboard.server.service.solutions.data.definition.EmulatorDefinition;
-import org.thingsboard.server.service.solutions.data.definition.EntitySearchKey;
 import org.thingsboard.server.service.solutions.data.definition.GroupRoleDefinition;
 import org.thingsboard.server.service.solutions.data.definition.ReferenceableEntityDefinition;
 import org.thingsboard.server.service.solutions.data.definition.RelationDefinition;
@@ -668,9 +667,6 @@ public class DefaultSolutionService implements SolutionService {
             }
             ctx.register(entityDefinition.getJsonId(), savedRuleChain);
             tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
-            if (RuleChainType.EDGE.equals(ruleChain.getType())) {
-                ctx.put(new EntitySearchKey(ctx.getTenantId(), EntityType.RULE_CHAIN, savedRuleChain.getName(), false), savedRuleChain.getId());
-            }
         }
     }
 
@@ -1145,8 +1141,14 @@ public class DefaultSolutionService implements SolutionService {
             entity.setEdgeLicenseKey("TODO_FIX_ME");
             entity.setCloudEndpoint(systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
             RuleChainId rootRuleChainId = edgeTemplateRootRuleChain.getId();
-            if (StringUtils.isNotBlank(entityDef.getRootRuleChain())) {
-                rootRuleChainId = ctx.getIdFromMap(EntityType.RULE_CHAIN, entityDef.getRootRuleChain());
+            if (StringUtils.isNotBlank(entityDef.getRootRuleChainId())) {
+                String newId = ctx.getRealIds().get(entityDef.getRootRuleChainId());
+                if (newId != null) {
+                    rootRuleChainId = new RuleChainId(UUID.fromString(newId));
+                } else {
+                    log.error("[{}][{}] Edge: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                    throw new ThingsboardRuntimeException();
+                }
             }
             entity.setRootRuleChainId(rootRuleChainId);
             entity = edgeService.saveEdge(entity);
