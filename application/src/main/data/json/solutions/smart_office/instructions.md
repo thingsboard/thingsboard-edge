@@ -92,10 +92,33 @@ The commands are sent using the platform <a href="https://thingsboard.io/docs/us
 ### Alarms
 
 Alarms are generated using <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
-"smart-sensor" <a href="/deviceProfiles" target="_blank">device profile</a>.
+"smart-sensor" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>.
 
 ### Solution entities
 
 As part of this solution, the following entities were created:
 
 ${all_entities}
+
+### [Optional] Edge computing
+
+Optionally, this solution can be deployed to the edge.
+
+<a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
+At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
+
+In the scope of this solution, new <a href="${Remote Office R1EDGE_DETAILS_URL}" target="_blank">edge</a> entity "Remote Office R1" was created.
+
+Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
+
+* **"Buildings"** *ASSET* group;
+* **"Office sensors"** *DEVICE* group;
+* **"Smart office dashboards"** *DASHBOARD* group.
+
+ThingsBoard Edge is a separate service that must be installed, configured and connected to the cloud.
+The easiest way to install ThingsBoard Edge is to use <a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a>.
+
+Docker compose installation instructions are available on the edge details page.
+Please navigate to <a href="${Remote Office R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
+
+Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant credentials.
