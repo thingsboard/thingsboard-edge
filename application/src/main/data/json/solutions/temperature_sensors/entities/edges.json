@@ -1,7 +1,7 @@
 [
   {
-    "name": "Edge - Remote Sensors",
-    "type": "site",
+    "name": "Remote Facility R1",
+    "type": "facility",
     "customer": "Customer D",
     "rootRuleChainId": "93df11df-2fef-4177-8cda-1571e94f5d18",
     "attributes": {},

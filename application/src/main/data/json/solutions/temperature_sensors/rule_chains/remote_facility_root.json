@@ -3,7 +3,7 @@
     "additionalInfo": {
       "description": ""
     },
-    "name": "Edge Root - Temperature & Humidity Sensors",
+    "name": "Remote Facility - Temperature & Humidity Sensors",
     "type": "EDGE",
     "firstRuleNodeId": null,
     "root": false,
