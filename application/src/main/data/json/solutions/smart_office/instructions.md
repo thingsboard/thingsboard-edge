@@ -130,16 +130,16 @@ This means that all devices from this group will be automatically provisioned to
 
 You can see devices from this group once you log in into edge and navigate to the **Device groups** page.
 
-To emulate the data upload on behalf of device "Smart sensor" to the edge, one should execute the following command:
+To emulate the data upload on behalf of device "Energy meter" to the edge, one should execute the following command:
 
 ```bash
-curl -v -X POST -d "{\"co2\": 500, \"tvoc\": 0.3, \"temperature\": 22.5, \"humidity\": 50, \"occupancy\": true}" http://localhost:8080/api/v1/${Smart sensorACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+curl -v -X POST -d "{\"voltage\":  220, \"frequency\":  60, \"amperage\": 16, \"power\": 3000, \"energy\": 300}" http://localhost:8080/api/v1/${Energy meterACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
 Or please use next command if you updated edge HTTP 8080 bind port to **18080** during edge installation:
 
 ```bash
-curl -v -X POST -d "{\"co2\": 500, \"tvoc\": 0.3, \"temperature\": 22.5, \"humidity\": 50, \"occupancy\": true}" http://localhost:18080/api/v1/${Smart sensorACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+curl -v -X POST -d "{\"voltage\":  220, \"frequency\":  60, \"amperage\": 16, \"power\": 3000, \"energy\": 300}" http://localhost:18080/api/v1/${Energy meterACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
 ```
 
-Once you'll push data to the device "Smart sensor" on edge, you'll be able to see telemetry update on the cloud for this device as well.
+Once you'll push data to the device "Energy meter" on edge, you'll be able to see telemetry update on the cloud for this device as well.
