@@ -28,7 +28,9 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
@@ -86,24 +88,27 @@ public class DeviceProfileCloudProcessor extends BaseCloudProcessor {
                             ? DeviceProfileProvisionType.valueOf(deviceProfileUpdateMsg.getProvisionType()) : DeviceProfileProvisionType.DISABLED);
                     deviceProfile.setProvisionDeviceKey(deviceProfileUpdateMsg.hasProvisionDeviceKey()
                             ? deviceProfileUpdateMsg.getProvisionDeviceKey() : null);
+
                     Optional<DeviceProfileData> profileDataOpt =
                             dataDecodingEncodingService.decode(deviceProfileUpdateMsg.getProfileDataBytes().toByteArray());
-                    if (profileDataOpt.isPresent()) {
-                        deviceProfile.setProfileData(profileDataOpt.get());
-                    } else {
-                        deviceProfile.setProfileData(null);
-                    }
-                    if (deviceProfileUpdateMsg.getDefaultRuleChainIdMSB() != 0 &&
-                            deviceProfileUpdateMsg.getDefaultRuleChainIdLSB() != 0) {
-                        RuleChainId defaultRuleChainId = new RuleChainId(
-                                new UUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB()));
-                        deviceProfile.setDefaultRuleChainId(defaultRuleChainId);
-                    } else {
-                        deviceProfile.setDefaultRuleChainId(null);
-                    }
+                    deviceProfile.setProfileData(profileDataOpt.orElse(null));
+
+                    UUID defaultRuleChainUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultRuleChainIdMSB(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
+                    deviceProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
+
+                    UUID defaultDashboardUUID = safeGetUUID(deviceProfileUpdateMsg.getDefaultDashboardIdMSB(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
+                    deviceProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
+
                     String defaultQueueName = StringUtils.isNotBlank(deviceProfileUpdateMsg.getDefaultQueueName())
                             ? deviceProfileUpdateMsg.getDefaultQueueName() : null;
                     deviceProfile.setDefaultQueueName(defaultQueueName);
+
+                    UUID firmwareUUID = safeGetUUID(deviceProfileUpdateMsg.getFirmwareIdMSB(), deviceProfileUpdateMsg.getFirmwareIdLSB());
+                    deviceProfile.setFirmwareId(firmwareUUID != null ? new OtaPackageId(firmwareUUID) : null);
+
+                    UUID softwareUUID = safeGetUUID(deviceProfileUpdateMsg.getSoftwareIdMSB(), deviceProfileUpdateMsg.getSoftwareIdLSB());
+                    deviceProfile.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
+
                     DeviceProfile savedDeviceProfile = deviceProfileService.saveDeviceProfile(deviceProfile, false);
 
                     // TODO: @voba - move this part to device profile notification service

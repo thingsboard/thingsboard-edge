@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
@@ -70,7 +71,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                createDevice(tenantId, edgeCustomerId, deviceUpdateMsg);
+                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 Device deviceById = deviceService.findDeviceById(tenantId, deviceId);
@@ -151,12 +152,10 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         return Futures.immediateFuture(null);
     }
 
-    private Device createDevice(TenantId tenantId, CustomerId edgeCustomerId, DeviceUpdateMsg deviceUpdateMsg) {
-        Device device;
+    private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg, CustomerId edgeCustomerId) {
         deviceCreationLock.lock();
         try {
-            DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
-            device = deviceService.findDeviceById(tenantId, deviceId);
+            Device device = deviceService.findDeviceById(tenantId, deviceId);
             boolean created = false;
             String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
@@ -176,22 +175,22 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             device.setLabel(deviceUpdateMsg.hasLabel() ? deviceUpdateMsg.getLabel() : null);
             device.setAdditionalInfo(deviceUpdateMsg.hasAdditionalInfo()
                     ? JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()) : null);
-            if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
-                DeviceProfileId deviceProfileId = new DeviceProfileId(
-                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(),
-                                deviceUpdateMsg.getDeviceProfileIdLSB()));
-                device.setDeviceProfileId(deviceProfileId);
-            } else {
-                device.setDeviceProfileId(null);
-            }
+
+            UUID deviceProfileUUID = safeGetUUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB());
+            device.setDeviceProfileId(deviceProfileUUID != null ? new DeviceProfileId(deviceProfileUUID) : null);
+
             device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
+
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
-            if (deviceDataOpt.isPresent()) {
-                device.setDeviceData(deviceDataOpt.get());
-            } else {
-                device.setDeviceData(null);
-            }
+            device.setDeviceData(deviceDataOpt.orElse(null));
+
+            UUID firmwareUUID = safeGetUUID(deviceUpdateMsg.getFirmwareIdMSB(), deviceUpdateMsg.getFirmwareIdLSB());
+            device.setFirmwareId(firmwareUUID != null ? new OtaPackageId(firmwareUUID) : null);
+
+            UUID softwareUUID = safeGetUUID(deviceUpdateMsg.getSoftwareIdMSB(), deviceUpdateMsg.getSoftwareIdLSB());
+            device.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
+
             if (created) {
                 deviceValidator.validate(device, Device::getTenantId);
                 device.setId(deviceId);
@@ -210,7 +209,6 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         } finally {
             deviceCreationLock.unlock();
         }
-        return device;
     }
 
     public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
