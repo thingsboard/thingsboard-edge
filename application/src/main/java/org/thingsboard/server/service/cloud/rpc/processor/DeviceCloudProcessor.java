@@ -50,11 +50,8 @@ import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-<<<<<<< HEAD
 import org.thingsboard.server.common.data.id.EntityGroupId;
-=======
 import org.thingsboard.server.common.data.id.OtaPackageId;
->>>>>>> edge-ce/develop/3.5
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
@@ -88,11 +85,7 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-<<<<<<< HEAD
                 saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
-=======
-                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId);
->>>>>>> edge-ce/develop/3.5
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
