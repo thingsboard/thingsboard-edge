@@ -38,11 +38,12 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface RoleService {
+public interface RoleService extends EntityDaoService {
 
     Role saveRole(TenantId tenantId, Role role, boolean doValidate);
 

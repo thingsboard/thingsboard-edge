@@ -444,8 +444,6 @@ public abstract class BaseEntityViewControllerTest extends AbstractControllerTes
     }
 
     private void uploadTelemetry(String strKvs, String accessToken) throws Exception {
-        String viewDeviceId = testDevice.getId().getId().toString();
-
         String clientId = MqttAsyncClient.generateClientId();
         MqttAsyncClient client = new MqttAsyncClient("tcp://localhost:1883", clientId, new MemoryPersistence());
 
