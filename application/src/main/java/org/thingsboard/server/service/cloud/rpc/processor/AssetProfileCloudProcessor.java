@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -92,14 +93,13 @@ public class AssetProfileCloudProcessor extends BaseCloudProcessor {
                     assetProfile.setDescription(assetProfileUpdateMsg.hasDescription() ? assetProfileUpdateMsg.getDescription() : null);
                     assetProfile.setImage(assetProfileUpdateMsg.hasImage()
                             ? new String(assetProfileUpdateMsg.getImage().toByteArray(), StandardCharsets.UTF_8) : null);
-                    if (assetProfileUpdateMsg.getDefaultDashboardIdMSB() != 0 &&
-                            assetProfileUpdateMsg.getDefaultDashboardIdLSB() != 0) {
-                        DashboardId defaultDashboardId = new DashboardId(
-                                new UUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB()));
-                        assetProfile.setDefaultDashboardId(defaultDashboardId);
-                    } else {
-                        assetProfile.setDefaultDashboardId(null);
-                    }
+
+                    UUID defaultRuleChainUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultRuleChainIdMSB(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
+                    assetProfile.setDefaultRuleChainId(defaultRuleChainUUID != null ? new RuleChainId(defaultRuleChainUUID) : null);
+
+                    UUID defaultDashboardUUID = safeGetUUID(assetProfileUpdateMsg.getDefaultDashboardIdMSB(), assetProfileUpdateMsg.getDefaultDashboardIdLSB());
+                    assetProfile.setDefaultDashboardId(defaultDashboardUUID != null ? new DashboardId(defaultDashboardUUID) : null);
+
                     AssetProfile savedAssetProfile = assetProfileService.saveAssetProfile(assetProfile, false);
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedAssetProfile.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);

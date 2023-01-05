@@ -50,7 +50,11 @@ import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+<<<<<<< HEAD
 import org.thingsboard.server.common.data.id.EntityGroupId;
+=======
+import org.thingsboard.server.common.data.id.OtaPackageId;
+>>>>>>> edge-ce/develop/3.5
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
@@ -84,7 +88,11 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
         switch (deviceUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
+<<<<<<< HEAD
                 saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
+=======
+                saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edgeCustomerId);
+>>>>>>> edge-ce/develop/3.5
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
@@ -173,10 +181,9 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
     }
 
     private void saveOrUpdateDevice(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
-        Device device;
         deviceCreationLock.lock();
         try {
-            device = deviceService.findDeviceById(tenantId, deviceId);
+            Device device = deviceService.findDeviceById(tenantId, deviceId);
             boolean created = false;
             String deviceName = deviceUpdateMsg.getName();
             if (device == null) {
@@ -196,22 +203,22 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             device.setLabel(deviceUpdateMsg.hasLabel() ? deviceUpdateMsg.getLabel() : null);
             device.setAdditionalInfo(deviceUpdateMsg.hasAdditionalInfo()
                     ? JacksonUtil.toJsonNode(deviceUpdateMsg.getAdditionalInfo()) : null);
-            if (deviceUpdateMsg.hasDeviceProfileIdMSB() && deviceUpdateMsg.hasDeviceProfileIdLSB()) {
-                DeviceProfileId deviceProfileId = new DeviceProfileId(
-                        new UUID(deviceUpdateMsg.getDeviceProfileIdMSB(),
-                                deviceUpdateMsg.getDeviceProfileIdLSB()));
-                device.setDeviceProfileId(deviceProfileId);
-            } else {
-                device.setDeviceProfileId(null);
-            }
+
+            UUID deviceProfileUUID = safeGetUUID(deviceUpdateMsg.getDeviceProfileIdMSB(), deviceUpdateMsg.getDeviceProfileIdLSB());
+            device.setDeviceProfileId(deviceProfileUUID != null ? new DeviceProfileId(deviceProfileUUID) : null);
+
             device.setCustomerId(safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB()));
+
             Optional<DeviceData> deviceDataOpt =
                     dataDecodingEncodingService.decode(deviceUpdateMsg.getDeviceDataBytes().toByteArray());
-            if (deviceDataOpt.isPresent()) {
-                device.setDeviceData(deviceDataOpt.get());
-            } else {
-                device.setDeviceData(null);
-            }
+            device.setDeviceData(deviceDataOpt.orElse(null));
+
+            UUID firmwareUUID = safeGetUUID(deviceUpdateMsg.getFirmwareIdMSB(), deviceUpdateMsg.getFirmwareIdLSB());
+            device.setFirmwareId(firmwareUUID != null ? new OtaPackageId(firmwareUUID) : null);
+
+            UUID softwareUUID = safeGetUUID(deviceUpdateMsg.getSoftwareIdMSB(), deviceUpdateMsg.getSoftwareIdLSB());
+            device.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
+
             if (created) {
                 deviceValidator.validate(device, Device::getTenantId);
                 device.setId(deviceId);

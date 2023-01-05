@@ -108,8 +108,6 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
 
                     if (ruleChainUpdateMsg.getRoot()) {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
-                    } else {
-                        setRootIfFirstRuleChain(tenantId, ruleChainId);
                     }
                     tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), ruleChain.getId(),
                             created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
@@ -140,14 +138,6 @@ public class RuleChainCloudProcessor extends BaseCloudProcessor {
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
         return Futures.immediateFuture(null);
-    }
-
-    private void setRootIfFirstRuleChain(TenantId tenantId, RuleChainId ruleChainId) {
-        // @voba - this is hack because of incorrect isRoot flag in the first rule chain
-        long ruleChainsCnt = ruleChainService.findTenantRuleChainsByType(tenantId, RuleChainType.CORE, new PageLink(100)).getTotalElements();
-        if (ruleChainsCnt == 1) {
-            ruleChainService.setRootRuleChain(tenantId, ruleChainId);
-        }
     }
 
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
