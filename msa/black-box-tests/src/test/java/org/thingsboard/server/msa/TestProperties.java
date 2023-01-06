@@ -50,21 +50,21 @@ public class TestProperties {
         if (instance.isActive()) {
             return HTTPS_URL;
         }
-        return getProperties().getProperty("tb.baseUrl");
+        return System.getProperty("tb.baseUrl", "http://localhost:8080");
     }
 
     public static String getBaseUiUrl() {
         if (instance.isActive()) {
             return "https://host.docker.internal";
         }
-        return getProperties().getProperty("tb.baseUrl");
+        return System.getProperty("tb.baseUiUrl", "http://localhost:8080");
     }
 
     public static String getWebSocketUrl() {
         if (instance.isActive()) {
             return WSS_URL;
         }
-        return getProperties().getProperty("tb.wsUrl");
+        return System.getProperty("tb.wsUrl", "ws://localhost:8080");
     }
 
     public static String getRemoteHttpUrl(){
@@ -73,7 +73,7 @@ public class TestProperties {
             Integer port = instance.getTestContainer().getServicePort("tb-pe-http-integration", 8082);
             return "http://" + host + ":" + port;
         }
-        return getProperties().getProperty("remote.httpUrl");
+        return System.getProperty("remote.httpUrl", "http://localhost:8082");
     }
 
     public static String getMqttBrokerUrl(){
@@ -82,33 +82,20 @@ public class TestProperties {
             Integer port = instance.getTestContainer().getServicePort("broker", 1883);
             return "tcp://" + host + ":" + port;
         }
-        return getProperties().getProperty("mqtt.broker");
+        return System.getProperty("mqtt.broker", "tcp://localhost:1883");
     }
 
     public static String getRemoteCoapHost(){
         if (instance.isActive()) {
             return "localhost";
         }
-        return getProperties().getProperty("remote.coap.host");
+        return System.getProperty("remote.coap.host", "localhost");
     }
 
     public static int getRemoteCoapPort(){
         if (instance.isActive()) {
             return 15683;
         }
-        return Integer.parseInt(getProperties().getProperty("remote.coap.port"));
+        return Integer.parseInt(System.getProperty("remote.coap.port", "15683"));
     }
-
-    private static Properties getProperties() {
-        if (properties == null) {
-            try (InputStream input = TestProperties.class.getClassLoader().getResourceAsStream("config.properties")) {
-                properties = new Properties();
-                properties.load(input);
-            } catch (IOException ex) {
-                log.error("Exception while reading test properties " + ex.getMessage());
-            }
-        }
-        return properties;
-    }
-
 }
