@@ -86,10 +86,6 @@ public class ContainerTestSuite {
         isActive = active;
     }
 
-    public DockerComposeContainer<?> getTestContainer() {
-        return testContainer;
-    }
-
     public static ContainerTestSuite getInstance() {
         if (containerTestSuite == null) {
             containerTestSuite = new ContainerTestSuite();
@@ -132,7 +128,8 @@ public class ContainerTestSuite {
                     new File(targetDir + "docker-compose.opc-ua.yml"),
                     new File(targetDir + "advanced/docker-compose." + QUEUE_TYPE + ".yml"),
                     new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.yml" : "docker-compose.redis.yml")),
-                    new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.volumes.yml" : "docker-compose.redis.volumes.yml"))
+                    new File(targetDir + "advanced/" + (IS_REDIS_CLUSTER ? "docker-compose.redis-cluster.volumes.yml" : "docker-compose.redis.volumes.yml")),
+                    new File(targetDir + ("docker-selenium.yml"))
             ));
 
             Map<String, String> queueEnv = new HashMap<>();
@@ -262,5 +259,9 @@ public class ContainerTestSuite {
             log.error("failed to update file " + sourceFilename, e);
             fail("failed to update file");
         }
+    }
+
+    public DockerComposeContainer<?> getTestContainer() {
+        return testContainer;
     }
 }
