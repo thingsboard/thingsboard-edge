@@ -44,6 +44,8 @@ public class AlarmCommentInfoEntity extends AbstractAlarmCommentEntity<AlarmComm
     private String firstName;
     private String lastName;
 
+    private String email;
+
     public AlarmCommentInfoEntity() {
         super();
     }
@@ -52,14 +54,15 @@ public class AlarmCommentInfoEntity extends AbstractAlarmCommentEntity<AlarmComm
         super(alarmCommentEntity);
     }
 
-    public AlarmCommentInfoEntity(AlarmCommentEntity alarmCommentEntity, String firstName, String lastName) {
+    public AlarmCommentInfoEntity(AlarmCommentEntity alarmCommentEntity, String firstName, String lastName, String email) {
         super(alarmCommentEntity);
         this.firstName = firstName;
         this.lastName = lastName;
+        this.email = email;
     }
 
     @Override
     public AlarmCommentInfo toData() {
-        return new AlarmCommentInfo(super.toAlarmComment(), this.firstName, this.lastName);
+        return new AlarmCommentInfo(super.toAlarmComment(), this.firstName, this.lastName, this.email);
     }
 }

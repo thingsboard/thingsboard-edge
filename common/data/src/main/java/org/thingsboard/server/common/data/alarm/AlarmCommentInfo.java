@@ -47,6 +47,9 @@ public class AlarmCommentInfo extends AlarmComment {
     @ApiModelProperty(position = 19, value = "User last name", example = "Brown")
     private String lastName;
 
+    @ApiModelProperty(position = 19, value = "User email address", example = "johnBrown@gmail.com")
+    private String email;
+
     public AlarmCommentInfo() {
         super();
     }
@@ -55,9 +58,10 @@ public class AlarmCommentInfo extends AlarmComment {
         super(alarmComment);
     }
 
-    public AlarmCommentInfo(AlarmComment alarmComment, String firstName, String lastName) {
+    public AlarmCommentInfo(AlarmComment alarmComment, String firstName, String lastName, String email) {
         super(alarmComment);
         this.firstName = firstName;
         this.lastName = lastName;
+        this.email = email;
     }
 }
