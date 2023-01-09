@@ -38,7 +38,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         verifyAssetProfilesOnEdge(1);
 
         // create asset profile
-        Dashboard dashboard = createDashboardAndAssignToEdge();
+        Dashboard dashboard = createDashboardAndAssignToEdge("Asset Profile Test Dashboard");
         AssetProfile savedAssetProfile = createCustomAssetProfile(dashboard.getId());
 
         verifyAssetProfilesOnEdge(2);
@@ -49,10 +49,12 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Buildings Updated".equals(edgeRestClient.getAssetProfileById(savedAssetProfile.getId()).get().getName()));
-
         // delete asset profile
         cloudRestClient.deleteAssetProfile(savedAssetProfile.getId());
         verifyAssetProfilesOnEdge(1);
+
+        cloudRestClient.unassignDashboardFromEdge(edge.getId(), dashboard.getId());
+        cloudRestClient.deleteDashboard(dashboard.getId());
     }
 
     private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId) {
@@ -66,15 +68,6 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         // TODO: @voba
         // assetProfile.setDefaultRuleChainId();
         return cloudRestClient.saveAssetProfile(assetProfile);
-    }
-
-    private Dashboard createDashboardAndAssignToEdge() {
-        Dashboard dashboard = saveDashboardOnCloud("Asset Profile Test Dashboard");
-        cloudRestClient.assignDashboardToEdge(edge.getId(), dashboard.getId());
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDashboardById(dashboard.getId()).isPresent());
-        return dashboard;
     }
 
     private void verifyAssetProfilesOnEdge(int expectedAssetProfilesCnt) {

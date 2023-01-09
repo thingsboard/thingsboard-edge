@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.device.data.PowerMode;
@@ -158,11 +159,16 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         verifyDeviceProfilesOnEdge(7);
 
         // update device profile
+        Dashboard dashboard = createDashboardAndAssignToEdge("Device Profile Test Dashboard");
+        oneMoreDeviceProfile.setDefaultDashboardId(dashboard.getId());
         oneMoreDeviceProfile.setName("ONE_MORE_DEVICE_PROFILE_UPDATED");
         cloudRestClient.saveDeviceProfile(oneMoreDeviceProfile);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "ONE_MORE_DEVICE_PROFILE_UPDATED".equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getName()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> dashboard.getId().equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getDefaultDashboardId()));
 
         // delete device profile
         cloudRestClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
@@ -171,6 +177,9 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         cloudRestClient.deleteDeviceProfile(lwm2mDeviceProfile.getId());
 
         verifyDeviceProfilesOnEdge(3);
+
+        cloudRestClient.unassignDashboardFromEdge(edge.getId(), dashboard.getId());
+        cloudRestClient.deleteDashboard(dashboard.getId());
     }
 
     private SnmpDeviceProfileTransportConfiguration createSnmpDeviceProfileTransportConfiguration() {

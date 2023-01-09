@@ -697,4 +697,12 @@ public abstract class AbstractContainerTest {
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
     }
 
+    protected Dashboard createDashboardAndAssignToEdge(String dashboardName) {
+        Dashboard dashboard = saveDashboardOnCloud(dashboardName);
+        cloudRestClient.assignDashboardToEdge(edge.getId(), dashboard.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getDashboardById(dashboard.getId()).isPresent());
+        return dashboard;
+    }
 }
