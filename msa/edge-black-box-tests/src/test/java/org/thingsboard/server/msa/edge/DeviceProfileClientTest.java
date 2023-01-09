@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.device.data.PowerMode;
@@ -34,7 +33,9 @@ import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingC
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -138,7 +139,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
                     "  }";
 
     @Test
-    public void testDeviceProfiles() {
+    public void testDeviceProfiles() throws Exception {
         verifyDeviceProfilesOnEdge(3);
 
         // create device profile
@@ -159,16 +160,18 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         verifyDeviceProfilesOnEdge(7);
 
         // update device profile
-        Dashboard dashboard = createDashboardAndAssignToEdge("Device Profile Test Dashboard");
-        oneMoreDeviceProfile.setDefaultDashboardId(dashboard.getId());
+        DashboardId dashboardId = createDashboardAndAssignToEdge("Device Profile Test Dashboard");
+        RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Device Profile Test RuleChain");
+        oneMoreDeviceProfile.setDefaultDashboardId(dashboardId);
         oneMoreDeviceProfile.setName("ONE_MORE_DEVICE_PROFILE_UPDATED");
+        oneMoreDeviceProfile.setDefaultEdgeRuleChainId(savedRuleChainId);
         cloudRestClient.saveDeviceProfile(oneMoreDeviceProfile);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "ONE_MORE_DEVICE_PROFILE_UPDATED".equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getName()));
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> dashboard.getId().equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getDefaultDashboardId()));
+                .until(() -> dashboardId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getDefaultDashboardId()));
 
         // delete device profile
         cloudRestClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
@@ -178,8 +181,8 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
 
         verifyDeviceProfilesOnEdge(3);
 
-        cloudRestClient.unassignDashboardFromEdge(edge.getId(), dashboard.getId());
-        cloudRestClient.deleteDashboard(dashboard.getId());
+        unAssignFromEdgeAndDeleteDashboard(dashboardId);
+        unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
     private SnmpDeviceProfileTransportConfiguration createSnmpDeviceProfileTransportConfiguration() {
