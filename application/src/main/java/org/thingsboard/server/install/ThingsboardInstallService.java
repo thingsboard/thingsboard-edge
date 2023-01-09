@@ -240,6 +240,9 @@ public class ThingsboardInstallService {
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
                             dataUpdateService.updateData("3.4.1");
+                        case "3.4.3":
+                            log.info("Upgrading ThingsBoard from version 3.4.3 to 3.5.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.3");
 
                             // @voba - system widgets update is not required - uploaded from cloud
                             // log.info("Updating system data...");
