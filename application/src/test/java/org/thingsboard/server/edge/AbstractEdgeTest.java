@@ -627,28 +627,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    protected DashboardId createDashboardAndAssignToEdge(String dashboardName) throws Exception {
-        // TODO
-        edgeImitator.expectMessageAmount(1);
+    protected Dashboard saveDashboard(String dashboardTitle, EntityGroupId entityGroupId) {
         Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(dashboardName);
-        Dashboard savedDashboard = doPost("/api/dashboard", dashboard, Dashboard.class);
-        doPost("/api/edge/" + edge.getUuidId()
-                + "/dashboard/" + savedDashboard.getUuidId(), Dashboard.class);
-        Assert.assertTrue(edgeImitator.waitForMessages());
-        return savedDashboard.getId();
-    }
-
-    protected void unAssignFromEdgeAndDeleteDashboard(DashboardId dashboardId) throws Exception {
-        // TODO
-        edgeImitator.expectMessageAmount(1);
-        doDelete("/api/edge/" + edge.getUuidId()
-                + "/dashboard/" + dashboardId.getId(), RuleChain.class);
-        Assert.assertTrue(edgeImitator.waitForMessages());
-
-        // delete dashboard
-        doDelete("/api/dashboard/" + dashboardId.getId())
-                .andExpect(status().isOk());
+        dashboard.setTitle(dashboardTitle);
+        if (entityGroupId != null) {
+            return doPost("/api/dashboard?entityGroupId={entityGroupId}", dashboard, Dashboard.class, entityGroupId.getId().toString());
+        } else {
+            return doPost("/api/dashboard", dashboard, Dashboard.class);
+        }
     }
 
     protected void changeEdgeOwnerFromCustomerToCustomer(Customer previousCustomer, Customer newCustomer) throws Exception {

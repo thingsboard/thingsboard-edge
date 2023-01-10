@@ -34,8 +34,10 @@ import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
@@ -51,7 +53,9 @@ import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingC
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
@@ -100,7 +104,9 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
         edgeImitator.expectMessageAmount(1);
         Assert.assertTrue(edgeImitator.waitForMessages());
 
-        DashboardId thermostatsDashboardId = createDashboardAndAssignToEdge("Thermostats Dashboard");
+        // create dashboard entity group and assign to edge
+        EntityGroup tmpDashboardEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "DeviceProfileTestDashboardGroup", tenantId);
+        DashboardId thermostatsDashboardId = createDashboardAndAssignToEdge("Thermostats Dashboard", tmpDashboardEntityGroup.getId());
 
         deviceProfile.setFirmwareId(firmwareOtaPackageInfo.getId());
         deviceProfile.setSoftwareId(softwareOtaPackageInfo.getId());
@@ -131,7 +137,23 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(deviceProfile.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
 
         unAssignFromEdgeAndDeleteRuleChain(thermostatsRuleChainId);
-        unAssignFromEdgeAndDeleteDashboard(thermostatsDashboardId);
+        unAssignFromEdgeAndDeleteDashboard(thermostatsDashboardId, tmpDashboardEntityGroup);
+    }
+
+    private void unAssignFromEdgeAndDeleteDashboard(DashboardId thermostatsDashboardId, EntityGroup tmpDashboardEntityGroup) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        doDelete("/api/dashboard/" + thermostatsDashboardId.getId())
+                .andExpect(status().isOk());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        unAssignEntityGroupFromEdge(tmpDashboardEntityGroup);
+    }
+
+    private DashboardId createDashboardAndAssignToEdge(String dashboardTitle, EntityGroupId tmpDashboardEntityGroupId) throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        Dashboard savedDashboard = saveDashboard(dashboardTitle, tmpDashboardEntityGroupId);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        return savedDashboard.getId();
     }
 
     @Test
