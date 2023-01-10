@@ -36,6 +36,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
@@ -48,8 +49,11 @@ abstract public class BaseAssetProfileEdgeTest extends AbstractEdgeTest {
     @Test
     @Ignore
     public void testAssetProfiles() throws Exception {
+        RuleChainId buildingsRuleChainId = createEdgeRuleChainAndAssignToEdge("Buildings Rule Chain");
+
         // create asset profile
         AssetProfile assetProfile = this.createAssetProfile("Building");
+        assetProfile.setDefaultEdgeRuleChainId(buildingsRuleChainId);
         edgeImitator.expectMessageAmount(1);
         assetProfile = doPost("/api/assetProfile", assetProfile, AssetProfile.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -60,6 +64,8 @@ abstract public class BaseAssetProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(assetProfile.getUuidId().getMostSignificantBits(), assetProfileUpdateMsg.getIdMSB());
         Assert.assertEquals(assetProfile.getUuidId().getLeastSignificantBits(), assetProfileUpdateMsg.getIdLSB());
         Assert.assertEquals("Building", assetProfileUpdateMsg.getName());
+        Assert.assertEquals(buildingsRuleChainId.getId().getMostSignificantBits(), assetProfileUpdateMsg.getDefaultRuleChainIdMSB());
+        Assert.assertEquals(buildingsRuleChainId.getId().getLeastSignificantBits(), assetProfileUpdateMsg.getDefaultRuleChainIdLSB());
 
         // update asset profile
         assetProfile.setImage("IMAGE");
@@ -83,5 +89,7 @@ abstract public class BaseAssetProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, assetProfileUpdateMsg.getMsgType());
         Assert.assertEquals(assetProfile.getUuidId().getMostSignificantBits(), assetProfileUpdateMsg.getIdMSB());
         Assert.assertEquals(assetProfile.getUuidId().getLeastSignificantBits(), assetProfileUpdateMsg.getIdLSB());
+
+        unAssignFromEdgeAndDeleteRuleChain(buildingsRuleChainId);
     }
 }

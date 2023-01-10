@@ -255,15 +255,18 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.4.1 to 3.4.2 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.4.1");
                             dataUpdateService.updateData("3.4.1");
-                        case "3.4.2": // to 3.4.2PE
-                            log.info("Upgrading ThingsBoard from version 3.4.2 to 3.4.2PE ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.2");
+                        case "3.4.3":
+                            log.info("Upgrading ThingsBoard from version 3.4.3 to 3.5.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.4.3");
+                        case "3.5.0": // to 3.5.0PE
+                            log.info("Upgrading ThingsBoard from version 3.5.0 to 3.5.0PE ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.5.0");
 
                             // reset full sync required - to upload latest widgets from cloud
                             // fromVersion must be updated per release
                             // DefaultDataUpdateService must be updated as well
                             // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to latest version
-                            dataUpdateService.updateData("3.4.2");
+                            dataUpdateService.updateData("3.5.0");
 
                             // @voba - system widgets update is not required - uploaded from cloud
                             // log.info("Updating system data...");
