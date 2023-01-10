@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -360,7 +361,7 @@ public class TelemetryCloudProcessor extends BaseCloudProcessor {
                 return null;
         }
         return constructEntityDataProtoMsg(entityId, cloudEvent.getAction(),
-                JsonUtils.parse(JacksonUtil.OBJECT_MAPPER.writeValueAsString(cloudEvent.getEntityBody())));
+                JsonParser.parseString(JacksonUtil.OBJECT_MAPPER.writeValueAsString(cloudEvent.getEntityBody())));
     }
 
     private UplinkMsg constructEntityDataProtoMsg(EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {
