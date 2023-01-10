@@ -51,7 +51,10 @@ import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingC
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.AbstractLwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.id.DashboardId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.kv.DataType;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.transport.snmp.SnmpMapping;
 import org.thingsboard.server.common.data.transport.snmp.config.SnmpCommunicationConfig;
 import org.thingsboard.server.common.data.transport.snmp.config.impl.TelemetryQueryingSnmpCommunicationConfig;
@@ -70,8 +73,11 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testDeviceProfiles() throws Exception {
+        RuleChainId thermostatsRuleChainId = createEdgeRuleChainAndAssignToEdge("Thermostats Rule Chain");
+
         // create device profile
         DeviceProfile deviceProfile = this.createDeviceProfile("ONE_MORE_DEVICE_PROFILE", null);
+        deviceProfile.setDefaultEdgeRuleChainId(thermostatsRuleChainId);
         extendDeviceProfileData(deviceProfile);
         edgeImitator.expectMessageAmount(1);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
@@ -82,13 +88,23 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(deviceProfile.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getIdMSB());
         Assert.assertEquals(deviceProfile.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
+        Assert.assertEquals(thermostatsRuleChainId.getId().getMostSignificantBits(), deviceProfileUpdateMsg.getDefaultRuleChainIdMSB());
+        Assert.assertEquals(thermostatsRuleChainId.getId().getLeastSignificantBits(), deviceProfileUpdateMsg.getDefaultRuleChainIdLSB());
 
         // update device profile
-        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(deviceProfile.getId());
+        OtaPackageInfo firmwareOtaPackageInfo = saveOtaPackageInfo(deviceProfile.getId(), OtaPackageType.FIRMWARE);
         edgeImitator.expectMessageAmount(1);
         Assert.assertTrue(edgeImitator.waitForMessages());
 
+        OtaPackageInfo softwareOtaPackageInfo = saveOtaPackageInfo(deviceProfile.getId(), OtaPackageType.SOFTWARE);
+        edgeImitator.expectMessageAmount(1);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        DashboardId thermostatsDashboardId = createDashboardAndAssignToEdge("Thermostats Dashboard");
+
         deviceProfile.setFirmwareId(firmwareOtaPackageInfo.getId());
+        deviceProfile.setSoftwareId(softwareOtaPackageInfo.getId());
+        deviceProfile.setDefaultDashboardId(thermostatsDashboardId);
         edgeImitator.expectMessageAmount(1);
         deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -97,6 +113,10 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
         deviceProfileUpdateMsg = (DeviceProfileUpdateMsg) latestMessage;
         Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getFirmwareIdMSB());
         Assert.assertEquals(firmwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getFirmwareIdLSB());
+        Assert.assertEquals(softwareOtaPackageInfo.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getSoftwareIdMSB());
+        Assert.assertEquals(softwareOtaPackageInfo.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getSoftwareIdLSB());
+        Assert.assertEquals(thermostatsDashboardId.getId().getMostSignificantBits(), deviceProfileUpdateMsg.getDefaultDashboardIdMSB());
+        Assert.assertEquals(thermostatsDashboardId.getId().getLeastSignificantBits(), deviceProfileUpdateMsg.getDefaultDashboardIdLSB());
 
         // delete profile
         edgeImitator.expectMessageAmount(1);
@@ -109,6 +129,9 @@ abstract public class BaseDeviceProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, deviceProfileUpdateMsg.getMsgType());
         Assert.assertEquals(deviceProfile.getUuidId().getMostSignificantBits(), deviceProfileUpdateMsg.getIdMSB());
         Assert.assertEquals(deviceProfile.getUuidId().getLeastSignificantBits(), deviceProfileUpdateMsg.getIdLSB());
+
+        unAssignFromEdgeAndDeleteRuleChain(thermostatsRuleChainId);
+        unAssignFromEdgeAndDeleteDashboard(thermostatsDashboardId);
     }
 
     @Test
