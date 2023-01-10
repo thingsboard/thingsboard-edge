@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
@@ -64,6 +65,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 @Slf4j
 public class DeviceClientTest extends AbstractContainerTest {
@@ -96,11 +100,23 @@ public class DeviceClientTest extends AbstractContainerTest {
         validateDeviceTransportConfiguration(savedDevice1, cloudRestClient, edgeRestClient);
 
         // update device #1
+        OtaPackageId firmwarePackageId = createOtaPackageInfo(savedDevice1.getDeviceProfileId(), FIRMWARE);
+        savedDevice1.setFirmwareId(firmwarePackageId);
+
+        OtaPackageId softwarePackageId = createOtaPackageInfo(savedDevice1.getDeviceProfileId(), SOFTWARE);
+        savedDevice1.setSoftwareId(softwarePackageId);
+
         savedDevice1.setName("Updated device name");
         cloudRestClient.saveDevice(savedDevice1);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Updated device name".equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getName()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> firmwarePackageId.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getFirmwareId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> softwarePackageId.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getSoftwareId()));
 
         // unassign device #1 from edge
         cloudRestClient.unassignDeviceFromEdge(edge.getId(), savedDevice1.getId());

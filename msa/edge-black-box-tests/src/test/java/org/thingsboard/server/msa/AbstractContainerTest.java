@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackage;
+import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -83,6 +84,8 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
+import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.EntityKeyValueType;
@@ -776,4 +779,31 @@ public abstract class AbstractContainerTest {
         cloudRestClient.unassignDashboardFromEdge(edge.getId(), dashboardId);
         cloudRestClient.deleteDashboard(dashboardId);
     }
+
+    protected OtaPackageId createOtaPackageInfo(DeviceProfileId deviceProfileId, OtaPackageType otaPackageType) throws Exception {
+        OtaPackageInfo otaPackageInfo = new OtaPackageInfo();
+        otaPackageInfo.setDeviceProfileId(deviceProfileId);
+        otaPackageInfo.setType(otaPackageType);
+        otaPackageInfo.setTitle("My " + otaPackageType + " #2");
+        otaPackageInfo.setVersion("v2.0");
+        otaPackageInfo.setTag("My " + otaPackageType + " #2 v2.0");
+        otaPackageInfo.setHasData(false);
+        OtaPackageInfo savedOtaPackageInfo = cloudRestClient.saveOtaPackageInfo(otaPackageInfo, false);
+
+        cloudRestClient.saveOtaPackageData(savedOtaPackageInfo.getId(),
+                null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));
+                    if (otaPackages.getData().isEmpty()) {
+                        return false;
+                    }
+                    return otaPackages.getData().stream().map(OtaPackageInfo::getId).anyMatch(savedOtaPackageInfo.getId()::equals);
+                });
+
+        return savedOtaPackageInfo.getId();
+    }
+
 }

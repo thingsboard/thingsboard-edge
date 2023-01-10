@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBo
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.NoSecLwM2MBootstrapServerCredential;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -48,6 +49,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 @Slf4j
 public class DeviceProfileClientTest extends AbstractContainerTest {
@@ -160,6 +164,12 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         verifyDeviceProfilesOnEdge(7);
 
         // update device profile
+        OtaPackageId firmwarePackageId = createOtaPackageInfo(oneMoreDeviceProfile.getId(), FIRMWARE);
+        oneMoreDeviceProfile.setFirmwareId(firmwarePackageId);
+
+        OtaPackageId softwarePackageId = createOtaPackageInfo(oneMoreDeviceProfile.getId(), SOFTWARE);
+        oneMoreDeviceProfile.setSoftwareId(softwarePackageId);
+
         DashboardId dashboardId = createDashboardAndAssignToEdge("Device Profile Test Dashboard");
         RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Device Profile Test RuleChain");
         oneMoreDeviceProfile.setDefaultDashboardId(dashboardId);
@@ -172,6 +182,12 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> dashboardId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getDefaultDashboardId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> firmwarePackageId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getFirmwareId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> softwarePackageId.equals(edgeRestClient.getDeviceProfileById(oneMoreDeviceProfile.getId()).get().getSoftwareId()));
 
         // delete device profile
         cloudRestClient.deleteDeviceProfile(oneMoreDeviceProfile.getId());
