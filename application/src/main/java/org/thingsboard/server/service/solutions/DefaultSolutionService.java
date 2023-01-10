@@ -741,6 +741,15 @@ public class DefaultSolutionService implements SolutionService {
                     throw new ThingsboardRuntimeException();
                 }
             }
+            if (deviceProfile.getDefaultEdgeRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(deviceProfile.getDefaultEdgeRuleChainId().getId().toString());
+                if (newId != null) {
+                    deviceProfile.setDefaultEdgeRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Device profile: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), deviceProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
         });
 
         deviceProfiles = deviceProfiles.stream().map(deviceProfileService::saveDeviceProfile).collect(Collectors.toList());
@@ -761,6 +770,15 @@ public class DefaultSolutionService implements SolutionService {
                     assetProfile.setDefaultRuleChainId(new RuleChainId(UUID.fromString(newId)));
                 } else {
                     log.error("[{}][{}] Asset profile: {} references non existing rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
+                    throw new ThingsboardRuntimeException();
+                }
+            }
+            if (assetProfile.getDefaultEdgeRuleChainId() != null) {
+                String newId = ctx.getRealIds().get(assetProfile.getDefaultEdgeRuleChainId().getId().toString());
+                if (newId != null) {
+                    assetProfile.setDefaultEdgeRuleChainId(new RuleChainId(UUID.fromString(newId)));
+                } else {
+                    log.error("[{}][{}] Asset profile: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), assetProfile.getName());
                     throw new ThingsboardRuntimeException();
                 }
             }
@@ -1154,6 +1172,7 @@ public class DefaultSolutionService implements SolutionService {
             entity = edgeService.saveEdge(entity);
             ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), rootRuleChainId, entity.getId());
             edgeService.assignTenantAdministratorsAndUsersGroupToEdge(ctx.getTenantId(), entity.getId());
+            assignRuleChainsToEdge(ctx, entityDef.getRuleChainIds(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.ASSET, entityDef.getAssetGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.DEVICE, entityDef.getDeviceGroups(), entity);
             assignEntityGroupsToEdge(ctx, EntityType.USER, entityDef.getUserGroups(), entity);
@@ -1176,6 +1195,22 @@ public class DefaultSolutionService implements SolutionService {
             }
             EdgeLinkInfo edgeLinkInfo = new EdgeLinkInfo(entity.getId(), entity.getOwnerId(), allEdgeGroup.get().getId(), allCustomerGroupId);
             ctx.addEdgeLinkInfo(entity.getName(), edgeLinkInfo);
+        }
+    }
+
+    private void assignRuleChainsToEdge(SolutionInstallContext ctx, List<String> ruleChainIds, Edge entity) {
+        if (ruleChainIds.isEmpty()) {
+            return;
+        }
+        for (String strRuleChainId : ruleChainIds) {
+            String newId = ctx.getRealIds().get(strRuleChainId);
+            if (newId != null) {
+                RuleChainId ruleChainId = new RuleChainId(UUID.fromString(newId));
+                ruleChainService.assignRuleChainToEdge(ctx.getTenantId(), ruleChainId, entity.getId());
+            } else {
+                log.error("[{}][{}] Edge: {} references non existing edge rule chain.", ctx.getTenantId(), ctx.getSolutionId(), entity.getName());
+                throw new ThingsboardRuntimeException();
+            }
         }
     }
 
