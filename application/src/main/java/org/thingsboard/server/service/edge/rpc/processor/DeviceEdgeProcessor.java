@@ -156,8 +156,7 @@ public class DeviceEdgeProcessor extends BaseEdgeProcessor {
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
                 default:
-                    log.error("Unsupported msg type {}", deviceUpdateMsg.getMsgType());
-                    return Futures.immediateFailedFuture(new RuntimeException("Unsupported msg type " + deviceUpdateMsg.getMsgType()));
+                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             }
         } catch (Exception e) {
             log.error("Failed to process device message from edge, {}", deviceUpdateMsg, e);
