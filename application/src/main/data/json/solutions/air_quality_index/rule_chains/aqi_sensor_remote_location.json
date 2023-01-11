@@ -16,8 +16,8 @@
     "nodes": [
       {
         "additionalInfo": {
-          "layoutX": 1152,
-          "layoutY": 519
+          "layoutX": 1135,
+          "layoutY": 515
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
@@ -42,8 +42,8 @@
       },
       {
         "additionalInfo": {
-          "layoutX": 494,
-          "layoutY": 309
+          "layoutX": 472,
+          "layoutY": 350
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
@@ -345,12 +345,73 @@
           "sendAttributesUpdatedNotification": false
         },
         "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1684,
+          "layoutY": 276
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1135,
+          "layoutY": 439
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 1231,
+          "layoutY": 611
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
+      },
+      {
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 673,
+          "layoutY": 181
+        },
+        "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+        "name": "push to cloud",
+        "debugMode": false,
+        "configuration": {
+          "scope": "SERVER_SCOPE"
+        },
+        "externalId": null
       }
     ],
     "connections": [
       {
         "fromIndex": 0,
-        "toIndex": 9,
+        "toIndex": 20,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 19,
         "type": "Success"
       },
       {
@@ -394,6 +455,11 @@
         "type": "Alarm Cleared"
       },
       {
+        "fromIndex": 2,
+        "toIndex": 21,
+        "type": "Attributes Updated"
+      },
+      {
         "fromIndex": 6,
         "toIndex": 2,
         "type": "Success"
@@ -407,6 +473,11 @@
         "fromIndex": 6,
         "toIndex": 15,
         "type": "Alarm Created"
+      },
+      {
+        "fromIndex": 7,
+        "toIndex": 18,
+        "type": "Success"
       },
       {
         "fromIndex": 8,
@@ -461,6 +532,16 @@
       {
         "fromIndex": 16,
         "toIndex": 17,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 17,
+        "toIndex": 18,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 20,
+        "toIndex": 9,
         "type": "Success"
       }
     ],
