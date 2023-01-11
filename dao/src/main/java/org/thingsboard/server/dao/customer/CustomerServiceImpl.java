@@ -151,15 +151,17 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
         if (publicCustomerOpt.isPresent()) {
             return publicCustomerOpt.get();
         } else {
-            Customer publicCustomer = new Customer();
-            publicCustomer.setTenantId(tenantId);
-            publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
-            try {
-                publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
-            } catch (IOException e) {
-                throw new IncorrectParameterException("Unable to create public customer.", e);
-            }
-            return customerDao.save(tenantId, publicCustomer);
+            throw new RuntimeException("Unable to create public customer on edge - please create it on cloud and click 'Sync Edge' button.");
+            // TODO: @voba - public customer should be created on the cloud
+            // Customer publicCustomer = new Customer();
+            // publicCustomer.setTenantId(tenantId);
+            // publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
+            // try {
+            //     publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
+            // } catch (IOException e) {
+            //     throw new IncorrectParameterException("Unable to create public customer.", e);
+            // }
+            // return customerDao.save(tenantId, publicCustomer);
         }
     }
 

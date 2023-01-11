@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CloudUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -77,6 +78,7 @@ import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -229,11 +231,15 @@ public abstract class BaseCloudProcessor {
         return mSB != 0 && lSB != 0 ? new UUID(mSB, lSB) : null;
     }
 
-    protected CustomerId safeGetCustomerId(long customerIdMSB, long customerIdLSB, CustomerId edgeCustomerId) {
+    protected CustomerId safeGetCustomerId(TenantId tenantId, long customerIdMSB, long customerIdLSB, CustomerId edgeCustomerId) {
         UUID customerUUID = safeGetUUID(customerIdMSB, customerIdLSB);
         if (customerUUID != null) {
             CustomerId customerId = new CustomerId(customerUUID);
             if (customerId.equals(edgeCustomerId)) {
+                return customerId;
+            }
+            Optional<Customer> publicCustomer = customerService.findPublicCustomer(tenantId);
+            if (publicCustomer.isPresent() && publicCustomer.get().getId().equals(customerId)) {
                 return customerId;
             }
         }
