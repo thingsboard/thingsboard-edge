@@ -69,7 +69,6 @@ public class CustomerUserPermissions extends AbstractPermissions {
         super();
         put(Resource.PROFILE, TenantAdminPermissions.genericPermissionChecker);
         put(Resource.ALARM, customerAlarmPermissionChecker);
-        put(Resource.ALARM_COMMENT, customerAlarmPermissionChecker);
         put(Resource.ASSET, customerGroupEntityPermissionChecker);
         put(Resource.DEVICE, customerGroupEntityPermissionChecker);
         put(Resource.CUSTOMER, customerGroupEntityPermissionChecker);

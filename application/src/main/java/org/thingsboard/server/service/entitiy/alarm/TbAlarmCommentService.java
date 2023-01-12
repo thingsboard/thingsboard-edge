@@ -39,5 +39,5 @@ import org.thingsboard.server.common.data.id.TenantId;
 public interface TbAlarmCommentService {
     AlarmComment saveAlarmComment(Alarm alarm, AlarmComment alarmComment, User user) throws ThingsboardException;
 
-    Boolean deleteAlarmComment(Alarm alarm, AlarmComment alarmComment, User user);
+    void deleteAlarmComment(Alarm alarm, AlarmComment alarmComment, User user);
 }

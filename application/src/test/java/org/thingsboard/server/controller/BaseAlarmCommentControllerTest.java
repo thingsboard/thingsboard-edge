@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
+import org.thingsboard.server.common.data.alarm.AlarmCommentType;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -194,7 +195,7 @@ public abstract class BaseAlarmCommentControllerTest extends AbstractControllerT
         Mockito.reset(tbClusterService, auditLogService);
 
         AlarmComment createdComment = createAlarmComment(alarm.getId());
-        Assert.assertEquals("OTHER", createdComment.getType());
+        Assert.assertEquals(AlarmCommentType.OTHER, createdComment.getType());
 
         testLogEntityAction(createdComment, createdComment.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.ADDED, 1);
         testPushMsgToRuleEngineTime(createdComment.getId(), tenantId, createdComment, 1);
