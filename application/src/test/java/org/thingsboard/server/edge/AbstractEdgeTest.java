@@ -100,7 +100,6 @@ import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
@@ -289,6 +288,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         // 2 messages - 2 messages from fetcher
         validateRoles();
+
+        // 1 message from public customer fetcher
+        validatePublicCustomer();
     }
 
     private void validateEdgeConfiguration() throws Exception {
@@ -412,6 +414,17 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     private void validateRoles() {
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
         Assert.assertEquals(2, roleProtoList.size());
+    }
+
+    private void validatePublicCustomer() throws Exception {
+        Optional<CustomerUpdateMsg> customerUpdateMsgOpt = edgeImitator.findMessageByType(CustomerUpdateMsg.class);
+        Assert.assertTrue(customerUpdateMsgOpt.isPresent());
+        CustomerUpdateMsg customerUpdateMsg = customerUpdateMsgOpt.get();
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, customerUpdateMsg.getMsgType());
+        UUID customerUUID = new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB());
+        Customer customer = doGet("/api/customer/" + customerUUID, Customer.class);
+        Assert.assertNotNull(customer);
+        Assert.assertTrue(customer.isPublic());
     }
 
     protected Device saveDeviceOnCloudAndVerifyDeliveryToEdge() throws Exception {
