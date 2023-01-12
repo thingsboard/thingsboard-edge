@@ -40,11 +40,12 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.RoleType;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface RoleService {
+public interface RoleService extends EntityDaoService {
 
     Role saveRole(TenantId tenantId, Role role);
 
