@@ -46,7 +46,7 @@ import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 public class DefaultTbAlarmCommentService extends AbstractTbEntityService implements TbAlarmCommentService{
     @Override
     public AlarmComment saveAlarmComment(Alarm alarm, AlarmComment alarmComment, User user) throws ThingsboardException {
-        ActionType actionType = alarmComment.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
+        ActionType actionType = alarmComment.getId() == null ? ActionType.ADDED_COMMENT : ActionType.UPDATED_COMMENT;
         UserId userId = user.getId();
         alarmComment.setUserId(userId);
         try {
@@ -54,7 +54,7 @@ public class DefaultTbAlarmCommentService extends AbstractTbEntityService implem
             notificationEntityService.notifyCreateOrUpdateAlarmComment(alarm, savedAlarmComment, actionType, user);
             return savedAlarmComment;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(alarm.getTenantId(), emptyId(EntityType.ALARM_COMMENT), alarmComment, actionType, user, e);
+            notificationEntityService.logEntityAction(alarm.getTenantId(), emptyId(EntityType.ALARM), alarm, actionType, user, e, alarmComment);
             throw e;
         }
     }

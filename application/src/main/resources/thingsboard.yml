@@ -662,7 +662,6 @@ audit-log:
       "user": "${AUDIT_LOG_MASK_USER:W}"
       "rule_chain": "${AUDIT_LOG_MASK_RULE_CHAIN:W}"
       "alarm": "${AUDIT_LOG_MASK_ALARM:W}"
-      "alarm_comment": "${AUDIT_LOG_MASK_ALARM_COMMENT:W}"
       "integration": "${AUDIT_LOG_MASK_INTEGRATION:W}"
       "converter": "${AUDIT_LOG_MASK_CONVERTER:W}"
       "entity_group": "${AUDIT_LOG_MASK_ENTITY_GROUP:W}"
