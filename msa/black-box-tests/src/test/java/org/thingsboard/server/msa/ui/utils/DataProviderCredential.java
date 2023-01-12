@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.msa.ui.utils;
 
+import org.openqa.selenium.Keys;
 import org.testng.annotations.DataProvider;
 
+import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomNumber;
 import static org.thingsboard.server.msa.ui.base.AbstractBasePage.getRandomSymbol;
 import static org.thingsboard.server.msa.ui.utils.Const.ENTITY_NAME;
 
@@ -45,7 +47,11 @@ public class DataProviderCredential {
     private static final String RULE_CHAIN_SECOND_WORD_NAME_PATH = "Rule";
     private static final String CUSTOMER_FIRST_WORD_NAME_PATH = "Customer";
     private static final String RULE_CHAIN_FIRST_WORD_NAME_PATH = "Root";
+    private static final String ENTITY_GROUP_FIRST_WORD_NAME_PATH = "Entity";
+    private static final String ENTITY_GROUP_SECOND_WORD_NAME_PATH = "Group";
     private static final String CUSTOMER_SECOND_WORD_NAME_PATH = "A";
+    private static final String DEFAULT_DEVICE_PROFILE_NAME = "Device Profile";
+    private static final String DEFAULT_ASSET_PROFILE_NAME = "Asset Profile";
 
     @DataProvider
     public static Object[][] ruleChainNameForSearchByFirstAndSecondWord() {
@@ -93,7 +99,35 @@ public class DataProviderCredential {
     @DataProvider
     public static Object[][] customerGroupNameForSearchByFirstAndSecondWord() {
         return new Object[][]{
-                {"Entity"},
-                {"Group"}};
+                {ENTITY_GROUP_FIRST_WORD_NAME_PATH},
+                {ENTITY_GROUP_SECOND_WORD_NAME_PATH}};
+    }
+
+    @DataProvider
+    public static Object[][] deviceProfileSearch() {
+        return new Object[][]{
+                {DEFAULT_DEVICE_PROFILE_NAME, DEFAULT_DEVICE_PROFILE_NAME.split(" ")[0]},
+                {DEFAULT_DEVICE_PROFILE_NAME, DEFAULT_DEVICE_PROFILE_NAME.split(" ")[1]},
+                {NAME, ENTITY_NAME.split("`")[1]},
+                {NAME, String.valueOf(getRandomSymbol())}};
+    }
+
+    @DataProvider
+    public static Object[][] assetProfileSearch() {
+        return new Object[][]{
+                {DEFAULT_ASSET_PROFILE_NAME, DEFAULT_ASSET_PROFILE_NAME.split(" ")[0]},
+                {DEFAULT_ASSET_PROFILE_NAME, DEFAULT_ASSET_PROFILE_NAME.split(" ")[1]},
+                {NAME, ENTITY_NAME.split("`")[1]},
+                {NAME, String.valueOf(getRandomSymbol())}};
+    }
+
+    @DataProvider
+    public static Object[][] editMenuDescription() {
+        String newDescription = "Description" + getRandomNumber();
+        String description = "Description";
+        return new Object[][]{
+                {"", newDescription, newDescription},
+                {description, newDescription, description + newDescription},
+                {description, Keys.CONTROL + "A" + Keys.BACK_SPACE, ""}};
     }
 }

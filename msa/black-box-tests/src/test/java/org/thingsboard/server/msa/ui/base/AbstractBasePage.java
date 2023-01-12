@@ -33,6 +33,7 @@ package org.thingsboard.server.msa.ui.base;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -50,11 +51,13 @@ abstract public class AbstractBasePage {
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected Actions actions;
+    protected JavascriptExecutor js;
 
     public AbstractBasePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofMillis(5000));
         this.actions = new Actions(driver);
+        this.js = (JavascriptExecutor) driver;
     }
 
     @SneakyThrows
@@ -67,6 +70,15 @@ abstract public class AbstractBasePage {
             return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(locator)));
         } catch (WebDriverException e) {
             log.error("No visibility element: " + locator);
+            return null;
+        }
+    }
+
+    protected WebElement waitUntilPresenceOfElementLocated(String locator) {
+        try {
+            return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(locator)));
+        } catch (WebDriverException e) {
+            log.error("No presence element: " + locator);
             return null;
         }
     }
@@ -154,6 +166,19 @@ abstract public class AbstractBasePage {
         } catch (WebDriverException e) {
             log.error("No tabs with this number");
         }
+    }
+
+    public void jsClick(WebElement element) {
+        js.executeScript("arguments[0].click();", element);
+    }
+
+    public void enterText(WebElement element, CharSequence keysToEnter) {
+        element.click();
+        element.sendKeys(keysToEnter);
+    }
+
+    public void scrollToElement(WebElement element) {
+        js.executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
     public void waitUntilAttributeContains(WebElement element, String attribute, String value) {

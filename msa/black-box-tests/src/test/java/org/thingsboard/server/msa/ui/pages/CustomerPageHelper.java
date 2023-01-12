@@ -45,6 +45,7 @@ public class CustomerPageHelper extends CustomerPageElements {
     private String country;
     private String dashboard;
     private String dashboardFromView;
+    private String description;
     private String customerEmail;
     private String customerCountry;
     private String customerCity;
@@ -86,12 +87,21 @@ public class CustomerPageHelper extends CustomerPageElements {
         this.dashboardFromView = editMenuDashboardField().getAttribute("value");
     }
 
+    public void setDescription() {
+        scrollToElement(descriptionEntityView());
+        this.description = descriptionEntityView().getAttribute("value");
+    }
+
     public String getDashboard() {
         return dashboard;
     }
 
     public String getDashboardFromView() {
         return dashboardFromView;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setCustomerEmail(String title) {
@@ -119,6 +129,7 @@ public class CustomerPageHelper extends CustomerPageElements {
     }
 
     public void changeTitleEditMenu(String newTitle) {
+        titleFieldEntityView().click();
         titleFieldEntityView().clear();
         wait.until(ExpectedConditions.textToBe(By.xpath(String.format(INPUT_FIELD, INPUT_FIELD_NAME_TITLE)), ""));
         titleFieldEntityView().sendKeys(newTitle);
@@ -165,6 +176,10 @@ public class CustomerPageHelper extends CustomerPageElements {
 
     public void sortByTitleDown() {
         doubleClick(sortByTitleBtn());
+    }
+
+    public void addCustomerViewEnterName(CharSequence keysToEnter) {
+        enterText(titleFieldAddEntityView(), keysToEnter);
     }
 
     public boolean doneBtnIsEnable() {
