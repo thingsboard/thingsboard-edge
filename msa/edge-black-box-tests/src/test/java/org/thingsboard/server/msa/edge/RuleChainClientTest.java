@@ -33,20 +33,15 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
-import org.thingsboard.server.common.data.rule.RuleChainMetaData;
-import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -63,72 +58,20 @@ public class RuleChainClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.RULE_CHAIN);
 
         // create rule chain
-        RuleChain ruleChain = new RuleChain();
-        ruleChain.setName("Edge Test Rule Chain");
-        ruleChain.setType(RuleChainType.EDGE);
-        RuleChain savedRuleChain = cloudRestClient.saveRuleChain(ruleChain);
-        createRuleChainMetadata(savedRuleChain);
+        RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Edge Test Rule Chain");
 
-        cloudRestClient.assignRuleChainToEdge(edge.getId(), savedRuleChain.getId());
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isPresent());
-
-        assertEntitiesByIdsAndType(Collections.singletonList(savedRuleChain.getId()), EntityType.RULE_CHAIN);
+        assertEntitiesByIdsAndType(Collections.singletonList(savedRuleChainId), EntityType.RULE_CHAIN);
 
         // update rule chain
+        RuleChain savedRuleChain = cloudRestClient.getRuleChainById(savedRuleChainId).get();
         savedRuleChain.setName("Edge Test Rule Chain Updated");
         cloudRestClient.saveRuleChain(savedRuleChain);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Edge Test Rule Chain Updated"
-                        .equals(edgeRestClient.getRuleChainById(savedRuleChain.getId()).get().getName()));
+                        .equals(edgeRestClient.getRuleChainById(savedRuleChainId).get().getName()));
 
-        // unassign rule chain from edge
-        cloudRestClient.unassignRuleChainFromEdge(edge.getId(), savedRuleChain.getId());
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getRuleChainById(savedRuleChain.getId()).isEmpty());
-
-        // delete rule chain
-        cloudRestClient.deleteRuleChain(savedRuleChain.getId());
-    }
-
-    private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
-        RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
-        ruleChainMetaData.setRuleChainId(ruleChain.getId());
-
-        RuleNode ruleNode1 = new RuleNode();
-        ruleNode1.setName("name1");
-        ruleNode1.setType("type1");
-        ruleNode1.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key1\": \"val1\""));
-
-        RuleNode ruleNode2 = new RuleNode();
-        ruleNode2.setName("name2");
-        ruleNode2.setType("type2");
-        ruleNode2.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key2\": \"val2\""));
-
-        RuleNode ruleNode3 = new RuleNode();
-        ruleNode3.setName("name3");
-        ruleNode3.setType("type3");
-        ruleNode3.setConfiguration(JacksonUtil.OBJECT_MAPPER.readTree("\"key3\": \"val3\""));
-
-        List<RuleNode> ruleNodes = new ArrayList<>();
-        ruleNodes.add(ruleNode1);
-        ruleNodes.add(ruleNode2);
-        ruleNodes.add(ruleNode3);
-        ruleChainMetaData.setFirstNodeIndex(0);
-        ruleChainMetaData.setNodes(ruleNodes);
-
-        ruleChainMetaData.addConnectionInfo(0, 1, "success");
-        ruleChainMetaData.addConnectionInfo(0, 2, "fail");
-        ruleChainMetaData.addConnectionInfo(1, 2, "success");
-
-        // ruleChainMetaData.addRuleChainConnectionInfo(2, edge.getRootRuleChainId(), "success", JacksonUtil.OBJECT_MAPPER.createObjectNode());
-
-        cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+        unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 }
 

@@ -125,16 +125,6 @@ abstract public class BaseDashboardEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedDashboard.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getIdLSB());
     }
 
-    private Dashboard saveDashboard(String dashboardTitle, EntityGroupId entityGroupId) {
-        Dashboard dashboard = new Dashboard();
-        dashboard.setTitle(dashboardTitle);
-        if (entityGroupId != null) {
-            return doPost("/api/dashboard?entityGroupId={entityGroupId}", dashboard, Dashboard.class, entityGroupId.getId().toString());
-        } else {
-            return doPost("/api/dashboard", dashboard, Dashboard.class);
-        }
-    }
-
     private void testDashboardEntityGroupRequestMsg(long msbId, long lsbId, DashboardId expectedDashboardId) throws Exception {
         EntityGroupRequestMsg.Builder entitiesGroupRequestMsgBuilder = EntityGroupRequestMsg.newBuilder()
                 .setEntityGroupIdMSB(msbId)

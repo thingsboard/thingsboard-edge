@@ -68,6 +68,8 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
@@ -85,6 +87,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
+import static org.thingsboard.server.common.data.ota.OtaPackageType.SOFTWARE;
 
 @Slf4j
 public class DeviceClientTest extends AbstractContainerTest {
@@ -108,12 +113,24 @@ public class DeviceClientTest extends AbstractContainerTest {
         validateDeviceTransportConfiguration(savedDevice1, cloudRestClient, edgeRestClient);
 
         // update device #1
+        OtaPackageId firmwarePackageId = createOtaPackageInfo(savedDevice1.getDeviceProfileId(), FIRMWARE);
+        savedDevice1.setFirmwareId(firmwarePackageId);
+
+        OtaPackageId softwarePackageId = createOtaPackageInfo(savedDevice1.getDeviceProfileId(), SOFTWARE);
+        savedDevice1.setSoftwareId(softwarePackageId);
+
         String updatedDeviceName = savedDevice1.getName() + "Updated";
         savedDevice1.setName(updatedDeviceName);
         cloudRestClient.saveDevice(savedDevice1);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> updatedDeviceName.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getName()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> firmwarePackageId.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getFirmwareId()));
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> softwarePackageId.equals(edgeRestClient.getDeviceById(savedDevice1.getId()).get().getSoftwareId()));
 
         // save device #1 attribute
         cloudRestClient.saveDeviceAttributes(savedDevice1.getId(), DataConstants.SERVER_SCOPE, JacksonUtil.OBJECT_MAPPER.readTree("{\"key1\":\"value1\"}"));

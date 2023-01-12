@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -361,7 +362,7 @@ public class TelemetryEdgeProcessor extends BaseEdgeProcessor {
                 return null;
         }
         return constructEntityDataProtoMsg(entityId, edgeEvent.getAction(),
-                JsonUtils.parse(JacksonUtil.OBJECT_MAPPER.writeValueAsString(edgeEvent.getBody())));
+                JsonParser.parseString(JacksonUtil.OBJECT_MAPPER.writeValueAsString(edgeEvent.getBody())));
     }
 
     private DownlinkMsg constructEntityDataProtoMsg(EntityId entityId, EdgeEventActionType actionType, JsonElement entityData) {

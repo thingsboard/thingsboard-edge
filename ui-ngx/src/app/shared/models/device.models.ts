@@ -595,6 +595,7 @@ export interface DeviceProfile extends BaseData<DeviceProfileId>, ExportableEnti
   firmwareId?: OtaPackageId;
   softwareId?: OtaPackageId;
   profileData: DeviceProfileData;
+  defaultEdgeRuleChainId?: RuleChainId;
 }
 
 export interface DeviceProfileInfo extends EntityInfoData {

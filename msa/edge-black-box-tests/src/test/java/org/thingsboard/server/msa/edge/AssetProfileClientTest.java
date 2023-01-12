@@ -33,12 +33,12 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
@@ -50,12 +50,14 @@ import java.util.stream.Collectors;
 public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssetProfiles() {
+    public void testAssetProfiles() throws Exception {
         verifyAssetProfilesOnEdge(1);
 
         // create asset profile
-        Dashboard dashboard = createDashboardAndAssignToEdge();
-        AssetProfile savedAssetProfile = createCustomAssetProfile(dashboard.getId());
+        EntityGroup dashboardGroup = createEntityGroup(EntityType.DASHBOARD);
+        DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard", dashboardGroup);
+        RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
+        AssetProfile savedAssetProfile = createCustomAssetProfile(dashboardId, savedRuleChainId);
 
         verifyAssetProfilesOnEdge(2);
 
@@ -65,13 +67,15 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> "Buildings Updated".equals(edgeRestClient.getAssetProfileById(savedAssetProfile.getId()).get().getName()));
-
         // delete asset profile
         cloudRestClient.deleteAssetProfile(savedAssetProfile.getId());
         verifyAssetProfilesOnEdge(1);
+
+        unAssignFromEdgeAndDeleteDashboard(dashboardId, dashboardGroup.getId());
+        unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
-    private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId) {
+    private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId, RuleChainId edgeRuleChainId) {
         AssetProfile assetProfile = new AssetProfile();
         assetProfile.setName("Buildings");
         assetProfile.setImage("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEABA");
@@ -79,20 +83,8 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         assetProfile.setDescription("Asset profile description");
         assetProfile.setDefaultQueueName("Main");
         assetProfile.setDefaultDashboardId(defaultDashboardId);
-        // TODO: @voba
-        // assetProfile.setDefaultRuleChainId();
+        assetProfile.setDefaultEdgeRuleChainId(edgeRuleChainId);
         return cloudRestClient.saveAssetProfile(assetProfile);
-    }
-
-    private Dashboard createDashboardAndAssignToEdge() {
-        EntityGroup dashboardEntityGroup= createEntityGroup(EntityType.DASHBOARD);
-        Dashboard dashboard = saveDashboardOnCloud("Asset Profile Test Dashboard", dashboardEntityGroup.getId());
-        assignEntityGroupToEdge(dashboardEntityGroup);
-
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getDashboardById(dashboard.getId()).isPresent());
-        return dashboard;
     }
 
     private void verifyAssetProfilesOnEdge(int expectedAssetProfilesCnt) {
