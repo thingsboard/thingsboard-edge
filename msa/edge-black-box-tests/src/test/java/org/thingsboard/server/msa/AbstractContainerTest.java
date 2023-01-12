@@ -981,4 +981,8 @@ public abstract class AbstractContainerTest {
         return savedOtaPackageInfo.getId();
     }
 
+    protected Customer findPublicCustomer() {
+        PageData<Customer> customers = cloudRestClient.getCustomers(new PageLink(100));
+        return customers.getData().stream().filter(Customer::isPublic).findFirst().get();
+    }
 }

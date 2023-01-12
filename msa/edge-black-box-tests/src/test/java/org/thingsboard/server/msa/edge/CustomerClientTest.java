@@ -88,5 +88,13 @@ public class CustomerClientTest extends AbstractContainerTest {
         cloudRestClient.deleteCustomer(savedCustomerA.getId());
         cloudRestClient.deleteCustomer(savedCustomerB.getId());
     }
+
+    @Test
+    public void testPublicCustomerCreatedOnEdge() {
+        Customer publicCustomer = findPublicCustomer();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
+    }
 }
 

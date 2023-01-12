@@ -270,18 +270,20 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
                     }
                 } while (customers.hasNext() && publicCustomer == null);
                 if (publicCustomer == null) {
-                    publicCustomer = new Customer();
-                    publicCustomer.setTenantId(tenantId);
-                    publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
-                    if (ownerId.getEntityType() == EntityType.CUSTOMER) {
-                        publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
-                    }
-                    try {
-                        publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
-                    } catch (IOException e) {
-                        throw new IncorrectParameterException("Unable to create public customer.", e);
-                    }
-                    publicCustomer = saveCustomerInternal(publicCustomer, true);
+                    throw new RuntimeException("Unable to create public customer on edge - please create it on cloud and click 'Sync Edge' button.");
+                    // TODO: @voba - public customer should be created on the cloud
+                    // publicCustomer = new Customer();
+                    // publicCustomer.setTenantId(tenantId);
+                    // publicCustomer.setTitle(PUBLIC_CUSTOMER_TITLE);
+                    // if (ownerId.getEntityType() == EntityType.CUSTOMER) {
+                    //     publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
+                    // }
+                    // try {
+                    //     publicCustomer.setAdditionalInfo(new ObjectMapper().readValue("{ \"isPublic\": true }", JsonNode.class));
+                    // } catch (IOException e) {
+                    //     throw new IncorrectParameterException("Unable to create public customer.", e);
+                    // }
+                    // publicCustomer = saveCustomerInternal(publicCustomer, true);
                 }
                 return publicCustomer;
             } else {
