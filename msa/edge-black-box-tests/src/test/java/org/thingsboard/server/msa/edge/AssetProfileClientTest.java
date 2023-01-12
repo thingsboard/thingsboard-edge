@@ -18,11 +18,11 @@ package org.thingsboard.server.msa.edge;
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
-import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
@@ -34,12 +34,13 @@ import java.util.stream.Collectors;
 public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssetProfiles() {
+    public void testAssetProfiles() throws Exception {
         verifyAssetProfilesOnEdge(1);
 
         // create asset profile
-        Dashboard dashboard = createDashboardAndAssignToEdge("Asset Profile Test Dashboard");
-        AssetProfile savedAssetProfile = createCustomAssetProfile(dashboard.getId());
+        DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard");
+        RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
+        AssetProfile savedAssetProfile = createCustomAssetProfile(dashboardId, savedRuleChainId);
 
         verifyAssetProfilesOnEdge(2);
 
@@ -53,11 +54,11 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         cloudRestClient.deleteAssetProfile(savedAssetProfile.getId());
         verifyAssetProfilesOnEdge(1);
 
-        cloudRestClient.unassignDashboardFromEdge(edge.getId(), dashboard.getId());
-        cloudRestClient.deleteDashboard(dashboard.getId());
+        unAssignFromEdgeAndDeleteDashboard(dashboardId);
+        unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
 
-    private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId) {
+    private AssetProfile createCustomAssetProfile(DashboardId defaultDashboardId, RuleChainId edgeRuleChainId) {
         AssetProfile assetProfile = new AssetProfile();
         assetProfile.setName("Buildings");
         assetProfile.setImage("iVBORw0KGgoAAAANSUhEUgAAAQAAAAEABA");
@@ -65,8 +66,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
         assetProfile.setDescription("Asset profile description");
         assetProfile.setDefaultQueueName("Main");
         assetProfile.setDefaultDashboardId(defaultDashboardId);
-        // TODO: @voba
-        // assetProfile.setDefaultRuleChainId();
+        assetProfile.setDefaultEdgeRuleChainId(edgeRuleChainId);
         return cloudRestClient.saveAssetProfile(assetProfile);
     }
 

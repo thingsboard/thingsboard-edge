@@ -24,7 +24,7 @@ import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.IdBased;
-import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.msa.AbstractContainerTest;
@@ -41,16 +41,7 @@ public class OtaPackageClientTest extends AbstractContainerTest {
     public void testOtaPackages() throws Exception {
         // create ota package
         DeviceProfileInfo defaultDeviceProfileInfo = cloudRestClient.getDefaultDeviceProfileInfo();
-        OtaPackageInfo firmware = new OtaPackageInfo();
-        firmware.setDeviceProfileId(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()));
-        firmware.setType(FIRMWARE);
-        firmware.setTitle("My firmware #2");
-        firmware.setVersion("v2.0");
-        firmware.setTag("My firmware #2 v2.0");
-        firmware.setHasData(false);
-        OtaPackageInfo savedOtaPackageInfo = cloudRestClient.saveOtaPackageInfo(firmware, false);
-
-        cloudRestClient.saveOtaPackageData(savedOtaPackageInfo.getId(), null, ChecksumAlgorithm.SHA256, "firmware.bin", new byte[]{1, 3, 5});
+        OtaPackageId otaPackageId = createOtaPackageInfo(new DeviceProfileId(defaultDeviceProfileInfo.getId().getId()), FIRMWARE);
 
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
@@ -67,10 +58,16 @@ public class OtaPackageClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(pageData.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.OTA_PACKAGE);
 
         // delete ota package
-        cloudRestClient.deleteOtaPackage(savedOtaPackageInfo.getId());
+        cloudRestClient.deleteOtaPackage(otaPackageId);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() ->  edgeRestClient.getOtaPackages(new PageLink(100)).getTotalElements() == 0);
+                .until(() -> {
+                    PageData<OtaPackageInfo> otaPackages = edgeRestClient.getOtaPackages(new PageLink(100));
+                    if (otaPackages.getData().isEmpty()) {
+                        return true;
+                    }
+                    return otaPackages.getData().stream().map(OtaPackageInfo::getId).noneMatch(otaPackageId::equals);
+                });
     }
 
 
