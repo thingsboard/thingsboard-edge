@@ -50,5 +50,13 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedCustomer.getId()).isEmpty());
     }
+
+    @Test
+    public void testPublicCustomerCreatedOnEdge() {
+        Customer publicCustomer = findPublicCustomer();
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
+    }
 }
 

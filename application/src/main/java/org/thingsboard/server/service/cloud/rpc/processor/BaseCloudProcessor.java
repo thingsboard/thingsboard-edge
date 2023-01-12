@@ -238,10 +238,12 @@ public abstract class BaseCloudProcessor {
             if (customerId.equals(edgeCustomerId)) {
                 return customerId;
             }
-            Optional<Customer> publicCustomer = customerService.findPublicCustomer(tenantId);
-            if (publicCustomer.isPresent() && publicCustomer.get().getId().equals(customerId)) {
-                return customerId;
-            }
+            try {
+                Customer publicCustomer = customerService.findOrCreatePublicCustomer(tenantId);
+                if (publicCustomer != null && publicCustomer.getId().equals(customerId)) {
+                    return customerId;
+                }
+            } catch (Exception ignored) {}
         }
         return new CustomerId(ModelConstants.NULL_UUID);
     }

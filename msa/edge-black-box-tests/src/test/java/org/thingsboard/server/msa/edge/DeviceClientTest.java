@@ -129,6 +129,19 @@ public class DeviceClientTest extends AbstractContainerTest {
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId().getId()));
         cloudRestClient.deleteCustomer(savedCustomer.getId());
 
+        // assign device #2 to public customer
+        Customer publicCustomer = findPublicCustomer();
+        cloudRestClient.assignDeviceToCustomer(publicCustomer.getId(), savedDevice2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> publicCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId()));
+
+        // unassign device #2 from public customer
+        cloudRestClient.unassignDeviceFromCustomer(savedDevice2.getId());
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId().getId()));
+
         // delete device #2
         cloudRestClient.deleteDevice(savedDevice2.getId());
         Awaitility.await()

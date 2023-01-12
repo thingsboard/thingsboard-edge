@@ -705,4 +705,9 @@ public abstract class AbstractContainerTest {
                 .until(() -> edgeRestClient.getDashboardById(dashboard.getId()).isPresent());
         return dashboard;
     }
+
+    protected Customer findPublicCustomer() {
+        PageData<Customer> customers = cloudRestClient.getCustomers(new PageLink(100));
+        return customers.getData().stream().filter(Customer::isPublic).findFirst().get();
+    }
 }
