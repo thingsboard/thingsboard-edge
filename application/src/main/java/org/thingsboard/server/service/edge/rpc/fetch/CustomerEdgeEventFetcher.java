@@ -64,6 +64,9 @@ public class CustomerEdgeEventFetcher extends BasePageableEdgeEventFetcher<Custo
         List<Customer> result = new ArrayList<>();
         Customer customerById = customerService.findCustomerById(tenantId, customerId);
         result.add(customerById);
+        if (customerById != null && customerById.isPublic()) {
+            return result;
+        }
         result.add(customerService.findOrCreatePublicCustomer(tenantId, customerId));
         if (customerById != null && customerById.getParentCustomerId() != null && !customerById.getParentCustomerId().isNullUid()) {
             result.addAll(getCustomersHierarchy(tenantId, customerById.getParentCustomerId()));
