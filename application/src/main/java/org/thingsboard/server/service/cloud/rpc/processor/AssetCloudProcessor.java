@@ -61,22 +61,23 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         assetCreationLock.lock();
         try {
             Asset asset = assetService.findAssetById(tenantId, assetId);
+            boolean created = false;
             if (asset == null) {
                 asset = new Asset();
                 asset.setTenantId(tenantId);
-                asset.setId(assetId);
                 asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
+                created = true;
             }
             asset.setName(assetUpdateMsg.getName());
             asset.setType(assetUpdateMsg.getType());
             asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
             asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
             asset.setCustomerId(safeGetCustomerId(tenantId, assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
-            if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
-                AssetProfileId assetProfileId = new AssetProfileId(
-                        new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
-                                assetUpdateMsg.getAssetProfileIdLSB()));
-                asset.setAssetProfileId(assetProfileId);
+            UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
+            asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
+            assetValidator.validate(asset, Asset::getTenantId);
+            if (created) {
+                asset.setId(assetId);
             }
             assetService.saveAsset(asset, false);
         } finally {

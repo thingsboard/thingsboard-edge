@@ -191,11 +191,9 @@ public class DeviceCloudProcessor extends BaseCloudProcessor {
             UUID softwareUUID = safeGetUUID(deviceUpdateMsg.getSoftwareIdMSB(), deviceUpdateMsg.getSoftwareIdLSB());
             device.setSoftwareId(softwareUUID != null ? new OtaPackageId(softwareUUID) : null);
 
+            deviceValidator.validate(device, Device::getTenantId);
             if (created) {
-                deviceValidator.validate(device, Device::getTenantId);
                 device.setId(deviceId);
-            } else {
-                deviceValidator.validate(device, Device::getTenantId);
             }
             Device savedDevice = deviceService.saveDevice(device, false);
             if (created) {

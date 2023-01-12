@@ -25,6 +25,7 @@ import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AssetId;
@@ -191,6 +192,9 @@ public abstract class BaseCloudProcessor {
 
     @Autowired
     protected DataValidator<Device> deviceValidator;
+
+    @Autowired
+    protected DataValidator<Asset> assetValidator;
 
     @Autowired
     protected DbCallbackExecutorService dbCallbackExecutor;
