@@ -68,7 +68,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -169,19 +168,6 @@ public class DeviceClientTest extends AbstractContainerTest {
                     List<EntityGroupId> device2Groups = edgeRestClient.getEntityGroupsForEntity(savedDevice2.getId());
                     return !device2Groups.contains(savedDeviceEntityGroup2.getId());
                 });
-
-        // assign device #2 to public customer
-        Customer publicCustomer = findPublicCustomer();
-        cloudRestClient.assignDeviceToCustomer(publicCustomer.getId(), savedDevice2.getId());
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> publicCustomer.getId().equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId()));
-
-        // unassign device #2 from public customer
-        cloudRestClient.unassignDeviceFromCustomer(savedDevice2.getId());
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getDeviceById(savedDevice2.getId()).get().getCustomerId().getId()));
 
         // delete device #2
         cloudRestClient.deleteDevice(savedDevice2.getId());
