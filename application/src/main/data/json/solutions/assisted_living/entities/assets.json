@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Floor 1",
+    "label": "Floor 1",
+    "type": "AL_Zone",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "floorplan": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Sample_Floorplan.jpg/290px-Sample_Floorplan.jpg"
+    },
+    "relations": [
+      {
+        "entityType": "CUSTOMER",
+        "entityName": "Assisted Living Company",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 101",
+    "label": "Room 101",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "coordinates": "[[0.1,0.1],[0.5,0.1],[0.5,0.5],[0.1,0.5]]"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  },
+  {
+    "name": "Room 102",
+    "label": "Room 102",
+    "type": "AL_Room",
+    "group": "Assisted Living Assets",
+    "customer": "Assisted Living Company",
+    "attributes": {
+      "coordinates": "[[0.5,0.5],[0.7,0.5],[0.7,0.7],[0.5,0.7]]"
+    },
+    "relations": [
+      {
+        "entityType": "ASSET",
+        "entityName": "Floor 1",
+        "direction": "FROM",
+        "type": "Contains"
+      }
+    ]
+  }
+]

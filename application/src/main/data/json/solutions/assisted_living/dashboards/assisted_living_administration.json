@@ -1291,12 +1291,26 @@
         "id": "2dbb112d-dfc2-ed3c-a569-7c35cff7f901",
         "alias": "Residents",
         "filter": {
-          "type": "entitiesByGroupName",
+          "type": "relationsQuery",
           "resolveMultiple": true,
-          "groupStateEntity": true,
+          "rootStateEntity": true,
           "stateEntityParamName": null,
-          "groupType": "USER",
-          "entityGroupNameFilter": "Assisted Living Residents"
+          "defaultStateEntity": {
+            "entityType": "CURRENT_CUSTOMER",
+            "id": "d4b26b60-878b-11ed-8f44-9b654a5da659"
+          },
+          "rootEntity": null,
+          "direction": "FROM",
+          "maxLevel": 1,
+          "fetchLastLevelOnly": false,
+          "filters": [
+            {
+              "relationType": "Resident",
+              "entityTypes": [
+                "USER"
+              ]
+            }
+          ]
         }
       },
       "93fa3349-33d1-8278-2239-73ec500fc410": {

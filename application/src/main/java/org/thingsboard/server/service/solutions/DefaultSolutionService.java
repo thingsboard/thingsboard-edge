@@ -474,11 +474,11 @@ public class DefaultSolutionService implements SolutionService {
 
             var devices = provisionDevices(user, ctx);
 
-            provisionRelations(ctx);
-
             provisionDashboards(ctx);
 
             provisionCustomerUsers(ctx, customers);
+
+            provisionRelations(ctx);
 
             provisionSchedulerEvents(ctx);
 
@@ -1066,6 +1066,8 @@ public class DefaultSolutionService implements SolutionService {
                 credentialsInfo.setCustomerGroup(uDef.getGroup());
                 ctx.addUserCredentials(credentialsInfo);
                 ctx.register(entityDef, uDef, user);
+                ctx.put(user.getId(), uDef.getRelations());
+                saveServerSideAttributes(ctx.getTenantId(), user.getId(), uDef.getAttributes());
             }
         }
     }

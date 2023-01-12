@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Assisted Living Company",
+    "group": "Assisted Living",
+    "jsonId": "d4b26b60-878b-11ed-8f44-9b654a5da659",
+    "email": "assisted.living.$random@thingsboard.org",
+    "country": "United States",
+    "state": "CA",
+    "city": "San Francisco",
+    "zip": "94103",
+    "address": "18 10th St",
+    "attributes": {
+      "address": "18 10th St, San Francisco, CA 94103, United States"
+    },
+    "relations": [],
+    "assetGroups": [],
+    "deviceGroups": [],
+    "userGroups": [
+      {
+        "name": "Residents",
+        "groupRoles": [],
+        "genericRoles": []
+      },
+      {
+        "name": "Administrators",
+        "groupRoles": [
+          {
+            "roleName": "Assisted Living Read Only",
+            "groupType": "DASHBOARD",
+            "groupName": "Assisted Living"
+          }
+        ],
+        "genericRoles": [
+          "Assisted Living Administrator"
+        ]
+      }
+    ],
+    "users": [
+      {
+        "name": "$randomEmail",
+        "firstname": "$randomFirstName",
+        "lastname": "$randomLastName",
+        "password": "customer",
+        "group": "Administrators",
+        "attributes": {
+        },
+        "dashboard": {
+          "name": "Assisted Living Administration",
+          "fullScreen": true
+        }
+      },
+      {
+        "name": "al.resident.$random@thingsboard.org",
+        "firstname": "Andrei",
+        "lastname": "Piontkovsky",
+        "password": "customer",
+        "group": "Residents",
+        "attributes": {
+          "xPos": 0.5,
+          "yPos": 0.5,
+          "zone": "Floor 1"
+        },
+        "relations": [
+          {
+            "entityType": "CUSTOMER",
+            "entityName": "Assisted Living Company",
+            "direction": "FROM",
+            "type": "Resident"
+          }
+        ]
+      }
+    ]
+  }
+]
