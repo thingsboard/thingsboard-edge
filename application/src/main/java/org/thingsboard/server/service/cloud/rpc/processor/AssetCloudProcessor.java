@@ -94,17 +94,11 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
             asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
             asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
             asset.setCustomerId(safeGetCustomerId(assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB()));
-            if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
-                AssetProfileId assetProfileId = new AssetProfileId(
-                        new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
-                                assetUpdateMsg.getAssetProfileIdLSB()));
-                asset.setAssetProfileId(assetProfileId);
-            }
+            UUID assetProfileUUID = safeGetUUID(assetUpdateMsg.getAssetProfileIdMSB(), assetUpdateMsg.getAssetProfileIdLSB());
+            asset.setAssetProfileId(assetProfileUUID != null ? new AssetProfileId(assetProfileUUID) : null);
+            assetValidator.validate(asset, Asset::getTenantId);
             if (created) {
-                assetValidator.validate(asset, Asset::getTenantId);
                 asset.setId(assetId);
-            } else {
-                assetValidator.validate(asset, Asset::getTenantId);
             }
             Asset savedAsset = assetService.saveAsset(asset, false);
             if (created) {
