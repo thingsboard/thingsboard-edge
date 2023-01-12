@@ -42,30 +42,7 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         switch (assetUpdateMsg.getMsgType()) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                assetCreationLock.lock();
-                try {
-                    Asset asset = assetService.findAssetById(tenantId, assetId);
-                    if (asset == null) {
-                        asset = new Asset();
-                        asset.setTenantId(tenantId);
-                        asset.setId(assetId);
-                        asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
-                    }
-                    asset.setName(assetUpdateMsg.getName());
-                    asset.setType(assetUpdateMsg.getType());
-                    asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
-                    asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
-                    asset.setCustomerId(safeGetCustomerId(tenantId, assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
-                    if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
-                        AssetProfileId assetProfileId = new AssetProfileId(
-                                new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
-                                        assetUpdateMsg.getAssetProfileIdLSB()));
-                        asset.setAssetProfileId(assetProfileId);
-                    }
-                    assetService.saveAsset(asset, false);
-                } finally {
-                    assetCreationLock.unlock();
-                }
+                saveOrUpdateAsset(tenantId, assetId, assetUpdateMsg, edgeCustomerId);
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 Asset assetById = assetService.findAssetById(tenantId, assetId);
@@ -80,4 +57,30 @@ public class AssetCloudProcessor extends BaseCloudProcessor {
         return Futures.transform(requestForAdditionalData(tenantId, assetUpdateMsg.getMsgType(), assetId, queueStartTs), future -> null, dbCallbackExecutor);
     }
 
+    private void saveOrUpdateAsset(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg, CustomerId edgeCustomerId) {
+        assetCreationLock.lock();
+        try {
+            Asset asset = assetService.findAssetById(tenantId, assetId);
+            if (asset == null) {
+                asset = new Asset();
+                asset.setTenantId(tenantId);
+                asset.setId(assetId);
+                asset.setCreatedTime(Uuids.unixTimestamp(assetId.getId()));
+            }
+            asset.setName(assetUpdateMsg.getName());
+            asset.setType(assetUpdateMsg.getType());
+            asset.setLabel(assetUpdateMsg.hasLabel() ? assetUpdateMsg.getLabel() : null);
+            asset.setAdditionalInfo(assetUpdateMsg.hasAdditionalInfo() ? JacksonUtil.toJsonNode(assetUpdateMsg.getAdditionalInfo()) : null);
+            asset.setCustomerId(safeGetCustomerId(tenantId, assetUpdateMsg.getCustomerIdMSB(), assetUpdateMsg.getCustomerIdLSB(), edgeCustomerId));
+            if (assetUpdateMsg.hasAssetProfileIdMSB() && assetUpdateMsg.hasAssetProfileIdLSB()) {
+                AssetProfileId assetProfileId = new AssetProfileId(
+                        new UUID(assetUpdateMsg.getAssetProfileIdMSB(),
+                                assetUpdateMsg.getAssetProfileIdLSB()));
+                asset.setAssetProfileId(assetProfileId);
+            }
+            assetService.saveAsset(asset, false);
+        } finally {
+            assetCreationLock.unlock();
+        }
+    }
 }
