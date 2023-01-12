@@ -76,7 +76,8 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
             AlarmComment alarmComment = AlarmComment.builder()
                     .alarmId(alarm.getId())
                     .type(AlarmCommentType.SYSTEM)
-                    .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was acknowledged by user %s", user.getName()))
+                    .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was acknowledged by user %s",
+                                            (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
                             .put("userId", user.getId().toString()))
                     .build();
             alarmCommentService.createOrUpdateAlarmComment(alarm.getTenantId(), alarmComment);
@@ -95,7 +96,9 @@ public class DefaultTbAlarmService extends AbstractTbEntityService implements Tb
             AlarmComment alarmComment = AlarmComment.builder()
                     .alarmId(alarm.getId())
                     .type(AlarmCommentType.SYSTEM)
-                    .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was cleared by user %s", user.getName())))
+                    .comment(JacksonUtil.newObjectNode().put("text", String.format("Alarm was cleared by user %s",
+                                    (user.getFirstName() == null || user.getLastName() == null) ? user.getName() : user.getFirstName() + " " + user.getLastName()))
+                            .put("userId", user.getId().toString()))
                     .build();
             alarmCommentService.createOrUpdateAlarmComment(alarm.getTenantId(), alarmComment);
             alarm.setClearTs(clearTs);
