@@ -37,7 +37,7 @@
           [fxShow]="!isEdit && !isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
-  <button mat-raised-button color="primary"
+  <!--button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePublic')"
           [fxShow]="!isEdit && deviceScope === 'tenant' && !isAssignedToCustomer(entity) && !entity?.customerIsPublic">
@@ -54,7 +54,7 @@
           (click)="onEntityAction($event, 'unassignFromCustomer')"
           [fxShow]="!isEdit && (deviceScope === 'customer' || deviceScope === 'tenant') && isAssignedToCustomer(entity)">
     {{ (entity?.customerIsPublic ? 'device.make-private' : 'device.unassign-from-customer') | translate }}
-  </button>
+  </button-->
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageCredentials')"
