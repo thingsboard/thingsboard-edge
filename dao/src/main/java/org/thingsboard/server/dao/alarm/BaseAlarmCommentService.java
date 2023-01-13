@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
