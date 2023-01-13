@@ -45,7 +45,6 @@ public enum Resource {
     PROFILE(),
     ADMIN_SETTINGS(),
     ALARM(EntityType.ALARM),
-    ALARM_COMMENT(EntityType.ALARM_COMMENT),
     DEVICE(EntityType.DEVICE),
     ASSET(EntityType.ASSET),
     CUSTOMER(EntityType.CUSTOMER),

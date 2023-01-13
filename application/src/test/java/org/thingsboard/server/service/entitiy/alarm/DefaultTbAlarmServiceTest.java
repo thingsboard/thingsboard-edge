@@ -42,8 +42,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -53,6 +55,8 @@ import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
+
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -109,8 +113,9 @@ public class DefaultTbAlarmServiceTest {
         var alarm = new Alarm();
         alarm.setStatus(AlarmStatus.ACTIVE_UNACK);
         when(alarmSubscriptionService.ackAlarm(any(), any(), anyLong())).thenReturn(Futures.immediateFuture(true));
-        service.ack(alarm, new User());
+        service.ack(alarm, new User(new UserId(UUID.randomUUID())));
 
+        verify(alarmCommentService, times(1)).createOrUpdateAlarmComment(any(), any());
         verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
         verify(alarmSubscriptionService, times(1)).ackAlarm(any(), any(), anyLong());
     }
@@ -120,8 +125,9 @@ public class DefaultTbAlarmServiceTest {
         var alarm = new Alarm();
         alarm.setStatus(AlarmStatus.ACTIVE_ACK);
         when(alarmSubscriptionService.clearAlarm(any(), any(), any(), anyLong())).thenReturn(Futures.immediateFuture(true));
-        service.clear(alarm, new User());
+        service.clear(alarm, new User(new UserId(UUID.randomUUID())));
 
+        verify(alarmCommentService, times(1)).createOrUpdateAlarmComment(any(), any());
         verify(notificationEntityService, times(1)).notifyCreateOrUpdateAlarm(any(), any(), any());
         verify(alarmSubscriptionService, times(1)).clearAlarm(any(), any(), any(), anyLong());
     }
