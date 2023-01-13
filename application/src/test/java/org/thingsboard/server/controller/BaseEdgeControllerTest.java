@@ -991,7 +991,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(16);
+        edgeImitator.expectMessageAmount(19);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
@@ -999,21 +999,24 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("one msg during sync process, another from edge creation").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("one msg during sync process for 'default' device profile").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("two msgs during sync process for 'default' and 'test' asset profiles").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - two msgs during sync process, four msgs from assign to edge").hasSize(6);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - two msgs during sync process").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group - three msgs during sync process (one msg from 'public' customer user group), " +
+                "four msgs from assign to edge").hasSize(7);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - three msgs during sync process (one msg from 'public' customer role)").hasSize(3);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("'public' customer").hasSize(1);
 
-        edgeImitator.expectMessageAmount(13);
+        edgeImitator.expectMessageAmount(16);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
         assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(4);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync (one msg from 'public' customer user group)").hasSize(5);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync (one msg from 'public' customer role)").hasSize(3);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("'public' customer").hasSize(1);
 
         edgeImitator.allowIgnoredTypes();
         try {
@@ -1077,7 +1080,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(25);
+        edgeImitator.expectMessageAmount(31);
         edgeImitator.connect();
         assertThat(edgeImitator.waitForMessages()).as("await for messages on first connect").isTrue();
 
@@ -1090,25 +1093,27 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
                         "two msgs during sync process, " +
                         "four msgs from assign to edge, " +
                         "two msgs of customer user groups during sync, " +
-                        "two msgs of customer user groups during change edge owner")
-                .hasSize(10);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - four msgs during sync process (two tenant's and two customer's)").hasSize(4);
+                        "two msgs of customer user groups during change edge owner" +
+                        "two msgs from 'public' customer user groups")
+                .hasSize(12);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto - six msgs during sync process (two tenant's and two customer's) " +
+                "and two msgs from 'public' customers role").hasSize(6);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process, another from change edge owner").hasSize(2);
+        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("one msg during sync process, another from change edge owner, and two 'public' customers").hasSize(4);
         assertThat(edgeImitator.findAllMessagesByType(EdgeConfiguration.class)).as("one msg during change edge owner").hasSize(1);
 
-        edgeImitator.expectMessageAmount(18);
+        edgeImitator.expectMessageAmount(24);
         doPost("/api/edge/sync/" + edge.getId());
         assertThat(edgeImitator.waitForMessages()).as("await for messages after edge sync rest api call").isTrue();
 
         assertThat(edgeImitator.findAllMessagesByType(QueueUpdateMsg.class)).as("queue msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(RuleChainUpdateMsg.class)).as("rule chain msg after sync").hasSize(1);
-        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync").hasSize(6);
-        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync").hasSize(4);
+        assertThat(edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class)).as("entity group update msg after sync (two msgs from 'public' customer user groups)").hasSize(8);
+        assertThat(edgeImitator.findAllMessagesByType(RoleProto.class)).as("role proto msg after sync (two msgs from 'public' customers role)").hasSize(6);
         assertThat(edgeImitator.findAllMessagesByType(DeviceProfileUpdateMsg.class)).as("device profile msg after sync").hasSize(1);
         assertThat(edgeImitator.findAllMessagesByType(AssetProfileUpdateMsg.class)).as("asset profile msg").hasSize(2);
         assertThat(edgeImitator.findAllMessagesByType(AdminSettingsUpdateMsg.class)).as("admin setting update msg after sync").hasSize(2);
-        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("customer update msg after sync").hasSize(1);
+        assertThat(edgeImitator.findAllMessagesByType(CustomerUpdateMsg.class)).as("customer update msg after sync and two 'public' customers").hasSize(3);
 
         edgeImitator.allowIgnoredTypes();
         try {
