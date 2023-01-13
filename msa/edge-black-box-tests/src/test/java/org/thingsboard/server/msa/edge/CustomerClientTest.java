@@ -34,8 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -43,6 +47,8 @@ public class CustomerClientTest extends AbstractContainerTest {
 
     @Test
     public void testCreateUpdateDeleteCustomer() {
+        testPublicCustomerCreatedOnEdge(edge.getTenantId());
+
         // create customer A
         Customer savedCustomerA = saveCustomer("Edge Customer A", null);
         // create sub customer A
@@ -60,6 +66,9 @@ public class CustomerClientTest extends AbstractContainerTest {
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
+
+        cloudRestClient.syncEdge(edge.getId());
+        testPublicCustomerCreatedOnEdge(savedSubCustomerA.getId());
 
         // update customer A
         savedCustomerA.setTitle("Edge Customer A Updated");
@@ -89,12 +98,19 @@ public class CustomerClientTest extends AbstractContainerTest {
         cloudRestClient.deleteCustomer(savedCustomerB.getId());
     }
 
-    @Test
-    public void testPublicCustomerCreatedOnEdge() {
-        Customer publicCustomer = findPublicCustomer();
+    private void testPublicCustomerCreatedOnEdge(EntityId ownerId) {
+        Customer publicCustomer = findPublicCustomer(ownerId);
         Awaitility.await()
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(publicCustomer.getId()).isPresent());
+
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EntityGroupInfo> cloudPublicCustomerUserGroups = cloudRestClient.getEntityGroupsByOwnerAndType(ownerId, EntityType.USER);
+                    List<EntityGroupInfo> edgePublicCustomerUserGroups = edgeRestClient.getEntityGroupsByOwnerAndType(ownerId, EntityType.USER);
+                    return cloudPublicCustomerUserGroups.size() == edgePublicCustomerUserGroups.size();
+                });
     }
 }
 

@@ -68,6 +68,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -981,8 +982,18 @@ public abstract class AbstractContainerTest {
         return savedOtaPackageInfo.getId();
     }
 
-    protected Customer findPublicCustomer() {
-        PageData<Customer> customers = cloudRestClient.getCustomers(new PageLink(100));
-        return customers.getData().stream().filter(Customer::isPublic).findFirst().get();
+    protected Customer findPublicCustomer(EntityId ownerId) {
+        Optional<EntityGroupInfo> customerAllEntityGroupOpt = cloudRestClient.getEntityGroupAllByOwnerAndType(ownerId, EntityType.CUSTOMER);
+        Assert.assertTrue(customerAllEntityGroupOpt.isPresent());
+        EntityGroupInfo customerAllEntityGroup = customerAllEntityGroupOpt.get();
+        List<ShortEntityView> allCustomerViews = cloudRestClient.getEntities(customerAllEntityGroup.getId(), new PageLink(100)).getData();
+        for (ShortEntityView customerView : allCustomerViews) {
+            Optional<Customer> customerById = cloudRestClient.getCustomerById(new CustomerId(customerView.getId().getId()));
+            if (customerById.isPresent() && customerById.get().isPublic()) {
+                return customerById.get();
+            }
+        }
+        Assert.fail("Public customer not found!");
+        return null;
     }
 }
