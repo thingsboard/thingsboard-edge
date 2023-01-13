@@ -181,7 +181,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(14);
+        edgeImitator.expectMessageAmount(17);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -287,10 +287,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 1 message from queue fetcher
         validateQueues();
 
-        // 2 messages - 2 messages from fetcher
+        // 3 messages
+        // - 2 messages from fetcher
+        // - 1 message from public customer user group
         validateEntityGroups();
 
-        // 2 messages - 2 messages from fetcher
+        // 3 messages
+        // - 2 messages from fetcher
+        // - 1 message from public customer role
         validateRoles();
 
         // 1 message from public customer fetcher
@@ -412,12 +416,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private void validateEntityGroups() {
         List<EntityGroupUpdateMsg> entityGroupUpdateMsgList = edgeImitator.findAllMessagesByType(EntityGroupUpdateMsg.class);
-        Assert.assertEquals(2, entityGroupUpdateMsgList.size());
+        Assert.assertEquals(3, entityGroupUpdateMsgList.size());
     }
 
     private void validateRoles() {
         List<RoleProto> roleProtoList = edgeImitator.findAllMessagesByType(RoleProto.class);
-        Assert.assertEquals(2, roleProtoList.size());
+        Assert.assertEquals(3, roleProtoList.size());
     }
 
     private void validatePublicCustomer() throws Exception {
