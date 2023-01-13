@@ -28,31 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.alarm;
+package org.thingsboard.server.dao.sql.alarm;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.AlarmCommentEntity;
+import org.thingsboard.server.dao.model.sql.AlarmCommentInfoEntity;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-public class AlarmOperationResult {
-    private final Alarm alarm;
-    private final boolean successful;
-    private final boolean created;
-    private final AlarmSeverity oldSeverity;
-    private final List<EntityId> propagatedEntitiesList;
+public interface AlarmCommentRepository extends JpaRepository<AlarmCommentEntity, UUID> {
 
-    public AlarmOperationResult(Alarm alarm, boolean successful) {
-        this(alarm, successful, Collections.emptyList());
-    }
-
-    public AlarmOperationResult(Alarm alarm, boolean successful, List<EntityId> propagatedEntitiesList) {
-        this(alarm, successful, false, null, propagatedEntitiesList);
-    }
+    @Query(value = "SELECT new org.thingsboard.server.dao.model.sql.AlarmCommentInfoEntity(a, u.firstName, u.lastName, u.email) FROM AlarmCommentEntity a " +
+            "LEFT JOIN UserEntity u on u.id = a.userId " +
+            "WHERE a.alarmId = :alarmId ",
+            countQuery = "" +
+                    "SELECT count(a) " +
+                    "FROM AlarmCommentEntity a " +
+                    "WHERE a.alarmId = :alarmId ")
+    Page<AlarmCommentInfoEntity> findAllByAlarmId(@Param("alarmId") UUID alarmId,
+                                             Pageable pageable);
 }

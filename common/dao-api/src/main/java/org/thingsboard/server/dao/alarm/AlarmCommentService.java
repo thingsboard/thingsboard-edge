@@ -30,29 +30,24 @@
  */
 package org.thingsboard.server.dao.alarm;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityId;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
+import org.thingsboard.server.common.data.id.AlarmCommentId;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
-import java.util.Collections;
-import java.util.List;
+public interface AlarmCommentService {
+    AlarmComment createOrUpdateAlarmComment(TenantId tenantId, AlarmComment alarmComment);
 
-@Data
-@AllArgsConstructor
-public class AlarmOperationResult {
-    private final Alarm alarm;
-    private final boolean successful;
-    private final boolean created;
-    private final AlarmSeverity oldSeverity;
-    private final List<EntityId> propagatedEntitiesList;
+    void deleteAlarmComment(TenantId tenantId, AlarmCommentId alarmCommentId);
 
-    public AlarmOperationResult(Alarm alarm, boolean successful) {
-        this(alarm, successful, Collections.emptyList());
-    }
+    PageData<AlarmCommentInfo> findAlarmComments(TenantId tenantId, AlarmId alarmId, PageLink pageLink);
 
-    public AlarmOperationResult(Alarm alarm, boolean successful, List<EntityId> propagatedEntitiesList) {
-        this(alarm, successful, false, null, propagatedEntitiesList);
-    }
+    ListenableFuture<AlarmComment> findAlarmCommentByIdAsync(TenantId tenantId, AlarmCommentId alarmCommentId);
+
+    AlarmComment findAlarmCommentById(TenantId tenantId, AlarmCommentId alarmCommentId);
+
 }

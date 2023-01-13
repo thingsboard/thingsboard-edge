@@ -28,31 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.alarm;
+package org.thingsboard.server.dao.model.sql;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.TypeDef;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
+import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import java.util.Collections;
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import static org.thingsboard.server.dao.model.ModelConstants.ALARM_COMMENT_COLUMN_FAMILY_NAME;
 
 @Data
-@AllArgsConstructor
-public class AlarmOperationResult {
-    private final Alarm alarm;
-    private final boolean successful;
-    private final boolean created;
-    private final AlarmSeverity oldSeverity;
-    private final List<EntityId> propagatedEntitiesList;
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@TypeDef(name = "json", typeClass = JsonStringType.class)
+@Table(name = ALARM_COMMENT_COLUMN_FAMILY_NAME)
 
-    public AlarmOperationResult(Alarm alarm, boolean successful) {
-        this(alarm, successful, Collections.emptyList());
+public class AlarmCommentEntity extends AbstractAlarmCommentEntity<AlarmComment>  {
+
+    public AlarmCommentEntity() {
+        super();
     }
 
-    public AlarmOperationResult(Alarm alarm, boolean successful, List<EntityId> propagatedEntitiesList) {
-        this(alarm, successful, false, null, propagatedEntitiesList);
+    public AlarmCommentEntity(AlarmCommentInfo alarmCommentInfo) {
+        super(alarmCommentInfo);
     }
+
+    public AlarmCommentEntity(AlarmComment alarmComment) {
+        super(alarmComment);
+    }
+
+    @Override
+    public AlarmComment toData() {
+        return super.toAlarmComment();
+    }
+
 }
