@@ -36,7 +36,7 @@
 
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.4.3PE-SNAPSHOT</version>
+        <version>3.5.0PE-SNAPSHOT</version>
         <artifactId>transport</artifactId>
     </parent>
 
