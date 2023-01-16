@@ -29,39 +29,33 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { EdgeTableHeaderComponent } from '@home/pages/edge/edge-table-header.component';
-import { EdgeTabsComponent } from '@home/pages/edge/edge-tabs.component';
-import { HomeDialogsModule } from '../../dialogs/home-dialogs.module';
-import { HomeComponentsModule } from '@modules/home/components/home-components.module';
-import { EdgeRoutingModule } from '@home/pages/edge/edge-routing.module';
-import { EdgeComponent } from './edge.component';
-import { EDGE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
-import { EdgeGroupConfigFactory } from '@home/pages/edge/edge-group-config.factory';
-import { EdgeInstructionsDialogComponent } from './edge-instructions-dialog.component';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { DialogComponent } from "@shared/components/dialog.component";
+import { Store } from "@ngrx/store";
+import { AppState } from "@core/core.state";
+import { Router } from "@angular/router";
 
-@NgModule({
-  declarations: [
-    EdgeComponent,
-    EdgeTableHeaderComponent,
-    EdgeTabsComponent,
-    EdgeInstructionsDialogComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    HomeDialogsModule,
-    EdgeRoutingModule
-  ],
-  providers: [
-    {
-      provide: EDGE_GROUP_CONFIG_FACTORY,
-      useClass: EdgeGroupConfigFactory
-    }
-  ]
+export interface EdgeInstructionsData {
+  instructions: string;
+}
+
+@Component({
+  selector: 'tb-edge-instructions',
+  templateUrl: './edge-instructions-dialog.component.html'
 })
+export class EdgeInstructionsDialogComponent extends DialogComponent<EdgeInstructionsDialogComponent, EdgeInstructionsData> {
 
-export class EdgeModule { }
+  instructions: string = this.data.instructions;
+
+  constructor(protected store: Store<AppState>,
+              protected router: Router,
+              public dialogRef: MatDialogRef<EdgeInstructionsDialogComponent, EdgeInstructionsData>,
+              @Inject(MAT_DIALOG_DATA) public data: EdgeInstructionsData) {
+    super(store, router, dialogRef);
+  }
+
+  cancel(): void {
+    this.dialogRef.close(null);
+  }
+}
