@@ -30,7 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectQueueFormGroup" class="mat-block autocomplete-queue">
+<mat-form-field [formGroup]="selectQueueFormGroup"
+                [ngStyle] = "autocompleteHint ? {'padding-bottom': '16px'} : {}"
+                class="mat-block autocomplete-queue">
   <input matInput type="text" placeholder="{{ 'queue.queue-name' | translate }}"
          #queueInput
          formControlName="queueName"
@@ -65,6 +67,7 @@
       </div>
     </mat-option>
   </mat-autocomplete>
+  <mat-hint *ngIf = "autocompleteHint">{{ autocompleteHint | translate }}</mat-hint>
   <mat-error *ngIf="selectQueueFormGroup.get('queueName').hasError('required')">
     {{ 'queue.queue-required' | translate }}
   </mat-error>
