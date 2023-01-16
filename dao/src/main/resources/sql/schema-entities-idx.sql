@@ -112,3 +112,5 @@ CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(
 CREATE INDEX IF NOT EXISTS idx_blob_entity_created_time ON blob_entity(tenant_id, created_time DESC);
 
 CREATE INDEX IF NOT EXISTS idx_blob_entity_id ON blob_entity(id);
+
+CREATE INDEX IF NOT EXISTS idx_alarm_comment_alarm_id ON alarm_comment(alarm_id);
