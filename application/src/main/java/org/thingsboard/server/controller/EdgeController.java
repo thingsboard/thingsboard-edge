@@ -601,19 +601,6 @@ public class EdgeController extends BaseController {
         return edgeBulkImportService.processBulkImport(request, user);
     }
 
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
-    @ResponseBody
-    public EdgeSettings getEdgeSettings() throws ThingsboardException {
-        try {
-            SecurityUser user = getCurrentUser();
-            TenantId tenantId = user.getTenantId();
-            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
     @ApiOperation(value = "Get Edge Docker Install Instructions (getEdgeDockerInstallInstructions)",
             notes = "Get a docker install instructions for provided edge id." + TENANT_AUTHORITY_PARAGRAPH,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -629,6 +616,19 @@ public class EdgeController extends BaseController {
             edgeId = checkNotNull(edgeId);
             Edge edge = checkEdgeId(edgeId, Operation.READ);
             return checkNotNull(edgeInstallService.getDockerInstallInstructions(getTenantId(), edge, request));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeSettings getEdgeSettings() throws ThingsboardException {
+        try {
+            SecurityUser user = getCurrentUser();
+            TenantId tenantId = user.getTenantId();
+            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -653,5 +653,4 @@ public class EdgeController extends BaseController {
             throw handleException(e);
         }
     }
-
 }
