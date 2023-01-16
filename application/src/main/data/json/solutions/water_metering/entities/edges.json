@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Remote Facility R1",
+    "type": "facility",
+    "customer": "Water Metering Customer A",
+    "rootRuleChainId": "",
+    "attributes": {},
+    "relations": [],
+    "userGroups": [
+      {
+        "name": "Customer Administrators",
+        "customer": "Water Metering Customer A"
+      }
+    ],
+    "assetGroups": [],
+    "deviceGroups": [
+      {
+        "name": "Water Meters",
+        "customer": "Water Metering Customer A"
+      }
+    ],
+    "dashboardGroups": [
+      {
+        "name": "Water Metering",
+        "customer": null
+      },
+      {
+        "name": "Water Metering Shared",
+        "customer": null
+      }
+    ]
+  }
+]

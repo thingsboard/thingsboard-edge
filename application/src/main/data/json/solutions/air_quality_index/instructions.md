@@ -250,7 +250,7 @@ Optionally, this solution can be deployed to the edge.
 <a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
 At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
 
-In the scope of this solution, new <a href="${Remote Location R1EDGE_DETAILS_URL}" target="_blank">edge</a> entity "Remote Location R1" was created.
+In the scope of this solution, new edge entity <a href="${Remote Location R1EDGE_DETAILS_URL}" target="_blank">Remote Location R1</a> was created.
 
 Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
 

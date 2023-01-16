@@ -90,3 +90,48 @@ ${user_list}
 As part of this solution, the following entities were created:
 
 ${all_entities}
+
+### [Optional] Edge computing
+
+Optionally, this solution can be deployed to the edge.
+
+<a href="https://thingsboard.io/products/thingsboard-edge/" target="_blank">ThingsBoard Edge</a> allows bringing data analysis and management to the edge, where the data created.
+At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud according to your business needs.
+
+In the scope of this solution, new edge entity <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">Remote Facility R1</a> was added to a customer "Water Metering Customer A".
+
+Additionally, particular entity groups were already assigned to the edge entity to simplify the edge deployment:
+
+* **"Customer Administrators"** *USER* group of customer "Water Metering Customer A";
+* **"Water Meters"** *DEVICE* group of customer "Water Metering Customer A";
+* **"Water Metering"** *DASHBOARD* group of your tenant.
+* **"Water Metering Shared"** *DASHBOARD* group of your tenant.
+
+ThingsBoard Edge is a separate service that must be installed, configured and connected to the cloud.
+The easiest way to install ThingsBoard Edge is to use <a href="https://docs.docker.com/compose/install/" target="_blank">Docker Compose</a>.
+
+Docker compose installation instructions are available on the edge details page.
+Please navigate to <a href="${Remote Facility R1EDGE_DETAILS_URL}" target="_blank">edge details page</a> and click **Install & Connect instructions** button to see the instructions.
+
+Once the edge is installed and connected to the cloud, you will be able to log in into edge using your tenant or users of customer "Water Metering Customer A" credentials.
+
+#### Push data to device on edge
+
+**"Water Meters"** *DEVICE* group of customer "Water Metering Customer A" was assigned to the edge entity "Remote Facility R1".
+This means that all devices from this group will be automatically provisioned to the edge.
+
+You can see devices from this group once you log in into edge and navigate to the **Device groups** page of customer "Water Metering Customer A".
+
+To emulate the data upload on behalf of device "WM0000123" to the edge, one should execute the following command:
+
+```bash
+curl -v -X POST -d "{\"pulseCounter\":  550, \"temperature\":  22.0, \"battery\":  97, \"leakage\":  false}" http://localhost:8080/api/v1/${WM0000123ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Or please use next command if you updated edge HTTP 8080 bind port to **18080** during edge installation:
+
+```bash
+curl -v -X POST -d "{\"pulseCounter\":  550, \"temperature\":  22.0, \"battery\":  97, \"leakage\":  false}" http://localhost:18080/api/v1/${WM0000123ACCESS_TOKEN}/telemetry --header "Content-Type:application/json"{:copy-code}
+```
+
+Once you'll push data to the device "WM0000123" on edge, you'll be able to see telemetry update on the cloud for this device as well.

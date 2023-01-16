@@ -1199,7 +1199,7 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void assignRuleChainsToEdge(SolutionInstallContext ctx, List<String> ruleChainIds, Edge entity) {
-        if (ruleChainIds.isEmpty()) {
+        if (ruleChainIds == null || ruleChainIds.isEmpty()) {
             return;
         }
         for (String strRuleChainId : ruleChainIds) {
