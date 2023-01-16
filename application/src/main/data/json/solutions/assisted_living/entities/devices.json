@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Wrist Band 457",
+    "label": "Andrei Piontkovsky",
+    "type": "Wrist Band",
+    "group": "Assisted Living Devices",
+    "customer": "Assisted Living Company",
+    "emulator": "Regular WristBand",
+    "attributes": {},
+    "relations": [
+      {
+        "entityType": "USER",
+        "entityName": "andrei.piontkovsky.$random@thingsboard.org",
+        "direction": "FROM",
+        "type": "Use"
+      }
+    ]
+  }
+]
