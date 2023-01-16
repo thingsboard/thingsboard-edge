@@ -620,6 +620,31 @@ public class EdgeController extends BaseController {
         edge.setEdgeLicenseKey(null);
     }
 
+    private boolean hasPermissionEdgeCreateOrWrite(SecurityUser user) throws ThingsboardException {
+        return accessControlService.hasPermission(user, Resource.EDGE, Operation.CREATE) ||
+                accessControlService.hasPermission(user, Resource.EDGE, Operation.WRITE);
+    }
+
+    @ApiOperation(value = "Get Edge Docker Install Instructions (getEdgeDockerInstallInstructions)",
+            notes = "Get a docker install instructions for provided edge id." + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/edge/instructions/{edgeId}", method = RequestMethod.GET)
+    @ResponseBody
+    public EdgeInstallInstructions getEdgeDockerInstallInstructions(
+            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
+            @PathVariable("edgeId") String strEdgeId,
+            HttpServletRequest request) throws ThingsboardException {
+        try {
+            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
+            edgeId = checkNotNull(edgeId);
+            Edge edge = checkEdgeId(edgeId, Operation.READ);
+            return checkNotNull(edgeInstallService.getDockerInstallInstructions(getTenantId(), edge, request));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
     @ResponseBody
@@ -648,31 +673,6 @@ public class EdgeController extends BaseController {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
             return checkNotNull(cloudEventService.findCloudEvents(tenantId, pageLink));
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
-    private boolean hasPermissionEdgeCreateOrWrite(SecurityUser user) throws ThingsboardException {
-        return accessControlService.hasPermission(user, Resource.EDGE, Operation.CREATE) ||
-                accessControlService.hasPermission(user, Resource.EDGE, Operation.WRITE);
-    }
-
-    @ApiOperation(value = "Get Edge Docker Install Instructions (getEdgeDockerInstallInstructions)",
-            notes = "Get a docker install instructions for provided edge id." + EDGE_SECURITY_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/instructions/{edgeId}", method = RequestMethod.GET)
-    @ResponseBody
-    public EdgeInstallInstructions getEdgeDockerInstallInstructions(
-            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION, required = true)
-            @PathVariable("edgeId") String strEdgeId,
-            HttpServletRequest request) throws ThingsboardException {
-        try {
-            EdgeId edgeId = new EdgeId(toUUID(strEdgeId));
-            edgeId = checkNotNull(edgeId);
-            Edge edge = checkEdgeId(edgeId, Operation.READ);
-            return checkNotNull(edgeInstallService.getDockerInstallInstructions(getTenantId(), edge, request));
         } catch (Exception e) {
             throw handleException(e);
         }
