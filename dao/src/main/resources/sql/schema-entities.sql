@@ -817,5 +817,4 @@ BEGIN
     deleted := ttl_deleted_count;
 END
 $$;
-);
 

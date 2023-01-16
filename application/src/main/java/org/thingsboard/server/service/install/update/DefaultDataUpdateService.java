@@ -215,6 +215,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     log.info("Skipping edge events migration");
                 }
 
+            case "3.4.3":
                 // remove this line in 4+ release
                 fixDuplicateSystemWidgetsBundles();
 
