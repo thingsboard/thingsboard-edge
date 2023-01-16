@@ -78,6 +78,10 @@ import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UserUpdateMsg;
 
+import java.io.File;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -113,7 +117,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         }
     }
 
-   @Before
+    @Before
     public void beforeTest() throws Exception {
         loginSysAdmin();
 
@@ -353,7 +357,7 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
         String customerIdStr = customerId.getId().toString();
 
         String msgError = msgErrorNoFound("Customer", customerIdStr);
-        doPost("/api/customer/" + customerIdStr+ "/edge/" + savedEdge.getId().getId().toString())
+        doPost("/api/customer/" + customerIdStr + "/edge/" + savedEdge.getId().getId().toString())
                 .andExpect(status().isNotFound())
                 .andExpect(statusReason(containsString(msgError)));
 
@@ -1082,5 +1086,14 @@ public abstract class BaseEdgeControllerTest extends AbstractControllerTest {
     private Edge savedEdge(String name) {
         Edge edge = constructEdge(name, "default");
         return doPost("/api/edge", edge, Edge.class);
+    }
+
+    @Test
+    public void testGetEdgeInstallInstructions() throws Exception {
+        Edge edge = constructEdge(tenantId, "Edge for Test Docker Install Instructions", "default", "7390c3a6-69b0-9910-d155-b90aca4b772e", "l7q4zsjplzwhk16geqxy");
+        Edge savedEdge = doPost("/api/edge", edge, Edge.class);
+        String installInstructions = doGet("/api/edge/instructions/" + savedEdge.getId().getId().toString(), String.class);
+        Assert.assertTrue(installInstructions.contains("l7q4zsjplzwhk16geqxy"));
+        Assert.assertTrue(installInstructions.contains("7390c3a6-69b0-9910-d155-b90aca4b772e"));
     }
 }
