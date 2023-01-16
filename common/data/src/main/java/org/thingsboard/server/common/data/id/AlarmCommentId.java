@@ -28,31 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.alarm;
+package org.thingsboard.server.common.data.id;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityId;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.annotations.ApiModel;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-public class AlarmOperationResult {
-    private final Alarm alarm;
-    private final boolean successful;
-    private final boolean created;
-    private final AlarmSeverity oldSeverity;
-    private final List<EntityId> propagatedEntitiesList;
+@ApiModel
+public class AlarmCommentId extends UUIDBased {
 
-    public AlarmOperationResult(Alarm alarm, boolean successful) {
-        this(alarm, successful, Collections.emptyList());
+    private static final long serialVersionUID = 1L;
+
+    @JsonCreator
+    public AlarmCommentId(@JsonProperty("id") UUID id) {
+        super(id);
     }
 
-    public AlarmOperationResult(Alarm alarm, boolean successful, List<EntityId> propagatedEntitiesList) {
-        this(alarm, successful, false, null, propagatedEntitiesList);
+    public static AlarmCommentId fromString(String commentId) {
+        return new AlarmCommentId(UUID.fromString(commentId));
     }
 }

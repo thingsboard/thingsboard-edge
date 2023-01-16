@@ -28,31 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.alarm;
+package org.thingsboard.server.common.data.alarm;
 
-import lombok.AllArgsConstructor;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.EqualsAndHashCode;
 
-import java.util.Collections;
-import java.util.List;
-
+@ApiModel
 @Data
-@AllArgsConstructor
-public class AlarmOperationResult {
-    private final Alarm alarm;
-    private final boolean successful;
-    private final boolean created;
-    private final AlarmSeverity oldSeverity;
-    private final List<EntityId> propagatedEntitiesList;
+@EqualsAndHashCode(callSuper = true)
+public class AlarmCommentInfo extends AlarmComment {
+    private static final long serialVersionUID = 2807343093519543377L;
 
-    public AlarmOperationResult(Alarm alarm, boolean successful) {
-        this(alarm, successful, Collections.emptyList());
+    @ApiModelProperty(position = 19, value = "User first name", example = "John")
+    private String firstName;
+
+    @ApiModelProperty(position = 19, value = "User last name", example = "Brown")
+    private String lastName;
+
+    @ApiModelProperty(position = 19, value = "User email address", example = "johnBrown@gmail.com")
+    private String email;
+
+    public AlarmCommentInfo() {
+        super();
     }
 
-    public AlarmOperationResult(Alarm alarm, boolean successful, List<EntityId> propagatedEntitiesList) {
-        this(alarm, successful, false, null, propagatedEntitiesList);
+    public AlarmCommentInfo(AlarmComment alarmComment) {
+        super(alarmComment);
+    }
+
+    public AlarmCommentInfo(AlarmComment alarmComment, String firstName, String lastName, String email) {
+        super(alarmComment);
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
     }
 }

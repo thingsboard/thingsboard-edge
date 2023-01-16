@@ -28,31 +28,38 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.alarm;
+package org.thingsboard.server.dao.model.sql;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
-import org.thingsboard.server.common.data.id.EntityId;
-
-import java.util.Collections;
-import java.util.List;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.alarm.AlarmCommentInfo;
 
 @Data
-@AllArgsConstructor
-public class AlarmOperationResult {
-    private final Alarm alarm;
-    private final boolean successful;
-    private final boolean created;
-    private final AlarmSeverity oldSeverity;
-    private final List<EntityId> propagatedEntitiesList;
+@EqualsAndHashCode(callSuper = true)
+public class AlarmCommentInfoEntity extends AbstractAlarmCommentEntity<AlarmCommentInfo> {
 
-    public AlarmOperationResult(Alarm alarm, boolean successful) {
-        this(alarm, successful, Collections.emptyList());
+    private String firstName;
+    private String lastName;
+
+    private String email;
+
+    public AlarmCommentInfoEntity() {
+        super();
     }
 
-    public AlarmOperationResult(Alarm alarm, boolean successful, List<EntityId> propagatedEntitiesList) {
-        this(alarm, successful, false, null, propagatedEntitiesList);
+    public AlarmCommentInfoEntity(AlarmCommentEntity alarmCommentEntity) {
+        super(alarmCommentEntity);
+    }
+
+    public AlarmCommentInfoEntity(AlarmCommentEntity alarmCommentEntity, String firstName, String lastName, String email) {
+        super(alarmCommentEntity);
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
+    @Override
+    public AlarmCommentInfo toData() {
+        return new AlarmCommentInfo(super.toAlarmComment(), this.firstName, this.lastName, this.email);
     }
 }
