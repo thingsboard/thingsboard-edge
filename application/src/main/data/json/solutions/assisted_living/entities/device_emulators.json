@@ -1,0 +1,31 @@
+[
+  {
+    "name": "Regular WristBand",
+    "publishPeriodInDays": 7,
+    "publishFrequencyInSeconds": 3600,
+    "publishPauseInMillis": 1,
+    "activityPeriodInMillis": 15768000000,
+    "telemetryProfiles": [
+      {
+        "key": "weight",
+        "valueStrategy": {
+          "type": "natural",
+          "precision": 1,
+          "minStartValue": 70,
+          "maxStartValue": 80,
+          "minLowValue": 10,
+          "maxLowValue": 10,
+          "minHighValue": 150,
+          "maxHighValue": 150,
+          "minIncrement": 20.0,
+          "maxIncrement": 50.0,
+          "minDecrement": 1.0,
+          "maxDecrement": 2.0,
+          "holidayMultiplier": 1.0,
+          "workHoursMultiplier": 1.0,
+          "nightHoursMultiplier": 1.0
+        }
+      }
+    ]
+  }
+]
