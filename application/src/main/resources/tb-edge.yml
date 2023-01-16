@@ -223,6 +223,8 @@ sql:
     batch_size: "${SQL_CLOUD_EVENTS_BATCH_SIZE:1000}"
     batch_max_delay: "${SQL_CLOUD_EVENTS_BATCH_MAX_DELAY_MS:100}"
     stats_print_interval_ms: "${SQL_CLOUD_EVENTS_BATCH_STATS_PRINT_MS:10000}"
+  alarm_comments:
+    partition_size: "${SQL_ALARM_COMMENTS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   blob_entities:
     partition_size: "${SQL_BLOB_ENTITIES_PARTITION_SIZE_HOURS:168}"
   # Specify whether to sort entities before batch update. Should be enabled for cluster mode to avoid deadlocks

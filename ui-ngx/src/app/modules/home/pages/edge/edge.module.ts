@@ -40,12 +40,14 @@ import { EdgeRoutingModule } from '@home/pages/edge/edge-routing.module';
 import { EdgeComponent } from './edge.component';
 import { EDGE_GROUP_CONFIG_FACTORY } from '@home/models/group/group-entities-table-config.models';
 import { EdgeGroupConfigFactory } from '@home/pages/edge/edge-group-config.factory';
+import { EdgeInstructionsDialogComponent } from './edge-instructions-dialog.component';
 
 @NgModule({
   declarations: [
     EdgeComponent,
     EdgeTableHeaderComponent,
-    EdgeTabsComponent
+    EdgeTabsComponent,
+    EdgeInstructionsDialogComponent
   ],
   imports: [
     CommonModule,

@@ -73,6 +73,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimits;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
@@ -320,6 +321,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private AlarmSubscriptionService alarmService;
+
+    @Autowired
+    @Getter
+    private AlarmCommentService alarmCommentService;
 
     @Autowired
     @Getter
